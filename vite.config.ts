@@ -4,7 +4,12 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
-  const contactProxyTarget = env.VITE_CONTACT_API_URL?.replace(/\/$/, '');
+  /** Origin only (e.g. https://www.tandra.me). Strips `/api/contact` if pasted by mistake. */
+  const contactProxyTarget = (() => {
+    const raw = env.VITE_CONTACT_API_URL?.trim().replace(/\/$/, '') ?? '';
+    if (!raw) return '';
+    return raw.replace(/\/api\/contact$/i, '').replace(/\/api$/i, '');
+  })();
 
   return {
     plugins: [react()],

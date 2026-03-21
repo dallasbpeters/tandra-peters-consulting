@@ -37,7 +37,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     position: "relative",
-    minHeight: "100vh",
+    minHeight: "80vh",
     display: "flex",
     alignItems: "center",
     paddingTop: "5rem",
