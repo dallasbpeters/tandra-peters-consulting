@@ -143,9 +143,9 @@ export const Mission: React.FC<MissionProps> = ({
               style={{
                 fontSize: "clamp(3rem, 10vw, 4rem)",
                 lineHeight: 1,
-                fontFamily: theme.fonts.headline,
-                fontWeight: 700,
-                textTransform: "uppercase",
+                fontFamily: theme.fonts.headlineAlt,
+                fontWeight: 400,
+                color: theme.colors.paper,
               }}
             >
               {title}
@@ -228,7 +228,7 @@ export const Mission: React.FC<MissionProps> = ({
                       color: theme.colors.evergladeMuted,
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
-                      fontSize: isMain ? "1rem" : "1.1rem",
+                      fontSize: "1rem",
                     }}
                   >
                     {service.description}

@@ -72,9 +72,11 @@ export interface ServicesProps {
 }
 
 export interface ExpertiseItem {
-  icon: React.ElementType;
+  id: string;
   title: string;
   desc: string;
+  /** Path under `/public`, e.g. `/roof-2.jpg` */
+  image: string;
 }
 
 export interface ExpertiseProps {

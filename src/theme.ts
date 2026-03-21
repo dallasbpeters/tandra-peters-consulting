@@ -1,7 +1,7 @@
 export const theme = {
   fonts: {
     headline: '"Plus Jakarta Sans", sans-serif',
-    headlineAlt: '"Instrument Serif", sans-serif',
+    headlineAlt: '"Instrument Serif", serif',
     body: '"Plus Jakarta Sans", sans-serif',
   },
   colors: {

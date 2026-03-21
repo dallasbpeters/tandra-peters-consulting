@@ -37,13 +37,31 @@ const isAllowedOrigin = (origin: string | undefined): boolean => {
   return allowed.includes(origin);
 };
 
+/** Browsers send Origin on POST + JSON; preflight OPTIONS must echo ACAO or the request fails. */
+const applyCors = (res: VercelResponse, origin: string | undefined): void => {
+  const raw = process.env.ALLOWED_ORIGINS?.trim();
+  if (!raw) {
+    res.setHeader("Access-Control-Allow-Origin", origin ?? "*");
+    if (origin) res.setHeader("Vary", "Origin");
+    return;
+  }
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+};
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
+  const origin = req.headers.origin as string | undefined;
+  applyCors(res, origin);
+
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Max-Age", "86400");
     res.status(204).end();
     return;
   }
@@ -54,7 +72,6 @@ export default async function handler(
     return;
   }
 
-  const origin = req.headers.origin as string | undefined;
   if (!isAllowedOrigin(origin)) {
     res.status(403).json({ ok: false, error: "Forbidden" });
     return;

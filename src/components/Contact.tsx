@@ -4,10 +4,8 @@ import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { theme } from "../theme";
 import { ContactProps } from "../types";
 
-const contactApiUrl = (): string => {
-  const base = import.meta.env.VITE_CONTACT_API_URL?.replace(/\/$/, "") ?? "";
-  return base ? `${base}/api/contact` : "/api/contact";
-};
+/** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
+const CONTACT_API_PATH = "/api/contact";
 
 export const Contact = ({
   tagline = "Get in Touch",
@@ -35,7 +33,7 @@ export const Contact = ({
     setErrorMessage("");
 
     try {
-      const res = await fetch(contactApiUrl(), {
+      const res = await fetch(CONTACT_API_PATH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -46,21 +44,42 @@ export const Contact = ({
           company: honeypot,
         }),
       });
-      const contentType = res.headers.get("content-type") ?? "";
-      const data = (contentType.includes("application/json")
-        ? await res.json().catch(() => ({}))
-        : {}) as { ok?: boolean; error?: string };
+      const rawText = await res.text();
+      let data = {} as { ok?: boolean; error?: string };
+      try {
+        data = rawText ? (JSON.parse(rawText) as typeof data) : {};
+      } catch {
+        data = {};
+      }
       if (!res.ok || !data.ok) {
         setSubmitStatus("error");
-        const fallback =
-          res.ok && !data.ok
-            ? "The contact endpoint returned an invalid response. Redeploy after fixing API routing, or run `vercel dev` locally."
-            : "Something went wrong. Please try again.";
-        setErrorMessage(
-          typeof data.error === "string" && data.error
-            ? data.error
-            : fallback,
-        );
+        const fromApi =
+          typeof data.error === "string" && data.error.trim()
+            ? data.error.trim()
+            : "";
+        const byStatus = (() => {
+          if (fromApi) return "";
+          if (res.status === 404) {
+            return "Contact form endpoint was not found. On local dev, set VITE_CONTACT_API_URL in .env.local to your live site (Vite will proxy /api) or run `vercel dev`.";
+          }
+          if (res.status === 403) {
+            return "This site is not allowed to submit the form (ALLOWED_ORIGINS). Add your exact URL, including https:// and www if used.";
+          }
+          if (res.status === 503) {
+            return "Server is missing ATTIO_API_TOKEN. Add it in Vercel → Project → Environment Variables.";
+          }
+          if (res.status === 502) {
+            return "Could not save your message (CRM error). Try again later or contact us by phone or email.";
+          }
+          if (res.ok && !data.ok) {
+            return "The server returned an unexpected response. Check that /api/contact is not rewritten to the SPA.";
+          }
+          if (!fromApi && rawText && !rawText.trim().startsWith("{")) {
+            return "Received a non-JSON response (often HTML). The /api/contact route may not be deployed or is being rewritten to index.html.";
+          }
+          return "Something went wrong. Please try again.";
+        })();
+        setErrorMessage(fromApi || byStatus);
         return;
       }
       setSubmitStatus("success");
@@ -72,7 +91,7 @@ export const Contact = ({
     } catch {
       setSubmitStatus("error");
       setErrorMessage(
-        "Network error. If you are running the site locally, use `vercel dev` or set VITE_CONTACT_API_URL to your deployed site.",
+        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api to production.",
       );
     }
   };

@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Hammer, Ruler, Building2, CloudHail } from "lucide-react";
 import { theme } from "../theme";
 import { ExpertiseProps } from "../types";
 
@@ -8,25 +7,45 @@ export const Expertise: React.FC<ExpertiseProps> = ({
   tagline = "My Expertise",
   title = "Specialized Knowledge.",
   items = [
-    { icon: Hammer, title: "Shingle Roofs", desc: "Shingle roofs are the most common type of roof and are made of asphalt, wood, or other materials." },
-    { icon: Ruler, title: "Metal Roofs", desc: "Metal roofs are a durable and long-lasting option for roofs." },
-    { icon: Building2, title: "Commercial", desc: "Specialized consulting for large-scale commercial roofing projects." },
-    { icon: CloudHail, title: "Hail & Storm Damage", desc: "Hail and storm damage can cause significant damage to your roof." }
-  ]
+    {
+      id: "01",
+      title: "Shingle Roofs",
+      desc: "Shingle roofs are the most common type of roof and are made of asphalt, wood, or other materials.",
+      image: "/shingles.jpg",
+    },
+    {
+      id: "02",
+      title: "Metal Roofs",
+      desc: "Metal roofs are a durable and long-lasting option for roofs.",
+      image: "/roof.jpeg",
+    },
+    {
+      id: "03",
+      title: "Commercial",
+      desc: "Specialized consulting for large-scale commercial roofing projects.",
+      image: "/commercial.jpg",
+    },
+    {
+      id: "04",
+      title: "Hail & Storm Damage",
+      desc: "Hail and storm damage can cause significant damage to your roof.",
+      image: "/hail-storm.jpg",
+    },
+  ],
 }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.15,
+      },
+    },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   const sectionStyle: React.CSSProperties = {
@@ -34,6 +53,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
     paddingBottom: "8rem",
     backgroundColor: theme.colors.everglade,
     color: theme.colors.white,
+    borderBottom: `1px solid ${theme.colors.paperDark}10`,
   };
 
   const containerStyle: React.CSSProperties = {
@@ -51,43 +71,160 @@ export const Expertise: React.FC<ExpertiseProps> = ({
 
   const gridStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "3rem",
+    gridTemplateColumns: "1fr",
+    gap: "2rem",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: theme.colors.everglade,
+    borderRadius: "1rem",
+    padding: "1.5rem",
+    position: "relative",
+    overflow: "hidden",
+    minHeight: "400px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    transition: "all 0.5s",
   };
 
   return (
     <section style={sectionStyle}>
       <div style={containerStyle}>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={headerStyle}
         >
-          <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: theme.colors.accentLight, fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
-          <h2 style={{ fontSize: "clamp(3rem, 8vw, 4.5rem)", lineHeight: 1, fontFamily: theme.fonts.headline, fontWeight: 700, textTransform: "uppercase" }}>{title}</h2>
+          <span
+            style={{
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+              color: theme.colors.accentLight,
+              fontSize: "0.75rem",
+              marginBottom: "1.5rem",
+              display: "block",
+            }}
+          >
+            {tagline}
+          </span>
+          <h2
+            style={{
+              fontSize: "clamp(3rem, 8vw, 4.5rem)",
+              lineHeight: 1,
+              fontFamily: theme.fonts.headline,
+              fontWeight: 700,
+              textTransform: "uppercase",
+            }}
+          >
+            {title}
+          </h2>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           style={gridStyle}
+          className="expertise-grid"
         >
-          {items.map((item, i) => (
-            <motion.div key={i} variants={itemVariants} style={{ textAlign: "center" }} className="group">
-              <style>{`
-                .group:hover .icon-container { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade} !important; }
-                .group:hover p { opacity: 1 !important; }
-              `}</style>
-              <div style={{ width: "5rem", height: "5rem", backgroundColor: "rgba(255, 255, 255, 0.05)", borderRadius: "9999px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 2rem", transition: "all 0.5s" }} className="icon-container">
-                <item.icon size={32} />
+          <style>{`
+            @media (min-width: 768px) {
+              .expertise-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+              }
+            }
+            @media (min-width: 1280px) {
+              .expertise-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+              }
+            }
+            .expertise-card:hover .expertise-card-bg {
+              opacity: 0.3 !important;
+            }
+            .expertise-card:hover {
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35),
+                0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+            }
+          `}</style>
+          {items.map((item) => (
+            <motion.div
+              key={item.id}
+              variants={cardVariants}
+              style={cardStyle}
+              className="expertise-card"
+            >
+              {item.image ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    opacity: 0.6,
+                    transition: "opacity 0.7s",
+                  }}
+                  className="expertise-card-bg"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ) : null}
+              <div style={{ position: "relative", zIndex: 10 }}>
+                <h3
+                  style={{
+                    color: theme.colors.white,
+                    fontSize: "1.875rem",
+                    lineHeight: 1.25,
+                    marginBottom: "1.5rem",
+                    fontFamily: theme.fonts.headline,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    color: theme.colors.paper,
+                    lineHeight: 1.6,
+                    fontSize: "1rem",
+                    maxWidth: "28rem",
+                  }}
+                >
+                  {item.desc}
+                </p>
               </div>
-              <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem", fontFamily: theme.fonts.headline, fontWeight: 700, textTransform: "uppercase", letterSpacing: "-0.02em" }}>{item.title}</h3>
-              <p style={{ color: theme.colors.evergladeMuted, fontSize: "1.1rem", lineHeight: 1.6, maxWidth: "200px", margin: "0 auto", opacity: 0.6, transition: "opacity 0.3s" }}>
-                {item.desc}
-              </p>
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 10,
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "flex-end",
+                }}
+              >
+                <span
+                  style={{
+                    color: "rgba(255, 255, 255, 0.2)",
+                    fontFamily: theme.fonts.headline,
+                    fontWeight: 900,
+                    fontSize: "3.75rem",
+                    lineHeight: 1,
+                  }}
+                >
+                  {item.id}
+                </span>
+              </div>
             </motion.div>
           ))}
         </motion.div>
