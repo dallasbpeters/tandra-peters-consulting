@@ -1,0 +1,136 @@
+/**
+ * Vercel serverless: POST /api/contact → Attio People (assert by email).
+ *
+ * Env (Vercel → Project → Settings → Environment Variables):
+ *   ATTIO_API_TOKEN   — Bearer token from Attio (Developers / API tokens).
+ *                       Scopes: record_permission:read-write, object_configuration:read
+ *   ALLOWED_ORIGINS   — Optional. Comma-separated exact Origin values, e.g.
+ *                       https://tandra.me,https://www.tandra.me
+ *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
+ */
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+const ATTIO_ASSERT_URL =
+  "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const parseBody = (req: VercelRequest): Record<string, unknown> => {
+  const raw = req.body;
+  if (raw == null) return {};
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }
+  if (typeof raw === "object") return raw as Record<string, unknown>;
+  return {};
+};
+
+const isAllowedOrigin = (origin: string | undefined): boolean => {
+  const raw = process.env.ALLOWED_ORIGINS?.trim();
+  if (!raw) return true;
+  if (!origin) return false;
+  const allowed = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return allowed.includes(origin);
+};
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<void> {
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.status(204).end();
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST, OPTIONS");
+    res.status(405).json({ ok: false, error: "Method not allowed" });
+    return;
+  }
+
+  const origin = req.headers.origin as string | undefined;
+  if (!isAllowedOrigin(origin)) {
+    res.status(403).json({ ok: false, error: "Forbidden" });
+    return;
+  }
+
+  const token = process.env.ATTIO_API_TOKEN?.trim();
+  if (!token) {
+    res.status(503).json({ ok: false, error: "Service not configured" });
+    return;
+  }
+
+  const body = parseBody(req);
+
+  const honeypot = typeof body.company === "string" ? body.company.trim() : "";
+  if (honeypot) {
+    res.status(200).json({ ok: true });
+    return;
+  }
+
+  const fullName =
+    typeof body.fullName === "string" ? body.fullName.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const propertyAddress =
+    typeof body.propertyAddress === "string"
+      ? body.propertyAddress.trim()
+      : "";
+  const message =
+    typeof body.message === "string" ? body.message.trim() : "";
+
+  if (!fullName || fullName.length > 200) {
+    res.status(400).json({ ok: false, error: "Please enter your name." });
+    return;
+  }
+  if (!email || !EMAIL_RE.test(email) || email.length > 320) {
+    res.status(400).json({ ok: false, error: "Please enter a valid email." });
+    return;
+  }
+  if (!message || message.length > 8000) {
+    res.status(400).json({ ok: false, error: "Please enter a message." });
+    return;
+  }
+  if (propertyAddress.length > 500) {
+    res.status(400).json({ ok: false, error: "Property address is too long." });
+    return;
+  }
+
+  const description = [
+    "Source: Website contact form",
+    `Property / address: ${propertyAddress || "—"}`,
+    "",
+    message,
+  ].join("\n");
+
+  const attioRes = await fetch(ATTIO_ASSERT_URL, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      data: {
+        values: {
+          email_addresses: [{ email_address: email.toLowerCase() }],
+          name: [{ full_name: fullName }],
+          description: [{ value: description.slice(0, 100_000) }],
+        },
+      },
+    }),
+  });
+
+  if (!attioRes.ok) {
+    const errText = await attioRes.text();
+    console.error("Attio error", attioRes.status, errText);
+    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    return;
+  }
+
+  res.status(200).json({ ok: true });
+}
