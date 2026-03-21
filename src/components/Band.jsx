@@ -91,6 +91,14 @@ export default function Band({
 
   const palette = colors.length ? colors : defaultBandColors
   const numStops = palette.length
+  const lastBandIndex = bands.length - 1
+  /** Subpixel animated heights leave hairline gaps; overlap + base fill hides them. */
+  const bandOverlapStyle = (index) => ({
+    marginTop: index > 0 ? -1 : 0,
+    marginBottom: index === lastBandIndex ? -1 : 0,
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+  })
 
   if (numStops < 2) {
     const gradientBg = numStops === 1 ? palette[0] : 'transparent'
@@ -103,6 +111,7 @@ export default function Band({
           position: 'relative',
           width: '100%',
           transform: rotate ? 'rotate(180deg)' : undefined,
+          background: numStops === 1 ? palette[0] : undefined,
           ...style,
         }}
       >
@@ -114,6 +123,7 @@ export default function Band({
               width: '100%',
               background: gradientBg,
               height,
+              ...bandOverlapStyle(index),
             }}
           >
             <span
@@ -155,6 +165,7 @@ export default function Band({
         position: 'relative',
         width: '100%',
         transform: rotate ? 'rotate(180deg)' : undefined,
+        background: palette[0],
         ...style,
       }}
       onMouseMove={onMouseMove}
@@ -170,6 +181,7 @@ export default function Band({
             height,
             ...customProperties,
             transition: transitionValue,
+            ...bandOverlapStyle(index),
           }}
         >
           <span

@@ -85,7 +85,13 @@ export default async function handler(
 
   const body = parseBody(req);
 
-  const honeypot = typeof body.company === "string" ? body.company.trim() : "";
+  // Must NOT use common autofill names (e.g. "company") — managers fill those and we skip Attio with a fake success.
+  const honeypot =
+    typeof body._hp === "string"
+      ? body._hp.trim()
+      : typeof body.company === "string"
+        ? body.company.trim()
+        : "";
   if (honeypot) {
     res.status(200).json({ ok: true });
     return;
@@ -149,5 +155,37 @@ export default async function handler(
     return;
   }
 
+  let attioJson: unknown;
+  try {
+    attioJson = await attioRes.json();
+  } catch {
+    console.error("Attio: 2xx but response was not JSON");
+    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    return;
+  }
+
+  const recordId =
+    attioJson &&
+    typeof attioJson === "object" &&
+    "data" in attioJson &&
+    attioJson.data &&
+    typeof attioJson.data === "object" &&
+    attioJson.data !== null &&
+    "id" in attioJson.data &&
+    attioJson.data.id &&
+    typeof attioJson.data.id === "object" &&
+    attioJson.data.id !== null &&
+    "record_id" in attioJson.data.id &&
+    typeof (attioJson.data.id as { record_id?: unknown }).record_id === "string"
+      ? (attioJson.data.id as { record_id: string }).record_id
+      : null;
+
+  if (!recordId) {
+    console.error("Attio: unexpected success payload", JSON.stringify(attioJson).slice(0, 500));
+    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    return;
+  }
+
+  console.info("Attio person assert ok", { record_id: recordId });
   res.status(200).json({ ok: true });
 }

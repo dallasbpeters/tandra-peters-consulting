@@ -292,6 +292,9 @@ export const Services: React.FC<ServicesProps> = ({
                     {service.id}
                   </span>
                   <button
+                  onClick={() => {
+                    window.location.href = '#contact';
+                  }}
                     style={{
                       backgroundColor: isMain
                         ? "rgba(255, 255, 255, 0.1)"

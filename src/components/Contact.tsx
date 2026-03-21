@@ -9,7 +9,7 @@ const CONTACT_API_PATH = "/api/contact";
 
 export const Contact = ({
   tagline = "Get in Touch",
-  title = "Start Your Consultation.",
+  title = "Getting a new roof doesn't have to be stressful.",
   email = "tandrapeters@birdcreekroofing.com",
   phone = "(512) 968-3965",
   location = "Austin, Texas",
@@ -41,7 +41,7 @@ export const Contact = ({
           email: visitorEmail,
           propertyAddress,
           message,
-          company: honeypot,
+          _hp: honeypot,
         }),
       });
       const rawText = await res.text();
@@ -186,7 +186,7 @@ export const Contact = ({
           className="lg-col-5"
         >
           <span style={{ fontWeight: 700, letterSpacing: "0.2em", color: theme.colors.accent, textTransform: "uppercase", fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
-          <h2 style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headline, fontWeight: 700, textTransform: "uppercase" }}>{title}</h2>
+          <h2 style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 600,}}>{title}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
@@ -233,7 +233,7 @@ export const Contact = ({
           >
             <input
               type="text"
-              name="company"
+              name="_hp"
               value={honeypot}
               onChange={(ev) => setHoneypot(ev.target.value)}
               tabIndex={-1}

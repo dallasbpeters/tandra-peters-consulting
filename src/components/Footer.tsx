@@ -28,9 +28,10 @@ export const Footer: React.FC<FooterProps> = ({
   const footerStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,
     color: theme.colors.white,
+    /* Pull up 1px so footer paint covers the hairline below the last Band stripe (subpixel layout). */
+    marginTop: "-1px",
     paddingTop: "5rem",
     paddingBottom: "5rem",
-    borderTop: "1px solid rgba(255, 255, 255, 0.05)",
   };
 
   const containerStyle: React.CSSProperties = {

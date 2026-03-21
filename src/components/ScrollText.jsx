@@ -4,6 +4,7 @@ import { motion, useAnimationFrame, useMotionValue, useScroll, useSpring, useTra
 import * as IconoirIcons from 'iconoir-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import TexasFlag from './TexasFlag'
+import { theme } from '../theme'
 
 function useElementWidth(ref) {
   const [width, setWidth] = useState(0)
@@ -192,6 +193,7 @@ export default function ScrollVelocity(props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        borderBottom: `1px solid ${theme.colors.evergladeMuted}`,
         ...style,
       }}
     >
