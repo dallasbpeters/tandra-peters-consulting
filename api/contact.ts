@@ -51,6 +51,55 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
   }
 };
 
+const nameValues = (fullName: string): Array<Record<string, string>> => {
+  const trimmed = fullName.trim();
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  const first_name = parts[0] ?? trimmed;
+  const last_name = parts.length > 1 ? parts.slice(1).join(" ") : "";
+  const row: Record<string, string> = { first_name, full_name: trimmed };
+  if (last_name) row.last_name = last_name;
+  return [row];
+};
+
+type AttioErrJson = {
+  type?: string;
+  message?: string;
+  status_code?: number;
+};
+
+const parseAttioErrorMessage = (bodyText: string): string | null => {
+  try {
+    const j = JSON.parse(bodyText) as AttioErrJson;
+    if (typeof j.message === "string" && j.message.trim()) {
+      return j.message.trim().slice(0, 400);
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+};
+
+const recordIdFromAssertResponse = (j: unknown): string | null => {
+  if (!j || typeof j !== "object") return null;
+  const data = (j as { data?: unknown }).data;
+  if (!data || typeof data !== "object" || data === null) return null;
+  const d = data as Record<string, unknown>;
+
+  const id = d.id;
+  if (id && typeof id === "object" && id !== null) {
+    const rid = (id as { record_id?: unknown }).record_id;
+    if (typeof rid === "string" && rid.length > 0) return rid;
+  }
+
+  const webUrl = d.web_url;
+  if (typeof webUrl === "string") {
+    const m = webUrl.match(/\/(?:person|people)\/([0-9a-f-]{36})/i);
+    if (m) return m[1];
+  }
+
+  return null;
+};
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
@@ -85,7 +134,6 @@ export default async function handler(
 
   const body = parseBody(req);
 
-  // Must NOT use common autofill names (e.g. "company") — managers fill those and we skip Attio with a fake success.
   const honeypot =
     typeof body._hp === "string"
       ? body._hp.trim()
@@ -131,27 +179,55 @@ export default async function handler(
     message,
   ].join("\n");
 
-  const attioRes = await fetch(ATTIO_ASSERT_URL, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      data: {
-        values: {
-          email_addresses: [{ email_address: email.toLowerCase() }],
-          name: [{ full_name: fullName }],
-          description: [{ value: description.slice(0, 100_000) }],
-        },
+  const baseValues: Record<string, unknown> = {
+    email_addresses: [{ email_address: email.toLowerCase() }],
+    name: nameValues(fullName),
+  };
+
+  const putAssert = async (values: Record<string, unknown>) =>
+    fetch(ATTIO_ASSERT_URL, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    }),
+      body: JSON.stringify({ data: { values } }),
+    });
+
+  let attioRes = await putAssert({
+    ...baseValues,
+    description: [{ value: description.slice(0, 100_000) }],
   });
 
+  let errText = !attioRes.ok ? await attioRes.text() : "";
+
+  if (!attioRes.ok && attioRes.status === 400) {
+    const retry = await putAssert(baseValues);
+    if (retry.ok) {
+      attioRes = retry;
+      errText = "";
+    } else {
+      errText = await retry.text();
+    }
+  }
+
   if (!attioRes.ok) {
-    const errText = await attioRes.text();
     console.error("Attio error", attioRes.status, errText);
-    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    const attioMsg = parseAttioErrorMessage(errText);
+    if (attioRes.status === 401 || attioRes.status === 403) {
+      res.status(502).json({
+        ok: false,
+        error:
+          "CRM rejected the API token. Confirm ATTIO_API_TOKEN in Vercel and token scopes (read-write records).",
+      });
+      return;
+    }
+    res.status(502).json({
+      ok: false,
+      error:
+        attioMsg ??
+        "Could not save your message. Try again later.",
+    });
     return;
   }
 
@@ -164,24 +240,26 @@ export default async function handler(
     return;
   }
 
-  const recordId =
-    attioJson &&
-    typeof attioJson === "object" &&
-    "data" in attioJson &&
-    attioJson.data &&
-    typeof attioJson.data === "object" &&
-    attioJson.data !== null &&
-    "id" in attioJson.data &&
-    attioJson.data.id &&
-    typeof attioJson.data.id === "object" &&
-    attioJson.data.id !== null &&
-    "record_id" in attioJson.data.id &&
-    typeof (attioJson.data.id as { record_id?: unknown }).record_id === "string"
-      ? (attioJson.data.id as { record_id: string }).record_id
-      : null;
-
+  const recordId = recordIdFromAssertResponse(attioJson);
   if (!recordId) {
-    console.error("Attio: unexpected success payload", JSON.stringify(attioJson).slice(0, 500));
+    const data =
+      attioJson &&
+      typeof attioJson === "object" &&
+      "data" in attioJson &&
+      attioJson.data &&
+      typeof attioJson.data === "object" &&
+      attioJson.data !== null
+        ? (attioJson.data as Record<string, unknown>)
+        : null;
+    if (data && typeof data.web_url === "string" && data.web_url.length > 0) {
+      console.info("Attio person assert ok (web_url only)", { web_url: data.web_url });
+      res.status(200).json({ ok: true });
+      return;
+    }
+    console.error(
+      "Attio: unexpected success payload",
+      JSON.stringify(attioJson).slice(0, 800),
+    );
     res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
     return;
   }
