@@ -9,8 +9,8 @@ import { ContactProps } from "../types";
 const CONTACT_API_PATH = "/api/contact";
 
 export const Contact = ({
-  tagline = "Get in Touch",
-  title = "Getting a new roof doesn't have to be stressful.",
+  tagline = "Contact the consultant",
+  title = "Request a free roofing consultation in Austin or statewide.",
   email = "tandrapeters@birdcreekroofing.com",
   phone = "(512) 968-3965",
   location = "Austin, Texas",
@@ -203,7 +203,7 @@ export const Contact = ({
   const serviceLabel = formLabels?.service ?? "Service interest";
 
   return (
-    <section id="contact" style={sectionStyle}>
+    <section id="contact" style={sectionStyle} aria-labelledby="contact-heading">
       <div style={containerStyle} className="lg-grid-12">
         <style>{`
           @media (min-width: 1024px) {
@@ -230,7 +230,7 @@ export const Contact = ({
           className="lg-col-5"
         >
           <span style={{ fontWeight: 700, letterSpacing: "0.2em", color: theme.colors.accent, textTransform: "uppercase", fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
-          <h2 style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 600,}}>{title}</h2>
+          <h2 id="contact-heading" style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 600,}}>{title}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">

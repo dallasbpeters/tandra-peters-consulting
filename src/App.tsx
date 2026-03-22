@@ -8,6 +8,9 @@ import { Expertise } from "./components/Expertise";
 import  {WallyReviews}  from "./components/Testimonials";
 import { Contact } from "./components/Contact";
 import { Footer } from "./components/Footer";
+import { SocialShareBar } from "./components/SocialShareBar";
+import { Faq } from "./components/Faq";
+import { SeoStructuredData } from "./components/SeoStructuredData";
 import Band  from "./components/Band";
 import { theme } from "./theme";
 
@@ -19,6 +22,7 @@ function App() {
       color: theme.colors.everglade,
       fontFamily: theme.fonts.body
     }}>
+      <SeoStructuredData />
       <Nav />
       <main>
         <Hero />
@@ -31,9 +35,11 @@ function App() {
         <Expertise />
         <WallyReviews />
         <Band tint={theme.colors.everglade} colors={[theme.colors.evergladeLight, theme.colors.evergladeMuted, theme.colors.paper, theme.colors.purple, theme.colors.purple, theme.colors.purple]} />
+        <Faq />
         <Contact />
-        <Band reverse={true} rotate={true} tint={theme.colors.everglade} colors={[theme.colors.evergladeLight, theme.colors.evergladeMuted, theme.colors.paper, theme.colors.purple, theme.colors.purple, theme.colors.purple]} />
       </main>
+      <SocialShareBar />
+        <Band reverse={true} rotate={true} tint={theme.colors.everglade} colors={[theme.colors.evergladeLight, theme.colors.evergladeMuted, theme.colors.paper, theme.colors.purple, theme.colors.purple, theme.colors.purple]} />
       <Footer />
     </div>
   );

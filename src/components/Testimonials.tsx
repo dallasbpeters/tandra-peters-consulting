@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { theme } from "../theme";
 
 const WALLY_WIDGET_ID =
@@ -39,17 +39,32 @@ const WallyReviews = () => {
     };
   }, []);
 
+  const srOnly: React.CSSProperties = {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+  };
+
   return (
     <div
-    id="testimonials"
+      id="testimonials"
       ref={containerRef}
       style={{
         width: "100%",
         minHeight: "min(32rem, 70vh)",
         paddingBlock: "2rem",
         backgroundColor: theme.colors.everglade,
+        position: "relative",
       }}
-    />
+    >
+      <h2 style={srOnly}>Client reviews and testimonials</h2>
+    </div>
   );
 };
 

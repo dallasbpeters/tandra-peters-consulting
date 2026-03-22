@@ -13,6 +13,7 @@
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@types/react": "^19.2.14",
+    "@vercel/node": "^5.6.18",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
@@ -21,8 +22,10 @@
     "motion": "^12.23.24",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sharp": "^0.34.5",
+    "svgo": "^4.0.1",
     "vite": "^6.2.0",
-    "@vercel/node": "^5.6.18"
+    "vite-plugin-image-optimizer": "^2.0.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

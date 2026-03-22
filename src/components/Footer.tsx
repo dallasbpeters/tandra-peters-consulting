@@ -5,7 +5,7 @@ import { FooterProps } from "../types";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
-  description = "Professional roofing consultation with architectural precision and the backing of Austin's premier BirdCreek Roofing.",
+  description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with BirdCreek Roofing for trusted installation across Texas.",
   socialLinks = [
     { icon: Instagram, href: "https://www.instagram.com/tandra/" },
     { icon: Linkedin, href: "https://www.linkedin.com/in/tandra-peters-b8b38026/" },
@@ -15,7 +15,8 @@ export const Footer: React.FC<FooterProps> = ({
     { label: "Services", href: "#services" },
     { label: "About Tandra", href: "#about-tandra" },
     { label: "Testimonials", href: "#testimonials" },
-    { label: "Contact", href: "#contact" }
+    { label: "FAQ", href: "#faq" },
+    { label: "Contact", href: "#contact" },
   ],
   legalLinks = [
     { label: "Privacy Policy", href: "#" },
@@ -23,7 +24,7 @@ export const Footer: React.FC<FooterProps> = ({
     { label: "Cookie Policy", href: "#" }
   ],
   copyrightText = "© 2026 Tandra Peters. All Rights Reserved.",
-  partnerText = "Partnered with BirdCreek Roofing"
+  partnerText = "BirdCreek Roofing"
 }) => {
   const footerStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,

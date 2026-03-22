@@ -54,7 +54,7 @@ export interface Mission {
   id: string;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
   image?: string;
 }
 
@@ -139,4 +139,23 @@ export interface FooterProps {
   newsletterDesc?: string;
   copyrightText?: string;
   partnerText?: string;
+}
+
+export interface SocialShareBarProps {
+  heading?: string;
+  /** Line used in Twitter intent and email subject/body context */
+  shareText?: string;
+}
+
+export interface FaqItem {
+  question: string;
+  /** Plain text for visible copy and FAQPage JSON-LD */
+  answer: string;
+}
+
+export interface FaqProps {
+  tagline?: string;
+  title?: string;
+  intro?: string;
+  items?: FaqItem[];
 }

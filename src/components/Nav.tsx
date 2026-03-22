@@ -12,7 +12,8 @@ export const Nav: React.FC<NavProps> = ({
     { name: "Services", href: "#services" },
     { name: "About Tandra", href: "#about-tandra" },
     { name: "Testimonials", href: "#testimonials" },
-    { name: "Contact", href: "#contact" }
+    { name: "FAQ", href: "#faq" },
+    { name: "Contact", href: "#contact" },
   ],
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact"

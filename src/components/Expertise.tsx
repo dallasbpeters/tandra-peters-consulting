@@ -4,31 +4,31 @@ import { theme } from "../theme";
 import { ExpertiseProps } from "../types";
 
 export const Expertise: React.FC<ExpertiseProps> = ({
-  tagline = "My Expertise",
-  title = "Specialized Knowledge.",
+  tagline = "Roof types & scenarios",
+  title = "Consulting expertise by system.",
   items = [
     {
       id: "01",
-      title: "Shingle Roofs",
-      desc: "Shingle roofs are the most common type of roof and are made of asphalt, wood, or other materials.",
+      title: "Asphalt shingle roofs",
+      desc: "Guidance on shingle grades, ventilation, flashing details, and when repair versus full replacement is the smarter investment—especially before you file an insurance claim.",
       image: "/shingles.jpg",
     },
     {
       id: "02",
-      title: "Metal Roofs",
-      desc: "Metal roofs are a durable and long-lasting option for roofs.",
+      title: "Metal roofing",
+      desc: "Help comparing standing seam versus exposed-fastener systems, coating longevity, wind ratings, and how metal performs in Texas heat and hail-prone seasons.",
       image: "/roof.jpeg",
     },
     {
       id: "03",
-      title: "Commercial",
-      desc: "Specialized consulting for large-scale commercial roofing projects.",
+      title: "Commercial roofing",
+      desc: "Coordination support for low-slope assemblies, maintenance planning, capital budgets, and contractor scope reviews on larger buildings—not just residential tear-offs.",
       image: "/commercial.jpg",
     },
     {
       id: "04",
-      title: "Hail & Storm Damage",
-      desc: "Hail and storm damage can cause significant damage to your roof.",
+      title: "Hail & storm damage",
+      desc: "Document storm impact, interpret adjuster findings, and build a clear scope of work so repairs restore weather-tight performance—not just cosmetic patches.",
       image: "/hail-storm.jpg",
     },
   ],
@@ -89,7 +89,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
   };
 
   return (
-    <section style={sectionStyle}>
+    <section id="expertise" style={sectionStyle} aria-labelledby="expertise-heading">
       <div style={containerStyle}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -111,6 +111,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
             {tagline}
           </span>
           <h2
+            id="expertise-heading"
             style={{
               fontSize: "clamp(3rem, 8vw, 4.5rem)",
               lineHeight: 1,
@@ -169,7 +170,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                 >
                   <img
                     src={item.image}
-                    alt={item.title}
+                    alt={`${item.title} — roofing consultation context photo`}
                     style={{
                       width: "100%",
                       height: "100%",

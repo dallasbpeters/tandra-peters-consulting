@@ -13,9 +13,9 @@ export const About: React.FC<AboutProps> = ({
     </>
   ),
   paragraphs = [
-    "In an industry often characterized by noise, Tandra Peters offers a voice of architectural clarity. As Austin's leading roofing consultant, she bridges the gap between complex construction requirements and homeowner peace of mind.",
-    "Partnering with BirdCreek Roofing allows Tandra to provide not just advice, but the executable expertise of a top-tier firm. Her approach is rooted in the \"Architectural Advisor\" philosophy—where every roof is treated as a critical structural component and a long-term investment."
-  ]
+    "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
+    "As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her Architectural Advisor approach treats every roof as both a structural system and a major financial asset you will live with for decades.",
+  ],
 }) => {
   const sectionStyle: React.CSSProperties = {
     paddingTop: "8rem",
@@ -85,7 +85,7 @@ export const About: React.FC<AboutProps> = ({
   };
 
   return (
-    <section id="about-tandra" style={sectionStyle}>
+    <section id="about-tandra" style={sectionStyle} aria-labelledby="about-heading">
       <div style={containerStyle} className="lg-grid">
         <style>{`
           @media (min-width: 1024px) {
@@ -106,7 +106,7 @@ export const About: React.FC<AboutProps> = ({
           <div style={imageWrapperStyle}>
             <img 
               src={imageSrc} 
-              alt="Tandra Peters" 
+              alt="Tandra Peters, roofing consultant based in Austin, Texas"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               referrerPolicy="no-referrer"
             />
@@ -130,7 +130,7 @@ export const About: React.FC<AboutProps> = ({
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="lg-col-7"
         >
-          <h2 style={h2Style}>
+          <h2 id="about-heading" style={h2Style}>
             {title}
           </h2>
           <div style={{ maxWidth: "42rem" }}>

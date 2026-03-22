@@ -6,7 +6,7 @@ import { ServicesProps } from "../types";
 import BirdCreekLogo from "./BirdCreekLogo";
 
 export const Services: React.FC<ServicesProps> = ({
-  tagline = "Strategic Services",
+  tagline = "Roofing consulting services",
   title = (
     <>
       Consultation.
@@ -16,13 +16,13 @@ export const Services: React.FC<ServicesProps> = ({
       Execution.
     </>
   ),
-  description = "I provide a comprehensive suite of roofing solutions, from initial assessment to final project oversight.",
+  description = "From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a BirdCreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.",
   services = [
     {
       id: "01",
       title: "Comprehensive Roof Assessment",
       description:
-        "A deep-dive analysis of your current roofing system, identifying structural weaknesses and long-term maintenance needs.",
+        "On-site and photo-based review of your roof system: decking, flashing, ventilation, and drainage—documented so you understand what is urgent, what can wait, and what to discuss with insurers or contractors.",
       icon: Search,
       image:
         "/roof-2.jpg",
@@ -31,14 +31,14 @@ export const Services: React.FC<ServicesProps> = ({
       id: "02",
       title: "Insurance Claim Advocacy",
       description:
-        "Expert navigation of the insurance landscape to ensure you receive the full value of your coverage.",
+        "Help organizing claim paperwork, interpreting adjuster estimates, and advocating for scopes that match real damage—so you are not left under-covered on a major asset.",
       icon: FileText,
     },
     {
       id: "03",
       title: "Project Oversight",
       description:
-        "End-to-end management of your roofing project, ensuring BirdCreek's high standards are met at every stage.",
+        "Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with BirdCreek Roofing crews so the roof you approved is the roof you receive.",
       icon: ShieldCheck,
     },
   ],
@@ -112,7 +112,7 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   return (
-    <section id="services" style={sectionStyle}>
+    <section id="services" style={sectionStyle} aria-labelledby="services-heading">
       <div style={containerStyle}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -149,6 +149,7 @@ export const Services: React.FC<ServicesProps> = ({
               {tagline}
             </span>
             <h2
+              id="services-heading"
               style={{
                 fontSize: "clamp(3rem, 10vw, 6rem)",
                 lineHeight: 1,

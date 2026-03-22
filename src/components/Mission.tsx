@@ -10,11 +10,11 @@ export const Mission: React.FC<MissionProps> = ({
       The vision we set out with has now impacted over 20,000 homeowners.
     </>
   ),
-  description = "Our amazing group of Birdcreek Roofing Consultants has helped us receive several prestigious awards for the service and care of our customers. We’re providing unparalleled customer service no matter where we are.",
+  description = "BirdCreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.",
   services = [
     {
       id: "01",
-      title: "generous",
+      title: "Generous",
       description:
         "We choose to be generous with the time we invest with our customers, and their homes. We are generous with our team members, in the communities we call home.",
       image:
@@ -22,7 +22,7 @@ export const Mission: React.FC<MissionProps> = ({
     },
     {
       id: "02",
-      title: "optimistic",
+      title: "Optimistic",
       description:
         "We choose to be optimistic in how we see every interaction and opportunity. We choose to believe the best in others.",
       image:
@@ -30,7 +30,7 @@ export const Mission: React.FC<MissionProps> = ({
     },
     {
       id: "03",
-      title: "driven",
+      title: "Driven",
       description:
         "We are driven each year to help more Texas homeowners with unparalleled customer service. We are committed to an experience and service that you will want to tell others about.",
       image:
@@ -106,7 +106,7 @@ export const Mission: React.FC<MissionProps> = ({
   };
 
   return (
-    <section id="services" style={sectionStyle}>
+    <section id="mission" style={sectionStyle} aria-labelledby="mission-heading">
       <div style={containerStyle}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -140,6 +140,7 @@ export const Mission: React.FC<MissionProps> = ({
               {tagline}
             </span>
             <h2
+              id="mission-heading"
               style={{
                 fontSize: "clamp(3rem, 10vw, 4rem)",
                 lineHeight: 1,
@@ -179,7 +180,6 @@ export const Mission: React.FC<MissionProps> = ({
           `}</style>
           {services.map((service, i) => {
             const isMain = i === 0;
-            const ServiceIcon = service.icon;
             return (
               <motion.div
                 key={service.id}
@@ -199,7 +199,7 @@ export const Mission: React.FC<MissionProps> = ({
                   >
                     <img
                       src={service.image}
-                      alt={service.title}
+                      alt={`BirdCreek Roofing mission — ${service.title}`}
                       style={{
                         width: "100%",
                         height: "100%",

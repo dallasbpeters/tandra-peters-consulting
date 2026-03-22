@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Tandra Peters">
+  <rect width="32" height="32" rx="7" fill="#001a10"/>
+  <path fill="#ffffff" d="M6 22V12l4-2v12H6zm6 0V9l4-2v15h-4zm6 0V14l4-2v10h-4z"/>
+  <path fill="#d3e5ce" d="M8 10l8-4 8 4v2l-8-4-8 4v-2z"/>
+</svg>

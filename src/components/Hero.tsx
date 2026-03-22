@@ -10,10 +10,10 @@ export const Hero: React.FC<HeroProps> = ({
       <span style={{ color: theme.colors.evergladeMuted }}>Our Expertise.</span>
     </>
   ),
-  subtitle = "Professional roofing consultation with the architectural precision and backing of Austin's premier BirdCreek Roofing.",
+  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
-  backgroundImage = "/roof.jpeg"
+  backgroundImage = "/roof.png"
 }) => {
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -153,7 +153,7 @@ export const Hero: React.FC<HeroProps> = ({
                 textTransform: "uppercase",
               }}
             >
-              BirdCreek Roofing Partner
+              BirdCreek Roofing consultant · Austin, TX
             </span>
           </motion.div>
           <motion.h1 variants={itemVariants} style={h1Style}>
