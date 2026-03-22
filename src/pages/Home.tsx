@@ -13,8 +13,47 @@ import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 import Band from "../components/Band";
 import { theme } from "../theme";
+import { useSanitySite } from "../context/SanitySiteContext";
+import {
+  mapAboutProps,
+  mapContactProps,
+  mapExpertiseProps,
+  mapFaqProps,
+  mapFooterProps,
+  mapHeroProps,
+  mapMissionProps,
+  mapNavProps,
+  mapServicesProps,
+  mapSocialShareProps,
+  mapTestimonialsProps,
+} from "../sanity/mapSanityHome";
 
 export const Home = () => {
+  const { data } = useSanitySite();
+  const home = data?.home as Record<string, unknown> | null | undefined;
+  const site = data?.site as Record<string, unknown> | null | undefined;
+
+  const hero = home?.hero as Record<string, unknown> | undefined;
+  const marquee = home?.marquee as Record<string, unknown> | undefined;
+  const about = home?.about as Record<string, unknown> | undefined;
+  const services = home?.services as Record<string, unknown> | undefined;
+  const mission = home?.mission as Record<string, unknown> | undefined;
+  const expertise = home?.expertise as Record<string, unknown> | undefined;
+  const testimonials = home?.testimonials as Record<string, unknown> | undefined;
+  const faq = home?.faq as Record<string, unknown> | undefined;
+  const contact = home?.contact as Record<string, unknown> | undefined;
+  const socialShare = home?.socialShare as Record<string, unknown> | undefined;
+
+  const marqueeText =
+    typeof marquee?.text === "string" && marquee.text.trim()
+      ? marquee.text
+      : "Amarillo - Canyon - Lubbock - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin - Surrounding Areas - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin & Surrounding Areas -";
+
+  const marqueeDirection =
+    marquee?.direction === "left" ? "left" : "right";
+  const marqueeVelocity =
+    typeof marquee?.velocity === "number" ? marquee.velocity : 80;
+
   return (
     <div
       style={{
@@ -25,24 +64,20 @@ export const Home = () => {
       }}
     >
       <SeoStructuredData />
-      <Nav />
+      <Nav {...mapNavProps(site)} />
       <main>
-        <Hero />
+        <Hero {...mapHeroProps(hero)} />
         <ScrollVelocity
-        direction="right"
-        velocity={80}
-          texts={[
-            {
-              text: "Amarillo - Canyon - Lubbock - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin - Surrounding Areas - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin & Surrounding Areas -",
-            },
-          ]}
+          direction={marqueeDirection}
+          velocity={marqueeVelocity}
+          texts={[{ text: marqueeText }]}
         />
-        <About />
-        <Services />
-        <Mission />
-        <Expertise />
-        <Testimonials />
-        <Faq />
+        <About {...mapAboutProps(about)} />
+        <Services {...mapServicesProps(services)} />
+        <Mission {...mapMissionProps(mission)} />
+        <Expertise {...mapExpertiseProps(expertise)} />
+        <Testimonials {...mapTestimonialsProps(testimonials)} />
+        <Faq {...mapFaqProps(faq)} />
         <Band
           tint={theme.colors.everglade}
           colors={[
@@ -54,9 +89,9 @@ export const Home = () => {
             theme.colors.purple,
           ]}
         />
-        <Contact />
+        <Contact {...mapContactProps(contact)} />
       </main>
-      <SocialShareBar />
+      <SocialShareBar {...mapSocialShareProps(socialShare)} />
       <Band
         reverse={true}
         rotate={true}
@@ -70,7 +105,7 @@ export const Home = () => {
           theme.colors.purple,
         ]}
       />
-      <Footer />
+      <Footer {...mapFooterProps(site)} />
     </div>
   );
 };

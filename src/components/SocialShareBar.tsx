@@ -2,12 +2,14 @@ import React, { useCallback, useState } from "react";
 import { Facebook, Linkedin, Link2, Mail, Twitter } from "lucide-react";
 import { theme } from "../theme";
 import { SocialShareBarProps } from "../types";
+import { usePostHog } from "@posthog/react";
 
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   heading = "Know someone who needs roofing help?",
   shareText = "Tandra Peters | BirdCreek Roofing consultant in Austin — assessments, insurance help, trusted installation",
 }) => {
   const [copied, setCopied] = useState(false);
+  const posthog = usePostHog();
 
   const pageUrl =
     typeof window !== "undefined" ? window.location.href : "";
@@ -126,6 +128,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             style={iconButtonStyle}
             className="social-share-icon"
             aria-label="Share on Facebook"
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "facebook" })}
           >
             <Facebook size={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -136,6 +139,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             style={iconButtonStyle}
             className="social-share-icon"
             aria-label="Share on LinkedIn"
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "linkedin" })}
           >
             <Linkedin size={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -146,6 +150,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             style={iconButtonStyle}
             className="social-share-icon"
             aria-label="Share on X (Twitter)"
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "twitter" })}
           >
             <Twitter size={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -154,12 +159,16 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             style={iconButtonStyle}
             className="social-share-icon"
             aria-label="Share by email"
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
           >
             <Mail size={18} strokeWidth={1.75} aria-hidden />
           </a>
           <button
             type="button"
-            onClick={handleCopyLink}
+            onClick={() => {
+              posthog?.capture("social_share_clicked", { platform: "copy_link" });
+              handleCopyLink();
+            }}
             style={copyButtonStyle}
             className="social-share-icon"
             aria-label={copied ? "Link copied" : "Copy page link"}

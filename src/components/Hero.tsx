@@ -2,6 +2,7 @@ import React from "react";
 import { motion, type Variants } from "motion/react";
 import { theme } from "../theme";
 import { HeroProps } from "../types";
+import { usePostHog } from "@posthog/react";
 
 export const Hero: React.FC<HeroProps> = ({
   title = (
@@ -10,11 +11,16 @@ export const Hero: React.FC<HeroProps> = ({
       <span style={{ color: theme.colors.evergladeMuted }}>Our Expertise.</span>
     </>
   ),
+  badgeText = "BirdCreek Roofing consultant · Austin, TX",
   subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
-  backgroundImage = "/roof.png"
+  secondaryCtaText = "Explore Services",
+  secondaryCtaHref = "#services",
+  backgroundImage = "/roof.png",
 }) => {
+  const posthog = usePostHog();
+
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -154,7 +160,7 @@ export const Hero: React.FC<HeroProps> = ({
                 textTransform: "uppercase",
               }}
             >
-              BirdCreek Roofing consultant · Austin, TX
+              {badgeText}
             </span>
           </motion.div>
           <motion.h1 variants={itemVariants} style={h1Style}>
@@ -169,21 +175,23 @@ export const Hero: React.FC<HeroProps> = ({
                 .sm-row { flex-direction: row !important; }
               }
             `}</style>
-            <a 
+            <a
               href={ctaHref}
               style={buttonPrimaryStyle}
               onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
               onMouseLeave={(e) => e.currentTarget.style.filter = "none"}
+              onClick={() => posthog?.capture("hero_cta_clicked", { cta_text: ctaText, cta_href: ctaHref })}
             >
               {ctaText}
             </a>
-            <a 
-              href="#services"
+            <a
+              href={secondaryCtaHref}
               style={buttonSecondaryStyle}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              onClick={() => posthog?.capture("hero_secondary_cta_clicked", { cta_text: secondaryCtaText, cta_href: secondaryCtaHref })}
             >
-              Explore Services
+              {secondaryCtaText}
             </a>
           </motion.div>
         </motion.div>

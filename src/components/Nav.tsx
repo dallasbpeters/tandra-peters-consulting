@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { theme } from "../theme";
 import { NavProps } from "../types";
+import { usePostHog } from "@posthog/react";
 
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
@@ -24,6 +25,7 @@ export const Nav: React.FC<NavProps> = ({
   const isHome = location.pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const posthog = usePostHog();
 
   useEffect(() => {
     if (!isHome) {
@@ -242,6 +244,7 @@ export const Nav: React.FC<NavProps> = ({
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.everglade;
               }}
+              onClick={() => posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "desktop" })}
             >
               {ctaText}
             </motion.a>
@@ -263,6 +266,7 @@ export const Nav: React.FC<NavProps> = ({
                   e.currentTarget.style.backgroundColor =
                     theme.colors.everglade;
                 }}
+                onClick={() => posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "desktop" })}
               >
                 {ctaText}
               </TransitionLink>
@@ -341,7 +345,10 @@ export const Nav: React.FC<NavProps> = ({
                     width: "100%",
                     textAlign: "center",
                   }}
-                  onClick={handleMobileNavClick(ctaHref)}
+                  onClick={(e) => {
+                    posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "mobile" });
+                    handleMobileNavClick(ctaHref)(e);
+                  }}
                 >
                   {ctaText}
                 </a>
@@ -354,7 +361,10 @@ export const Nav: React.FC<NavProps> = ({
                     width: "100%",
                     textAlign: "center",
                   }}
-                  onClick={handleMobileSectionLinkClose}
+                  onClick={() => {
+                    posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "mobile" });
+                    handleMobileSectionLinkClose();
+                  }}
                 >
                   {ctaText}
                 </TransitionLink>

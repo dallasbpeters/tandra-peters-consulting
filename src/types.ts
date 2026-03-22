@@ -16,9 +16,13 @@ export interface NavProps {
 
 export interface HeroProps {
   title?: React.ReactNode;
+  /** Hero badge / eyebrow (e.g. BirdCreek Roofing consultant · Austin, TX) */
+  badgeText?: string;
   subtitle?: string;
   ctaText?: string;
   ctaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
   backgroundImage?: string;
 }
 
@@ -76,8 +80,8 @@ export interface ExpertiseItem {
   id: string;
   title: string;
   desc: string;
-  /** Path under `/public`, e.g. `/roof-2.jpg` */
-  image: string;
+  /** Sanity CDN or site path used as `img` src */
+  image?: string;
 }
 
 export interface ExpertiseProps {
@@ -97,6 +101,8 @@ export interface TestimonialsProps {
   tagline?: string;
   title?: string;
   testimonials?: Testimonial[];
+  /** When set, overrides `VITE_ELFSIGHT_WIDGET_ID` for this embed */
+  elfsightWidgetId?: string;
 }
 
 export interface ContactInfo {

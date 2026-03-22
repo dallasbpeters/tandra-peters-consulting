@@ -1,6 +1,7 @@
 import React from "react";
 import { ElfsightWidget } from "react-elfsight-widget";
 import { theme } from "../theme";
+import type { TestimonialsProps } from "../types";
 
 /**
  * Elfsight install code looks like:
@@ -15,7 +16,7 @@ const normalizeElfsightWidgetId = (raw: string) => {
   return id;
 };
 
-const widgetId = normalizeElfsightWidgetId(
+const envWidgetId = normalizeElfsightWidgetId(
   import.meta.env.VITE_ELFSIGHT_WIDGET_ID ?? "",
 );
 
@@ -35,7 +36,11 @@ const srOnly: React.CSSProperties = {
  * Google reviews via [Elfsight](https://elfsight.com/google-reviews-widget/).
  * Set `VITE_ELFSIGHT_WIDGET_ID` after you publish the widget in your Elfsight dashboard.
  */
-export const Testimonials = () => {
+export const Testimonials = ({
+  elfsightWidgetId: cmsWidgetId,
+}: TestimonialsProps) => {
+  const widgetId = normalizeElfsightWidgetId(cmsWidgetId ?? "") || envWidgetId;
+
   return (
     <div
       id="testimonials"

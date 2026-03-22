@@ -1,0 +1,70 @@
+import {defineConfig} from 'sanity'
+import {structureTool} from 'sanity/structure'
+import {defineDocuments, defineLocations, presentationTool} from 'sanity/presentation'
+import {visionTool} from '@sanity/vision'
+import {geminiAIImages} from 'sanity-plugin-gemini-ai-images'
+import {schemaTypes} from './schemaTypes'
+import {structure} from './structure'
+import {geminiStudioApiEndpoint} from './geminiStudioConfig'
+
+const previewOrigin =
+  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') || 'http://localhost:3000'
+
+export default defineConfig({
+  name: 'default',
+  title: 'Tandra Peters',
+
+  projectId: '7irm699i',
+  dataset: 'production',
+
+  plugins: [
+    geminiAIImages({
+      apiEndpoint: geminiStudioApiEndpoint,
+      enableStandaloneTool: true,
+    }),
+    structureTool({structure}),
+    presentationTool({
+      previewUrl: {
+        initial: previewOrigin,
+      },
+      allowOrigins: [
+        'http://localhost:*',
+        'http://127.0.0.1:*',
+        'https://www.tandra.me',
+        'https://tandra.me',
+      ],
+      resolve: {
+        mainDocuments: defineDocuments([
+          {route: '/', filter: `_type == "homePage"`},
+          {route: '/privacy', filter: `_type == "siteSettings"`},
+          {route: '/terms', filter: `_type == "siteSettings"`},
+          {route: '/cookies', filter: `_type == "siteSettings"`},
+        ]),
+        locations: {
+          homePage: defineLocations({
+            select: {id: '_id'},
+            resolve: () => ({
+              locations: [{title: 'Home', href: '/'}],
+            }),
+          }),
+          siteSettings: defineLocations({
+            select: {id: '_id'},
+            resolve: () => ({
+              locations: [
+                {title: 'Home', href: '/'},
+                {title: 'Privacy', href: '/privacy'},
+                {title: 'Terms', href: '/terms'},
+                {title: 'Cookies', href: '/cookies'},
+              ],
+            }),
+          }),
+        },
+      },
+    }),
+    visionTool(),
+  ],
+
+  schema: {
+    types: schemaTypes,
+  },
+})

@@ -5,25 +5,33 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:all": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
+    "@posthog/react": "^1.8.2",
+    "@sanity/client": "^7.20.0",
+    "@sanity/visual-editing": "^5.3.1",
     "@types/react": "^19.2.14",
     "@vercel/node": "^5.6.18",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "groq": "^5.17.1",
     "iconoir-react": "^7.11.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "posthog-js": "^1.250.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-elfsight-widget": "^1.1.2",
+    "react-router": "^7.13.1",
     "react-router-dom": "^7.13.1",
+    "sanity-plugin-gemini-ai-images-serverless": "^1.1.0",
     "sharp": "^0.34.5",
     "svgo": "^4.0.1",
     "vite": "^6.2.0",
@@ -32,6 +40,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
+    "concurrently": "^9.2.1",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2"
   }

@@ -18,6 +18,45 @@ export default defineConfig(({mode}) => {
     return raw.replace(/\/api\/contact$/i, '').replace(/\/api$/i, '');
   })();
 
+  const posthogProxyTarget = env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(/\/$/, '') ?? '';
+  const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(
+    posthogProxyTarget,
+  );
+  const usePosthogDevProxy =
+    mode === 'development' && posthogProxyTarget && !posthogCloudIngestion;
+
+  const posthogProxyBase = {
+    target: posthogProxyTarget,
+    changeOrigin: true,
+    secure: true,
+  };
+
+  const devProxy: Record<string, typeof posthogProxyBase> = {};
+  if (contactProxyTarget) {
+    devProxy['/api/contact'] = {
+      target: contactProxyTarget,
+      changeOrigin: true,
+      secure: true,
+    };
+  }
+  if (usePosthogDevProxy) {
+    // Path prefixes must not match app routes. Broad patterns like `^/s` proxy
+    // `/src/*` (Vite modules) to PostHog and break Presentation preview + dev.
+    for (const key of [
+      '^/e/',
+      '^/batch',
+      '^/decide',
+      '^/flags',
+      '^/s/',
+      '^/i/',
+      '^/static/',
+      '^/array/',
+      '^/api/(?!contact(?:$|/))',
+    ]) {
+      devProxy[key] = {...posthogProxyBase};
+    }
+  }
+
   return {
     plugins: [
       react(),
@@ -53,19 +92,9 @@ export default defineConfig(({mode}) => {
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      ...(contactProxyTarget
-        ? {
-            proxy: {
-              '/api': {
-                target: contactProxyTarget,
-                changeOrigin: true,
-                secure: true,
-              },
-            },
-          }
-        : {}),
+      ...(Object.keys(devProxy).length > 0 ? {proxy: devProxy} : {}),
     },
   };
 });

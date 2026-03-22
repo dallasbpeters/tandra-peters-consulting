@@ -2,6 +2,8 @@ import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
+import { useSanitySite } from "../context/SanitySiteContext";
+import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import { TransitionLink } from "../components/TransitionLink";
 import { theme } from "../theme";
 
@@ -78,6 +80,9 @@ const mutedStyle: CSSProperties = {
 };
 
 export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
+  const { data } = useSanitySite();
+  const site = data?.site as Record<string, unknown> | null | undefined;
+
   useEffect(() => {
     const homeTitle =
       "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
@@ -96,7 +101,7 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
         fontFamily: theme.fonts.body,
       }}
     >
-      <Nav />
+      <Nav {...mapNavProps(site)} />
       <main>
         <article style={articleStyle}>
           <style>{`
@@ -134,7 +139,7 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
           <div style={bodyStyle}>{children}</div>
         </article>
       </main>
-      <Footer />
+      <Footer {...mapFooterProps(site)} />
     </div>
   );
 };

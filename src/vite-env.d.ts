@@ -1,11 +1,29 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  /** Canonical site origin for structured data / SEO (no trailing slash). */
+  readonly VITE_SITE_URL?: string;
+  /** Sanity Studio URL for stega “open in Studio” links (default http://localhost:3333). */
+  readonly VITE_SANITY_STUDIO_URL?: string;
+  /** Force stega encoding on the published site (usually leave unset; iframe enables automatically). */
+  readonly VITE_SANITY_STEGA?: string;
   /** Elfsight Google Reviews widget UUID (from Install embed code). */
   readonly VITE_ELFSIGHT_WIDGET_ID?: string;
   /**
    * Production origin only (e.g. https://www.tandra.me), not `/api/contact`.
-   * When set, `pnpm dev` proxies `/api/*` to this host.
+   * When set, `pnpm dev` proxies `/api/contact` to this host.
    */
   readonly VITE_CONTACT_API_URL?: string;
+  /** PostHog project API key (public). */
+  readonly VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?: string;
+  /**
+   * Ingestion / proxy origin (e.g. https://t.tandra.me or https://us.i.posthog.com).
+   * In dev, a custom host is reached via Vite proxy (same-origin) to avoid CORS.
+   */
+  readonly VITE_PUBLIC_POSTHOG_HOST?: string;
+  /**
+   * PostHog app origin for toolbar / session replay UI when `VITE_PUBLIC_POSTHOG_HOST`
+   * is not `*.i.posthog.com`. Defaults to us or eu posthog.com from the host string.
+   */
+  readonly VITE_PUBLIC_POSTHOG_UI_HOST?: string;
 }

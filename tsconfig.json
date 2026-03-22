@@ -1,4 +1,12 @@
 {
+  "include": ["src", "api"],
+  "exclude": [
+    "studio-tandra-peters",
+    "dist",
+    "node_modules",
+    "vite.config.ts",
+    "plugins"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
@@ -15,13 +23,10 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "iconoir-react": [
-        "./node_modules/iconoir-react/dist/index.d.ts"
-      ]
+      "@/*": ["./*"],
+      "iconoir-react": ["./node_modules/iconoir-react/dist/index.d.ts"]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true

@@ -5,6 +5,7 @@ import { ChevronDown, Mail, Phone, MapPin, Send } from "lucide-react";
 import { theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../contactServiceOptions";
 import { ContactProps } from "../types";
+import { usePostHog } from "@posthog/react";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 const CONTACT_API_PATH = "/api/contact";
@@ -29,6 +30,7 @@ export const Contact = ({
     "idle" | "sending" | "success" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const posthog = usePostHog();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -96,9 +98,19 @@ export const Contact = ({
           }
           return "Something went wrong. Please try again.";
         })();
+        posthog?.capture("contact_form_error", {
+          status: res.status,
+          error: fromApi || byStatus,
+        });
         setErrorMessage(fromApi || byStatus);
         return;
       }
+      posthog?.identify(visitorEmail, { name: fullName, email: visitorEmail });
+      posthog?.capture("contact_form_submitted", {
+        service_interest: serviceInterest,
+        has_property_address: Boolean(propertyAddress),
+        has_message: Boolean(message),
+      });
       setSubmitStatus("success");
       setFullName("");
       setVisitorEmail("");
@@ -107,10 +119,11 @@ export const Contact = ({
       setMessage("");
       setHoneypot("");
       setConsentToContact(false);
-    } catch {
+    } catch (err) {
+      posthog?.captureException(err);
       setSubmitStatus("error");
       setErrorMessage(
-        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api to production.",
+        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api/contact to production.",
       );
     }
   };

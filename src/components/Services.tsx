@@ -4,6 +4,7 @@ import { ArrowUpRight, Search, FileText, ShieldCheck } from "lucide-react";
 import { theme } from "../theme";
 import { ServicesProps } from "../types";
 import BirdCreekLogo from "./BirdCreekLogo";
+import { usePostHog } from "@posthog/react";
 
 export const Services: React.FC<ServicesProps> = ({
   tagline = "Roofing consulting services",
@@ -43,6 +44,8 @@ export const Services: React.FC<ServicesProps> = ({
     },
   ],
 }) => {
+  const posthog = usePostHog();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -298,6 +301,7 @@ export const Services: React.FC<ServicesProps> = ({
                   </span>
                   <button
                   onClick={() => {
+                    posthog?.capture("service_cta_clicked", { service_title: service.title, service_id: service.id });
                     window.location.href = '#contact';
                   }}
                     style={{
@@ -394,6 +398,7 @@ export const Services: React.FC<ServicesProps> = ({
             <a
               href="https://birdcreekroofing.com"
               className="group-advantage-cta"
+              onClick={() => posthog?.capture("birdcreek_link_clicked")}
               style={{
                 backgroundColor: theme.colors.everglade,
                 color: theme.colors.white,

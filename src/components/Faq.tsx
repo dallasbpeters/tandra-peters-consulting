@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { theme } from "../theme";
 import { FaqProps } from "../types";
+import { usePostHog } from "@posthog/react";
 
 const DEFAULT_ITEMS = [
   {
@@ -50,6 +51,8 @@ export const Faq: React.FC<FaqProps> = ({
   intro = "Straight answers from me—how I work with homeowners, insurance, BirdCreek Roofing, and how to reach out.",
   items = DEFAULT_ITEMS,
 }) => {
+  const posthog = usePostHog();
+
   const faqJsonLd = useMemo(
     () => ({
       "@context": "https://schema.org",
@@ -189,6 +192,11 @@ export const Faq: React.FC<FaqProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.35, delay: index * 0.04 }}
+              onToggle={(e) => {
+                if ((e.currentTarget as HTMLDetailsElement).open) {
+                  posthog?.capture("faq_item_opened", { question: item.question, question_index: index });
+                }
+              }}
             >
               <summary className="faq-summary">
                 <span>{item.question}</span>
