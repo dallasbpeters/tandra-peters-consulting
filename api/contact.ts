@@ -160,6 +160,15 @@ export default async function handler(
     typeof body.message === "string" ? body.message.trim() : "";
   const serviceInterestRaw =
     typeof body.serviceInterest === "string" ? body.serviceInterest.trim() : "";
+  const consentToContact = body.consentToContact === true;
+
+  if (!consentToContact) {
+    res.status(400).json({
+      ok: false,
+      error: "Please confirm you agree to be contacted before submitting.",
+    });
+    return;
+  }
 
   if (!fullName || fullName.length > 200) {
     res.status(400).json({ ok: false, error: "Please enter your name." });
@@ -183,8 +192,11 @@ export default async function handler(
     return;
   }
 
+  const consentNote = `Consent to be contacted: yes (website form, ${new Date().toISOString().slice(0, 10)})`;
+
   const description = [
     "Source: Website contact form",
+    consentNote,
     `Service: ${serviceLine ?? serviceInterestRaw}`,
     `Property / address: ${propertyAddress || "—"}`,
     "",
@@ -223,6 +235,7 @@ export default async function handler(
    */
   if (!attioRes.ok && attioRes.status === 400) {
     const compactDescription = [
+      consentNote,
       `Service: ${serviceLine ?? serviceInterestRaw}`,
       `Property / address: ${propertyAddress || "—"}`,
       "---",

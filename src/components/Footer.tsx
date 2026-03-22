@@ -1,4 +1,5 @@
 import React from "react";
+import { TransitionLink } from "./TransitionLink";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
 import { theme } from "../theme";
 import { FooterProps } from "../types";
@@ -12,16 +13,16 @@ export const Footer: React.FC<FooterProps> = ({
     { icon: Facebook, href: "https://www.facebook.com/tandra.peters.3" }
   ],
   quickLinks = [
-    { label: "Services", href: "#services" },
-    { label: "About Tandra", href: "#about-tandra" },
-    { label: "Testimonials", href: "#testimonials" },
-    { label: "FAQ", href: "#faq" },
-    { label: "Contact", href: "#contact" },
+    { name: "Services", href: "#services" },
+    { name: "About Tandra", href: "#about-tandra" },
+    { name: "Testimonials", href: "#testimonials" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Contact", href: "#contact" },
   ],
   legalLinks = [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" }
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Cookie Policy", href: "/cookies" },
   ],
   copyrightText = "© 2026 Tandra Peters. All Rights Reserved.",
   partnerText = "BirdCreek Roofing"
@@ -146,7 +147,21 @@ export const Footer: React.FC<FooterProps> = ({
           <h4 style={headingStyle}>Quick Links</h4>
           <ul style={linkListStyle}>
             {quickLinks.map((link, i) => (
-              <li key={i}><a href={link.href} style={linkStyle} className="footer-link">{link.label}</a></li>
+              <li key={i}>
+                {link.href.startsWith("#") ? (
+                  <TransitionLink
+                    to={{ pathname: "/", hash: link.href }}
+                    style={linkStyle}
+                    className="footer-link"
+                  >
+                    {link.name}
+                  </TransitionLink>
+                ) : (
+                  <a href={link.href} style={linkStyle} className="footer-link">
+                    {link.name}
+                  </a>
+                )}
+              </li>
             ))}
           </ul>
         </div>
@@ -155,7 +170,15 @@ export const Footer: React.FC<FooterProps> = ({
           <h4 style={headingStyle}>Legal</h4>
           <ul style={linkListStyle}>
             {legalLinks.map((link, i) => (
-              <li key={i}><a href={link.href} style={linkStyle} className="footer-link">{link.label}</a></li>
+              <li key={i}>
+                <TransitionLink
+                  to={link.href}
+                  style={linkStyle}
+                  className="footer-link"
+                >
+                  {link.name}
+                </TransitionLink>
+              </li>
             ))}
           </ul>
         </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { TransitionLink } from "./TransitionLink";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { theme } from "../theme";
@@ -18,17 +20,28 @@ export const Nav: React.FC<NavProps> = ({
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact"
 }) => {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (!isHome) {
+      setIsScrolled(true);
+      return;
+    }
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHome]);
 
   const handleMobileNavClick =
     (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (!isHome) {
+        setIsMobileMenuOpen(false);
+        return;
+      }
       if (href.startsWith("#") && href !== "#") {
         e.preventDefault();
         setIsMobileMenuOpen(false);
@@ -44,6 +57,10 @@ export const Nav: React.FC<NavProps> = ({
       }
       setIsMobileMenuOpen(false);
     };
+
+  const handleMobileSectionLinkClose = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   const navStyle: React.CSSProperties = {
     position: "fixed",
@@ -142,19 +159,24 @@ export const Nav: React.FC<NavProps> = ({
   };
 
   return (
-    <nav style={navStyle}>
+    <nav style={navStyle} className="site-nav-vt">
       <div style={containerStyle}>
           
-        <motion.a 
-          href="#"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          style={logoStyle}
+        <TransitionLink
+          to="/"
+          aria-label={`${logoText} — home`}
+          style={{ ...logoStyle, textDecoration: "none" }}
         >
-          <img src={imageSrc} alt={logoText} style={imageStyle} />
-          <span style={logoTextStyle}>{logoText}</span>
-          <span style={logoTaglineStyle}>{logoTagline}</span>
-        </motion.a>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ display: "contents" }}
+          >
+            <img src={imageSrc} alt="" style={imageStyle} />
+            <span style={logoTextStyle}>{logoText}</span>
+            <span style={logoTaglineStyle}>{logoTagline}</span>
+          </motion.div>
+        </TransitionLink>
         
         <div style={{ ...desktopNavStyle, display: "flex" }} className="md-flex">
           <style>{`
@@ -162,34 +184,90 @@ export const Nav: React.FC<NavProps> = ({
               .md-flex { display: none !important; }
             }
           `}</style>
-          {navItems.map((item, i) => (
-            <motion.a 
-              key={item.name} 
-              href={item.href}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              style={navLinkStyle}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = "0.6"}
-            >
-              {item.name}
-            </motion.a>
-          ))}
+          {navItems.map((item, i) =>
+            isHome ? (
+              <motion.a
+                key={item.name}
+                href={item.href}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                style={navLinkStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "0.6";
+                }}
+              >
+                {item.name}
+              </motion.a>
+            ) : (
+              <motion.div
+                key={item.name}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                style={{ display: "inline-block" }}
+              >
+                <TransitionLink
+                  to={{ pathname: "/", hash: item.href }}
+                  style={navLinkStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = "0.6";
+                  }}
+                >
+                  {item.name}
+                </TransitionLink>
+              </motion.div>
+            ),
+          )}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <motion.a 
-            href={ctaHref}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={buttonStyle}
-            className="hidden lg:block"
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.evergladeLight}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.everglade}
-          >
-            {ctaText}
-          </motion.a>
+          {isHome ? (
+            <motion.a
+              href={ctaHref}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={buttonStyle}
+              className="hidden lg:block"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  theme.colors.evergladeLight;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.everglade;
+              }}
+            >
+              {ctaText}
+            </motion.a>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="hidden lg:block"
+              style={{ display: "inline-block" }}
+            >
+              <TransitionLink
+                to={{ pathname: "/", hash: ctaHref }}
+                style={buttonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    theme.colors.evergladeLight;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    theme.colors.everglade;
+                }}
+              >
+                {ctaText}
+              </TransitionLink>
+            </motion.div>
+          )}
           <button 
             style={{ display: "none", padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: isScrolled ? "black" : "white" }}
             className="md-hidden"
@@ -217,31 +295,70 @@ export const Nav: React.FC<NavProps> = ({
             }}
           >
             <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {navItems.map((item) => (
-                <a 
-                  key={item.name} 
-                  href={item.href}
-                  style={{ 
-                    fontFamily: theme.fonts.headline, 
-                    fontWeight: 700, 
-                    textTransform: "uppercase", 
-                    letterSpacing: "0.1em", 
-                    fontSize: "0.875rem",
-                    textDecoration: "none",
-                    color: theme.colors.everglade
+              {navItems.map((item) =>
+                isHome ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    style={{
+                      fontFamily: theme.fonts.headline,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      fontSize: "0.875rem",
+                      textDecoration: "none",
+                      color: theme.colors.everglade,
+                    }}
+                    onClick={handleMobileNavClick(item.href)}
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <TransitionLink
+                    key={item.name}
+                    to={{ pathname: "/", hash: item.href }}
+                    style={{
+                      fontFamily: theme.fonts.headline,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      fontSize: "0.875rem",
+                      textDecoration: "none",
+                      color: theme.colors.everglade,
+                    }}
+                    onClick={handleMobileSectionLinkClose}
+                  >
+                    {item.name}
+                  </TransitionLink>
+                ),
+              )}
+              {isHome ? (
+                <a
+                  href={ctaHref}
+                  style={{
+                    ...buttonStyle,
+                    fontSize: "0.75rem",
+                    width: "100%",
+                    textAlign: "center",
                   }}
-                  onClick={handleMobileNavClick(item.href)}
+                  onClick={handleMobileNavClick(ctaHref)}
                 >
-                  {item.name}
+                  {ctaText}
                 </a>
-              ))}
-              <a
-                href={ctaHref}
-                style={{ ...buttonStyle, fontSize: "0.75rem", width: "100%", textAlign: "center" }}
-                onClick={handleMobileNavClick(ctaHref)}
-              >
-                {ctaText}
-              </a>
+              ) : (
+                <TransitionLink
+                  to={{ pathname: "/", hash: ctaHref }}
+                  style={{
+                    ...buttonStyle,
+                    fontSize: "0.75rem",
+                    width: "100%",
+                    textAlign: "center",
+                  }}
+                  onClick={handleMobileSectionLinkClose}
+                >
+                  {ctaText}
+                </TransitionLink>
+              )}
             </div>
           </motion.div>
         )}

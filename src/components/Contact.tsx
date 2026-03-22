@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
 import { ChevronDown, Mail, Phone, MapPin, Send } from "lucide-react";
 import { theme } from "../theme";
@@ -23,6 +24,7 @@ export const Contact = ({
   const [propertyAddress, setPropertyAddress] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
+  const [consentToContact, setConsentToContact] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
@@ -33,8 +35,17 @@ export const Contact = ({
     if (submitStatus === "sending") {
       return;
     }
-    setSubmitStatus("sending");
     setErrorMessage("");
+
+    if (!consentToContact) {
+      setSubmitStatus("error");
+      setErrorMessage(
+        "Please confirm you agree to be contacted before sending your message.",
+      );
+      return;
+    }
+
+    setSubmitStatus("sending");
 
     try {
       const res = await fetch(CONTACT_API_PATH, {
@@ -46,6 +57,7 @@ export const Contact = ({
           serviceInterest,
           propertyAddress,
           message,
+          consentToContact: true,
           _hp: honeypot,
         }),
       });
@@ -94,6 +106,7 @@ export const Contact = ({
       setPropertyAddress("");
       setMessage("");
       setHoneypot("");
+      setConsentToContact(false);
     } catch {
       setSubmitStatus("error");
       setErrorMessage(
@@ -201,6 +214,31 @@ export const Contact = ({
   };
 
   const serviceLabel = formLabels?.service ?? "Service interest";
+
+  const consentLinkStyle: React.CSSProperties = {
+    color: theme.colors.everglade,
+    fontWeight: 700,
+    textDecoration: "underline",
+    textUnderlineOffset: "2px",
+  };
+
+  const consentRowStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "0.75rem",
+    fontSize: "0.8125rem",
+    lineHeight: 1.5,
+    color: theme.colors.everglade,
+  };
+
+  const checkboxStyle: React.CSSProperties = {
+    marginTop: "0.2rem",
+    width: "1.125rem",
+    height: "1.125rem",
+    flexShrink: 0,
+    accentColor: theme.colors.everglade,
+    cursor: "pointer",
+  };
 
   return (
     <section id="contact" style={sectionStyle} aria-labelledby="contact-heading">
@@ -390,6 +428,37 @@ export const Contact = ({
                 required
                 maxLength={8000}
               />
+            </div>
+            <div style={consentRowStyle}>
+              <input
+                id="contact-consent"
+                type="checkbox"
+                checked={consentToContact}
+                onChange={(ev) => setConsentToContact(ev.target.checked)}
+                style={checkboxStyle}
+                aria-required
+                aria-describedby="contact-consent-desc"
+              />
+              <label
+                htmlFor="contact-consent"
+                id="contact-consent-desc"
+                style={{
+                  cursor: "pointer",
+                  fontFamily: theme.fonts.body,
+                  fontWeight: 500,
+                }}
+              >
+                I agree to be contacted about my inquiry by email, phone, or SMS.
+                I have read the{" "}
+                <TransitionLink to="/privacy" style={consentLinkStyle}>
+                  Privacy Policy
+                </TransitionLink>{" "}
+                and{" "}
+                <TransitionLink to="/terms" style={consentLinkStyle}>
+                  Terms of Service
+                </TransitionLink>
+                .
+              </label>
             </div>
             {submitStatus === "success" ||
             (submitStatus === "error" && errorMessage) ? (

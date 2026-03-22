@@ -40,3 +40,63 @@ a {
 button {
   font-family: inherit;
 }
+
+/*
+ * View Transitions API — route changes (TransitionLink + startViewTransition).
+ * Nav is a separate named transition so it is not blurred/scaled with the page.
+ */
+.site-nav-vt {
+  view-transition-name: site-nav;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(site-nav) {
+    animation-duration: 0s !important;
+  }
+
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation: none !important;
+  }
+
+  ::view-transition-group(root) {
+    animation-duration: 0.72s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  ::view-transition-old(root) {
+    animation: vt-route-out 0.68s cubic-bezier(0.45, 0, 0.55, 1) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-route-in 0.78s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+/* Outgoing: lift away, zoom in slightly, dissolve through blur */
+@keyframes vt-route-out {
+  from {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+    transform: scale(1) translateY(0) translateX(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(14px) brightness(1.12);
+    transform: scale(1.06) translateY(-32px) translateX(0);
+  }
+}
+
+/* Incoming: rise from below, punch in from smaller, sharpen from blur */
+@keyframes vt-route-in {
+  from {
+    opacity: 0;
+    filter: blur(12px) brightness(0.88);
+    transform: scale(0.88) translateY(56px) translateX(0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+    transform: scale(1) translateY(0) translateX(0);
+  }
+}
