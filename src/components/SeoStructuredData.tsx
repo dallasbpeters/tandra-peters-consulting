@@ -25,7 +25,7 @@ export const SeoStructuredData = () => {
         "BirdCreek Roofing consultant in Austin, Texas: roof assessments, insurance claim advocacy, and project oversight—with installation by the same BirdCreek team.",
       url,
       telephone: "+1-512-968-3965",
-      email: "tandrapeters@birdcreekroofing.com",
+      email: "tandra@birdcreekroofing.com",
       areaServed: [
         {
           "@type": "City",
