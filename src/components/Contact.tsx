@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { ChevronDown, Mail, Phone, MapPin, Send } from "lucide-react";
 import { theme } from "../theme";
+import { CONTACT_SERVICE_OPTIONS } from "../contactServiceOptions";
 import { ContactProps } from "../types";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
@@ -13,9 +14,12 @@ export const Contact = ({
   email = "tandrapeters@birdcreekroofing.com",
   phone = "(512) 968-3965",
   location = "Austin, Texas",
+  serviceOptions = CONTACT_SERVICE_OPTIONS,
+  formLabels,
 }: ContactProps) => {
   const [fullName, setFullName] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
+  const [serviceInterest, setServiceInterest] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -39,6 +43,7 @@ export const Contact = ({
         body: JSON.stringify({
           fullName,
           email: visitorEmail,
+          serviceInterest,
           propertyAddress,
           message,
           _hp: honeypot,
@@ -85,6 +90,7 @@ export const Contact = ({
       setSubmitStatus("success");
       setFullName("");
       setVisitorEmail("");
+      setServiceInterest("");
       setPropertyAddress("");
       setMessage("");
       setHoneypot("");
@@ -152,16 +158,48 @@ export const Contact = ({
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   };
 
+  const underlineBorder = `1px solid ${theme.colors.everglade}33`;
+
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    backgroundColor: theme.colors.paperDim,
+    boxSizing: "border-box",
+    backgroundColor: "transparent",
     border: "none",
-    borderBottom: `1px solid ${theme.colors.paperDark}33`,
-    padding: "1rem",
+    borderBottom: underlineBorder,
+    borderRadius: 0,
+    padding: "0.75rem 0",
     fontSize: "1rem",
-    transition: "border-color 0.3s",
+    color: theme.colors.everglade,
+    transition: "border-color 0.2s ease",
     outline: "none",
   };
+
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    cursor: "pointer",
+    WebkitAppearance: "none",
+    appearance: "none",
+    paddingRight: "2rem",
+  };
+
+  const selectWrapStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+  };
+
+  const selectChevronStyle: React.CSSProperties = {
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: "translateY(-50%)",
+    pointerEvents: "none",
+    display: "flex",
+    alignItems: "center",
+    color: theme.colors.everglade,
+    opacity: 0.75,
+  };
+
+  const serviceLabel = formLabels?.service ?? "Service interest";
 
   return (
     <section id="contact" style={sectionStyle}>
@@ -174,7 +212,12 @@ export const Contact = ({
             .md-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
           }
           .contact-group:hover .icon-wrapper { background-color: ${theme.colors.accentLight} !important; }
-          input:focus, textarea:focus { border-bottom-color: ${theme.colors.accent} !important; }
+          .contact-form-field::placeholder {
+            color: ${theme.colors.everglade}55;
+          }
+          .contact-form-field:focus {
+            border-bottom-color: ${theme.colors.accent} !important;
+          }
           .send-btn:hover { background-color: ${theme.colors.everglade}ee !important; }
           .send-btn:hover .send-icon { transform: translate(8px, -8px) !important; }
         `}</style>
@@ -259,6 +302,7 @@ export const Contact = ({
                 <input
                   id="contact-full-name"
                   type="text"
+                  className="contact-form-field"
                   style={inputStyle}
                   placeholder="John Doe"
                   value={fullName}
@@ -275,6 +319,7 @@ export const Contact = ({
                 <input
                   id="contact-email"
                   type="email"
+                  className="contact-form-field"
                   style={inputStyle}
                   placeholder="john@example.com"
                   value={visitorEmail}
@@ -286,12 +331,41 @@ export const Contact = ({
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <label htmlFor="contact-service" style={labelStyle}>
+                {serviceLabel}
+              </label>
+              <div style={selectWrapStyle}>
+                <select
+                  id="contact-service"
+                  value={serviceInterest}
+                  onChange={(ev) => setServiceInterest(ev.target.value)}
+                  required
+                  className="contact-form-field"
+                  style={selectStyle}
+                  aria-required
+                >
+                  <option value="" disabled>
+                    Select a service…
+                  </option>
+                  {serviceOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <span style={selectChevronStyle} aria-hidden>
+                  <ChevronDown size={22} strokeWidth={2} />
+                </span>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <label htmlFor="contact-property" style={labelStyle}>
                 Property Address
               </label>
               <input
                 id="contact-property"
                 type="text"
+                className="contact-form-field"
                 style={inputStyle}
                 placeholder="123 Austin Way"
                 value={propertyAddress}
@@ -307,7 +381,8 @@ export const Contact = ({
               <textarea
                 id="contact-message"
                 rows={4}
-                style={{ ...inputStyle, resize: "none" }}
+                className="contact-form-field"
+                style={{ ...inputStyle, resize: "none", minHeight: "6rem" }}
                 placeholder="Tell us about your roofing needs..."
                 value={message}
                 onChange={(ev) => setMessage(ev.target.value)}
@@ -315,25 +390,25 @@ export const Contact = ({
                 maxLength={8000}
               />
             </div>
-            <div
-              role="status"
-              aria-live="polite"
-              style={{
-                minHeight: "1.25rem",
-                fontSize: "0.875rem",
-                color:
-                  submitStatus === "error"
-                    ? "#b91c1c"
-                    : submitStatus === "success"
-                      ? theme.colors.everglade
-                      : `${theme.colors.everglade}99`,
-              }}
-            >
-              {submitStatus === "success"
-                ? "Thanks — your message was sent. We’ll be in touch soon."
-                : null}
-              {submitStatus === "error" ? errorMessage : null}
-            </div>
+            {submitStatus === "success" ||
+            (submitStatus === "error" && errorMessage) ? (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  fontSize: "0.875rem",
+                  lineHeight: 1.5,
+                  color:
+                    submitStatus === "error"
+                      ? "#b91c1c"
+                      : theme.colors.everglade,
+                }}
+              >
+                {submitStatus === "success"
+                  ? "Thanks — your message was sent. We’ll be in touch soon."
+                  : errorMessage}
+              </div>
+            ) : null}
             <button
               type="submit"
               disabled={submitStatus === "sending"}

@@ -104,16 +104,24 @@ export interface ContactInfo {
   value: string;
 }
 
+export interface ContactServiceOption {
+  value: string;
+  label: string;
+}
+
 export interface ContactProps {
   tagline?: string;
   title?: string;
   email?: string;
   phone?: string;
   location?: string;
+  /** Defaults to shared roofing options from `contactServiceOptions.ts` */
+  serviceOptions?: readonly ContactServiceOption[];
   contactInfo?: ContactInfo[];
   formLabels?: {
     name?: string;
     email?: string;
+    service?: string;
     property?: string;
     message?: string;
     button?: string;

@@ -9,6 +9,10 @@
  *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  contactServiceLabel,
+  isValidContactServiceValue,
+} from "../src/contactServiceOptions";
 
 const ATTIO_ASSERT_URL =
   "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
@@ -154,6 +158,8 @@ export default async function handler(
       : "";
   const message =
     typeof body.message === "string" ? body.message.trim() : "";
+  const serviceInterestRaw =
+    typeof body.serviceInterest === "string" ? body.serviceInterest.trim() : "";
 
   if (!fullName || fullName.length > 200) {
     res.status(400).json({ ok: false, error: "Please enter your name." });
@@ -163,6 +169,11 @@ export default async function handler(
     res.status(400).json({ ok: false, error: "Please enter a valid email." });
     return;
   }
+  if (!isValidContactServiceValue(serviceInterestRaw)) {
+    res.status(400).json({ ok: false, error: "Please select a service." });
+    return;
+  }
+  const serviceLine = contactServiceLabel(serviceInterestRaw);
   if (!message || message.length > 8000) {
     res.status(400).json({ ok: false, error: "Please enter a message." });
     return;
@@ -174,6 +185,7 @@ export default async function handler(
 
   const description = [
     "Source: Website contact form",
+    `Service: ${serviceLine ?? serviceInterestRaw}`,
     `Property / address: ${propertyAddress || "—"}`,
     "",
     message,
@@ -194,21 +206,34 @@ export default async function handler(
       body: JSON.stringify({ data: { values } }),
     });
 
+  const descriptionPayload = (text: string) =>
+    [{ value: text.replace(/\0/g, "").slice(0, 100_000) }] as const;
+
   let attioRes = await putAssert({
     ...baseValues,
-    description: [{ value: description.slice(0, 100_000) }],
+    description: descriptionPayload(description),
   });
 
   let errText = !attioRes.ok ? await attioRes.text() : "";
 
+  /**
+   * Never retry with email+name only — that used to "succeed" while dropping
+   * description (service, property address, message) in Attio.
+   * If the first body fails validation, retry once with a shorter description shape.
+   */
   if (!attioRes.ok && attioRes.status === 400) {
-    const retry = await putAssert(baseValues);
-    if (retry.ok) {
-      attioRes = retry;
-      errText = "";
-    } else {
-      errText = await retry.text();
-    }
+    const compactDescription = [
+      `Service: ${serviceLine ?? serviceInterestRaw}`,
+      `Property / address: ${propertyAddress || "—"}`,
+      "---",
+      message,
+    ].join("\n");
+    const retry = await putAssert({
+      ...baseValues,
+      description: descriptionPayload(compactDescription),
+    });
+    attioRes = retry;
+    errText = retry.ok ? "" : await retry.text();
   }
 
   if (!attioRes.ok) {
