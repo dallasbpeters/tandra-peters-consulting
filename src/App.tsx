@@ -5,7 +5,7 @@ import { About } from "./components/About";
 import { Services } from "./components/Services";
 import { Mission } from "./components/Mission";
 import { Expertise } from "./components/Expertise";
-import  {WallyReviews}  from "./components/Testimonials";
+import { Testimonials } from "./components/Testimonials";
 import { Contact } from "./components/Contact";
 import { Footer } from "./components/Footer";
 import { SocialShareBar } from "./components/SocialShareBar";
@@ -33,7 +33,7 @@ function App() {
         <Services />
         <Mission />
         <Expertise />
-        <WallyReviews />
+        <Testimonials />
         <Band tint={theme.colors.everglade} colors={[theme.colors.evergladeLight, theme.colors.evergladeMuted, theme.colors.paper, theme.colors.purple, theme.colors.purple, theme.colors.purple]} />
         <Faq />
         <Contact />

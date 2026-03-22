@@ -1,7 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_WALLY_WIDGET_ID?: string;
+  /** Elfsight Google Reviews widget UUID (from Install embed code). */
+  readonly VITE_ELFSIGHT_WIDGET_ID?: string;
   /**
    * Production origin only (e.g. https://www.tandra.me), not `/api/contact`.
    * When set, `pnpm dev` proxies `/api/*` to this host.
