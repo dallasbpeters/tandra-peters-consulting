@@ -29,9 +29,11 @@ export const Home = () => {
       <main>
         <Hero />
         <ScrollVelocity
+        direction="right"
+        velocity={80}
           texts={[
             {
-              text: "Amarillo * Canyon * Lubbock * San Antonio * Kerrville * Belton * Temple * Waco * Fort Worth * Austin * Surrounding Areas * San Antonio * Kerrville * Belton * Temple * Waco * Fort Worth * Austin * Surrounding Areas *",
+              text: "Amarillo - Canyon - Lubbock - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin - Surrounding Areas - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin & Surrounding Areas -",
             },
           ]}
         />
@@ -40,6 +42,7 @@ export const Home = () => {
         <Mission />
         <Expertise />
         <Testimonials />
+        <Faq />
         <Band
           tint={theme.colors.everglade}
           colors={[
@@ -51,7 +54,6 @@ export const Home = () => {
             theme.colors.purple,
           ]}
         />
-        <Faq />
         <Contact />
       </main>
       <SocialShareBar />
