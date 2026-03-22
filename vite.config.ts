@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+import { ogImageComposite } from './plugins/ogImageComposite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
@@ -27,8 +28,8 @@ export default defineConfig(({mode}) => {
         },
       },
       ViteImageOptimizer({
-        /** OG/Twitter card art must stay full resolution; sharp was shrinking this to ~12kB. */
-        exclude: 'og-image.png',
+        /** Base OG PNG + roofline SVG are composited later; do not recompress the base PNG here. */
+        exclude: ['roofline.svg'],
         png: { quality: 80 },
         jpeg: { quality: 75 },
         webp: { quality: 80 },
@@ -40,6 +41,7 @@ export default defineConfig(({mode}) => {
           ],
         },
       }),
+      ogImageComposite(),
     ],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
