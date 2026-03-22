@@ -9,7 +9,7 @@ export const About: React.FC<AboutProps> = ({
   imageSrc = "/tandra.png",
   title = (
     <>
-      Precision. Integrity.<br/>Tandra Peters.
+      Precision. Integrity.
     </>
   ),
   paragraphs = [
@@ -41,7 +41,7 @@ export const About: React.FC<AboutProps> = ({
   };
 
   const imageWrapperStyle: React.CSSProperties = {
-    aspectRatio: "1/1",
+    aspectRatio: "3/3.3",
     backgroundColor: theme.colors.paperDark,
     borderRadius: "1rem",
     overflow: "hidden",

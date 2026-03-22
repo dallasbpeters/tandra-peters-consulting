@@ -48,6 +48,7 @@ export const Mission: React.FC<MissionProps> = ({
     },
   };
 
+  
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -80,13 +81,13 @@ export const Mission: React.FC<MissionProps> = ({
   const gridStyle: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
-    gap: "2rem",
+    gap: "1rem",
   };
 
   const cardBaseStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
     borderRadius: "1rem",
-    padding: "3rem",
+    padding: "2rem",
     position: "relative",
     overflow: "hidden",
     display: "flex",
@@ -118,11 +119,10 @@ export const Mission: React.FC<MissionProps> = ({
           <style>{`
             @media (min-width: 768px) {
               .md-row-end { flex-direction: row !important; }
-              .services-grid {
-                grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+              .mission-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
               }
-              .services-span-8 { grid-column: span 8 !important; }
-              .services-span-4 { grid-column: span 4 !important; }
+              .mission-grid-item { grid-column: span 1 !important; }
             }
           `}</style>
           <div style={{ maxWidth: "42rem" }}>
@@ -170,13 +170,25 @@ export const Mission: React.FC<MissionProps> = ({
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           style={gridStyle}
-          className="services-grid"
+          className="mission-grid"
         >
           <style>{`
             .mission-card:hover .mission-card-bg { opacity: 0.3 !important; }
+            .mission-card:hover .mission-card-bg img {
+              transform: scale(1.08) !important;
+            }
+            .mission-card .mission-card-bg img {
+              transform: scale(1);
+              transform-origin: center center;
+              transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            }
             .mission-card:hover .mission-card-icon { transform: scale(1.1) !important; }
             .mission-card:hover .mission-card-arrow { transform: rotate(45deg) !important; }
             .mission-card:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important; }
+            @media (prefers-reduced-motion: reduce) {
+              .mission-card:hover .mission-card-bg img { transform: none !important; }
+              .mission-card .mission-card-bg img { transition: none; }
+            }
           `}</style>
           {services.map((service, i) => {
             const isMain = i === 0;
@@ -185,7 +197,7 @@ export const Mission: React.FC<MissionProps> = ({
                 key={service.id}
                 variants={cardVariants}
                 style={isMain ? mainCardStyle : secondaryCardStyle}
-                className={`${isMain ? "services-span-4" : "services-span-4"} mission-card`}
+                className="mission-grid-item mission-card"
               >
                 {service.image ? (
                   <div
@@ -196,10 +208,11 @@ export const Mission: React.FC<MissionProps> = ({
                       transition: "opacity 0.7s",
                     }}
                     className="mission-card-bg"
+                    aria-hidden
                   >
                     <img
                       src={service.image}
-                      alt={`BirdCreek Roofing mission — ${service.title}`}
+                      alt=""
                       style={{
                         width: "100%",
                         height: "100%",
@@ -213,7 +226,7 @@ export const Mission: React.FC<MissionProps> = ({
                   <h3
                     style={{
                       color: theme.colors.white,
-                      fontSize: "1.875rem",
+                      fontSize: "2.475rem",
                       lineHeight: isMain ? 1 : 1.25,
                       marginBottom: "1.5rem",
                       fontFamily: theme.fonts.headline,
@@ -225,7 +238,7 @@ export const Mission: React.FC<MissionProps> = ({
                   </h3>
                   <p
                     style={{
-                      color: theme.colors.evergladeMuted,
+                      color: theme.colors.white,
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
                       fontSize: "1rem",

@@ -17,7 +17,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
       id: "02",
       title: "Metal roofing",
       desc: "Help comparing standing seam versus exposed-fastener systems, coating longevity, wind ratings, and how metal performs in Texas heat and hail-prone seasons.",
-      image: "/roof.jpeg",
+      image: "/metal-roof.jpg",
     },
     {
       id: "03",
@@ -163,7 +163,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                   style={{
                     position: "absolute",
                     inset: 0,
-                    opacity: 0.6,
+                    opacity: 0.4,
                     transition: "opacity 0.7s",
                   }}
                   className="expertise-card-bg"
