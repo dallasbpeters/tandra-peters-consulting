@@ -131,7 +131,7 @@ export const Mission: React.FC<MissionProps> = ({
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
-                color: theme.colors.accent,
+                color: theme.colors.purple,
                 fontSize: "0.75rem",
                 marginBottom: "1.5rem",
                 display: "block",

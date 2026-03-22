@@ -6,6 +6,7 @@ import { NavProps } from "../types";
 
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
+  logoTagline = "Roofing Consultant",
   imageSrc = "https://lh3.googleusercontent.com/aida/ADBb0ujNxdAxaY1-ObgML2j-2_hQEat6D2y2JOsW0G-Nn8gEMYt8QMH7U-Mp2gVevbXa84NvM7lJlcHVvIjXYcDfZe9_-fp1a7L4EQMVBGE2ktk3dY-MipPdQrQxytiQHnu8Nk_rnwybn1BLOrZj6dHzlyB7eB5gEeCuXGlrZLwUbtJYNj519phafs2-Nn7eLvREdzsUNRz3p161dSRwqxjoy-whIG9170-WCK-SXsooTmYMrlWKh8nKBBZ6g1mLjaCetu1MTSg-G4xiuw",
   navItems = [
     { name: "Services", href: "#services" },
@@ -24,6 +25,24 @@ export const Nav: React.FC<NavProps> = ({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleMobileNavClick =
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (href.startsWith("#") && href !== "#") {
+        e.preventDefault();
+        setIsMobileMenuOpen(false);
+        const id = href.slice(1);
+        window.setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+          window.history.replaceState(null, "", href);
+        }, 200);
+        return;
+      }
+      setIsMobileMenuOpen(false);
+    };
 
   const navStyle: React.CSSProperties = {
     position: "fixed",
@@ -48,25 +67,44 @@ export const Nav: React.FC<NavProps> = ({
       justifyContent: "space-between",
       alignItems: "center",
     };
-
+    
+    const logoStyle: React.CSSProperties = {
+      
+      display: "grid",
+      gridTemplateColumns: "auto 1fr",
+      gridTemplateAreas: `"image text" "image tagline"`,
+      alignItems: "center",
+      gap: "0 0.5rem"
+    };
     const imageStyle: React.CSSProperties = {
-      width: "2rem",
-      height: "2rem",
+      minInlineSize: "2.2rem",
+      minBlockSize: "2.2rem",
+      maxInlineSize: "2.2rem",
+      maxBlockSize: "2.2rem",
       objectFit: "cover",
       borderRadius: "9999px",
-      overflow: "hidden",
+      gridArea: "image",
+      overflow: "hidden", 
     };
 
-  const logoStyle: React.CSSProperties = {
+  const logoTextStyle: React.CSSProperties = {
     fontSize: "1.25rem",
     fontWeight: 900,
     letterSpacing: "-0.05em",
+    gridArea: "text",
     fontFamily: theme.fonts.headline,
     color: isScrolled ? theme.colors.black : theme.colors.white,
     textDecoration: "none",
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
+  };
+  const logoTaglineStyle: React.CSSProperties = {
+    fontSize: "10px",
+    fontWeight: 700,
+    letterSpacing: "0.1em",
+    gridArea: "tagline",
+    display: "block",
+    textTransform: "uppercase",
+    fontFamily: theme.fonts.headline,
+    color: isScrolled ? theme.colors.evergladeMuted : theme.colors.white,
   };
 
   const desktopNavStyle: React.CSSProperties = {
@@ -113,12 +151,13 @@ export const Nav: React.FC<NavProps> = ({
           style={logoStyle}
         >
           <img src={imageSrc} alt={logoText} style={imageStyle} />
-          {logoText}
+          <span style={logoTextStyle}>{logoText}</span>
+          <span style={logoTaglineStyle}>{logoTagline}</span>
         </motion.a>
         
         <div style={{ ...desktopNavStyle, display: "flex" }} className="md-flex">
           <style>{`
-            @media (max-width: 768px) {
+            @media (max-width: 1000px) {
               .md-flex { display: none !important; }
             }
           `}</style>
@@ -173,8 +212,6 @@ export const Nav: React.FC<NavProps> = ({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             style={{ 
-              backgroundColor: theme.colors.white, 
-              borderBottom: `1px solid ${theme.colors.paperDark}`, 
               overflow: "hidden" 
             }}
           >
@@ -192,12 +229,16 @@ export const Nav: React.FC<NavProps> = ({
                     textDecoration: "none",
                     color: theme.colors.everglade
                   }}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={handleMobileNavClick(item.href)}
                 >
                   {item.name}
                 </a>
               ))}
-              <a href={ctaHref} style={{ ...buttonStyle, fontSize: "0.75rem", width: "100%", textAlign: "center" }} onClick={() => setIsMobileMenuOpen(false)}>
+              <a
+                href={ctaHref}
+                style={{ ...buttonStyle, fontSize: "0.75rem", width: "100%", textAlign: "center" }}
+                onClick={handleMobileNavClick(ctaHref)}
+              >
                 {ctaText}
               </a>
             </div>

@@ -7,6 +7,7 @@ export interface NavItem {
 
 export interface NavProps {
   logoText?: string;
+  logoTagline?: string;
   navItems?: NavItem[];
   ctaText?: string;
   ctaHref?: string;

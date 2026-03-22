@@ -15,9 +15,7 @@ export const About: React.FC<AboutProps> = ({
   paragraphs = [
     "In an industry often characterized by noise, Tandra Peters offers a voice of architectural clarity. As Austin's leading roofing consultant, she bridges the gap between complex construction requirements and homeowner peace of mind.",
     "Partnering with BirdCreek Roofing allows Tandra to provide not just advice, but the executable expertise of a top-tier firm. Her approach is rooted in the \"Architectural Advisor\" philosophy—where every roof is treated as a critical structural component and a long-term investment."
-  ],
-  linkText = "Read Full Bio",
-  linkHref = "#"
+  ]
 }) => {
   const sectionStyle: React.CSSProperties = {
     paddingTop: "8rem",
@@ -43,7 +41,7 @@ export const About: React.FC<AboutProps> = ({
   };
 
   const imageWrapperStyle: React.CSSProperties = {
-    aspectRatio: "4/5",
+    aspectRatio: "1/1",
     backgroundColor: theme.colors.paperDark,
     borderRadius: "1rem",
     overflow: "hidden",
@@ -53,10 +51,21 @@ export const About: React.FC<AboutProps> = ({
   const badgeStyle: React.CSSProperties = {
     position: "absolute",
     bottom: "-2.5rem",
-    right: "-2.5rem",
+    right: "-1.5rem",
     backgroundColor: theme.colors.everglade,
-    padding: "2.5rem",
-    display: "none",
+    padding: "1.5rem",
+    borderRadius: ".75rem",
+  };
+
+  const certificationsStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(60px, 1fr))",
+    gap: "1rem",
+  };
+
+  const certificationImageStyle: React.CSSProperties = {
+    width: "auto",
+    height: "4rem",
   };
 
   const h2Style: React.CSSProperties = {
@@ -73,13 +82,6 @@ export const About: React.FC<AboutProps> = ({
     lineHeight: 1.6,
     fontSize: "1.125rem",
     marginBottom: "2rem",
-  };
-
-  const linkWrapperStyle: React.CSSProperties = {
-    marginTop: "4rem",
-    display: "flex",
-    alignItems: "center",
-    gap: "2rem",
   };
 
   return (
@@ -138,15 +140,16 @@ export const About: React.FC<AboutProps> = ({
               </p>
             ))}
           </div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6 }}
-            style={linkWrapperStyle}
-          >
-            <div style={{ width: "5rem", height: "1px", backgroundColor: theme.colors.paperDark }}></div>
-            <a href={linkHref} style={{ fontFamily: theme.fonts.headline, fontWeight: 900, textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.3em", textDecoration: "none", color: "inherit", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = theme.colors.accent} onMouseLeave={(e) => e.currentTarget.style.color = "inherit"}>{linkText}</a>
+          <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6 }}
+          style={certificationsStyle}>
+            <img style={certificationImageStyle} src="/roofing-soloar-alliance.png" alt="Roofing Solar Alliance" />
+            <img style={certificationImageStyle} src="/roof-pro.png" alt="Roof Pro" />
+            <img style={certificationImageStyle} src="/tamko-pro.png" alt="Tamko Pro" />
+            <img style={certificationImageStyle} src="/gaf-master-elite.png" alt="GAF Master Elite" />
           </motion.div>
         </motion.div>
       </div>

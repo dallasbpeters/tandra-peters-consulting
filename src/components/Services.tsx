@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArrowUpRight, Search, FileText, ShieldCheck } from "lucide-react";
 import { theme } from "../theme";
 import { ServicesProps } from "../types";
+import BirdCreekLogo from "./BirdCreekLogo";
 
 export const Services: React.FC<ServicesProps> = ({
   tagline = "Strategic Services",
@@ -75,7 +76,7 @@ export const Services: React.FC<ServicesProps> = ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
     marginBottom: "6rem",
     gap: "2rem",
   };
@@ -89,7 +90,7 @@ export const Services: React.FC<ServicesProps> = ({
   const mainCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,
     borderRadius: "1rem",
-    padding: "3rem",
+    padding: "2rem",
     position: "relative",
     overflow: "hidden",
     minHeight: "500px",
@@ -102,7 +103,7 @@ export const Services: React.FC<ServicesProps> = ({
   const secondaryCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.white,
     borderRadius: "1rem",
-    padding: "3rem",
+    padding: "2rem",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
@@ -122,7 +123,10 @@ export const Services: React.FC<ServicesProps> = ({
         >
           <style>{`
             @media (min-width: 768px) {
-              .md-row-end { flex-direction: row !important; }
+              .md-row-end {
+                flex-direction: row !important;
+                align-items: flex-end !important;
+              }
               .services-grid {
                 grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
               }
@@ -344,11 +348,19 @@ export const Services: React.FC<ServicesProps> = ({
               .group-advantage:hover { background-color: ${theme.colors.everglade} !important; }
               .group-advantage:hover h3 { color: white !important; }
               .group-advantage:hover p { color: ${theme.colors.evergladeMuted} !important; }
-              .group-advantage:hover button { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade} !important; }
+              .group-advantage:hover .group-advantage-cta {
+                background-color: ${theme.colors.purple} !important;
+                color: ${theme.colors.everglade} !important;
+              }
+              .group-advantage:hover .group-advantage-cta:hover {
+                background-color: ${theme.colors.purple} !important;
+                color: ${theme.colors.everglade} !important;
+              }
               @media (min-width: 768px) {
                 .md-row-center { flex-direction: row !important; }
               }
             `}</style>
+             <BirdCreekLogo />
             <div style={{ maxWidth: "28rem" }}>
               <h3
                 style={{
@@ -369,14 +381,18 @@ export const Services: React.FC<ServicesProps> = ({
                   color: `${theme.colors.everglade}99`,
                   lineHeight: 1.6,
                   transition: "color 0.7s",
+                  fontWeight: 500,
+                  fontSize: "1.1rem",
                 }}
               >
                 Direct access to Austin's premier roofing firm, combining
                 Tandra's consultation with BirdCreek's legendary execution.
               </p>
             </div>
+             
             <a
               href="https://birdcreekroofing.com"
+              className="group-advantage-cta"
               style={{
                 backgroundColor: theme.colors.everglade,
                 color: theme.colors.white,
@@ -388,8 +404,10 @@ export const Services: React.FC<ServicesProps> = ({
                 fontSize: "0.75rem",
                 border: "none",
                 cursor: "pointer",
+                borderRadius: "1rem",
                 transition: "all 0.3s",
                 textDecoration: "none",
+                display: "inline-block",
               }}
             >
               Learn More
