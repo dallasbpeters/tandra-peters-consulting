@@ -10,7 +10,7 @@ export const Hero: React.FC<HeroProps> = ({
       <span style={{ color: theme.colors.evergladeMuted }}>Our Expertise.</span>
     </>
   ),
-  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams.",
+  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
   backgroundImage = "/roof.png"
@@ -72,6 +72,7 @@ export const Hero: React.FC<HeroProps> = ({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: "0.25rem 0.75rem",
     marginBottom: "2rem",
+    color: theme.colors.purple,
   };
 
   const h1Style: React.CSSProperties = {
@@ -87,7 +88,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   const pStyle: React.CSSProperties = {
     fontSize: "clamp(1rem, 2vw, 1.25rem)",
-    color: theme.colors.evergladeMuted,
+    color: theme.colors.white,
     maxWidth: "36rem",
     marginBottom: "3rem",
     lineHeight: 1.6,
@@ -149,7 +150,7 @@ export const Hero: React.FC<HeroProps> = ({
                 fontSize: "10px",
                 fontWeight: 700,
                 letterSpacing: "0.2em",
-                color: theme.colors.evergladeMuted,
+                color: theme.colors.purple,
                 textTransform: "uppercase",
               }}
             >
