@@ -64,8 +64,6 @@ export const ArticleGridCard = ({
           style={{
             position: "absolute",
             inset: 0,
-            opacity: 0.22,
-            transition: "opacity 0.7s",
           }}
           className="articles-teaser-card-bg"
           aria-hidden
