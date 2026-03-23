@@ -49,6 +49,7 @@ export const Hero: React.FC<HeroProps> = ({
     display: "flex",
     alignItems: "center",
     paddingTop: "5rem",
+    paddingBottom: "3rem",
     background: `linear-gradient(135deg, ${theme.colors.everglade} 0%, ${theme.colors.evergladeLight} 100%)`,
     overflow: "hidden",
   };
