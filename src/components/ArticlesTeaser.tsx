@@ -78,10 +78,6 @@ export const ArticlesTeaser = ({
     height: "100%",
   };
 
-  const mainCardStyle: CSSProperties = {
-    ...cardBaseStyle,
-    minHeight: "500px",
-  };
 
   return (
     <section
@@ -193,7 +189,6 @@ export const ArticlesTeaser = ({
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: 0.2,
               }}
               className="articles-teaser-card-bg"
               aria-hidden
