@@ -66,6 +66,8 @@ export const ContactSmall = ({
       } catch {
         data = {};
       }
+      const vercelFnError = res.headers.get("x-vercel-error");
+      const contentType = res.headers.get("content-type") ?? "";
       if (!res.ok || !data.ok) {
         setSubmitStatus("error");
         const fromApi =
@@ -88,6 +90,16 @@ export const ContactSmall = ({
           }
           if (res.ok && !data.ok) {
             return "The server returned an unexpected response. Check that /api/contact is not rewritten to the SPA.";
+          }
+          if (
+            !fromApi &&
+            rawText &&
+            !rawText.trim().startsWith("{") &&
+            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
+          ) {
+            return vercelFnError === "FUNCTION_INVOCATION_FAILED"
+              ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
+              : "Server returned an error instead of JSON (often a Vercel function crash or HTML fallback). Check Vercel → Deployments → Functions → /api/contact logs.";
           }
           if (!fromApi && rawText && !rawText.trim().startsWith("{")) {
             return "Received a non-JSON response (often HTML). The /api/contact route may not be deployed or is being rewritten to index.html.";

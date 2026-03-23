@@ -9,10 +9,34 @@
  *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import {
-  contactServiceLabel,
-  isValidContactServiceValue,
-} from "../contactServiceOptions";
+
+/**
+ * Inline copy of labels/validation (see `contactServiceOptions.ts` in the app).
+ * Kept inside `api/` so the Vercel function bundle does not depend on imports
+ * outside this folder (avoids FUNCTION_INVOCATION_FAILED from missing modules).
+ */
+const CONTACT_SERVICE_ROWS = [
+  { value: "shingle-roofing", label: "Shingle Roofing" },
+  { value: "metal-roofing", label: "Metal Roofing" },
+  { value: "storm-damage-restoration", label: "Storm Damage Restoration" },
+  { value: "commercial-roofing", label: "Commercial Roofing" },
+  {
+    value: "hail-wind-damage-roof-inspection",
+    label: "Hail & Wind Damage Roof Inspection",
+  },
+] as const;
+
+const SERVICE_VALUE_SET = new Set<string>(
+  CONTACT_SERVICE_ROWS.map((o) => o.value),
+);
+
+const isValidContactServiceValue = (v: string): boolean =>
+  SERVICE_VALUE_SET.has(v);
+
+const contactServiceLabel = (value: string): string | null => {
+  const row = CONTACT_SERVICE_ROWS.find((o) => o.value === value);
+  return row?.label ?? null;
+};
 
 const ATTIO_ASSERT_URL =
   "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
