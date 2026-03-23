@@ -14,6 +14,11 @@ import { usePostHog } from "@posthog/react";
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 const CONTACT_API_PATH = "/api/contact";
 
+/** Compact form has no service picker; API requires `serviceInterest` + `message`. */
+const COMPACT_DEFAULT_SERVICE = "shingle-roofing";
+const COMPACT_DEFAULT_MESSAGE =
+  "Please contact me using the email and phone provided.";
+
 export const ContactSmall = ({
   title = "Get a free roofing consultation.",
   serviceOptions = CONTACT_SERVICE_OPTIONS,
@@ -55,6 +60,8 @@ export const ContactSmall = ({
           fullName,
           email: visitorEmail,
           phoneNumber,
+          serviceInterest: COMPACT_DEFAULT_SERVICE,
+          message: COMPACT_DEFAULT_MESSAGE,
           consentToContact: true,
           _hp: honeypot,
         }),

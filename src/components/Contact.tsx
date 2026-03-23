@@ -30,6 +30,7 @@ export const Contact = ({
   const [visitorEmail, setVisitorEmail] = useState("");
   const [serviceInterest, setServiceInterest] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
@@ -63,6 +64,7 @@ export const Contact = ({
         body: JSON.stringify({
           fullName,
           email: visitorEmail,
+          phoneNumber,
           serviceInterest,
           propertyAddress,
           message,
@@ -129,12 +131,14 @@ export const Contact = ({
         service_interest: serviceInterest,
         has_property_address: Boolean(propertyAddress),
         has_message: Boolean(message),
+        has_phone: Boolean(phoneNumber.trim()),
       });
       setSubmitStatus("success");
       setFullName("");
       setVisitorEmail("");
       setServiceInterest("");
       setPropertyAddress("");
+      setPhoneNumber("");
       setMessage("");
       setHoneypot("");
       setConsentToContact(false);
@@ -393,6 +397,22 @@ export const Contact = ({
                   autoComplete="email"
                 />
               </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <label htmlFor="contact-phone" style={labelStyle}>
+                Phone <span style={{ fontWeight: 400, opacity: 0.85 }}>(optional)</span>
+              </label>
+              <input
+                id="contact-phone"
+                type="tel"
+                className="contact-form-field"
+                style={inputStyle}
+                placeholder="(512) 555-0100"
+                value={phoneNumber}
+                onChange={(ev) => setPhoneNumber(ev.target.value)}
+                maxLength={80}
+                autoComplete="tel"
+              />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <label htmlFor="contact-service" style={labelStyle}>

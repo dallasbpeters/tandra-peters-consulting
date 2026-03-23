@@ -111,6 +111,61 @@ const nameValues = (
   return [{ first_name, last_name, full_name: trimmed }];
 };
 
+/**
+ * Normalize to E.164 when possible. Returns null if too short / unusable (caller omits `phone_numbers`).
+ */
+const normalizePhoneForAttio = (raw: string): string | null => {
+  const s = raw.trim();
+  if (!s) return null;
+  const hasPlus = s.startsWith("+");
+  const digits = s.replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  if (hasPlus) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return `+${digits}`;
+};
+
+const phoneNumbersPayload = (
+  raw: string,
+): Array<{ original_phone_number: string }> | null => {
+  const normalized = normalizePhoneForAttio(raw);
+  if (!normalized) return null;
+  return [{ original_phone_number: normalized }];
+};
+
+/**
+ * Assert schema requires every `primary_location` key; optional parts may be null.
+ * Freeform form address is stored on `line_1` (see Attio assert example).
+ */
+const primaryLocationPayload = (
+  line1: string,
+): Array<{
+  line_1: string;
+  line_2: null;
+  line_3: null;
+  line_4: null;
+  locality: null;
+  region: null;
+  postcode: null;
+  country_code: string;
+  latitude: null;
+  longitude: null;
+}> => [
+  {
+    line_1: line1,
+    line_2: null,
+    line_3: null,
+    line_4: null,
+    locality: null,
+    region: null,
+    postcode: null,
+    country_code: "US",
+    latitude: null,
+    longitude: null,
+  },
+];
+
 type AttioErrJson = {
   type?: string;
   message?: string;
@@ -202,6 +257,8 @@ const contactHandler = async (
     typeof body.propertyAddress === "string"
       ? body.propertyAddress.trim()
       : "";
+  const phoneNumber =
+    typeof body.phoneNumber === "string" ? body.phoneNumber.trim() : "";
   const message =
     typeof body.message === "string" ? body.message.trim() : "";
   const serviceInterestRaw =
@@ -237,6 +294,10 @@ const contactHandler = async (
     res.status(400).json({ ok: false, error: "Property address is too long." });
     return;
   }
+  if (phoneNumber.length > 80) {
+    res.status(400).json({ ok: false, error: "Phone number is too long." });
+    return;
+  }
 
   const consentNote = `Consent to be contacted: yes (website form, ${new Date().toISOString().slice(0, 10)})`;
 
@@ -253,6 +314,15 @@ const contactHandler = async (
     email_addresses: [{ email_address: email.toLowerCase() }],
     name: nameValues(fullName),
   };
+
+  const phonePayload = phoneNumbersPayload(phoneNumber);
+  if (phonePayload) {
+    baseValues.phone_numbers = phonePayload;
+  }
+
+  if (propertyAddress.length > 0) {
+    baseValues.primary_location = primaryLocationPayload(propertyAddress);
+  }
 
   const putAssert = async (values: Record<string, unknown>) =>
     fetch(ATTIO_ASSERT_URL, {
