@@ -3,7 +3,8 @@
  *
  * Env (Vercel → Project → Settings → Environment Variables):
  *   ATTIO_API_TOKEN   — Bearer token from Attio (Developers / API tokens).
- *                       Scopes: record_permission:read-write, object_configuration:read
+ *                       Scopes: record_permission:read-write, object_configuration:read,
+ *                       and note:read-write (needed to create a Note with the form message on the person).
  *   ALLOWED_ORIGINS   — Optional. Comma-separated exact Origin values, e.g.
  *                       https://tandra.me,https://www.tandra.me
  *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
@@ -41,6 +42,8 @@ const contactServiceLabel = (value: string): string | null => {
 
 const ATTIO_ASSERT_URL =
   "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
+
+const ATTIO_NOTES_URL = "https://api.attio.com/v2/notes";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -200,9 +203,66 @@ const recordIdFromAssertResponse = (j: unknown): string | null => {
   if (typeof webUrl === "string") {
     const m = webUrl.match(/\/(?:person|people)\/([0-9a-f-]{36})/i);
     if (m) return m[1];
+    try {
+      const last = new URL(webUrl).pathname.split("/").filter(Boolean).pop();
+      if (last && /^[0-9a-f-]{36}$/i.test(last)) return last;
+    } catch {
+      // ignore invalid URL
+    }
   }
 
   return null;
+};
+
+/** Plaintext body for an Attio Note (timeline) — mirrors description so the message is always visible in-app. */
+const buildFormNoteContent = (args: {
+  message: string;
+  propertyAddress: string;
+  serviceLine: string | null;
+  serviceInterestRaw: string;
+  consentNote: string;
+  phoneNumber: string;
+}): string => {
+  const lines = [
+    "MESSAGE",
+    args.message,
+    "",
+    "PROPERTY / ADDRESS (exact)",
+    args.propertyAddress || "—",
+    "",
+    `Service: ${args.serviceLine ?? args.serviceInterestRaw}`,
+  ];
+  if (args.phoneNumber.trim()) {
+    lines.push(`Phone (as entered): ${args.phoneNumber.trim()}`);
+  }
+  lines.push(args.consentNote, "", "Source: Website contact form");
+  return lines.join("\n").replace(/\0/g, "").slice(0, 100_000);
+};
+
+const postAttioPersonNote = async (
+  token: string,
+  recordId: string,
+  title: string,
+  content: string,
+): Promise<{ ok: boolean; status: number; body: string }> => {
+  const res = await fetch(ATTIO_NOTES_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      data: {
+        parent_object: "people",
+        parent_record_id: recordId,
+        title: title.slice(0, 500),
+        format: "plaintext",
+        content,
+      },
+    }),
+  });
+  const body = await res.text();
+  return { ok: res.ok, status: res.status, body };
 };
 
 const contactHandler = async (
@@ -301,13 +361,18 @@ const contactHandler = async (
 
   const consentNote = `Consent to be contacted: yes (website form, ${new Date().toISOString().slice(0, 10)})`;
 
+  /** Person `description` — message and address first so previews and exports surface them. */
   const description = [
-    "Source: Website contact form",
-    consentNote,
-    `Service: ${serviceLine ?? serviceInterestRaw}`,
-    `Property / address: ${propertyAddress || "—"}`,
-    "",
+    "MESSAGE",
     message,
+    "",
+    "PROPERTY / ADDRESS (exact)",
+    propertyAddress || "—",
+    "",
+    `Service: ${serviceLine ?? serviceInterestRaw}`,
+    consentNote,
+    "",
+    "Source: Website contact form",
   ].join("\n");
 
   const baseValues: Record<string, unknown> = {
@@ -351,11 +416,15 @@ const contactHandler = async (
    */
   if (!attioRes.ok && attioRes.status === 400) {
     const compactDescription = [
-      consentNote,
-      `Service: ${serviceLine ?? serviceInterestRaw}`,
-      `Property / address: ${propertyAddress || "—"}`,
-      "---",
+      "MESSAGE",
       message,
+      "",
+      "PROPERTY / ADDRESS (exact)",
+      propertyAddress || "—",
+      "",
+      `Service: ${serviceLine ?? serviceInterestRaw}`,
+      consentNote,
+      "Source: Website contact form",
     ].join("\n");
     const retry = await putAssert({
       ...baseValues,
@@ -396,20 +465,6 @@ const contactHandler = async (
 
   const recordId = recordIdFromAssertResponse(attioJson);
   if (!recordId) {
-    const data =
-      attioJson &&
-      typeof attioJson === "object" &&
-      "data" in attioJson &&
-      attioJson.data &&
-      typeof attioJson.data === "object" &&
-      attioJson.data !== null
-        ? (attioJson.data as Record<string, unknown>)
-        : null;
-    if (data && typeof data.web_url === "string" && data.web_url.length > 0) {
-      console.info("Attio person assert ok (web_url only)", { web_url: data.web_url });
-      res.status(200).json({ ok: true });
-      return;
-    }
     console.error(
       "Attio: unexpected success payload",
       JSON.stringify(attioJson).slice(0, 800),
@@ -418,7 +473,31 @@ const contactHandler = async (
     return;
   }
 
-  console.info("Attio person assert ok", { record_id: recordId });
+  const noteTitle = `Website contact · ${serviceLine ?? serviceInterestRaw} · ${new Date().toISOString().slice(0, 10)}`;
+  const noteContent = buildFormNoteContent({
+    message,
+    propertyAddress,
+    serviceLine,
+    serviceInterestRaw,
+    consentNote,
+    phoneNumber,
+  });
+
+  const noteRes = await postAttioPersonNote(token, recordId, noteTitle, noteContent);
+  if (!noteRes.ok) {
+    console.error("Attio note create failed", {
+      status: noteRes.status,
+      body: noteRes.body.slice(0, 500),
+      record_id: recordId,
+    });
+    if (noteRes.status === 401 || noteRes.status === 403) {
+      console.error(
+        "Attio: add note:read-write to the API token scope to create Notes with the form message.",
+      );
+    }
+  }
+
+  console.info("Attio person assert ok", { record_id: recordId, note_ok: noteRes.ok });
   res.status(200).json({ ok: true });
 };
 
