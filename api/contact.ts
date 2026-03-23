@@ -100,14 +100,15 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
   }
 };
 
-const nameValues = (fullName: string): Array<Record<string, string>> => {
+/** Attio assert expects `name` as [{ first_name, last_name, full_name }]; all three keys should be present. */
+const nameValues = (
+  fullName: string,
+): Array<Record<string, string>> => {
   const trimmed = fullName.trim();
   const parts = trimmed.split(/\s+/).filter(Boolean);
   const first_name = parts[0] ?? trimmed;
   const last_name = parts.length > 1 ? parts.slice(1).join(" ") : "";
-  const row: Record<string, string> = { first_name, full_name: trimmed };
-  if (last_name) row.last_name = last_name;
-  return [row];
+  return [{ first_name, last_name, full_name: trimmed }];
 };
 
 type AttioErrJson = {
