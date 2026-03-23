@@ -10,9 +10,9 @@ export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
   description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with BirdCreek Roofing for trusted installation across Texas.",
   socialLinks = [
-    { icon: Instagram, href: "https://www.instagram.com/tandra/" },
-    { icon: Linkedin, href: "https://www.linkedin.com/in/tandra-peters-b8b38026/" },
-    { icon: Facebook, href: "https://www.facebook.com/tandra.peters.3" }
+    { icon: Instagram, href: "https://www.instagram.com/tandra/", platform: "Visit my Instagram" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/tandra-peters-b8b38026/", platform: "Visit my LinkedIn" },
+    { icon: Facebook, href: "https://www.facebook.com/tandra.peters.3", platform: "Visit my Facebook" }
   ],
   quickLinks = [
     { name: "Services", href: "#services" },
@@ -35,8 +35,8 @@ export const Footer: React.FC<FooterProps> = ({
     color: theme.colors.white,
     /* Pull up 1px so footer paint covers the hairline below the last Band stripe (subpixel layout). */
     marginTop: "-1px",
-    paddingTop: "5rem",
-    paddingBottom: "5rem",
+    paddingTop: "4rem",
+    paddingBottom: "3rem",
   };
 
   const socialLinkStyle: React.CSSProperties = {
@@ -100,7 +100,15 @@ export const Footer: React.FC<FooterProps> = ({
           }
           .social-link:hover { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade} !important; }
           .footer-link:hover { color: ${theme.colors.accentLight} !important; }
-          .newsletter-input:focus { border-color: ${theme.colors.accentLight} !important; outline: none; }
+          .newsletter-input:focus { border-color: ${theme.colors.accentLight} !important; outline: 2px solid ${theme.colors.accentLight};
+            outline-offset: 2px; }
+          .social-link:focus-visible,
+          .footer-link:focus-visible,
+          .newsletter-btn:focus-visible {
+            outline: 2px solid ${theme.colors.accentLight} !important;
+            outline-offset: 2px;
+            border-radius: 4px;
+          }
           .newsletter-btn:hover { filter: brightness(1.1); }
         `}</style>
         <div className="md-col-4">
@@ -129,8 +137,14 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
           <div style={{ display: "flex", gap: "1.5rem" }}>
             {socialLinks.map((social, i) => (
-              <a key={i} href={social.href} style={socialLinkStyle} className="social-link">
-                <social.icon width={18} height={18} strokeWidth={1.5} />
+              <a
+                key={i}
+                href={social.href}
+                style={socialLinkStyle}
+                aria-label={social.platform ?? "Visit social profile"}
+                className="social-link"
+              >
+                <social.icon width={18} height={18} strokeWidth={1.5} aria-hidden />
               </a>
             ))}
           </div>

@@ -31,9 +31,18 @@ export const structure: StructureResolver = (S) =>
                     .documentId('articlesPage')
                     .title('Articles page'),
                 ),
-              // Use Sanity’s built-in type list item so the lazy child resolver gets a correct
-              // parent context (a plain documentList under a nested list often renders empty).
-              S.documentTypeListItem('post').title('Posts'),
+              // Static `documentTypeList` child (not `documentTypeListItem`): the list-item’s lazy
+              // resolver depends on `parent.items.find(id)` and often fails when nested under
+              // another list, which produced an empty pane.
+              S.listItem()
+                .title('Posts')
+                .id('desk-articles-posts')
+                .child(
+                  S.documentTypeList('post')
+                    .id('articles-post-documents')
+                    .title('Posts')
+                    .defaultOrdering([{field: 'publishedAt', direction: 'desc'}]),
+                ),
             ]),
         ),
       S.divider(),

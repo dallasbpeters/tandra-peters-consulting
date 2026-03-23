@@ -32,8 +32,15 @@ const presentationPerspectiveFromUrl = (): boolean => {
   );
 };
 
+/**
+ * Draft perspective when: Presentation iframe / preview URL, or local dev with a viewer token
+ * (so /articles shows draft posts before publish — same as Studio).
+ */
 const useDraftsPerspective = (): boolean =>
-  stegaEnabled() || presentationPerspectiveFromUrl();
+  stegaEnabled() ||
+  presentationPerspectiveFromUrl() ||
+  (import.meta.env.DEV &&
+    Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
 
 /** Viewer token for draft reads — only used together with `perspective: "drafts"`. */
 const readTokenWhenDrafts = (drafts: boolean): string | undefined => {

@@ -46,7 +46,8 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
             .legal-back-link:focus-visible {
               color: ${theme.colors.everglade} !important;
               opacity: 1 !important;
-              outline: none;
+              outline: 2px solid ${theme.colors.accentLight};
+            outline-offset: 2px;
             }
             .legal-back-link:focus-visible {
               box-shadow: 0 0 0 2px ${theme.colors.paper}, 0 0 0 4px ${theme.colors.everglade};

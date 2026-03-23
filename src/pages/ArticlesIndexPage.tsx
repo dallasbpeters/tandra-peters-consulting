@@ -67,9 +67,11 @@ export const ArticlesIndexPage = () => {
 
           {!loading && !error && posts.length === 0 ? (
             <p style={{ color: theme.colors.evergladeMuted }}>
-              No articles yet. Add posts in Sanity Studio or run{" "}
-              <code style={{ fontSize: "0.9em" }}>pnpm seed:posts</code> in the
-              studio package.
+              No published articles to show. In Sanity Studio, open each post and
+              click Publish (drafts are hidden on the public site). For local
+              preview of drafts, add{" "}
+              <code style={{ fontSize: "0.9em" }}>VITE_SANITY_API_READ_TOKEN</code>{" "}
+              to <code style={{ fontSize: "0.9em" }}>.env.local</code>.
             </p>
           ) : null}
 

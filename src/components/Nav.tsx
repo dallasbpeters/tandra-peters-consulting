@@ -28,6 +28,16 @@ export const Nav: React.FC<NavProps> = ({
 
   const offHomeNavTo = (href: string) =>
     href.startsWith("#") ? { pathname: "/" as const, hash: href } : href;
+  const navAriaLabel = (itemName: string, href: string) => {
+    const label = itemName.trim();
+    if (href === "/articles") {
+      return "View all articles";
+    }
+    if (href.startsWith("#") && href.length > 1) {
+      return `Jump to ${label} section`;
+    }
+    return `Go to ${label}`;
+  };
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const posthog = usePostHog();
@@ -107,7 +117,7 @@ export const Nav: React.FC<NavProps> = ({
     letterSpacing: "-0.05em",
     gridArea: "text",
     fontFamily: theme.fonts.headline,
-    color: isScrolled ? theme.colors.black : theme.colors.white,
+    color: isScrolled ? theme.colors.everglade : theme.colors.white,
     textDecoration: "none",
   };
   const logoTaglineStyle: React.CSSProperties = {
@@ -160,6 +170,7 @@ export const Nav: React.FC<NavProps> = ({
           
         <TransitionLink
           to="/"
+          className="logo-link nav-focusable"
           aria-label={`${logoText} — home`}
           style={{ ...logoStyle, textDecoration: "none" }}
         >
@@ -176,8 +187,14 @@ export const Nav: React.FC<NavProps> = ({
         
         <div style={{ ...desktopNavStyle, display: "flex" }} className="md-flex">
           <style>{`
+            .nav-focusable:focus-visible {
+              outline: 2px solid ${theme.colors.everglade} !important;
+              outline-offset: 3px;
+              border-radius: 0.25rem;
+            }
             @media (max-width: 1000px) {
               .md-flex { display: none !important; }
+              
             }
           `}</style>
           {navItems.map((item, i) =>
@@ -185,10 +202,12 @@ export const Nav: React.FC<NavProps> = ({
               <motion.a
                 key={item.name}
                 href={item.href}
+                aria-label={navAriaLabel(item.name, item.href)}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 style={navLinkStyle}
+                className="nav-focusable"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = "1";
                 }}
@@ -209,7 +228,9 @@ export const Nav: React.FC<NavProps> = ({
                 <TransitionLink
                   to={offHomeNavTo(item.href)}
                   viewTransition
+                  aria-label={navAriaLabel(item.name, item.href)}
                   style={navLinkStyle}
+                  className="nav-focusable"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = "1";
                   }}
@@ -228,10 +249,11 @@ export const Nav: React.FC<NavProps> = ({
           {isHome ? (
             <motion.a
               href={ctaHref}
+              aria-label="Jump to contact section"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               style={buttonStyle}
-              className="hidden lg:block"
+              className="hidden lg:block nav-focusable"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor =
                   theme.colors.evergladeLight;
@@ -252,7 +274,9 @@ export const Nav: React.FC<NavProps> = ({
             >
               <TransitionLink
                 to={{ pathname: "/", hash: ctaHref }}
+                aria-label="Jump to contact section"
                 style={buttonStyle}
+                className="nav-focusable"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
                     theme.colors.evergladeLight;
@@ -269,7 +293,7 @@ export const Nav: React.FC<NavProps> = ({
           )}
           <button 
             style={{ display: "none", padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: isScrolled ? "black" : "white" }}
-            className="md-hidden"
+            className="md-hidden nav-focusable"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <style>{`
@@ -303,6 +327,8 @@ export const Nav: React.FC<NavProps> = ({
                   <a
                     key={item.name}
                     href={item.href}
+                    aria-label={navAriaLabel(item.name, item.href)}
+                    className="nav-focusable"
                     style={{
                       fontFamily: theme.fonts.headline,
                       fontWeight: 700,
@@ -321,6 +347,8 @@ export const Nav: React.FC<NavProps> = ({
                     key={item.name}
                     to={offHomeNavTo(item.href)}
                     viewTransition
+                    aria-label={navAriaLabel(item.name, item.href)}
+                    className="nav-focusable"
                     style={{
                       fontFamily: theme.fonts.headline,
                       fontWeight: 700,
@@ -339,6 +367,8 @@ export const Nav: React.FC<NavProps> = ({
               {isHome ? (
                 <a
                   href={ctaHref}
+                  aria-label="Jump to contact section"
+                  className="nav-focusable"
                   style={{
                     ...buttonStyle,
                     fontSize: "0.75rem",
@@ -355,6 +385,8 @@ export const Nav: React.FC<NavProps> = ({
               ) : (
                 <TransitionLink
                   to={{ pathname: "/", hash: ctaHref }}
+                  aria-label="Jump to contact section"
+                  className="nav-focusable"
                   style={{
                     ...buttonStyle,
                     fontSize: "0.75rem",

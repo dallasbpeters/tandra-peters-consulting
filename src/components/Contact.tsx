@@ -191,7 +191,6 @@ export const Contact = ({
     fontSize: "1rem",
     color: theme.colors.everglade,
     transition: "border-color 0.2s ease",
-    outline: "none",
   };
 
   const selectStyle: React.CSSProperties = {
@@ -267,8 +266,12 @@ export const Contact = ({
           .contact-form-field:focus {
             border-bottom-color: ${theme.colors.accent} !important;
           }
+          .contact-form-field:focus-visible {
+            outline: 2px solid ${theme.colors.accent} !important;
+            outline-offset: 2px;
+          }
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
-          .send-btn:hover .send-icon { transform: translate(8px, -8px) !important; }
+          .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
         `}</style>
         <motion.div 
           initial={{ opacity: 0, x: -50 }}

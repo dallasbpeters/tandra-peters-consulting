@@ -23,6 +23,12 @@ const SOCIAL_ICONS = {
   facebook: Facebook,
 } as const;
 
+const SOCIAL_PLATFORM_LABELS: Record<keyof typeof SOCIAL_ICONS, string> = {
+  instagram: "Visit my Instagram",
+  linkedin: "Visit my LinkedIn",
+  facebook: "Visit my Facebook",
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SanityDoc = Record<string, any> | null | undefined;
 
@@ -371,7 +377,11 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
       if (!Icon) {
         return null;
       }
-      return { icon: Icon, href: l.url };
+      return {
+        icon: Icon,
+        href: l.url,
+        platform: SOCIAL_PLATFORM_LABELS[l.platform],
+      };
     },
   ).filter(Boolean) as FooterProps["socialLinks"];
 

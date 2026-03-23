@@ -133,6 +133,12 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     gap: "0.35rem",
   };
 
+  const facebookAriaLabel = "Share this page on Facebook";
+  const linkedInAriaLabel = "Share this page on LinkedIn";
+  const twitterAriaLabel = "Share this page on X (Twitter)";
+  const emailAriaLabel = "Share this page by email";
+  const copyAriaLabel = copied ? "Page link copied" : "Copy page link to clipboard";
+
   return (
     <section
       style={sectionStyle}
@@ -156,6 +162,11 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             color: ${theme.colors.white} !important;
             border-color: ${theme.colors.everglade} !important;
           }
+          .social-share-icon:focus-visible {
+            outline: 2px solid ${theme.colors.everglade} !important;
+            outline-offset: 2px;
+            border-color: ${theme.colors.everglade} !important;
+          }
         `}</style>
         <p style={{ ...labelStyle, margin: 0 }}>{heading}</p>
         <div style={rowStyle}>
@@ -165,7 +176,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             rel="noopener noreferrer"
             style={iconButtonStyle}
             className="social-share-icon"
-            aria-label="Share on Facebook"
+            aria-label={facebookAriaLabel}
+            title={facebookAriaLabel}
             onClick={() => posthog?.capture("social_share_clicked", { platform: "facebook" })}
           >
             <Facebook height={18} strokeWidth={1.75} aria-hidden />
@@ -176,7 +188,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             rel="noopener noreferrer"
             style={iconButtonStyle}
             className="social-share-icon"
-            aria-label="Share on LinkedIn"
+            aria-label={linkedInAriaLabel}
+            title={linkedInAriaLabel}
             onClick={() => posthog?.capture("social_share_clicked", { platform: "linkedin" })}
           >
             <Linkedin height={18} strokeWidth={1.75} aria-hidden />
@@ -187,7 +200,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             rel="noopener noreferrer"
             style={iconButtonStyle}
             className="social-share-icon"
-            aria-label="Share on X (Twitter)"
+            aria-label={twitterAriaLabel}
+            title={twitterAriaLabel}
             onClick={() => posthog?.capture("social_share_clicked", { platform: "twitter" })}
           >
             <Twitter height={18} strokeWidth={1.75} aria-hidden />
@@ -196,7 +210,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             href={pageUrl ? mailHref : undefined}
             style={iconButtonStyle}
             className="social-share-icon"
-            aria-label="Share by email"
+            aria-label={emailAriaLabel}
+            title={emailAriaLabel}
             onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
           >
             <Mail height={18} strokeWidth={1.75} aria-hidden />
@@ -209,7 +224,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             }}
             style={copyButtonStyle}
             className="social-share-icon"
-            aria-label={copied ? "Link copied" : "Copy page link"}
+            aria-label={copyAriaLabel}
+            title={copyAriaLabel}
             disabled={!pageUrl}
           >
             <Link height={16} strokeWidth={1.75} aria-hidden />

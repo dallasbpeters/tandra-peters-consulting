@@ -1,4 +1,4 @@
-import { Nav } from "../components/Nav";
+import { SitePageChrome } from "../components/SitePageChrome";
 import { Hero } from "../components/Hero";
 import ScrollVelocity from "../components/ScrollText";
 import { About } from "../components/About";
@@ -8,7 +8,6 @@ import { Expertise } from "../components/Expertise";
 import { Testimonials } from "../components/Testimonials";
 import { Stats } from "../components/Stats";
 import { Contact } from "../components/Contact";
-import { Footer } from "../components/Footer";
 import { SocialShareBar } from "../components/SocialShareBar";
 import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
@@ -22,11 +21,9 @@ import {
   mapContactProps,
   mapExpertiseProps,
   mapFaqProps,
-  mapFooterProps,
   mapHeroProps,
   mapStatsProps,
   mapMissionProps,
-  mapNavProps,
   mapServicesProps,
   mapSocialShareProps,
   mapTestimonialsProps,
@@ -35,7 +32,6 @@ import {
 export const Home = () => {
   const { data } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
-  const site = data?.site as Record<string, unknown> | null | undefined;
 
   const hero = home?.hero as Record<string, unknown> | undefined;
   const marquee = home?.marquee as Record<string, unknown> | undefined;
@@ -63,16 +59,8 @@ export const Home = () => {
     typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: theme.colors.paper,
-        color: theme.colors.everglade,
-        fontFamily: theme.fonts.body,
-      }}
-    >
+    <SitePageChrome>
       <SeoStructuredData />
-      <Nav {...mapNavProps(site)} />
       <main>
         <Hero {...mapHeroProps(hero)} />
         <ScrollVelocity
@@ -123,7 +111,6 @@ export const Home = () => {
           theme.colors.purple,
         ]}
       />
-      <Footer {...mapFooterProps(site)} />
-    </div>
+    </SitePageChrome>
   );
 };

@@ -156,7 +156,7 @@ export interface ContactProps {
 export interface FooterProps {
   logoText?: string;
   description?: RichTextSource;
-  socialLinks?: { icon: React.ElementType; href: string }[];
+  socialLinks?: { icon: React.ElementType; href: string; platform?: string }[];
   quickLinks?: NavItem[];
   legalLinks?: NavItem[];
   newsletterTitle?: string;

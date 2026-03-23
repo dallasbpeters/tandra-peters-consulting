@@ -21,9 +21,7 @@ export const ContactSmall = ({
 }: ContactProps) => {
   const [fullName, setFullName] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
-  const [serviceInterest, setServiceInterest] = useState("");
-  const [propertyAddress, setPropertyAddress] = useState("");
-  const [message, setMessage] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
@@ -56,9 +54,7 @@ export const ContactSmall = ({
         body: JSON.stringify({
           fullName,
           email: visitorEmail,
-          serviceInterest,
-          propertyAddress,
-          message,
+          phoneNumber,
           consentToContact: true,
           _hp: honeypot,
         }),
@@ -107,16 +103,12 @@ export const ContactSmall = ({
       }
       posthog?.identify(visitorEmail, { name: fullName, email: visitorEmail });
       posthog?.capture("contact_form_submitted", {
-        service_interest: serviceInterest,
-        has_property_address: Boolean(propertyAddress),
-        has_message: Boolean(message),
+        phone_number: phoneNumber,
       });
       setSubmitStatus("success");
       setFullName("");
       setVisitorEmail("");
-      setServiceInterest("");
-      setPropertyAddress("");
-      setMessage("");
+      setPhoneNumber("");
       setHoneypot("");
       setConsentToContact(false);
     } catch (err) {
@@ -128,8 +120,8 @@ export const ContactSmall = ({
     }
   };
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "4rem",
-    paddingBottom: "4rem",
+    paddingTop: "2rem",
+    paddingBottom: "2rem",
     backgroundColor: theme.colors.evergladeLight,
   };
 
@@ -162,35 +154,8 @@ export const ContactSmall = ({
     fontSize: "1rem",
     color: theme.colors.everglade,
     transition: "border-color 0.2s ease",
-    outline: "none",
   };
 
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    cursor: "pointer",
-    WebkitAppearance: "none",
-    appearance: "none",
-    paddingRight: "2rem",
-  };
-
-  const selectWrapStyle: React.CSSProperties = {
-    position: "relative",
-    width: "100%",
-  };
-
-  const selectChevronStyle: React.CSSProperties = {
-    position: "absolute",
-    right: 0,
-    top: "50%",
-    transform: "translateY(-50%)",
-    pointerEvents: "none",
-    display: "flex",
-    alignItems: "center",
-    color: theme.colors.everglade,
-    opacity: 0.75,
-  };
-
-  const serviceLabel = formLabels?.service ?? "Service interest";
 
   const consentLinkStyle: React.CSSProperties = {
     color: theme.colors.everglade,
@@ -231,7 +196,7 @@ export const ContactSmall = ({
         <style>{`
           @media (min-width: 1024px) {
             .lg-grid-12 { grid-template-columns: repeat(1, 1fr) !important; }
-            .md-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+            .md-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
           }
           .contact-form-field::placeholder {
             color: ${mix(theme.colors.everglade, 33)};
@@ -239,8 +204,12 @@ export const ContactSmall = ({
           .contact-form-field:focus {
             border-bottom-color: ${theme.colors.accent} !important;
           }
+          .contact-form-field:focus-visible {
+            outline: 2px solid ${theme.colors.accent} !important;
+            outline-offset: 2px;
+          }
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
-          .send-btn:hover .send-icon { transform: translate(8px, -8px) !important; }
+          .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
         `}</style>
        
 
@@ -286,7 +255,7 @@ export const ContactSmall = ({
                 border: 0,
               }}
             />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }} className="md-grid-2">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }} className="md-grid-3">
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <label htmlFor="contact-full-name" style={labelStyle}>
                   Full Name
@@ -321,33 +290,22 @@ export const ContactSmall = ({
                   autoComplete="email"
                 />
               </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <label htmlFor="contact-service" style={labelStyle}>
-                {serviceLabel}
-              </label>
-              <div style={selectWrapStyle}>
-                <select
-                  id="contact-service"
-                  value={serviceInterest}
-                  onChange={(ev) => setServiceInterest(ev.target.value)}
-                  required
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <label htmlFor="contact-phone" style={labelStyle}>
+                  Phone Number
+                </label>
+                <input
+                  id="contact-phone"
+                  type="tel"
                   className="contact-form-field"
-                  style={selectStyle}
-                  aria-required
-                >
-                  <option value="" disabled>
-                    Select a service…
-                  </option>
-                  {serviceOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <span style={selectChevronStyle} aria-hidden>
-                  <NavArrowDown width={22} height={22} strokeWidth={2} />
-                </span>
+                  style={inputStyle}
+                  placeholder="123-456-7890"
+                  value={phoneNumber}
+                  onChange={(ev) => setPhoneNumber(ev.target.value)}
+                  required
+                  maxLength={320}
+                  autoComplete="tel"
+                />
               </div>
             </div>
             <div style={consentRowStyle}>
@@ -425,7 +383,7 @@ export const ContactSmall = ({
               }}
               className="send-btn"
             >
-              <span>{submitStatus === "sending" ? "Sending…" : "Send Message"}</span>
+              <span>{submitStatus === "sending" ? "Sending…" : "Send"}</span>
               <Send
                 width={18}
                 height={18}

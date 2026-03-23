@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { NavArrowLeft } from "iconoir-react";
+import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { TransitionLink } from "../components/TransitionLink";
 import { ArticleJsonLd } from "../components/ArticleJsonLd";
@@ -56,7 +57,10 @@ export const ArticlePage = () => {
         <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
           <div className={layoutClass.containerArticle}>
             <p>Missing article link.</p>
-            <TransitionLink to="/articles" viewTransition>
+            <TransitionLink
+              to="/articles"
+              viewTransition
+            >
               Back to articles
             </TransitionLink>
           </div>
@@ -111,6 +115,7 @@ export const ArticlePage = () => {
 
   return (
     <SitePageChrome>
+      <ArticleRichTextLinkStyles />
       <ArticleJsonLd post={post} path={path} />
       <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
         <article className={layoutClass.containerArticle}>
@@ -192,6 +197,7 @@ export const ArticlePage = () => {
             }}
           >
             <RichText
+              className="article-rich-text"
               value={post.body}
               paragraphStyle={{
                 marginBottom: "1.1rem",
@@ -212,7 +218,13 @@ export const ArticlePage = () => {
                 marginTop: "1.5rem",
                 color: theme.colors.everglade,
               }}
-              linkStyle={{ color: theme.colors.accent }}
+              linkStyle={{ 
+                color: theme.palette.blue["600"],
+                textDecorationThickness: ".15em",
+                textDecorationSkipInk: "all",
+                paddingInline: ".25em",
+                backgroundColor: theme.palette.blue[100]
+              }}
             />
           </div>
         </article>
@@ -226,7 +238,7 @@ export const ArticlePage = () => {
         }
       />
       <ContactSmall
-        title="Get free roofing consultation."
+        title="Get a free consultation."
         serviceOptions={CONTACT_SERVICE_OPTIONS}
         formLabels={{
           name: "Your Name",
