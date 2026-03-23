@@ -80,7 +80,7 @@ export const ArticlesIndexPage = () => {
               {posts.map((p, i) => (
                 <motion.div
                   key={p._id}
-                  initial={{ y: 20 }}
+                  initial={false}
                   animate={{ y: 0 }}
                   transition={{ duration: 0.45, delay: Math.min(i * 0.05, 0.5) }}
                   className="articles-cards-grid-item"

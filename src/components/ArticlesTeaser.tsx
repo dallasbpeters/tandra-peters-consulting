@@ -40,7 +40,7 @@ export const ArticlesTeaser = ({
   // Avoid animating card `opacity: 0` here — the grid item wraps `ArticleGridCard` and can
   // leave children stuck invisible; motion only slides cards in.
   const cardVariants = {
-    hidden: { y: 24, opacity: 1 },
+    hidden: { y: 0, opacity: 1 },
     visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
   };
 
