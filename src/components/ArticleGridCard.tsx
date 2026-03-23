@@ -65,6 +65,7 @@ export const ArticleGridCard = ({
           style={{
             position: "absolute",
             inset: 0,
+            backgroundColor: theme.colors.black,
             
           }}
           className="articles-teaser-card-bg"
