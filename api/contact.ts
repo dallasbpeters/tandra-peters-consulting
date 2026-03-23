@@ -7,6 +7,7 @@
  *   ALLOWED_ORIGINS   — Optional. Comma-separated exact Origin values, e.g.
  *                       https://tandra.me,https://www.tandra.me
  *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
+ *                       Requests with no Origin (e.g. curl) are allowed when Host matches one of these URLs’ hostnames.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
@@ -57,12 +58,32 @@ const parseBody = (req: VercelRequest): Record<string, unknown> => {
   return {};
 };
 
-const isAllowedOrigin = (origin: string | undefined): boolean => {
+const parseAllowedOrigins = (): string[] => {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
-  if (!raw) return true;
-  if (!origin) return false;
-  const allowed = raw.split(",").map((s) => s.trim()).filter(Boolean);
-  return allowed.includes(origin);
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+};
+
+/** True when the request may call this API: Origin in list, or Host matches an allowed origin (curl has no Origin). */
+const isAllowedRequest = (req: VercelRequest): boolean => {
+  const allowed = parseAllowedOrigins();
+  if (allowed.length === 0) return true;
+
+  const origin = req.headers.origin as string | undefined;
+  if (origin && allowed.includes(origin)) return true;
+
+  if (!origin) {
+    const host = (req.headers.host ?? "").split(":")[0].toLowerCase();
+    if (!host) return false;
+    for (const o of allowed) {
+      try {
+        if (new URL(o).hostname.toLowerCase() === host) return true;
+      } catch {
+        continue;
+      }
+    }
+  }
+  return false;
 };
 
 /** Browsers send Origin on POST + JSON; preflight OPTIONS must echo ACAO or the request fails. */
@@ -73,7 +94,7 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
     if (origin) res.setHeader("Vary", "Origin");
     return;
   }
-  if (origin && isAllowedOrigin(origin)) {
+  if (origin && parseAllowedOrigins().includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
@@ -149,7 +170,7 @@ const contactHandler = async (
     return;
   }
 
-  if (!isAllowedOrigin(origin)) {
+  if (!isAllowedRequest(req)) {
     res.status(403).json({ ok: false, error: "Forbidden" });
     return;
   }
