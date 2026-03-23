@@ -1,16 +1,19 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Home, Verified } from "lucide-react";
-import { theme } from "../theme";
-import { PartnersProps } from "../types";
+import { HomeUser, Hammer,Home } from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
+import { Stat, StatsProps } from "../types";
 
-export const Partners: React.FC<PartnersProps> = ({
-  title = "Strategic Partnership",
-  partners = [
-    { name: "BirdCreek Roofing", icon: Home },
-    { name: "Austin Built", icon: Verified },
-    { name: "Texas Standards", icon: Verified }
-  ]
+const defaultStatItems: Stat[] = [
+  { name: "Customers", value: "24,999", icon: HomeUser },
+  { name: "Re-Roofs", value: "18,137", icon: Home },
+  { name: "Repairs", value: "6,862", icon: Hammer },
+];
+
+export const Stats: React.FC<StatsProps> = ({
+  title = "BirdCreek Roofing in Austin",
+  items = defaultStatItems,
 }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -28,23 +31,11 @@ export const Partners: React.FC<PartnersProps> = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.paperDim,
-    paddingTop: "4rem",
-    paddingBottom: "4rem",
-    borderBottom: `1px solid ${theme.colors.paperDark}33`, // 20% opacity
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "3rem",
+    backgroundColor: theme.colors.evergladeLight,
+    color: theme.colors.white,
+    paddingTop: "1rem",
+    paddingBottom: "1rem",
+    borderBottom: `1px solid ${mix(theme.colors.paperDark, 20)}`,
   };
 
   const labelStyle: React.CSSProperties = {
@@ -53,37 +44,45 @@ export const Partners: React.FC<PartnersProps> = ({
     textTransform: "uppercase",
     letterSpacing: "0.3em",
     fontSize: "10px",
-    color: theme.colors.evergladeMuted,
+    color: theme.colors.white,
   };
 
-  const partnersGridStyle: React.CSSProperties = {
+  const statsGridStyle: React.CSSProperties = {
     display: "flex",
     flexWrap: "wrap",
     justifyContent: "center",
     gap: "3rem",
     opacity: 0.4,
-    filter: "grayscale(100%)",
     transition: "all 0.5s",
   };
 
-  const partnerItemStyle: React.CSSProperties = {
+  const statsItemStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     gap: "0.75rem",
   };
+  const statsStackStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+  };
 
-  const partnerTextStyle: React.CSSProperties = {
-    fontFamily: theme.fonts.headline,
+  const statsTextStyle: React.CSSProperties = {
     fontWeight: 900,
-    fontSize: "1.125rem",
+    fontSize: ".675rem",
     textTransform: "uppercase",
-    fontStyle: "italic",
-    letterSpacing: "-0.05em",
+    letterSpacing: "0.5em",
+  };
+  const statsValueStyle: React.CSSProperties = {
+    fontWeight: 900,
+    fontSize: "2rem",
+    textTransform: "uppercase",
   };
 
   return (
     <section style={sectionStyle}>
-      <div style={containerStyle} className="md-row">
+      <div className={`${layoutClass.containerWideStatsRow} md-row`}>
         <style>{`
           @media (min-width: 768px) {
             .md-row { flex-direction: row !important; }
@@ -102,7 +101,7 @@ export const Partners: React.FC<PartnersProps> = ({
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          style={partnersGridStyle}
+          style={statsGridStyle}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = "1";
             e.currentTarget.style.filter = "grayscale(0%)";
@@ -112,10 +111,17 @@ export const Partners: React.FC<PartnersProps> = ({
             e.currentTarget.style.filter = "grayscale(100%)";
           }}
         >
-          {partners.map((partner, i) => (
-            <motion.div key={i} variants={itemVariants} style={partnerItemStyle}>
-              <partner.icon size={24} />
-              <span style={partnerTextStyle}>{partner.name}</span>
+          {items.map((stat, i) => (
+            <motion.div
+              key={stat.rowKey ?? `${stat.name}-${stat.value}-${i}`}
+              variants={itemVariants}
+              style={statsItemStyle}
+            >
+              <stat.icon color={theme.colors.purple} width={48} height={48} />
+              <div style={statsStackStyle}>
+              <span style={statsValueStyle}>{stat.value}</span>
+              <span style={statsTextStyle}>{stat.name}</span>
+              </div>
             </motion.div>
           ))}
         </motion.div>

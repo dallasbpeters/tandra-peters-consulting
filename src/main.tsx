@@ -2,6 +2,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./styles/site-layout.css";
 import posthog from "posthog-js";
 import { PostHogProvider } from "@posthog/react";
 import { resolvePosthogClientOptions } from "./posthogClientConfig";

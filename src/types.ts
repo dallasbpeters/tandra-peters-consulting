@@ -1,4 +1,10 @@
 import React from "react";
+import type { PortableTextBlock } from "@portabletext/types";
+import type { IconoirIconProps } from "./icons/serviceIconMap";
+import type { PostListItem } from "./types/article";
+
+/** Sanity `blockContent` or a plain string (legacy / seed). */
+export type RichTextSource = PortableTextBlock[] | string;
 
 export interface NavItem {
   name: string;
@@ -18,7 +24,7 @@ export interface HeroProps {
   title?: React.ReactNode;
   /** Hero badge / eyebrow (e.g. BirdCreek Roofing consultant · Austin, TX) */
   badgeText?: string;
-  subtitle?: string;
+  subtitle?: RichTextSource;
   ctaText?: string;
   ctaHref?: string;
   secondaryCtaText?: string;
@@ -26,14 +32,18 @@ export interface HeroProps {
   backgroundImage?: string;
 }
 
-export interface Partner {
+export interface Stat {
+  /** Sanity array item `_key` when present (stable list keys). */
+  rowKey?: string;
   name: string;
-  icon: React.ElementType;
+  value: string;
+  icon: React.ComponentType<IconoirIconProps>;
 }
 
-export interface PartnersProps {
+export interface StatsProps {
   title?: string;
-  partners?: Partner[];
+  /** CMS-driven stat rows (icon resolved on the client). */
+  items?: Stat[];
 }
 
 export interface AboutProps {
@@ -42,6 +52,12 @@ export interface AboutProps {
   imageSrc?: string;
   tagline?: string;
   title?: React.ReactNode;
+  /** Primary about copy (Sanity `about.body`). */
+  body?: RichTextSource;
+  /**
+   * Legacy Sanity field; used when `body` is absent (mapped into blocks on the client).
+   * @deprecated Prefer `body` in Studio.
+   */
   paragraphs?: string[];
   linkText?: string;
   linkHref?: string;
@@ -50,36 +66,36 @@ export interface AboutProps {
 export interface Service {
   id: string;
   title: string;
-  description: string;
+  description: RichTextSource;
   icon: React.ElementType;
   image?: string;
 }
 export interface Mission {
   id: string;
   title: string;
-  description: string;
+  description: RichTextSource;
   icon?: React.ElementType;
   image?: string;
 }
 
 export interface MissionProps {
   tagline?: string;
-  title?: React.ReactNode;
-  description?: string;
+  title?: RichTextSource;
+  description?: RichTextSource;
   services?: Mission[];
 }
 
 export interface ServicesProps {
   tagline?: string;
   title?: React.ReactNode;
-  description?: string;
+  description?: RichTextSource;
   services?: Service[];
 }
 
 export interface ExpertiseItem {
   id: string;
   title: string;
-  desc: string;
+  desc: RichTextSource;
   /** Sanity CDN or site path used as `img` src */
   image?: string;
 }
@@ -103,6 +119,8 @@ export interface TestimonialsProps {
   testimonials?: Testimonial[];
   /** When set, overrides `VITE_ELFSIGHT_WIDGET_ID` for this embed */
   elfsightWidgetId?: string;
+  /** Shown when no widget id is configured (Portable Text; links allowed). */
+  emptyStateNote?: RichTextSource;
 }
 
 export interface ContactInfo {
@@ -137,31 +155,40 @@ export interface ContactProps {
 
 export interface FooterProps {
   logoText?: string;
-  description?: string;
+  description?: RichTextSource;
   socialLinks?: { icon: React.ElementType; href: string }[];
   quickLinks?: NavItem[];
   legalLinks?: NavItem[];
   newsletterTitle?: string;
   newsletterDesc?: string;
   copyrightText?: string;
+  StatText?: string;
   partnerText?: string;
 }
 
 export interface SocialShareBarProps {
   heading?: string;
-  /** Line used in Twitter intent and email subject/body context */
-  shareText?: string;
+  /** Used in share URLs; formatting is flattened to plain text. */
+  shareText?: RichTextSource;
 }
 
 export interface FaqItem {
   question: string;
-  /** Plain text for visible copy and FAQPage JSON-LD */
-  answer: string;
+  /** Rich text in the UI; JSON-LD uses flattened plain text. */
+  answer: RichTextSource;
 }
 
 export interface FaqProps {
   tagline?: string;
   title?: string;
-  intro?: string;
+  intro?: RichTextSource;
   items?: FaqItem[];
+}
+
+export interface ArticlesTeaserProps {
+  posts: PostListItem[];
+  eyebrow?: string;
+  title?: string;
+  intro?: RichTextSource;
+  viewAllLabel?: string;
 }

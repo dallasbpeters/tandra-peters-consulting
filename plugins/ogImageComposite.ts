@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Connect, Plugin } from 'vite';
 import sharp from 'sharp';
+import { theme } from '../src/theme';
 
 const pluginDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(pluginDir, '..');
@@ -38,9 +39,9 @@ const buildCardSvg = (w: number, h: number) => {
   const subFs = Math.max(40, Math.round(h * 0.035));
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100%" height="100%" fill="#001a10"/>
-  <text x="50%" y="64%" text-anchor="middle" fill="#ffffff" font-size="${titleFs}" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Tandra Peters</text>
-  <text x="50%" y="74%" text-anchor="middle" fill="#749986" font-size="${subFs}" font-family="system-ui, -apple-system, Segoe UI, sans-serif">BirdCreek Roofing consultant · Austin, Texas</text>
+  <rect width="100%" height="100%" fill="${theme.colors.everglade}"/>
+  <text x="50%" y="64%" text-anchor="middle" fill="${theme.colors.white}" font-size="${titleFs}" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Tandra Peters</text>
+  <text x="50%" y="74%" text-anchor="middle" fill="${theme.colors.textOnBrand}" font-size="${subFs}" font-family="system-ui, -apple-system, Segoe UI, sans-serif">BirdCreek Roofing consultant · Austin, Texas</text>
 </svg>`;
 };
 

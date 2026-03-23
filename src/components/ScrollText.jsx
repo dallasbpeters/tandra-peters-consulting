@@ -193,7 +193,8 @@ export default function ScrollVelocity(props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        borderBottom: `1px solid ${theme.colors.evergladeMuted}`,
+        backgroundColor: theme.colors.everglade,
+        color: theme.colors.white,
         ...style,
       }}
     >

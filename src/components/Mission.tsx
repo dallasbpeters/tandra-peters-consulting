@@ -1,15 +1,13 @@
 import React from "react";
 import { motion } from "motion/react";
-import { theme } from "../theme";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { MissionProps } from "../types";
+import { RichText } from "../portableText/RichText";
 
 export const Mission: React.FC<MissionProps> = ({
   tagline = "Our Mission",
-  title = (
-    <>
-      The vision we set out with has now impacted over 20,000 homeowners.
-    </>
-  ),
+  title = "The vision we set out with has now impacted over 20,000 homeowners.",
   description = "BirdCreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.",
   services = [
     {
@@ -55,17 +53,7 @@ export const Mission: React.FC<MissionProps> = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
-    backgroundColor: theme.colors.evergladeLight,
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
+    backgroundColor: theme.palette.everglade["800"],
   };
 
   const headerStyle: React.CSSProperties = {
@@ -107,8 +95,13 @@ export const Mission: React.FC<MissionProps> = ({
   };
 
   return (
-    <section id="mission" style={sectionStyle} aria-labelledby="mission-heading">
-      <div style={containerStyle}>
+    <section
+      id="mission"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="mission-heading"
+    >
+      <div className={layoutClass.containerWide}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -139,8 +132,10 @@ export const Mission: React.FC<MissionProps> = ({
             >
               {tagline}
             </span>
-            <h2
+            <div
               id="mission-heading"
+              role="heading"
+              aria-level={2}
               style={{
                 fontSize: "clamp(3rem, 10vw, 4rem)",
                 lineHeight: 1,
@@ -149,18 +144,35 @@ export const Mission: React.FC<MissionProps> = ({
                 color: theme.colors.paper,
               }}
             >
-              {title}
-            </h2>
+              <RichText
+                flow="heading"
+                value={title}
+                paragraphStyle={{
+                  fontFamily: "inherit",
+                  fontSize: "inherit",
+                  lineHeight: "inherit",
+                  fontWeight: "inherit",
+                  color: "inherit",
+                }}
+              />
+            </div>
           </div>
           <div
             style={{
               maxWidth: "24rem",
-              color: `${theme.colors.paper}99`,
+              color: mix(theme.colors.paper, 60),
               lineHeight: 1.6,
               fontSize: "1.1rem",
             }}
           >
-            {description}
+            <RichText
+              value={description}
+              paragraphStyle={{
+                color: "inherit",
+                lineHeight: "inherit",
+                fontSize: "inherit",
+              }}
+            />
           </div>
         </motion.div>
 
@@ -236,7 +248,7 @@ export const Mission: React.FC<MissionProps> = ({
                   >
                     {service.title}
                   </h3>
-                  <p
+                  <div
                     style={{
                       color: theme.colors.white,
                       maxWidth: isMain ? "28rem" : "none",
@@ -244,8 +256,17 @@ export const Mission: React.FC<MissionProps> = ({
                       fontSize: "1rem",
                     }}
                   >
-                    {service.description}
-                  </p>
+                    <RichText
+                      flow="heading"
+                      value={service.description}
+                      paragraphStyle={{
+                        color: "inherit",
+                        lineHeight: "inherit",
+                        fontSize: "inherit",
+                      }}
+                      linkStyle={{ color: theme.colors.accentLight }}
+                    />
+                  </div>
                 </div>
                 <div
                   style={{

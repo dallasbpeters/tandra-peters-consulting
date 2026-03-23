@@ -1,7 +1,10 @@
 import React from "react";
 import { ElfsightWidget } from "react-elfsight-widget";
+import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import type { TestimonialsProps } from "../types";
+import { RichText } from "../portableText/RichText";
+import { hasPortableTextContent } from "../portableText/value";
 
 /**
  * Elfsight install code looks like:
@@ -38,8 +41,10 @@ const srOnly: React.CSSProperties = {
  */
 export const Testimonials = ({
   elfsightWidgetId: cmsWidgetId,
+  emptyStateNote,
 }: TestimonialsProps) => {
   const widgetId = normalizeElfsightWidgetId(cmsWidgetId ?? "") || envWidgetId;
+  const useCmsEmptyState = hasPortableTextContent(emptyStateNote);
 
   return (
     <div
@@ -57,10 +62,8 @@ export const Testimonials = ({
       <h2 style={srOnly}>Client reviews and testimonials</h2>
       {widgetId ? (
         <div
+          className={layoutClass.containerWide}
           style={{
-            maxWidth: "80rem",
-            marginLeft: "auto",
-            marginRight: "auto",
             width: "100%",
             minHeight: "min(28rem, 60vh)",
           }}
@@ -79,10 +82,32 @@ export const Testimonials = ({
             }}
           />
         </div>
+      ) : useCmsEmptyState ? (
+        <div
+          style={{
+            color: theme.colors.textOnBrand,
+            textAlign: "center",
+            maxWidth: "36rem",
+            margin: "3rem auto",
+            lineHeight: 1.6,
+            fontSize: "0.95rem",
+          }}
+        >
+          <RichText
+            value={emptyStateNote}
+            paragraphStyle={{
+              color: "inherit",
+              textAlign: "inherit",
+              lineHeight: "inherit",
+              fontSize: "inherit",
+            }}
+            linkStyle={{ color: theme.colors.accentLight }}
+          />
+        </div>
       ) : (
         <p
           style={{
-            color: theme.colors.evergladeMuted,
+            color: theme.colors.textOnBrand,
             textAlign: "center",
             maxWidth: "36rem",
             margin: "3rem auto",
@@ -100,8 +125,8 @@ export const Testimonials = ({
             free Elfsight Google Reviews widget
           </a>
           , then add your widget ID to{" "}
-          <code style={{ color: theme.colors.paper }}>VITE_ELFSIGHT_WIDGET_ID</code> in{" "}
-          <code style={{ color: theme.colors.paper }}>.env.local</code> and restart the dev server.
+          <code style={{ color: theme.colors.textOnBrand }}>VITE_ELFSIGHT_WIDGET_ID</code> in{" "}
+          <code style={{ color: theme.colors.textOnBrand }}>.env.local</code> and restart the dev server.
         </p>
       )}
     </div>

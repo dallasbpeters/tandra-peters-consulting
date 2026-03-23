@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { ChevronDown } from "lucide-react";
-import { theme } from "../theme";
+import { NavArrowDown } from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { FaqProps } from "../types";
 import { usePostHog } from "@posthog/react";
+import { RichText } from "../portableText/RichText";
+import { plainTextFromRich } from "../portableText/plainText";
 
 const DEFAULT_ITEMS = [
   {
@@ -81,31 +84,24 @@ export const Faq: React.FC<FaqProps> = ({
   }, [faqJsonLd]);
 
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
     backgroundColor: theme.colors.paper,
     borderTop: `1px solid ${theme.colors.paperDark}`,
   };
 
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "48rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-  };
-
   const introStyle: React.CSSProperties = {
-    color: `${theme.colors.everglade}cc`,
+    color: mix(theme.colors.everglade, 80),
     lineHeight: 1.65,
     fontSize: "1.05rem",
-    marginBottom: "3rem",
-    maxWidth: "42rem",
   };
 
   return (
-    <section id="faq" style={sectionStyle} aria-labelledby="faq-heading">
-      <div style={containerStyle}>
+    <section
+      id="faq"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="faq-heading"
+    >
+      <div className={layoutClass.containerReading}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -117,7 +113,7 @@ export const Faq: React.FC<FaqProps> = ({
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
-              color: theme.colors.accent,
+              color: theme.palette.coral["300"],
               fontSize: "0.75rem",
               marginBottom: "1rem",
               display: "block",
@@ -139,7 +135,14 @@ export const Faq: React.FC<FaqProps> = ({
           >
             {title}
           </h2>
-          <p style={introStyle}>{intro}</p>
+          <div
+            style={{
+              marginBottom: "3rem",
+              maxWidth: "42rem",
+            }}
+          >
+            <RichText value={intro} paragraphStyle={introStyle} />
+          </div>
         </motion.div>
 
         <style>{`
@@ -177,7 +180,7 @@ export const Faq: React.FC<FaqProps> = ({
           .faq-answer {
             padding: 0 0 1.5rem 0;
             margin: 0;
-            color: ${theme.colors.everglade}cc;
+            color: ${mix(theme.colors.everglade, 80)};
             line-height: 1.65;
             font-size: 1rem;
           }
@@ -200,14 +203,26 @@ export const Faq: React.FC<FaqProps> = ({
             >
               <summary className="faq-summary">
                 <span>{item.question}</span>
-                <ChevronDown
+                <NavArrowDown
                   className="faq-chevron"
-                  size={22}
+                  width={22}
+                  height={22}
                   strokeWidth={2}
                   aria-hidden
                 />
               </summary>
-              <p className="faq-answer">{item.answer}</p>
+              <div className="faq-answer">
+                <RichText
+                  value={item.answer}
+                  paragraphStyle={{
+                    margin: 0,
+                    color: "inherit",
+                    lineHeight: "inherit",
+                    fontSize: "inherit",
+                  }}
+                  linkStyle={{ color: theme.colors.accent }}
+                />
+              </div>
             </motion.details>
           ))}
         </div>

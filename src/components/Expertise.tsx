@@ -1,7 +1,9 @@
 import React from "react";
 import { motion } from "motion/react";
-import { theme } from "../theme";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { ExpertiseProps } from "../types";
+import { RichText } from "../portableText/RichText";
 
 export const Expertise: React.FC<ExpertiseProps> = ({
   tagline = "Roof types & scenarios",
@@ -49,19 +51,9 @@ export const Expertise: React.FC<ExpertiseProps> = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
     backgroundColor: theme.colors.everglade,
     color: theme.colors.white,
-    borderBottom: `1px solid ${theme.colors.paperDark}10`,
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
+    borderBottom: `1px solid ${mix(theme.colors.paperDark, 6)}`,
   };
 
   const headerStyle: React.CSSProperties = {
@@ -89,8 +81,13 @@ export const Expertise: React.FC<ExpertiseProps> = ({
   };
 
   return (
-    <section id="expertise" style={sectionStyle} aria-labelledby="expertise-heading">
-      <div style={containerStyle}>
+    <section
+      id="expertise"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="expertise-heading"
+    >
+      <div className={layoutClass.containerWide}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -102,7 +99,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
-              color: theme.colors.accentLight,
+              color: theme.palette.coral["300"],
               fontSize: "0.75rem",
               marginBottom: "1.5rem",
               display: "block",
@@ -194,7 +191,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                 >
                   {item.title}
                 </h3>
-                <p
+                <div
                   style={{
                     color: theme.colors.paper,
                     lineHeight: 1.6,
@@ -202,8 +199,17 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                     maxWidth: "28rem",
                   }}
                 >
-                  {item.desc}
-                </p>
+                  <RichText
+                    flow="heading"
+                    value={item.desc}
+                    paragraphStyle={{
+                      color: "inherit",
+                      lineHeight: "inherit",
+                      fontSize: "inherit",
+                    }}
+                    linkStyle={{ color: theme.colors.accentLight }}
+                  />
+                </div>
               </div>
               <div
                 style={{

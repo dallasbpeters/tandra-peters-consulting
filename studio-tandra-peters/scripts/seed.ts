@@ -1,19 +1,11 @@
-/**
- * Upserts singleton documents `homePage` and `siteSettings`.
- *
- * Usage (from studio-tandra-peters):
- *   pnpm seed
- *
- * Loads `.env` then `.env.local` from this package root (same as Sanity CLI).
- * Or: SANITY_API_WRITE_TOKEN=sk... pnpm seed
- *
- * Uploads images from the site `public/` folder (repo root) into Sanity assets.
- */
+/** Upsert `siteSettings` + `homePage`, upload public images, sync home article refs. `pnpm seed` */
 import {dirname, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {config} from 'dotenv'
 import {createClient} from '@sanity/client'
+import {patchHomePageArticleRefs} from './articlePostsSeed'
 import {
+  articlesPageSeed,
   homePageSeed,
   siteSettingsNavLogoImageUrl,
   siteSettingsSeed,
@@ -121,8 +113,10 @@ async function main() {
     .transaction()
     .createOrReplace(sitePayload)
     .createOrReplace(homePayload)
+    .createOrReplace(articlesPageSeed)
     .commit()
-  console.log('Seeded siteSettings + homePage (with image assets)')
+  console.log('Seeded siteSettings + homePage + articlesPage (with image assets)')
+  await patchHomePageArticleRefs(client)
 }
 
 main().catch((e) => {

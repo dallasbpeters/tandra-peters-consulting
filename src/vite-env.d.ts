@@ -7,6 +7,12 @@ interface ImportMetaEnv {
   readonly VITE_SANITY_STUDIO_URL?: string;
   /** Force stega encoding on the published site (usually leave unset; iframe enables automatically). */
   readonly VITE_SANITY_STEGA?: string;
+  /**
+   * Viewer (read-only) API token — required for draft content in Presentation / visual editing.
+   * Create at sanity.io/manage → API → Tokens (Viewer). Bundled only for preview fetches in practice;
+   * still treat as sensitive and rotate if leaked.
+   */
+  readonly VITE_SANITY_API_READ_TOKEN?: string;
   /** Elfsight Google Reviews widget UUID (from Install embed code). */
   readonly VITE_ELFSIGHT_WIDGET_ID?: string;
   /**

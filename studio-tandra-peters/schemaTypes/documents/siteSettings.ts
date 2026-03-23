@@ -25,7 +25,11 @@ export const siteSettingsType = defineType({
     defineField({name: 'navCtaText', type: 'string'}),
     defineField({name: 'navCtaHref', type: 'string', initialValue: '#contact'}),
     defineField({name: 'footerLogoText', type: 'string'}),
-    defineField({name: 'footerDescription', type: 'text', rows: 4}),
+    defineField({
+      name: 'footerDescription',
+      title: 'Footer description',
+      type: 'blockContent',
+    }),
     defineField({
       name: 'footerQuickLinks',
       type: 'array',

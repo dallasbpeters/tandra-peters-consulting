@@ -1,8 +1,27 @@
-import React, { useCallback, useState } from "react";
-import { Facebook, Linkedin, Link2, Mail, Twitter } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Facebook, Linkedin, Twitter, Mail, Link} from 'iconoir-react'
+import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { SocialShareBarProps } from "../types";
 import { usePostHog } from "@posthog/react";
+import { plainTextFromRich } from "../portableText/plainText";
+import { buildSharePageUrl } from "../utils/siteUrl";
+
+const copyTextFallback = (text: string) => {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } finally {
+    document.body.removeChild(ta);
+  }
+};
 
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   heading = "Know someone who needs roofing help?",
@@ -10,43 +29,59 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const posthog = usePostHog();
+  const { pathname, search, hash } = useLocation();
 
-  const pageUrl =
-    typeof window !== "undefined" ? window.location.href : "";
+  const pageUrl = useMemo(
+    () => buildSharePageUrl(pathname, search, hash),
+    [pathname, search, hash],
+  );
+
+  const sharePlain = useMemo(() => {
+    try {
+      return plainTextFromRich(shareText);
+    } catch {
+      return "";
+    }
+  }, [shareText]);
 
   const encodedUrl = encodeURIComponent(pageUrl);
-  const encodedText = encodeURIComponent(shareText);
+  const encodedText = encodeURIComponent(sharePlain);
 
   const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-  const twitterHref = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
-  const mailHref = `mailto:?subject=${encodeURIComponent(shareText)}&body=${encodeURIComponent(`${shareText}\n\n${pageUrl}`)}`;
+  const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
+  const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
 
   const handleCopyLink = useCallback(async () => {
     if (!pageUrl) return;
     try {
-      await navigator.clipboard.writeText(pageUrl);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pageUrl);
+      } else {
+        copyTextFallback(pageUrl);
+      }
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(false);
+      try {
+        copyTextFallback(pageUrl);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
+      } catch {
+        setCopied(false);
+      }
     }
   }, [pageUrl]);
 
   const sectionStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.paperDim,
-    borderTop: `1px solid ${theme.colors.paperDark}`,
-    borderBottom: `1px solid ${theme.colors.paperDark}`,
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
+    backgroundColor: theme.colors.paper,
+    borderTop: `1px solid ${theme.colors.paperDim}`,
+    borderBottom: `1px solid ${theme.colors.paperDim}`,
+    paddingTop: "1rem",
+    paddingBottom: "1rem",
   };
 
-  const innerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
+  const innerFlexStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
     gap: "1.25rem",
@@ -66,7 +101,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     fontSize: "10px",
     letterSpacing: "0.25em",
     textTransform: "uppercase",
-    color: theme.colors.accent,
+    color: theme.colors.everglade,
     marginRight: "0.5rem",
   };
 
@@ -74,7 +109,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     width: "2.75rem",
     height: "2.75rem",
     borderRadius: "9999px",
-    border: `1px solid ${theme.colors.paperDark}`,
+    border: `1px solid ${theme.colors.paperDim}`,
     backgroundColor: theme.colors.white,
     color: theme.colors.everglade,
     display: "inline-flex",
@@ -103,7 +138,10 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
       style={sectionStyle}
       aria-label="Social sharing"
     >
-      <div style={innerStyle} className="social-share-inner">
+      <div
+        className={`${layoutClass.containerWide} social-share-inner`}
+        style={innerFlexStyle}
+      >
         <style>{`
           @media (min-width: 640px) {
             .social-share-inner {
@@ -130,7 +168,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label="Share on Facebook"
             onClick={() => posthog?.capture("social_share_clicked", { platform: "facebook" })}
           >
-            <Facebook size={18} strokeWidth={1.75} aria-hidden />
+            <Facebook height={18} strokeWidth={1.75} aria-hidden />
           </a>
           <a
             href={pageUrl ? linkedInHref : undefined}
@@ -141,7 +179,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label="Share on LinkedIn"
             onClick={() => posthog?.capture("social_share_clicked", { platform: "linkedin" })}
           >
-            <Linkedin size={18} strokeWidth={1.75} aria-hidden />
+            <Linkedin height={18} strokeWidth={1.75} aria-hidden />
           </a>
           <a
             href={pageUrl ? twitterHref : undefined}
@@ -152,7 +190,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label="Share on X (Twitter)"
             onClick={() => posthog?.capture("social_share_clicked", { platform: "twitter" })}
           >
-            <Twitter size={18} strokeWidth={1.75} aria-hidden />
+            <Twitter height={18} strokeWidth={1.75} aria-hidden />
           </a>
           <a
             href={pageUrl ? mailHref : undefined}
@@ -161,7 +199,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label="Share by email"
             onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
           >
-            <Mail size={18} strokeWidth={1.75} aria-hidden />
+            <Mail height={18} strokeWidth={1.75} aria-hidden />
           </a>
           <button
             type="button"
@@ -174,7 +212,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label={copied ? "Link copied" : "Copy page link"}
             disabled={!pageUrl}
           >
-            <Link2 size={16} strokeWidth={1.75} aria-hidden />
+            <Link height={16} strokeWidth={1.75} aria-hidden />
             {copied ? "Copied" : "Copy link"}
           </button>
         </div>

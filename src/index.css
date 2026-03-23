@@ -19,8 +19,8 @@ main section[id],
 }
 
 body {
-  background-color: #f9f9f6;
-  color: #001a10;
+  background-color: oklch(96.63% 0.004 106.47);
+  color: oklch(25.66% 0.046 163.6);
   font-family: "Plus Jakarta Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -49,6 +49,12 @@ button {
   view-transition-name: site-nav;
 }
 
+/* Article index + article detail: isolate main column from full-document root transition */
+.site-articles-route {
+  view-transition-name: site-articles-route;
+  contain: layout;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-group(site-nav) {
     animation-duration: 0s !important;
@@ -57,6 +63,19 @@ button {
   ::view-transition-old(site-nav),
   ::view-transition-new(site-nav) {
     animation: none !important;
+  }
+
+  ::view-transition-group(site-articles-route) {
+    animation-duration: 0.55s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  ::view-transition-old(site-articles-route) {
+    animation: vt-articles-out 0.5s cubic-bezier(0.45, 0, 0.55, 1) both;
+  }
+
+  ::view-transition-new(site-articles-route) {
+    animation: vt-articles-in 0.58s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   ::view-transition-group(root) {
@@ -70,6 +89,12 @@ button {
 
   ::view-transition-new(root) {
     animation: vt-route-in 0.78s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-articles-route {
+    view-transition-name: none;
   }
 }
 
@@ -98,5 +123,32 @@ button {
     opacity: 1;
     filter: blur(0) brightness(1);
     transform: scale(1) translateY(0) translateX(0);
+  }
+}
+
+/* Articles list ↔ article: horizontal slide + light blur (pairs with site-articles-route) */
+@keyframes vt-articles-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes vt-articles-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
   }
 }

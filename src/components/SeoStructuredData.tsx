@@ -1,15 +1,7 @@
 import { useEffect } from "react";
+import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const SCRIPT_ID = "professional-service-json-ld";
-
-const resolveSiteOrigin = () => {
-  const fromEnv = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
-  if (typeof window !== "undefined" && window.location?.origin) {
-    return window.location.origin;
-  }
-  return "https://www.tandrapeters.com";
-};
 
 /**
  * Injects ProfessionalService JSON-LD for SEO / rich results (complements FAQPage in Faq).

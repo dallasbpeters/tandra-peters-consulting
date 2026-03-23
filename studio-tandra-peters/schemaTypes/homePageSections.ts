@@ -9,7 +9,12 @@ export const heroSectionType = defineType({
     defineField({name: 'badge', type: 'string', title: 'Badge text'}),
     defineField({name: 'titleLine1', type: 'string', title: 'Title line 1'}),
     defineField({name: 'titleLine2', type: 'string', title: 'Title line 2 (muted accent)'}),
-    defineField({name: 'subtitle', type: 'text', rows: 4}),
+    defineField({
+      name: 'subtitle',
+      title: 'Subtitle',
+      type: 'blockContent',
+      description: 'Supporting paragraph under the headline (bold, links, lists).',
+    }),
     defineField({name: 'ctaText', type: 'string'}),
     defineField({name: 'ctaHref', type: 'string', initialValue: '#contact'}),
     defineField({name: 'secondaryCtaText', type: 'string', initialValue: 'Explore Services'}),
@@ -58,10 +63,31 @@ export const aboutSectionType = defineType({
     defineField({name: 'titleLine1', type: 'string'}),
     defineField({name: 'titleLine2', type: 'string'}),
     defineField({
-      name: 'paragraphs',
+      name: 'body',
+      title: 'Body',
+      type: 'blockContent',
+      description: 'Main copy (replaces legacy “paragraphs” list).',
+    }),
+  ],
+})
+
+export const statsSectionType = defineType({
+  name: 'statsSection',
+  title: 'Stats strip',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'title',
+      type: 'string',
+      title: 'Heading',
+      description: 'Short label shown beside the numbers (e.g. BirdCreek Roofing in Austin).',
+    }),
+    defineField({
+      name: 'items',
+      title: 'Stats',
       type: 'array',
-      of: [{type: 'text', rows: 5}],
-      description: 'Each item is a paragraph of body copy.',
+      of: [{type: 'statRow'}],
+      validation: (rule) => rule.min(1).max(8),
     }),
   ],
 })
@@ -78,7 +104,11 @@ export const servicesSectionType = defineType({
       of: [{type: 'string'}],
       validation: (rule) => rule.max(5),
     }),
-    defineField({name: 'description', type: 'text', rows: 5}),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'blockContent',
+    }),
     defineField({
       name: 'services',
       type: 'array',
@@ -94,8 +124,17 @@ export const missionSectionType = defineType({
   type: 'object',
   fields: [
     defineField({name: 'tagline', type: 'string'}),
-    defineField({name: 'title', type: 'text', rows: 2}),
-    defineField({name: 'description', type: 'text', rows: 5}),
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'blockContent',
+      description: 'Headline beside the tagline (use Normal style for a single line, or structure as needed).',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'blockContent',
+    }),
     defineField({
       name: 'values',
       type: 'array',
@@ -133,9 +172,9 @@ export const testimonialsSectionType = defineType({
     }),
     defineField({
       name: 'emptyStateNote',
-      type: 'text',
-      rows: 3,
-      description: 'Optional copy when no widget id (usually leave empty)',
+      title: 'Empty state note',
+      type: 'blockContent',
+      description: 'Optional copy when no widget id (usually leave empty).',
     }),
   ],
 })
@@ -147,7 +186,11 @@ export const faqSectionType = defineType({
   fields: [
     defineField({name: 'tagline', type: 'string'}),
     defineField({name: 'title', type: 'string'}),
-    defineField({name: 'intro', type: 'text', rows: 3}),
+    defineField({
+      name: 'intro',
+      title: 'Intro',
+      type: 'blockContent',
+    }),
     defineField({
       name: 'items',
       type: 'array',
@@ -176,6 +219,87 @@ export const socialShareSectionType = defineType({
   type: 'object',
   fields: [
     defineField({name: 'heading', type: 'string'}),
-    defineField({name: 'shareText', type: 'text', rows: 2}),
+    defineField({
+      name: 'shareText',
+      title: 'Share text',
+      type: 'blockContent',
+      description: 'Plain text is used for Twitter/email share strings (formatting is stripped for URLs).',
+    }),
+  ],
+})
+
+export const articlesTeaserSectionType = defineType({
+  name: 'articlesTeaserSection',
+  title: 'Articles teaser',
+  type: 'object',
+  description:
+    'Pick which articles appear as cards on the home page, or leave the list empty to use the newest posts automatically.',
+  fields: [
+    defineField({
+      name: 'eyebrow',
+      type: 'string',
+      title: 'Eyebrow label',
+      initialValue: 'Guides & insights',
+    }),
+    defineField({
+      name: 'title',
+      type: 'string',
+      title: 'Heading',
+      initialValue: 'Roofing articles',
+    }),
+    defineField({
+      name: 'intro',
+      title: 'Intro (right column)',
+      type: 'blockContent',
+      description: 'Short blurb beside the heading; links and bold allowed.',
+    }),
+    defineField({
+      name: 'viewAllLabel',
+      type: 'string',
+      title: '“View all” link label',
+      initialValue: 'View all articles',
+    }),
+    defineField({
+      name: 'articles',
+      title: 'Articles on the home page',
+      type: 'array',
+      description:
+        'Add posts here to choose exactly what shows and in what order (drag to reorder). Leave empty to show the newest posts instead — then use the number field below.',
+      of: [
+        {
+          type: 'reference',
+          to: [{type: 'post'}],
+          options: {
+            disableNew: true,
+          },
+        },
+      ],
+      validation: (rule) => rule.unique().max(50),
+    }),
+    defineField({
+      name: 'maxPosts',
+      type: 'number',
+      title: 'How many article cards',
+      description:
+        'Maximum cards on the home page — for both the picked list above and automatic newest posts when that list is empty.',
+      initialValue: 8,
+      validation: (rule) => rule.required().min(1).max(50).integer(),
+    }),
+    defineField({
+      name: 'enabled',
+      type: 'boolean',
+      hidden: true,
+      deprecated: {
+        reason:
+          'No longer used — the articles block is always shown when posts exist.',
+      },
+    }),
+    defineField({
+      name: 'featuredPosts',
+      type: 'array',
+      hidden: true,
+      deprecated: {reason: 'No longer used — remove when convenient (optional).'},
+      of: [{type: 'reference', to: [{type: 'post'}]}],
+    }),
   ],
 })

@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {SERVICE_ICON_OPTIONS} from '../../../src/sanity/serviceIconMeta'
 import {defineGeminiImage} from '../geminiImageField'
 
 export const serviceCardType = defineType({
@@ -8,16 +9,19 @@ export const serviceCardType = defineType({
   fields: [
     defineField({name: 'id', type: 'string', validation: (r) => r.required()}),
     defineField({name: 'title', type: 'string', validation: (r) => r.required()}),
-    defineField({name: 'description', type: 'text', rows: 4, validation: (r) => r.required()}),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'blockContent',
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: 'icon',
       type: 'string',
+      title: 'Icon (Iconoir)',
       options: {
-        list: [
-          {title: 'Search (assessment)', value: 'search'},
-          {title: 'FileText (insurance)', value: 'fileText'},
-          {title: 'ShieldCheck (oversight)', value: 'shieldCheck'},
-        ],
+        list: [...SERVICE_ICON_OPTIONS],
+        layout: 'dropdown',
       },
       initialValue: 'search',
       validation: (r) => r.required(),

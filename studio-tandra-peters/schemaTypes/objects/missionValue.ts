@@ -8,7 +8,12 @@ export const missionValueType = defineType({
   fields: [
     defineField({name: 'id', type: 'string', validation: (r) => r.required()}),
     defineField({name: 'title', type: 'string', validation: (r) => r.required()}),
-    defineField({name: 'description', type: 'text', rows: 5, validation: (r) => r.required()}),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'blockContent',
+      validation: (r) => r.required(),
+    }),
     defineGeminiImage({
       name: 'image',
       title: 'Background image',

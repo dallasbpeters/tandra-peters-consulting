@@ -6,6 +6,7 @@ import {geminiAIImages} from 'sanity-plugin-gemini-ai-images'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {geminiStudioApiEndpoint} from './geminiStudioConfig'
+import {assist} from '@sanity/assist'
 
 const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') || 'http://localhost:3000'
@@ -18,6 +19,7 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [
+    assist(),
     geminiAIImages({
       apiEndpoint: geminiStudioApiEndpoint,
       enableStandaloneTool: true,
@@ -36,6 +38,20 @@ export default defineConfig({
       resolve: {
         mainDocuments: defineDocuments([
           {route: '/', filter: `_type == "homePage"`},
+          {route: '/articles', filter: `_id == "articlesPage"`},
+          {
+            route: '/articles/:slug',
+            resolve: ({params}) => {
+              const slug = params.slug?.trim()
+              if (!slug) {
+                return undefined
+              }
+              return {
+                filter: `_type == "post" && slug.current == $slug`,
+                params: {slug},
+              }
+            },
+          },
           {route: '/privacy', filter: `_type == "siteSettings"`},
           {route: '/terms', filter: `_type == "siteSettings"`},
           {route: '/cookies', filter: `_type == "siteSettings"`},
@@ -57,6 +73,29 @@ export default defineConfig({
                 {title: 'Cookies', href: '/cookies'},
               ],
             }),
+          }),
+          articlesPage: defineLocations({
+            select: {id: '_id'},
+            resolve: () => ({
+              locations: [{title: 'Articles', href: '/articles'}],
+            }),
+          }),
+          post: defineLocations({
+            select: {title: 'title', slug: 'slug.current'},
+            resolve: (doc) => {
+              const slug =
+                typeof doc?.slug === 'string' ? doc.slug.trim() : ''
+              const title =
+                typeof doc?.title === 'string' && doc.title.trim()
+                  ? doc.title.trim()
+                  : 'Article'
+              if (!slug) {
+                return {locations: [{title, href: '/articles'}]}
+              }
+              return {
+                locations: [{title, href: `/articles/${slug}`}],
+              }
+            },
           }),
         },
       },

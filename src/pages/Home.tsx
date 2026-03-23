@@ -6,21 +6,25 @@ import { Services } from "../components/Services";
 import { Mission } from "../components/Mission";
 import { Expertise } from "../components/Expertise";
 import { Testimonials } from "../components/Testimonials";
+import { Stats } from "../components/Stats";
 import { Contact } from "../components/Contact";
 import { Footer } from "../components/Footer";
 import { SocialShareBar } from "../components/SocialShareBar";
 import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
+import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
 import {
   mapAboutProps,
+  mapArticlesTeaserEditorialProps,
   mapContactProps,
   mapExpertiseProps,
   mapFaqProps,
   mapFooterProps,
   mapHeroProps,
+  mapStatsProps,
   mapMissionProps,
   mapNavProps,
   mapServicesProps,
@@ -36,11 +40,15 @@ export const Home = () => {
   const hero = home?.hero as Record<string, unknown> | undefined;
   const marquee = home?.marquee as Record<string, unknown> | undefined;
   const about = home?.about as Record<string, unknown> | undefined;
+  const stats = home?.stats as Record<string, unknown> | undefined;
   const services = home?.services as Record<string, unknown> | undefined;
   const mission = home?.mission as Record<string, unknown> | undefined;
   const expertise = home?.expertise as Record<string, unknown> | undefined;
   const testimonials = home?.testimonials as Record<string, unknown> | undefined;
   const faq = home?.faq as Record<string, unknown> | undefined;
+  const articlesTeaser = home?.articlesTeaser as
+    | Record<string, unknown>
+    | undefined;
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
 
@@ -71,14 +79,22 @@ export const Home = () => {
           direction={marqueeDirection}
           velocity={marqueeVelocity}
           texts={[{ text: marqueeText }]}
+          fontSize="1.2rem"
         />
         <About {...mapAboutProps(about)} />
+        <Stats {...mapStatsProps(stats)} />
         <Services {...mapServicesProps(services)} />
         <Mission {...mapMissionProps(mission)} />
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
         <Faq {...mapFaqProps(faq)} />
+        <ArticlesTeaser
+          posts={data?.latestPosts ?? []}
+          {...mapArticlesTeaserEditorialProps(articlesTeaser)}
+        />
         <Band
+          minHeight={8}
+          maxHeight={20}
           tint={theme.colors.everglade}
           colors={[
             theme.colors.evergladeLight,
@@ -93,6 +109,8 @@ export const Home = () => {
       </main>
       <SocialShareBar {...mapSocialShareProps(socialShare)} />
       <Band
+      minHeight={8}
+      maxHeight={20}
         reverse={true}
         rotate={true}
         tint={theme.colors.everglade}

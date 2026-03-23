@@ -8,7 +8,12 @@ export const expertiseItemType = defineType({
   fields: [
     defineField({name: 'id', type: 'string', validation: (r) => r.required()}),
     defineField({name: 'title', type: 'string', validation: (r) => r.required()}),
-    defineField({name: 'desc', type: 'text', rows: 4, validation: (r) => r.required()}),
+    defineField({
+      name: 'desc',
+      title: 'Description',
+      type: 'blockContent',
+      validation: (r) => r.required(),
+    }),
     defineGeminiImage({
       name: 'image',
       title: 'Image',

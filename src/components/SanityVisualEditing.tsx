@@ -60,13 +60,13 @@ export const SanityVisualEditing = () => {
     [],
   );
 
+  /**
+   * Re-run the site GROQ fetch after Studio edits. We do not use Sanity’s live
+   * content loader (`listen` / `defineLive`), so we must not return `false` when
+   * `livePreviewEnabled` — that would skip refetch and leave preview stale.
+   */
   const refresh = useCallback(
-    (payload: HistoryRefresh) => {
-      if (payload.source === "mutation" && payload.livePreviewEnabled) {
-        return false;
-      }
-      return refetch();
-    },
+    (_payload: HistoryRefresh) => refetch(),
     [refetch],
   );
 

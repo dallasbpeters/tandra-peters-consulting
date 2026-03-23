@@ -10,7 +10,10 @@
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
     "start": "sanity start",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "seed:articles-page": "tsx scripts/seedArticlesPage.ts",
+    "seed:posts": "tsx scripts/seedPosts.ts",
+    "seed:all": "tsx scripts/seed.ts && tsx scripts/seedPosts.ts"
   },
   "keywords": [
     "sanity"

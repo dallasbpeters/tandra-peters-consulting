@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { TransitionLink } from "./TransitionLink";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, Xmark } from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { NavProps } from "../types";
 import { usePostHog } from "@posthog/react";
@@ -14,6 +15,7 @@ export const Nav: React.FC<NavProps> = ({
   navItems = [
     { name: "Services", href: "#services" },
     { name: "About Tandra", href: "#about-tandra" },
+    { name: "Articles", href: "/articles" },
     { name: "Testimonials", href: "#testimonials" },
     { name: "FAQ", href: "#faq" },
     { name: "Contact", href: "#contact" },
@@ -23,6 +25,9 @@ export const Nav: React.FC<NavProps> = ({
 }) => {
   const location = useLocation();
   const isHome = location.pathname === "/";
+
+  const offHomeNavTo = (href: string) =>
+    href.startsWith("#") ? { pathname: "/" as const, hash: href } : href;
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const posthog = usePostHog();
@@ -77,17 +82,6 @@ export const Nav: React.FC<NavProps> = ({
     boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
   };
 
-    const containerStyle: React.CSSProperties = {
-      maxWidth: "80rem",
-      marginLeft: "auto",
-      marginRight: "auto",
-      paddingLeft: "1.5rem",
-      paddingRight: "1.5rem",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-    };
-    
     const logoStyle: React.CSSProperties = {
       
       display: "grid",
@@ -108,7 +102,7 @@ export const Nav: React.FC<NavProps> = ({
     };
 
   const logoTextStyle: React.CSSProperties = {
-    fontSize: "1.25rem",
+    fontSize: "1.15rem",
     fontWeight: 900,
     letterSpacing: "-0.05em",
     gridArea: "text",
@@ -124,13 +118,13 @@ export const Nav: React.FC<NavProps> = ({
     display: "block",
     textTransform: "uppercase",
     fontFamily: theme.fonts.headline,
-    color: isScrolled ? theme.colors.evergladeMuted : theme.colors.white,
+    color: isScrolled ? theme.colors.everglade : theme.colors.purple,
   };
 
   const desktopNavStyle: React.CSSProperties = {
     display: "none",
     alignItems: "center",
-    gap: "2.5rem",
+    gap: "1.5rem",
   };
 
   const navLinkStyle: React.CSSProperties = {
@@ -162,7 +156,7 @@ export const Nav: React.FC<NavProps> = ({
 
   return (
     <nav style={navStyle} className="site-nav-vt">
-      <div style={containerStyle}>
+      <div className={layoutClass.containerWideRow}>
           
         <TransitionLink
           to="/"
@@ -213,7 +207,8 @@ export const Nav: React.FC<NavProps> = ({
                 style={{ display: "inline-block" }}
               >
                 <TransitionLink
-                  to={{ pathname: "/", hash: item.href }}
+                  to={offHomeNavTo(item.href)}
+                  viewTransition
                   style={navLinkStyle}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = "1";
@@ -283,7 +278,11 @@ export const Nav: React.FC<NavProps> = ({
                 .hidden.lg\\:block { display: none !important; }
               }
             `}</style>
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMobileMenuOpen ? (
+              <Xmark width={24} height={24} />
+            ) : (
+              <Menu width={24} height={24} />
+            )}
           </button>
         </div>
       </div>
@@ -320,7 +319,8 @@ export const Nav: React.FC<NavProps> = ({
                 ) : (
                   <TransitionLink
                     key={item.name}
-                    to={{ pathname: "/", hash: item.href }}
+                    to={offHomeNavTo(item.href)}
+                    viewTransition
                     style={{
                       fontFamily: theme.fonts.headline,
                       fontWeight: 700,

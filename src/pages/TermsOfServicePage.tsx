@@ -1,4 +1,6 @@
-import { LegalLayout, legalSection } from "./LegalLayout";
+import { LegalLayout } from "./LegalLayout";
+import { legalSection } from "./legalSection";
+import { theme } from "../theme";
 
 export const TermsOfServicePage = () => (
   <LegalLayout title="Terms of Service">
@@ -35,7 +37,7 @@ export const TermsOfServicePage = () => (
         "We may update these Terms. Continued use after changes constitutes acceptance of the updated Terms.",
       ]),
     ]}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: "#666" }}>
+    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
       Last updated: March 21, 2026
     </p>
   </LegalLayout>

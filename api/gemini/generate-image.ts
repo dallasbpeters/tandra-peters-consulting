@@ -4,7 +4,8 @@
  *
  * Env: GEMINI_API_KEY (required). Optional: GEMINI_PLUGIN_API_KEY — if set, clients must send X-API-Key.
  *
- * Local: run `vercel dev` from the repo root so this route is served; Vite alone does not host /api/*.
+ * Local: `pnpm dev` (Vite on port 3000) serves this route via `plugins/viteGeminiDevApi.ts`.
+ * Alternatively run `vercel dev` from the repo root.
  */
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 import {handler as geminiHandler} from 'sanity-plugin-gemini-ai-images-serverless';

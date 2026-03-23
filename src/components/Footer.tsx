@@ -1,8 +1,10 @@
 import React from "react";
 import { TransitionLink } from "./TransitionLink";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { FooterProps } from "../types";
+import { RichText } from "../portableText/RichText";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
@@ -15,6 +17,7 @@ export const Footer: React.FC<FooterProps> = ({
   quickLinks = [
     { name: "Services", href: "#services" },
     { name: "About Tandra", href: "#about-tandra" },
+    { name: "Articles", href: "/articles" },
     { name: "Testimonials", href: "#testimonials" },
     { name: "FAQ", href: "#faq" },
     { name: "Contact", href: "#contact" },
@@ -36,17 +39,6 @@ export const Footer: React.FC<FooterProps> = ({
     paddingBottom: "5rem",
   };
 
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "4rem",
-  };
-
   const socialLinkStyle: React.CSSProperties = {
     width: "2.5rem",
     height: "2.5rem",
@@ -63,10 +55,10 @@ export const Footer: React.FC<FooterProps> = ({
   const headingStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
-     
+    textTransform: "uppercase",
     fontSize: "10px",
     letterSpacing: "0.3em",
-    color: theme.colors.evergladeMuted,
+    color: theme.colors.textOnBrand,
     marginBottom: "2rem",
   };
 
@@ -91,32 +83,14 @@ export const Footer: React.FC<FooterProps> = ({
     transition: "color 0.2s",
   };
 
-  const bottomBarStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-    marginTop: "5rem",
-    paddingTop: "2.5rem",
-    borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "1.5rem",
-    fontSize: "12px",
-    fontFamily: theme.fonts.headline,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    color: theme.colors.evergladeMuted,
+  const bottomBarColorStyle: React.CSSProperties = {
+    color: theme.colors.textOnBrand,
     opacity: 0.4,
   };
 
   return (
     <footer style={footerStyle}>
-      <div style={containerStyle} className="md-grid-12">
+      <div className={`${layoutClass.containerWideGridFooter} md-grid-12`}>
         <style>{`
           @media (min-width: 768px) {
             .md-grid-12 { grid-template-columns: repeat(6, 1fr) !important; }
@@ -131,9 +105,28 @@ export const Footer: React.FC<FooterProps> = ({
         `}</style>
         <div className="md-col-4">
           <div style={{ fontSize: "1.875rem", fontWeight: 900, letterSpacing: "-0.05em",   fontFamily: theme.fonts.headline, marginBottom: "2rem" }}>{logoText}</div>
-          <p style={{ color: theme.colors.evergladeMuted, fontSize: "0.875rem", lineHeight: 1.6, maxWidth: "20rem", marginBottom: "2.5rem", opacity: 0.6 }}>
-            {description}
-          </p>
+          <div
+            style={{
+              color: theme.colors.textOnBrand,
+              fontSize: "0.875rem",
+              lineHeight: 1.6,
+              maxWidth: "20rem",
+              marginBottom: "2.5rem",
+              opacity: 0.6,
+            }}
+          >
+            <RichText
+              flow="heading"
+              value={description}
+              paragraphStyle={{
+                color: "inherit",
+                fontSize: "inherit",
+                lineHeight: "inherit",
+                opacity: "inherit",
+              }}
+              linkStyle={{ color: theme.colors.accentLight }}
+            />
+          </div>
           <div style={{ display: "flex", gap: "1.5rem" }}>
             {socialLinks.map((social, i) => (
               <a key={i} href={social.href} style={socialLinkStyle} className="social-link">
@@ -157,9 +150,14 @@ export const Footer: React.FC<FooterProps> = ({
                     {link.name}
                   </TransitionLink>
                 ) : (
-                  <a href={link.href} style={linkStyle} className="footer-link">
+                  <TransitionLink
+                    to={link.href}
+                    viewTransition
+                    style={linkStyle}
+                    className="footer-link"
+                  >
                     {link.name}
-                  </a>
+                  </TransitionLink>
                 )}
               </li>
             ))}
@@ -183,7 +181,10 @@ export const Footer: React.FC<FooterProps> = ({
           </ul>
         </div>
       </div>
-      <div style={bottomBarStyle} className="md-row">
+      <div
+        className={`${layoutClass.containerWideFooterLegal} md-row`}
+        style={bottomBarColorStyle}
+      >
         <p>{copyrightText}</p>
         <p>{partnerText}</p>
       </div>

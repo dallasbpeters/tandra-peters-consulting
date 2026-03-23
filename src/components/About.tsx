@@ -1,7 +1,10 @@
 import React from "react";
 import { motion } from "motion/react";
-import { theme } from "../theme";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { AboutProps } from "../types";
+import { RichText } from "../portableText/RichText";
+import { asRichTextValue } from "../portableText/value";
 
 export const About: React.FC<AboutProps> = ({
   badgeText = "5+ YEARS",
@@ -12,28 +15,16 @@ export const About: React.FC<AboutProps> = ({
       Precision. Integrity.
     </>
   ),
+  body,
   paragraphs = [
     "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
     "As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her Architectural Advisor approach treats every roof as both a structural system and a major financial asset you will live with for decades.",
   ],
 }) => {
+  const richBody = asRichTextValue(body, paragraphs);
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
     backgroundColor: theme.colors.paper,
     overflow: "hidden",
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "5rem",
-    alignItems: "center",
   };
 
   const imageContainerStyle: React.CSSProperties = {
@@ -78,15 +69,20 @@ export const About: React.FC<AboutProps> = ({
   };
 
   const pStyle: React.CSSProperties = {
-    color: `${theme.colors.everglade}cc`, // 80% opacity
+    color: mix(theme.colors.everglade, 80),
     lineHeight: 1.6,
     fontSize: "1.125rem",
     marginBottom: "2rem",
   };
 
   return (
-    <section id="about-tandra" style={sectionStyle} aria-labelledby="about-heading">
-      <div style={containerStyle} className="lg-grid">
+    <section
+      id="about-tandra"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="about-heading"
+    >
+      <div className={`${layoutClass.containerWideAboutGrid} lg-grid`}>
         <style>{`
           @media (min-width: 1024px) {
             .lg-grid { grid-template-columns: repeat(12, 1fr) !important; }
@@ -120,7 +116,7 @@ export const About: React.FC<AboutProps> = ({
             className="md-block"
           >
             <p style={{ fontFamily: theme.fonts.headline, fontWeight: 900, color: theme.colors.white, fontSize: "3rem", letterSpacing: "-0.05em", lineHeight: 1, margin: 0 }}>{badgeText}</p>
-            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 700, color: theme.colors.evergladeMuted, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
+            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 700, color: theme.colors.textOnBrand, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
           </motion.div>
         </motion.div>
         <motion.div 
@@ -134,11 +130,7 @@ export const About: React.FC<AboutProps> = ({
             {title}
           </h2>
           <div style={{ maxWidth: "42rem" }}>
-            {paragraphs.map((p, i) => (
-              <p key={i} style={pStyle}>
-                {p}
-              </p>
-            ))}
+            <RichText value={richBody} paragraphStyle={pStyle} />
           </div>
           <motion.div
           initial={{ opacity: 0, y: 20 }}

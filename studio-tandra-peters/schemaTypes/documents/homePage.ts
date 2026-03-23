@@ -8,11 +8,13 @@ export const homePageType = defineType({
     {name: 'hero', title: 'Hero', default: true},
     {name: 'marquee', title: 'Marquee'},
     {name: 'about', title: 'About'},
+    {name: 'stats', title: 'Stats'},
     {name: 'services', title: 'Services'},
     {name: 'mission', title: 'Mission'},
     {name: 'expertise', title: 'Expertise'},
     {name: 'testimonials', title: 'Testimonials'},
     {name: 'faq', title: 'FAQ'},
+    {name: 'articles', title: 'Articles teaser'},
     {name: 'contact', title: 'Contact'},
     {name: 'social', title: 'Social share'},
   ],
@@ -31,6 +33,11 @@ export const homePageType = defineType({
       name: 'about',
       type: 'aboutSection',
       group: 'about',
+    }),
+    defineField({
+      name: 'stats',
+      type: 'statsSection',
+      group: 'stats',
     }),
     defineField({
       name: 'services',
@@ -56,6 +63,11 @@ export const homePageType = defineType({
       name: 'faq',
       type: 'faqSection',
       group: 'faq',
+    }),
+    defineField({
+      name: 'articlesTeaser',
+      type: 'articlesTeaserSection',
+      group: 'articles',
     }),
     defineField({
       name: 'contact',

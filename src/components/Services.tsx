@@ -1,9 +1,11 @@
 import React from "react";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, FileText, ShieldCheck } from "lucide-react";
-import { theme } from "../theme";
+import { ArrowDownRight, Page, Search, ShieldCheck } from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { ServicesProps } from "../types";
 import BirdCreekLogo from "./BirdCreekLogo";
+import { RichText } from "../portableText/RichText";
 import { usePostHog } from "@posthog/react";
 
 export const Services: React.FC<ServicesProps> = ({
@@ -33,7 +35,7 @@ export const Services: React.FC<ServicesProps> = ({
       title: "Insurance Claim Advocacy",
       description:
         "Help organizing claim paperwork, interpreting adjuster estimates, and advocating for scopes that match real damage—so you are not left under-covered on a major asset.",
-      icon: FileText,
+      icon: Page,
     },
     {
       id: "03",
@@ -62,17 +64,7 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
     backgroundColor: theme.colors.paperDim,
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
   };
 
   const headerStyle: React.CSSProperties = {
@@ -110,13 +102,18 @@ export const Services: React.FC<ServicesProps> = ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    border: `1px solid ${theme.colors.paperDark}33`,
+    border: `1px solid ${mix(theme.colors.paperDark, 10)}`,
     transition: "all 0.5s",
   };
 
   return (
-    <section id="services" style={sectionStyle} aria-labelledby="services-heading">
-      <div style={containerStyle}>
+    <section
+      id="services"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="services-heading"
+    >
+      <div className={layoutClass.containerWide}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -167,12 +164,19 @@ export const Services: React.FC<ServicesProps> = ({
           <div
             style={{
               maxWidth: "24rem",
-              color: `${theme.colors.everglade}99`,
+              color: mix(theme.colors.everglade, 60),
               lineHeight: 1.6,
               fontSize: "1.1rem",
             }}
           >
-            {description}
+            <RichText
+              value={description}
+              paragraphStyle={{
+                color: "inherit",
+                lineHeight: "inherit",
+                fontSize: "inherit",
+              }}
+            />
           </div>
         </motion.div>
 
@@ -245,7 +249,11 @@ export const Services: React.FC<ServicesProps> = ({
                         .group:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; }
                       `}</style>
                     )}
-                    <service.icon style={{ color: theme.colors.everglade }} />
+                    <service.icon
+                      width={isMain ? 36 : 28}
+                      height={isMain ? 36 : 28}
+                      style={{ color: theme.colors.everglade }}
+                    />
                   </div>
                   <h3
                     style={{
@@ -264,18 +272,31 @@ export const Services: React.FC<ServicesProps> = ({
                   >
                     {service.title}
                   </h3>
-                  <p
+                  <div
                     style={{
                       color: isMain
                         ? theme.colors.evergladeMuted
-                        : `${theme.colors.everglade}99`,
+                        : mix(theme.colors.everglade, 60),
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
                       fontSize: isMain ? "1rem" : "1.1rem",
                     }}
                   >
-                    {service.description}
-                  </p>
+                    <RichText
+                      flow="heading"
+                      value={service.description}
+                      paragraphStyle={{
+                        color: "inherit",
+                        lineHeight: "inherit",
+                        fontSize: "inherit",
+                      }}
+                      linkStyle={{
+                        color: isMain
+                          ? theme.colors.accentLight
+                          : theme.colors.accent,
+                      }}
+                    />
+                  </div>
                 </div>
                 <div
                   style={{
@@ -300,10 +321,12 @@ export const Services: React.FC<ServicesProps> = ({
                     {service.id}
                   </span>
                   <button
-                  onClick={() => {
-                    posthog?.capture("service_cta_clicked", { service_title: service.title, service_id: service.id });
-                    window.location.href = '#contact';
-                  }}
+                    type="button"
+                    aria-label={`Go to contact — ${service.title}`}
+                    onClick={() => {
+                      posthog?.capture("service_cta_clicked", { service_title: service.title, service_id: service.id });
+                      window.location.href = '#contact';
+                    }}
                     style={{
                       backgroundColor: isMain
                         ? "rgba(255, 255, 255, 0.1)"
@@ -327,7 +350,11 @@ export const Services: React.FC<ServicesProps> = ({
                       (e.currentTarget.style.color = "rgba(0, 26, 16, 0.4)")
                     }
                   >
-                    <ArrowUpRight size={isMain ? 32 : 24} />
+                    <ArrowDownRight
+                      width={isMain ? 32 : 24}
+                      height={isMain ? 32 : 24}
+                      aria-hidden
+                    />
                   </button>
                 </div>
               </motion.div>
@@ -352,7 +379,7 @@ export const Services: React.FC<ServicesProps> = ({
             <style>{`
               .group-advantage:hover { background-color: ${theme.colors.everglade} !important; }
               .group-advantage:hover h3 { color: white !important; }
-              .group-advantage:hover p { color: ${theme.colors.evergladeMuted} !important; }
+              .group-advantage:hover p { color: ${theme.colors.textOnBrand} !important; }
               .group-advantage:hover .group-advantage-cta {
                 background-color: ${theme.colors.purple} !important;
                 color: ${theme.colors.everglade} !important;
@@ -383,7 +410,7 @@ export const Services: React.FC<ServicesProps> = ({
               </h3>
               <p
                 style={{
-                  color: `${theme.colors.everglade}99`,
+                  color: mix(theme.colors.everglade, 60),
                   lineHeight: 1.6,
                   transition: "color 0.7s",
                   fontWeight: 500,

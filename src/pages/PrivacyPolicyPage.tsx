@@ -1,4 +1,6 @@
-import { LegalLayout, legalSection } from "./LegalLayout";
+import { LegalLayout } from "./LegalLayout";
+import { legalSection } from "./legalSection";
+import { theme } from "../theme";
 
 export const PrivacyPolicyPage = () => (
   <LegalLayout title="Privacy Policy">
@@ -42,7 +44,7 @@ export const PrivacyPolicyPage = () => (
         "Questions about privacy: use the contact form on this site or the email shown in the Contact section.",
       ]),
     ]}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: "#666" }}>
+    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
       Last updated: March 21, 2026
     </p>
   </LegalLayout>

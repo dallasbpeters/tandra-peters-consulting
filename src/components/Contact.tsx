@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
-import { ChevronDown, Mail, Phone, MapPin, Send } from "lucide-react";
-import { theme } from "../theme";
+import {
+  Mail,
+  MapPin,
+  NavArrowDown,
+  Phone,
+  Send,
+} from "iconoir-react";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../contactServiceOptions";
 import { ContactProps } from "../types";
 import { usePostHog } from "@posthog/react";
@@ -128,21 +135,7 @@ export const Contact = ({
     }
   };
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "8rem",
-    paddingBottom: "8rem",
     backgroundColor: theme.colors.paperDim,
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: "80rem",
-    marginLeft: "auto",
-    marginRight: "auto",
-    paddingLeft: "1.5rem",
-    paddingRight: "1.5rem",
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    placeItems: "center stretch",
-    gap: "5rem",
   };
 
   const infoItemStyle: React.CSSProperties = {
@@ -154,12 +147,12 @@ export const Contact = ({
   const iconWrapperStyle: React.CSSProperties = {
     minWidth: "3rem",
     height: "3rem",
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.purple,
+    color: theme.colors.black,
     borderRadius: "9999px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    transition: "all 0.5s",
+    justifyContent: "center"
   };
 
   const labelStyle: React.CSSProperties = {
@@ -167,7 +160,7 @@ export const Contact = ({
     fontWeight: 700,
     fontSize: "12px",
     letterSpacing: "0.1em",
-    color: `${theme.colors.everglade}66`,
+    color: mix(theme.colors.everglade, 40),
     marginBottom: "0.25rem",
   };
 
@@ -180,12 +173,12 @@ export const Contact = ({
 
   const formCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.white,
-    padding: "3rem",
+    padding: "2rem",
     borderRadius: "1rem",
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   };
 
-  const underlineBorder = `1px solid ${theme.colors.everglade}33`;
+  const underlineBorder = `1px solid ${mix(theme.colors.everglade, 20)}`;
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -254,23 +247,27 @@ export const Contact = ({
   };
 
   return (
-    <section id="contact" style={sectionStyle} aria-labelledby="contact-heading">
-      <div style={containerStyle} className="lg-grid-12">
+    <section
+      id="contact"
+      className={layoutClass.sectionPadded}
+      style={sectionStyle}
+      aria-labelledby="contact-heading"
+    >
+      <div className={`${layoutClass.containerWideContact} lg-grid-12`}>
         <style>{`
           @media (min-width: 1024px) {
             .lg-grid-12 { grid-template-columns: repeat(12, 1fr) !important; }
-            .lg-col-5 { grid-column: span 5 / span 5 !important; }
-            .lg-col-7 { grid-column: span 7 / span 7 !important; }
+            .lg-col-6 { grid-column: span 6 / span 6 !important; }
             .md-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
           }
           .contact-group:hover .icon-wrapper { background-color: ${theme.colors.accentLight} !important; }
           .contact-form-field::placeholder {
-            color: ${theme.colors.everglade}55;
+            color: ${mix(theme.colors.everglade, 33)};
           }
           .contact-form-field:focus {
             border-bottom-color: ${theme.colors.accent} !important;
           }
-          .send-btn:hover { background-color: ${theme.colors.everglade}ee !important; }
+          .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
           .send-btn:hover .send-icon { transform: translate(8px, -8px) !important; }
         `}</style>
         <motion.div 
@@ -278,14 +275,14 @@ export const Contact = ({
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="lg-col-5"
+          className="lg-col-6"
         >
           <span style={{ fontWeight: 700, letterSpacing: "0.2em", color: theme.colors.accent, textTransform: "uppercase", fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
           <h2 id="contact-heading" style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 600,}}>{title}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
-                <Mail style={{ color: theme.colors.everglade }} />
+                <Mail style={{ color: "inherit" }} />
               </div>
               <div>
                 <p style={labelStyle}>Email</p>
@@ -294,7 +291,7 @@ export const Contact = ({
             </div>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
-                <Phone style={{ color: theme.colors.everglade }} />
+                <Phone style={{ color: "inherit" }} />
               </div>
               <div>
                 <p style={labelStyle}>Phone</p>
@@ -303,7 +300,7 @@ export const Contact = ({
             </div>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
-                <MapPin style={{ color: theme.colors.everglade }} />
+                <MapPin style={{ color: "inherit" }} />
               </div>
               <div>
                 <p style={labelStyle}>Location</p>
@@ -319,7 +316,7 @@ export const Contact = ({
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           style={formCardStyle}
-          className="lg-col-7"
+          className="lg-col-6"
         >
           <form
             style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
@@ -406,7 +403,7 @@ export const Contact = ({
                   ))}
                 </select>
                 <span style={selectChevronStyle} aria-hidden>
-                  <ChevronDown size={22} strokeWidth={2} />
+                  <NavArrowDown width={22} height={22} strokeWidth={2} />
                 </span>
               </div>
             </div>
@@ -483,7 +480,7 @@ export const Contact = ({
                   lineHeight: 1.5,
                   color:
                     submitStatus === "error"
-                      ? "#b91c1c"
+                      ? theme.colors.danger
                       : theme.colors.everglade,
                 }}
               >
@@ -518,7 +515,12 @@ export const Contact = ({
               className="send-btn"
             >
               <span>{submitStatus === "sending" ? "Sending…" : "Send Message"}</span>
-              <Send size={18} className="send-icon" style={{ transition: "transform 0.3s" }} />
+              <Send
+                width={18}
+                height={18}
+                className="send-icon"
+                style={{ transition: "transform 0.3s" }}
+              />
             </button>
           </form>
         </motion.div>

@@ -1,16 +1,55 @@
-import React from 'react'
-import {defineField} from 'sanity'
-import {ImageObjectInput} from 'sanity-plugin-gemini-ai-images'
-import {geminiStudioApiEndpoint} from '../geminiStudioConfig'
+import React, { useCallback } from 'react'
+import { defineField, set, type ImageInputProps } from 'sanity'
+import { ImageObjectInput } from 'sanity-plugin-gemini-ai-images'
+import { geminiStudioApiEndpoint } from '../geminiStudioConfig'
 
-/** Plugin typings target older Sanity `ImageInputProps`; Studio v5 passes compatible `ObjectInputProps`. */
-const GeminiImageInput = (props: Record<string, unknown>) => (
-  <ImageObjectInput
-    {...(props as unknown as React.ComponentProps<typeof ImageObjectInput>)}
-    enableAIGeneration
-    apiEndpoint={geminiStudioApiEndpoint}
-  />
-)
+/**
+ * `sanity-plugin-gemini-ai-images` calls `onChange` with a plain `{ _type: 'image', asset: { _ref } }`
+ * object. Sanity v5 expects form patches — use `set()` or the form throws and shows "Failed to save image".
+ */
+type GeminiImageValue = {
+  _type: 'image'
+  asset: {
+    _type: 'reference'
+    _ref: string
+  }
+}
+
+const isGeminiImageObject = (v: unknown): v is GeminiImageValue => {
+  if (typeof v !== 'object' || v === null) {
+    return false
+  }
+  const o = v as Record<string, unknown>
+  if (o._type !== 'image' || typeof o.asset !== 'object' || o.asset === null) {
+    return false
+  }
+  const asset = o.asset as Record<string, unknown>
+  return asset._type === 'reference' && typeof asset._ref === 'string'
+}
+
+const GeminiImageInput = (props: ImageInputProps) => {
+  const { onChange, ...rest } = props
+
+  const handleChange = useCallback<ImageInputProps['onChange']>(
+    (event) => {
+      if (isGeminiImageObject(event)) {
+        onChange(set(event))
+        return
+      }
+      onChange(event)
+    },
+    [onChange],
+  )
+
+  return (
+    <ImageObjectInput
+      {...rest}
+      onChange={handleChange}
+      enableAIGeneration
+      apiEndpoint={geminiStudioApiEndpoint}
+    />
+  )
+}
 
 type GeminiImageOpts = {
   name: string

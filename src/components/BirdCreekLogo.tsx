@@ -1,5 +1,7 @@
 import * as React from "react";
 import { JSX } from "react/jsx-runtime";
+import { theme } from "../theme";
+
 const BirdCreekLogo = (props: JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
   <svg
     id="Layer_1"
@@ -11,7 +13,7 @@ const BirdCreekLogo = (props: JSX.IntrinsicAttributes & React.SVGProps<SVGSVGEle
     {...props}
   >
     <defs>
-      <style>{".cls-1{fill:#29592e;}.cls-2{fill:#1f8e49;}"}</style>
+      <style>{`.cls-1{fill:${theme.palette.everglade["700"]};}.cls-2{fill:${theme.palette.accent["500"]};}`}</style>
     </defs>
     <path
       className="cls-1"

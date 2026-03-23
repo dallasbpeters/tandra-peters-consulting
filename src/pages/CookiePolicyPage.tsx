@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { TransitionLink } from "../components/TransitionLink";
-import { LegalLayout, legalSection } from "./LegalLayout";
+import { LegalLayout } from "./LegalLayout";
+import { legalSection } from "./legalSection";
 import { theme } from "../theme";
 
 const linkStyle: CSSProperties = {
@@ -36,7 +37,7 @@ export const CookiePolicyPage = () => (
     {legalSection("contact-cookie", "Contact", [
       "Questions about this policy: use the contact form or email on the Contact section of the site.",
     ])}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: "#666" }}>
+    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
       Last updated: March 21, 2026
     </p>
   </LegalLayout>
