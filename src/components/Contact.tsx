@@ -151,7 +151,7 @@ export const Contact = ({
     }
   };
   const sectionStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.paperDim,
+    backgroundColor: theme.colors.paper,
   };
 
   const infoItemStyle: React.CSSProperties = {
@@ -275,7 +275,8 @@ export const Contact = ({
             .lg-col-6 { grid-column: span 6 / span 6 !important; }
             .md-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
           }
-          .contact-group:hover .icon-wrapper { background-color: ${theme.colors.accentLight} !important; }
+          .contact-group:has( a ):hover .icon-wrapper { background-color: ${theme.palette.blue[300]} !important; }
+          .contact-group:hover a { text-decoration: underline !important; }
           .contact-form-field::placeholder {
             color: ${mix(theme.colors.everglade, 33)};
           }
