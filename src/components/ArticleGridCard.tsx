@@ -87,7 +87,7 @@ export const ArticleGridCard = ({
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(180deg, rgba(0, 0, 0, 0.46) 0%, rgba(0, 0, 0, 0.72) 100%)",
+                "linear-gradient(180deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.82) 100%)",
               opacity: 1,
               transition: "opacity 0.35s ease",
             }}

@@ -29,21 +29,6 @@ export const ArticlesTeaser = ({
   const displayPosts = posts;
   const hasPosts = displayPosts.length > 0;
 
-  // Do not set parent opacity to 0 — if `whileInView` never fires, the whole grid stays invisible.
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: { staggerChildren: 0.2 },
-    },
-  };
-
-  // Avoid animating card `opacity: 0` here — the grid item wraps `ArticleGridCard` and can
-  // leave children stuck invisible; motion only slides cards in.
-  const cardVariants = {
-    hidden: { y: 0, opacity: 1 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
-  };
-
   const sectionStyle: CSSProperties = {
     backgroundColor: theme.palette.paper["100"],
   };
@@ -257,17 +242,10 @@ export const ArticlesTeaser = ({
             </div>
           </motion.div>
         ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          style={gridStyle}
-          className="articles-cards-grid"
-        >
+        <div style={gridStyle} className="articles-cards-grid">
           {displayPosts.map((p, i) => (
-            <motion.div
+            <div
               key={p._id}
-              variants={cardVariants}
               className="articles-cards-grid-item"
               style={{ minWidth: 0 }}
             >
@@ -276,9 +254,9 @@ export const ArticlesTeaser = ({
                 cardIndex={i}
                 layout={i === 0 ? "featured" : "standard"}
               />
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
         )}
       </div>
     </section>
