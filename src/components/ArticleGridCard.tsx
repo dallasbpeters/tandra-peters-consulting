@@ -14,6 +14,7 @@ const cardBaseStyle: CSSProperties = {
   borderRadius: "1rem",
   padding: "2rem",
   position: "relative",
+  opacity: 1,
   overflow: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -76,7 +77,7 @@ export const ArticleGridCard = ({
             decoding="async"
             style={{
               width: "100%",
-              opacity: 0.22,
+              opacity: 0.34,
               height: "100%",
               objectFit: "cover",
             }}

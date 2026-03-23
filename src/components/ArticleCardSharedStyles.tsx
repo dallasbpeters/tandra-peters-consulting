@@ -8,7 +8,11 @@ export const ArticleCardSharedStyles = () => (
       }
       .articles-cards-grid-item { grid-column: span 1 !important; }
     }
-    .articles-teaser-card:hover .articles-teaser-card-bg { opacity: 0.3 !important; }
+    .articles-teaser-card,
+    .articles-cards-grid-item {
+      opacity: 1 !important;
+    }
+    .articles-teaser-card:hover .articles-teaser-card-bg img { opacity: 0.44 !important; }
     .articles-teaser-card:hover .articles-teaser-card-bg img {
       transform: scale(1.08) !important;
     }
