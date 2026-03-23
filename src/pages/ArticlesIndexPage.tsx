@@ -1,9 +1,10 @@
-import { useEffect, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import { motion } from "motion/react";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { ArticleCardSharedStyles } from "../components/ArticleCardSharedStyles";
 import { ArticleGridCard } from "../components/ArticleGridCard";
 import { useSanityArticlesIndex } from "../hooks/useSanityArticlesIndex";
+import { usePageMetadata } from "../hooks/usePageMetadata";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
@@ -12,8 +13,6 @@ import { theme } from "../theme";
 const FALLBACK_PAGE_TITLE = "Articles";
 const FALLBACK_INTRO =
   "Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with BirdCreek Roofing’s homeowner-first process.";
-
-const SITE_TITLE_SUFFIX = "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
 
 const gridStyle: CSSProperties = {
   display: "grid",
@@ -26,22 +25,12 @@ export const ArticlesIndexPage = () => {
   const { page, posts, loading, error } = useSanityArticlesIndex();
 
   const heading = page?.pageTitle?.trim() || FALLBACK_PAGE_TITLE;
-
-  useEffect(() => {
-    const tabTitle =
+  usePageMetadata({
+    title:
       page?.seoTitle?.trim() ||
-      (heading ? `${heading} | Tandra Peters` : `Articles | Tandra Peters`);
-    document.title = tabTitle;
-    const desc =
-      page?.seoDescription?.trim() || FALLBACK_INTRO;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute("content", desc);
-    }
-    return () => {
-      document.title = SITE_TITLE_SUFFIX;
-    };
-  }, [page?.seoTitle, page?.seoDescription, heading]);
+      (heading ? `${heading} | Tandra Peters` : `Articles | Tandra Peters`),
+    description: page?.seoDescription?.trim() || FALLBACK_INTRO,
+  });
 
   return (
     <SitePageChrome>

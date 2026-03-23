@@ -1,10 +1,10 @@
-import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { NavArrowLeft } from "iconoir-react";
 import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { TransitionLink } from "../components/TransitionLink";
 import { ArticleJsonLd } from "../components/ArticleJsonLd";
+import { usePageMetadata } from "../hooks/usePageMetadata";
 import { RichText } from "../portableText/RichText";
 import { useSanityPostBySlug } from "../hooks/useSanityPostBySlug";
 import { layoutClass } from "../styles/layoutClasses";
@@ -33,23 +33,16 @@ const formatDate = (iso: string | undefined) => {
 export const ArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { post, loading, error } = useSanityPostBySlug(slug);
-
-  useEffect(() => {
-    if (!post) {
-      return;
-    }
-    const baseTitle = "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
-    document.title = `${post.title} | Tandra Peters`;
-    const desc =
-      post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute("content", desc);
-    }
-    return () => {
-      document.title = baseTitle;
-    };
-  }, [post]);
+  usePageMetadata({
+    title: post
+      ? `${post.title} | Tandra Peters`
+      : "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX",
+    description:
+      post?.seoDescription?.trim() ||
+      post?.excerpt?.trim() ||
+      "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
+    type: post ? "article" : "website",
+  });
 
   if (!slug) {
     return (

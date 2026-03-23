@@ -15,6 +15,7 @@ import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
+import { usePageMetadata } from "../hooks/usePageMetadata";
 import {
   mapAboutProps,
   mapArticlesTeaserEditorialProps,
@@ -31,6 +32,11 @@ import {
 
 export const Home = () => {
   const { data } = useSanitySite();
+  usePageMetadata({
+    title: "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX",
+    description:
+      "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
+  });
   const home = data?.home as Record<string, unknown> | null | undefined;
 
   const hero = home?.hero as Record<string, unknown> | undefined;

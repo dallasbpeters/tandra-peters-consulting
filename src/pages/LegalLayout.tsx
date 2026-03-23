@@ -1,8 +1,9 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { NavArrowLeft } from "iconoir-react";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { useSanitySite } from "../context/SanitySiteContext";
+import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import { TransitionLink } from "../components/TransitionLink";
 import { layoutClass } from "../styles/layoutClasses";
@@ -16,16 +17,12 @@ type LegalLayoutProps = {
 
 export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
   const { data } = useSanitySite();
+  usePageMetadata({
+    title: `${title} | Tandra Peters`,
+    description:
+      "Policies and legal information for Tandra Peters and BirdCreek Roofing consultation services in Texas.",
+  });
   const site = data?.site as Record<string, unknown> | null | undefined;
-
-  useEffect(() => {
-    const homeTitle =
-      "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
-    document.title = `${title} | Tandra Peters`;
-    return () => {
-      document.title = homeTitle;
-    };
-  }, [title]);
 
   return (
     <div

@@ -3,12 +3,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Connect, Plugin } from 'vite';
 import sharp from 'sharp';
-import { theme } from '../src/theme';
 
 const pluginDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(pluginDir, '..');
 
 const svgName = 'roofline.svg';
+
+/**
+ * libvips/Sharp does not reliably rasterize modern CSS color functions like
+ * `oklch(...)` inside SVG text/shape fills, so OG assets use plain sRGB values.
+ */
+const OG_COLORS = {
+  background: '#1f4a3f',
+  title: '#f7f6f1',
+  subtitle: '#d7e7de',
+} as const;
 
 /** `roofline.svg` width as a fraction of canvas width. */
 const ROOFLINE_WIDTH_RATIO = 0.42;
@@ -39,9 +48,9 @@ const buildCardSvg = (w: number, h: number) => {
   const subFs = Math.max(40, Math.round(h * 0.035));
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100%" height="100%" fill="${theme.colors.everglade}"/>
-  <text x="50%" y="64%" text-anchor="middle" fill="${theme.colors.white}" font-size="${titleFs}" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Tandra Peters</text>
-  <text x="50%" y="74%" text-anchor="middle" fill="${theme.colors.textOnBrand}" font-size="${subFs}" font-family="system-ui, -apple-system, Segoe UI, sans-serif">BirdCreek Roofing consultant · Austin, Texas</text>
+  <rect width="100%" height="100%" fill="${OG_COLORS.background}"/>
+  <text x="50%" y="64%" text-anchor="middle" fill="${OG_COLORS.title}" font-size="${titleFs}" font-weight="700" font-family="Arial, Helvetica, sans-serif">Tandra Peters</text>
+  <text x="50%" y="74%" text-anchor="middle" fill="${OG_COLORS.subtitle}" font-size="${subFs}" font-family="Arial, Helvetica, sans-serif">BirdCreek Roofing Consultant · Austin, Texas</text>
 </svg>`;
 };
 
