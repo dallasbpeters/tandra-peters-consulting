@@ -12,7 +12,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   contactServiceLabel,
   isValidContactServiceValue,
-} from "../src/contactServiceOptions";
+} from "../contactServiceOptions";
 
 const ATTIO_ASSERT_URL =
   "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
@@ -104,10 +104,10 @@ const recordIdFromAssertResponse = (j: unknown): string | null => {
   return null;
 };
 
-export default async function handler(
+const contactHandler = async (
   req: VercelRequest,
   res: VercelResponse,
-): Promise<void> {
+): Promise<void> => {
   const origin = req.headers.origin as string | undefined;
   applyCors(res, origin);
 
@@ -304,4 +304,23 @@ export default async function handler(
 
   console.info("Attio person assert ok", { record_id: recordId });
   res.status(200).json({ ok: true });
+};
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<void> {
+  try {
+    await contactHandler(req, res);
+  } catch (err) {
+    console.error("[api/contact]", err);
+    if (!res.headersSent) {
+      const origin = req.headers.origin as string | undefined;
+      applyCors(res, origin);
+      res.status(500).json({
+        ok: false,
+        error: "Internal server error. Please try again or call.",
+      });
+    }
+  }
 }

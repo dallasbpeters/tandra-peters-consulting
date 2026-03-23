@@ -1,5 +1,5 @@
 {
-  "include": ["src", "api", "vite.config.ts", "plugins/**/*.ts"],
+  "include": ["src", "api", "contactServiceOptions.ts", "vite.config.ts", "plugins/**/*.ts"],
   "exclude": ["studio-tandra-peters", "dist", "node_modules"],
   "compilerOptions": {
     "target": "ES2022",

@@ -140,7 +140,7 @@ export interface ContactProps {
   email?: string;
   phone?: string;
   location?: string;
-  /** Defaults to shared roofing options from `contactServiceOptions.ts` */
+  /** Defaults to shared roofing options from repo-root `contactServiceOptions.ts` */
   serviceOptions?: readonly ContactServiceOption[];
   contactInfo?: ContactInfo[];
   formLabels?: {

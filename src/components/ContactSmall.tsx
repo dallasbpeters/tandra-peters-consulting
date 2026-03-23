@@ -7,7 +7,7 @@ import {
 } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { CONTACT_SERVICE_OPTIONS } from "../contactServiceOptions";
+import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { ContactProps } from "../types";
 import { usePostHog } from "@posthog/react";
 

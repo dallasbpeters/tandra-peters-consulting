@@ -13,7 +13,7 @@ import { theme } from "../theme";
 import { postCategoryLabel } from "../article/categoryLabels";
 import { SocialShareBar } from "../components/SocialShareBar";
 import { ContactSmall } from "../components/ContactSmall";
-import { CONTACT_SERVICE_OPTIONS } from "../contactServiceOptions";
+import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 
 const formatDate = (iso: string | undefined) => {
   if (!iso) {

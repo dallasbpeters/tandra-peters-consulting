@@ -1,4 +1,8 @@
-/** Keep in sync with validation in `api/contact.ts`. */
+/**
+ * Shared between the site (`src/**`) and `api/contact.ts`.
+ * Vercel bundles `api/contact` separately — keep this file at repo root so the
+ * serverless function can import it reliably (`../contactServiceOptions`).
+ */
 export const CONTACT_SERVICE_OPTIONS = [
   { value: "shingle-roofing", label: "Shingle Roofing" },
   { value: "metal-roofing", label: "Metal Roofing" },
