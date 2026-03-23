@@ -12,7 +12,7 @@ export const ArticleCardSharedStyles = () => (
     .articles-cards-grid-item {
       opacity: 1 !important;
     }
-    .articles-teaser-card:hover .articles-teaser-card-bg img { opacity: 0.44 !important; }
+    .articles-teaser-card:hover .articles-teaser-card-overlay { opacity: 0.82 !important; }
     .articles-teaser-card:hover .articles-teaser-card-bg img {
       transform: scale(1.08) !important;
     }

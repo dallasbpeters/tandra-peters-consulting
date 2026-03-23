@@ -65,8 +65,6 @@ export const ArticleGridCard = ({
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: theme.colors.black,
-            
           }}
           className="articles-teaser-card-bg"
           aria-hidden
@@ -78,9 +76,20 @@ export const ArticleGridCard = ({
             decoding="async"
             style={{
               width: "100%",
-              opacity: 0.34,
+              opacity: 1,
               height: "100%",
               objectFit: "cover",
+            }}
+          />
+          <div
+            className="articles-teaser-card-overlay"
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(0, 0, 0, 0.46) 0%, rgba(0, 0, 0, 0.72) 100%)",
+              opacity: 1,
+              transition: "opacity 0.35s ease",
             }}
           />
         </div>
@@ -143,7 +152,7 @@ export const ArticleGridCard = ({
           <time
             dateTime={post.publishedAt}
             style={{
-              color: mix(theme.colors.white, 55),
+              color: mix(theme.colors.white, 72),
               fontSize: "0.8rem",
               fontWeight: 600,
               letterSpacing: "0.06em",
@@ -153,7 +162,7 @@ export const ArticleGridCard = ({
           </time>
           <span
             style={{
-              color: "rgba(255, 255, 255, 0.2)",
+              color: "rgba(255, 255, 255, 0.35)",
               fontFamily: theme.fonts.headline,
               fontWeight: 900,
               fontSize: isMain ? "5rem" : "3.5rem",
