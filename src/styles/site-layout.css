@@ -92,6 +92,12 @@
   gap: 3rem;
 }
 
+@media (max-width: 480px) {
+  .site-container.site-container--stats-row {
+    align-items: flex-start;
+  }
+}
+
 /* Block: site-page-main — routed pages under fixed chrome */
 .site-page-main {
   box-sizing: border-box;
@@ -110,6 +116,5 @@
 
 /* Block: content-section — vertical rhythm for homepage bands */
 .content-section.content-section--padded {
-  padding-top: 8rem;
-  padding-bottom: 8rem;
+  padding-block: 6rem;
 }

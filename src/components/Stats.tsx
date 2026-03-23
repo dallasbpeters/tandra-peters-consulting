@@ -50,8 +50,9 @@ export const Stats: React.FC<StatsProps> = ({
   const statsGridStyle: React.CSSProperties = {
     display: "flex",
     flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "3rem",
+    justifyContent: "start",
+    alignItems: "start",
+    gap: "2rem",
     opacity: 0.4,
     transition: "all 0.5s",
   };
@@ -83,11 +84,6 @@ export const Stats: React.FC<StatsProps> = ({
   return (
     <section style={sectionStyle}>
       <div className={`${layoutClass.containerWideStatsRow} md-row`}>
-        <style>{`
-          @media (min-width: 768px) {
-            .md-row { flex-direction: row !important; }
-          }
-        `}</style>
         <motion.span 
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
