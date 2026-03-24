@@ -9,7 +9,8 @@ import {geminiStudioApiEndpoint} from './geminiStudioConfig'
 import {assist} from '@sanity/assist'
 
 const previewOrigin =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') || 'http://localhost:3000'
+  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') ||
+  (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3000')
 
 export default defineConfig({
   name: 'default',
