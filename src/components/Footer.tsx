@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import { TransitionLink } from "./TransitionLink";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
@@ -31,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({
   partnerText = "BirdCreek Roofing"
 }) => {
   const footerStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.everglade,
+    backgroundColor: theme.palette.everglade[900],
     color: theme.colors.white,
     /* Pull up 1px so footer paint covers the hairline below the last Band stripe (subpixel layout). */
     marginTop: "-1px",
@@ -74,7 +76,6 @@ export const Footer: React.FC<FooterProps> = ({
     fontWeight: 700,
      
     letterSpacing: "0.1em",
-    opacity: 0.6,
   };
 
   const linkStyle: React.CSSProperties = {
@@ -93,19 +94,20 @@ export const Footer: React.FC<FooterProps> = ({
       <div className={`${layoutClass.containerWideGridFooter} md-grid-12`}>
         <style>{`
           @media (min-width: 768px) {
-            .md-grid-12 { grid-template-columns: repeat(6, 1fr) !important; }
-            .md-col-4 { grid-column: span 2 / span 2 !important; }
-            .md-col-2 { grid-column: span 2 / span 2 !important; }
+            .md-grid-12 { grid-template-columns: repeat(12, 1fr) !important; }
+            .md-col-4 { grid-column: 1 / span 6 !important; }
+            .md-col-3 { grid-column: span 3 / span 2 !important; }
             .md-row { flex-direction: row !important; }
           }
-          .social-link:hover { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade} !important; }
-          .footer-link:hover { color: ${theme.colors.accentLight} !important; }
+          .social-link:hover { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade};}
+          .footer-link { color: ${theme.colors.white} }
+          .footer-link:hover { color: ${theme.colors.accentLight}; }
           .newsletter-input:focus { border-color: ${theme.colors.accentLight} !important; outline: 2px solid ${theme.colors.accentLight};
             outline-offset: 2px; }
           .social-link:focus-visible,
           .footer-link:focus-visible,
           .newsletter-btn:focus-visible {
-            outline: 2px solid ${theme.colors.accentLight} !important;
+            outline: 2px solid ${theme.colors.accentLight};
             outline-offset: 2px;
             border-radius: 4px;
           }
@@ -150,7 +152,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
         
-        <div className="md-col-2">
+        <div className="md-col-3">
           <h4 style={headingStyle}>Quick Links</h4>
           <ul style={linkListStyle}>
             {quickLinks.map((link, i) => (
@@ -178,7 +180,7 @@ export const Footer: React.FC<FooterProps> = ({
           </ul>
         </div>
 
-        <div className="md-col-2">
+        <div className="md-col-3">
           <h4 style={headingStyle}>Legal</h4>
           <ul style={linkListStyle}>
             {legalLinks.map((link, i) => (

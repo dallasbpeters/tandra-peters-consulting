@@ -4,6 +4,8 @@ import groq from "groq";
 export const HOME_AND_SITE_QUERY = groq`{
   "home": *[_id == "homePage"][0]{
     ...,
+    seoTitle,
+    seoDescription,
     hero {
       ...,
       "backgroundImage": backgroundImage.asset->url

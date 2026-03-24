@@ -53,6 +53,7 @@ export const Faq: React.FC<FaqProps> = ({
   title = "Frequently asked questions",
   intro = "Straight answers from me—how I work with homeowners, insurance, BirdCreek Roofing, and how to reach out.",
   items = DEFAULT_ITEMS,
+  paddingTop = "3rem",
 }) => {
   const posthog = usePostHog();
 
@@ -65,7 +66,7 @@ export const Faq: React.FC<FaqProps> = ({
         name: item.question,
         acceptedAnswer: {
           "@type": "Answer",
-          text: item.answer,
+          text: plainTextFromRich(item.answer),
         },
       })),
     }),
@@ -85,7 +86,7 @@ export const Faq: React.FC<FaqProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
-    borderTop: `1px solid ${theme.colors.paperDark}`,
+    paddingTop: paddingTop,
   };
 
   const introStyle: React.CSSProperties = {
@@ -101,7 +102,7 @@ export const Faq: React.FC<FaqProps> = ({
       style={sectionStyle}
       aria-labelledby="faq-heading"
     >
-      <div className={layoutClass.containerReading}>
+      <div className={layoutClass.containerArticle}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -162,7 +163,7 @@ export const Faq: React.FC<FaqProps> = ({
             cursor: pointer;
             font-family: ${theme.fonts.headline};
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 1.2rem;
             letter-spacing: 0.02em;
             color: ${theme.colors.everglade};
           }
@@ -172,10 +173,16 @@ export const Faq: React.FC<FaqProps> = ({
           .faq-chevron {
             flex-shrink: 0;
             transition: transform 0.25s ease;
-            color: ${theme.colors.accent};
+            color: ${theme.palette.blue[600]};
           }
           .faq-details[open] .faq-chevron {
             transform: rotate(180deg);
+          }
+          .faq-summary:hover .faq-chevron {
+            transform: rotate(180deg);
+          }
+          .faq-details[open] .faq-summary:hover .faq-chevron {
+            transform: rotate(0deg);
           }
           .faq-answer {
             padding: 0 0 1.5rem 0;
@@ -189,7 +196,7 @@ export const Faq: React.FC<FaqProps> = ({
         <div>
           {items.map((item, index) => (
             <motion.details
-              key={item.question}
+              key={item._key ?? item.question}
               className="faq-details"
               initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}

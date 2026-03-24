@@ -253,14 +253,18 @@ export const mapFaqProps = (f: SanityDoc): Partial<FaqProps> => {
     return {};
   }
   const items = f.items
-    ?.map((row: { question?: string; answer?: unknown }) => {
+    ?.map((row: { _key?: string; question?: string; answer?: unknown }) => {
       const question =
         typeof row.question === "string" ? row.question.trim() : "";
       if (!question) {
         return null;
       }
       const answer = asOptionalRichText(row.answer) ?? RICH_TEXT_PLACEHOLDER;
-      return { question, answer };
+      return {
+        ...(typeof row._key === "string" && row._key.trim() ? { _key: row._key } : {}),
+        question,
+        answer,
+      };
     })
     .filter(Boolean);
 

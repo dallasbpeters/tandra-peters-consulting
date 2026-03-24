@@ -8,6 +8,7 @@ import type {
   HistoryUpdate,
 } from "@sanity/visual-editing";
 import { useSanitySite } from "../context/SanitySiteContext";
+import { dispatchSanityPresentationRefresh } from "../sanity/presentationEvents";
 
 /** Strip origin when Presentation sends absolute preview URLs. */
 const toRouterPath = (url: string): string => {
@@ -66,7 +67,10 @@ export const SanityVisualEditing = () => {
    * `livePreviewEnabled` — that would skip refetch and leave preview stale.
    */
   const refresh = useCallback(
-    (_payload: HistoryRefresh) => refetch(),
+    (_payload: HistoryRefresh) => {
+      dispatchSanityPresentationRefresh();
+      return refetch();
+    },
     [refetch],
   );
 

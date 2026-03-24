@@ -83,6 +83,13 @@ export const postType = defineType({
       type: 'blockContent',
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'faq',
+      title: 'Article FAQ',
+      type: 'faqSection',
+      description:
+        'Optional article-specific FAQ for the bottom of the article page. Leave empty to use the generated fallback FAQs.',
+    }),
   ],
   preview: {
     select: {

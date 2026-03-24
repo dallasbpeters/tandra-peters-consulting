@@ -11,7 +11,7 @@ import { usePostHog } from "@posthog/react";
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
   logoTagline = "Roofing Consultant",
-  imageSrc = "https://lh3.googleusercontent.com/aida/ADBb0ujNxdAxaY1-ObgML2j-2_hQEat6D2y2JOsW0G-Nn8gEMYt8QMH7U-Mp2gVevbXa84NvM7lJlcHVvIjXYcDfZe9_-fp1a7L4EQMVBGE2ktk3dY-MipPdQrQxytiQHnu8Nk_rnwybn1BLOrZj6dHzlyB7eB5gEeCuXGlrZLwUbtJYNj519phafs2-Nn7eLvREdzsUNRz3p161dSRwqxjoy-whIG9170-WCK-SXsooTmYMrlWKh8nKBBZ6g1mLjaCetu1MTSg-G4xiuw",
+  imageSrc = "/tandra.png",
   navItems = [
     { name: "Services", href: "#services" },
     { name: "About Tandra", href: "#about-tandra" },
@@ -114,7 +114,8 @@ export const Nav: React.FC<NavProps> = ({
   const logoTextStyle: React.CSSProperties = {
     fontSize: "1.15rem",
     fontWeight: 900,
-    letterSpacing: "-0.05em",
+    letterSpacing: "0.01em",
+    textTransform: "uppercase",
     gridArea: "text",
     fontFamily: theme.fonts.headline,
     color: isScrolled ? theme.colors.everglade : theme.colors.white,

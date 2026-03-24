@@ -173,6 +173,7 @@ export interface SocialShareBarProps {
 }
 
 export interface FaqItem {
+  _key?: string;
   question: string;
   /** Rich text in the UI; JSON-LD uses flattened plain text. */
   answer: RichTextSource;
@@ -183,6 +184,7 @@ export interface FaqProps {
   title?: string;
   intro?: RichTextSource;
   items?: FaqItem[];
+  paddingTop?: string;
 }
 
 export interface ArticlesTeaserProps {

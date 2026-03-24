@@ -4,6 +4,7 @@ import {defineConfig, loadEnv} from 'vite';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import { ogImageComposite } from './plugins/ogImageComposite';
 import { viteGeminiDevApi } from './plugins/viteGeminiDevApi';
+import { viteSeoDashboardApi } from './plugins/viteSeoDashboardApi';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
@@ -61,6 +62,7 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [
       viteGeminiDevApi(env),
+      viteSeoDashboardApi(env),
       react(),
       {
         name: 'html-site-url',

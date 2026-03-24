@@ -32,12 +32,20 @@ import {
 
 export const Home = () => {
   const { data } = useSanitySite();
-  usePageMetadata({
-    title: "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX",
-    description:
-      "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
-  });
   const home = data?.home as Record<string, unknown> | null | undefined;
+  const seoTitle =
+    typeof home?.seoTitle === "string" && home.seoTitle.trim()
+      ? home.seoTitle
+      : "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
+  const seoDescription =
+    typeof home?.seoDescription === "string" && home.seoDescription.trim()
+      ? home.seoDescription
+      : "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
+
+  usePageMetadata({
+    title: seoTitle,
+    description: seoDescription,
+  });
 
   const hero = home?.hero as Record<string, unknown> | undefined;
   const marquee = home?.marquee as Record<string, unknown> | undefined;

@@ -14,6 +14,8 @@ import { postCategoryLabel } from "../article/categoryLabels";
 import { SocialShareBar } from "../components/SocialShareBar";
 import { ContactSmall } from "../components/ContactSmall";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
+import { Faq } from "../components/Faq";
+import { buildArticleFaqProps } from "../article/buildArticleFaq";
 
 const formatDate = (iso: string | undefined) => {
   if (!iso) {
@@ -84,6 +86,7 @@ export const ArticlePage = () => {
                 fontFamily: theme.fonts.headline,
                 fontSize: "1.5rem",
                 marginBottom: "1rem",
+                letterSpacing: "0.01em",
               }}
             >
               Article not found
@@ -105,6 +108,7 @@ export const ArticlePage = () => {
   }
 
   const path = `/articles/${post.slug}`;
+  const articleFaqProps = buildArticleFaqProps(post);
 
   return (
     <SitePageChrome>
@@ -132,7 +136,7 @@ export const ArticlePage = () => {
             <NavArrowLeft width={16} height={16} strokeWidth={2} aria-hidden />
             All articles
           </TransitionLink>
-
+          <div style={{ marginBottom: "0.5rem" }}>
           <span
             style={{
               fontSize: "0.65rem",
@@ -140,12 +144,14 @@ export const ArticlePage = () => {
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               color: theme.palette.purple["300"],
-              display: "block",
-              marginBottom: "0.5rem",
+              padding: ".2rem .4rem",
+              boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
+              borderRadius: "1rem",
             }}
           >
             {postCategoryLabel(post.category)}
           </span>
+          </div>
 
           <h1 style={typeStyles.articleDetailTitle}>{post.title}</h1>
 
@@ -222,6 +228,7 @@ export const ArticlePage = () => {
           </div>
         </article>
       </main>
+      <Faq {...articleFaqProps} paddingTop="0" />
       <SocialShareBar
         heading="Know someone who could benefit from this article?"
         shareText={

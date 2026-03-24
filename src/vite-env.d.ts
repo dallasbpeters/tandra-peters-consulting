@@ -32,4 +32,37 @@ interface ImportMetaEnv {
    * is not `*.i.posthog.com`. Defaults to us or eu posthog.com from the host string.
    */
   readonly VITE_PUBLIC_POSTHOG_UI_HOST?: string;
+  /** Google OAuth web client id used by the protected `/seo` dashboard sign-in flow. */
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
+}
+
+type GoogleCredentialResponse = {
+  credential?: string;
+};
+
+type GoogleButtonConfiguration = {
+  theme?: "outline" | "filled_blue" | "filled_black";
+  size?: "large" | "medium" | "small";
+  text?: "signin_with" | "signup_with" | "continue_with" | "signin";
+  shape?: "pill" | "rectangular" | "circle" | "square";
+  width?: number | string;
+};
+
+interface Window {
+  google?: {
+    accounts?: {
+      id: {
+        initialize(config: {
+          client_id: string;
+          callback: (response: GoogleCredentialResponse) => void;
+          auto_select?: boolean;
+        }): void;
+        renderButton(
+          parent: HTMLElement,
+          options: GoogleButtonConfiguration,
+        ): void;
+        disableAutoSelect(): void;
+      };
+    };
+  };
 }

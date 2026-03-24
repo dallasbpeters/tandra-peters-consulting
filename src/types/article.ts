@@ -30,4 +30,14 @@ export type PostListItem = {
 export type PostDetail = PostListItem & {
   /** Sanity `blockContent` or plain string */
   body?: PortableTextBlock[] | string;
+  faq?: {
+    tagline?: string | null;
+    title?: string | null;
+    intro?: PortableTextBlock[] | string | null;
+    items?: Array<{
+      _key?: string | null;
+      question?: string | null;
+      answer?: PortableTextBlock[] | string | null;
+    }> | null;
+  } | null;
 };

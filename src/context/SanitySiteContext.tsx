@@ -4,14 +4,14 @@ import {
   type HomeDocuments,
 } from "../hooks/useSanityHomeContent";
 
-type SanitySiteContextValue = {
+export type SanitySiteContextValue = {
   data: HomeDocuments | null;
   loading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
 };
 
-const SanitySiteContext = createContext<SanitySiteContextValue | null>(null);
+export const SanitySiteContext = createContext<SanitySiteContextValue | null>(null);
 
 export const SanityContentProvider = ({ children }: { children: ReactNode }) => {
   const value = useSanityHomeContent();

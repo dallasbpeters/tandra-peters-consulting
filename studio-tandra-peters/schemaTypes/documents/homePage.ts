@@ -5,6 +5,7 @@ export const homePageType = defineType({
   title: 'Home page',
   type: 'document',
   groups: [
+    {name: 'seo', title: 'SEO'},
     {name: 'hero', title: 'Hero', default: true},
     {name: 'marquee', title: 'Marquee'},
     {name: 'about', title: 'About'},
@@ -19,6 +20,21 @@ export const homePageType = defineType({
     {name: 'social', title: 'Social share'},
   ],
   fields: [
+    defineField({
+      name: 'seoTitle',
+      title: 'SEO title',
+      type: 'string',
+      group: 'seo',
+      description: 'Browser tab title for the homepage. If empty, the app falls back to its built-in title.',
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO description',
+      type: 'text',
+      rows: 3,
+      group: 'seo',
+      description: 'Meta description for search and social previews on the homepage.',
+    }),
     defineField({
       name: 'hero',
       type: 'heroSection',

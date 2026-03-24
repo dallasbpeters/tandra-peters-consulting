@@ -29,7 +29,6 @@ export const Contact = ({
   const [fullName, setFullName] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
   const [serviceInterest, setServiceInterest] = useState("");
-  const [propertyAddress, setPropertyAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -66,7 +65,6 @@ export const Contact = ({
           email: visitorEmail,
           phoneNumber,
           serviceInterest,
-          propertyAddress,
           message,
           consentToContact: true,
           _hp: honeypot,
@@ -129,7 +127,6 @@ export const Contact = ({
       posthog?.identify(visitorEmail, { name: fullName, email: visitorEmail });
       posthog?.capture("contact_form_submitted", {
         service_interest: serviceInterest,
-        has_property_address: Boolean(propertyAddress),
         has_message: Boolean(message),
         has_phone: Boolean(phoneNumber.trim()),
       });
@@ -137,7 +134,6 @@ export const Contact = ({
       setFullName("");
       setVisitorEmail("");
       setServiceInterest("");
-      setPropertyAddress("");
       setPhoneNumber("");
       setMessage("");
       setHoneypot("");
@@ -442,22 +438,6 @@ export const Contact = ({
                   <NavArrowDown width={22} height={22} strokeWidth={2} />
                 </span>
               </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <label htmlFor="contact-property" style={labelStyle}>
-                Property Address
-              </label>
-              <input
-                id="contact-property"
-                type="text"
-                className="contact-form-field"
-                style={inputStyle}
-                placeholder="123 Austin Way"
-                value={propertyAddress}
-                onChange={(ev) => setPropertyAddress(ev.target.value)}
-                maxLength={500}
-                autoComplete="street-address"
-              />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <label htmlFor="contact-message" style={labelStyle}>
