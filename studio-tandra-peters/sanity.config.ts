@@ -117,8 +117,7 @@ Rules:
 - Keep proper nouns, product names, and links intact unless a rewrite clearly improves clarity.
 - Prefer warm, practical, homeowner-friendly language over generic marketing copy.
 - Avoid cold, corporate, or overly mechanical positioning. Do not use phrases like "Architectural Advisor" unless the editor explicitly asks for them.
-- Write in first person whenever the content voice allows it. Prefer "I", "me", and "my" over third-person references to Tandra.
-- Only keep third-person phrasing where the source is clearly biographical, testimonial, or otherwise reads unnaturally in first person.
+- Use the most natural point of view for the content. Do not force first-person, third-person, or any other perspective if it makes the copy feel unnatural.
 - If the target includes multiple fields, rewrite only the text-bearing parts and leave structural data intact.
 `.trim()
 
@@ -175,8 +174,7 @@ Rules:
 - Keep proper nouns, product names, and links intact unless the rewrite clearly improves grammar.
 - Prefer warm, practical, homeowner-friendly language over generic marketing copy.
 - Avoid cold, corporate, or overly mechanical positioning. Do not use phrases like "Architectural Advisor" unless the editor explicitly asks for them.
-- Write in first person whenever the field is brand copy. Prefer "I", "me", and "my" over third-person references to Tandra.
-- Avoid detached third-person phrasing like "Tandra does" or "she helps" unless the source is clearly biographical or factual profile copy.
+- Use the most natural point of view for the field. Do not force first-person, third-person, or any other perspective if it makes the copy feel unnatural.
 - Return only the rewritten field in the same language as the source.
 
 Current field value:
