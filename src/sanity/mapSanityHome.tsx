@@ -142,12 +142,26 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
   );
 
   const sectionDescription = asOptionalRichText(svc.description);
+  const birdcreekDescription = asOptionalRichText(svc.birdcreekAdvantage?.description);
 
   return {
     ...(svc.tagline ? { tagline: svc.tagline } : {}),
     ...(title ? { title } : {}),
     ...(sectionDescription ? { description: sectionDescription } : {}),
     ...(services && services.length > 0 ? { services } : {}),
+    ...(svc.birdcreekAdvantage?.title &&
+    birdcreekDescription &&
+    svc.birdcreekAdvantage?.ctaLabel &&
+    svc.birdcreekAdvantage?.ctaHref
+      ? {
+          birdcreekAdvantage: {
+            title: svc.birdcreekAdvantage.title,
+            description: birdcreekDescription,
+            ctaLabel: svc.birdcreekAdvantage.ctaLabel,
+            ctaHref: svc.birdcreekAdvantage.ctaHref,
+          },
+        }
+      : {}),
   };
 };
 

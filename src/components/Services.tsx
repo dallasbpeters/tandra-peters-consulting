@@ -45,6 +45,13 @@ export const Services: React.FC<ServicesProps> = ({
       icon: ShieldCheck,
     },
   ],
+  birdcreekAdvantage = {
+    title: "The BirdCreek Advantage",
+    description:
+      "Direct access to Austin's premier roofing company, combining Tandra's consultation with BirdCreek's legendary execution.",
+    ctaLabel: "Learn More",
+    ctaHref: "https://birdcreekroofing.com",
+  },
 }) => {
   const posthog = usePostHog();
 
@@ -406,9 +413,9 @@ export const Services: React.FC<ServicesProps> = ({
                   transition: "color 0.7s",
                 }}
               >
-                The BirdCreek Advantage
+                {birdcreekAdvantage.title}
               </h3>
-              <p
+              <div
                 style={{
                   color: mix(theme.colors.everglade, 60),
                   lineHeight: 1.6,
@@ -417,15 +424,26 @@ export const Services: React.FC<ServicesProps> = ({
                   fontSize: "1.1rem",
                 }}
               >
-                Direct access to Austin's premier roofing firm, combining
-                Tandra's consultation with BirdCreek's legendary execution.
-              </p>
+                <RichText
+                  value={birdcreekAdvantage.description}
+                  paragraphStyle={{
+                    color: "inherit",
+                    lineHeight: "inherit",
+                    fontSize: "inherit",
+                  }}
+                />
+              </div>
             </div>
              
             <a
-              href="https://birdcreekroofing.com"
+              href={birdcreekAdvantage.ctaHref}
               className="group-advantage-cta"
-              onClick={() => posthog?.capture("birdcreek_link_clicked")}
+              onClick={() =>
+                posthog?.capture("birdcreek_link_clicked", {
+                  cta_label: birdcreekAdvantage.ctaLabel,
+                  cta_href: birdcreekAdvantage.ctaHref,
+                })
+              }
               style={{
                 backgroundColor: theme.colors.everglade,
                 color: theme.colors.white,
@@ -443,7 +461,7 @@ export const Services: React.FC<ServicesProps> = ({
                 display: "inline-block",
               }}
             >
-              Learn More
+              {birdcreekAdvantage.ctaLabel}
             </a>
           </motion.div>
         </motion.div>

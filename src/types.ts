@@ -70,6 +70,14 @@ export interface Service {
   icon: React.ElementType;
   image?: string;
 }
+
+export interface BirdcreekAdvantageCard {
+  title: string;
+  description: RichTextSource;
+  ctaLabel: string;
+  ctaHref: string;
+}
+
 export interface Mission {
   id: string;
   title: string;
@@ -90,6 +98,7 @@ export interface ServicesProps {
   title?: React.ReactNode;
   description?: RichTextSource;
   services?: Service[];
+  birdcreekAdvantage?: BirdcreekAdvantageCard;
 }
 
 export interface ExpertiseItem {

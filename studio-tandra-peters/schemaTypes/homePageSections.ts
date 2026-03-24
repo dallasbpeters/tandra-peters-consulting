@@ -115,6 +115,12 @@ export const servicesSectionType = defineType({
       of: [{type: 'serviceCard'}],
       validation: (rule) => rule.min(1).max(6),
     }),
+    defineField({
+      name: 'birdcreekAdvantage',
+      title: 'BirdCreek advantage',
+      type: 'birdcreekAdvantageCard',
+      description: 'Large branded card shown beneath the services grid.',
+    }),
   ],
 })
 

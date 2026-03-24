@@ -180,6 +180,18 @@ export const homePageSeed = {
         icon: 'shieldCheck',
       },
     ],
+    birdcreekAdvantage: {
+      _type: 'birdcreekAdvantageCard' as const,
+      title: 'The BirdCreek Advantage',
+      description: blocksFromParagraphs(
+        [
+          "Direct access to Austin's premier roofing firm, combining Tandra's consultation with BirdCreek's legendary execution.",
+        ],
+        'services-birdcreek-advantage-desc',
+      ),
+      ctaLabel: 'Learn More',
+      ctaHref: 'https://birdcreekroofing.com',
+    },
   },
   mission: {
     _type: 'missionSection' as const,

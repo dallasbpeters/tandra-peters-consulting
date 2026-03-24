@@ -3,6 +3,7 @@ import {blockContentType} from './objects/blockContent'
 import {navLinkType} from './objects/navLink'
 import {socialLinkType} from './objects/socialLink'
 import {serviceCardType} from './objects/serviceCard'
+import {birdcreekAdvantageCardType} from './objects/birdcreekAdvantageCard'
 import {missionValueType} from './objects/missionValue'
 import {expertiseItemType} from './objects/expertiseItem'
 import {faqItemType} from './objects/faqItem'
@@ -34,6 +35,7 @@ export const schemaTypes = [
   navLinkType,
   socialLinkType,
   serviceCardType,
+  birdcreekAdvantageCardType,
   missionValueType,
   expertiseItemType,
   faqItemType,
