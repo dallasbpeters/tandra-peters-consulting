@@ -341,45 +341,19 @@ export const mapArticlesTeaserEditorialProps = (
   };
 };
 
-const ARTICLES_NAV_ITEM: NavItem = { name: "Articles", href: "/articles" };
-
-const withArticlesNavLink = (items: NavItem[]): NavItem[] => {
-  if (items.some((i) => i.href === "/articles")) {
-    return items;
-  }
-  const next = [...items];
-  const aboutIdx = next.findIndex((i) => i.href === "#about-tandra");
-  if (aboutIdx >= 0) {
-    next.splice(aboutIdx + 1, 0, ARTICLES_NAV_ITEM);
-    return next;
-  }
-  const servicesIdx = next.findIndex((i) => i.href === "#services");
-  if (servicesIdx >= 0) {
-    next.splice(servicesIdx + 1, 0, ARTICLES_NAV_ITEM);
-    return next;
-  }
-  return [ARTICLES_NAV_ITEM, ...next];
-};
-
 export const mapNavProps = (site: SanityDoc): Partial<NavProps> => {
   if (!site) {
     return {};
   }
-  const navItemsRaw = site.navItems?.map(
-    (l: { name: string; href: string }) => ({
-      name: l.name,
-      href: l.href,
-    }),
-  );
-
-  const navItems =
-    navItemsRaw?.length ? withArticlesNavLink(navItemsRaw) : undefined;
+  const navItemsRaw = Array.isArray(site.navItems)
+    ? (site.navItems as NavItem[])
+    : undefined;
 
   return {
     ...(site.navLogoText ? { logoText: site.navLogoText } : {}),
     ...(site.navLogoTagline ? { logoTagline: site.navLogoTagline } : {}),
     ...(site.navLogoImage ? { imageSrc: site.navLogoImage } : {}),
-    ...(navItems?.length ? { navItems } : {}),
+    ...(navItemsRaw?.length ? { navItems: navItemsRaw } : {}),
     ...(site.navCtaText ? { ctaText: site.navCtaText } : {}),
     ...(site.navCtaHref ? { ctaHref: site.navCtaHref } : {}),
   };
@@ -403,20 +377,12 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
     },
   ).filter(Boolean) as FooterProps["socialLinks"];
 
-  const quickLinksRaw = site.footerQuickLinks?.map(
-    (l: { name: string; href: string }) => ({
-      name: l.name,
-      href: l.href,
-    }),
-  );
-  const quickLinks =
-    quickLinksRaw?.length ? withArticlesNavLink(quickLinksRaw) : undefined;
-  const legalLinks = site.footerLegalLinks?.map(
-    (l: { name: string; href: string }) => ({
-      name: l.name,
-      href: l.href,
-    }),
-  );
+  const quickLinksRaw = Array.isArray(site.footerQuickLinks)
+    ? (site.footerQuickLinks as NavItem[])
+    : undefined;
+  const legalLinks = Array.isArray(site.footerLegalLinks)
+    ? (site.footerLegalLinks as NavItem[])
+    : undefined;
 
   const footerDescription = asOptionalRichText(site.footerDescription);
 
@@ -424,7 +390,7 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
     ...(site.footerLogoText ? { logoText: site.footerLogoText } : {}),
     ...(footerDescription ? { description: footerDescription } : {}),
     ...(socialLinks?.length ? { socialLinks } : {}),
-    ...(quickLinks?.length ? { quickLinks } : {}),
+    ...(quickLinksRaw?.length ? { quickLinks: quickLinksRaw } : {}),
     ...(legalLinks?.length ? { legalLinks } : {}),
     ...(site.footerCopyrightText
       ? { copyrightText: site.footerCopyrightText }
