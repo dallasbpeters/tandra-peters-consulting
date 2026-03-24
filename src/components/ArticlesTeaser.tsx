@@ -17,7 +17,8 @@ const DEFAULT_INTRO =
 const DEFAULT_VIEW_ALL = "View all articles";
 
 const studioUrl =
-  import.meta.env.VITE_SANITY_STUDIO_URL?.trim() || "http://localhost:3333";
+  import.meta.env.VITE_SANITY_STUDIO_URL?.trim() ||
+  (import.meta.env.PROD ? "https://www.tandra.me/studio" : "http://localhost:3333");
 
 export const ArticlesTeaser = ({
   posts,

@@ -5,6 +5,10 @@ import {
   SANITY_PROJECT_ID,
 } from "./projectDetails";
 
+const fallbackStudioUrl = import.meta.env.PROD
+  ? "https://www.tandra.me/studio"
+  : "http://localhost:3333";
+
 const stegaEnabled = (): boolean => {
   if (import.meta.env.VITE_SANITY_STEGA === "true") {
     return true;
@@ -77,8 +81,7 @@ export const getSanityClient = (): SanityClient => {
     ...(token ? { token } : {}),
     stega: {
       enabled: stegaEnabled(),
-      studioUrl:
-        import.meta.env.VITE_SANITY_STUDIO_URL || "http://localhost:3333",
+      studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || fallbackStudioUrl,
     },
   });
 };

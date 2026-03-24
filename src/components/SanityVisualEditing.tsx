@@ -10,6 +10,27 @@ import type {
 import { useSanitySite } from "../context/SanitySiteContext";
 import { dispatchSanityPresentationRefresh } from "../sanity/presentationEvents";
 
+const isPresentationContext = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (
+    params.has("sanity-preview-perspective") ||
+    params.has("sanity-preview-pathname") ||
+    params.has("sanity-preview-secret")
+  ) {
+    return true;
+  }
+
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
 /** Strip origin when Presentation sends absolute preview URLs. */
 const toRouterPath = (url: string): string => {
   if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -84,6 +105,10 @@ export const SanityVisualEditing = () => {
       url: `${location.pathname}${location.search}${location.hash}`,
     });
   }, [location.hash, location.pathname, location.search, onHistoryNavigate]);
+
+  if (!isPresentationContext()) {
+    return null;
+  }
 
   return (
     <VisualEditing
