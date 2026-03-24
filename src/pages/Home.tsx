@@ -11,7 +11,7 @@ import { Contact } from "../components/Contact";
 import { SocialShareBar } from "../components/SocialShareBar";
 import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
-import { ArticlesTeaser } from "../components/ArticlesTeaser";
+// import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
@@ -90,10 +90,10 @@ export const Home = () => {
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
         <Faq {...mapFaqProps(faq)} />
-        <ArticlesTeaser
+        {/* <ArticlesTeaser
           posts={data?.latestPosts ?? []}
           {...mapArticlesTeaserEditorialProps(articlesTeaser)}
-        />
+        /> */}
         <Band
           minHeight={8}
           maxHeight={20}
