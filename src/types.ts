@@ -22,7 +22,7 @@ export interface NavProps {
 
 export interface HeroProps {
   title?: React.ReactNode;
-  /** Hero badge / eyebrow (e.g. BirdCreek Roofing consultant · Austin, TX) */
+  /** Hero badge / eyebrow (e.g. Birdcreek Roofing consultant · Austin, TX) */
   badgeText?: string;
   subtitle?: RichTextSource;
   ctaText?: string;

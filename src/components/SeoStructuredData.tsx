@@ -14,7 +14,7 @@ export const SeoStructuredData = () => {
       "@type": "ProfessionalService",
       name: "Tandra Peters — Roofing consultation",
       description:
-        "BirdCreek Roofing consultant in Austin, Texas: roof assessments, insurance claim advocacy, and project oversight—with installation by the same BirdCreek team.",
+        "Birdcreek Roofing consultant in Austin, Texas: roof assessments, insurance claim advocacy, and project oversight—with installation by the same Birdcreek team.",
       url,
       telephone: "+1-512-968-3965",
       email: "tandra@birdcreekroofing.com",

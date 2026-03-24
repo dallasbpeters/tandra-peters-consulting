@@ -36,11 +36,11 @@ export const Home = () => {
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
       ? home.seoTitle
-      : "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
+      : "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
   const seoDescription =
     typeof home?.seoDescription === "string" && home.seoDescription.trim()
       ? home.seoDescription
-      : "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
+      : "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
 
   usePageMetadata({
     title: seoTitle,

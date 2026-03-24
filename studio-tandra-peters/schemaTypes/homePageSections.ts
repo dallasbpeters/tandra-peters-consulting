@@ -80,7 +80,7 @@ export const statsSectionType = defineType({
       name: 'title',
       type: 'string',
       title: 'Heading',
-      description: 'Short label shown beside the numbers (e.g. BirdCreek Roofing in Austin).',
+      description: 'Short label shown beside the numbers (e.g. Birdcreek Roofing in Austin).',
     }),
     defineField({
       name: 'items',
@@ -117,7 +117,7 @@ export const servicesSectionType = defineType({
     }),
     defineField({
       name: 'birdcreekAdvantage',
-      title: 'BirdCreek advantage',
+      title: 'Birdcreek advantage',
       type: 'birdcreekAdvantageCard',
       description: 'Large branded card shown beneath the services grid.',
     }),

@@ -4,7 +4,7 @@ import { ArrowDownRight, Page, Search, ShieldCheck } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { ServicesProps } from "../types";
-import BirdCreekLogo from "./BirdCreekLogo";
+import BirdcreekLogo from "./BirdcreekLogo";
 import { RichText } from "../portableText/RichText";
 import { usePostHog } from "@posthog/react";
 
@@ -19,7 +19,7 @@ export const Services: React.FC<ServicesProps> = ({
       Execution.
     </>
   ),
-  description = "From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a BirdCreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.",
+  description = "From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a Birdcreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.",
   services = [
     {
       id: "01",
@@ -41,14 +41,14 @@ export const Services: React.FC<ServicesProps> = ({
       id: "03",
       title: "Project Oversight",
       description:
-        "Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with BirdCreek Roofing crews so the roof you approved is the roof you receive.",
+        "Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with Birdcreek Roofing crews so the roof you approved is the roof you receive.",
       icon: ShieldCheck,
     },
   ],
   birdcreekAdvantage = {
-    title: "The BirdCreek Advantage",
+    title: "The Birdcreek Advantage",
     description:
-      "Direct access to Austin's premier roofing company, combining Tandra's consultation with BirdCreek's legendary execution.",
+      "Direct access to Austin's premier roofing company, combining Tandra's consultation with Birdcreek's legendary execution.",
     ctaLabel: "Learn More",
     ctaHref: "https://birdcreekroofing.com",
   },
@@ -399,7 +399,7 @@ export const Services: React.FC<ServicesProps> = ({
                 .md-row-center { flex-direction: row !important; }
               }
             `}</style>
-             <BirdCreekLogo />
+             <BirdcreekLogo />
             <div style={{ maxWidth: "28rem" }}>
               <h3
                 style={{

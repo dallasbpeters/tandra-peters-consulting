@@ -25,7 +25,7 @@ export const siteSettingsSeed = {
   footerLogoText: 'Tandra Peters',
   footerDescription: blocksFromParagraphs(
     [
-      'Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with BirdCreek Roofing for trusted installation across Texas.',
+      'Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.',
     ],
     'footer-desc',
   ),
@@ -48,7 +48,7 @@ export const siteSettingsSeed = {
     {platform: 'facebook', url: 'https://www.facebook.com/tandra.peters.3'},
   ],
   footerCopyrightText: '© 2026 Tandra Peters. All Rights Reserved.',
-  footerPartnerText: 'BirdCreek Roofing',
+  footerPartnerText: 'Birdcreek Roofing',
 }
 
 export const articlesPageSeed = {
@@ -57,7 +57,7 @@ export const articlesPageSeed = {
   pageTitle: 'Articles',
   intro: blocksFromParagraphs(
     [
-      'Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with BirdCreek Roofing’s homeowner-first process.',
+      'Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with Birdcreek Roofing’s homeowner-first process.',
     ],
     'articles-intro',
   ),
@@ -68,12 +68,12 @@ export const homePageSeed = {
   _type: 'homePage' as const,
   hero: {
     _type: 'heroSection' as const,
-    badge: 'BirdCreek Roofing consultant · Austin, TX',
+    badge: 'Birdcreek Roofing consultant · Austin, TX',
     titleLine1: 'Your Roof.',
     titleLine2: 'Our Expertise.',
     subtitle: blocksFromParagraphs(
       [
-        'Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.',
+        'Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.',
       ],
       'hero-subtitle',
     ),
@@ -97,14 +97,14 @@ export const homePageSeed = {
     body: blocksFromParagraphs(
       [
         'Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.',
-        'As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.',
+        'As a Birdcreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.',
       ],
       'about-body',
     ),
   },
   stats: {
     _type: 'statsSection' as const,
-    title: 'BirdCreek Roofing in Austin',
+    title: 'Birdcreek Roofing in Austin',
     items: [
       {
         _type: 'statRow' as const,
@@ -135,7 +135,7 @@ export const homePageSeed = {
     titleLines: ['Consultation.', 'Precision.', 'Execution.'],
     description: blocksFromParagraphs(
       [
-        'From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a BirdCreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.',
+        'From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a Birdcreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.',
       ],
       'services-section-desc',
     ),
@@ -173,7 +173,7 @@ export const homePageSeed = {
         title: 'Project Oversight',
         description: blocksFromParagraphs(
           [
-            'Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with BirdCreek Roofing crews so the roof you approved is the roof you receive.',
+            'Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with Birdcreek Roofing crews so the roof you approved is the roof you receive.',
           ],
           'svc-card-03-desc',
         ),
@@ -182,10 +182,10 @@ export const homePageSeed = {
     ],
     birdcreekAdvantage: {
       _type: 'birdcreekAdvantageCard' as const,
-      title: 'The BirdCreek Advantage',
+      title: 'The Birdcreek Advantage',
       description: blocksFromParagraphs(
         [
-          "Direct access to Austin's premier roofing firm, combining Tandra's consultation with BirdCreek's legendary execution.",
+          "Direct access to Austin's premier roofing firm, combining Tandra's consultation with Birdcreek's legendary execution.",
         ],
         'services-birdcreek-advantage-desc',
       ),
@@ -202,7 +202,7 @@ export const homePageSeed = {
     ),
     description: blocksFromParagraphs(
       [
-        'BirdCreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.',
+        'Birdcreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.',
       ],
       'mission-desc',
     ),
@@ -310,7 +310,7 @@ export const homePageSeed = {
     title: 'Frequently asked questions',
     intro: blocksFromParagraphs(
       [
-        'Straight answers from me—how I work with homeowners, insurance, BirdCreek Roofing, and how to reach out.',
+        'Straight answers from me—how I work with homeowners, insurance, Birdcreek Roofing, and how to reach out.',
       ],
       'faq-intro',
     ),
@@ -332,7 +332,7 @@ export const homePageSeed = {
         question: 'How is working with you different from hiring a roofer directly?',
         answer: blocksFromParagraphs(
           [
-            'I’m a BirdCreek Roofing consultant—I work for BirdCreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through BirdCreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to BirdCreek standards.',
+            'I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.',
           ],
           'faq-f2-ans',
         ),
@@ -384,10 +384,10 @@ export const homePageSeed = {
       {
         _type: 'faqItem' as const,
         _key: 'f7',
-        question: 'What is BirdCreek Roofing’s role?',
+        question: 'What is Birdcreek Roofing’s role?',
         answer: blocksFromParagraphs(
           [
-            'BirdCreek Roofing is Austin’s premier roofing firm, and they’re my employer. I consult inside that model, so what I share with you lines up with the same crews, warranties, and quality standards we stand behind from assessment through installation.',
+            'Birdcreek Roofing is Austin’s premier roofing firm, and they’re my employer. I consult inside that model, so what I share with you lines up with the same crews, warranties, and quality standards we stand behind from assessment through installation.',
           ],
           'faq-f7-ans',
         ),
@@ -421,7 +421,7 @@ export const homePageSeed = {
     heading: 'Know someone who needs roofing help?',
     shareText: blocksFromParagraphs(
       [
-        'Tandra Peters | BirdCreek Roofing consultant in Austin — assessments, insurance help, trusted installation',
+        'Tandra Peters | Birdcreek Roofing consultant in Austin — assessments, insurance help, trusted installation',
       ],
       'social-share-text',
     ),

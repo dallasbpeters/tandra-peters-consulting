@@ -20,7 +20,7 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
   usePageMetadata({
     title: `${title} | Tandra Peters`,
     description:
-      "Policies and legal information for Tandra Peters and BirdCreek Roofing consultation services in Texas.",
+      "Policies and legal information for Tandra Peters and Birdcreek Roofing consultation services in Texas.",
   });
   const site = data?.site as Record<string, unknown> | null | undefined;
 

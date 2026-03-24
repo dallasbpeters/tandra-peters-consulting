@@ -13,8 +13,8 @@ export const Hero: React.FC<HeroProps> = ({
       <span style={{ color: theme.colors.heroAccent }}>Our Expertise.</span>
     </>
   ),
-  badgeText = "BirdCreek Roofing consultant · Austin, TX",
-  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by BirdCreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
+  badgeText = "Birdcreek Roofing consultant · Austin, TX",
+  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",

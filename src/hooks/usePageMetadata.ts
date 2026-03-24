@@ -9,9 +9,9 @@ type MetaConfig = {
   robots?: string | null;
 };
 
-const DEFAULT_TITLE = "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
+const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
 const DEFAULT_DESCRIPTION =
-  "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
+  "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
 
 const ensureMeta = (
   selector: string,
@@ -100,7 +100,7 @@ export const usePageMetadata = ({
         property: "og:description",
       }).setAttribute(
         "content",
-        "Roof assessments, insurance claim support, and oversight—paired with BirdCreek Roofing across Austin and Texas.",
+        "Roof assessments, insurance claim support, and oversight—paired with Birdcreek Roofing across Austin and Texas.",
       );
       ensureMeta('meta[property="og:url"]', { property: "og:url" }).setAttribute(
         "content",
@@ -117,7 +117,7 @@ export const usePageMetadata = ({
         name: "twitter:description",
       }).setAttribute(
         "content",
-        "Roof assessments, insurance support, and trusted BirdCreek Roofing execution in Texas.",
+        "Roof assessments, insurance support, and trusted Birdcreek Roofing execution in Texas.",
       );
       if (robots) {
         ensureMeta('meta[name="robots"]', { name: "robots" }).remove();

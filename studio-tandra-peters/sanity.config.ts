@@ -3,6 +3,7 @@ import {structureTool} from 'sanity/structure'
 import {defineDocuments, defineLocations, presentationTool} from 'sanity/presentation'
 import {visionTool} from '@sanity/vision'
 import {geminiAIImages} from 'sanity-plugin-gemini-ai-images'
+import {agentContextPlugin} from '@sanity/agent-context/studio'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {geminiStudioApiEndpoint} from './geminiStudioConfig'
@@ -283,7 +284,7 @@ const brandVoiceFieldActions = {
             children: [
               createDocumentBrandVoiceAction(
                 'Rewrite document in brand voice',
-                'Rewrite the document so it sounds unmistakably like the Tandra/BirdCreek brand voice while preserving the original meaning of each text-bearing field.',
+                'Rewrite the document so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning of each text-bearing field.',
                 actionProps,
                 client,
               ),
@@ -349,7 +350,7 @@ const brandVoiceFieldActions = {
           children: [
             createBrandVoiceAction(
               'Rewrite in brand voice',
-              'Rewrite this content so it sounds unmistakably like the Tandra/BirdCreek brand voice while preserving the original meaning.',
+              'Rewrite this content so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning.',
               actionProps,
               client,
             ),
@@ -440,6 +441,7 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [
+    agentContextPlugin(),
     assist({
       fieldActions: brandVoiceFieldActions,
     }),

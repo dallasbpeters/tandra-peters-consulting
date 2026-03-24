@@ -171,6 +171,7 @@ export const Contact = ({
     fontFamily: theme.fonts.body,
     fontWeight: 700,
     fontSize: "12px",
+    lineHeight: 0.8,
     letterSpacing: "0.1em",
     color: mix(theme.colors.everglade, 40),
     marginBottom: "0.25rem",
@@ -294,7 +295,7 @@ export const Contact = ({
           className="lg-col-6"
         >
           <span style={{ fontWeight: 700, letterSpacing: "0.2em", color: theme.colors.accent, textTransform: "uppercase", fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
-          <h2 id="contact-heading" style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 600,}}>{title}</h2>
+          <h2 id="contact-heading" style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.headlineAlt, fontWeight: 400,}}>{title}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">

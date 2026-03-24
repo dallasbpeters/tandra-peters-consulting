@@ -2,7 +2,7 @@ import {defineField, defineType} from 'sanity'
 
 export const birdcreekAdvantageCardType = defineType({
   name: 'birdcreekAdvantageCard',
-  title: 'BirdCreek advantage card',
+  title: 'Birdcreek advantage card',
   type: 'object',
   fields: [
     defineField({

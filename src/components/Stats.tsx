@@ -12,7 +12,7 @@ const defaultStatItems: Stat[] = [
 ];
 
 export const Stats: React.FC<StatsProps> = ({
-  title = "BirdCreek Roofing in Austin",
+  title = "Birdcreek Roofing in Austin",
   items = defaultStatItems,
 }) => {
   const containerVariants = {

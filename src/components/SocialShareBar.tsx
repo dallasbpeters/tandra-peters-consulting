@@ -25,7 +25,7 @@ const copyTextFallback = (text: string) => {
 
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   heading = "Know someone who needs roofing help?",
-  shareText = "Tandra Peters | BirdCreek Roofing consultant in Austin — assessments, insurance help, trusted installation",
+  shareText = "Tandra Peters | Birdcreek Roofing consultant in Austin — assessments, insurance help, trusted installation",
 }) => {
   const [copied, setCopied] = useState(false);
   const posthog = usePostHog();

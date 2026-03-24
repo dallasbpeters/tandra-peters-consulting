@@ -8,7 +8,7 @@ import { RichText } from "../portableText/RichText";
 export const Mission: React.FC<MissionProps> = ({
   tagline = "Our Mission",
   title = "The vision we set out with has now impacted over 20,000 homeowners.",
-  description = "BirdCreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.",
+  description = "Birdcreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.",
   services = [
     {
       id: "01",

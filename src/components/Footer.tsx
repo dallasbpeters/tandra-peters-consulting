@@ -10,7 +10,7 @@ import { RichText } from "../portableText/RichText";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
-  description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with BirdCreek Roofing for trusted installation across Texas.",
+  description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.",
   socialLinks = [
     { icon: Instagram, href: "https://www.instagram.com/tandra/", platform: "Visit my Instagram" },
     { icon: Linkedin, href: "https://www.linkedin.com/in/tandra-peters-b8b38026/", platform: "Visit my LinkedIn" },
@@ -30,7 +30,7 @@ export const Footer: React.FC<FooterProps> = ({
     { name: "Cookie Policy", href: "/cookies" },
   ],
   copyrightText = "© 2026 Tandra Peters. All Rights Reserved.",
-  partnerText = "BirdCreek Roofing"
+  partnerText = "Birdcreek Roofing"
 }) => {
   const footerStyle: React.CSSProperties = {
     backgroundColor: theme.palette.everglade[900],

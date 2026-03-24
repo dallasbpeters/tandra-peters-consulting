@@ -12,7 +12,7 @@ import { theme } from "../theme";
 
 const FALLBACK_PAGE_TITLE = "Articles";
 const FALLBACK_INTRO =
-  "Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with BirdCreek Roofing’s homeowner-first process.";
+  "Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with Birdcreek Roofing’s homeowner-first process.";
 
 const gridStyle: CSSProperties = {
   display: "grid",

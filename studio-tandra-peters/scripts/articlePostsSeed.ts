@@ -34,15 +34,15 @@ export const articlePostsSeed: ArticleSeed[] = [
     excerpt:
       'From inspection through insurance coordination and final documentation, here is how a professional roof replacement typically unfolds when you work with an experienced Texas roofing team.',
     seoDescription:
-      'Step-by-step guide to the roof replacement process in Texas: inspections, insurance adjusters, scopes of work, and project closeout with BirdCreek-style clarity.',
+      'Step-by-step guide to the roof replacement process in Texas: inspections, insurance adjusters, scopes of work, and project closeout with Birdcreek-style clarity.',
     authorName: 'Tandra Peters',
     body: bp(
       [
         'Replacing a roof is one of the largest maintenance decisions most homeowners make. The process is easier when you know the sequence: inspection, scope definition, installation, and closeout—especially when insurance is involved.',
-        'Trusted Texas contractors such as BirdCreek Roofing emphasize making replacement straightforward: start with a thorough inspection so you understand decking, flashing, ventilation, and drainage—not only the shingles you see from the street.',
+        'Trusted Texas contractors such as Birdcreek Roofing emphasize making replacement straightforward: start with a thorough inspection so you understand decking, flashing, ventilation, and drainage—not only the shingles you see from the street.',
         'When a claim is involved, it helps to have someone on your side when the adjuster visits. The goal is alignment between what the field inspection shows and what the carrier’s estimate covers, including line-by-line review of the settlement so nothing critical is left off the scope.',
         'During installation, clear communication and site visits keep the project aligned with what you approved. After completion, final invoicing and certificates of completion submitted to the carrier (when applicable) close the loop so your documentation matches the work performed.',
-        'As a BirdCreek Roofing consultant, I help homeowners interpret findings, understand options, and stay oriented through each phase—so education, advocacy, and professional installation stay connected.',
+        'As a Birdcreek Roofing consultant, I help homeowners interpret findings, understand options, and stay oriented through each phase—so education, advocacy, and professional installation stay connected.',
       ],
       'art-tx-replace',
     ),
@@ -86,7 +86,7 @@ export const articlePostsSeed: ArticleSeed[] = [
         'After storm damage or a sudden leak, speed and clarity matter. Start with photos and notes on when you first noticed the issue, and avoid removing evidence before your carrier documents the loss if you plan to file a claim.',
         'When an adjuster visits, the goal is a scope that reflects the full repair or replacement needed—not a minimal patch that fails the next time it rains. Compare line items to what your contractor or consultant identified in the field.',
         'Policies and outcomes vary by carrier and coverage; no article can guarantee a result. What you can control is organization: dates, photos, estimates, and a written understanding of what was approved or denied.',
-        'As a consultant working within the BirdCreek Roofing model, I help homeowners read estimates, ask better questions, and advocate for fair scopes when appropriate—without promising outcomes your policy cannot support.',
+        'As a consultant working within the Birdcreek Roofing model, I help homeowners read estimates, ask better questions, and advocate for fair scopes when appropriate—without promising outcomes your policy cannot support.',
       ],
       'art-ins',
     ),
@@ -150,7 +150,7 @@ export const articlePostsSeed: ArticleSeed[] = [
     body: bp(
       [
         'A strong consultant explains what they see, what it means for durability and warranty coverage, and what reasonable next steps look like—without pressure tactics or vague jargon.',
-        'Ask how recommendations connect to installation. In my work with BirdCreek Roofing, advice maps to the same crews and quality standards that perform the work, which reduces gaps between “what we discussed” and “what was built.”',
+        'Ask how recommendations connect to installation. In my work with Birdcreek Roofing, advice maps to the same crews and quality standards that perform the work, which reduces gaps between “what we discussed” and “what was built.”',
         'Experience with Texas weather patterns, insurance documentation, and multi-story or complex roof geometry matters. Look for specifics in past projects, not generic promises.',
         'Trust your instincts on communication. If you do not understand the plan, keep asking questions until you do. A good consultant welcomes that.',
       ],

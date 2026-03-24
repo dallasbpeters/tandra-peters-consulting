@@ -38,11 +38,11 @@ export const ArticlePage = () => {
   usePageMetadata({
     title: post
       ? `${post.title} | Tandra Peters`
-      : "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX",
+      : "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX",
     description:
       post?.seoDescription?.trim() ||
       post?.excerpt?.trim() ||
-      "BirdCreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
+      "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
     type: post ? "article" : "website",
   });
 

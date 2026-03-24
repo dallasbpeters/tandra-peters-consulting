@@ -17,7 +17,7 @@ const DEFAULT_ITEMS = [
   {
     question: "How is working with you different from hiring a roofer directly?",
     answer:
-      "I’m a BirdCreek Roofing consultant—I work for BirdCreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through BirdCreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to BirdCreek standards.",
+      "I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.",
   },
   {
     question: "Do you help with homeowners insurance claims?",
@@ -40,9 +40,9 @@ const DEFAULT_ITEMS = [
       "Tap Schedule a Free Consultation in the navigation, or scroll to the contact section and send your name, email, what you need, and a short note. You can also call or email me directly—both are on the contact page.",
   },
   {
-    question: "What is BirdCreek Roofing’s role?",
+    question: "What is Birdcreek Roofing’s role?",
     answer:
-      "BirdCreek Roofing is Austin’s premier roofing firm, and they’re my employer. I consult inside that model, so what I share with you lines up with the same crews, warranties, and quality standards we stand behind from assessment through installation.",
+      "Birdcreek Roofing is Austin’s premier roofing firm, and they’re my employer. I consult inside that model, so what I share with you lines up with the same crews, warranties, and quality standards we stand behind from assessment through installation.",
   },
 ];
 
@@ -51,7 +51,7 @@ const JSON_LD_ID = "faq-page-json-ld";
 export const Faq: React.FC<FaqProps> = ({
   tagline = "Questions & answers",
   title = "Frequently asked questions",
-  intro = "Straight answers from me—how I work with homeowners, insurance, BirdCreek Roofing, and how to reach out.",
+  intro = "Straight answers from me—how I work with homeowners, insurance, Birdcreek Roofing, and how to reach out.",
   items = DEFAULT_ITEMS,
   paddingTop = "3rem",
 }) => {
