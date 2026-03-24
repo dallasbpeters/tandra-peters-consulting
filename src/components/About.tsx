@@ -6,6 +6,11 @@ import { AboutProps } from "../types";
 import { RichText } from "../portableText/RichText";
 import { asRichTextValue } from "../portableText/value";
 
+const DEFAULT_ABOUT_PARAGRAPHS = [
+  "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
+  "As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.",
+];
+
 export const About: React.FC<AboutProps> = ({
   badgeText = "5+ YEARS",
   badgeSubtext = "Industry Expertise",
@@ -16,12 +21,8 @@ export const About: React.FC<AboutProps> = ({
     </>
   ),
   body,
-  paragraphs = [
-    "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
-    "As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.",
-  ],
 }) => {
-  const richBody = asRichTextValue(body, paragraphs);
+  const richBody = asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS);
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
     overflow: "hidden",
@@ -29,6 +30,7 @@ export const About: React.FC<AboutProps> = ({
 
   const imageContainerStyle: React.CSSProperties = {
     position: "relative",
+    maxWidth: "400px",
   };
 
   const imageWrapperStyle: React.CSSProperties = {
