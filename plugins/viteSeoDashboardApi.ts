@@ -1,5 +1,8 @@
 import type { Plugin } from "vite";
-import { getSeoDashboard } from "../server/seo/dashboardService.js";
+import {
+  getSeoDashboard,
+  regenerateSeoDashboard,
+} from "../server/seo/dashboardService.js";
 import {
   DashboardAuthError,
   authorizeSeoDashboardRequest,
@@ -69,7 +72,15 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
             : undefined,
           env,
         );
-        const payload = await getSeoDashboard();
+        const requestUrl = new URL(req.url ?? DASHBOARD_PATH, "http://localhost");
+        const regenerate =
+          requestUrl.searchParams.get("regenerate") === "1" ||
+          requestUrl.searchParams.get("regenerate") === "true" ||
+          requestUrl.searchParams.get("refresh") === "1" ||
+          requestUrl.searchParams.get("refresh") === "true";
+        const payload = regenerate
+          ? await regenerateSeoDashboard()
+          : await getSeoDashboard();
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify(payload));

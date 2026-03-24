@@ -7,6 +7,7 @@ type UseSeoDashboardState = {
   error: string | null;
   statusCode: number | null;
   refetch: () => Promise<void>;
+  regenerate: () => Promise<void>;
 };
 
 type DashboardResponseBody = Partial<SeoDashboardPayload> & {
@@ -37,7 +38,7 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
   const [error, setError] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
 
-  const refetch = useCallback(async () => {
+  const fetchDashboard = useCallback(async (options?: { regenerate?: boolean }) => {
     if (!token) {
       setData(null);
       setError(null);
@@ -48,11 +49,14 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/seo/dashboard", {
+      const response = await fetch(
+        options?.regenerate ? "/api/seo/dashboard?regenerate=1" : "/api/seo/dashboard",
+        {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+        },
+      );
       const raw = await response.text();
       const payload = parseDashboardResponse(raw);
 
@@ -82,9 +86,17 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
     }
   }, [token, statusCode]);
 
+  const refetch = useCallback(async () => {
+    await fetchDashboard();
+  }, [fetchDashboard]);
+
+  const regenerate = useCallback(async () => {
+    await fetchDashboard({ regenerate: true });
+  }, [fetchDashboard]);
+
   useEffect(() => {
     void refetch();
   }, [refetch]);
 
-  return { data, loading, error, statusCode, refetch };
+  return { data, loading, error, statusCode, refetch, regenerate };
 };

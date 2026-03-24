@@ -306,12 +306,13 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
 export const SeoDashboardPage = () => {
   const posthog = usePostHog();
   const auth = useGoogleDashboardAuth();
-  const { data, loading, error, statusCode, refetch } = useSeoDashboard(auth.token);
+  const { data, loading, error, statusCode, regenerate } = useSeoDashboard(auth.token);
 
   usePageMetadata({
     title: "SEO Dashboard | Tandra Peters",
     description:
       "Internal SEO dashboard for content health, technical SEO checks, and traffic trends.",
+    robots: "noindex, nofollow",
   });
 
   useEffect(() => {
@@ -412,9 +413,9 @@ export const SeoDashboardPage = () => {
 
           {auth.token ? (
             <>
-          {loading ? (
+          {loading && !data ? (
             <section style={cardStyle}>
-              <p style={{ color: theme.colors.everglade }}>Building the dashboard snapshot…</p>
+              <p style={{ color: theme.colors.everglade }}>Loading saved dashboard snapshot…</p>
             </section>
           ) : null}
 
@@ -457,7 +458,8 @@ export const SeoDashboardPage = () => {
               </div>
               <button
                 type="button"
-                onClick={() => void refetch()}
+                onClick={() => void regenerate()}
+                disabled={loading}
                 style={{
                   border: "none",
                   borderRadius: "999px",
@@ -468,11 +470,12 @@ export const SeoDashboardPage = () => {
                   backgroundColor: mix(theme.colors.white, 14),
                   color: theme.colors.white,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loading ? "wait" : "pointer",
+                  opacity: loading ? 0.72 : 1,
                 }}
               >
                 <Refresh width={18} height={18} />
-                Refresh data
+                {loading ? "Regenerating…" : "Regenerate snapshot"}
               </button>
             </div>
           </section>

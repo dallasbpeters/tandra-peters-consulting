@@ -6,6 +6,7 @@ type MetaConfig = {
   title: string;
   description: string;
   type?: "website" | "article";
+  robots?: string | null;
 };
 
 const DEFAULT_TITLE = "Tandra Peters | BirdCreek Roofing Consultant | Austin, TX";
@@ -44,6 +45,7 @@ export const usePageMetadata = ({
   title,
   description,
   type = "website",
+  robots = null,
 }: MetaConfig) => {
   const location = useLocation();
 
@@ -76,6 +78,12 @@ export const usePageMetadata = ({
     ensureMeta('meta[name="twitter:description"]', {
       name: "twitter:description",
     }).setAttribute("content", description);
+    if (robots) {
+      ensureMeta('meta[name="robots"]', { name: "robots" }).setAttribute(
+        "content",
+        robots,
+      );
+    }
     ensureCanonical().setAttribute("href", url);
 
     return () => {
@@ -111,7 +119,10 @@ export const usePageMetadata = ({
         "content",
         "Roof assessments, insurance support, and trusted BirdCreek Roofing execution in Texas.",
       );
+      if (robots) {
+        ensureMeta('meta[name="robots"]', { name: "robots" }).remove();
+      }
       ensureCanonical().setAttribute("href", buildSharePageUrl("/", "", ""));
     };
-  }, [description, location.pathname, location.search, title, type]);
+  }, [description, location.pathname, location.search, robots, title, type]);
 };

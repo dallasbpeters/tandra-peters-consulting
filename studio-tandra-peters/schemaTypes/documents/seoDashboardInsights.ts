@@ -33,6 +33,14 @@ export const seoDashboardInsightsType = defineType({
       rows: 6,
     }),
     defineField({
+      name: 'snapshotPayload',
+      title: 'Snapshot payload',
+      type: 'text',
+      rows: 12,
+      readOnly: true,
+      description: 'Cached full dashboard payload used for fast loads until a manual regenerate is requested.',
+    }),
+    defineField({
       name: 'recommendations',
       type: 'array',
       of: [defineArrayMember({type: 'seoDashboardRecommendation'})],

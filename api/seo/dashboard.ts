@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSeoDashboard } from "../../server/seo/dashboardService.js";
+import {
+  getSeoDashboard,
+  regenerateSeoDashboard,
+} from "../../server/seo/dashboardService.js";
 import {
   DashboardAuthError,
   authorizeSeoDashboardRequest,
@@ -29,7 +32,14 @@ export default async function seoDashboard(
 
   try {
     await authorizeSeoDashboardRequest(req.headers.authorization);
-    const payload = await getSeoDashboard();
+    const regenerate =
+      req.query.regenerate === "1" ||
+      req.query.regenerate === "true" ||
+      req.query.refresh === "1" ||
+      req.query.refresh === "true";
+    const payload = regenerate
+      ? await regenerateSeoDashboard()
+      : await getSeoDashboard();
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json(payload);
   } catch (error) {

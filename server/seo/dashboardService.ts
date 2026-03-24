@@ -154,6 +154,14 @@ type SanityDashboardQuery = {
   posts: PostRecord[];
 };
 
+type SeoDashboardSnapshotDocument = {
+  lastGeneratedAt?: string | null;
+  model?: string | null;
+  siteUrl?: string | null;
+  summary?: string | null;
+  snapshotPayload?: string | null;
+};
+
 type PosthogOverviewRow = {
   pageviews_7d?: number | string | null;
   visitors_7d?: number | string | null;
@@ -269,6 +277,14 @@ const DASHBOARD_QUERY = groq`{
     "image": image.asset->url,
     body
   }
+}`;
+
+const DASHBOARD_SNAPSHOT_QUERY = groq`*[_id == "seoDashboardInsights"][0]{
+  lastGeneratedAt,
+  model,
+  siteUrl,
+  summary,
+  snapshotPayload
 }`;
 
 const parseNumber = (value: unknown): number => {
@@ -597,12 +613,12 @@ const aggregateTopPages = (
     .slice(0, 8);
 };
 
-const buildSanityClient = () =>
+const buildSanityClient = (useCdn = true) =>
   createClient({
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
-    useCdn: true,
+    useCdn,
   });
 
 const buildSanityWriteClient = () => {
@@ -630,6 +646,46 @@ const fetchSanityContent = async (): Promise<SanityDashboardQuery> => {
     aiContext: result?.aiContext ?? null,
     posts: Array.isArray(result?.posts) ? result.posts : [],
   };
+};
+
+const fetchSavedDashboardSnapshot = async (): Promise<SeoDashboardPayload | null> => {
+  const client = buildSanityClient(false);
+  const snapshot = await client.fetch<SeoDashboardSnapshotDocument | null>(DASHBOARD_SNAPSHOT_QUERY);
+  const rawPayload =
+    typeof snapshot?.snapshotPayload === "string" ? snapshot.snapshotPayload.trim() : "";
+  if (!rawPayload) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(rawPayload) as SeoDashboardPayload;
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      !payload.generatedAt ||
+      !payload.sourceStatus ||
+      !payload.analytics ||
+      !Array.isArray(payload.recommendations) ||
+      !Array.isArray(payload.opportunities)
+    ) {
+      return null;
+    }
+
+    return {
+      ...payload,
+      sourceStatus: {
+        ...payload.sourceStatus,
+        notes: [
+          `Loaded cached dashboard snapshot from ${formatSnapshotTimestamp(snapshot?.lastGeneratedAt || payload.generatedAt)}. Use Regenerate snapshot to refresh metrics and AI recommendations.`,
+          ...payload.sourceStatus.notes.filter(
+            (note) => !note.startsWith("Loaded cached dashboard snapshot from "),
+          ),
+        ],
+      },
+    };
+  } catch {
+    return null;
+  }
 };
 
 const readIndexHtml = async (): Promise<string> => {
@@ -673,6 +729,19 @@ const sanitizeOpportunityType = (value: unknown): "fix" | "refresh" | "new-conte
 
 const cleanText = (value: unknown): string =>
   typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+
+const formatSnapshotTimestamp = (value: string): string => {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+};
 
 const extractJsonObject = (value: string): string | null => {
   const start = value.indexOf("{");
@@ -754,13 +823,9 @@ const sanitizeAiOpportunities = (value: unknown): SeoOpportunity[] => {
 const cleanStringList = (value: (string | null)[] | null | undefined): string[] =>
   Array.isArray(value) ? value.map((item) => cleanText(item)).filter(Boolean) : [];
 
-const persistAiInsights = async (args: {
-  generatedAt: string;
-  siteUrl: string;
-  model: string;
-  summary: string | null;
-  recommendations: SeoRecommendation[];
-  opportunities: SeoOpportunity[];
+const persistDashboardSnapshot = async (args: {
+  payload: SeoDashboardPayload;
+  model: string | null;
 }) => {
   const client = buildSanityWriteClient();
   if (!client) {
@@ -771,20 +836,21 @@ const persistAiInsights = async (args: {
     _id: "seoDashboardInsights",
     _type: "seoDashboardInsights",
     title: "SEO Dashboard Insights",
-    lastGeneratedAt: args.generatedAt,
-    model: args.model,
-    siteUrl: args.siteUrl,
-    summary: args.summary ?? "",
-    recommendations: args.recommendations.map((item, index) => ({
+    lastGeneratedAt: args.payload.generatedAt,
+    model: args.model ?? "",
+    siteUrl: args.payload.sourceStatus.siteUrl,
+    summary: args.payload.aiSummary ?? "",
+    snapshotPayload: JSON.stringify(args.payload),
+    recommendations: args.payload.recommendations.map((item, index) => ({
       _type: "seoDashboardRecommendation",
-      _key: `rec-${Date.parse(args.generatedAt)}-${index}`,
+      _key: `rec-${Date.parse(args.payload.generatedAt)}-${index}`,
       title: item.title,
       detail: item.detail,
       priority: item.priority,
     })),
-    opportunities: args.opportunities.map((item, index) => ({
+    opportunities: args.payload.opportunities.map((item, index) => ({
       _type: "seoDashboardOpportunity",
-      _key: `opp-${Date.parse(args.generatedAt)}-${index}`,
+      _key: `opp-${Date.parse(args.payload.generatedAt)}-${index}`,
       type: item.type,
       title: item.title,
       detail: item.detail,
@@ -911,28 +977,14 @@ ${JSON.stringify(evidence, null, 2)}`;
     const recommendations = sanitizeAiRecommendations(parsed.recommendations);
     const opportunities = sanitizeAiOpportunities(parsed.opportunities);
 
-    const persisted =
-      recommendations.length > 0 || opportunities.length > 0 || summary
-        ? await persistAiInsights({
-            generatedAt: args.generatedAt,
-            siteUrl: args.siteUrl,
-            model: AI_MODEL,
-            summary,
-            recommendations,
-            opportunities,
-          }).catch(() => false)
-        : false;
-
     return {
       connected: true,
       model: AI_MODEL,
       summary,
       recommendations,
       opportunities,
-      note: persisted
-        ? `AI recommendations were generated with ${AI_MODEL} from live dashboard data and synced to Sanity.`
-        : `AI recommendations were generated with ${AI_MODEL} from live dashboard data, but they were not written to Sanity because SANITY_API_WRITE_TOKEN is missing or the write failed.`,
-      persisted,
+      note: `AI recommendations were generated with ${AI_MODEL} from live dashboard data.`,
+      persisted: false,
     };
   } catch (error) {
     return {
@@ -1239,6 +1291,15 @@ const buildContentAnalysis = (args: {
 };
 
 export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
+  const cachedSnapshot = await fetchSavedDashboardSnapshot();
+  if (cachedSnapshot) {
+    return cachedSnapshot;
+  }
+
+  return buildSeoDashboardSnapshot();
+};
+
+const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   const generatedAt = new Date().toISOString();
   const [contentData, indexHtml, analytics] = await Promise.all([
     fetchSanityContent(),
@@ -1489,7 +1550,7 @@ export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
     aiContext: contentData.aiContext,
   });
 
-  return {
+  const payload: SeoDashboardPayload = {
     generatedAt,
     sourceStatus: {
       posthogConnected: analytics.connected,
@@ -1521,4 +1582,25 @@ export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
     opportunities: aiInsights.opportunities,
     aiSummary: aiInsights.summary,
   };
+
+  const persisted = await persistDashboardSnapshot({
+    payload,
+    model: aiInsights.model,
+  }).catch(() => false);
+
+  return {
+    ...payload,
+    sourceStatus: {
+      ...payload.sourceStatus,
+      notes: [
+        ...payload.sourceStatus.notes,
+        persisted
+          ? "This dashboard snapshot is cached in Sanity and will stay unchanged until you regenerate it."
+          : "This dashboard snapshot could not be saved to Sanity, so the next load may need to rebuild it.",
+      ],
+    },
+  };
 };
+
+export const regenerateSeoDashboard = async (): Promise<SeoDashboardPayload> =>
+  buildSeoDashboardSnapshot();
