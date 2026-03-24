@@ -14,6 +14,7 @@ const previewOrigin =
 export default defineConfig({
   name: 'default',
   title: 'Tandra Peters',
+  basePath: '/studio',
 
   projectId: '7irm699i',
   dataset: 'production',

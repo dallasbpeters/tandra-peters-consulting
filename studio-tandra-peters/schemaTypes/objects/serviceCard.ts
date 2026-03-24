@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {SERVICE_ICON_OPTIONS} from '../../../src/sanity/serviceIconMeta'
+import {SERVICE_ICON_OPTIONS} from '../serviceIconMeta'
 import {defineGeminiImage} from '../geminiImageField'
 
 export const serviceCardType = defineType({

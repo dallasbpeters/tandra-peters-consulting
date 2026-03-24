@@ -332,52 +332,7 @@ export const SeoDashboardPage = () => {
             ← Back to home
           </TransitionLink>
 
-          <section style={heroCardStyle}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
-              <div style={{ maxWidth: "40rem" }}>
-                <div style={chipStyle("neutral")}>Internal SEO Dashboard</div>
-                <h1
-                  style={{
-                    ...typeStyles.pageListTitle,
-                    color: theme.colors.white,
-                    marginTop: "1rem",
-                    marginBottom: "0.85rem",
-                  }}
-                >
-                  Search visibility, content hygiene, and traffic signals in one place.
-                </h1>
-                <p
-                  style={{
-                    fontSize: "1rem",
-                    lineHeight: 1.7,
-                    color: mix(theme.colors.white, 82),
-                    maxWidth: "36rem",
-                  }}
-                >
-                  This dashboard stays isolated from the public site. It audits the current Sanity content, checks the static SEO shell, and pulls PostHog metrics server-side when those credentials are available.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void refetch()}
-                style={{
-                  border: "none",
-                  borderRadius: "999px",
-                  padding: "0.85rem 1rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.55rem",
-                  backgroundColor: mix(theme.colors.white, 14),
-                  color: theme.colors.white,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                <Refresh width={18} height={18} />
-                Refresh data
-              </button>
-            </div>
-          </section>
+          
 
           {!auth.clientId ? (
             <section style={{ ...cardStyle, borderColor: mix(theme.palette.coral["500"], 30) }}>
@@ -475,6 +430,52 @@ export const SeoDashboardPage = () => {
 
           {data ? (
             <>
+            <section style={heroCardStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ maxWidth: "40rem" }}>
+                <div style={chipStyle("neutral")}>Internal SEO Dashboard</div>
+                <h1
+                  style={{
+                    ...typeStyles.pageListTitle,
+                    color: theme.colors.white,
+                    marginTop: "1rem",
+                    marginBottom: "0.85rem",
+                  }}
+                >
+                  Search visibility, content hygiene, and traffic signals in one place.
+                </h1>
+                <p
+                  style={{
+                    fontSize: "1rem",
+                    lineHeight: 1.7,
+                    color: mix(theme.colors.white, 82),
+                    maxWidth: "36rem",
+                  }}
+                >
+                  This dashboard stays isolated from the public site. It audits the current Sanity content, checks the static SEO shell, and pulls PostHog metrics server-side when those credentials are available.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                style={{
+                  border: "none",
+                  borderRadius: "999px",
+                  padding: "0.85rem 1rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.55rem",
+                  backgroundColor: mix(theme.colors.white, 14),
+                  color: theme.colors.white,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <Refresh width={18} height={18} />
+                Refresh data
+              </button>
+            </div>
+          </section>
               <section style={metricGridStyle}>
                 <MetricCard
                   label="Technical score"
