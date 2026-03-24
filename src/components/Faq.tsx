@@ -12,7 +12,7 @@ const DEFAULT_ITEMS = [
   {
     question: "What does a roofing consultant do?",
     answer:
-      "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, architecture-minded guidance so you can decide with confidence instead of feeling rushed or confused.",
+      "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.",
   },
   {
     question: "How is working with you different from hiring a roofer directly?",

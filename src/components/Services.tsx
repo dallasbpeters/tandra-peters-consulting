@@ -90,7 +90,7 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   const mainCardStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.everglade,
+    backgroundColor: theme.colors.black,
     borderRadius: "1rem",
     padding: "2rem",
     position: "relative",

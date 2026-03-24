@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
-import { getSanityClient } from "../sanity/client";
+import {
+  getSanityClient,
+  isSanityStegaUiActive,
+} from "../sanity/client";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
 import type { PostListItem } from "../types/article";
 
@@ -61,6 +64,21 @@ export type HomeDocuments = {
   latestPosts: PostListItem[];
 };
 
+const normalizeHomeDocuments = (raw: HomeDocuments): HomeDocuments => {
+  if (isSanityStegaUiActive()) {
+    return {
+      ...raw,
+      latestPosts: resolveHomeArticleCards(raw.latestPosts, raw.home),
+    };
+  }
+
+  const cleaned = stegaClean(raw) as HomeDocuments;
+  return {
+    ...cleaned,
+    latestPosts: resolveHomeArticleCards(cleaned.latestPosts, cleaned.home),
+  };
+};
+
 export const useSanityHomeContent = () => {
   const [data, setData] = useState<HomeDocuments | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,11 +88,7 @@ export const useSanityHomeContent = () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
-      const result = stegaClean(raw) as HomeDocuments;
-      setData({
-        ...result,
-        latestPosts: resolveHomeArticleCards(result.latestPosts, result.home),
-      });
+      setData(normalizeHomeDocuments(raw));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
@@ -90,12 +104,8 @@ export const useSanityHomeContent = () => {
       try {
         const client = getSanityClient();
         const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
-        const result = stegaClean(raw) as HomeDocuments;
         if (!cancelled) {
-          setData({
-            ...result,
-            latestPosts: resolveHomeArticleCards(result.latestPosts, result.home),
-          });
+          setData(normalizeHomeDocuments(raw));
           setError(null);
         }
       } catch (e) {

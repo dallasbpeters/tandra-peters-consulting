@@ -75,8 +75,52 @@ const isPortableTextField = (schemaType: SchemaType): boolean => {
   return Array.isArray(members) && members.some((member) => isType(member, 'block'))
 }
 
-const isRewriteableField = (schemaType: SchemaType): boolean =>
-  isType(schemaType, 'string') || isType(schemaType, 'text') || isPortableTextField(schemaType)
+const isRewriteableField = (schemaType: SchemaType): boolean => {
+  if (
+    isType(schemaType, 'boolean') ||
+    isType(schemaType, 'number') ||
+    isType(schemaType, 'date') ||
+    isType(schemaType, 'datetime') ||
+    isType(schemaType, 'url') ||
+    isType(schemaType, 'email') ||
+    isType(schemaType, 'slug') ||
+    isType(schemaType, 'reference') ||
+    isType(schemaType, 'crossDatasetReference') ||
+    isType(schemaType, 'image') ||
+    isType(schemaType, 'file') ||
+    isType(schemaType, 'geopoint')
+  ) {
+    return false
+  }
+
+  return (
+    isType(schemaType, 'string') ||
+    isType(schemaType, 'text') ||
+    isPortableTextField(schemaType) ||
+    isType(schemaType, 'object') ||
+    isType(schemaType, 'array')
+  )
+}
+
+const buildDocumentRewriteInstruction = (goal: string) => `
+Rewrite the targeted document or field using the Brand Tone of Voice context below as the highest-priority style guide.
+
+Brand Tone of Voice context:
+$brandContext
+
+Rewrite goal:
+${goal}
+
+Rules:
+- Preserve the factual meaning of the source content.
+- Do not invent metrics, warranties, service areas, or promises.
+- Keep proper nouns, product names, and links intact unless a rewrite clearly improves clarity.
+- Prefer warm, practical, homeowner-friendly language over generic marketing copy.
+- Avoid cold, corporate, or overly mechanical positioning. Do not use phrases like "Architectural Advisor" unless the editor explicitly asks for them.
+- Write in first person whenever the content voice allows it. Prefer "I", "me", and "my" over third-person references to Tandra.
+- Only keep third-person phrasing where the source is clearly biographical, testimonial, or otherwise reads unnaturally in first person.
+- If the target includes multiple fields, rewrite only the text-bearing parts and leave structural data intact.
+`.trim()
 
 const loadBrandToneContext = async (client: ReturnType<typeof useClient>): Promise<string> => {
   const data = await client.fetch<BrandToneContextPayload>(
@@ -130,6 +174,9 @@ Rules:
 - Do not invent metrics, warranties, service areas, or promises.
 - Keep proper nouns, product names, and links intact unless the rewrite clearly improves grammar.
 - Prefer warm, practical, homeowner-friendly language over generic marketing copy.
+- Avoid cold, corporate, or overly mechanical positioning. Do not use phrases like "Architectural Advisor" unless the editor explicitly asks for them.
+- Write in first person whenever the field is brand copy. Prefer "I", "me", and "my" over third-person references to Tandra.
+- Avoid detached third-person phrasing like "Tandra does" or "she helps" unless the source is clearly biographical or factual profile copy.
 - Return only the rewritten field in the same language as the source.
 
 Current field value:
@@ -168,6 +215,36 @@ const createBrandVoiceAction = (
     },
   })
 
+const createDocumentBrandVoiceAction = (
+  title: string,
+  goal: string,
+  props: AssistFieldActionProps,
+  client: ReturnType<typeof useClient>,
+) =>
+  defineAssistFieldAction({
+    title,
+    onAction: async () => {
+      const brandContext = await loadBrandToneContext(client)
+      await client.agent.action.transform({
+        schemaId: props.schemaId,
+        documentId: props.documentIdForAction,
+        targetDocument: {
+          operation: 'createIfNotExists',
+          _id: props.documentIdForAction,
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+        },
+        instruction: buildDocumentRewriteInstruction(goal),
+        instructionParams: {
+          brandContext,
+        },
+        conditionalPaths: {
+          paths: props.getConditionalPaths(),
+        },
+      })
+    },
+  })
+
 const brandVoiceFieldActions = {
   title: 'Brand voice rewrites',
   useFieldActions: (props: AssistFieldActionProps) => {
@@ -186,7 +263,7 @@ const brandVoiceFieldActions = {
     const pathKey = JSON.stringify(path)
 
     return useMemo(() => {
-      if (actionType !== 'field' || !isRewriteableField(schemaType)) {
+      if (actionType === 'field' && !isRewriteableField(schemaType)) {
         return []
       }
 
@@ -199,6 +276,73 @@ const brandVoiceFieldActions = {
         path,
         schemaId,
         schemaType,
+      }
+
+      if (actionType === 'document') {
+        return [
+          defineAssistFieldActionGroup({
+            title: 'Brand voice rewrites',
+            children: [
+              createDocumentBrandVoiceAction(
+                'Rewrite document in brand voice',
+                'Rewrite the document so it sounds unmistakably like the Tandra/BirdCreek brand voice while preserving the original meaning of each text-bearing field.',
+                actionProps,
+                client,
+              ),
+              createDocumentBrandVoiceAction(
+                'Warm up document tone',
+                'Make the document warmer, more human, and more conversational without sounding salesy or over-polished.',
+                actionProps,
+                client,
+              ),
+              createDocumentBrandVoiceAction(
+                'Tighten document for clarity',
+                'Make the document clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.',
+                actionProps,
+                client,
+              ),
+              defineFieldActionDivider(),
+              defineAssistFieldAction({
+                title: 'Custom document rewrite...',
+                onAction: async () => {
+                  const input = await getUserInput({
+                    title: 'Custom rewrite goal',
+                    inputs: [
+                      {
+                        id: 'goal',
+                        title: 'Rewrite goal',
+                        description:
+                          'Describe what should change across the document, such as warmer, shorter, clearer, or more local.',
+                      },
+                    ],
+                  })
+                  const goal = input?.[0]?.result?.trim()
+                  if (!goal) {
+                    return
+                  }
+                  const brandContext = await loadBrandToneContext(client)
+                  await client.agent.action.transform({
+                    schemaId,
+                    documentId: documentIdForAction,
+                    targetDocument: {
+                      operation: 'createIfNotExists',
+                      _id: documentIdForAction,
+                      _type: documentSchemaType.name,
+                      initialValues: getDocumentValue(),
+                    },
+                    instruction: buildDocumentRewriteInstruction(goal),
+                    instructionParams: {
+                      brandContext,
+                    },
+                    conditionalPaths: {
+                      paths: getConditionalPaths(),
+                    },
+                  })
+                },
+              }),
+            ],
+          }),
+        ]
       }
 
       return [

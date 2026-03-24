@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
-import { getSanityClient } from "../sanity/client";
+import {
+  getSanityClient,
+  isSanityStegaUiActive,
+} from "../sanity/client";
 import { ARTICLES_INDEX_QUERY } from "../sanity/queries";
 import type { ArticlesPageDoc, PostListItem } from "../types/article";
 
@@ -19,9 +22,12 @@ export const useSanityArticlesIndex = () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<ArticlesIndexPayload>(ARTICLES_INDEX_QUERY);
-      const cleaned = raw ? (stegaClean(raw) as ArticlesIndexPayload) : null;
-      setPage(cleaned?.page ?? null);
-      setPosts(cleaned?.posts ?? []);
+      const result =
+        raw && !isSanityStegaUiActive()
+          ? (stegaClean(raw) as ArticlesIndexPayload)
+          : raw;
+      setPage(result?.page ?? null);
+      setPosts(result?.posts ?? []);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));

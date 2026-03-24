@@ -97,7 +97,7 @@ export const homePageSeed = {
     body: blocksFromParagraphs(
       [
         'Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.',
-        'As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her Architectural Advisor approach treats every roof as both a structural system and a major financial asset you will live with for decades.',
+        'As a BirdCreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.',
       ],
       'about-body',
     ),
@@ -321,7 +321,7 @@ export const homePageSeed = {
         question: 'What does a roofing consultant do?',
         answer: blocksFromParagraphs(
           [
-            'I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, architecture-minded guidance so you can decide with confidence instead of feeling rushed or confused.',
+            'I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.',
           ],
           'faq-f1-ans',
         ),

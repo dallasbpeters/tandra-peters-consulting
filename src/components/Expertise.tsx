@@ -68,7 +68,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
   };
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.everglade,
+    backgroundColor: theme.colors.black,
     borderRadius: "1rem",
     padding: "1.5rem",
     position: "relative",
@@ -160,7 +160,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                   style={{
                     position: "absolute",
                     inset: 0,
-                    opacity: 0.4,
+                    opacity: 0.6,
                     transition: "opacity 0.7s",
                   }}
                   className="expertise-card-bg"
