@@ -50,7 +50,7 @@ export const Hero: React.FC<HeroProps> = ({
     alignItems: "center",
     paddingTop: "5rem",
     paddingBottom: "3rem",
-    background: `linear-gradient(135deg, ${theme.colors.everglade} 0%, ${theme.colors.evergladeLight} 100%)`,
+    background: `linear-gradient(135deg, ${theme.colors.black} 0%, ${theme.colors.black} 100%)`,
     overflow: "hidden",
   };
 
@@ -111,7 +111,7 @@ export const Hero: React.FC<HeroProps> = ({
   };
 
   const buttonSecondaryStyle: React.CSSProperties = {
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    border: "1px solid rgba(255, 255, 255, 1)",
     color: theme.colors.white,
     backgroundColor: "transparent",
     padding: "1rem 2rem",
@@ -131,7 +131,7 @@ export const Hero: React.FC<HeroProps> = ({
     <section style={sectionStyle}>
       <motion.div 
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.2 }}
+        animate={{ scale: 1, opacity: 0.7 }}
         transition={{ duration: 1.5 }}
         style={bgImageStyle}
       />

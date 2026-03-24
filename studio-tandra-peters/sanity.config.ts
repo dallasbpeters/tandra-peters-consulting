@@ -6,11 +6,288 @@ import {geminiAIImages} from 'sanity-plugin-gemini-ai-images'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {geminiStudioApiEndpoint} from './geminiStudioConfig'
-import {assist} from '@sanity/assist'
+import {
+  assist,
+  defineAssistFieldAction,
+  defineAssistFieldActionGroup,
+  defineFieldActionDivider,
+  isType,
+  useUserInput,
+  type AssistFieldActionProps,
+} from '@sanity/assist'
+import {useMemo} from 'react'
+import {useClient, type SchemaType} from 'sanity'
 
 const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') ||
   (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3000')
+
+const BRAND_TONE_CONTEXT_ID = 'assist-context-brand-tone'
+const CUSTOM_AI_CONTEXT_ID = 'aiContext'
+
+type PortableTextChild = {
+  _type?: string
+  text?: string
+}
+
+type PortableTextBlockLike = {
+  _type?: string
+  children?: PortableTextChild[]
+}
+
+type BrandToneContextPayload = {
+  assistContext?: {
+    title?: string
+    context?: PortableTextBlockLike[]
+  } | null
+  customContext?: {
+    instructions?: string
+    businessPriorities?: string[]
+    guardrails?: string[]
+    targetKeywords?: string[]
+  } | null
+}
+
+const blocksToPlainText = (blocks: PortableTextBlockLike[] | undefined): string => {
+  if (!Array.isArray(blocks)) {
+    return ''
+  }
+  return blocks
+    .map((block) =>
+      Array.isArray(block.children)
+        ? block.children
+            .filter((child) => child?._type === 'span' && typeof child.text === 'string')
+            .map((child) => child.text?.trim())
+            .filter(Boolean)
+            .join('')
+        : '',
+    )
+    .filter(Boolean)
+    .join('\n\n')
+    .trim()
+}
+
+const isPortableTextField = (schemaType: SchemaType): boolean => {
+  if (!isType(schemaType, 'array')) {
+    return false
+  }
+  const members = 'of' in schemaType ? schemaType.of : undefined
+  return Array.isArray(members) && members.some((member) => isType(member, 'block'))
+}
+
+const isRewriteableField = (schemaType: SchemaType): boolean =>
+  isType(schemaType, 'string') || isType(schemaType, 'text') || isPortableTextField(schemaType)
+
+const loadBrandToneContext = async (client: ReturnType<typeof useClient>): Promise<string> => {
+  const data = await client.fetch<BrandToneContextPayload>(
+    `{
+      "assistContext": *[_id == $assistId][0]{
+        title,
+        context
+      },
+      "customContext": *[_id == $customId][0]{
+        instructions,
+        businessPriorities,
+        guardrails,
+        targetKeywords
+      }
+    }`,
+    {
+      assistId: BRAND_TONE_CONTEXT_ID,
+      customId: CUSTOM_AI_CONTEXT_ID,
+    },
+  )
+
+  const assistText = blocksToPlainText(data?.assistContext?.context)
+  const custom = data?.customContext
+  const customParts = [
+    custom?.instructions ? `Core direction:\n${custom.instructions}` : '',
+    custom?.businessPriorities?.length
+      ? `Business priorities:\n- ${custom.businessPriorities.join('\n- ')}`
+      : '',
+    custom?.guardrails?.length ? `Guardrails:\n- ${custom.guardrails.join('\n- ')}` : '',
+    custom?.targetKeywords?.length
+      ? `Important phrases to use naturally when relevant:\n- ${custom.targetKeywords.join('\n- ')}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+
+  return [assistText, customParts].filter(Boolean).join('\n\n').trim()
+}
+
+const buildRewriteInstruction = (goal: string) => `
+Rewrite the targeted field using the Brand Tone of Voice context below as the highest-priority style guide.
+
+Brand Tone of Voice context:
+$brandContext
+
+Rewrite goal:
+${goal}
+
+Rules:
+- Preserve factual meaning and any claims already supported by the source field.
+- Do not invent metrics, warranties, service areas, or promises.
+- Keep proper nouns, product names, and links intact unless the rewrite clearly improves grammar.
+- Prefer warm, practical, homeowner-friendly language over generic marketing copy.
+- Return only the rewritten field in the same language as the source.
+
+Current field value:
+$field
+`.trim()
+
+const createBrandVoiceAction = (
+  title: string,
+  goal: string,
+  props: AssistFieldActionProps,
+  client: ReturnType<typeof useClient>,
+) =>
+  defineAssistFieldAction({
+    title,
+    onAction: async () => {
+      const brandContext = await loadBrandToneContext(client)
+      await client.agent.action.transform({
+        schemaId: props.schemaId,
+        documentId: props.documentIdForAction,
+        targetDocument: {
+          operation: 'createIfNotExists',
+          _id: props.documentIdForAction,
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+        },
+        instruction: buildRewriteInstruction(goal),
+        instructionParams: {
+          brandContext,
+          field: {type: 'field', path: props.path},
+        },
+        target: props.path.length ? {path: props.path} : undefined,
+        conditionalPaths: {
+          paths: props.getConditionalPaths(),
+        },
+      })
+    },
+  })
+
+const brandVoiceFieldActions = {
+  title: 'Brand voice rewrites',
+  useFieldActions: (props: AssistFieldActionProps) => {
+    const {
+      actionType,
+      documentIdForAction,
+      documentSchemaType,
+      getConditionalPaths,
+      getDocumentValue,
+      path,
+      schemaId,
+      schemaType,
+    } = props
+    const client = useClient({apiVersion: 'vX'})
+    const getUserInput = useUserInput()
+    const pathKey = JSON.stringify(path)
+
+    return useMemo(() => {
+      if (actionType !== 'field' || !isRewriteableField(schemaType)) {
+        return []
+      }
+
+      const actionProps: AssistFieldActionProps = {
+        actionType,
+        documentIdForAction,
+        documentSchemaType,
+        getConditionalPaths,
+        getDocumentValue,
+        path,
+        schemaId,
+        schemaType,
+      }
+
+      return [
+        defineAssistFieldActionGroup({
+          title: 'Brand voice rewrites',
+          children: [
+            createBrandVoiceAction(
+              'Rewrite in brand voice',
+              'Rewrite this content so it sounds unmistakably like the Tandra/BirdCreek brand voice while preserving the original meaning.',
+              actionProps,
+              client,
+            ),
+            createBrandVoiceAction(
+              'Warm up the tone',
+              'Make this content warmer, more human, and more conversational without sounding salesy or over-polished.',
+              actionProps,
+              client,
+            ),
+            createBrandVoiceAction(
+              'Tighten for clarity',
+              'Make this content clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.',
+              actionProps,
+              client,
+            ),
+            createBrandVoiceAction(
+              'Strengthen trust',
+              'Rewrite this content to feel more reassuring, credible, and confidence-building for homeowners while staying grounded in the original facts.',
+              actionProps,
+              client,
+            ),
+            defineFieldActionDivider(),
+            defineAssistFieldAction({
+              title: 'Custom rewrite...',
+              onAction: async () => {
+                const input = await getUserInput({
+                  title: 'Custom rewrite goal',
+                  inputs: [
+                    {
+                      id: 'goal',
+                      title: 'Rewrite goal',
+                      description:
+                        'Describe what should change, such as shorter, clearer, more local, or more homeowner-friendly.',
+                    },
+                  ],
+                })
+                const goal = input?.[0]?.result?.trim()
+                if (!goal) {
+                  return
+                }
+                const brandContext = await loadBrandToneContext(client)
+                await client.agent.action.transform({
+                  schemaId,
+                  documentId: documentIdForAction,
+                  targetDocument: {
+                    operation: 'createIfNotExists',
+                    _id: documentIdForAction,
+                    _type: documentSchemaType.name,
+                    initialValues: getDocumentValue(),
+                  },
+                  instruction: buildRewriteInstruction(goal),
+                  instructionParams: {
+                    brandContext,
+                    field: {type: 'field', path},
+                  },
+                  target: path.length ? {path} : undefined,
+                  conditionalPaths: {
+                    paths: getConditionalPaths(),
+                  },
+                })
+              },
+            }),
+          ],
+        }),
+      ]
+    }, [
+      actionType,
+      client,
+      documentIdForAction,
+      documentSchemaType,
+      getConditionalPaths,
+      getDocumentValue,
+      getUserInput,
+      path,
+      pathKey,
+      schemaId,
+      schemaType,
+    ])
+  },
+}
 
 export default defineConfig({
   name: 'default',
@@ -21,7 +298,9 @@ export default defineConfig({
   dataset: 'production',
 
   plugins: [
-    assist(),
+    assist({
+      fieldActions: brandVoiceFieldActions,
+    }),
     geminiAIImages({
       apiEndpoint: geminiStudioApiEndpoint,
       enableStandaloneTool: true,

@@ -3,6 +3,24 @@
   "buildCommand": "pnpm build:vercel",
   "headers": [
     {
+      "source": "/studio",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/studio/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
       "source": "/seo",
       "headers": [
         {
