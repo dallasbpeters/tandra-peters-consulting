@@ -1,6 +1,9 @@
 import type { Plugin } from "vite";
-import { getSeoDashboard } from "../api/seo/dashboardService";
-import { DashboardAuthError, authorizeSeoDashboardRequest } from "../api/seo/googleAuth";
+import { getSeoDashboard } from "../server/seo/dashboardService.js";
+import {
+  DashboardAuthError,
+  authorizeSeoDashboardRequest,
+} from "../server/seo/googleAuth.js";
 
 const DASHBOARD_PATH = "/api/seo/dashboard";
 
@@ -45,6 +48,7 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
         "POSTHOG_PERSONALAPI_KEY",
         "POSTHOG_PROJECT_ID",
         "POSTHOG_API_HOST",
+        "SANITY_API_WRITE_TOKEN",
         "VITE_SITE_URL",
         "VITE_PUBLIC_POSTHOG_HOST",
         "VITE_PUBLIC_POSTHOG_UI_HOST",

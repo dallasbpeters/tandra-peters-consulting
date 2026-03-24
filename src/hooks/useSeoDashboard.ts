@@ -9,6 +9,28 @@ type UseSeoDashboardState = {
   refetch: () => Promise<void>;
 };
 
+type DashboardResponseBody = Partial<SeoDashboardPayload> & {
+  error?: string;
+  detail?: string;
+};
+
+const parseDashboardResponse = (
+  raw: string,
+): DashboardResponseBody | null => {
+  if (!raw.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as DashboardResponseBody;
+  } catch {
+    return {
+      error: raw.trim(),
+      detail: raw.trim(),
+    };
+  }
+};
+
 export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
   const [data, setData] = useState<SeoDashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,24 +53,30 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
           Authorization: `Bearer ${token}`,
         },
       });
-      const payload = (await response.json()) as SeoDashboardPayload & {
-        error?: string;
-        detail?: string;
-      };
+      const raw = await response.text();
+      const payload = parseDashboardResponse(raw);
 
       if (!response.ok) {
         setStatusCode(response.status);
-        throw new Error(payload.detail || payload.error || "Request failed");
+        throw new Error(payload?.detail || payload?.error || "Request failed");
       }
 
-      setData(payload);
+      if (!payload) {
+        throw new Error("Dashboard returned an empty response");
+      }
+
+      setData(payload as SeoDashboardPayload);
       setError(null);
       setStatusCode(response.status);
     } catch (err) {
       if (!statusCode) {
         setStatusCode(null);
       }
-      setError(err instanceof Error ? err.message : "Could not load dashboard");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not load dashboard",
+      );
     } finally {
       setLoading(false);
     }

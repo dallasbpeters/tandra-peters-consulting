@@ -15,7 +15,7 @@ export type SeoRecommendation = {
   title: string;
   detail: string;
   priority: SeoRecommendationPriority;
-  source: "ai" | "rules";
+  source: "ai";
 };
 
 export type SeoTrafficPoint = {

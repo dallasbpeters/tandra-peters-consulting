@@ -1,7 +1,8 @@
 import { createClient } from "@sanity/client";
+import { GoogleGenAI } from "@google/genai";
 import groq from "groq";
 import fs from "node:fs/promises";
-import { plainTextFromRich } from "../../src/portableText/plainText";
+import { plainTextFromRich } from "../../src/portableText/plainText.js";
 
 type SeoAuditStatus = "good" | "warning" | "critical";
 type SeoRecommendationPriority = "high" | "medium" | "low";
@@ -20,7 +21,15 @@ type SeoRecommendation = {
   title: string;
   detail: string;
   priority: SeoRecommendationPriority;
-  source: "ai" | "rules";
+  source: "ai";
+};
+
+type SeoOpportunity = {
+  type: "fix" | "refresh" | "new-content";
+  title: string;
+  detail: string;
+  target: string;
+  impact: "high" | "medium" | "low";
 };
 
 type SeoDashboardPayload = {
@@ -68,13 +77,7 @@ type SeoDashboardPayload = {
   contentAnalyses: SeoContentAnalysisItem[];
   audits: SeoAuditItem[];
   recommendations: SeoRecommendation[];
-  opportunities: Array<{
-    type: "fix" | "refresh" | "new-content";
-    title: string;
-    detail: string;
-    target: string;
-    impact: "high" | "medium" | "low";
-  }>;
+  opportunities: SeoOpportunity[];
   aiSummary: string | null;
 };
 
@@ -141,6 +144,13 @@ type SanityDashboardQuery = {
     title?: string | null;
     navTitle?: string | null;
   } | null;
+  aiContext: {
+    instructions?: string | null;
+    businessPriorities?: (string | null)[] | null;
+    guardrails?: (string | null)[] | null;
+    targetKeywords?: (string | null)[] | null;
+    preferredInternalLinks?: (string | null)[] | null;
+  } | null;
   posts: PostRecord[];
 };
 
@@ -170,6 +180,7 @@ const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2024-01-01";
 const DEFAULT_SITE_URL = "https://www.tandra.me";
+const AI_MODEL = "gemini-2.5-flash";
 
 const CATEGORY_LABELS: Record<string, string> = {
   "roof-replacement": "Roof replacement",
@@ -236,6 +247,13 @@ const DASHBOARD_QUERY = groq`{
   "siteSettings": *[_id == "siteSettings"][0]{
     title,
     navTitle
+  },
+  "aiContext": *[_id == "aiContext"][0]{
+    instructions,
+    businessPriorities,
+    guardrails,
+    targetKeywords,
+    preferredInternalLinks
   },
   "posts": *[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
     _id,
@@ -587,6 +605,21 @@ const buildSanityClient = () =>
     useCdn: true,
   });
 
+const buildSanityWriteClient = () => {
+  const token = trim(process.env.SANITY_API_WRITE_TOKEN);
+  if (!token) {
+    return null;
+  }
+
+  return createClient({
+    projectId: SANITY_PROJECT_ID,
+    dataset: SANITY_DATASET,
+    apiVersion: SANITY_API_VERSION,
+    token,
+    useCdn: false,
+  });
+};
+
 const fetchSanityContent = async (): Promise<SanityDashboardQuery> => {
   const client = buildSanityClient();
   const result = await client.fetch<SanityDashboardQuery>(DASHBOARD_QUERY);
@@ -594,6 +627,7 @@ const fetchSanityContent = async (): Promise<SanityDashboardQuery> => {
     homePage: result?.homePage ?? null,
     articlesPage: result?.articlesPage ?? null,
     siteSettings: result?.siteSettings ?? null,
+    aiContext: result?.aiContext ?? null,
     posts: Array.isArray(result?.posts) ? result.posts : [],
   };
 };
@@ -603,6 +637,313 @@ const readIndexHtml = async (): Promise<string> => {
     return await fs.readFile(new URL("../../index.html", import.meta.url), "utf8");
   } catch {
     return "";
+  }
+};
+
+type AiInsightsResult = {
+  connected: boolean;
+  model: string | null;
+  summary: string | null;
+  recommendations: SeoRecommendation[];
+  opportunities: SeoOpportunity[];
+  note: string;
+  persisted: boolean;
+};
+
+const sanitizePriority = (value: unknown): SeoRecommendationPriority => {
+  if (value === "high" || value === "medium" || value === "low") {
+    return value;
+  }
+  return "medium";
+};
+
+const sanitizeImpact = (value: unknown): "high" | "medium" | "low" => {
+  if (value === "high" || value === "medium" || value === "low") {
+    return value;
+  }
+  return "medium";
+};
+
+const sanitizeOpportunityType = (value: unknown): "fix" | "refresh" | "new-content" => {
+  if (value === "fix" || value === "refresh" || value === "new-content") {
+    return value;
+  }
+  return "fix";
+};
+
+const cleanText = (value: unknown): string =>
+  typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+
+const extractJsonObject = (value: string): string | null => {
+  const start = value.indexOf("{");
+  const end = value.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    return null;
+  }
+  return value.slice(start, end + 1);
+};
+
+const sanitizeAiRecommendations = (value: unknown): SeoRecommendation[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const recommendations: SeoRecommendation[] = [];
+
+  for (const item of value) {
+    if (recommendations.length >= 5) {
+      break;
+    }
+
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const title = cleanText((item as { title?: unknown }).title);
+    const detail = cleanText((item as { detail?: unknown }).detail);
+    if (!title || !detail) {
+      continue;
+    }
+
+    recommendations.push({
+      title,
+      detail,
+      priority: sanitizePriority((item as { priority?: unknown }).priority),
+      source: "ai",
+    });
+  }
+
+  return recommendations;
+};
+
+const sanitizeAiOpportunities = (value: unknown): SeoOpportunity[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const opportunities: SeoOpportunity[] = [];
+
+  for (const item of value) {
+    if (opportunities.length >= 6) {
+      break;
+    }
+
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const title = cleanText((item as { title?: unknown }).title);
+    const detail = cleanText((item as { detail?: unknown }).detail);
+    const target = cleanText((item as { target?: unknown }).target);
+    if (!title || !detail || !target) {
+      continue;
+    }
+
+    opportunities.push({
+      type: sanitizeOpportunityType((item as { type?: unknown }).type),
+      title,
+      detail,
+      target,
+      impact: sanitizeImpact((item as { impact?: unknown }).impact),
+    });
+  }
+
+  return opportunities;
+};
+
+const cleanStringList = (value: (string | null)[] | null | undefined): string[] =>
+  Array.isArray(value) ? value.map((item) => cleanText(item)).filter(Boolean) : [];
+
+const persistAiInsights = async (args: {
+  generatedAt: string;
+  siteUrl: string;
+  model: string;
+  summary: string | null;
+  recommendations: SeoRecommendation[];
+  opportunities: SeoOpportunity[];
+}) => {
+  const client = buildSanityWriteClient();
+  if (!client) {
+    return false;
+  }
+
+  await client.createOrReplace({
+    _id: "seoDashboardInsights",
+    _type: "seoDashboardInsights",
+    title: "SEO Dashboard Insights",
+    lastGeneratedAt: args.generatedAt,
+    model: args.model,
+    siteUrl: args.siteUrl,
+    summary: args.summary ?? "",
+    recommendations: args.recommendations.map((item, index) => ({
+      _type: "seoDashboardRecommendation",
+      _key: `rec-${Date.parse(args.generatedAt)}-${index}`,
+      title: item.title,
+      detail: item.detail,
+      priority: item.priority,
+    })),
+    opportunities: args.opportunities.map((item, index) => ({
+      _type: "seoDashboardOpportunity",
+      _key: `opp-${Date.parse(args.generatedAt)}-${index}`,
+      type: item.type,
+      title: item.title,
+      detail: item.detail,
+      target: item.target,
+      impact: item.impact,
+    })),
+  });
+
+  return true;
+};
+
+const generateAiInsights = async (args: {
+  generatedAt: string;
+  siteUrl: string;
+  analytics: SeoDashboardPayload["analytics"];
+  content: SeoDashboardPayload["content"];
+  audits: SeoAuditItem[];
+  contentAnalyses: SeoContentAnalysisItem[];
+  technicalScore: number;
+  contentScore: number;
+  aiContext: SanityDashboardQuery["aiContext"];
+}) : Promise<AiInsightsResult> => {
+  const apiKey = trim(process.env.GEMINI_API_KEY);
+  if (!apiKey) {
+    return {
+      connected: false,
+      model: null,
+      summary: null,
+      recommendations: [],
+      opportunities: [],
+      note: "AI recommendations are disabled because GEMINI_API_KEY is missing in the API runtime.",
+      persisted: false,
+    };
+  }
+
+  const evidence = {
+    generatedAt: args.generatedAt,
+    siteUrl: args.siteUrl,
+    analytics: args.analytics,
+    content: args.content,
+    overview: {
+      technicalScore: args.technicalScore,
+      contentScore: args.contentScore,
+    },
+    audits: args.audits.map((audit) => ({
+      path: audit.path,
+      title: audit.title,
+      score: audit.score,
+      status: audit.status,
+      issues: audit.issues,
+      actions: audit.actions,
+    })),
+    contentAnalyses: args.contentAnalyses.map((item) => ({
+      path: item.path,
+      title: item.title,
+      categoryLabel: item.categoryLabel,
+      score: item.score,
+      wordCount: item.wordCount,
+      headingCount: item.headingCount,
+      internalLinks: item.internalLinks,
+      externalLinks: item.externalLinks,
+      issues: item.issues,
+      actions: item.actions,
+    })),
+    aiContext: args.aiContext
+      ? {
+          instructions: cleanText(args.aiContext.instructions),
+          businessPriorities: cleanStringList(args.aiContext.businessPriorities),
+          guardrails: cleanStringList(args.aiContext.guardrails),
+          targetKeywords: cleanStringList(args.aiContext.targetKeywords),
+          preferredInternalLinks: cleanStringList(args.aiContext.preferredInternalLinks),
+        }
+      : null,
+  };
+
+  const prompt = `You are generating SEO recommendations for a live dashboard.
+
+Use only the evidence provided. Do not invent metrics, traffic, categories, missing fields, stale content, or implementation details that are not explicitly present.
+
+Return strict JSON only with this shape:
+{
+  "summary": "2-4 sentence executive summary",
+  "recommendations": [
+    {"title":"...", "detail":"...", "priority":"high|medium|low"}
+  ],
+  "opportunities": [
+    {"type":"fix|refresh|new-content", "title":"...", "detail":"...", "target":"/path", "impact":"high|medium|low"}
+  ]
+}
+
+Rules:
+- Keep recommendations to at most 5.
+- Keep opportunities to at most 6.
+- Every recommendation and opportunity must be directly grounded in the evidence.
+- Prefer concrete, specific fixes over generic SEO advice.
+- Respect the aiContext section when it is present. Treat it as editorial direction from the business owner.
+- Do not mention missing analytics configuration unless analytics.status says missing_config or error.
+- Do not claim an article is stale unless the evidence says it is stale.
+- If the evidence is weak for an item, omit it.
+
+Evidence:
+${JSON.stringify(evidence, null, 2)}`;
+
+  try {
+    const ai = new GoogleGenAI({apiKey});
+    const response = await ai.models.generateContent({
+      model: AI_MODEL,
+      contents: prompt,
+    });
+
+    const rawText = cleanText(response.text);
+    const jsonText = extractJsonObject(rawText);
+    if (!jsonText) {
+      throw new Error("Model did not return JSON");
+    }
+
+    const parsed = JSON.parse(jsonText) as {
+      summary?: unknown;
+      recommendations?: unknown;
+      opportunities?: unknown;
+    };
+
+    const summary = cleanText(parsed.summary) || null;
+    const recommendations = sanitizeAiRecommendations(parsed.recommendations);
+    const opportunities = sanitizeAiOpportunities(parsed.opportunities);
+
+    const persisted =
+      recommendations.length > 0 || opportunities.length > 0 || summary
+        ? await persistAiInsights({
+            generatedAt: args.generatedAt,
+            siteUrl: args.siteUrl,
+            model: AI_MODEL,
+            summary,
+            recommendations,
+            opportunities,
+          }).catch(() => false)
+        : false;
+
+    return {
+      connected: true,
+      model: AI_MODEL,
+      summary,
+      recommendations,
+      opportunities,
+      note: persisted
+        ? `AI recommendations were generated with ${AI_MODEL} from live dashboard data and synced to Sanity.`
+        : `AI recommendations were generated with ${AI_MODEL} from live dashboard data, but they were not written to Sanity because SANITY_API_WRITE_TOKEN is missing or the write failed.`,
+      persisted,
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      model: AI_MODEL,
+      summary: null,
+      recommendations: [],
+      opportunities: [],
+      note: `AI recommendation generation failed on this refresh: ${error instanceof Error ? error.message : "Unknown error"}.`,
+      persisted: false,
+    };
   }
 };
 
@@ -897,248 +1238,8 @@ const buildContentAnalysis = (args: {
   };
 };
 
-const buildRuleRecommendations = (args: {
-  missingSeoDescription: number;
-  missingExcerpt: number;
-  missingImage: number;
-  stalePosts: number;
-  thinContentPosts: SeoContentAnalysisItem[];
-  postsWithoutInternalLinks: SeoContentAnalysisItem[];
-  postsWithWeakStructure: SeoContentAnalysisItem[];
-  technicalScore: number;
-  analyticsStatus: AnalyticsStatus;
-  topCategory: { label: string; count: number } | null;
-  totalPublishedPosts: number;
-  categories: Array<{ slug: string; label: string; count: number }>;
-}) => {
-  const recommendations: SeoRecommendation[] = [];
-
-  if (args.technicalScore < 70) {
-    recommendations.push({
-      title: "Complete missing SEO fields first",
-      detail:
-        "The fastest technical gain is filling the missing homepage and articles-page SEO fields so your primary entry pages have focused search intent before you expand the content backlog.",
-      priority: "high",
-      source: "rules",
-    });
-  }
-
-  if (args.missingSeoDescription > 0) {
-    recommendations.push({
-      title: "Finish missing search snippets first",
-      detail: `${args.missingSeoDescription} published article${args.missingSeoDescription === 1 ? "" : "s"} still ${args.missingSeoDescription === 1 ? "is" : "are"} missing \`seoDescription\`. That is a concrete Sanity fix you can make before creating anything new.`,
-      priority: "high",
-      source: "rules",
-    });
-  }
-
-  if (args.missingExcerpt > 0 || args.missingImage > 0) {
-    recommendations.push({
-      title: "Improve share readiness on article cards",
-      detail: `${args.missingExcerpt} article excerpt${args.missingExcerpt === 1 ? "" : "s"} and ${args.missingImage} article image${args.missingImage === 1 ? "" : "s"} are missing. That hurts click-through from listing pages and social shares.`,
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.thinContentPosts.length > 0) {
-    recommendations.push({
-      title: "Deepen the thinnest published posts",
-      detail: `${args.thinContentPosts.length} article${args.thinContentPosts.length === 1 ? "" : "s"} ${args.thinContentPosts.length === 1 ? "is" : "are"} under 800 words, including ${args.thinContentPosts
-        .slice(0, 2)
-        .map((post) => `"${post.title}" (${post.wordCount} words)`)
-        .join(" and ")}. Expanding existing winners is a lower-risk move than inventing a whole new cluster.`,
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.postsWithoutInternalLinks.length > 0) {
-    recommendations.push({
-      title: "Add internal links inside published articles",
-      detail: `${args.postsWithoutInternalLinks.length} article${args.postsWithoutInternalLinks.length === 1 ? " currently has" : " currently have"} zero internal links. Start with ${args.postsWithoutInternalLinks
-        .slice(0, 2)
-        .map((post) => `"${post.title}"`)
-        .join(" and ")} so each post supports the rest of the site instead of standing alone.`,
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.postsWithWeakStructure.length > 0) {
-    recommendations.push({
-      title: "Clean up article structure with clearer subheads",
-      detail:
-        `${args.postsWithWeakStructure.length} article${args.postsWithWeakStructure.length === 1 ? " needs" : " need"} stronger section structure. Add more H2/H3 breaks to long blocks of copy so homeowners can scan the answer quickly.`,
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.stalePosts > 0) {
-    recommendations.push({
-      title: "Refresh older articles with current Texas roofing context",
-      detail:
-        `${args.stalePosts} post${args.stalePosts === 1 ? "" : "s"} ha${args.stalePosts === 1 ? "s" : "ve"} not been updated in Sanity for over six months. Refreshing those pages is still a lower-risk win than creating everything net new.`,
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.analyticsStatus === "missing_config") {
-    recommendations.push({
-      title: "Connect server-side PostHog credentials",
-      detail:
-        "The dashboard can already audit content, but traffic and conversion charts stay dark until the PostHog personal API key and project ID are available to the API runtime.",
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  if (args.analyticsStatus === "error") {
-    recommendations.push({
-      title: "Fix the PostHog query connection",
-      detail:
-        "The dashboard can see PostHog is configured, but the server-side query request is still failing. Check the API host, token scope, and project id pairing.",
-      priority: "medium",
-      source: "rules",
-    });
-  }
-
-  const emptyCategories = args.categories.filter((category) => category.count === 0);
-  if (args.topCategory && emptyCategories.length > 0 && args.totalPublishedPosts > 0) {
-    recommendations.push({
-      title: "Balance category coverage before expanding the biggest cluster",
-      detail: `${args.topCategory.count} of ${args.totalPublishedPosts} published article${args.totalPublishedPosts === 1 ? "" : "s"} sit in ${args.topCategory.label.toLowerCase()}, while ${emptyCategories
-        .slice(0, 2)
-        .map((category) => category.label.toLowerCase())
-        .join(" and ")} have no published posts yet.`,
-      priority: "low",
-      source: "rules",
-    });
-  }
-
-  return recommendations.slice(0, 5);
-};
-
-const buildOpportunities = (args: {
-  audits: SeoAuditItem[];
-  contentAnalyses: SeoContentAnalysisItem[];
-  categories: Array<{ slug: string; label: string; count: number }>;
-  missingSeoDescription: number;
-  missingExcerpt: number;
-  missingImage: number;
-}) => {
-  const opportunities: SeoDashboardPayload["opportunities"] = [];
-
-  const homeAudit = args.audits.find((audit) => audit.path === "/");
-  if (homeAudit && homeAudit.status !== "good") {
-    opportunities.push({
-      type: "fix",
-      title: "Tighten homepage metadata and hero messaging",
-      detail:
-        "Update the homepage hero fields directly in Sanity: `homePage.hero.titleLine1`, `homePage.hero.titleLine2`, `homePage.hero.badge`, and `homePage.hero.subtitle`. The homepage meta title/description are currently code-owned in `src/pages/Home.tsx`, so this opportunity is about on-page messaging, not missing SEO fields.",
-      target: "/",
-      impact: "high",
-    });
-  }
-
-  const articlesAudit = args.audits.find((audit) => audit.path === "/articles");
-  if (articlesAudit && articlesAudit.status !== "good") {
-    opportunities.push({
-      type: "fix",
-      title: "Optimize the articles hub as a real landing page",
-      detail:
-        "In Sanity Studio, open the `articlesPage` document and fill `seoTitle` plus `seoDescription`. If you want the page to target a tighter search phrase, update `pageTitle` and `intro` there too.",
-      target: "/articles",
-      impact: "high",
-    });
-  }
-
-  if (args.missingSeoDescription > 0 || args.missingExcerpt > 0 || args.missingImage > 0) {
-    opportunities.push({
-      type: "fix",
-      title: "Finish article card and search snippet coverage",
-      detail: `There are still content hygiene gaps across published articles: ${args.missingSeoDescription} missing SEO descriptions, ${args.missingExcerpt} missing excerpts, and ${args.missingImage} missing lead images. These are direct Sanity edits, not strategy guesses.`,
-      target: "/articles",
-      impact: "medium",
-    });
-  }
-
-  for (const analysis of args.contentAnalyses
-    .filter((item) => item.status !== "good")
-    .slice(0, 3)) {
-    opportunities.push({
-      type: analysis.score < 80 ? "refresh" : "fix",
-      title: `Improve "${analysis.title}"`,
-      detail: `${analysis.title} currently scores ${analysis.score}/100. It has ${analysis.wordCount} words, ${analysis.headingCount} subheads, ${analysis.internalLinks} internal link${analysis.internalLinks === 1 ? "" : "s"}, and ${analysis.externalLinks} supporting outbound link${analysis.externalLinks === 1 ? "" : "s"}. Start with: ${analysis.actions[0]}`,
-      target: analysis.path,
-      impact: analysis.score < 70 ? "high" : "medium",
-    });
-  }
-
-  const underweightedCategories = [...args.categories]
-    .sort((a, b) => a.count - b.count)
-    .slice(0, 2);
-
-  for (const category of underweightedCategories) {
-    const brief = CATEGORY_BRIEFS[category.slug];
-    if (!brief) {
-      continue;
-    }
-    opportunities.push({
-      type: "new-content",
-      title: brief.title,
-      detail: `${brief.detail} Create it as a new ` + "`post`" + ` in Sanity, assign the category ` + "`" + `${category.slug}` + "`" + `, and link it from the articles hub plus at least one related existing article. Current coverage: ${category.count} published article${category.count === 1 ? "" : "s"} in ${category.label.toLowerCase()}.`,
-      target: brief.target,
-      impact: brief.impact,
-    });
-  }
-
-  return opportunities.slice(0, 6);
-};
-
-const buildExecutiveSummary = (args: {
-  analytics: SeoDashboardPayload["analytics"];
-  content: SeoDashboardPayload["content"];
-  contentAnalyses: SeoContentAnalysisItem[];
-  topCategory: { label: string; count: number } | null;
-}): string => {
-  const weakest = args.contentAnalyses.filter((item) => item.status !== "good");
-  const weakestTitles = weakest
-    .slice(0, 2)
-    .map((item) => `"${item.title}"`)
-    .join(" and ");
-  const emptyCategories = args.content.categories.filter((category) => category.count === 0);
-
-  const parts: string[] = [];
-  parts.push(
-    `This dashboard is using measured Sanity content, not guessed strategy copy. Across ${args.content.publishedPosts} published article${args.content.publishedPosts === 1 ? "" : "s"}, ${args.content.thinContentPosts} article${args.content.thinContentPosts === 1 ? "" : "s"} ${args.content.thinContentPosts === 1 ? "is" : "are"} under 800 words, ${args.content.postsWithoutInternalLinks} article${args.content.postsWithoutInternalLinks === 1 ? "" : "s"} ${args.content.postsWithoutInternalLinks === 1 ? "has" : "have"} no internal links, and ${args.content.postsWithWeakStructure} article${args.content.postsWithWeakStructure === 1 ? "" : "s"} ${args.content.postsWithWeakStructure === 1 ? "needs" : "need"} clearer H2/H3 structure.`,
-  );
-
-  if (args.topCategory && args.content.publishedPosts > 0) {
-    const categoryDetail =
-      emptyCategories.length > 0
-        ? `${args.topCategory.label} is currently the deepest category at ${args.topCategory.count} post${args.topCategory.count === 1 ? "" : "s"}, while ${emptyCategories
-            .slice(0, 2)
-            .map((category) => category.label.toLowerCase())
-            .join(" and ")} still have no published coverage.`
-        : `${args.topCategory.label} is currently the deepest category at ${args.topCategory.count} post${args.topCategory.count === 1 ? "" : "s"}.`;
-    parts.push(categoryDetail);
-  }
-
-  if (args.analytics.connected) {
-    parts.push(
-      `Production traffic over the last 7 days is ${args.analytics.pageviews7d ?? 0} pageviews, ${args.analytics.visitors7d ?? 0} visitors, and ${args.analytics.leads7d ?? 0} leads, so the clearest next move is improving the existing articles that already exist${weakestTitles ? `, starting with ${weakestTitles}` : ""}.`,
-    );
-  } else if (weakestTitles) {
-    parts.push(`The clearest next move is improving the existing articles that already exist, starting with ${weakestTitles}.`);
-  }
-
-  return parts.join(" ");
-};
-
 export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
+  const generatedAt = new Date().toISOString();
   const [contentData, indexHtml, analytics] = await Promise.all([
     fetchSanityContent(),
     readIndexHtml(),
@@ -1364,35 +1465,35 @@ export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
       100,
   );
 
-  const ruleRecommendations = buildRuleRecommendations({
-    missingSeoDescription,
-    missingExcerpt,
-    missingImage,
+  const contentSnapshot = {
+    publishedPosts,
     stalePosts: stalePosts.length,
-    thinContentPosts,
-    postsWithoutInternalLinks,
-    postsWithWeakStructure,
-    technicalScore,
-    analyticsStatus: analytics.status,
-    topCategory: categories[0] ?? null,
-    totalPublishedPosts: publishedPosts,
-    categories,
-  });
-
-  const opportunities = buildOpportunities({
-    audits,
-    contentAnalyses,
-    categories,
     missingSeoDescription,
     missingExcerpt,
     missingImage,
+    thinContentPosts: thinContentPosts.length,
+    postsWithoutInternalLinks: postsWithoutInternalLinks.length,
+    postsWithWeakStructure: postsWithWeakStructure.length,
+    categories,
+  };
+
+  const aiInsights = await generateAiInsights({
+    generatedAt,
+    siteUrl,
+    analytics,
+    content: contentSnapshot,
+    audits,
+    contentAnalyses: contentAnalyses.slice(0, 6),
+    technicalScore,
+    contentScore,
+    aiContext: contentData.aiContext,
   });
 
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     sourceStatus: {
       posthogConnected: analytics.connected,
-      aiConnected: trim(process.env.GEMINI_API_KEY).length > 0,
+      aiConnected: aiInsights.connected,
       siteUrl,
       notes: [
         analytics.status === "connected"
@@ -1400,49 +1501,24 @@ export const getSeoDashboard = async (): Promise<SeoDashboardPayload> => {
           : analytics.status === "missing_config"
             ? "PostHog traffic cards are in fallback mode because the API runtime is missing POSTHOG_PERSONAL_API_KEY (or POSTHOG_PERSONALAPI_KEY) and/or POSTHOG_PROJECT_ID."
             : "PostHog is configured, but the server-side query call is still failing. Check token scope, API host, and project id pairing.",
-        "Recommendations are rules-based and backed by live Sanity content plus static shell checks.",
+        aiInsights.note,
       ],
     },
     overview: {
       technicalScore,
       contentScore,
-      opportunities: opportunities.length + ruleRecommendations.length,
+      opportunities: aiInsights.opportunities.length + aiInsights.recommendations.length,
       totalPages: publishedPosts + 5,
       totalPublishedPosts: publishedPosts,
       criticalIssues: audits.filter((audit) => audit.status === "critical").length,
       warningIssues: audits.filter((audit) => audit.status === "warning").length,
     },
     analytics,
-    content: {
-      publishedPosts,
-      stalePosts: stalePosts.length,
-      missingSeoDescription,
-      missingExcerpt,
-      missingImage,
-      thinContentPosts: thinContentPosts.length,
-      postsWithoutInternalLinks: postsWithoutInternalLinks.length,
-      postsWithWeakStructure: postsWithWeakStructure.length,
-      categories,
-    },
+    content: contentSnapshot,
     contentAnalyses: contentAnalyses.slice(0, 6),
     audits,
-    recommendations: ruleRecommendations,
-    opportunities,
-    aiSummary: buildExecutiveSummary({
-      analytics,
-      content: {
-        publishedPosts,
-        stalePosts: stalePosts.length,
-        missingSeoDescription,
-        missingExcerpt,
-        missingImage,
-        thinContentPosts: thinContentPosts.length,
-        postsWithoutInternalLinks: postsWithoutInternalLinks.length,
-        postsWithWeakStructure: postsWithWeakStructure.length,
-        categories,
-      },
-      contentAnalyses,
-      topCategory: categories[0] ?? null,
-    }),
+    recommendations: aiInsights.recommendations,
+    opportunities: aiInsights.opportunities,
+    aiSummary: aiInsights.summary,
   };
 };

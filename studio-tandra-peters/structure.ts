@@ -1,6 +1,6 @@
 import type {StructureResolver} from 'sanity/structure'
 
-const SINGLETONS = new Set(['homePage', 'siteSettings', 'articlesPage'])
+const SINGLETONS = new Set(['homePage', 'siteSettings', 'articlesPage', 'aiContext', 'seoDashboardInsights'])
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -13,6 +13,17 @@ export const structure: StructureResolver = (S) =>
         .title('Site settings')
         .child(
           S.document().schemaType('siteSettings').documentId('siteSettings').title('Site settings'),
+        ),
+      S.listItem()
+        .title('AI context')
+        .child(S.document().schemaType('aiContext').documentId('aiContext').title('AI context')),
+      S.listItem()
+        .title('SEO dashboard')
+        .child(
+          S.document()
+            .schemaType('seoDashboardInsights')
+            .documentId('seoDashboardInsights')
+            .title('SEO dashboard'),
         ),
       S.listItem()
         .title('Articles')

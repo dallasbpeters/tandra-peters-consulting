@@ -6,6 +6,8 @@ import {serviceCardType} from './objects/serviceCard'
 import {missionValueType} from './objects/missionValue'
 import {expertiseItemType} from './objects/expertiseItem'
 import {faqItemType} from './objects/faqItem'
+import {seoDashboardRecommendationType} from './objects/seoDashboardRecommendation'
+import {seoDashboardOpportunityType} from './objects/seoDashboardOpportunity'
 import {statRowType} from './objects/statRow'
 import {
   heroSectionType,
@@ -24,6 +26,8 @@ import {
 import {siteSettingsType} from './documents/siteSettings'
 import {homePageType} from './documents/homePage'
 import {articlesPageType} from './documents/articlesPage'
+import {aiContextType} from './documents/aiContext'
+import {seoDashboardInsightsType} from './documents/seoDashboardInsights'
 
 export const schemaTypes = [
   blockContentType,
@@ -33,6 +37,8 @@ export const schemaTypes = [
   missionValueType,
   expertiseItemType,
   faqItemType,
+  seoDashboardRecommendationType,
+  seoDashboardOpportunityType,
   statRowType,
   heroSectionType,
   marqueeSectionType,
@@ -49,5 +55,7 @@ export const schemaTypes = [
   siteSettingsType,
   homePageType,
   articlesPageType,
+  aiContextType,
+  seoDashboardInsightsType,
   postType,
 ]
