@@ -115,9 +115,10 @@ const palette = {
 
 export const theme = {
   fonts: {
-    headline: '"Plus Jakarta Sans", sans-serif',
-    headlineAlt: '"Bebas Neue", sans-serif',
-    body: '"Plus Jakarta Sans", sans-serif',
+    headline: '"Manrope", sans-serif',
+    headlineAlt: '"Instrument Serif", serif',
+    special: '"Bebas Neue", sans-serif',
+    body: '"Manrope", sans-serif',
   },
   palette,
   colors: {

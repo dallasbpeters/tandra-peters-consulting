@@ -7,7 +7,7 @@ const pStyle: CSSProperties = {
 
 const h2Style: CSSProperties = {
   fontFamily: theme.fonts.headline,
-  fontWeight: 700,
+  fontWeight: 800,
   fontSize: "0.75rem",
   letterSpacing: "0.2em",
   textTransform: "uppercase",

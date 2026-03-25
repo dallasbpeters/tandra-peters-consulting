@@ -40,7 +40,7 @@ export const Stats: React.FC<StatsProps> = ({
 
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     textTransform: "uppercase",
     letterSpacing: "0.3em",
     fontSize: "10px",
@@ -53,7 +53,6 @@ export const Stats: React.FC<StatsProps> = ({
     justifyContent: "start",
     alignItems: "start",
     gap: "2rem",
-    opacity: 0.4,
     transition: "all 0.5s",
   };
 
@@ -71,7 +70,7 @@ export const Stats: React.FC<StatsProps> = ({
 
   const statsTextStyle: React.CSSProperties = {
     fontWeight: 900,
-    fontSize: ".675rem",
+    fontSize: ".775rem",
     textTransform: "uppercase",
     letterSpacing: "0.5em",
   };
@@ -98,14 +97,6 @@ export const Stats: React.FC<StatsProps> = ({
           whileInView="visible"
           viewport={{ once: true }}
           style={statsGridStyle}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "1";
-            e.currentTarget.style.filter = "grayscale(0%)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "0.4";
-            e.currentTarget.style.filter = "grayscale(100%)";
-          }}
         >
           {items.map((stat, i) => (
             <motion.div

@@ -52,8 +52,9 @@ export const About: React.FC<AboutProps> = ({
 
   const certificationsStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(60px, 1fr))",
-    gap: "1rem",
+    gridTemplateColumns: "repeat(auto-fill, minmax(60px, auto))",
+    gap: "2rem",
+    placeItems: "start",
   };
 
   const certificationImageStyle: React.CSSProperties = {
@@ -66,7 +67,7 @@ export const About: React.FC<AboutProps> = ({
     lineHeight: 1,
     marginBottom: "2.5rem",
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     textTransform: "uppercase",
   };
 
@@ -118,7 +119,7 @@ export const About: React.FC<AboutProps> = ({
             className="md-block"
           >
             <p style={{ fontFamily: theme.fonts.headline, fontWeight: 900, color: theme.colors.white, fontSize: "3rem", letterSpacing: "-0.05em", lineHeight: 1, margin: 0 }}>{badgeText}</p>
-            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 700, color: theme.colors.textOnBrand, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
+            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
           </motion.div>
         </motion.div>
         <motion.div 

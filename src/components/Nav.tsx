@@ -15,7 +15,6 @@ export const Nav: React.FC<NavProps> = ({
   navItems = [
     { name: "Services", href: "#services" },
     { name: "About Tandra", href: "#about-tandra" },
-    { name: "Articles", href: "/articles" },
     { name: "Testimonials", href: "#testimonials" },
     { name: "FAQ", href: "#faq" },
     { name: "Contact", href: "#contact" },
@@ -200,7 +199,7 @@ export const Nav: React.FC<NavProps> = ({
           {navItems.map((item, i) =>
             isHome ? (
               <motion.a
-                key={item.name}
+                key={i}
                 href={item.href}
                 aria-label={navAriaLabel(item.name, item.href)}
                 initial={{ opacity: 0, y: -10 }}
@@ -219,7 +218,7 @@ export const Nav: React.FC<NavProps> = ({
               </motion.a>
             ) : (
               <motion.div
-                key={item.name}
+                key={i}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
@@ -322,10 +321,10 @@ export const Nav: React.FC<NavProps> = ({
             }}
           >
             <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {navItems.map((item) =>
+              {navItems.map((item, i) =>
                 isHome ? (
                   <a
-                    key={item.name}
+                    key={i}
                     href={item.href}
                     aria-label={navAriaLabel(item.name, item.href)}
                     className="nav-focusable"
@@ -344,7 +343,7 @@ export const Nav: React.FC<NavProps> = ({
                   </a>
                 ) : (
                   <TransitionLink
-                    key={item.name}
+                    key={i}
                     to={offHomeNavTo(item.href)}
                     viewTransition
                     aria-label={navAriaLabel(item.name, item.href)}

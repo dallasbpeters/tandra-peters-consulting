@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
 import {
-  NavArrowDown,
   Send,
 } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
@@ -21,8 +20,6 @@ const COMPACT_DEFAULT_MESSAGE =
 
 export const ContactSmall = ({
   title = "Get a free roofing consultation.",
-  serviceOptions = CONTACT_SERVICE_OPTIONS,
-  formLabels,
 }: ContactProps) => {
   const [fullName, setFullName] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
@@ -187,8 +184,8 @@ export const ContactSmall = ({
     fontSize: "clamp(1rem, 8vw, 3rem)",
     lineHeight: 1,
     marginBottom: "1rem",
-    fontFamily: theme.fonts.headlineAlt,
-    fontWeight: 600,
+    fontFamily: theme.fonts.special,
+    fontWeight: 400,
   };
 
   const consentRowStyle: React.CSSProperties = {

@@ -96,7 +96,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
         >
           <span
             style={{
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
               color: theme.palette.coral["300"],
@@ -113,7 +113,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
               fontSize: "clamp(3rem, 8vw, 4.5rem)",
               lineHeight: 1,
               fontFamily: theme.fonts.headline,
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
             }}
           >
@@ -185,7 +185,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                     lineHeight: 1.25,
                     marginBottom: "1.5rem",
                     fontFamily: theme.fonts.headline,
-                    fontWeight: 700,
+                    fontWeight: 800,
                     textTransform: "uppercase",
                   }}
                 >

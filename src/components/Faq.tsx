@@ -111,7 +111,7 @@ export const Faq: React.FC<FaqProps> = ({
         >
           <span
             style={{
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
               letterSpacing: "0.2em",
               color: theme.palette.coral["300"],
@@ -129,7 +129,7 @@ export const Faq: React.FC<FaqProps> = ({
               lineHeight: 1.1,
               marginBottom: "1.25rem",
               fontFamily: theme.fonts.headline,
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
               color: theme.colors.everglade,
             }}

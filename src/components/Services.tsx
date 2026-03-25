@@ -4,7 +4,7 @@ import { ArrowDownRight, Page, Search, ShieldCheck } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { ServicesProps } from "../types";
-import BirdcreekLogo from "./BirdcreekLogo";
+import BirdcreekLogo from "./BirdCreekLogo";
 import { RichText } from "../portableText/RichText";
 import { usePostHog } from "@posthog/react";
 
@@ -144,7 +144,7 @@ export const Services: React.FC<ServicesProps> = ({
           <div style={{ maxWidth: "42rem" }}>
             <span
               style={{
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
                 color: theme.colors.accent,
@@ -161,7 +161,7 @@ export const Services: React.FC<ServicesProps> = ({
                 fontSize: "clamp(3rem, 10vw, 6rem)",
                 lineHeight: 1,
                 fontFamily: theme.fonts.headline,
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: "uppercase",
               }}
             >
@@ -273,7 +273,7 @@ export const Services: React.FC<ServicesProps> = ({
                       lineHeight: isMain ? 1 : 1.25,
                       marginBottom: "1.5rem",
                       fontFamily: theme.fonts.headline,
-                      fontWeight: 700,
+                      fontWeight: 800,
                       textTransform: "uppercase",
                     }}
                   >
@@ -408,7 +408,7 @@ export const Services: React.FC<ServicesProps> = ({
                   lineHeight: 1,
                   marginBottom: "1.5rem",
                   fontFamily: theme.fonts.headline,
-                  fontWeight: 700,
+                  fontWeight: 800,
                   textTransform: "uppercase",
                   transition: "color 0.7s",
                 }}

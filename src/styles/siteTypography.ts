@@ -7,7 +7,7 @@ import { mix, theme } from "../theme";
 export const typeStyles = {
   pageListTitle: {
     fontFamily: theme.fonts.headlineAlt,
-    fontWeight: 600,
+    fontWeight: 400,
     fontSize: "clamp(2rem, 5vw, 2.75rem)",
     lineHeight: 1.15,
     marginBottom: "0.75rem",
@@ -63,7 +63,7 @@ export const typeStyles = {
     marginBottom: "1.75rem",
     padding: "0.5rem 0",
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     fontSize: "0.6875rem",
     letterSpacing: "0.16em",
     textTransform: "uppercase",

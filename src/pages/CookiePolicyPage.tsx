@@ -6,7 +6,7 @@ import { theme } from "../theme";
 
 const linkStyle: CSSProperties = {
   color: theme.colors.everglade,
-  fontWeight: 700,
+  fontWeight: 800,
   textDecoration: "underline",
   textUnderlineOffset: "2px",
 };

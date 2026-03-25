@@ -84,7 +84,7 @@ export const ArticlesTeaser = ({
           <div style={{ maxWidth: "42rem" }}>
             <span
               style={{
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
                 color: theme.palette.purple["300"],
@@ -141,7 +141,7 @@ export const ArticlesTeaser = ({
                 alignItems: "center",
                 gap: "0.35rem",
                 fontFamily: theme.fonts.headline,
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: "0.6875rem",
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
@@ -194,7 +194,7 @@ export const ArticlesTeaser = ({
                 style={{
                   color: theme.colors.white,
                   fontFamily: theme.fonts.headline,
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: "1.35rem",
                   lineHeight: 1.25,
                   margin: "0 0 1rem",
@@ -227,7 +227,7 @@ export const ArticlesTeaser = ({
                   rel="noopener noreferrer"
                   style={{
                     color: theme.colors.accentLight,
-                    fontWeight: 700,
+                    fontWeight: 800,
                   }}
                 >
                   Open Sanity Studio

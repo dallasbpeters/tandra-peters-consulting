@@ -98,7 +98,7 @@ export const ArticleGridCard = ({
             style={{
               display: "block",
               fontSize: "0.65rem",
-              fontWeight: 700,
+              fontWeight: 800,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: theme.colors.purple,
@@ -114,7 +114,7 @@ export const ArticleGridCard = ({
               lineHeight: 1.15,
               margin: "0 0 1rem",
               fontFamily: theme.fonts.headline,
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
             }}
           >

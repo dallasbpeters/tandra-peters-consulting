@@ -142,26 +142,40 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
   );
 
   const sectionDescription = asOptionalRichText(svc.description);
-  const birdcreekDescription = asOptionalRichText(svc.birdcreekAdvantage?.description);
+
+  // Build birdcreekAdvantage from any available Sanity fields, falling back to
+  // defaults per-field. This ensures stega metadata always reaches the component
+  // so Presentation overlays appear even when only some fields are populated.
+  const rawBca = svc.birdcreekAdvantage as
+    | Record<string, unknown>
+    | null
+    | undefined;
+  const birdcreekAdvantage = rawBca
+    ? {
+        title:
+          typeof rawBca.title === "string" && rawBca.title
+            ? rawBca.title
+            : "The Birdcreek Advantage",
+        description:
+          asOptionalRichText(rawBca.description) ??
+          "Direct access to Austin's premier roofing company, combining Tandra's consultation with Birdcreek's legendary execution.",
+        ctaLabel:
+          typeof rawBca.ctaLabel === "string" && rawBca.ctaLabel
+            ? rawBca.ctaLabel
+            : "Learn More",
+        ctaHref:
+          typeof rawBca.ctaHref === "string" && rawBca.ctaHref
+            ? rawBca.ctaHref
+            : "https://birdcreekroofing.com",
+      }
+    : undefined;
 
   return {
     ...(svc.tagline ? { tagline: svc.tagline } : {}),
     ...(title ? { title } : {}),
     ...(sectionDescription ? { description: sectionDescription } : {}),
     ...(services && services.length > 0 ? { services } : {}),
-    ...(svc.birdcreekAdvantage?.title &&
-    birdcreekDescription &&
-    svc.birdcreekAdvantage?.ctaLabel &&
-    svc.birdcreekAdvantage?.ctaHref
-      ? {
-          birdcreekAdvantage: {
-            title: svc.birdcreekAdvantage.title,
-            description: birdcreekDescription,
-            ctaLabel: svc.birdcreekAdvantage.ctaLabel,
-            ctaHref: svc.birdcreekAdvantage.ctaHref,
-          },
-        }
-      : {}),
+    ...(birdcreekAdvantage ? { birdcreekAdvantage } : {}),
   };
 };
 
@@ -345,8 +359,14 @@ export const mapNavProps = (site: SanityDoc): Partial<NavProps> => {
   if (!site) {
     return {};
   }
-  const navItemsRaw = Array.isArray(site.navItems)
-    ? (site.navItems as NavItem[])
+
+  // Explicitly access each property so the stega proxy resolves and encodes
+  // edit-path metadata into the string values before they reach React.
+  const navItemsRaw: NavItem[] | undefined = Array.isArray(site.navItems)
+    ? site.navItems.map((l: { name: string; href: string }) => ({
+        name: l.name,
+        href: l.href,
+      }))
     : undefined;
 
   return {
@@ -377,11 +397,19 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
     },
   ).filter(Boolean) as FooterProps["socialLinks"];
 
-  const quickLinksRaw = Array.isArray(site.footerQuickLinks)
-    ? (site.footerQuickLinks as NavItem[])
+  const quickLinksRaw: NavItem[] | undefined = Array.isArray(
+    site.footerQuickLinks,
+  )
+    ? site.footerQuickLinks.map((l: { name: string; href: string }) => ({
+        name: l.name,
+        href: l.href,
+      }))
     : undefined;
-  const legalLinks = Array.isArray(site.footerLegalLinks)
-    ? (site.footerLegalLinks as NavItem[])
+  const legalLinks: NavItem[] | undefined = Array.isArray(site.footerLegalLinks)
+    ? site.footerLegalLinks.map((l: { name: string; href: string }) => ({
+        name: l.name,
+        href: l.href,
+      }))
     : undefined;
 
   const footerDescription = asOptionalRichText(site.footerDescription);

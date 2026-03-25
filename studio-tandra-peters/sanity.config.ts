@@ -198,8 +198,6 @@ const createBrandVoiceAction = (
         targetDocument: {
           operation: 'createIfNotExists',
           _id: props.documentIdForAction,
-          _type: props.documentSchemaType.name,
-          initialValues: props.getDocumentValue(),
         },
         instruction: buildRewriteInstruction(goal),
         instructionParams: {
@@ -230,8 +228,6 @@ const createDocumentBrandVoiceAction = (
         targetDocument: {
           operation: 'createIfNotExists',
           _id: props.documentIdForAction,
-          _type: props.documentSchemaType.name,
-          initialValues: props.getDocumentValue(),
         },
         instruction: buildDocumentRewriteInstruction(goal),
         instructionParams: {
@@ -326,8 +322,6 @@ const brandVoiceFieldActions = {
                     targetDocument: {
                       operation: 'createIfNotExists',
                       _id: documentIdForAction,
-                      _type: documentSchemaType.name,
-                      initialValues: getDocumentValue(),
                     },
                     instruction: buildDocumentRewriteInstruction(goal),
                     instructionParams: {
@@ -398,8 +392,6 @@ const brandVoiceFieldActions = {
                   targetDocument: {
                     operation: 'createIfNotExists',
                     _id: documentIdForAction,
-                    _type: documentSchemaType.name,
-                    initialValues: getDocumentValue(),
                   },
                   instruction: buildRewriteInstruction(goal),
                   instructionParams: {

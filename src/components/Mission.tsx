@@ -121,7 +121,7 @@ export const Mission: React.FC<MissionProps> = ({
           <div style={{ maxWidth: "42rem" }}>
             <span
               style={{
-                fontWeight: 700,
+                fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
                 color: theme.colors.purple,
@@ -216,7 +216,7 @@ export const Mission: React.FC<MissionProps> = ({
                     style={{
                       position: "absolute",
                       inset: 0,
-                      opacity: 0.2,
+                      opacity: 0.5,
                       transition: "opacity 0.7s",
                     }}
                     className="mission-card-bg"
@@ -242,7 +242,7 @@ export const Mission: React.FC<MissionProps> = ({
                       lineHeight: isMain ? 1 : 1.25,
                       marginBottom: "1.5rem",
                       fontFamily: theme.fonts.headline,
-                      fontWeight: 700,
+                      fontWeight: 800,
                       textTransform: "uppercase",
                     }}
                   >
@@ -253,7 +253,8 @@ export const Mission: React.FC<MissionProps> = ({
                       color: theme.colors.white,
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
-                      fontSize: "1rem",
+                      fontSize: "1.1rem",
+                      fontWeight: 500,
                     }}
                   >
                     <RichText
@@ -263,6 +264,7 @@ export const Mission: React.FC<MissionProps> = ({
                         color: "inherit",
                         lineHeight: "inherit",
                         fontSize: "inherit",
+                        fontWeight: "inherit",
                       }}
                       linkStyle={{ color: theme.colors.accentLight }}
                     />
@@ -279,7 +281,7 @@ export const Mission: React.FC<MissionProps> = ({
                 >
                   <span
                     style={{
-                      color: "rgba(255, 255, 255, 0.2)",
+                      color: "rgba(255, 255, 255, 0.5)",
                       fontFamily: theme.fonts.headline,
                       fontWeight: 900,
                       fontSize: isMain ? "6rem" : "3.75rem",

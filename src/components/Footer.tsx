@@ -56,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({
 
   const headingStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     textTransform: "uppercase",
     fontSize: "10px",
     letterSpacing: "0.3em",
@@ -73,7 +73,7 @@ export const Footer: React.FC<FooterProps> = ({
     gap: "1rem",
     fontSize: "0.875rem",
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
      
     letterSpacing: "0.1em",
   };

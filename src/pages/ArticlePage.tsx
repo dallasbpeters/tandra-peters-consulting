@@ -97,7 +97,7 @@ export const ArticlePage = () => {
             <TransitionLink
               to="/articles"
               viewTransition
-              style={{ color: theme.colors.everglade, fontWeight: 700 }}
+              style={{ color: theme.colors.everglade, fontWeight: 800 }}
             >
               ← All articles
             </TransitionLink>

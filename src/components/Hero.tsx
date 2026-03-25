@@ -79,7 +79,7 @@ export const Hero: React.FC<HeroProps> = ({
     lineHeight: 0.9,
     marginBottom: "2rem",
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     textTransform: "uppercase",
     letterSpacing: "-0.02em",
   };
@@ -146,7 +146,7 @@ export const Hero: React.FC<HeroProps> = ({
             <span
               style={{
                 fontSize: "10px",
-                fontWeight: 700,
+                fontWeight: 800,
                 letterSpacing: "0.2em",
                 color: theme.colors.purple,
                 textTransform: "uppercase",
