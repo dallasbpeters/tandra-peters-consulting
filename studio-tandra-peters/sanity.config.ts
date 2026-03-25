@@ -19,6 +19,17 @@ import {
 import {useMemo} from 'react'
 import {useClient, type SchemaType} from 'sanity'
 
+// @sanity/client's TransformTargetDocument omits _type and initialValues from the
+// createIfNotExists variant in its TypeScript types, but the Sanity API accepts them.
+// Without _type the API cannot create a draft when none exists yet.
+type TransformTargetCreateIfNotExists = {
+  operation: 'createIfNotExists'
+  _id: string
+  _type?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialValues?: Record<string, any>
+}
+
 const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') ||
   (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3000')
@@ -198,7 +209,9 @@ const createBrandVoiceAction = (
         targetDocument: {
           operation: 'createIfNotExists',
           _id: props.documentIdForAction,
-        },
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+        } as TransformTargetCreateIfNotExists as never,
         instruction: buildRewriteInstruction(goal),
         instructionParams: {
           brandContext,
@@ -228,7 +241,9 @@ const createDocumentBrandVoiceAction = (
         targetDocument: {
           operation: 'createIfNotExists',
           _id: props.documentIdForAction,
-        },
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+        } as TransformTargetCreateIfNotExists as never,
         instruction: buildDocumentRewriteInstruction(goal),
         instructionParams: {
           brandContext,
@@ -322,7 +337,9 @@ const brandVoiceFieldActions = {
                     targetDocument: {
                       operation: 'createIfNotExists',
                       _id: documentIdForAction,
-                    },
+                      _type: documentSchemaType.name,
+                      initialValues: getDocumentValue(),
+                    } as TransformTargetCreateIfNotExists as never,
                     instruction: buildDocumentRewriteInstruction(goal),
                     instructionParams: {
                       brandContext,
@@ -392,7 +409,9 @@ const brandVoiceFieldActions = {
                   targetDocument: {
                     operation: 'createIfNotExists',
                     _id: documentIdForAction,
-                  },
+                    _type: documentSchemaType.name,
+                    initialValues: getDocumentValue(),
+                  } as TransformTargetCreateIfNotExists as never,
                   instruction: buildRewriteInstruction(goal),
                   instructionParams: {
                     brandContext,
