@@ -78,7 +78,7 @@ export const getSanityClient = (): SanityClient => {
     apiVersion: SANITY_API_VERSION,
     useCdn: import.meta.env.PROD && !drafts,
     ...(drafts ? { perspective: "drafts" as const } : {}),
-    ...(token ? { token } : {}),
+    ...(token ? { token, ignoreBrowserTokenWarning: true } : {}),
     stega: {
       enabled: stegaEnabled(),
       studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || fallbackStudioUrl,

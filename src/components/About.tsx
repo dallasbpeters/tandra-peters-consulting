@@ -89,8 +89,8 @@ export const About: React.FC<AboutProps> = ({
         <style>{`
           @media (min-width: 1024px) {
             .lg-grid { grid-template-columns: repeat(12, 1fr) !important; }
-            .lg-col-5 { grid-column: span 5 / span 5 !important; }
-            .lg-col-7 { grid-column: span 7 / span 7 !important; }
+            .lg-col-5 { grid-column: span 4 / span 4 !important; }
+            .lg-col-7 { grid-column: 5 / span 7 !important; }
             .md-block { display: block !important; }
           }
         `}</style>
@@ -110,7 +110,7 @@ export const About: React.FC<AboutProps> = ({
               referrerPolicy="no-referrer"
             />
           </div>
-          <motion.div 
+          {/* <motion.div 
             initial={{ opacity: 0, scale: 0.8, x: 20 }}
             whileInView={{ opacity: 1, scale: 1, x: 0 }}
             viewport={{ once: true }}
@@ -119,8 +119,8 @@ export const About: React.FC<AboutProps> = ({
             className="md-block"
           >
             <p style={{ fontFamily: theme.fonts.headline, fontWeight: 900, color: theme.colors.white, fontSize: "3rem", letterSpacing: "-0.05em", lineHeight: 1, margin: 0 }}>{badgeText}</p>
-            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
-          </motion.div>
+            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
+          </motion.div> */}
         </motion.div>
         <motion.div 
           initial={{ opacity: 0, x: 50 }}

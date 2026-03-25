@@ -120,7 +120,7 @@ export const Nav: React.FC<NavProps> = ({
     textDecoration: "none",
   };
   const logoTaglineStyle: React.CSSProperties = {
-    fontSize: "10px",
+    fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.1em",
     gridArea: "tagline",
@@ -155,7 +155,7 @@ export const Nav: React.FC<NavProps> = ({
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: "0.1em",
-    fontSize: "10px",
+    fontSize: "11px",
     border: "none",
     cursor: "pointer",
     transition: "background-color 0.2s",

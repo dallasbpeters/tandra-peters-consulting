@@ -7,7 +7,8 @@ import type {
   HistoryRefresh,
   HistoryUpdate,
 } from "@sanity/visual-editing";
-import { useSanitySite } from "../context/SanitySiteContext";
+import { useContext } from "react";
+import { SanitySiteContext } from "../context/SanitySiteContext";
 import { dispatchSanityPresentationRefresh } from "../sanity/presentationEvents";
 
 const isPresentationContext = (): boolean => {
@@ -49,8 +50,11 @@ const toRouterPath = (url: string): string => {
  * Avoids `enableVisualEditing()` / `renderVisualEditing`, which wrap the tree in
  * `StrictMode` and can break the Presentation ↔ comlink handshake in dev.
  */
+const noop = () => Promise.resolve();
+
 export const SanityVisualEditing = () => {
-  const { refetch } = useSanitySite();
+  const ctx = useContext(SanitySiteContext);
+  const refetch = ctx?.refetch ?? noop;
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   const [onHistoryNavigate, setOnHistoryNavigate] = useState<

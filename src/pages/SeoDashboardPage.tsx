@@ -265,7 +265,7 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
       </div>
     </div>
 
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "0.65rem" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(111px, 1fr))", gap: "0.65rem" }}>
       {[
         { label: "Words", value: analysis.wordCount },
         { label: "Read time", value: `${analysis.readingMinutes} min` },

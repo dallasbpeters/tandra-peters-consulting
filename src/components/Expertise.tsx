@@ -145,7 +145,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
             }
             .expertise-card:hover {
               box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35),
-                0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+                0 11px 11px -5px rgba(0, 0, 0, 0.2) !important;
             }
           `}</style>
           {items.map((item) => (

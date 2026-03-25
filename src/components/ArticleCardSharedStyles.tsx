@@ -22,7 +22,7 @@ export const ArticleCardSharedStyles = () => (
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .articles-teaser-card:hover {
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 11px 11px -5px rgba(0, 0, 0, 0.1) !important;
     }
     @media (prefers-reduced-motion: reduce) {
       .articles-teaser-card:hover .articles-teaser-card-bg img { transform: none !important; }

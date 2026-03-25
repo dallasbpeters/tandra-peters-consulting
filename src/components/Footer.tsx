@@ -58,7 +58,7 @@ export const Footer: React.FC<FooterProps> = ({
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
     textTransform: "uppercase",
-    fontSize: "10px",
+    fontSize: "11px",
     letterSpacing: "0.3em",
     color: theme.colors.textOnBrand,
     marginBottom: "2rem",

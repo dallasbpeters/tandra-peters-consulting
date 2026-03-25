@@ -43,7 +43,7 @@ export const Stats: React.FC<StatsProps> = ({
     fontWeight: 800,
     textTransform: "uppercase",
     letterSpacing: "0.3em",
-    fontSize: "10px",
+    fontSize: "11px",
     color: theme.colors.white,
   };
 

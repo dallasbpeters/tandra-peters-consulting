@@ -451,6 +451,7 @@ export default defineConfig({
   icon: StarFilledIcon,
   projectId: '7irm699i',
   dataset: 'production',
+  appId: 'on6anif3y43e3t03oiwrgp30',
 
   plugins: [
     agentContextPlugin(),

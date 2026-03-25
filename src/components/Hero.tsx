@@ -48,8 +48,8 @@ export const Hero: React.FC<HeroProps> = ({
     minHeight: "80vh",
     display: "flex",
     alignItems: "center",
-    paddingTop: "5rem",
-    paddingBottom: "3rem",
+    paddingTop: "8rem",
+    paddingBottom: "5rem",
     background: `linear-gradient(135deg, ${theme.colors.black} 0%, ${theme.colors.black} 100%)`,
     overflow: "hidden",
   };
@@ -69,7 +69,7 @@ export const Hero: React.FC<HeroProps> = ({
     gap: "0.5rem",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: "0.25rem 0.75rem",
-    marginBottom: "2rem",
+    marginBottom: "1.5rem",
     color: theme.colors.purple,
   };
 
@@ -131,7 +131,7 @@ export const Hero: React.FC<HeroProps> = ({
     <section style={sectionStyle}>
       <motion.div 
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.7 }}
+        animate={{ scale: 1, opacity: 0.5 }}
         transition={{ duration: 1.5 }}
         style={bgImageStyle}
       />
@@ -145,7 +145,7 @@ export const Hero: React.FC<HeroProps> = ({
           <motion.div variants={itemVariants} style={badgeStyle}>
             <span
               style={{
-                fontSize: "10px",
+                fontSize: "11px",
                 fontWeight: 800,
                 letterSpacing: "0.2em",
                 color: theme.colors.purple,

@@ -18,7 +18,7 @@ import { useSanitySite } from "../context/SanitySiteContext";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import {
   mapAboutProps,
-  mapArticlesTeaserEditorialProps,
+  // mapArticlesTeaserEditorialProps,
   mapContactProps,
   mapExpertiseProps,
   mapFaqProps,
@@ -36,7 +36,7 @@ export const Home = () => {
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
       ? home.seoTitle
-      : "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
+      : "Tandra Peters | Roofing Consultant | Austin, TX";
   const seoDescription =
     typeof home?.seoDescription === "string" && home.seoDescription.trim()
       ? home.seoDescription
@@ -96,7 +96,7 @@ export const Home = () => {
         /> */}
         <Band
           minHeight={8}
-          maxHeight={20}
+          maxHeight={16}
           tint={theme.colors.everglade}
           colors={[
             theme.colors.evergladeLight,
@@ -112,7 +112,7 @@ export const Home = () => {
       <SocialShareBar {...mapSocialShareProps(socialShare)} />
       <Band
       minHeight={8}
-      maxHeight={20}
+      maxHeight={16}
         reverse={true}
         rotate={true}
         tint={theme.colors.everglade}

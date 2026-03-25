@@ -15,6 +15,11 @@ const SeoDashboardPage = lazy(async () => {
   return { default: module.SeoDashboardPage };
 });
 
+const AgentChatPage = lazy(async () => {
+  const module = await import("./pages/AgentChatPage");
+  return { default: module.AgentChatPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -43,6 +48,14 @@ const appRouter = createBrowserRouter([
       { path: "privacy", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "cookies", element: <CookiePolicyPage /> },
+      {
+        path: "agent",
+        element: (
+          <Suspense fallback={null}>
+            <AgentChatPage />
+          </Suspense>
+        ),
+      },
     ],
   },
 ]);

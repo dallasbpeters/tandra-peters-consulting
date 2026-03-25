@@ -196,7 +196,7 @@ export const Mission: React.FC<MissionProps> = ({
             }
             .mission-card:hover .mission-card-icon { transform: scale(1.1) !important; }
             .mission-card:hover .mission-card-arrow { transform: rotate(45deg) !important; }
-            .mission-card:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important; }
+            .mission-card:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 11px 11px -5px rgba(0, 0, 0, 0.1) !important; }
             @media (prefers-reduced-motion: reduce) {
               .mission-card:hover .mission-card-bg img { transform: none !important; }
               .mission-card .mission-card-bg img { transition: none; }

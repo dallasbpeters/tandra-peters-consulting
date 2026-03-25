@@ -98,7 +98,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
-    fontSize: "10px",
+    fontSize: "11px",
     letterSpacing: "0.25em",
     textTransform: "uppercase",
     color: theme.colors.everglade,
@@ -124,7 +124,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     ...iconButtonStyle,
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
-    fontSize: "10px",
+    fontSize: "11px",
     letterSpacing: "0.08em",
     textTransform: "uppercase",
     width: "auto",
