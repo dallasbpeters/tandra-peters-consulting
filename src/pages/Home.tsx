@@ -56,9 +56,9 @@ export const Home = () => {
   const expertise = home?.expertise as Record<string, unknown> | undefined;
   const testimonials = home?.testimonials as Record<string, unknown> | undefined;
   const faq = home?.faq as Record<string, unknown> | undefined;
-  const articlesTeaser = home?.articlesTeaser as
-    | Record<string, unknown>
-    | undefined;
+  // const articlesTeaser = home?.articlesTeaser as
+  //   | Record<string, unknown>
+  //   | undefined;
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
 

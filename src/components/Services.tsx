@@ -400,7 +400,7 @@ export const Services: React.FC<ServicesProps> = ({
               }
             `}</style>
              <BirdcreekLogo />
-            <div style={{ maxWidth: "28rem" }}>
+            <div style={{ maxWidth: "38rem" }}>
               <h3
                 style={{
                   color: theme.colors.everglade,
