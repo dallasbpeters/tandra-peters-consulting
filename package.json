@@ -22,6 +22,7 @@
     "@sanity/agent-context": "^0.3.5",
     "@sanity/assist": "^6.0.3",
     "@sanity/client": "^7.20.0",
+    "@sanity/icons": "^3.7.4",
     "@sanity/visual-editing": "^5.3.1",
     "@types/react": "^19.2.14",
     "@vercel/node": "^5.6.18",

@@ -7,6 +7,7 @@ import {agentContextPlugin} from '@sanity/agent-context/studio'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {geminiStudioApiEndpoint} from './geminiStudioConfig'
+import {StarFilledIcon} from '@sanity/icons'
 import {
   assist,
   defineAssistFieldAction,
@@ -447,7 +448,7 @@ export default defineConfig({
   name: 'default',
   title: 'Tandra Peters',
   basePath: '/studio',
-
+  icon: StarFilledIcon,
   projectId: '7irm699i',
   dataset: 'production',
 
