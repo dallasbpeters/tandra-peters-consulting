@@ -16,7 +16,8 @@ export const aiContextType = defineType({
       title: 'Core instructions',
       type: 'text',
       rows: 8,
-      description: 'High-level guidance the dashboard AI should follow when generating recommendations.',
+      description:
+        'High-level guidance the dashboard AI should follow when generating recommendations.',
     }),
     defineField({
       name: 'businessPriorities',

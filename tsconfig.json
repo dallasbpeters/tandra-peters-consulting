@@ -1,16 +1,18 @@
 {
-  "include": ["src", "api", "contactServiceOptions.ts", "vite.config.ts", "plugins/**/*.ts"],
+  "include": [
+    "src",
+    "api",
+    "contactServiceOptions.ts",
+    "vite.config.ts",
+    "plugins/**/*.ts"
+  ],
   "exclude": ["studio-tandra-peters", "dist", "node_modules"],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,

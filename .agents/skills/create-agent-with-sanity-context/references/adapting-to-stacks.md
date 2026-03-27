@@ -31,31 +31,31 @@ Regardless of framework, the integration follows this flow:
 **Express/Node.js**
 
 ```ts
-app.post('/api/chat', async (req, res) => {
+app.post("/api/chat", async (req, res) => {
   const mcpClient = await createMCPClient({
     transport: {
-      type: 'http',
+      type: "http",
       url: process.env.SANITY_CONTEXT_MCP_URL,
-      headers: {Authorization: `Bearer ${process.env.SANITY_API_READ_TOKEN}`},
+      headers: { Authorization: `Bearer ${process.env.SANITY_API_READ_TOKEN}` },
     },
-  })
-  const tools = await mcpClient.tools()
+  });
+  const tools = await mcpClient.tools();
   // Pass tools to your LLM, handle response...
-})
+});
 ```
 
 **Remix**
 
 ```ts
-export async function action({request}: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const mcpClient = await createMCPClient({
     transport: {
-      type: 'http',
+      type: "http",
       url: process.env.SANITY_CONTEXT_MCP_URL,
-      headers: {Authorization: `Bearer ${process.env.SANITY_API_READ_TOKEN}`},
+      headers: { Authorization: `Bearer ${process.env.SANITY_API_READ_TOKEN}` },
     },
-  })
-  const tools = await mcpClient.tools()
+  });
+  const tools = await mcpClient.tools();
   // Pass tools to your LLM, handle response...
 }
 ```
@@ -82,7 +82,7 @@ tools = await client.get_tools()
 **LangChain**: Wrap MCP tools as LangChain tools
 
 ```ts
-const mcpTools = await mcpClient.tools()
+const mcpTools = await mcpClient.tools();
 const langchainTools = mcpTools.map(
   (tool) =>
     new DynamicTool({
@@ -90,15 +90,15 @@ const langchainTools = mcpTools.map(
       description: tool.description,
       func: async (input) => mcpClient.callTool(tool.name, JSON.parse(input)),
     }),
-)
+);
 ```
 
 **Direct Anthropic API**: Pass tool definitions directly
 
 ```ts
-const tools = await mcpClient.tools()
+const tools = await mcpClient.tools();
 const response = await anthropic.messages.create({
-  model: 'claude-sonnet-4-20250514',
+  model: "claude-sonnet-4-20250514",
   system: systemPrompt,
   messages,
   tools: tools.map((t) => ({
@@ -106,7 +106,7 @@ const response = await anthropic.messages.create({
     description: t.description,
     input_schema: t.inputSchema,
   })),
-})
+});
 ```
 
 ---

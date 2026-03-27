@@ -196,6 +196,19 @@ export interface FaqProps {
   paddingTop?: string;
 }
 
+export interface ServiceAreaEntry {
+  countyKey: string;
+  displayName: string;
+  clientCount: number;
+}
+
+export interface ServiceAreaMapProps {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  areas?: ServiceAreaEntry[];
+}
+
 export interface ArticlesTeaserProps {
   posts: PostListItem[];
   eyebrow?: string;

@@ -14,14 +14,16 @@ export const CONTACT_SERVICE_OPTIONS = [
   },
 ] as const;
 
-export type ContactServiceValue = (typeof CONTACT_SERVICE_OPTIONS)[number]["value"];
+export type ContactServiceValue =
+  (typeof CONTACT_SERVICE_OPTIONS)[number]["value"];
 
 const SERVICE_VALUES = new Set<string>(
   CONTACT_SERVICE_OPTIONS.map((o) => o.value),
 );
 
-export const isValidContactServiceValue = (v: string): v is ContactServiceValue =>
-  SERVICE_VALUES.has(v);
+export const isValidContactServiceValue = (
+  v: string,
+): v is ContactServiceValue => SERVICE_VALUES.has(v);
 
 export const contactServiceLabel = (value: string): string | null => {
   const row = CONTACT_SERVICE_OPTIONS.find((o) => o.value === value);

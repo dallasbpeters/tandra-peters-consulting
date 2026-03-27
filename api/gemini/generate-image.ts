@@ -7,21 +7,23 @@
  * Local: `pnpm dev` (Vite on port 3000) serves this route via `plugins/viteGeminiDevApi.ts`.
  * Alternatively run `vercel dev` from the repo root.
  */
-import type {VercelRequest, VercelResponse} from '@vercel/node';
-import {handler as geminiHandler} from 'sanity-plugin-gemini-ai-images-serverless';
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { handler as geminiHandler } from "sanity-plugin-gemini-ai-images-serverless";
 
 const addCors = (res: VercelResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-API-Key',
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key",
   );
 };
 
 const toWebRequest = (req: VercelRequest): Request => {
-  const host = req.headers.host ?? 'localhost';
-  const path = req.url?.startsWith('http') ? req.url : `https://${host}${req.url ?? '/'}`;
+  const host = req.headers.host ?? "localhost";
+  const path = req.url?.startsWith("http")
+    ? req.url
+    : `https://${host}${req.url ?? "/"}`;
   const headerPairs: [string, string][] = [];
   for (const [key, value] of Object.entries(req.headers)) {
     if (value == null) {
@@ -36,8 +38,8 @@ const toWebRequest = (req: VercelRequest): Request => {
     }
   }
   const body =
-    req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH'
-      ? typeof req.body === 'string'
+    req.method === "POST" || req.method === "PUT" || req.method === "PATCH"
+      ? typeof req.body === "string"
         ? req.body
         : JSON.stringify(req.body ?? {})
       : undefined;
@@ -50,11 +52,11 @@ const toWebRequest = (req: VercelRequest): Request => {
 
 const sendWebResponse = async (res: VercelResponse, webRes: Response) => {
   const headers = new Headers(webRes.headers);
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   headers.set(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-API-Key',
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key",
   );
   res.status(webRes.status);
   headers.forEach((value, key) => {
@@ -67,7 +69,7 @@ export default async function geminiGenerateImage(
   req: VercelRequest,
   res: VercelResponse,
 ) {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     addCors(res);
     res.status(204).end();
     return;

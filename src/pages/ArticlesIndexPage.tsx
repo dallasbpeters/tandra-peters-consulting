@@ -46,7 +46,9 @@ export const ArticlesIndexPage = () => {
           </div>
 
           {loading ? (
-            <p style={{ color: theme.colors.evergladeMuted }}>Loading articles…</p>
+            <p style={{ color: theme.colors.evergladeMuted }}>
+              Loading articles…
+            </p>
           ) : null}
           {error ? (
             <p style={{ color: theme.colors.evergladeMuted }}>
@@ -56,10 +58,12 @@ export const ArticlesIndexPage = () => {
 
           {!loading && !error && posts.length === 0 ? (
             <p style={{ color: theme.colors.evergladeMuted }}>
-              No published articles to show. In Sanity Studio, open each post and
-              click Publish (drafts are hidden on the public site). For local
-              preview of drafts, add{" "}
-              <code style={{ fontSize: "0.9em" }}>VITE_SANITY_API_READ_TOKEN</code>{" "}
+              No published articles to show. In Sanity Studio, open each post
+              and click Publish (drafts are hidden on the public site). For
+              local preview of drafts, add{" "}
+              <code style={{ fontSize: "0.9em" }}>
+                VITE_SANITY_API_READ_TOKEN
+              </code>{" "}
               to <code style={{ fontSize: "0.9em" }}>.env.local</code>.
             </p>
           ) : null}
@@ -71,7 +75,10 @@ export const ArticlesIndexPage = () => {
                   key={p._id}
                   initial={false}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.45, delay: Math.min(i * 0.05, 0.5) }}
+                  transition={{
+                    duration: 0.45,
+                    delay: Math.min(i * 0.05, 0.5),
+                  }}
                   className="articles-cards-grid-item"
                   style={{ minWidth: 0 }}
                 >

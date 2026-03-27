@@ -27,11 +27,7 @@ export const useSanityPostBySlug = (slug: string | undefined) => {
         setError(null);
         return;
       }
-      setPost(
-        isSanityStegaUiActive()
-          ? raw
-          : (stegaClean(raw) as PostDetail),
-      );
+      setPost(isSanityStegaUiActive() ? raw : (stegaClean(raw) as PostDetail));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
@@ -50,9 +46,15 @@ export const useSanityPostBySlug = (slug: string | undefined) => {
       void refetch();
     };
 
-    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+    window.addEventListener(
+      SANITY_PRESENTATION_REFRESH_EVENT,
+      onPresentationRefresh,
+    );
     return () => {
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        onPresentationRefresh,
+      );
     };
   }, [refetch]);
 

@@ -9,7 +9,8 @@ import { RichText } from "../portableText/RichText";
 export const Hero: React.FC<HeroProps> = ({
   title = (
     <>
-      Your Roof.<br/>
+      Your Roof.
+      <br />
       <span style={{ color: theme.colors.heroAccent }}>Our Expertise.</span>
     </>
   ),
@@ -129,14 +130,14 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <section style={sectionStyle}>
-      <motion.div 
+      <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ scale: 1, opacity: 0.5 }}
         transition={{ duration: 1.5 }}
         style={bgImageStyle}
       />
       <div className={layoutClass.containerWideLayered}>
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -171,7 +172,11 @@ export const Hero: React.FC<HeroProps> = ({
               }}
             />
           </motion.div>
-          <motion.div variants={itemVariants} style={{ display: "flex", flexDirection: "column", gap: "1rem" }} className="sm-row">
+          <motion.div
+            variants={itemVariants}
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+            className="sm-row"
+          >
             <style>{`
               @media (min-width: 640px) {
                 .sm-row { flex-direction: row !important; }
@@ -180,18 +185,35 @@ export const Hero: React.FC<HeroProps> = ({
             <a
               href={ctaHref}
               style={buttonPrimaryStyle}
-              onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
-              onMouseLeave={(e) => e.currentTarget.style.filter = "none"}
-              onClick={() => posthog?.capture("hero_cta_clicked", { cta_text: ctaText, cta_href: ctaHref })}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.filter = "brightness(1.1)")
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+              onClick={() =>
+                posthog?.capture("hero_cta_clicked", {
+                  cta_text: ctaText,
+                  cta_href: ctaHref,
+                })
+              }
             >
               {ctaText}
             </a>
             <a
               href={secondaryCtaHref}
               style={buttonSecondaryStyle}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-              onClick={() => posthog?.capture("hero_secondary_cta_clicked", { cta_text: secondaryCtaText, cta_href: secondaryCtaHref })}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  "rgba(255, 255, 255, 0.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "transparent")
+              }
+              onClick={() =>
+                posthog?.capture("hero_secondary_cta_clicked", {
+                  cta_text: secondaryCtaText,
+                  cta_href: secondaryCtaHref,
+                })
+              }
             >
               {secondaryCtaText}
             </a>

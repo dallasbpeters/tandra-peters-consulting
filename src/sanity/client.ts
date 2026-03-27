@@ -61,12 +61,7 @@ let warnedMissingPreviewToken = false;
 export const getSanityClient = (): SanityClient => {
   const drafts = useDraftsPerspective();
   const token = readTokenWhenDrafts(drafts);
-  if (
-    import.meta.env.DEV &&
-    drafts &&
-    !token &&
-    !warnedMissingPreviewToken
-  ) {
+  if (import.meta.env.DEV && drafts && !token && !warnedMissingPreviewToken) {
     warnedMissingPreviewToken = true;
     console.warn(
       "[Sanity] Presentation preview needs VITE_SANITY_API_READ_TOKEN (Viewer token) to load draft content.",

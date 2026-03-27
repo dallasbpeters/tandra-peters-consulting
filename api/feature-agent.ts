@@ -12,7 +12,13 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createGroq } from "@ai-sdk/groq";
-import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
+import {
+  generateText,
+  jsonSchema,
+  stepCountIs,
+  type ModelMessage,
+  type ToolSet,
+} from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -102,7 +108,9 @@ async function callMcp(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin ?? "";
-  const allowed = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim());
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim());
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -110,12 +118,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method not allowed" });
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  if (!token)
+    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
   const body = req.body as { messages?: ModelMessage[] };
@@ -125,7 +135,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const toolsResult = (await callMcp(token, "tools/list")) as {
-      tools: Array<{ name: string; description: string; inputSchema: Record<string, unknown> }>;
+      tools: Array<{
+        name: string;
+        description: string;
+        inputSchema: Record<string, unknown>;
+      }>;
     };
 
     const tools: ToolSet = Object.fromEntries(
@@ -148,7 +162,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mcpTool.name,
           {
             description: mcpTool.description,
-            parameters: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
+            parameters: jsonSchema(
+              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
+            ),
             execute,
           } as unknown as ToolSet[string],
         ];

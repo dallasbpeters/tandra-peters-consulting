@@ -52,21 +52,20 @@
     ### Node
 
     ```typescript
-    import { AzureOpenAI } from '@posthog/ai'
-    import { PostHog } from 'posthog-node'
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
+    import { AzureOpenAI } from "@posthog/ai";
+    import { PostHog } from "posthog-node";
+    const phClient = new PostHog("<ph_project_token>", {
+      host: "https://us.i.posthog.com",
+    });
     const client = new AzureOpenAI({
-      apiKey: '<azure_openai_api_key>',
-      apiVersion: '2024-10-21',
-      endpoint: 'https://<your-resource>.openai.azure.com',
+      apiKey: "<azure_openai_api_key>",
+      apiVersion: "2024-10-21",
+      endpoint: "https://<your-resource>.openai.azure.com",
       posthog: phClient,
     });
     // ... your code here ...
     // IMPORTANT: Shutdown the client when you're done to ensure all events are sent
-    phClient.shutdown()
+    phClient.shutdown();
     ```
 
     > **Note:** This also works with the `AsyncAzureOpenAI` client.
@@ -106,44 +105,46 @@
 
     ```typescript
     const completion = await client.chat.completions.create({
-        model: "<your-deployment-name>",
-        messages: [{ role: "user", content: "Tell me a fun fact about hedgehogs" }],
-        posthogDistinctId: "user_123", // optional
-        posthogTraceId: "trace_123", // optional
-        posthogProperties: { conversation_id: "abc123", paid: true }, // optional
-        posthogGroups: { company: "company_id_in_your_db" }, // optional
-        posthogPrivacyMode: false // optional
+      model: "<your-deployment-name>",
+      messages: [
+        { role: "user", content: "Tell me a fun fact about hedgehogs" },
+      ],
+      posthogDistinctId: "user_123", // optional
+      posthogTraceId: "trace_123", // optional
+      posthogProperties: { conversation_id: "abc123", paid: true }, // optional
+      posthogGroups: { company: "company_id_in_your_db" }, // optional
+      posthogPrivacyMode: false, // optional
     });
-    console.log(completion.choices[0].message.content)
+    console.log(completion.choices[0].message.content);
     ```
 
     > **Notes:**
     >
-    > -   This works with responses where `stream=True`.
-    > -   If you want to capture LLM events anonymously, **don't** pass a distinct ID to the request.
+    > - This works with responses where `stream=True`.
+    > - If you want to capture LLM events anonymously, **don't** pass a distinct ID to the request.
     >
     > See our docs on [anonymous vs identified events](/docs/data/anonymous-vs-identified-events.md) to learn more.
 
     You can expect captured `$ai_generation` events to have the following properties:
 
-    | Property | Description |
-    | --- | --- |
-    | $ai_model | The specific model, like gpt-5-mini or claude-4-sonnet |
-    | $ai_latency | The latency of the LLM call in seconds |
-    | $ai_time_to_first_token | Time to first token in seconds (streaming only) |
-    | $ai_tools | Tools and functions available to the LLM |
-    | $ai_input | List of messages sent to the LLM |
-    | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_choices | List of response choices from the LLM |
-    | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
-    | $ai_total_cost_usd | The total cost in USD (input + output) |
+    | Property                                                     | Description                                                                        |
+    | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+    | $ai_model                                                    | The specific model, like gpt-5-mini or claude-4-sonnet                             |
+    | $ai_latency                                                  | The latency of the LLM call in seconds                                             |
+    | $ai_time_to_first_token                                      | Time to first token in seconds (streaming only)                                    |
+    | $ai_tools                                                    | Tools and functions available to the LLM                                           |
+    | $ai_input                                                    | List of messages sent to the LLM                                                   |
+    | $ai_input_tokens                                             | The number of tokens in the input (often found in response.usage)                  |
+    | $ai_output_choices                                           | List of response choices from the LLM                                              |
+    | $ai_output_tokens                                            | The number of tokens in the output (often found in response.usage)                 |
+    | $ai_total_cost_usd                                           | The total cost in USD (input + output)                                             |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
 4.  ## Verify traces and generations
 
     Recommended
 
-    *Confirm LLM events are being sent to PostHog*
+    _Confirm LLM events are being sent to PostHog_
 
     Let's make sure LLM events are being captured and sent to PostHog. Under **LLM analytics**, you should see rows of data appear in the **Traces** and **Generations** tabs.
 
@@ -159,13 +160,13 @@
 
     Now that you're capturing AI conversations, continue with the resources below to learn what else LLM Analytics enables within the PostHog platform.
 
-    | Resource | Description |
-    | --- | --- |
-    | [Basics](/docs/llm-analytics/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/llm-analytics/generations.md) | Read about the $ai_generation event and its properties. |
-    | [Traces](/docs/llm-analytics/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/llm-analytics/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/llm-analytics/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
+    | Resource                                                    | Description                                                        |
+    | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+    | [Basics](/docs/llm-analytics/basics.md)                     | Learn the basics of how LLM calls become events in PostHog.        |
+    | [Generations](/docs/llm-analytics/generations.md)           | Read about the $ai_generation event and its properties.            |
+    | [Traces](/docs/llm-analytics/traces.md)                     | Explore the trace hierarchy and how to use it to debug LLM calls.  |
+    | [Spans](/docs/llm-analytics/spans.md)                       | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](/docs/llm-analytics/dashboard.md) | Learn how to create dashboards to analyze LLM performance.         |
 
 ### Community questions
 

@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
-import {
-  Send,
-} from "iconoir-react";
+import { Send } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
@@ -99,7 +97,9 @@ export const ContactSmall = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
+            (res.status >= 500 ||
+              vercelFnError ||
+              contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -172,7 +172,6 @@ export const ContactSmall = ({
     transition: "border-color 0.2s ease",
   };
 
-
   const consentLinkStyle: React.CSSProperties = {
     color: theme.colors.everglade,
     fontWeight: 700,
@@ -207,7 +206,11 @@ export const ContactSmall = ({
   };
 
   return (
-    <section id="contact" style={sectionStyle} aria-labelledby="contact-heading">
+    <section
+      id="contact"
+      style={sectionStyle}
+      aria-labelledby="contact-heading"
+    >
       <div className={`${layoutClass.containerContactCompact} lg-grid-12`}>
         <style>{`
           @media (min-width: 1024px) {
@@ -227,9 +230,8 @@ export const ContactSmall = ({
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
           .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
         `}</style>
-       
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -237,15 +239,17 @@ export const ContactSmall = ({
           style={formCardStyle}
           className="lg-col-12"
         >
-           <motion.div 
-          initial={{ opacity: 0, x: 100 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          className="lg-col-12"
-        >
-          <h2 id="contact-heading" style={headingStyle}>{title}</h2>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            className="lg-col-12"
+          >
+            <h2 id="contact-heading" style={headingStyle}>
+              {title}
+            </h2>
+          </motion.div>
           <form
             style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
             onSubmit={handleSubmit}
@@ -271,8 +275,21 @@ export const ContactSmall = ({
                 border: 0,
               }}
             />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }} className="md-grid-3">
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: "2rem",
+              }}
+              className="md-grid-3"
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 <label htmlFor="contact-full-name" style={labelStyle}>
                   Full Name
                 </label>
@@ -289,7 +306,13 @@ export const ContactSmall = ({
                   autoComplete="name"
                 />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 <label htmlFor="contact-email" style={labelStyle}>
                   Email Address
                 </label>
@@ -306,7 +329,13 @@ export const ContactSmall = ({
                   autoComplete="email"
                 />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 <label htmlFor="contact-phone" style={labelStyle}>
                   Phone Number
                 </label>
@@ -343,8 +372,8 @@ export const ContactSmall = ({
                   fontWeight: 500,
                 }}
               >
-                I agree to be contacted about my inquiry by email, phone, or SMS.
-                I have read the{" "}
+                I agree to be contacted about my inquiry by email, phone, or
+                SMS. I have read the{" "}
                 <TransitionLink to="/privacy" style={consentLinkStyle}>
                   Privacy Policy
                 </TransitionLink>{" "}

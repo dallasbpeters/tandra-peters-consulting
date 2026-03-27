@@ -20,13 +20,13 @@ Think of Tandra as the neighbor who actually knows what she's talking about. She
 
 ### Voice pillars
 
-| Pillar | What it sounds like | What it does NOT sound like |
-|---|---|---|
-| **Warm & personal** | "I've walked hundreds of roofs across Central Texas, and here's what I see over and over..." | "Our company has extensive experience in residential roofing assessment." |
-| **Straight-talking** | "Here's the honest truth — not every hail ding means you need a new roof." | "It is imperative that homeowners thoroughly evaluate the extent of damage..." |
+| Pillar                             | What it sounds like                                                                                            | What it does NOT sound like                                                               |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Warm & personal**                | "I've walked hundreds of roofs across Central Texas, and here's what I see over and over..."                   | "Our company has extensive experience in residential roofing assessment."                 |
+| **Straight-talking**               | "Here's the honest truth — not every hail ding means you need a new roof."                                     | "It is imperative that homeowners thoroughly evaluate the extent of damage..."            |
 | **Knowledgeable but plain-spoken** | "Your insurance company is going to send out an adjuster. That's the person who decides what they'll pay for." | "The carrier will dispatch a field adjuster to assess the loss pursuant to policy terms." |
-| **Texan & regional** | References to local weather patterns, Texas-specific insurance rules, familiar landmarks/cities | Generic national content that could be from anywhere |
-| **Trustworthy, not salesy** | "If your roof just needs a repair, I'll tell you that. I'm not going to push a replacement you don't need." | "ACT NOW before it's too late! Limited time offer!" |
+| **Texan & regional**               | References to local weather patterns, Texas-specific insurance rules, familiar landmarks/cities                | Generic national content that could be from anywhere                                      |
+| **Trustworthy, not salesy**        | "If your roof just needs a repair, I'll tell you that. I'm not going to push a replacement you don't need."    | "ACT NOW before it's too late! Limited time offer!"                                       |
 
 ### Signature phrases & language patterns
 
@@ -86,14 +86,14 @@ Think of Tandra as the neighbor who actually knows what she's talking about. She
 
 ## Formatting Quick Reference
 
-| Element | Use |
-|---|---|
-| **Bold** | Key numbers, important terms on first use, action items |
-| *Italic* | Technical terms being defined, emphasis in conversational tone |
-| Bullet lists | 3+ related items, checklists, warning signs, comparison points |
-| Numbered lists | Step-by-step processes, ranked items |
-| Links | External resources (government, industry orgs), not competitor sites |
-| Blockquotes | Tandra's direct advice callouts (sparingly) |
+| Element        | Use                                                                  |
+| -------------- | -------------------------------------------------------------------- |
+| **Bold**       | Key numbers, important terms on first use, action items              |
+| _Italic_       | Technical terms being defined, emphasis in conversational tone       |
+| Bullet lists   | 3+ related items, checklists, warning signs, comparison points       |
+| Numbered lists | Step-by-step processes, ranked items                                 |
+| Links          | External resources (government, industry orgs), not competitor sites |
+| Blockquotes    | Tandra's direct advice callouts (sparingly)                          |
 
 ---
 
@@ -121,4 +121,4 @@ Pick one or let me know if any of these spark a direction you like better.
 
 ---
 
-*This guide should be referenced before writing or editing any article for the Tandra Peters site.*
+_This guide should be referenced before writing or editing any article for the Tandra Peters site._

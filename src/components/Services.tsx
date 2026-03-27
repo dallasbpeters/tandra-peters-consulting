@@ -27,8 +27,7 @@ export const Services: React.FC<ServicesProps> = ({
       description:
         "On-site and photo-based review of your roof system: decking, flashing, ventilation, and drainage—documented so you understand what is urgent, what can wait, and what to discuss with insurers or contractors.",
       icon: Search,
-      image:
-        "/roof-2.jpg",
+      image: "/roof-2.jpg",
     },
     {
       id: "02",
@@ -331,8 +330,11 @@ export const Services: React.FC<ServicesProps> = ({
                     type="button"
                     aria-label={`Go to contact — ${service.title}`}
                     onClick={() => {
-                      posthog?.capture("service_cta_clicked", { service_title: service.title, service_id: service.id });
-                      window.location.href = '#contact';
+                      posthog?.capture("service_cta_clicked", {
+                        service_title: service.title,
+                        service_id: service.id,
+                      });
+                      window.location.href = "#contact";
                     }}
                     style={{
                       backgroundColor: isMain
@@ -360,6 +362,7 @@ export const Services: React.FC<ServicesProps> = ({
                     <ArrowDownRight
                       width={isMain ? 32 : 24}
                       height={isMain ? 32 : 24}
+                      strokeWidth={2.2}
                       aria-hidden
                     />
                   </button>
@@ -399,7 +402,7 @@ export const Services: React.FC<ServicesProps> = ({
                 .md-row-center { flex-direction: row !important; }
               }
             `}</style>
-             <BirdcreekLogo />
+            <BirdcreekLogo />
             <div style={{ maxWidth: "38rem" }}>
               <h3
                 style={{
@@ -434,7 +437,7 @@ export const Services: React.FC<ServicesProps> = ({
                 />
               </div>
             </div>
-             
+
             <a
               href={birdcreekAdvantage.ctaHref}
               className="group-advantage-cta"

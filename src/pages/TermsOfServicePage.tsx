@@ -37,7 +37,13 @@ export const TermsOfServicePage = () => (
         "We may update these Terms. Continued use after changes constitutes acceptance of the updated Terms.",
       ]),
     ]}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
+    <p
+      style={{
+        marginTop: "2rem",
+        fontSize: "0.875rem",
+        color: theme.colors.legalMuted,
+      }}
+    >
       Last updated: March 21, 2026
     </p>
   </LegalLayout>

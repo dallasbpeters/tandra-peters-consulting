@@ -63,7 +63,17 @@ export const HOME_AND_SITE_QUERY = groq`{
       }
     },
     contact { ... },
-    socialShare { ... }
+    socialShare { ... },
+    serviceAreaMap {
+      eyebrow,
+      title,
+      description,
+      areas[] {
+        countyKey,
+        displayName,
+        clientCount
+      }
+    }
   },
   "site": *[_id == "siteSettings"][0]{
     ...,

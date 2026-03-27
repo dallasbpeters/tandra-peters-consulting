@@ -20,7 +20,7 @@ When a function updates a document, it can trigger itself again. Without proper 
 
 ```ts
 // BAD - triggers on ANY update, including the function's own updates
-filter: '_type == "agent.conversation"'
+filter: '_type == "agent.conversation"';
 ```
 
 What happens:
@@ -36,7 +36,7 @@ Use delta functions to filter for **specific changes**:
 
 ```ts
 // GOOD - only triggers when messages actually change
-filter: '_type == "agent.conversation" && (delta::changedAny(messages) || (delta::operation() == "create" && defined(messages)))'
+filter: '_type == "agent.conversation" && (delta::changedAny(messages) || (delta::operation() == "create" && defined(messages)))';
 ```
 
 | Delta Function             | Purpose                                       |

@@ -32,10 +32,10 @@ type ApiMessage = {
 const shellStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  minHeight: "calc(100vh - 80px)",
+  minHeight: "calc(60vh - 80px)",
   maxWidth: "52rem",
   margin: "0 auto",
-  padding: "2rem 1.25rem 0",
+  padding: "10rem 1.25rem 0",
 };
 
 const headerStyle: CSSProperties = {
@@ -165,7 +165,6 @@ const thinkingDotStyle = (delay: string): CSSProperties => ({
 const formBarStyle: CSSProperties = {
   position: "sticky",
   bottom: 0,
-  backgroundColor: theme.colors.paper,
   paddingTop: "0.75rem",
   paddingBottom: "1.5rem",
   borderTop: `1px solid ${mix(theme.colors.everglade, 8)}`,
@@ -322,7 +321,8 @@ const ThinkingIndicator = () => (
 export const AgentChatPage = () => {
   usePageMetadata({
     title: "Feature Builder | Tandra Peters",
-    description: "AI-powered feature planning assistant for the tandra.me website.",
+    description:
+      "AI-powered feature planning assistant for the tandra.me website.",
   });
 
   useEffect(injectMarkdownStyles, []);
@@ -348,55 +348,68 @@ export const AgentChatPage = () => {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, []);
 
-  const handleSend = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || loading) return;
+  const handleSend = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || loading) return;
 
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setLoading(true);
-    setError(null);
-
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
-    }, 0);
-
-    const history: ApiMessage[] = [...messages, userMsg].map(({ role, content }) => ({
-      role,
-      content,
-    }));
-
-    try {
-      const res = await fetch("/api/feature-agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
-      });
-
-      const data = (await res.json()) as { response?: string; error?: string };
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error ?? `Server error ${res.status}`);
-      }
-
-      const assistantMsg: ChatMessage = {
+      const userMsg: ChatMessage = {
         id: crypto.randomUUID(),
-        role: "assistant",
-        content: data.response ?? "",
+        role: "user",
+        content: trimmed,
       };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setLoading(true);
+      setError(null);
 
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong.";
-      setError(message);
-    } finally {
-      setLoading(false);
-      textareaRef.current?.focus();
-    }
-  }, [messages, loading]);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+      }, 0);
+
+      const history: ApiMessage[] = [...messages, userMsg].map(
+        ({ role, content }) => ({
+          role,
+          content,
+        }),
+      );
+
+      try {
+        const res = await fetch("/api/feature-agent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: history }),
+        });
+
+        const data = (await res.json()) as {
+          response?: string;
+          error?: string;
+        };
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error ?? `Server error ${res.status}`);
+        }
+
+        const assistantMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: data.response ?? "",
+        };
+
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Something went wrong.";
+        setError(message);
+      } finally {
+        setLoading(false);
+        textareaRef.current?.focus();
+      }
+    },
+    [messages, loading],
+  );
 
   const handleSubmit = useCallback(
     (e: FormEvent) => {
@@ -433,13 +446,18 @@ export const AgentChatPage = () => {
           <p style={eyebrowStyle}>Tandra.me</p>
           <h1 style={titleStyle}>Feature Builder</h1>
           <p style={subtitleStyle}>
-            Plan new website sections, schema changes, and implementation steps — powered by your
-            live Sanity content model.
+            Plan new website sections, schema changes, and implementation steps
+            — powered by your live Sanity content model.
           </p>
         </header>
 
         {/* Chat window */}
-        <div style={chatWindowStyle} role="log" aria-live="polite" aria-label="Chat conversation">
+        <div
+          style={chatWindowStyle}
+          role="log"
+          aria-live="polite"
+          aria-label="Chat conversation"
+        >
           {isEmpty ? (
             <div style={emptyStateStyle}>
               <div style={emptyIconStyle} aria-hidden="true">
@@ -447,8 +465,9 @@ export const AgentChatPage = () => {
               </div>
               <p style={emptyTitleStyle}>What would you like to build?</p>
               <p style={emptyBodyStyle}>
-                Ask me to plan a new feature — I'll inspect the live schema and propose schema
-                types, component structure, and a step-by-step implementation checklist.
+                Ask me to plan a new feature — I'll inspect the live schema and
+                propose schema types, component structure, and a step-by-step
+                implementation checklist.
               </p>
               <div style={suggestionsStyle} role="list">
                 {STARTER_PROMPTS.map((prompt) => (
@@ -469,7 +488,9 @@ export const AgentChatPage = () => {
             messages.map((msg) => (
               <div
                 key={msg.id}
-                style={msg.role === "user" ? userBubbleStyle : assistantBubbleStyle}
+                style={
+                  msg.role === "user" ? userBubbleStyle : assistantBubbleStyle
+                }
                 role="article"
                 aria-label={`${msg.role === "user" ? "You" : "Assistant"}: ${msg.content.slice(0, 60)}`}
               >
@@ -507,7 +528,11 @@ export const AgentChatPage = () => {
         </div>
 
         {/* Input bar — sticky at bottom */}
-        <form onSubmit={handleSubmit} style={formBarStyle} aria-label="Chat input">
+        <form
+          onSubmit={handleSubmit}
+          style={formBarStyle}
+          aria-label="Chat input"
+        >
           <div style={inputRowStyle}>
             <textarea
               ref={textareaRef}

@@ -37,7 +37,13 @@ export const CookiePolicyPage = () => (
     {legalSection("contact-cookie", "Contact", [
       "Questions about this policy: use the contact form or email on the Contact section of the site.",
     ])}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
+    <p
+      style={{
+        marginTop: "2rem",
+        fontSize: "0.875rem",
+        color: theme.colors.legalMuted,
+      }}
+    >
       Last updated: March 21, 2026
     </p>
   </LegalLayout>

@@ -15,7 +15,8 @@ const DEFAULT_ITEMS = [
       "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.",
   },
   {
-    question: "How is working with you different from hiring a roofer directly?",
+    question:
+      "How is working with you different from hiring a roofer directly?",
     answer:
       "I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.",
   },
@@ -204,7 +205,10 @@ export const Faq: React.FC<FaqProps> = ({
               transition={{ duration: 0.35, delay: index * 0.04 }}
               onToggle={(e) => {
                 if ((e.currentTarget as HTMLDetailsElement).open) {
-                  posthog?.capture("faq_item_opened", { question: item.question, question_index: index });
+                  posthog?.capture("faq_item_opened", {
+                    question: item.question,
+                    question_index: index,
+                  });
                 }
               }}
             >

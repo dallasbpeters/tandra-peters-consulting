@@ -15,9 +15,7 @@ type DashboardResponseBody = Partial<SeoDashboardPayload> & {
   detail?: string;
 };
 
-const parseDashboardResponse = (
-  raw: string,
-): DashboardResponseBody | null => {
+const parseDashboardResponse = (raw: string): DashboardResponseBody | null => {
   if (!raw.trim()) {
     return null;
   }
@@ -38,53 +36,58 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
   const [error, setError] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
 
-  const fetchDashboard = useCallback(async (options?: { regenerate?: boolean }) => {
-    if (!token) {
-      setData(null);
-      setError(null);
-      setStatusCode(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(
-        options?.regenerate ? "/api/seo/dashboard?regenerate=1" : "/api/seo/dashboard",
-        {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        },
-      );
-      const raw = await response.text();
-      const payload = parseDashboardResponse(raw);
-
-      if (!response.ok) {
-        setStatusCode(response.status);
-        throw new Error(payload?.detail || payload?.error || "Request failed");
-      }
-
-      if (!payload) {
-        throw new Error("Dashboard returned an empty response");
-      }
-
-      setData(payload as SeoDashboardPayload);
-      setError(null);
-      setStatusCode(response.status);
-    } catch (err) {
-      if (!statusCode) {
+  const fetchDashboard = useCallback(
+    async (options?: { regenerate?: boolean }) => {
+      if (!token) {
+        setData(null);
+        setError(null);
         setStatusCode(null);
+        setLoading(false);
+        return;
       }
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Could not load dashboard",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [token, statusCode]);
+
+      setLoading(true);
+      try {
+        const response = await fetch(
+          options?.regenerate
+            ? "/api/seo/dashboard?regenerate=1"
+            : "/api/seo/dashboard",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const raw = await response.text();
+        const payload = parseDashboardResponse(raw);
+
+        if (!response.ok) {
+          setStatusCode(response.status);
+          throw new Error(
+            payload?.detail || payload?.error || "Request failed",
+          );
+        }
+
+        if (!payload) {
+          throw new Error("Dashboard returned an empty response");
+        }
+
+        setData(payload as SeoDashboardPayload);
+        setError(null);
+        setStatusCode(response.status);
+      } catch (err) {
+        if (!statusCode) {
+          setStatusCode(null);
+        }
+        setError(
+          err instanceof Error ? err.message : "Could not load dashboard",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, statusCode],
+  );
 
   const refetch = useCallback(async () => {
     await fetchDashboard();

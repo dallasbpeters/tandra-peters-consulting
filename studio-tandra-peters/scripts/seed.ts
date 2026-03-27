@@ -10,11 +10,7 @@ import {
   siteSettingsNavLogoImageUrl,
   siteSettingsSeed,
 } from './seedDefaults'
-import {
-  uploadImageFromFile,
-  uploadImageFromUrl,
-  type SanityImageValue,
-} from './uploadSanityImages'
+import {uploadImageFromFile, uploadImageFromUrl, type SanityImageValue} from './uploadSanityImages'
 
 type ServiceRow = (typeof homePageSeed.services.services)[number] & {
   image?: SanityImageValue
@@ -62,11 +58,7 @@ const client = createClient({
 const pub = (filename: string) => resolve(publicDir, filename)
 
 async function main() {
-  const navLogoImage = await uploadImageFromUrl(
-    client,
-    siteSettingsNavLogoImageUrl,
-    'nav-logo.jpg',
-  )
+  const navLogoImage = await uploadImageFromUrl(client, siteSettingsNavLogoImageUrl, 'nav-logo.jpg')
 
   const sitePayload = {
     ...siteSettingsSeed,
@@ -75,11 +67,7 @@ async function main() {
 
   const homePayload = structuredClone(homePageSeed) as HomePageSeedWithImages
 
-  homePayload.hero.backgroundImage = await uploadImageFromFile(
-    client,
-    pub('roof.png'),
-    'roof.png',
-  )
+  homePayload.hero.backgroundImage = await uploadImageFromFile(client, pub('roof.png'), 'roof.png')
   homePayload.about.image = await uploadImageFromFile(client, pub('tandra.png'), 'tandra.png')
 
   const s0 = homePayload.services.services[0]
@@ -100,7 +88,12 @@ async function main() {
     }
   }
 
-  const expertiseFiles = ['shingles.jpg', 'metal-roof.jpg', 'commercial.jpg', 'hail-storm.jpg'] as const
+  const expertiseFiles = [
+    'shingles.jpg',
+    'metal-roof.jpg',
+    'commercial.jpg',
+    'hail-storm.jpg',
+  ] as const
   for (let i = 0; i < expertiseFiles.length; i++) {
     const row = homePayload.expertise.items[i]
     const file = expertiseFiles[i]

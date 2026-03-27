@@ -77,13 +77,7 @@ export const TransitionLink = forwardRef<HTMLAnchorElement, LinkProps>(
         return;
       }
 
-      if (
-        e.button !== 0 ||
-        e.metaKey ||
-        e.altKey ||
-        e.ctrlKey ||
-        e.shiftKey
-      ) {
+      if (e.button !== 0 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
         return;
       }
       if (target && target !== "_self") {

@@ -39,16 +39,22 @@ const parseJwtPayload = (token: string): GoogleDashboardUser | null => {
 
 const loadGoogleScript = (): Promise<void> =>
   new Promise((resolve, reject) => {
-    const existing = document.getElementById(GOOGLE_SCRIPT_ID) as HTMLScriptElement | null;
+    const existing = document.getElementById(
+      GOOGLE_SCRIPT_ID,
+    ) as HTMLScriptElement | null;
     if (existing) {
       if (window.google?.accounts?.id) {
         resolve();
         return;
       }
       existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Failed to load Google script")), {
-        once: true,
-      });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load Google script")),
+        {
+          once: true,
+        },
+      );
       return;
     }
 
@@ -133,7 +139,11 @@ export const useGoogleDashboardAuth = () => {
         setReady(true);
       } catch (error) {
         if (!cancelled) {
-          setAuthError(error instanceof Error ? error.message : "Could not load Google sign-in.");
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : "Could not load Google sign-in.",
+          );
         }
       }
     };
@@ -146,7 +156,12 @@ export const useGoogleDashboardAuth = () => {
   }, [clientId, setTokenFromCredential]);
 
   useEffect(() => {
-    if (!ready || !buttonRef.current || !window.google?.accounts?.id || !clientId) {
+    if (
+      !ready ||
+      !buttonRef.current ||
+      !window.google?.accounts?.id ||
+      !clientId
+    ) {
       return;
     }
 

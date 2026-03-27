@@ -1,5 +1,3 @@
-
-
 import React from "react";
 import { TransitionLink } from "./TransitionLink";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
@@ -12,9 +10,21 @@ export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
   description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.",
   socialLinks = [
-    { icon: Instagram, href: "https://www.instagram.com/tandra/", platform: "Visit my Instagram" },
-    { icon: Linkedin, href: "https://www.linkedin.com/in/tandra-peters-b8b38026/", platform: "Visit my LinkedIn" },
-    { icon: Facebook, href: "https://www.facebook.com/tandra.peters.3", platform: "Visit my Facebook" }
+    {
+      icon: Instagram,
+      href: "https://www.instagram.com/tandra/",
+      platform: "Visit my Instagram",
+    },
+    {
+      icon: Linkedin,
+      href: "https://www.linkedin.com/in/tandra-peters-b8b38026/",
+      platform: "Visit my LinkedIn",
+    },
+    {
+      icon: Facebook,
+      href: "https://www.facebook.com/tandra.peters.3",
+      platform: "Visit my Facebook",
+    },
   ],
   quickLinks = [
     { name: "Services", href: "#services" },
@@ -30,7 +40,7 @@ export const Footer: React.FC<FooterProps> = ({
     { name: "Cookie Policy", href: "/cookies" },
   ],
   copyrightText = "© 2026 Tandra Peters. All Rights Reserved.",
-  partnerText = "Birdcreek Roofing"
+  partnerText = "Birdcreek Roofing",
 }) => {
   const footerStyle: React.CSSProperties = {
     backgroundColor: theme.palette.everglade[900],
@@ -74,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({
     fontSize: "0.875rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
-     
+
     letterSpacing: "0.1em",
   };
 
@@ -114,7 +124,17 @@ export const Footer: React.FC<FooterProps> = ({
           .newsletter-btn:hover { filter: brightness(1.1); }
         `}</style>
         <div className="md-col-4">
-          <div style={{ fontSize: "1.875rem", fontWeight: 900, letterSpacing: "-0.05em",   fontFamily: theme.fonts.headline, marginBottom: "2rem" }}>{logoText}</div>
+          <div
+            style={{
+              fontSize: "1.875rem",
+              fontWeight: 900,
+              letterSpacing: "-0.05em",
+              fontFamily: theme.fonts.headline,
+              marginBottom: "2rem",
+            }}
+          >
+            {logoText}
+          </div>
           <div
             style={{
               color: theme.colors.textOnBrand,
@@ -146,12 +166,17 @@ export const Footer: React.FC<FooterProps> = ({
                 aria-label={social.platform ?? "Visit social profile"}
                 className="social-link"
               >
-                <social.icon width={18} height={18} strokeWidth={1.5} aria-hidden />
+                <social.icon
+                  width={18}
+                  height={18}
+                  strokeWidth={1.5}
+                  aria-hidden
+                />
               </a>
             ))}
           </div>
         </div>
-        
+
         <div className="md-col-3">
           <h4 style={headingStyle}>Quick Links</h4>
           <ul style={linkListStyle}>

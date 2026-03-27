@@ -115,7 +115,8 @@ const isRewriteableField = (schemaType: SchemaType): boolean => {
   )
 }
 
-const buildDocumentRewriteInstruction = (goal: string) => `
+const buildDocumentRewriteInstruction = (goal: string) =>
+  `
 Rewrite the targeted document or field using the Brand Tone of Voice context below as the highest-priority style guide.
 
 Brand Tone of Voice context:
@@ -172,7 +173,8 @@ const loadBrandToneContext = async (client: ReturnType<typeof useClient>): Promi
   return [assistText, customParts].filter(Boolean).join('\n\n').trim()
 }
 
-const buildRewriteInstruction = (goal: string) => `
+const buildRewriteInstruction = (goal: string) =>
+  `
 Rewrite the targeted field using the Brand Tone of Voice context below as the highest-priority style guide.
 
 Brand Tone of Voice context:
@@ -521,12 +523,9 @@ export default defineConfig({
           post: defineLocations({
             select: {title: 'title', slug: 'slug.current'},
             resolve: (doc) => {
-              const slug =
-                typeof doc?.slug === 'string' ? doc.slug.trim() : ''
+              const slug = typeof doc?.slug === 'string' ? doc.slug.trim() : ''
               const title =
-                typeof doc?.title === 'string' && doc.title.trim()
-                  ? doc.title.trim()
-                  : 'Article'
+                typeof doc?.title === 'string' && doc.title.trim() ? doc.title.trim() : 'Article'
               if (!slug) {
                 return {locations: [{title, href: '/articles'}]}
               }

@@ -10,7 +10,8 @@ import {
 
 const DASHBOARD_PATH = "/api/seo/dashboard";
 
-const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) =>
+  (url ?? "").split("?")[0] ?? "";
 
 const applyCors = (res: {
   setHeader(name: string, value: string): void;
@@ -61,8 +62,12 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
           process.env[key] = env[key].trim();
         }
       }
-      if (!process.env.POSTHOG_PERSONAL_API_KEY && process.env.POSTHOG_PERSONALAPI_KEY) {
-        process.env.POSTHOG_PERSONAL_API_KEY = process.env.POSTHOG_PERSONALAPI_KEY;
+      if (
+        !process.env.POSTHOG_PERSONAL_API_KEY &&
+        process.env.POSTHOG_PERSONALAPI_KEY
+      ) {
+        process.env.POSTHOG_PERSONAL_API_KEY =
+          process.env.POSTHOG_PERSONALAPI_KEY;
       }
 
       try {
@@ -72,7 +77,10 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
             : undefined,
           env,
         );
-        const requestUrl = new URL(req.url ?? DASHBOARD_PATH, "http://localhost");
+        const requestUrl = new URL(
+          req.url ?? DASHBOARD_PATH,
+          "http://localhost",
+        );
         const regenerate =
           requestUrl.searchParams.get("regenerate") === "1" ||
           requestUrl.searchParams.get("regenerate") === "true" ||

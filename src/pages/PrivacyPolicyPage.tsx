@@ -44,7 +44,13 @@ export const PrivacyPolicyPage = () => (
         "Questions about privacy: use the contact form on this site or the email shown in the Contact section.",
       ]),
     ]}
-    <p style={{ marginTop: "2rem", fontSize: "0.875rem", color: theme.colors.legalMuted }}>
+    <p
+      style={{
+        marginTop: "2rem",
+        fontSize: "0.875rem",
+        color: theme.colors.legalMuted,
+      }}
+    >
       Last updated: March 21, 2026
     </p>
   </LegalLayout>

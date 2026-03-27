@@ -18,7 +18,9 @@ const DEFAULT_VIEW_ALL = "View all articles";
 
 const studioUrl =
   import.meta.env.VITE_SANITY_STUDIO_URL?.trim() ||
-  (import.meta.env.PROD ? "https://www.tandra.me/studio" : "http://localhost:3333");
+  (import.meta.env.PROD
+    ? "https://www.tandra.me/studio"
+    : "http://localhost:3333");
 
 export const ArticlesTeaser = ({
   posts,
@@ -63,7 +65,6 @@ export const ArticlesTeaser = ({
     minHeight: "420px",
     height: "100%",
   };
-
 
   return (
     <section
@@ -152,7 +153,12 @@ export const ArticlesTeaser = ({
               }}
             >
               {viewAllLabel}
-              <NavArrowRight width={16} height={16} strokeWidth={2} aria-hidden />
+              <NavArrowRight
+                width={16}
+                height={16}
+                strokeWidth={2}
+                aria-hidden
+              />
             </TransitionLink>
           </div>
         </motion.div>
@@ -211,7 +217,10 @@ export const ArticlesTeaser = ({
                   fontSize: "1rem",
                 }}
               >
-                The homepage reads the latest <strong style={{ color: theme.colors.white }}>post</strong> documents from Sanity. Publish at least one article in Studio, or seed demo posts from the studio project.
+                The homepage reads the latest{" "}
+                <strong style={{ color: theme.colors.white }}>post</strong>{" "}
+                documents from Sanity. Publish at least one article in Studio,
+                or seed demo posts from the studio project.
               </p>
               <p
                 style={{
@@ -235,29 +244,35 @@ export const ArticlesTeaser = ({
                 {import.meta.env.DEV ? (
                   <>
                     {" "}
-                    · from <code style={{ color: theme.colors.accentLight }}>studio-tandra-peters</code> run{" "}
-                    <code style={{ color: theme.colors.accentLight }}>pnpm seed:posts</code>
+                    · from{" "}
+                    <code style={{ color: theme.colors.accentLight }}>
+                      studio-tandra-peters
+                    </code>{" "}
+                    run{" "}
+                    <code style={{ color: theme.colors.accentLight }}>
+                      pnpm seed:posts
+                    </code>
                   </>
                 ) : null}
               </p>
             </div>
           </motion.div>
         ) : (
-        <div style={gridStyle} className="articles-cards-grid">
-          {displayPosts.map((p, i) => (
-            <div
-              key={p._id}
-              className="articles-cards-grid-item"
-              style={{ minWidth: 0 }}
-            >
-              <ArticleGridCard
-                post={p}
-                cardIndex={i}
-                layout={i === 0 ? "featured" : "standard"}
-              />
-            </div>
-          ))}
-        </div>
+          <div style={gridStyle} className="articles-cards-grid">
+            {displayPosts.map((p, i) => (
+              <div
+                key={p._id}
+                className="articles-cards-grid-item"
+                style={{ minWidth: 0 }}
+              >
+                <ArticleGridCard
+                  post={p}
+                  cardIndex={i}
+                  layout={i === 0 ? "featured" : "standard"}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </section>

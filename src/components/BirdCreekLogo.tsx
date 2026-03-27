@@ -2,7 +2,9 @@ import * as React from "react";
 import { JSX } from "react/jsx-runtime";
 import { theme } from "../theme";
 
-const BirdCreekLogo = (props: JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
+const BirdCreekLogo = (
+  props: JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>,
+) => (
   <svg
     id="Layer_1"
     data-name="Layer 1"

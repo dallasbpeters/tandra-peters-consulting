@@ -15,11 +15,7 @@ export const About: React.FC<AboutProps> = ({
   badgeText = "5+ YEARS",
   badgeSubtext = "Industry Expertise",
   imageSrc = "/tandra.png",
-  title = (
-    <>
-      Precision. Integrity.
-    </>
-  ),
+  title = <>Precision. Integrity.</>,
   body,
 }) => {
   const richBody = asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS);
@@ -94,7 +90,7 @@ export const About: React.FC<AboutProps> = ({
             .md-block { display: block !important; }
           }
         `}</style>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -103,8 +99,8 @@ export const About: React.FC<AboutProps> = ({
           className="lg-col-5"
         >
           <div style={imageWrapperStyle}>
-            <img 
-              src={imageSrc} 
+            <img
+              src={imageSrc}
               alt="Tandra Peters, roofing consultant based in Austin, Texas"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               referrerPolicy="no-referrer"
@@ -122,7 +118,7 @@ export const About: React.FC<AboutProps> = ({
             <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
           </motion.div> */}
         </motion.div>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -136,15 +132,32 @@ export const About: React.FC<AboutProps> = ({
             <RichText value={richBody} paragraphStyle={pStyle} />
           </div>
           <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          style={certificationsStyle}>
-            <img style={certificationImageStyle} src="/roofing-soloar-alliance.png" alt="Roofing Solar Alliance" />
-            <img style={certificationImageStyle} src="/roof-pro.png" alt="Roof Pro" />
-            <img style={certificationImageStyle} src="/tamko-pro.png" alt="Tamko Pro" />
-            <img style={certificationImageStyle} src="/gaf-master-elite.png" alt="GAF Master Elite" />
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+            style={certificationsStyle}
+          >
+            <img
+              style={certificationImageStyle}
+              src="/roofing-soloar-alliance.png"
+              alt="Roofing Solar Alliance"
+            />
+            <img
+              style={certificationImageStyle}
+              src="/roof-pro.png"
+              alt="Roof Pro"
+            />
+            <img
+              style={certificationImageStyle}
+              src="/tamko-pro.png"
+              alt="Tamko Pro"
+            />
+            <img
+              style={certificationImageStyle}
+              src="/gaf-master-elite.png"
+              alt="GAF Master Elite"
+            />
           </motion.div>
         </motion.div>
       </div>

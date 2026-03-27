@@ -20,7 +20,7 @@ export const Nav: React.FC<NavProps> = ({
     { name: "Contact", href: "#contact" },
   ],
   ctaText = "Schedule a Free Consultation",
-  ctaHref = "#contact"
+  ctaHref = "#contact",
 }) => {
   const location = useLocation();
   const isHome = location.pathname === "/";
@@ -91,24 +91,23 @@ export const Nav: React.FC<NavProps> = ({
     boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
   };
 
-    const logoStyle: React.CSSProperties = {
-      
-      display: "grid",
-      gridTemplateColumns: "auto 1fr",
-      gridTemplateAreas: `"image text" "image tagline"`,
-      alignItems: "center",
-      gap: "0 0.5rem"
-    };
-    const imageStyle: React.CSSProperties = {
-      minInlineSize: "2.2rem",
-      minBlockSize: "2.2rem",
-      maxInlineSize: "2.2rem",
-      maxBlockSize: "2.2rem",
-      objectFit: "cover",
-      borderRadius: "9999px",
-      gridArea: "image",
-      overflow: "hidden", 
-    };
+  const logoStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    gridTemplateAreas: `"image text" "image tagline"`,
+    alignItems: "center",
+    gap: "0 0.5rem",
+  };
+  const imageStyle: React.CSSProperties = {
+    minInlineSize: "2.2rem",
+    minBlockSize: "2.2rem",
+    maxInlineSize: "2.2rem",
+    maxBlockSize: "2.2rem",
+    objectFit: "cover",
+    borderRadius: "9999px",
+    gridArea: "image",
+    overflow: "hidden",
+  };
 
   const logoTextStyle: React.CSSProperties = {
     fontSize: "1.15rem",
@@ -166,7 +165,6 @@ export const Nav: React.FC<NavProps> = ({
   return (
     <nav style={navStyle} className="site-nav-vt">
       <div className={layoutClass.containerWideRow}>
-          
         <TransitionLink
           to="/"
           className="logo-link nav-focusable"
@@ -183,8 +181,11 @@ export const Nav: React.FC<NavProps> = ({
             <span style={logoTaglineStyle}>{logoTagline}</span>
           </motion.div>
         </TransitionLink>
-        
-        <div style={{ ...desktopNavStyle, display: "flex" }} className="md-flex">
+
+        <div
+          style={{ ...desktopNavStyle, display: "flex" }}
+          className="md-flex"
+        >
           <style>{`
             .nav-focusable:focus-visible {
               outline: 2px solid ${theme.colors.everglade} !important;
@@ -260,7 +261,12 @@ export const Nav: React.FC<NavProps> = ({
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.everglade;
               }}
-              onClick={() => posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "desktop" })}
+              onClick={() =>
+                posthog?.capture("nav_cta_clicked", {
+                  cta_text: ctaText,
+                  location: "desktop",
+                })
+              }
             >
               {ctaText}
             </motion.a>
@@ -284,14 +290,26 @@ export const Nav: React.FC<NavProps> = ({
                   e.currentTarget.style.backgroundColor =
                     theme.colors.everglade;
                 }}
-                onClick={() => posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "desktop" })}
+                onClick={() =>
+                  posthog?.capture("nav_cta_clicked", {
+                    cta_text: ctaText,
+                    location: "desktop",
+                  })
+                }
               >
                 {ctaText}
               </TransitionLink>
             </motion.div>
           )}
-          <button 
-            style={{ display: "none", padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: isScrolled ? "black" : "white" }}
+          <button
+            style={{
+              display: "none",
+              padding: "0.5rem",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: isScrolled ? "black" : "white",
+            }}
             className="md-hidden nav-focusable"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
@@ -312,15 +330,22 @@ export const Nav: React.FC<NavProps> = ({
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            style={{ 
-              overflow: "hidden" 
+            style={{
+              overflow: "hidden",
             }}
           >
-            <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div
+              style={{
+                padding: "1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+              }}
+            >
               {navItems.map((item, i) =>
                 isHome ? (
                   <a
@@ -375,7 +400,10 @@ export const Nav: React.FC<NavProps> = ({
                     textAlign: "center",
                   }}
                   onClick={(e) => {
-                    posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "mobile" });
+                    posthog?.capture("nav_cta_clicked", {
+                      cta_text: ctaText,
+                      location: "mobile",
+                    });
                     handleMobileNavClick(ctaHref)(e);
                   }}
                 >
@@ -393,7 +421,10 @@ export const Nav: React.FC<NavProps> = ({
                     textAlign: "center",
                   }}
                   onClick={() => {
-                    posthog?.capture("nav_cta_clicked", { cta_text: ctaText, location: "mobile" });
+                    posthog?.capture("nav_cta_clicked", {
+                      cta_text: ctaText,
+                      location: "mobile",
+                    });
                     handleMobileSectionLinkClose();
                   }}
                 >

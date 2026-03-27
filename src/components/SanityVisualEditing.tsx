@@ -114,11 +114,5 @@ export const SanityVisualEditing = () => {
     return null;
   }
 
-  return (
-    <VisualEditing
-      portal
-      history={history}
-      refresh={refresh}
-    />
-  );
+  return <VisualEditing portal history={history} refresh={refresh} />;
 };

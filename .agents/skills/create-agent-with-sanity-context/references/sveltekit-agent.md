@@ -54,22 +54,27 @@ ANTHROPIC_API_KEY=your-anthropic-key
 Create `src/routes/api/chat/+server.ts`:
 
 ```ts
-import {streamText, convertToModelMessages, stepCountIs, type UIMessage} from 'ai'
-import {createAnthropic} from '@ai-sdk/anthropic'
-import {createMCPClient} from '@ai-sdk/mcp'
-import type {RequestHandler} from './$types'
+import {
+  streamText,
+  convertToModelMessages,
+  stepCountIs,
+  type UIMessage,
+} from "ai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createMCPClient } from "@ai-sdk/mcp";
+import type { RequestHandler } from "./$types";
 import {
   SANITY_API_READ_TOKEN,
   ANTHROPIC_API_KEY,
   SANITY_PROJECT_ID,
   SANITY_DATASET,
-} from '$env/static/private'
-import {PUBLIC_SANITY_API_VERSION} from '$env/static/public'
+} from "$env/static/private";
+import { PUBLIC_SANITY_API_VERSION } from "$env/static/public";
 
 // MCP URL — connects to your agent context document
-const SANITY_API_VERSION = PUBLIC_SANITY_API_VERSION || 'vX'
-const AGENT_CONTEXT_SLUG = 'content-qa'
-const MCP_URL = `https://api.sanity.io/${SANITY_API_VERSION}/agent-context/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${AGENT_CONTEXT_SLUG}`
+const SANITY_API_VERSION = PUBLIC_SANITY_API_VERSION || "vX";
+const AGENT_CONTEXT_SLUG = "content-qa";
+const MCP_URL = `https://api.sanity.io/${SANITY_API_VERSION}/agent-context/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${AGENT_CONTEXT_SLUG}`;
 
 // System prompt for the agent
 const SYSTEM_PROMPT = `You are a helpful content assistant.
@@ -80,44 +85,46 @@ When answering questions:
 - Cite specific sources when relevant
 - If you don't find information, say so clearly
 
-Your goal is to help users find and understand the content available to you.`
+Your goal is to help users find and understand the content available to you.`;
 
-export const POST: RequestHandler = async ({request}) => {
-  const {messages}: {messages: UIMessage[]} = await request.json()
+export const POST: RequestHandler = async ({ request }) => {
+  const { messages }: { messages: UIMessage[] } = await request.json();
 
   // Create MCP client using AI SDK wrapper
   const mcpClient = await createMCPClient({
     transport: {
-      type: 'http',
+      type: "http",
       url: MCP_URL,
       headers: {
         Authorization: `Bearer ${SANITY_API_READ_TOKEN}`,
       },
     },
-  })
+  });
 
   try {
     // Get tools from MCP client
-    const mcpTools = await mcpClient.tools()
+    const mcpTools = await mcpClient.tools();
 
     // Stream the response
     const result = streamText({
-      model: createAnthropic({apiKey: ANTHROPIC_API_KEY})('claude-sonnet-4-20250514'),
+      model: createAnthropic({ apiKey: ANTHROPIC_API_KEY })(
+        "claude-sonnet-4-20250514",
+      ),
       messages: await convertToModelMessages(messages),
       system: SYSTEM_PROMPT,
       tools: mcpTools,
       stopWhen: stepCountIs(10),
       onFinish: async () => {
-        await mcpClient.close()
+        await mcpClient.close();
       },
-    })
+    });
 
-    return result.toUIMessageStreamResponse()
+    return result.toUIMessageStreamResponse();
   } catch (error) {
-    await mcpClient.close()
-    throw error
+    await mcpClient.close();
+    throw error;
   }
-}
+};
 ```
 
 **Key patterns:**
@@ -150,7 +157,7 @@ The chat UI requires two files: a page config to disable SSR, and the component 
 
 ```ts
 // The Chat class from @ai-sdk/svelte requires browser APIs
-export const ssr = false
+export const ssr = false;
 ```
 
 > **Important:** The `Chat` class uses browser-only APIs. Without `export const ssr = false`, you'll get runtime errors during server-side rendering.

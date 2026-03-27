@@ -1,6 +1,12 @@
 import type {StructureResolver} from 'sanity/structure'
 
-const SINGLETONS = new Set(['homePage', 'siteSettings', 'articlesPage', 'aiContext', 'seoDashboardInsights'])
+const SINGLETONS = new Set([
+  'homePage',
+  'siteSettings',
+  'articlesPage',
+  'aiContext',
+  'seoDashboardInsights',
+])
 
 export const structure: StructureResolver = (S) =>
   S.list()

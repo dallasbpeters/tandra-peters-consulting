@@ -69,28 +69,28 @@ See [ecommerce/app/src/app/api/chat/route.ts](ecommerce/app/src/app/api/chat/rou
 ```ts
 const mcpClient = await createMCPClient({
   transport: {
-    type: 'http',
+    type: "http",
     url: process.env.SANITY_CONTEXT_MCP_URL,
     headers: {
       Authorization: `Bearer ${process.env.SANITY_API_READ_TOKEN}`,
     },
   },
-})
+});
 ```
 
 **Tool Combination** (`streamText`):
 
 ```ts
-const mcpTools = await mcpClient.tools()
+const mcpTools = await mcpClient.tools();
 const result = streamText({
-  model: anthropic('claude-opus-4-5'),
+  model: anthropic("claude-opus-4-5"),
   system: systemPrompt,
   messages: await convertToModelMessages(messages),
   tools: {
     ...mcpTools, // Agent Context tools (groq_query, initial_context, etc.)
     ...clientTools, // Client-side tools (page context, screenshot)
   },
-})
+});
 ```
 
 ## Customizing the System Prompt
@@ -178,8 +178,11 @@ transport: new DefaultChatTransport({
 Then access it on the server at [ecommerce/app/src/app/api/chat/route.ts](ecommerce/app/src/app/api/chat/route.ts) (`documentContext`):
 
 ```ts
-const {messages, documentContext}: {messages: UIMessage[]; documentContext: DocumentContext} =
-  await req.json()
+const {
+  messages,
+  documentContext,
+}: { messages: UIMessage[]; documentContext: DocumentContext } =
+  await req.json();
 ```
 
 ### Auto-Continuation for Tool Calls

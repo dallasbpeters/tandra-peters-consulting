@@ -9,6 +9,7 @@ import {expertiseItemType} from './objects/expertiseItem'
 import {faqItemType} from './objects/faqItem'
 import {seoDashboardRecommendationType} from './objects/seoDashboardRecommendation'
 import {seoDashboardOpportunityType} from './objects/seoDashboardOpportunity'
+import {serviceAreaMapType} from './serviceAreaMap'
 import {statRowType} from './objects/statRow'
 import {
   heroSectionType,
@@ -42,6 +43,7 @@ export const schemaTypes = [
   seoDashboardRecommendationType,
   seoDashboardOpportunityType,
   statRowType,
+  serviceAreaMapType,
   heroSectionType,
   marqueeSectionType,
   aboutSectionType,

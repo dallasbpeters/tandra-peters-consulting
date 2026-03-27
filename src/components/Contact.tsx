@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
-import {
-  Mail,
-  MapPin,
-  NavArrowDown,
-  Phone,
-  Send,
-} from "iconoir-react";
+import { Mail, MapPin, NavArrowDown, Phone, Send } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
@@ -106,7 +100,9 @@ export const Contact = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
+            (res.status >= 500 ||
+              vercelFnError ||
+              contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -164,7 +160,7 @@ export const Contact = ({
     borderRadius: "9999px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -287,23 +283,50 @@ export const Contact = ({
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
           .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
         `}</style>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="lg-col-6"
         >
-          <span style={{ fontWeight: 700, letterSpacing: "0.2em", color: theme.colors.accent, textTransform: "uppercase", fontSize: "0.75rem", marginBottom: "1.5rem", display: "block" }}>{tagline}</span>
-          <h2 id="contact-heading" style={{ fontSize: "clamp(2rem, 10vw, 4rem)", lineHeight: 1, marginBottom: "3rem", fontFamily: theme.fonts.special, fontWeight: 400,}}>{title}</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <span
+            style={{
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              color: theme.colors.accent,
+              textTransform: "uppercase",
+              fontSize: "0.75rem",
+              marginBottom: "1.5rem",
+              display: "block",
+            }}
+          >
+            {tagline}
+          </span>
+          <h2
+            id="contact-heading"
+            style={{
+              fontSize: "clamp(2rem, 10vw, 4rem)",
+              lineHeight: 1,
+              marginBottom: "3rem",
+              fontFamily: theme.fonts.special,
+              fontWeight: 400,
+            }}
+          >
+            {title}
+          </h2>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
                 <Mail style={{ color: "inherit" }} />
               </div>
               <div>
                 <p style={labelStyle}>Email</p>
-                <a href={`mailto:${email}`} style={valueStyle}>{email}</a>
+                <a href={`mailto:${email}`} style={valueStyle}>
+                  {email}
+                </a>
               </div>
             </div>
             <div style={infoItemStyle} className="contact-group">
@@ -312,7 +335,9 @@ export const Contact = ({
               </div>
               <div>
                 <p style={labelStyle}>Phone</p>
-                <a href="sms:15129683965" style={valueStyle}>{phone}</a>
+                <a href="sms:15129683965" style={valueStyle}>
+                  {phone}
+                </a>
               </div>
             </div>
             <div style={infoItemStyle} className="contact-group">
@@ -327,7 +352,7 @@ export const Contact = ({
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -360,8 +385,21 @@ export const Contact = ({
                 border: 0,
               }}
             />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem" }} className="md-grid-2">
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: "2rem",
+              }}
+              className="md-grid-2"
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 <label htmlFor="contact-full-name" style={labelStyle}>
                   Full Name
                 </label>
@@ -378,7 +416,13 @@ export const Contact = ({
                   autoComplete="name"
                 />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 <label htmlFor="contact-email" style={labelStyle}>
                   Email Address
                 </label>
@@ -396,9 +440,18 @@ export const Contact = ({
                 />
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
               <label htmlFor="contact-phone" style={labelStyle}>
-                Phone <span style={{ fontWeight: 400, opacity: 0.85 }}>(optional)</span>
+                Phone{" "}
+                <span style={{ fontWeight: 400, opacity: 0.85 }}>
+                  (optional)
+                </span>
               </label>
               <input
                 id="contact-phone"
@@ -412,7 +465,13 @@ export const Contact = ({
                 autoComplete="tel"
               />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
               <label htmlFor="contact-service" style={labelStyle}>
                 {serviceLabel}
               </label>
@@ -440,7 +499,13 @@ export const Contact = ({
                 </span>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
               <label htmlFor="contact-message" style={labelStyle}>
                 Your Message
               </label>
@@ -475,8 +540,8 @@ export const Contact = ({
                   fontWeight: 500,
                 }}
               >
-                I agree to be contacted about my inquiry by email, phone, or SMS.
-                I have read the{" "}
+                I agree to be contacted about my inquiry by email, phone, or
+                SMS. I have read the{" "}
                 <TransitionLink to="/privacy" style={consentLinkStyle}>
                   Privacy Policy
                 </TransitionLink>{" "}
@@ -531,7 +596,9 @@ export const Contact = ({
               }}
               className="send-btn"
             >
-              <span>{submitStatus === "sending" ? "Sending…" : "Send Message"}</span>
+              <span>
+                {submitStatus === "sending" ? "Sending…" : "Send Message"}
+              </span>
               <Send
                 width={18}
                 height={18}

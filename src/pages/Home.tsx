@@ -13,6 +13,7 @@ import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 // import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
+import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -26,6 +27,7 @@ import {
   mapStatsProps,
   mapMissionProps,
   mapServicesProps,
+  mapServiceAreaMapProps,
   mapSocialShareProps,
   mapTestimonialsProps,
 } from "../sanity/mapSanityHome";
@@ -54,21 +56,25 @@ export const Home = () => {
   const services = home?.services as Record<string, unknown> | undefined;
   const mission = home?.mission as Record<string, unknown> | undefined;
   const expertise = home?.expertise as Record<string, unknown> | undefined;
-  const testimonials = home?.testimonials as Record<string, unknown> | undefined;
+  const testimonials = home?.testimonials as
+    | Record<string, unknown>
+    | undefined;
   const faq = home?.faq as Record<string, unknown> | undefined;
   // const articlesTeaser = home?.articlesTeaser as
   //   | Record<string, unknown>
   //   | undefined;
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
+  const serviceAreaMap = home?.serviceAreaMap as
+    | Record<string, unknown>
+    | undefined;
 
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim()
       ? marquee.text
       : "Amarillo - Canyon - Lubbock - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin - Surrounding Areas - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin & Surrounding Areas -";
 
-  const marqueeDirection =
-    marquee?.direction === "left" ? "left" : "right";
+  const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
   const marqueeVelocity =
     typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
@@ -86,6 +92,7 @@ export const Home = () => {
         <About {...mapAboutProps(about)} />
         <Stats {...mapStatsProps(stats)} />
         <Services {...mapServicesProps(services)} />
+        <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
         <Mission {...mapMissionProps(mission)} />
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
@@ -111,8 +118,8 @@ export const Home = () => {
       </main>
       <SocialShareBar {...mapSocialShareProps(socialShare)} />
       <Band
-      minHeight={8}
-      maxHeight={16}
+        minHeight={8}
+        maxHeight={16}
         reverse={true}
         rotate={true}
         tint={theme.colors.everglade}

@@ -20,14 +20,14 @@ export const resolvePosthogClientOptions = (): {
   const useDevSameOrigin =
     import.meta.env.DEV && configuredHost && !isCloudIngestion;
 
-  const api_host = useDevSameOrigin
-    ? window.location.origin
-    : configuredHost;
+  const api_host = useDevSameOrigin ? window.location.origin : configuredHost;
 
   const uiFromEnv = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_UI_HOST);
   const ui_host =
     uiFromEnv ||
-    (!isCloudIngestion && configuredHost ? "https://us.posthog.com" : undefined);
+    (!isCloudIngestion && configuredHost
+      ? "https://us.posthog.com"
+      : undefined);
 
   return {
     api_host,

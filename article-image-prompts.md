@@ -2,16 +2,16 @@
 
 ## Brand Color Reference
 
-| Role | Color | Hex |
-|------|-------|-----|
-| Primary dark (everglade) | Deep teal | `#092A1D` |
-| Primary mid | Teal | `#12533A` |
-| Accent | Sage green | `#69A758` |
-| Accent light | Light sage | `#A5CA9B` |
-| Background | Warm cream | `#F4F4F1` |
-| Background dim | Muted cream | `#E7E7E4` |
-| Hero accent | Soft purple | `#9C99FF` |
-| Danger/warm pop | Coral | `#C82F05` |
+| Role                     | Color       | Hex       |
+| ------------------------ | ----------- | --------- |
+| Primary dark (everglade) | Deep teal   | `#092A1D` |
+| Primary mid              | Teal        | `#12533A` |
+| Accent                   | Sage green  | `#69A758` |
+| Accent light             | Light sage  | `#A5CA9B` |
+| Background               | Warm cream  | `#F4F4F1` |
+| Background dim           | Muted cream | `#E7E7E4` |
+| Hero accent              | Soft purple | `#9C99FF` |
+| Danger/warm pop          | Coral       | `#C82F05` |
 
 **Fonts:** Plus Jakarta Sans (body), Instrument Serif (headline alt)
 
@@ -33,6 +33,7 @@ These templates define the visual composition system. Every article image should
 **When to use:** Articles about process, planning, or comparing options
 
 **Visual structure:**
+
 - Cream/paper background (`#F4F4F1`) as the "table" or surface
 - Main subject centered or offset 1/3
 - Supporting elements scattered naturally around the edges
@@ -53,6 +54,7 @@ These templates define the visual composition system. Every article image should
 **When to use:** Articles about Texas weather, regional topics, or big-picture overviews
 
 **Visual structure:**
+
 - Sky area uses gradient from cream (`#F4F4F1`) to soft purple (`#9C99FF`) or sage
 - Horizon / ground line sits at lower 1/3
 - Simplified rooftop silhouettes or landscape forms in deep teal (`#092A1D`)
@@ -73,6 +75,7 @@ These templates define the visual composition system. Every article image should
 **When to use:** Articles about inspections, damage assessment, specific components
 
 **Visual structure:**
+
 - Subject (a shingle, a flashing detail, a gutter section) rendered in detail
 - Background is a soft wash of everglade teal (`#12533A`) or cream
 - One or two accent callout marks — a circle, an arrow, a dotted line — in coral (`#C82F05`) or sage green to draw the eye
@@ -93,6 +96,7 @@ These templates define the visual composition system. Every article image should
 **When to use:** Articles comparing materials, repair vs. replace, or any either/or decision
 
 **Visual structure:**
+
 - Clean vertical or diagonal dividing line (could be a subtle gradient transition)
 - Left half uses one color temperature (e.g., everglade teal tones)
 - Right half uses contrasting temperature (e.g., sage green / warm accent tones)
@@ -114,6 +118,7 @@ These templates define the visual composition system. Every article image should
 **When to use:** Articles about working with a consultant, the project management process, or Tandra's personal approach
 
 **Visual structure:**
+
 - Illustrated figure (gender-neutral or female silhouette, not overly detailed) in everglade teal
 - The figure is doing something: pointing at a roof detail, holding a clipboard, gesturing toward a house
 - House or roof element in the background, simplified geometry
@@ -205,16 +210,16 @@ Flat illustration, 4:3 landscape. A simplified house in the center shown in cros
 
 ## Template-to-Article Mapping
 
-| Article | Template | Rationale |
-|---------|----------|-----------|
-| Texas Weather & Roof | B — Texas Horizon | Big-picture Texas weather story, landscape feel |
-| Maintaining Your Roof | A — Overhead Plan | Checklist/maintenance items, organized flat-lay |
-| Choosing a Consultant | E — Hands-On | Personal trust, human connection |
-| Repair vs. Replace | D — Split/Comparison | Direct A/B decision |
-| Shingle vs. Metal | D — Split/Comparison | Material comparison |
-| Insurance Guide | A — Overhead Plan | Process documents, organized information |
-| Roof Inspection | C — Close-Up Detail | Expert eye, attention to detail |
-| Replacement Process | E — Hands-On | Project management, guided experience |
+| Article               | Template             | Rationale                                       |
+| --------------------- | -------------------- | ----------------------------------------------- |
+| Texas Weather & Roof  | B — Texas Horizon    | Big-picture Texas weather story, landscape feel |
+| Maintaining Your Roof | A — Overhead Plan    | Checklist/maintenance items, organized flat-lay |
+| Choosing a Consultant | E — Hands-On         | Personal trust, human connection                |
+| Repair vs. Replace    | D — Split/Comparison | Direct A/B decision                             |
+| Shingle vs. Metal     | D — Split/Comparison | Material comparison                             |
+| Insurance Guide       | A — Overhead Plan    | Process documents, organized information        |
+| Roof Inspection       | C — Close-Up Detail  | Expert eye, attention to detail                 |
+| Replacement Process   | E — Hands-On         | Project management, guided experience           |
 
 ---
 

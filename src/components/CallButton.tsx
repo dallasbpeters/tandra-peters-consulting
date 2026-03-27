@@ -2,12 +2,10 @@ import React from "react";
 import { motion } from "motion/react";
 import { theme } from "../theme";
 
-
 export const CallButton = ({
   label = "Call or text 512-968-3965",
   phone = "(512) 968-3965",
 }) => {
-
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,
     fontWeight: 800,
@@ -42,26 +40,25 @@ export const CallButton = ({
     right: "0",
     zIndex: 1000,
     transform: "rotate(90deg)",
-transformOrigin: "right bottom",
+    transformOrigin: "right bottom",
     alignItems: "center",
     gap: "0.5rem",
   };
   return (
-        <motion.button 
-          style={buttonStyle}
-          initial={{ opacity: 0, x: -20, rotate: -90 }}
-          whileInView={{ opacity: 1, x: 0, rotate: -90 }}
-          viewport={{ once: true }}
-          onTap={() => {
-            if (window.innerWidth < 768) {
-              window.location.href = `sms:${phone}`;
-            } else {
-              window.location.href = `tel:${phone}`;
-            }
-          }}
-        >
-          <span style={labelStyle}>{label}</span>
-        
-        </motion.button>
+    <motion.button
+      style={buttonStyle}
+      initial={{ opacity: 0, x: -20, rotate: -90 }}
+      whileInView={{ opacity: 1, x: 0, rotate: -90 }}
+      viewport={{ once: true }}
+      onTap={() => {
+        if (window.innerWidth < 768) {
+          window.location.href = `sms:${phone}`;
+        } else {
+          window.location.href = `tel:${phone}`;
+        }
+      }}
+    >
+      <span style={labelStyle}>{label}</span>
+    </motion.button>
   );
 };

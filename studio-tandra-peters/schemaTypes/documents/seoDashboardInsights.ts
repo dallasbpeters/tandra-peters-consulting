@@ -38,7 +38,8 @@ export const seoDashboardInsightsType = defineType({
       type: 'text',
       rows: 12,
       readOnly: true,
-      description: 'Cached full dashboard payload used for fast loads until a manual regenerate is requested.',
+      description:
+        'Cached full dashboard payload used for fast loads until a manual regenerate is requested.',
     }),
     defineField({
       name: 'recommendations',

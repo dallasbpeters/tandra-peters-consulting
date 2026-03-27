@@ -64,7 +64,10 @@ const parseBody = (req: VercelRequest): Record<string, unknown> => {
 const parseAllowedOrigins = (): string[] => {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
   if (!raw) return [];
-  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 };
 
 /** True when the request may call this API: Origin in list, or Host matches an allowed origin (curl has no Origin). */
@@ -104,9 +107,7 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
 };
 
 /** Attio assert expects `name` as [{ first_name, last_name, full_name }]; all three keys should be present. */
-const nameValues = (
-  fullName: string,
-): Array<Record<string, string>> => {
+const nameValues = (fullName: string): Array<Record<string, string>> => {
   const trimmed = fullName.trim();
   const parts = trimmed.split(/\s+/).filter(Boolean);
   const first_name = parts[0] ?? trimmed;
@@ -314,13 +315,10 @@ const contactHandler = async (
     typeof body.fullName === "string" ? body.fullName.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const propertyAddress =
-    typeof body.propertyAddress === "string"
-      ? body.propertyAddress.trim()
-      : "";
+    typeof body.propertyAddress === "string" ? body.propertyAddress.trim() : "";
   const phoneNumber =
     typeof body.phoneNumber === "string" ? body.phoneNumber.trim() : "";
-  const message =
-    typeof body.message === "string" ? body.message.trim() : "";
+  const message = typeof body.message === "string" ? body.message.trim() : "";
   const serviceInterestRaw =
     typeof body.serviceInterest === "string" ? body.serviceInterest.trim() : "";
   const consentToContact = body.consentToContact === true;
@@ -447,9 +445,7 @@ const contactHandler = async (
     }
     res.status(502).json({
       ok: false,
-      error:
-        attioMsg ??
-        "Could not save your message. Try again later.",
+      error: attioMsg ?? "Could not save your message. Try again later.",
     });
     return;
   }
@@ -459,7 +455,12 @@ const contactHandler = async (
     attioJson = await attioRes.json();
   } catch {
     console.error("Attio: 2xx but response was not JSON");
-    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    res
+      .status(502)
+      .json({
+        ok: false,
+        error: "Could not save your message. Try again later.",
+      });
     return;
   }
 
@@ -469,7 +470,12 @@ const contactHandler = async (
       "Attio: unexpected success payload",
       JSON.stringify(attioJson).slice(0, 800),
     );
-    res.status(502).json({ ok: false, error: "Could not save your message. Try again later." });
+    res
+      .status(502)
+      .json({
+        ok: false,
+        error: "Could not save your message. Try again later.",
+      });
     return;
   }
 
@@ -483,7 +489,12 @@ const contactHandler = async (
     phoneNumber,
   });
 
-  const noteRes = await postAttioPersonNote(token, recordId, noteTitle, noteContent);
+  const noteRes = await postAttioPersonNote(
+    token,
+    recordId,
+    noteTitle,
+    noteContent,
+  );
   if (!noteRes.ok) {
     console.error("Attio note create failed", {
       status: noteRes.status,
@@ -497,7 +508,10 @@ const contactHandler = async (
     }
   }
 
-  console.info("Attio person assert ok", { record_id: recordId, note_ok: noteRes.ok });
+  console.info("Attio person assert ok", {
+    record_id: recordId,
+    note_ok: noteRes.ok,
+  });
   res.status(200).json({ ok: true });
 };
 

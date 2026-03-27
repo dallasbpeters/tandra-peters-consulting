@@ -41,7 +41,12 @@ export const marqueeSectionType = defineType({
     defineField({
       name: 'direction',
       type: 'string',
-      options: {list: [{title: 'Right', value: 'right'}, {title: 'Left', value: 'left'}]},
+      options: {
+        list: [
+          {title: 'Right', value: 'right'},
+          {title: 'Left', value: 'left'},
+        ],
+      },
       initialValue: 'right',
     }),
     defineField({name: 'velocity', type: 'number', initialValue: 80}),
@@ -134,7 +139,8 @@ export const missionSectionType = defineType({
       name: 'title',
       title: 'Title',
       type: 'blockContent',
-      description: 'Headline beside the tagline (use Normal style for a single line, or structure as needed).',
+      description:
+        'Headline beside the tagline (use Normal style for a single line, or structure as needed).',
     }),
     defineField({
       name: 'description',
@@ -229,7 +235,8 @@ export const socialShareSectionType = defineType({
       name: 'shareText',
       title: 'Share text',
       type: 'blockContent',
-      description: 'Plain text is used for Twitter/email share strings (formatting is stripped for URLs).',
+      description:
+        'Plain text is used for Twitter/email share strings (formatting is stripped for URLs).',
     }),
   ],
 })
@@ -296,8 +303,7 @@ export const articlesTeaserSectionType = defineType({
       type: 'boolean',
       hidden: true,
       deprecated: {
-        reason:
-          'No longer used — the articles block is always shown when posts exist.',
+        reason: 'No longer used — the articles block is always shown when posts exist.',
       },
     }),
     defineField({

@@ -4,7 +4,7 @@ export const paragraphBlock = (_key: string, text: string) => ({
   _type: 'block' as const,
   _key,
   style: 'normal' as const,
-  markDefs: [] as { _key: string; _type: string; href?: string }[],
+  markDefs: [] as {_key: string; _type: string; href?: string}[],
   children: [
     {
       _type: 'span' as const,

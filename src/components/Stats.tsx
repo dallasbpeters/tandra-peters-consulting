@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { HomeUser, Hammer,Home } from "iconoir-react";
+import { HomeUser, Hammer, Home } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { Stat, StatsProps } from "../types";
@@ -20,14 +20,14 @@ export const Stats: React.FC<StatsProps> = ({
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   const sectionStyle: React.CSSProperties = {
@@ -83,7 +83,7 @@ export const Stats: React.FC<StatsProps> = ({
   return (
     <section style={sectionStyle}>
       <div className={`${layoutClass.containerWideStatsRow} md-row`}>
-        <motion.span 
+        <motion.span
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -91,7 +91,7 @@ export const Stats: React.FC<StatsProps> = ({
         >
           {title}
         </motion.span>
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -106,8 +106,8 @@ export const Stats: React.FC<StatsProps> = ({
             >
               <stat.icon color={theme.colors.purple} width={48} height={48} />
               <div style={statsStackStyle}>
-              <span style={statsValueStyle}>{stat.value}</span>
-              <span style={statsTextStyle}>{stat.name}</span>
+                <span style={statsValueStyle}>{stat.value}</span>
+                <span style={statsTextStyle}>{stat.name}</span>
               </div>
             </motion.div>
           ))}

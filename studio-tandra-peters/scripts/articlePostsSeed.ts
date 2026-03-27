@@ -20,8 +20,7 @@ type ArticleSeed = {
   body: ReturnType<typeof blocksFromParagraphs>
 }
 
-const bp = (paragraphs: string[], prefix: string) =>
-  blocksFromParagraphs(paragraphs, prefix)
+const bp = (paragraphs: string[], prefix: string) => blocksFromParagraphs(paragraphs, prefix)
 
 export const articlePostsSeed: ArticleSeed[] = [
   {

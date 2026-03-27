@@ -11,9 +11,15 @@ export type SanitySiteContextValue = {
   refetch: () => Promise<void>;
 };
 
-export const SanitySiteContext = createContext<SanitySiteContextValue | null>(null);
+export const SanitySiteContext = createContext<SanitySiteContextValue | null>(
+  null,
+);
 
-export const SanityContentProvider = ({ children }: { children: ReactNode }) => {
+export const SanityContentProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const value = useSanityHomeContent();
   return (
     <SanitySiteContext.Provider value={value}>

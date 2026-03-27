@@ -40,21 +40,31 @@ export const RichText = ({
       block: {
         normal: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...paragraphStyle }}>{children}</div>
+            <div style={{ margin: "0 0 0.5rem", ...paragraphStyle }}>
+              {children}
+            </div>
           ) : (
             <p style={{ margin: "0 0 1rem", ...paragraphStyle }}>{children}</p>
           ),
         h2: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...heading2Style }}>{children}</div>
+            <div style={{ margin: "0 0 0.5rem", ...heading2Style }}>
+              {children}
+            </div>
           ) : (
-            <h2 style={{ margin: "0 0 0.75rem", ...heading2Style }}>{children}</h2>
+            <h2 style={{ margin: "0 0 0.75rem", ...heading2Style }}>
+              {children}
+            </h2>
           ),
         h3: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...heading3Style }}>{children}</div>
+            <div style={{ margin: "0 0 0.5rem", ...heading3Style }}>
+              {children}
+            </div>
           ) : (
-            <h3 style={{ margin: "0 0 0.5rem", ...heading3Style }}>{children}</h3>
+            <h3 style={{ margin: "0 0 0.5rem", ...heading3Style }}>
+              {children}
+            </h3>
           ),
         blockquote: ({ children }) =>
           isHeadingFlow ? (
@@ -108,8 +118,12 @@ export const RichText = ({
         ),
       },
       listItem: {
-        bullet: ({ children }) => <li style={{ marginBottom: "0.35rem" }}>{children}</li>,
-        number: ({ children }) => <li style={{ marginBottom: "0.35rem" }}>{children}</li>,
+        bullet: ({ children }) => (
+          <li style={{ marginBottom: "0.35rem" }}>{children}</li>
+        ),
+        number: ({ children }) => (
+          <li style={{ marginBottom: "0.35rem" }}>{children}</li>
+        ),
       },
       marks: {
         strong: ({ children }) => <strong>{children}</strong>,

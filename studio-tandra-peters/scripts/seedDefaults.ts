@@ -399,9 +399,7 @@ export const homePageSeed = {
     eyebrow: 'Guides & insights',
     title: 'Roofing articles',
     intro: blocksFromParagraphs(
-      [
-        'Latest guides on replacement, insurance, and caring for your Texas roof.',
-      ],
+      ['Latest guides on replacement, insurance, and caring for your Texas roof.'],
       'articles-intro',
     ),
     viewAllLabel: 'View all articles',

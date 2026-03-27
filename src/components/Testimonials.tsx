@@ -125,8 +125,11 @@ export const Testimonials = ({
             free Elfsight Google Reviews widget
           </a>
           , then add your widget ID to{" "}
-          <code style={{ color: theme.colors.textOnBrand }}>VITE_ELFSIGHT_WIDGET_ID</code> in{" "}
-          <code style={{ color: theme.colors.textOnBrand }}>.env.local</code> and restart the dev server.
+          <code style={{ color: theme.colors.textOnBrand }}>
+            VITE_ELFSIGHT_WIDGET_ID
+          </code>{" "}
+          in <code style={{ color: theme.colors.textOnBrand }}>.env.local</code>{" "}
+          and restart the dev server.
         </p>
       )}
     </div>

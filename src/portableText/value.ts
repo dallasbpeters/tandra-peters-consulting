@@ -46,7 +46,10 @@ export const coercePortableTextInput = (
 export const hasPortableTextContent = (value: unknown): boolean =>
   coercePortableTextInput(value) !== undefined;
 
-const legacyParagraphBlock = (_key: string, text: string): PortableTextBlock => ({
+const legacyParagraphBlock = (
+  _key: string,
+  text: string,
+): PortableTextBlock => ({
   _type: "block",
   _key,
   style: "normal",
@@ -77,12 +80,15 @@ export const asRichTextValue = (
       (x): x is string => typeof x === "string" && x.trim().length > 0,
     );
     if (strings.length > 0) {
-      return strings.map((text, i) => legacyParagraphBlock(`legacy-${i}`, text));
+      return strings.map((text, i) =>
+        legacyParagraphBlock(`legacy-${i}`, text),
+      );
     }
   }
   return undefined;
 };
 
 /** String or Portable Text blocks (no legacy `paragraphs` merge). */
-export const asOptionalRichText = (value: unknown): PortableTextBlock[] | string | undefined =>
-  coercePortableTextInput(value);
+export const asOptionalRichText = (
+  value: unknown,
+): PortableTextBlock[] | string | undefined => coercePortableTextInput(value);

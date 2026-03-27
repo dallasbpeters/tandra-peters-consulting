@@ -1,4 +1,5 @@
 import React from "react";
+import { stegaClean } from "@sanity/client/stega";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
 import { getServiceIconComponent } from "../icons/serviceIconMap";
 import { asOptionalRichText, asRichTextValue } from "../portableText/value";
@@ -16,6 +17,7 @@ import type { ArticlesTeaserProps } from "../types";
 import type { NavItem, NavProps } from "../types";
 import type { FooterProps } from "../types";
 import type { TestimonialsProps } from "../types";
+import type { ServiceAreaMapProps } from "../types";
 
 const SOCIAL_ICONS = {
   instagram: Instagram,
@@ -230,7 +232,12 @@ export const mapMissionProps = (m: SanityDoc): Partial<MissionProps> => {
     return {};
   }
   const values = m.values?.map(
-    (row: { id: string; title: string; description?: unknown; image?: string }) => {
+    (row: {
+      id: string;
+      title: string;
+      description?: unknown;
+      image?: string;
+    }) => {
       const description =
         asOptionalRichText(row.description) ?? RICH_TEXT_PLACEHOLDER;
       return {
@@ -289,7 +296,9 @@ export const mapFaqProps = (f: SanityDoc): Partial<FaqProps> => {
       }
       const answer = asOptionalRichText(row.answer) ?? RICH_TEXT_PLACEHOLDER;
       return {
-        ...(typeof row._key === "string" && row._key.trim() ? { _key: row._key } : {}),
+        ...(typeof row._key === "string" && row._key.trim()
+          ? { _key: row._key }
+          : {}),
         question,
         answer,
       };
@@ -383,8 +392,8 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
   if (!site) {
     return {};
   }
-  const socialLinks = site.footerSocialLinks?.map(
-    (l: { platform: keyof typeof SOCIAL_ICONS; url: string }) => {
+  const socialLinks = site.footerSocialLinks
+    ?.map((l: { platform: keyof typeof SOCIAL_ICONS; url: string }) => {
       const Icon = SOCIAL_ICONS[l.platform];
       if (!Icon) {
         return null;
@@ -394,8 +403,8 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
         href: l.url,
         platform: SOCIAL_PLATFORM_LABELS[l.platform],
       };
-    },
-  ).filter(Boolean) as FooterProps["socialLinks"];
+    })
+    .filter(Boolean) as FooterProps["socialLinks"];
 
   const quickLinksRaw: NavItem[] | undefined = Array.isArray(
     site.footerQuickLinks,
@@ -441,5 +450,42 @@ export const mapTestimonialsProps = (
   if (emptyStateNote) {
     out.emptyStateNote = emptyStateNote;
   }
+  return out;
+};
+
+export const mapServiceAreaMapProps = (
+  data: SanityDoc,
+): Partial<ServiceAreaMapProps> => {
+  if (!data) return {};
+
+  const out: Partial<ServiceAreaMapProps> = {};
+
+  if (typeof data.eyebrow === "string" && data.eyebrow.trim()) {
+    out.eyebrow = data.eyebrow.trim();
+  }
+  if (typeof data.title === "string" && data.title.trim()) {
+    out.title = data.title.trim();
+  }
+  if (typeof data.description === "string" && data.description.trim()) {
+    out.description = data.description.trim();
+  }
+  if (Array.isArray(data.areas) && data.areas.length > 0) {
+    out.areas = data.areas
+      .filter(
+        (a: Record<string, unknown>) =>
+          typeof a.countyKey === "string" &&
+          a.countyKey.trim() &&
+          typeof a.clientCount === "number",
+      )
+      .map((a: Record<string, unknown>) => {
+        const key = stegaClean(a.countyKey as string).trim();
+        const name =
+          typeof a.displayName === "string" && a.displayName.trim()
+            ? stegaClean(a.displayName as string).trim()
+            : key;
+        return { countyKey: key, displayName: name, clientCount: a.clientCount as number };
+      });
+  }
+
   return out;
 };

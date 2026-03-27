@@ -18,6 +18,7 @@ export const homePageType = defineType({
     {name: 'articles', title: 'Articles teaser'},
     {name: 'contact', title: 'Contact'},
     {name: 'social', title: 'Social share'},
+    {name: 'serviceAreaMap', title: 'Service Area Map'},
   ],
   fields: [
     defineField({
@@ -25,7 +26,8 @@ export const homePageType = defineType({
       title: 'SEO title',
       type: 'string',
       group: 'seo',
-      description: 'Browser tab title for the homepage. If empty, the app falls back to its built-in title.',
+      description:
+        'Browser tab title for the homepage. If empty, the app falls back to its built-in title.',
     }),
     defineField({
       name: 'seoDescription',
@@ -94,6 +96,12 @@ export const homePageType = defineType({
       name: 'socialShare',
       type: 'socialShareSection',
       group: 'social',
+    }),
+    defineField({
+      name: 'serviceAreaMap',
+      title: 'Service Area Map',
+      type: 'serviceAreaMap',
+      group: 'serviceAreaMap',
     }),
   ],
   preview: {

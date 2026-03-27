@@ -14,7 +14,13 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createGroq } from "@ai-sdk/groq";
-import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
+import {
+  generateText,
+  jsonSchema,
+  stepCountIs,
+  type ModelMessage,
+  type ToolSet,
+} from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -94,10 +100,7 @@ async function callMcp(
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS for local dev
   const origin = req.headers.origin ?? "";
   const allowed = (process.env.ALLOWED_ORIGINS ?? "")
@@ -110,12 +113,14 @@ export default async function handler(
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method not allowed" });
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  if (!token)
+    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
   const body = req.body as { messages?: ModelMessage[]; slug?: string };

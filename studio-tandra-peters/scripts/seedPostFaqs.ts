@@ -40,7 +40,11 @@ type SanityFaqItem = {
 type PostSeedInput = PostDetail & {
   _id: string
   faq?: {
-    items?: Array<{_key?: string | null; question?: string | null; answer?: PortableTextBlock[] | string | null}> | null
+    items?: Array<{
+      _key?: string | null
+      question?: string | null
+      answer?: PortableTextBlock[] | string | null
+    }> | null
   } | null
 }
 

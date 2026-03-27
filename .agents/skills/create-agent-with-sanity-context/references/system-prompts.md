@@ -35,7 +35,7 @@ You are [role description].
 ## How to Respond
 - [Tone and style guidelines]
 - [Formatting preferences]
-`
+`;
 ```
 
 ---
@@ -56,7 +56,7 @@ You are a helpful shopping assistant for an online store.
 - Be friendly and helpful
 - When showing products, include name, price, and key features
 - If you can't find what the user wants, suggest alternatives
-`
+`;
 ```
 
 ---
@@ -77,7 +77,7 @@ You are a documentation assistant that helps users find information.
 - Be concise but thorough
 - Include code examples when relevant
 - Point users to related articles they might find helpful
-`
+`;
 ```
 
 ---
@@ -98,7 +98,7 @@ You are a customer support agent with access to help articles and FAQs.
 - Be empathetic and patient
 - Provide clear, actionable steps
 - Confirm the user's issue is resolved before ending
-`
+`;
 ```
 
 ---
@@ -119,7 +119,7 @@ You are a content curator that helps users discover relevant content.
 - Present content in an engaging way
 - Explain why each recommendation is relevant
 - Group related content together
-`
+`;
 ```
 
 ---

@@ -82,22 +82,21 @@
     ### Node
 
     ```typescript
-    import { PostHog } from 'posthog-node';
-    import { LangChainCallbackHandler } from '@posthog/ai';
-    import { ChatOpenAI } from '@langchain/openai';
-    import { ChatPromptTemplate } from '@langchain/core/prompts';
-    const phClient = new PostHog(
-      '<ph_project_token>',
-      { host: 'https://us.i.posthog.com' }
-    );
+    import { PostHog } from "posthog-node";
+    import { LangChainCallbackHandler } from "@posthog/ai";
+    import { ChatOpenAI } from "@langchain/openai";
+    import { ChatPromptTemplate } from "@langchain/core/prompts";
+    const phClient = new PostHog("<ph_project_token>", {
+      host: "https://us.i.posthog.com",
+    });
     const callbackHandler = new LangChainCallbackHandler({
       client: phClient,
-      distinctId: 'user_123', // optional
-      traceId: 'trace_456', // optional
-      properties: { conversationId: 'abc123' }, // optional
-      groups: { company: 'company_id_in_your_db' }, // optional
+      distinctId: "user_123", // optional
+      traceId: "trace_456", // optional
+      properties: { conversationId: "abc123" }, // optional
+      groups: { company: "company_id_in_your_db" }, // optional
       privacyMode: false, // optional
-      debug: false // optional - when true, logs all events to console
+      debug: false, // optional - when true, logs all events to console
     });
     ```
 
@@ -135,16 +134,16 @@
     ```typescript
     const prompt = ChatPromptTemplate.fromMessages([
       ["system", "You are a helpful assistant."],
-      ["user", "{input}"]
+      ["user", "{input}"],
     ]);
     const model = new ChatOpenAI({
-      apiKey: "your_openai_api_key"
+      apiKey: "your_openai_api_key",
     });
     const chain = prompt.pipe(model);
     // Execute the chain with the callback handler
     const response = await chain.invoke(
       { input: "Tell me a joke about programming" },
-      { callbacks: [callbackHandler] }
+      { callbacks: [callbackHandler] },
     );
     console.log(response.content);
     phClient.shutdown();
@@ -152,17 +151,17 @@
 
     PostHog automatically captures an `$ai_generation` event along with these properties:
 
-    | Property | Description |
-    | --- | --- |
-    | $ai_model | The specific model, like gpt-5-mini or claude-4-sonnet |
-    | $ai_latency | The latency of the LLM call in seconds |
-    | $ai_time_to_first_token | Time to first token in seconds (streaming only) |
-    | $ai_tools | Tools and functions available to the LLM |
-    | $ai_input | List of messages sent to the LLM |
-    | $ai_input_tokens | The number of tokens in the input (often found in response.usage) |
-    | $ai_output_choices | List of response choices from the LLM |
-    | $ai_output_tokens | The number of tokens in the output (often found in response.usage) |
-    | $ai_total_cost_usd | The total cost in USD (input + output) |
+    | Property                                                     | Description                                                                        |
+    | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+    | $ai_model                                                    | The specific model, like gpt-5-mini or claude-4-sonnet                             |
+    | $ai_latency                                                  | The latency of the LLM call in seconds                                             |
+    | $ai_time_to_first_token                                      | Time to first token in seconds (streaming only)                                    |
+    | $ai_tools                                                    | Tools and functions available to the LLM                                           |
+    | $ai_input                                                    | List of messages sent to the LLM                                                   |
+    | $ai_input_tokens                                             | The number of tokens in the input (often found in response.usage)                  |
+    | $ai_output_choices                                           | List of response choices from the LLM                                              |
+    | $ai_output_tokens                                            | The number of tokens in the output (often found in response.usage)                 |
+    | $ai_total_cost_usd                                           | The total cost in USD (input + output)                                             |
     | [[...]](/docs/llm-analytics/generations.md#event-properties) | See [full list](/docs/llm-analytics/generations.md#event-properties) of properties |
 
     It also automatically creates a trace hierarchy based on how LangChain components are nested.
@@ -171,7 +170,7 @@
 
     Recommended
 
-    *Confirm LLM events are being sent to PostHog*
+    _Confirm LLM events are being sent to PostHog_
 
     Let's make sure LLM events are being captured and sent to PostHog. Under **LLM analytics**, you should see rows of data appear in the **Traces** and **Generations** tabs.
 
@@ -187,13 +186,13 @@
 
     Now that you're capturing AI conversations, continue with the resources below to learn what else LLM Analytics enables within the PostHog platform.
 
-    | Resource | Description |
-    | --- | --- |
-    | [Basics](/docs/llm-analytics/basics.md) | Learn the basics of how LLM calls become events in PostHog. |
-    | [Generations](/docs/llm-analytics/generations.md) | Read about the $ai_generation event and its properties. |
-    | [Traces](/docs/llm-analytics/traces.md) | Explore the trace hierarchy and how to use it to debug LLM calls. |
-    | [Spans](/docs/llm-analytics/spans.md) | Review spans and their role in representing individual operations. |
-    | [Anaylze LLM performance](/docs/llm-analytics/dashboard.md) | Learn how to create dashboards to analyze LLM performance. |
+    | Resource                                                    | Description                                                        |
+    | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+    | [Basics](/docs/llm-analytics/basics.md)                     | Learn the basics of how LLM calls become events in PostHog.        |
+    | [Generations](/docs/llm-analytics/generations.md)           | Read about the $ai_generation event and its properties.            |
+    | [Traces](/docs/llm-analytics/traces.md)                     | Explore the trace hierarchy and how to use it to debug LLM calls.  |
+    | [Spans](/docs/llm-analytics/spans.md)                       | Review spans and their role in representing individual operations. |
+    | [Anaylze LLM performance](/docs/llm-analytics/dashboard.md) | Learn how to create dashboards to analyze LLM performance.         |
 
 ### Community questions
 

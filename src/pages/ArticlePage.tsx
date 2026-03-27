@@ -52,10 +52,7 @@ export const ArticlePage = () => {
         <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
           <div className={layoutClass.containerArticle}>
             <p>Missing article link.</p>
-            <TransitionLink
-              to="/articles"
-              viewTransition
-            >
+            <TransitionLink to="/articles" viewTransition>
               Back to articles
             </TransitionLink>
           </div>
@@ -91,7 +88,12 @@ export const ArticlePage = () => {
             >
               Article not found
             </h1>
-            <p style={{ marginBottom: "1.5rem", color: theme.colors.evergladeMuted }}>
+            <p
+              style={{
+                marginBottom: "1.5rem",
+                color: theme.colors.evergladeMuted,
+              }}
+            >
               This article may have moved or is not published yet.
             </p>
             <TransitionLink
@@ -137,20 +139,20 @@ export const ArticlePage = () => {
             All articles
           </TransitionLink>
           <div style={{ marginBottom: "0.5rem" }}>
-          <span
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: theme.palette.purple["300"],
-              padding: ".2rem .4rem",
-              boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
-              borderRadius: "1rem",
-            }}
-          >
-            {postCategoryLabel(post.category)}
-          </span>
+            <span
+              style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: theme.palette.purple["300"],
+                padding: ".2rem .4rem",
+                boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
+                borderRadius: "1rem",
+              }}
+            >
+              {postCategoryLabel(post.category)}
+            </span>
           </div>
 
           <h1 style={typeStyles.articleDetailTitle}>{post.title}</h1>
@@ -162,7 +164,9 @@ export const ArticlePage = () => {
               marginBottom: "2rem",
             }}
           >
-            <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+            <time dateTime={post.publishedAt}>
+              {formatDate(post.publishedAt)}
+            </time>
             {post.authorName ? (
               <>
                 {" · "}
@@ -183,7 +187,13 @@ export const ArticlePage = () => {
               <img
                 src={post.image}
                 alt=""
-                style={{ width: "100%", aspectRatio: "5/3", objectFit: "cover", height: "auto", display: "block" }}
+                style={{
+                  width: "100%",
+                  aspectRatio: "5/3",
+                  objectFit: "cover",
+                  height: "auto",
+                  display: "block",
+                }}
               />
             </div>
           ) : null}
@@ -217,12 +227,12 @@ export const ArticlePage = () => {
                 marginTop: "1.5rem",
                 color: theme.colors.everglade,
               }}
-              linkStyle={{ 
+              linkStyle={{
                 color: theme.palette.blue["600"],
                 textDecorationThickness: ".15em",
                 textDecorationSkipInk: "all",
                 paddingInline: ".25em",
-                backgroundColor: theme.palette.blue[100]
+                backgroundColor: theme.palette.blue[100],
               }}
             />
           </div>

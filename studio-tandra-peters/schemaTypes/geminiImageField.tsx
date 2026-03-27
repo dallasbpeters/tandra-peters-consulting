@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react'
-import { defineField, set, type ImageInputProps } from 'sanity'
-import { ImageObjectInput } from 'sanity-plugin-gemini-ai-images'
-import { geminiStudioApiEndpoint } from '../geminiStudioConfig'
+import React, {useCallback} from 'react'
+import {defineField, set, type ImageInputProps} from 'sanity'
+import {ImageObjectInput} from 'sanity-plugin-gemini-ai-images'
+import {geminiStudioApiEndpoint} from '../geminiStudioConfig'
 
 /**
  * `sanity-plugin-gemini-ai-images` calls `onChange` with a plain `{ _type: 'image', asset: { _ref } }`
@@ -28,7 +28,7 @@ const isGeminiImageObject = (v: unknown): v is GeminiImageValue => {
 }
 
 const GeminiImageInput = (props: ImageInputProps) => {
-  const { onChange, ...rest } = props
+  const {onChange, ...rest} = props
 
   const handleChange = useCallback<ImageInputProps['onChange']>(
     (event) => {

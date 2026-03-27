@@ -2,8 +2,8 @@
  * Serves POST /api/gemini/generate-image during `vite` dev so Sanity Studio (separate origin)
  * can call Gemini without `vercel dev`. Requires GEMINI_API_KEY in repo-root `.env` / `.env.local`.
  */
-import type {IncomingMessage, ServerResponse} from "node:http";
-import type {Plugin} from "vite";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Plugin } from "vite";
 
 const GEMINI_PATH = "/api/gemini/generate-image";
 
@@ -62,13 +62,13 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
       }
 
       try {
-        const { handler } = await import(
-          "sanity-plugin-gemini-ai-images-serverless"
-        );
+        const { handler } =
+          await import("sanity-plugin-gemini-ai-images-serverless");
         const host = req.headers.host ?? "localhost:3000";
         const pathWithQuery = req.url ?? GEMINI_PATH;
         const bodyBuf = await readBody(req);
-        const bodyText = bodyBuf.length > 0 ? bodyBuf.toString("utf8") : undefined;
+        const bodyText =
+          bodyBuf.length > 0 ? bodyBuf.toString("utf8") : undefined;
 
         const headers = new Headers();
         for (const [k, v] of Object.entries(req.headers)) {

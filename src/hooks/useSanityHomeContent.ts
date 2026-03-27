@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
-import {
-  getSanityClient,
-  isSanityStegaUiActive,
-} from "../sanity/client";
+import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
 import type { PostListItem } from "../types/article";
 
@@ -48,7 +45,11 @@ const resolveHomeArticleCards = (
   const fromArticles = filterResolvedPosts(teaser?.articlesResolved);
   const fromLegacy = filterResolvedPosts(teaser?.legacyFeaturedResolved);
   const manual =
-    fromArticles.length > 0 ? fromArticles : fromLegacy.length > 0 ? fromLegacy : [];
+    fromArticles.length > 0
+      ? fromArticles
+      : fromLegacy.length > 0
+        ? fromLegacy
+        : [];
 
   if (manual.length > 0) {
     return manual.slice(0, n);

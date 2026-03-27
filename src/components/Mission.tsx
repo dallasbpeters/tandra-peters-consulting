@@ -15,24 +15,21 @@ export const Mission: React.FC<MissionProps> = ({
       title: "Generous",
       description:
         "We choose to be generous with the time we invest with our customers, and their homes. We are generous with our team members, in the communities we call home.",
-      image:
-        "/Image-1774131541900.jpg",
+      image: "/Image-1774131541900.jpg",
     },
     {
       id: "02",
       title: "Optimistic",
       description:
         "We choose to be optimistic in how we see every interaction and opportunity. We choose to believe the best in others.",
-      image:
-        "/Image-1774131578178.jpg",
+      image: "/Image-1774131578178.jpg",
     },
     {
       id: "03",
       title: "Driven",
       description:
         "We are driven each year to help more Texas homeowners with unparalleled customer service. We are committed to an experience and service that you will want to tell others about.",
-      image:
-        "/Image-1774131587458.jpg",
+      image: "/Image-1774131587458.jpg",
     },
   ],
 }) => {
@@ -46,7 +43,6 @@ export const Mission: React.FC<MissionProps> = ({
     },
   };
 
-  
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -290,13 +286,10 @@ export const Mission: React.FC<MissionProps> = ({
                   >
                     {service.id}
                   </span>
-                
                 </div>
               </motion.div>
             );
           })}
-
-      
         </motion.div>
       </div>
     </section>
