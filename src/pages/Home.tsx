@@ -9,7 +9,7 @@ import { Testimonials } from "../components/Testimonials";
 import { Stats } from "../components/Stats";
 import { Contact } from "../components/Contact";
 import { SocialShareBar } from "../components/SocialShareBar";
-import { Faq } from "../components/Faq";
+// import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 // import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
@@ -22,7 +22,7 @@ import {
   // mapArticlesTeaserEditorialProps,
   mapContactProps,
   mapExpertiseProps,
-  mapFaqProps,
+  // mapFaqProps,
   mapHeroProps,
   mapStatsProps,
   mapMissionProps,
@@ -59,7 +59,7 @@ export const Home = () => {
   const testimonials = home?.testimonials as
     | Record<string, unknown>
     | undefined;
-  const faq = home?.faq as Record<string, unknown> | undefined;
+  // const faq = home?.faq as Record<string, unknown> | undefined;
   // const articlesTeaser = home?.articlesTeaser as
   //   | Record<string, unknown>
   //   | undefined;
@@ -96,7 +96,7 @@ export const Home = () => {
         <Mission {...mapMissionProps(mission)} />
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
-        <Faq {...mapFaqProps(faq)} />
+        {/* <Faq {...mapFaqProps(faq)} /> */}
         {/* <ArticlesTeaser
           posts={data?.latestPosts ?? []}
           {...mapArticlesTeaserEditorialProps(articlesTeaser)}

@@ -455,6 +455,8 @@ export default defineConfig({
   dataset: 'production',
   appId: 'on6anif3y43e3t03oiwrgp30',
 
+  // AI Assist: open any document → ✨ in the document header → “Manage instructions” → “Enable AI assistance”
+  // once per project (creates the “Sanity AI” token). Growth plan+ required. Custom fieldActions need this enabled.
   plugins: [
     agentContextPlugin(),
     assist({
