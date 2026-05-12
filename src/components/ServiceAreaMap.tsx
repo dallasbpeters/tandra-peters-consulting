@@ -8,6 +8,8 @@ import {
 import * as d3 from "d3";
 import geoJson from "./texasCounties.json";
 import { mix, theme } from "../theme";
+import { Preview } from 'shaders/react'
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,6 +118,11 @@ const titleStyle: CSSProperties = {
 
 const mapWrapStyle: CSSProperties = {
   position: "relative",
+  overflow: "hidden",
+};
+const ShaderWrapperStyle: CSSProperties = {
+  position: "absolute",
+  inset: 0,
   overflow: "hidden",
 };
 
@@ -276,6 +283,7 @@ export const ServiceAreaMap = ({
 
   return (
     <section id="service-area" style={sectionStyle}>
+        <Preview style={ShaderWrapperStyle} shader="df94dc76-4038-49b4-a8bc-93a1c35f7974" />
       <div style={innerStyle}>
         <header style={headerStyle}>
           {eyebrow && <p style={eyebrowStyle}>{eyebrow}</p>}

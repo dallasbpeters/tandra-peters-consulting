@@ -1,11 +1,13 @@
 import React from "react";
 import { motion } from "motion/react";
 import { theme } from "../theme";
+import { usePostHog } from "@posthog/react";
 
 export const CallButton = ({
   label = "Call or text 512-968-3965",
   phone = "(512) 968-3965",
 }) => {
+  const posthog = usePostHog();
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,
     fontWeight: 800,
@@ -51,7 +53,9 @@ export const CallButton = ({
       whileInView={{ opacity: 1, x: 0, rotate: -90 }}
       viewport={{ once: true }}
       onTap={() => {
-        if (window.innerWidth < 768) {
+        const method = window.innerWidth < 768 ? "sms" : "tel";
+        posthog?.capture("call_button_tapped", { method, phone });
+        if (method === "sms") {
           window.location.href = `sms:${phone}`;
         } else {
           window.location.href = `tel:${phone}`;

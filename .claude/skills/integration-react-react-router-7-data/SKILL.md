@@ -3,7 +3,7 @@ name: integration-react-react-router-7-data
 description: PostHog integration for React Router v7 - Data mode applications
 metadata:
   author: PostHog
-  version: 1.9.3
+  version: 1.9.5
 ---
 
 # PostHog integration for React Router v7 - Data mode

@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mix, theme } from "../theme";
+import { usePostHog } from "@posthog/react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -319,6 +320,8 @@ const ThinkingIndicator = () => (
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const AgentChatPage = () => {
+  const posthog = usePostHog();
+
   usePageMetadata({
     title: "Feature Builder | Tandra Peters",
     description:
@@ -358,6 +361,10 @@ export const AgentChatPage = () => {
         role: "user",
         content: trimmed,
       };
+      posthog?.capture("agent_message_sent", {
+        message_length: trimmed.length,
+        total_messages_in_session: messages.length + 1,
+      });
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
       setLoading(true);
@@ -408,7 +415,7 @@ export const AgentChatPage = () => {
         textareaRef.current?.focus();
       }
     },
-    [messages, loading],
+    [messages, loading, posthog],
   );
 
   const handleSubmit = useCallback(
@@ -431,9 +438,10 @@ export const AgentChatPage = () => {
 
   const handleSuggestion = useCallback(
     (prompt: string) => {
+      posthog?.capture("agent_suggestion_clicked", { suggestion_text: prompt });
       handleSend(prompt);
     },
-    [handleSend],
+    [handleSend, posthog],
   );
 
   const isEmpty = messages.length === 0 && !loading;

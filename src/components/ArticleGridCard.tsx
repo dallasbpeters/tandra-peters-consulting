@@ -8,6 +8,7 @@ import {
   formatArticleCardDate,
   postCoverImageSrc,
 } from "../article/postCoverImage";
+import { usePostHog } from "@posthog/react";
 
 const cardBaseStyle: CSSProperties = {
   backgroundColor: theme.colors.black,
@@ -41,6 +42,7 @@ export const ArticleGridCard = ({
   cardIndex,
   layout = "standard",
 }: ArticleGridCardProps) => {
+  const posthog = usePostHog();
   const isMain = layout === "featured";
   const imgSrc = postCoverImageSrc(post.image) ?? FALLBACK_ARTICLE_COVER;
   const indexLabel = String(cardIndex + 1).padStart(2, "0");
@@ -56,6 +58,15 @@ export const ArticleGridCard = ({
         display: "block",
         height: "100%",
       }}
+      onClick={() =>
+        posthog?.capture("article_card_clicked", {
+          article_slug: post.slug,
+          article_title: post.title,
+          article_category: post.category,
+          card_layout: layout,
+          card_index: cardIndex,
+        })
+      }
     >
       <div
         className="articles-teaser-card"

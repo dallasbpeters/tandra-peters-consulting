@@ -139,7 +139,7 @@ export const theme = {
     /** Second line of the hero title (default + CMS); tune via `palette.purple` steps. */
     heroAccent: palette.purple["200"],
     danger: palette.coral["600"],
-    /** Small print on legal pages (replaces ad-hoc #666). */
-    legalMuted: palette.granite["600"],
+    /** Small print on legal pages (replaces ad-hoc #666). Uses granite.700 to clear WCAG AA body contrast on `paper`/`paper-dim` surfaces. */
+    legalMuted: palette.granite["700"],
   },
 };
