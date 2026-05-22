@@ -1,7 +1,23 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { mix, theme } from "../../theme";
 import { useRoofInspection } from "./context";
 import type { Chapter, Direction } from "./types";
+
+const useIsMobile = (): boolean => {
+  const query = "(max-width: 700px)";
+  const [matches, setMatches] = useState<boolean>(
+    () => typeof window !== "undefined" && window.matchMedia(query).matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return matches;
+};
 
 type HotspotProps = {
   chapter: Chapter;
@@ -70,6 +86,44 @@ const getCalloutPositionStyle = (
 export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const { activeChapterId, setActiveChapterId } = useRoofInspection();
   const isOpen = activeChapterId === chapter.id;
+  const isMobile = useIsMobile();
+  const effectiveDirection: Direction = isMobile ? "bottom" : chapter.direction;
+
+  // Edge-detection: measure the card's natural viewport position when it
+  // opens, then nudge it back on-screen if any edge is violated.
+  const calloutRef = useRef<HTMLElement>(null);
+  const [nudge, setNudge] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Reset nudge immediately so the card renders at its natural position.
+    setNudge({ x: 0, y: 0 });
+
+    if (!isOpen) return;
+
+    // Measure after the browser has painted the natural position.
+    const raf = requestAnimationFrame(() => {
+      const el = calloutRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const MARGIN = 12;
+
+      let x = 0;
+      let y = 0;
+
+      if (rect.right > vw - MARGIN) x = vw - MARGIN - rect.right;
+      else if (rect.left < MARGIN) x = MARGIN - rect.left;
+
+      if (rect.top < MARGIN) y = MARGIN - rect.top;
+      else if (rect.bottom > vh - MARGIN) y = vh - MARGIN - rect.bottom;
+
+      if (x !== 0 || y !== 0) setNudge({ x, y });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [isOpen]);
 
   const handleClick = () =>
     setActiveChapterId(isOpen ? null : chapter.id);
@@ -123,12 +177,17 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     userSelect: "none",
   };
 
-  // Callout card
+  // Callout card — direction is forced to "bottom" on mobile.
+  // The `translate` CSS property composites on top of `transform` so the
+  // open/close animation is unaffected while the nudge corrects edge overflow.
   const cardStyle: React.CSSProperties = {
-    ...getCalloutPositionStyle(chapter.direction, isOpen),
+    ...getCalloutPositionStyle(effectiveDirection, isOpen),
     background: theme.colors.black,
     color: theme.colors.paper,
     padding: "1.125rem 1.375rem 1.375rem",
+    ...(nudge.x !== 0 || nudge.y !== 0
+      ? { translate: `${nudge.x}px ${nudge.y}px` }
+      : {}),
   };
 
   const cardNumStyle: React.CSSProperties = {
@@ -187,7 +246,9 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
       </button>
 
       <aside
+        ref={calloutRef}
         style={cardStyle}
+        className="ri-hotspot-callout"
         role="dialog"
         aria-label={chapter.callout.title}
         aria-hidden={!isOpen}

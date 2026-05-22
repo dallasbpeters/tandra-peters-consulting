@@ -32,8 +32,8 @@ export const Diagram: React.FC<DiagramProps> = ({
     opacity: 0.92,
   };
 
-  return (
-    <div style={containerStyle} role="img" aria-label={alt}>
+      return (
+        <div style={containerStyle} className="ri-diagram" role="img" aria-label={alt}>
       <img src={src} alt="" aria-hidden="true" style={imgStyle} />
       {children}
     </div>

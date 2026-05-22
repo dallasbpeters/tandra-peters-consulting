@@ -19,13 +19,9 @@ export const Rail: React.FC<RailProps> = ({
   const { chapters, activeChapterId, setActiveChapterId } =
     useRoofInspection();
 
-  const railStyle: React.CSSProperties = {
-    position: "sticky",
-    top: "3rem",
-    alignSelf: "start",
-    maxHeight: "calc(100vh - 6rem)",
-    overflowY: "auto",
-  };
+  // Sticky / max-height are handled by .ri-rail in site-layout.css,
+  // which also disables sticky on mobile via @media (width <= 700px).
+  const railStyle: React.CSSProperties = {};
 
   const kickerStyle: React.CSSProperties = {
     display: "flex",
@@ -106,35 +102,41 @@ export const Rail: React.FC<RailProps> = ({
   };
 
   return (
-    <aside style={railStyle}>
-      <div style={kickerStyle}>
-        <span style={kickerRuleStyle} aria-hidden="true" />
-        <span>{kicker}</span>
+    <aside style={railStyle} className="ri-rail">
+      {/* ri-rail-header and ri-rail-nav become direct flex children of
+          .ri-stage on mobile via `display: contents` on the aside */}
+      <div className="ri-rail-header">
+        <div style={kickerStyle}>
+          <span style={kickerRuleStyle} aria-hidden="true" />
+          <span>{kicker}</span>
+        </div>
+
+        <h2 style={titleStyle}>{title}</h2>
+        <p style={ledeStyle}>{lede}</p>
       </div>
 
-      <h2 style={titleStyle}>{title}</h2>
-      <p style={ledeStyle}>{lede}</p>
-
-      <ol style={listStyle} role="list">
-        {chapters.map((chapter) => {
-          const isActive = activeChapterId === chapter.id;
-          return (
-            <li key={chapter.id}>
-              <button
-                style={getChapterButtonStyle(isActive)}
-                data-active={isActive}
-                onClick={() =>
-                  setActiveChapterId(isActive ? null : chapter.id)
-                }
-                aria-pressed={isActive}
-              >
-                <span style={numStyle}>{chapter.id}</span>
-                <span>{chapter.label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="ri-rail-nav">
+        <ol style={listStyle} role="list">
+          {chapters.map((chapter) => {
+            const isActive = activeChapterId === chapter.id;
+            return (
+              <li key={chapter.id}>
+                <button
+                  style={getChapterButtonStyle(isActive)}
+                  data-active={isActive}
+                  onClick={() =>
+                    setActiveChapterId(isActive ? null : chapter.id)
+                  }
+                  aria-pressed={isActive}
+                >
+                  <span style={numStyle}>{chapter.id}</span>
+                  <span>{chapter.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </aside>
   );
 };

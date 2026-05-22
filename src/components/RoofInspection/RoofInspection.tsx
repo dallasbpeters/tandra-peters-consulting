@@ -42,16 +42,6 @@ const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
     defaultViewId ?? views[0]?.id ?? "",
   );
 
-  const stageStyle: React.CSSProperties = {
-    padding: "clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem)",
-    display: "grid",
-    gridTemplateColumns: "minmax(220px, 260px) 1fr",
-    gap: "clamp(2rem, 5vw, 5rem)",
-    maxWidth: "1440px",
-    margin: "0 auto",
-    alignItems: "start",
-  };
-
   return (
     <RoofInspectionContext.Provider
       value={{
@@ -63,7 +53,7 @@ const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
         setActiveViewId,
       }}
     >
-      <div style={stageStyle}>{children}</div>
+      <div className="ri-stage">{children}</div>
     </RoofInspectionContext.Provider>
   );
 };
