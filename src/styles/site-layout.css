@@ -11,6 +11,7 @@
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   width: 100%;
+  z-index: 5;
 }
 
 .site-container.site-container--wide {
@@ -82,6 +83,8 @@
   grid-template-columns: 1fr;
   gap: 5rem;
   align-items: center;
+  z-index: 5;
+  position: relative;
 }
 
 .site-container.site-container--stats-row {

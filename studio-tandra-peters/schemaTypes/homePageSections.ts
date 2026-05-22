@@ -1,6 +1,57 @@
 import {defineField, defineType} from 'sanity'
 import {defineGeminiImage} from './geminiImageField'
 
+export const roofInspectionSectionType = defineType({
+  name: 'roofInspectionSection',
+  title: 'Roof Inspection',
+  type: 'object',
+  description: 'The "The Inspection" interactive diagram section.',
+  fields: [
+    defineField({
+      name: 'kicker',
+      title: 'Kicker label',
+      type: 'string',
+      description: 'Small all-caps label above the title.',
+      initialValue: 'Tandra Peters · Roof Basics',
+    }),
+    defineField({
+      name: 'titleLine1',
+      title: 'Title — line 1 (plain)',
+      type: 'string',
+      description: 'First line of the section heading (roman weight).',
+      initialValue: 'The',
+    }),
+    defineField({
+      name: 'titleLine2',
+      title: 'Title — line 2 (italic accent)',
+      type: 'string',
+      description: 'Second line, rendered in italic accent style.',
+      initialValue: 'Inspection.',
+    }),
+    defineField({
+      name: 'lede',
+      title: 'Lede',
+      type: 'text',
+      rows: 3,
+      description: 'Short paragraph shown under the title.',
+    }),
+    defineGeminiImage({
+      name: 'diagramImage',
+      title: 'Diagram image',
+      description:
+        'Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.',
+    }),
+    defineField({
+      name: 'hotspots',
+      title: 'Hotspots',
+      type: 'array',
+      of: [{type: 'roofInspectionHotspot'}],
+      description: 'Interactive annotation points on the diagram. Leave empty to use built-in defaults.',
+      validation: (Rule) => Rule.max(12),
+    }),
+  ],
+})
+
 export const heroSectionType = defineType({
   name: 'heroSection',
   title: 'Hero',

@@ -24,7 +24,9 @@ import {
   contactSectionType,
   socialShareSectionType,
   articlesTeaserSectionType,
+  roofInspectionSectionType,
 } from './homePageSections'
+import {roofInspectionHotspotType} from './objects/roofInspectionHotspot'
 import {siteSettingsType} from './documents/siteSettings'
 import {homePageType} from './documents/homePage'
 import {articlesPageType} from './documents/articlesPage'
@@ -44,6 +46,7 @@ export const schemaTypes = [
   seoDashboardOpportunityType,
   statRowType,
   serviceAreaMapType,
+  roofInspectionHotspotType,
   heroSectionType,
   marqueeSectionType,
   aboutSectionType,
@@ -56,6 +59,7 @@ export const schemaTypes = [
   contactSectionType,
   socialShareSectionType,
   articlesTeaserSectionType,
+  roofInspectionSectionType,
   siteSettingsType,
   homePageType,
   articlesPageType,

@@ -18,6 +18,7 @@ import type { NavItem, NavProps } from "../types";
 import type { FooterProps } from "../types";
 import type { TestimonialsProps } from "../types";
 import type { ServiceAreaMapProps } from "../types";
+import type { RoofInspectionSectionProps, RoofInspectionHotspotData } from "../types";
 
 const SOCIAL_ICONS = {
   instagram: Instagram,
@@ -450,6 +451,105 @@ export const mapTestimonialsProps = (
   if (emptyStateNote) {
     out.emptyStateNote = emptyStateNote;
   }
+  return out;
+};
+
+const VALID_DIRECTIONS = new Set(["top", "right", "left", "bottom"]);
+
+export const mapRoofInspectionProps = (
+  data: SanityDoc,
+): Partial<RoofInspectionSectionProps> => {
+  if (!data) return {};
+
+  const out: Partial<RoofInspectionSectionProps> = {};
+
+  if (typeof data.kicker === "string" && data.kicker.trim()) {
+    out.kicker = stegaClean(data.kicker).trim();
+  }
+  if (typeof data.titleLine1 === "string" && data.titleLine1.trim()) {
+    out.titleLine1 = stegaClean(data.titleLine1).trim();
+  }
+  if (typeof data.titleLine2 === "string" && data.titleLine2.trim()) {
+    out.titleLine2 = stegaClean(data.titleLine2).trim();
+  }
+  if (typeof data.lede === "string" && data.lede.trim()) {
+    out.lede = stegaClean(data.lede).trim();
+  }
+
+  // Diagram image — Sanity image asset URL
+  const img = data.diagramImage;
+  if (img?.asset?.url && typeof img.asset.url === "string") {
+    out.diagramImageUrl = img.asset.url;
+  } else if (img?.asset?._ref && typeof img.asset._ref === "string") {
+    // Fallback: let the component handle missing URL gracefully
+    out.diagramImageUrl = undefined;
+  }
+
+  // Hotspot array — clean stega encoding BEFORE validating so invisible
+  // Unicode characters added by the Presentation iframe never silently
+  // drop hotspots or prevent position updates from Sanity reaching the UI.
+  if (Array.isArray(data.hotspots) && data.hotspots.length > 0) {
+    const mapped: RoofInspectionHotspotData[] = (
+      data.hotspots as Record<string, unknown>[]
+    )
+      .map((h): RoofInspectionHotspotData | null => {
+        if (!h || typeof h !== "object") return null;
+        const label =
+          typeof h.label === "string" ? stegaClean(h.label).trim() : "";
+        const positionTop =
+          typeof h.positionTop === "string"
+            ? stegaClean(h.positionTop).trim()
+            : "";
+        const positionLeft =
+          typeof h.positionLeft === "string"
+            ? stegaClean(h.positionLeft).trim()
+            : "";
+        const directionRaw =
+          typeof h.direction === "string"
+            ? stegaClean(h.direction).trim()
+            : "";
+        const calloutTitle =
+          typeof h.calloutTitle === "string"
+            ? stegaClean(h.calloutTitle).trim()
+            : "";
+        const calloutBody =
+          typeof h.calloutBody === "string"
+            ? stegaClean(h.calloutBody).trim()
+            : "";
+        const watchFor =
+          typeof h.watchFor === "string"
+            ? stegaClean(h.watchFor).trim()
+            : "";
+
+        if (
+          !label ||
+          !positionTop ||
+          !positionLeft ||
+          !VALID_DIRECTIONS.has(directionRaw) ||
+          !calloutTitle ||
+          !calloutBody ||
+          !watchFor
+        ) {
+          return null;
+        }
+
+        return {
+          label,
+          positionTop,
+          positionLeft,
+          direction: directionRaw as RoofInspectionHotspotData["direction"],
+          calloutTitle,
+          calloutBody,
+          watchFor,
+        };
+      })
+      .filter((h): h is RoofInspectionHotspotData => h !== null);
+
+    if (mapped.length > 0) {
+      out.hotspots = mapped;
+    }
+  }
+
   return out;
 };
 

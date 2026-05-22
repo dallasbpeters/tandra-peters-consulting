@@ -48,6 +48,37 @@ type GoogleButtonConfiguration = {
   width?: number | string;
 };
 
+/**
+ * React JSX intrinsic element for @google/model-viewer.
+ * The package registers the HTMLElementTagNameMap entry, but React's JSX
+ * namespace needs its own declaration so TSX files compile without errors.
+ */
+declare namespace React {
+  namespace JSX {
+    interface IntrinsicElements {
+      "model-viewer": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        src?: string;
+        alt?: string;
+        "camera-orbit"?: string;
+        "camera-target"?: string;
+        "field-of-view"?: string;
+        /** Present = enabled; omit to disable. */
+        "camera-controls"?: boolean | "";
+        "interaction-prompt"?: "auto" | "none" | "when-focused";
+        "touch-action"?: string;
+        "auto-rotate"?: boolean | "";
+        "auto-rotate-delay"?: number;
+        ar?: boolean | "";
+        poster?: string;
+        loading?: "auto" | "lazy" | "eager";
+      };
+    }
+  }
+}
+
 interface Window {
   google?: {
     accounts?: {

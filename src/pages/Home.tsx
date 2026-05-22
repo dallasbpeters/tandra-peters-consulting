@@ -17,6 +17,7 @@ import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { Agentation } from "agentation";
 import {
   mapAboutProps,
   // mapArticlesTeaserEditorialProps,
@@ -30,7 +31,15 @@ import {
   mapServiceAreaMapProps,
   mapSocialShareProps,
   mapTestimonialsProps,
+  mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
+import {
+  RoofInspection,
+  CHAPTERS,
+  VIEWS,
+  type Chapter,
+} from "../components/RoofInspection";
+import type { RoofInspectionHotspotData } from "../types";
 
 export const Home = () => {
   const { data } = useSanitySite();
@@ -68,6 +77,9 @@ export const Home = () => {
   const serviceAreaMap = home?.serviceAreaMap as
     | Record<string, unknown>
     | undefined;
+  const roofInspectionData = home?.roofInspection as
+    | Record<string, unknown>
+    | undefined;
 
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim()
@@ -77,6 +89,49 @@ export const Home = () => {
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
   const marqueeVelocity =
     typeof marquee?.velocity === "number" ? marquee.velocity : 80;
+
+  const roofInspection = mapRoofInspectionProps(roofInspectionData);
+
+  // DEBUG — remove once position updates are confirmed working
+  if (import.meta.env.DEV) {
+    console.log("[RoofInspection] sanity raw:", roofInspectionData);
+    console.log("[RoofInspection] mapped hotspots:", roofInspection.hotspots);
+  }
+
+  /**
+   * Convert CMS hotspot data to the Chapter shape expected by RoofInspection.
+   * Roman numeral is derived from array position so editors never have to
+   * manage it manually.
+   */
+  const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+  const sanityChapters: Chapter[] | null =
+    roofInspection.hotspots && roofInspection.hotspots.length > 0
+      ? roofInspection.hotspots.map(
+          (h: RoofInspectionHotspotData, i: number): Chapter => ({
+            id: String(i + 1),
+            num: ROMAN[i] ?? String(i + 1),
+            label: h.label,
+            position: { top: h.positionTop, left: h.positionLeft },
+            direction: h.direction,
+            callout: {
+              title: h.calloutTitle,
+              body: h.calloutBody,
+              watchFor: h.watchFor,
+            },
+          }),
+        )
+      : null;
+
+  const activeChapters = sanityChapters ?? CHAPTERS;
+
+  const inspectionTitle = (
+    <>
+      {roofInspection.titleLine1 ?? "The"}{" "}
+      <em>{roofInspection.titleLine2 ?? "Inspection."}</em>
+      <br />
+      Seven things I check on every roof.
+    </>
+  );
 
   return (
     <SitePageChrome>
@@ -93,6 +148,28 @@ export const Home = () => {
         <Stats {...mapStatsProps(stats)} />
         <Services {...mapServicesProps(services)} />
         <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+        <RoofInspection chapters={activeChapters} views={VIEWS}>
+          <RoofInspection.Rail
+            kicker={roofInspection.kicker}
+            title={inspectionTitle}
+            lede={
+              roofInspection.lede ??
+              "You don't need to be a roofer to know what you're looking at — just someone who'll point out the seven places that matter. Hover any number on the photo."
+            }
+          />
+          <RoofInspection.Canvas hint="Hover or tap a number to learn more.">
+            {/* Toolbar parked — tabs become meaningful once the diagram is
+                replaced with a quality 3D asset. Uncomment when ready. */}
+            {/* <RoofInspection.Toolbar /> */}
+            <RoofInspection.Diagram
+              src={roofInspection.diagramImageUrl ?? "/roof-sidecut.svg"}
+            >
+              {activeChapters.map((c) => (
+                <RoofInspection.Hotspot key={c.id} chapter={c} />
+              ))}
+            </RoofInspection.Diagram>
+          </RoofInspection.Canvas>
+        </RoofInspection>
         <Mission {...mapMissionProps(mission)} />
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
@@ -132,6 +209,7 @@ export const Home = () => {
           theme.colors.purple,
         ]}
       />
+      {process.env.NODE_ENV === "development" && <Agentation />}
     </SitePageChrome>
   );
 };

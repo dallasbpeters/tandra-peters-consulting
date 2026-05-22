@@ -1,0 +1,639 @@
+<!doctype html>
+<!--
+  Concept A v2 — "The Inspection"
+  Now uses the real /public/roof-sidecut.svg illustration instead of a
+  hand-traced SVG cross-section.
+
+  Hotspot positions are percentage-based so they scale with the image.
+  The SVG is referenced via a relative path: ../public/roof-sidecut.svg
+  Open from the project root: `open sketches/the-walk.html`
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Inspection — Tandra Peters · Roof 101</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --everglade: oklch(25.66% 0.046 163.6);
+        --everglade-light: oklch(39.54% 0.077 162.53);
+        --everglade-muted: oklch(89.31% 0.073 168.54);
+        --paper: oklch(96.63% 0.004 106.47);
+        --paper-dark: oklch(86.04% 0.016 106.74);
+        --black: oklch(18.97% 0.008 107.13);
+        --hero-accent: oklch(72.81% 0.146 283.49);
+        --hairline: color-mix(in oklch, var(--everglade) 18%, transparent);
+
+        --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+        --sans: "Manrope", -apple-system, system-ui, sans-serif;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--sans);
+        background: var(--paper);
+        color: var(--everglade);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Two-column layout ─────────────────────────────────────────────── */
+
+      .stage {
+        min-height: 100vh;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) 1fr;
+        gap: clamp(2rem, 5vw, 5rem);
+        max-width: 1440px;
+        margin: 0 auto;
+      }
+
+      @media (max-width: 880px) {
+        .stage { grid-template-columns: 1fr; }
+      }
+
+      /* ── Left rail ─────────────────────────────────────────────────────── */
+
+      .rail {
+        /* position: sticky; */
+        top: 3rem;
+        align-self: start;
+        max-height: calc(100vh - 6rem);
+        overflow: auto;
+      }
+
+      .rail__kicker {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--hero-accent);
+        margin-bottom: 1.5rem;
+      }
+
+      .rail__rule {
+        width: 1.75rem;
+        height: 1px;
+        background: var(--hero-accent);
+        opacity: 0.7;
+      }
+
+      .rail__title {
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: clamp(2.25rem, 4vw, 3rem);
+        line-height: 0.95;
+        letter-spacing: -0.01em;
+        margin: 0 0 2rem;
+        color: var(--everglade);
+      }
+
+      .rail__title em {
+        font-style: italic;
+        color: var(--everglade-light);
+      }
+
+      .rail__lede {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--everglade-light);
+        max-width: 24ch;
+        margin: 0 0 2.5rem;
+      }
+
+      .rail__chapters {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-top: 1px solid var(--hairline);
+      }
+
+      .rail__chapter {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 0.875rem 0;
+        border-bottom: 1px solid var(--hairline);
+        cursor: pointer;
+        display: grid;
+        grid-template-columns: 1.75rem 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        color: color-mix(in oklch, var(--everglade) 50%, transparent);
+        transition: color 180ms ease;
+        background: none;
+        border-left: 0;
+        border-right: 0;
+        border-top: 0;
+        text-align: left;
+        width: 100%;
+        font-family: inherit;
+      }
+
+      .rail__chapter:hover,
+      .rail__chapter[data-active="true"] {
+        color: var(--everglade);
+      }
+
+      .rail__num {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 1.05rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--hero-accent);
+      }
+
+      /* ── Right canvas ──────────────────────────────────────────────────── */
+
+      .canvas {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .canvas__toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--hairline);
+      }
+
+      .canvas__views {
+        display: flex;
+        gap: 0;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .canvas__view {
+        padding: 0.5rem 0.875rem;
+        background: transparent;
+        border: 1px solid transparent;
+        color: color-mix(in oklch, var(--everglade) 50%, transparent);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+        transition: color 180ms ease, background 180ms ease;
+      }
+
+      .canvas__view:hover { color: var(--everglade); }
+      .canvas__view[data-active="true"] {
+        background: var(--black);
+        color: var(--paper);
+      }
+
+      .canvas__hint {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 1rem;
+        color: color-mix(in oklch, var(--everglade) 55%, transparent);
+        margin: 0;
+      }
+
+      /* ── Diagram wrapper ───────────────────────────────────────────────── */
+
+      .diagram {
+        position: relative;
+        overflow: visible;
+        /* The illustration's native viewBox is square (2048×2048) but the
+           interesting cross-section lives roughly in the top-left 60% of the
+           frame, so we crop to a landscape aspect that fits best. */
+        aspect-ratio: 5/3;
+      }
+
+      .diagram__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Crop to the upper-right quadrant where the cutaway detail is richest */
+        object-position: 30% 30%;
+        opacity: 0.92;
+      }
+
+      /* Very subtle grain — reinforces the "real photo" feel without being decorative */
+      .diagram::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      /* ── Hotspots ──────────────────────────────────────────────────────── */
+
+      .hotspot {
+        position: absolute;
+        width: 3rem;
+        height: 3rem;
+        margin: -1.125rem 0 0 -1.125rem;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        z-index: 3;
+      }
+
+      .hotspot::before {
+        content: "";
+        position: absolute;
+        inset: 0.75rem;
+        border-radius: 50%;
+        background: var(--hero-accent);
+        box-shadow: 0 0 0 5px color-mix(in oklch, var(--hero-accent) 25%, transparent);
+        transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0.25rem;
+        border-radius: 50%;
+        border: 1px solid var(--hero-accent);
+        opacity: 0.5;
+        animation: pulse 2.4s infinite ease-out;
+      }
+
+      @keyframes pulse {
+        0%   { opacity: 0.5; transform: scale(0.8); }
+        70%  { opacity: 0;   transform: scale(1.4); }
+        100% { opacity: 0;   transform: scale(1.4); }
+      }
+
+      .hotspot:hover::before,
+      .hotspot[aria-expanded="true"]::before {
+        transform: scale(1.25);
+      }
+
+      .hotspot__num {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--sans);
+        font-size: .8rem;
+        color: var(--black);
+        z-index: 1;
+        pointer-events: none;
+        font-weight: 400;
+      }
+
+      /* ── Callout cards ─────────────────────────────────────────────────── */
+
+      .callout {
+        position: absolute;
+        z-index: 10;
+        width: 17rem;
+        background: var(--black);
+        color: var(--paper);
+        padding: 1.125rem 1.375rem 1.375rem;
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity 220ms ease, transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .hotspot[aria-expanded="true"] + .callout {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .callout__num {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 1rem;
+        color: var(--accent);
+        margin: 0 0 0.375rem;
+      }
+
+      .callout__title {
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: 1.375rem;
+        line-height: 1.1;
+        margin: 0 0 0.625rem;
+      }
+
+      .callout__body {
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: color-mix(in oklch, var(--paper) 80%, transparent);
+        margin: 0 0 0.75rem;
+      }
+
+      .callout__what {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--hero-accent);
+        margin: 0.875rem 0 0.3rem;
+      }
+
+      .callout__watch {
+        font-size: 0.8rem;
+        line-height: 1.55;
+        color: color-mix(in oklch, var(--paper) 65%, transparent);
+        margin: 0;
+      }
+
+      /* Position variants */
+      .hotspot--top + .callout       { bottom: calc(100% + 0.75rem); left: 50%; transform: translate(-50%, 8px); }
+      .hotspot--top[aria-expanded="true"] + .callout  { transform: translate(-50%, 0); }
+
+      .hotspot--right + .callout     { top: 50%; left: calc(100% + 0.75rem); transform: translateY(calc(-50% + 8px)); }
+      .hotspot--right[aria-expanded="true"] + .callout { transform: translateY(-50%); }
+
+      .hotspot--left + .callout      { top: 50%; right: calc(100% + 0.75rem); transform: translateY(calc(-50% + 8px)); }
+      .hotspot--left[aria-expanded="true"] + .callout  { transform: translateY(-50%); }
+
+      .hotspot--bottom + .callout    { top: calc(100% + 0.75rem); left: 50%; transform: translate(-50%, 8px); }
+      .hotspot--bottom[aria-expanded="true"] + .callout { transform: translate(-50%, 0); }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="stage">
+
+      <!-- LEFT RAIL -->
+      <aside class="rail">
+        <div class="rail__kicker">
+          <span class="rail__rule" aria-hidden="true"></span>
+          <span>Tandra Peters · Roof Basics</span>
+        </div>
+
+        <h1 class="rail__title">
+          The <em>Inspection.</em><br />
+          Seven things I check on every roof.
+        </h1>
+
+        <p class="rail__lede">
+          You don't need to be a roofer to know what you're looking at — just
+          someone who'll point out the seven places that matter. Hover any
+          number on the photo.
+        </p>
+
+        <ol class="rail__chapters" role="list">
+          <li><button class="rail__chapter" data-target="1" data-active="true">
+            <span class="rail__num">i</span><span>Ridge &amp; ridge vent</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="2">
+            <span class="rail__num">ii</span><span>Field shingles</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="3">
+            <span class="rail__num">iii</span><span>Underlayment</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="4">
+            <span class="rail__num">iv</span><span>Decking</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="5">
+            <span class="rail__num">v</span><span>Step flashing</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="6">
+            <span class="rail__num">vi</span><span>Drip edge</span>
+          </button></li>
+          <li><button class="rail__chapter" data-target="7">
+            <span class="rail__num">vii</span><span>Soffit &amp; fascia</span>
+          </button></li>
+        </ol>
+      </aside>
+
+      <!-- RIGHT CANVAS -->
+      <section class="canvas">
+        <div class="canvas__toolbar">
+          <p class="canvas__hint">Hover or tap a number to learn more.</p>
+        </div>
+
+        <div class="diagram" id="diagram"
+          role="img"
+          aria-label="Cutaway photograph of a residential roof showing structural layers from ridge to eave">
+
+          <!--
+            The real roof cross-section illustration.
+            Relative path works when opened as `open sketches/the-walk.html` from project root.
+          -->
+          <img
+            class="diagram__img"
+            src="../public/roof-sidecut.svg"
+            alt=""
+            aria-hidden="true"
+          />
+
+          <!--
+            Hotspots — positioned as percentages of the diagram container.
+            The SVG viewBox is 2048×2048 but we crop to 16:9 via object-position: 30% 30%.
+            Positions below are calibrated to the visible cropped region:
+              - Ridge/peak: upper-center of the diagonal slope
+              - Field shingles: mid-slope, the dominant tan/brown texture
+              - Underlayment: just below the shingle edge in the cutaway
+              - Decking: the pale horizontal structure visible at the cut face
+              - Step flashing: near the vertical wall intersection on the left side
+              - Drip edge: lower-right where the slope meets the overhang
+              - Soffit/fascia: rightmost overhang underside
+          -->
+
+          <!-- 1. Ridge -->
+          <div style="position:absolute; top:20%; left:25%;">
+            <button class="hotspot hotspot--right" data-id="1" aria-expanded="false" aria-label="Ridge and ridge vent">
+              <span class="hotspot__num">1</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Ridge and ridge vent">
+              <p class="callout__num">i.</p>
+              <h2 class="callout__title">Ridge cap &amp; vent</h2>
+              <p class="callout__body">
+                The peak. Caps are heavier than field shingles — wind hits hardest here
+                and the ridge is the last line of defence. The slot underneath is the
+                ridge vent: that's how your attic breathes out in summer.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">Lifted or buckling caps after a windstorm. A vent that was painted shut during the last re-roof.</p>
+            </aside>
+          </div>
+
+          <!-- 2. Field shingles -->
+          <div style="position:absolute; top:28%; left:52%;">
+            <button class="hotspot hotspot--right" data-id="2" aria-expanded="false" aria-label="Field shingles">
+              <span class="hotspot__num">2</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Field shingles">
+              <p class="callout__num">ii.</p>
+              <h2 class="callout__title">Field shingles</h2>
+              <p class="callout__body">
+                The main course. Most Texas roofs are architectural asphalt — heavier
+                than three-tab, rated 110+ mph when nailed correctly. What you're
+                looking at is the granular surface that takes the UV hit every summer.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">Bare patches where granules washed into the gutters. Sun age, not always storm damage.</p>
+            </aside>
+          </div>
+
+          <!-- 3. Underlayment — visible at cut edge, mid-slope -->
+          <div style="position:absolute; top:59%; left:82%;">
+            <button class="hotspot hotspot--top" data-id="3" aria-expanded="false" aria-label="Underlayment">
+              <span class="hotspot__num">3</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Underlayment">
+              <p class="callout__num">iii.</p>
+              <h2 class="callout__title">Underlayment</h2>
+              <p class="callout__body">
+                The layer between shingles and decking — only visible at the cut face or
+                during a tear-off. Synthetic synthetic beats old #15 felt: tougher, lighter,
+                won't shred if wind catches it mid-install.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">Whether your installer is using the manufacturer's matched underlayment system. Mix brands and the warranty thins fast.</p>
+            </aside>
+          </div>
+
+          <!-- 4. Decking — the pale structural layer in the cutaway -->
+          <div style="position:absolute; top: 55%; left:50%;">
+            <button class="hotspot hotspot--top" data-id="4" aria-expanded="false" aria-label="Decking">
+              <span class="hotspot__num">4</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Decking">
+              <p class="callout__num">iv.</p>
+              <h2 class="callout__title">Decking</h2>
+              <p class="callout__body">
+                Plywood or OSB nailed to the rafters. You only see it during a tear-off —
+                and that's the moment to check for soft boards. A soft board telegraphs
+                right through the new roof within a year.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">A contract that includes decking replacement at cost per sheet, not a vague "as needed" line that turns into a surprise.</p>
+            </aside>
+          </div>
+
+          <!-- 5. Step flashing — upper-left where the wall meets the slope -->
+          <div style="position:absolute; top:24%; left:17%;">
+            <button class="hotspot hotspot--right" data-id="5" aria-expanded="false" aria-label="Step flashing">
+              <span class="hotspot__num">5</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Step flashing">
+              <p class="callout__num">v.</p>
+              <h2 class="callout__title">Step flashing</h2>
+              <p class="callout__body">
+                Bent metal pieces tucked under each shingle course where the slope meets
+                a vertical wall. Half the leaks I see start here — because someone saved
+                twenty minutes during install.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">One continuous L-strip pretending to be step flashing. That's a leak waiting for the first hard sideways rain.</p>
+            </aside>
+          </div>
+
+          <!-- 6. Drip edge — lower-right, where the slope meets the overhang -->
+          <div style="position:absolute; top:72%; left:75%;">
+            <button class="hotspot hotspot--top" data-id="6" aria-expanded="false" aria-label="Drip edge">
+              <span class="hotspot__num">6</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Drip edge">
+              <p class="callout__num">vi.</p>
+              <h2 class="callout__title">Drip edge</h2>
+              <p class="callout__body">
+                The L-shaped metal that runs along the eave and rakes, kicking water
+                away from the fascia into the gutter. Code in Texas. Skipped on more
+                cheap re-roofs than I'd like to count.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">Stain lines on the fascia board below — water's been running where it shouldn't.</p>
+            </aside>
+          </div>
+
+          <!-- 7. Soffit & fascia — far right, the overhang underside -->
+          <div style="position:absolute; top:80%; left:68%;">
+            <button class="hotspot hotspot--top" data-id="7" aria-expanded="false" aria-label="Soffit and fascia">
+              <span class="hotspot__num">7</span>
+            </button>
+            <aside class="callout" role="dialog" aria-label="Soffit and fascia">
+              <p class="callout__num">vii.</p>
+              <h2 class="callout__title">Soffit &amp; fascia</h2>
+              <p class="callout__body">
+                The boards you see from the driveway — fascia in front, soffit underneath.
+                Soffit vents are how cool air enters the attic; without them the ridge
+                vent has nothing to pull through.
+              </p>
+              <p class="callout__what">What to watch for</p>
+              <p class="callout__watch">Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.</p>
+            </aside>
+          </div>
+
+        </div><!-- .diagram -->
+      </section>
+
+    </main>
+
+    <script>
+      const hotspots = document.querySelectorAll(".hotspot");
+      const chapters = document.querySelectorAll(".rail__chapter");
+
+      const closeAll = (except = null) => {
+        hotspots.forEach((h) => { if (h !== except) h.setAttribute("aria-expanded", "false"); });
+        chapters.forEach((c) => c.removeAttribute("data-active"));
+      };
+
+      const openHotspot = (id) => {
+        const target = document.querySelector(`.hotspot[data-id="${id}"]`);
+        if (!target) return;
+        closeAll(target);
+        target.setAttribute("aria-expanded", "true");
+        const ch = document.querySelector(`.rail__chapter[data-target="${id}"]`);
+        if (ch) ch.setAttribute("data-active", "true");
+      };
+
+      hotspots.forEach((h) => {
+        h.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = h.getAttribute("aria-expanded") === "true";
+          isOpen ? h.setAttribute("aria-expanded", "false") : openHotspot(h.dataset.id);
+        });
+        h.addEventListener("mouseenter", () => openHotspot(h.dataset.id));
+        h.addEventListener("mouseleave", () => h.setAttribute("aria-expanded", "false"));
+      });
+
+      chapters.forEach((c) => {
+        c.addEventListener("click", () => openHotspot(c.dataset.target));
+      });
+
+      document.querySelectorAll(".canvas__view").forEach((v) => {
+        v.addEventListener("click", () => {
+          document.querySelectorAll(".canvas__view").forEach((x) => x.removeAttribute("data-active"));
+          v.setAttribute("data-active", "true");
+        });
+      });
+    </script>
+  </body>
+</html>

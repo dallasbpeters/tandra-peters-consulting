@@ -73,6 +73,22 @@ export const HOME_AND_SITE_QUERY = groq`{
         displayName,
         clientCount
       }
+    },
+    roofInspection {
+      kicker,
+      titleLine1,
+      titleLine2,
+      lede,
+      "diagramImage": diagramImage { asset->{ url } },
+      hotspots[] {
+        label,
+        positionTop,
+        positionLeft,
+        direction,
+        calloutTitle,
+        calloutBody,
+        watchFor
+      }
     }
   },
   "site": *[_id == "siteSettings"][0]{

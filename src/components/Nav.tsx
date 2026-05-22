@@ -139,7 +139,7 @@ export const Nav: React.FC<NavProps> = ({
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
     letterSpacing: "0.1em",
-    fontSize: "13px",
+    fontSize: "1rem",
     opacity: 0.6,
     textDecoration: "none",
     color: isScrolled ? theme.colors.black : theme.colors.white,
@@ -154,7 +154,7 @@ export const Nav: React.FC<NavProps> = ({
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: "0.1em",
-    fontSize: "11px",
+    fontSize: "1rem",
     border: "none",
     cursor: "pointer",
     transition: "background-color 0.2s",
@@ -206,6 +206,7 @@ export const Nav: React.FC<NavProps> = ({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
+                tabIndex={0}
                 style={navLinkStyle}
                 className="nav-focusable"
                 onMouseEnter={(e) => {

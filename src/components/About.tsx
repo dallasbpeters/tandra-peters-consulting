@@ -5,6 +5,7 @@ import { mix, theme } from "../theme";
 import { AboutProps } from "../types";
 import { RichText } from "../portableText/RichText";
 import { asRichTextValue } from "../portableText/value";
+import { Shader, DotGrid } from "shaders/react";
 
 const DEFAULT_ABOUT_PARAGRAPHS = [
   "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
@@ -22,6 +23,7 @@ export const About: React.FC<AboutProps> = ({
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
     overflow: "hidden",
+    position: "relative",
   };
 
   const imageContainerStyle: React.CSSProperties = {
@@ -46,16 +48,25 @@ export const About: React.FC<AboutProps> = ({
     borderRadius: ".75rem",
   };
 
+  const shaderStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    height: "100%",
+    zIndex: 0,
+  };
+
   const certificationsStyle: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fill, minmax(60px, auto))",
     gap: "2rem",
     placeItems: "start",
+    zIndex: 5,
   };
 
   const certificationImageStyle: React.CSSProperties = {
     width: "auto",
     height: "4rem",
+    zIndex: 5,
   };
 
   const h2Style: React.CSSProperties = {
@@ -65,6 +76,7 @@ export const About: React.FC<AboutProps> = ({
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
     textTransform: "uppercase",
+    zIndex: 5,
   };
 
   const pStyle: React.CSSProperties = {
@@ -72,6 +84,7 @@ export const About: React.FC<AboutProps> = ({
     lineHeight: 1.6,
     fontSize: "1.125rem",
     marginBottom: "2rem",
+    zIndex: 5,
   };
 
   return (
@@ -161,6 +174,13 @@ export const About: React.FC<AboutProps> = ({
           </motion.div>
         </motion.div>
       </div>
+      <Shader style={shaderStyle}>
+      <DotGrid
+    color={theme.palette.everglade[900]}
+    density={100}
+    opacity={0.1}
+  />
+      </Shader>
     </section>
   );
 };

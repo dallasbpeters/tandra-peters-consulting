@@ -209,6 +209,33 @@ export interface ServiceAreaMapProps {
   areas?: ServiceAreaEntry[];
 }
 
+export interface RoofInspectionHotspotData {
+  /** Short nav label shown in the left rail. */
+  label: string;
+  /** Percentage from top of diagram image, e.g. "14%". */
+  positionTop: string;
+  /** Percentage from left of diagram image, e.g. "25%". */
+  positionLeft: string;
+  direction: "top" | "right" | "left" | "bottom";
+  calloutTitle: string;
+  calloutBody: string;
+  watchFor: string;
+}
+
+export interface RoofInspectionSectionProps {
+  kicker?: string;
+  titleLine1?: string;
+  titleLine2?: string;
+  lede?: string;
+  /** URL of the diagram image. Defaults to /roof-sidecut.svg. */
+  diagramImageUrl?: string;
+  /**
+   * CMS-driven hotspot definitions. When present these replace the
+   * built-in CHAPTERS default from data.ts.
+   */
+  hotspots?: RoofInspectionHotspotData[];
+}
+
 export interface ArticlesTeaserProps {
   posts: PostListItem[];
   eyebrow?: string;
