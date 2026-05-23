@@ -86,7 +86,7 @@ export const Nav: React.FC<NavProps> = ({
     transition: "all 0.5s",
     paddingTop: isScrolled ? "1rem" : "1.5rem",
     paddingBottom: isScrolled ? "1rem" : "1.5rem",
-    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.7)" : "transparent",
+    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.8)" : "transparent",
     backdropFilter: isScrolled ? "blur(20px)" : "none",
     boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
   };
@@ -164,6 +164,12 @@ export const Nav: React.FC<NavProps> = ({
 
   return (
     <nav style={navStyle} className="site-nav-vt">
+      <style>{`
+      @media (max-width: 768px) {
+        .site-nav-vt {
+          background-color: rgba(255, 255, 255, 0.8);
+        }
+      `}</style>
       <div className={layoutClass.containerWideRow}>
         <TransitionLink
           to="/"
