@@ -69,6 +69,9 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=Manrope:wght@200..800&display=swap"
       rel="stylesheet"
     />
+    <!-- model-viewer is loaded as a plain module outside of Vite's bundle so
+         its internal WASM decoders and worker scripts resolve correctly. -->
+    <script type="module" src="/model-viewer.min.js"></script>
   </head>
   <body>
     <div id="root"></div>

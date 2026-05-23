@@ -1,5 +1,4 @@
 /* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
-/* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";

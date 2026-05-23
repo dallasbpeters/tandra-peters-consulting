@@ -212,14 +212,18 @@ export interface ServiceAreaMapProps {
 export interface RoofInspectionHotspotData {
   /** Short nav label shown in the left rail. */
   label: string;
-  /** Percentage from top of diagram image, e.g. "14%". */
-  positionTop: string;
-  /** Percentage from left of diagram image, e.g. "25%". */
-  positionLeft: string;
   direction: "top" | "right" | "left" | "bottom";
   calloutTitle: string;
   calloutBody: string;
   watchFor: string;
+  /** model-viewer world-space position components in metres. */
+  pos3dX?: number;
+  pos3dY?: number;
+  pos3dZ?: number;
+  /** model-viewer surface normal components. */
+  norm3dX?: number;
+  norm3dY?: number;
+  norm3dZ?: number;
 }
 
 export interface RoofInspectionSectionProps {

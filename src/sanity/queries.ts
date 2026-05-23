@@ -82,12 +82,16 @@ export const HOME_AND_SITE_QUERY = groq`{
       "diagramImage": diagramImage { asset->{ url } },
       hotspots[] {
         label,
-        positionTop,
-        positionLeft,
         direction,
         calloutTitle,
         calloutBody,
-        watchFor
+        watchFor,
+        pos3dX,
+        pos3dY,
+        pos3dZ,
+        norm3dX,
+        norm3dY,
+        norm3dZ
       }
     }
   },

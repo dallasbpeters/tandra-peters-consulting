@@ -73,7 +73,7 @@ export const Rail: React.FC<RailProps> = ({
     fontWeight: 700,
     letterSpacing: "0.18em",
     textTransform: "uppercase",
-    padding: "0.875rem 0",
+    padding: "0.875rem .5rem",
     borderBottom: `1px solid ${theme.palette.paper[100]}`,
     borderTop: 0,
     borderLeft: 0,
@@ -81,7 +81,6 @@ export const Rail: React.FC<RailProps> = ({
     cursor: "pointer",
     display: "grid",
     gridTemplateColumns: "1.75rem 1fr",
-    gap: "0.75rem",
     alignItems: "center",
     color: isActive ? theme.colors.everglade : mutedText,
     background: "none",
@@ -95,10 +94,10 @@ export const Rail: React.FC<RailProps> = ({
     fontFamily: theme.fonts.headlineAlt,
     fontStyle: "italic",
     fontSize: "1.05rem",
-    fontWeight: 400,
+    fontWeight: 700,
     letterSpacing: 0,
     textTransform: "none",
-    color: theme.colors.heroAccent,
+    color: theme.palette.purple[500],
   };
 
   return (

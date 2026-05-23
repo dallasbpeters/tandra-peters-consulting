@@ -22,30 +22,6 @@ export const roofInspectionHotspotType = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'positionTop',
-      title: 'Vertical position',
-      type: 'string',
-      description: 'CSS percentage from the top of the diagram image (e.g. "14%").',
-      initialValue: '50%',
-      validation: (Rule) =>
-        Rule.required().regex(/^\d+(\.\d+)?%$/, {
-          name: 'percentage',
-          invert: false,
-        }),
-    }),
-    defineField({
-      name: 'positionLeft',
-      title: 'Horizontal position',
-      type: 'string',
-      description: 'CSS percentage from the left of the diagram image (e.g. "25%").',
-      initialValue: '50%',
-      validation: (Rule) =>
-        Rule.required().regex(/^\d+(\.\d+)?%$/, {
-          name: 'percentage',
-          invert: false,
-        }),
-    }),
-    defineField({
       name: 'direction',
       title: 'Callout direction',
       type: 'string',
@@ -84,6 +60,52 @@ export const roofInspectionHotspotType = defineType({
       rows: 3,
       description: 'Practical warning shown under "What to watch for" in the card.',
       validation: (Rule) => Rule.required(),
+    }),
+    // ── 3D position ──────────────────────────────────────────────────────────
+    // World-space XYZ from model-viewer's surfaceFromPoint(). Units: metres.
+    // To find values: open browser console on the 3D viewer and run:
+    //   document.querySelector('#mv').addEventListener('click', e => {
+    //     const h = e.currentTarget.surfaceFromPoint(e.clientX, e.clientY);
+    //     if (h) console.log('pos', h.position.x, h.position.y, h.position.z,
+    //                        'norm', h.normal.x, h.normal.y, h.normal.z);
+    //   });
+    defineField({
+      name: 'pos3dX',
+      title: 'Position X (m)',
+      type: 'number',
+      description: 'World-space X coordinate in metres.',
+      group: undefined,
+    }),
+    defineField({
+      name: 'pos3dY',
+      title: 'Position Y (m)',
+      type: 'number',
+      description: 'World-space Y coordinate in metres.',
+    }),
+    defineField({
+      name: 'pos3dZ',
+      title: 'Position Z (m)',
+      type: 'number',
+      description: 'World-space Z coordinate in metres.',
+    }),
+    // ── 3D surface normal ─────────────────────────────────────────────────────
+    defineField({
+      name: 'norm3dX',
+      title: 'Normal X',
+      type: 'number',
+      description: 'Surface normal X component (used to hide back-facing hotspots).',
+    }),
+    defineField({
+      name: 'norm3dY',
+      title: 'Normal Y',
+      type: 'number',
+      description: 'Surface normal Y component.',
+    }),
+    defineField({
+      name: 'norm3dZ',
+      title: 'Normal Z',
+      type: 'number',
+      description: 'Surface normal Z component.',
     }),
   ],
   preview: {

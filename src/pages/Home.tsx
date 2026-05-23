@@ -107,22 +107,47 @@ export const Home = () => {
   const sanityChapters: Chapter[] | null =
     roofInspection.hotspots && roofInspection.hotspots.length > 0
       ? roofInspection.hotspots.map(
-          (h: RoofInspectionHotspotData, i: number): Chapter => ({
-            id: String(i + 1),
-            num: ROMAN[i] ?? String(i + 1),
-            label: h.label,
-            position: { top: h.positionTop, left: h.positionLeft },
-            direction: h.direction,
-            callout: {
-              title: h.calloutTitle,
-              body: h.calloutBody,
-              watchFor: h.watchFor,
-            },
-          }),
+          (h: RoofInspectionHotspotData, i: number): Chapter => {
+            // Derive position3d / normal3d strings from individual number fields
+            const position3d =
+              typeof h.pos3dX === "number" &&
+              typeof h.pos3dY === "number" &&
+              typeof h.pos3dZ === "number"
+                ? `${h.pos3dX}m ${h.pos3dY}m ${h.pos3dZ}m`
+                : undefined;
+            const normal3d =
+              typeof h.norm3dX === "number" &&
+              typeof h.norm3dY === "number" &&
+              typeof h.norm3dZ === "number"
+                ? `${h.norm3dX}m ${h.norm3dY}m ${h.norm3dZ}m`
+                : undefined;
+            return {
+              id: String(i + 1),
+              num: ROMAN[i] ?? String(i + 1),
+              label: h.label,
+              position: { top: "0%", left: "0%" },
+              direction: h.direction,
+              callout: {
+                title: h.calloutTitle,
+                body: h.calloutBody,
+                watchFor: h.watchFor,
+              },
+              position3d,
+              normal3d,
+            };
+          },
         )
       : null;
 
-  const activeChapters = sanityChapters ?? CHAPTERS;
+  // Merge static CHAPTERS 3D coords for any chapter that has no Sanity data yet
+  const activeChapters = (sanityChapters ?? CHAPTERS).map((ch) => {
+    const staticMatch = CHAPTERS.find((c) => c.id === ch.id);
+    return {
+      ...ch,
+      position3d: ch.position3d ?? staticMatch?.position3d,
+      normal3d: ch.normal3d ?? staticMatch?.normal3d,
+    };
+  });
 
   const inspectionTitle = (
     <>
@@ -157,13 +182,9 @@ export const Home = () => {
               "You don't need to be a roofer to know what you're looking at — just someone who'll point out the seven places that matter. Hover any number on the photo."
             }
           />
-          <RoofInspection.Canvas hint="Hover or tap a number to learn more.">
-            {/* Toolbar parked — tabs become meaningful once the diagram is
-                replaced with a quality 3D asset. Uncomment when ready. */}
-            {/* <RoofInspection.Toolbar /> */}
-            <RoofInspection.Diagram
-              src={roofInspection.diagramImageUrl ?? "/roof-sidecut.svg"}
-            >
+          <RoofInspection.Canvas>
+            <RoofInspection.Toolbar />
+            <RoofInspection.Diagram src="/roof.glb">
               {activeChapters.map((c) => (
                 <RoofInspection.Hotspot key={c.id} chapter={c} />
               ))}

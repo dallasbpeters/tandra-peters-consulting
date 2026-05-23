@@ -485,65 +485,32 @@ export const mapRoofInspectionProps = (
     out.diagramImageUrl = undefined;
   }
 
-  // Hotspot array — clean stega encoding BEFORE validating so invisible
-  // Unicode characters added by the Presentation iframe never silently
-  // drop hotspots or prevent position updates from Sanity reaching the UI.
+  // Hotspot array — only include entries that pass validation
   if (Array.isArray(data.hotspots) && data.hotspots.length > 0) {
-    const mapped: RoofInspectionHotspotData[] = (
-      data.hotspots as Record<string, unknown>[]
-    )
-      .map((h): RoofInspectionHotspotData | null => {
-        if (!h || typeof h !== "object") return null;
-        const label =
-          typeof h.label === "string" ? stegaClean(h.label).trim() : "";
-        const positionTop =
-          typeof h.positionTop === "string"
-            ? stegaClean(h.positionTop).trim()
-            : "";
-        const positionLeft =
-          typeof h.positionLeft === "string"
-            ? stegaClean(h.positionLeft).trim()
-            : "";
-        const directionRaw =
-          typeof h.direction === "string"
-            ? stegaClean(h.direction).trim()
-            : "";
-        const calloutTitle =
-          typeof h.calloutTitle === "string"
-            ? stegaClean(h.calloutTitle).trim()
-            : "";
-        const calloutBody =
-          typeof h.calloutBody === "string"
-            ? stegaClean(h.calloutBody).trim()
-            : "";
-        const watchFor =
-          typeof h.watchFor === "string"
-            ? stegaClean(h.watchFor).trim()
-            : "";
-
-        if (
-          !label ||
-          !positionTop ||
-          !positionLeft ||
-          !VALID_DIRECTIONS.has(directionRaw) ||
-          !calloutTitle ||
-          !calloutBody ||
-          !watchFor
-        ) {
-          return null;
-        }
-
-        return {
-          label,
-          positionTop,
-          positionLeft,
-          direction: directionRaw as RoofInspectionHotspotData["direction"],
-          calloutTitle,
-          calloutBody,
-          watchFor,
-        };
-      })
-      .filter((h): h is RoofInspectionHotspotData => h !== null);
+    const mapped: RoofInspectionHotspotData[] = data.hotspots
+      .filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h: any) =>
+          typeof h.label === "string" &&
+          VALID_DIRECTIONS.has(stegaClean(h.direction)) &&
+          typeof h.calloutTitle === "string" &&
+          typeof h.calloutBody === "string" &&
+          typeof h.watchFor === "string",
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((h: any): RoofInspectionHotspotData => ({
+        label: stegaClean(h.label).trim(),
+        direction: stegaClean(h.direction) as RoofInspectionHotspotData["direction"],
+        calloutTitle: stegaClean(h.calloutTitle).trim(),
+        calloutBody: stegaClean(h.calloutBody).trim(),
+        watchFor: stegaClean(h.watchFor).trim(),
+        ...(typeof h.pos3dX === "number" ? { pos3dX: h.pos3dX } : {}),
+        ...(typeof h.pos3dY === "number" ? { pos3dY: h.pos3dY } : {}),
+        ...(typeof h.pos3dZ === "number" ? { pos3dZ: h.pos3dZ } : {}),
+        ...(typeof h.norm3dX === "number" ? { norm3dX: h.norm3dX } : {}),
+        ...(typeof h.norm3dY === "number" ? { norm3dY: h.norm3dY } : {}),
+        ...(typeof h.norm3dZ === "number" ? { norm3dZ: h.norm3dZ } : {}),
+      }));
 
     if (mapped.length > 0) {
       out.hotspots = mapped;

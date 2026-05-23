@@ -96,6 +96,8 @@ export const CHAPTERS: Chapter[] = [
       watchFor:
         "Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.",
     },
+    position3d: "-1.1556999860331416m 3.789993817368646m -1.7539746932512665m",
+    normal3d: "-1m -2.44547375624058e-27m 1.1102230246251565e-16m",
   },
 ];
 
@@ -114,22 +116,26 @@ export const VIEWS: View[] = [
   {
     id: "cutaway",
     label: "Cutaway view",
-    cameraOrbit: "0deg 65deg auto",
-    cameraTarget: "0m 0m 0m",
+    // Front-quarter view, slightly elevated — shows the full roof cross-section
+    cameraOrbit: "-115deg 45deg auto",
+    cameraTarget: "auto",
     fieldOfView: "auto",
   },
   {
     id: "eave",
     label: "At the eave",
-    cameraOrbit: "-10deg 88deg 55%",
-    cameraTarget: "0m -0.4m 0m",
-    fieldOfView: "22deg",
-  },
+    // Low angle looking along the eave edge — drip edge, soffit, fascia in frame
+    cameraOrbit: "0deg 45deg 80deg",
+    cameraTarget: "auto auto auto",
+    fieldOfView: "86.88deg",
+  },  
   {
     id: "penetration",
     label: "At a penetration",
-    cameraOrbit: "160deg 45deg 50%",
-    cameraTarget: "0m 0.4m 0m",
-    fieldOfView: "20deg",
+    // Above-rear angle — ridge, vent, and upper field shingles visible
+    cameraOrbit: "0deg 10deg 55%",
+    cameraTarget: ".7m auto .1m",
+    fieldOfView: "0deg",
+    interpolationDecay: "0.5",
   },
 ];

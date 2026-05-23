@@ -12,6 +12,8 @@
 - Centralize repeating styles and tokens (`src/theme.ts`, design tokens) instead of duplicating CSS across components.
 - Treat content as editable in Sanity: prefer Portable Text + Visual Editing over hardcoded strings or URL-only image fields.
 - Smooth-scroll for in-page nav (single-page site); use CSS view transitions for cross-page navigation.
+- Use natural roofer vocabulary in copy and component naming — avoid architectural jargon Tandra wouldn't say on the job (e.g. "the walk" → "the inspection").
+- Responsive breakpoints must live in CSS files (`site-layout.css`); never put `@media` rules in inline React styles — they silently do nothing.
 
 ## Learned Workspace Facts
 
@@ -24,7 +26,8 @@
 - OG images are generated via `plugins/ogImageComposite.ts` (custom Vite plugin) using `sharp`.
 - Type pair is Manrope (headings/UI) + `Instrument Serif` (body); Space Grotesk was removed. Do not swap either.
 - CE.SDK / `@cesdk/cesdk-js` (img.ly) was tried and deliberately removed due to watermark restrictions — do not reinstall.
-- Central Texas service-area map uses D3 + topojson (`src/components/serviceAreaMap.tsx`) and reads counties from Sanity.
+- Central Texas service-area map uses D3 + topojson (`src/components/serviceAreaMap.tsx`) and reads counties from Sanity. Fort Worth / Tarrant County is NOT in Tandra's service area — never include it.
 - Brand/design source-of-truth files at project root: `DESIGN.md`, `.impeccable.md`, `tandra-peters-content-style-guide.md` — consult these before changing UI copy, colors, or visual language.
 - Tandra Peters is a roofing consultant employed by Birdcreek Roofing; the site is a single-page marketing site with article sub-pages backed by Sanity `post` documents.
-- Never modify files under `.agents/skills/**/references/` — those are vendored skill reference snapshots, not project source.
+- RoofInspection component uses `@google/model-viewer` for 3D GLB rendering (`public/roof.glb`). The library is loaded via a `<script>` tag in `index.html` — it is NOT an npm package and must NOT be imported via Vite or `import`. The component is **3D-only** (the 2D mode was removed). Hotspots must be **slotted children** of `<model-viewer>` with `slot="hotspot-N"`, `data-position`, and `data-normal` 3D coords (meters); filter chapters without `position3d` upstream before rendering `<RoofInspection.Hotspot>` to avoid React hooks violations. The `model-viewer` shadow DOM container needs `overflow: visible` so hotspot tooltips are not clipped.
+- Sanity write operations (creating/updating/mutating documents) require the CLI auth token from `~/.config/sanity/config.json` — the project's read-only `SANITY_API_TOKEN` env var cannot write; use the CLI token when populating or seeding Sanity data.
