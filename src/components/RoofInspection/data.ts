@@ -12,6 +12,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Ridge & ridge vent",
     position: { top: "14%", left: "25%" },
     direction: "right",
+    // Normal mostly UP → camera elevated, looking down at the ridge peak
+    focusOrbit: "-155deg 42deg auto",
     callout: {
       title: "Ridge cap & vent",
       body: "The peak. Caps are heavier than field shingles — wind hits hardest here and the ridge is the last line of defence. The slot underneath is the ridge vent: that's how your attic breathes out in summer.",
@@ -25,6 +27,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Field shingles",
     position: { top: "28%", left: "52%" },
     direction: "top",
+    // Normal mostly UP → front-quarter view from slightly above
+    focusOrbit: "-155deg 55deg auto",
     callout: {
       title: "Field shingles",
       body: "The main course. Most Texas roofs are architectural asphalt — heavier than three-tab, rated 110+ mph when nailed correctly. What you're looking at is the granular surface that takes the UV hit every summer.",
@@ -38,6 +42,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Underlayment",
     position: { top: "38%", left: "70%" },
     direction: "right",
+    // Normal -Z (faces the cut face outward) → camera from the front/right looking in
+    focusOrbit: "-200deg 62deg auto",
     callout: {
       title: "Underlayment",
       body: "The layer between shingles and decking — only visible at the cut face or during a tear-off. Synthetic beats old #15 felt: tougher, lighter, won't shred if wind catches it mid-install.",
@@ -51,6 +57,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Decking",
     position: { top: "55%", left: "60%" },
     direction: "left",
+    // Normal UP-left → camera from front-left, looking down at the deck layer
+    focusOrbit: "-200deg 60deg auto",
     callout: {
       title: "Decking",
       body: "Plywood or OSB nailed to the rafters. You only see it during a tear-off — and that's the moment to check for soft boards. A soft board telegraphs right through the new roof within a year.",
@@ -64,6 +72,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Step flashing",
     position: { top: "22%", left: "12%" },
     direction: "right",
+    // Normal UP-left → camera from the far-right side showing the wall junction
+    focusOrbit: "-40deg 58deg auto",
     callout: {
       title: "Step flashing",
       body: "Bent metal pieces tucked under each shingle course where the slope meets a vertical wall. Half the leaks I see start here — because someone saved twenty minutes during install.",
@@ -77,6 +87,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Drip edge",
     position: { top: "72%", left: "78%" },
     direction: "top",
+    // Normal -X (faces left/outward from eave) → camera from the right side looking at the eave
+    focusOrbit: "80deg 82deg auto",
     callout: {
       title: "Drip edge",
       body: "The L-shaped metal that runs along the eave and rakes, kicking water away from the fascia into the gutter. Code in Texas. Skipped on more cheap re-roofs than I'd like to count.",
@@ -90,6 +102,8 @@ export const CHAPTERS: Chapter[] = [
     label: "Soffit & fascia",
     position: { top: "82%", left: "88%" },
     direction: "left",
+    // Normal exactly -X → camera from the right side, nearly horizontal
+    focusOrbit: "90deg 88deg auto",
     callout: {
       title: "Soffit & fascia",
       body: "The boards you see from the driveway — fascia in front, soffit underneath. Soffit vents are how cool air enters the attic; without them the ridge vent has nothing to pull through.",

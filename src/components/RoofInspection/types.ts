@@ -28,6 +28,12 @@ export type Chapter = {
    * Used by model-viewer to hide hotspots facing away from camera.
    */
   normal3d?: string;
+  /**
+   * model-viewer `camera-orbit` value to use when this chapter is focused via
+   * the rail nav — rotates the camera to show the hotspot face-on.
+   * Falls back to the currently active view's orbit if omitted.
+   */
+  focusOrbit?: string;
 };
 
 export type View = {

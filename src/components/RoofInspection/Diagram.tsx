@@ -13,7 +13,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   alt = "Interactive 3D model of a residential roof",
   children,
 }) => {
-  const { views, activeViewId } = useRoofInspection();
+  const { views, activeViewId, chapters, activeChapterId } = useRoofInspection();
 
   // Absolute URL so model-viewer's workers resolve the GLB correctly
   const absoluteSrc = src.startsWith("http")
@@ -27,7 +27,7 @@ export const Diagram: React.FC<DiagramProps> = ({
     fieldOfView: string;
   }>(null);
 
-  // Whenever the active view changes, animate the camera to its preset
+  // Toolbar view change → apply full camera preset
   useEffect(() => {
     const mv = mvRef.current;
     if (!mv) return;
@@ -37,6 +37,22 @@ export const Diagram: React.FC<DiagramProps> = ({
     if (view.cameraTarget) mv.cameraTarget = view.cameraTarget;
     if (view.fieldOfView) mv.fieldOfView = view.fieldOfView;
   }, [activeViewId, views]);
+
+  // Rail chapter selection → rotate camera to face the hotspot.
+  // Sets cameraTarget to the hotspot's world-space position so it's centred
+  // in frame, and applies the per-chapter focusOrbit if defined.
+  useEffect(() => {
+    const mv = mvRef.current;
+    if (!mv || !activeChapterId) return;
+    const chapter = chapters.find((c) => c.id === activeChapterId);
+    if (!chapter?.position3d) return;
+
+    // Centre the camera on the hotspot
+    mv.cameraTarget = chapter.position3d;
+
+    // Rotate to the chapter-specific orbit angle when provided
+    if (chapter.focusOrbit) mv.cameraOrbit = chapter.focusOrbit;
+  }, [activeChapterId, chapters]);
 
   // Punch through the shadow DOM so hotspot callouts aren't clipped.
   // model-viewer sets `contain: strict` on :host (paint containment = clips overflow)
