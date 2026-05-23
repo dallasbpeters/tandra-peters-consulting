@@ -10,3 +10,5 @@ coverage/
 .env*.local
 .env.local
 .pnpm-store/*
+.agents/skills/.skillshare-manifest.json
+.skillshare/config.yaml

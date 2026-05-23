@@ -3,6 +3,15 @@ import type { PortableTextBlock } from "@portabletext/types";
 import type { IconoirIconProps } from "./icons/serviceIconMap";
 import type { PostListItem } from "./types/article";
 
+import type { CustomElements, CustomCssProperties } from '@awesome.me/webawesome/dist/custom-elements-jsx.d.ts';
+
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements extends CustomElements {}
+  }
+  interface CSSProperties extends CustomCssProperties {}
+}
+
 /** Sanity `blockContent` or a plain string (legacy / seed). */
 export type RichTextSource = PortableTextBlock[] | string;
 

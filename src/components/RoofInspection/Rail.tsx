@@ -1,23 +1,43 @@
 import React from "react";
 import { mix, theme } from "../../theme";
-import { useRoofInspection } from "./context";
+import { useCameraContext, useRoofInspection } from "./context";
 
 type RailProps = {
+  /** Small label above the headline, e.g. `"Tandra Peters · Roof Basics"`. */
   kicker?: string;
+  /** Section headline — accepts a React node so callers can use emphasis markup. */
   title: React.ReactNode;
+  /** One-sentence introduction shown beneath the title. */
   lede: string;
 };
 
 const hairline = mix(theme.colors.paper, 14);
 const mutedText = mix(theme.colors.everglade, 50);
 
+/**
+ * Left-hand sticky navigation panel for the roof inspection section.
+ *
+ * @remarks
+ * Renders a numbered chapter list where each button has two responsibilities:
+ * 1. Sets `activeChapterId` — toggles the hotspot callout visibility on/off.
+ * 2. Sets `focusChapterId` — signals `Diagram` to rotate the camera toward
+ *    the selected chapter's world-space position.
+ *
+ * This intentional separation (versus a single shared state) means hover
+ * events on the `Hotspot` dots open callouts without moving the camera;
+ * only deliberate rail clicks drive camera movement.
+ *
+ * Sticky positioning and max-height overflow are handled by the `.ri-rail`
+ * CSS class (defined in `site-layout.css`), which is disabled on mobile
+ * (`width ≤ 700px`) via a media query.
+ */
 export const Rail: React.FC<RailProps> = ({
   kicker = "Tandra Peters · Roof Basics",
   title,
   lede,
 }) => {
-  const { chapters, activeChapterId, setActiveChapterId } =
-    useRoofInspection();
+  const { chapters, activeChapterId, setActiveChapterId } = useRoofInspection();
+  const { setFocusChapterId } = useCameraContext();
 
   // Sticky / max-height are handled by .ri-rail in site-layout.css,
   // which also disables sticky on mobile via @media (width <= 700px).
@@ -88,6 +108,7 @@ export const Rail: React.FC<RailProps> = ({
     width: "100%",
     fontFamily: "inherit",
     transition: "color 180ms ease",
+    minHeight: "3rem",
   });
 
   const numStyle: React.CSSProperties = {
@@ -123,9 +144,11 @@ export const Rail: React.FC<RailProps> = ({
                 <button
                   style={getChapterButtonStyle(isActive)}
                   data-active={isActive}
-                  onClick={() =>
-                    setActiveChapterId(isActive ? null : chapter.id)
-                  }
+                  onClick={() => {
+                    const next = isActive ? null : chapter.id;
+                    setActiveChapterId(next);
+                    if (next) setFocusChapterId(next);
+                  }}
                   aria-pressed={isActive}
                 >
                   <span style={numStyle}>{chapter.id}</span>

@@ -4,6 +4,10 @@ import { mix, theme } from "../../theme";
 import { useRoofInspection } from "./context";
 import type { Chapter, Direction } from "./types";
 
+/**
+ * Returns `true` when the viewport width is ≤ 700 px.
+ * Updates reactively on `matchMedia` change events.
+ */
 const useIsMobile = (): boolean => {
   const query = "(max-width: 700px)";
   const [matches, setMatches] = useState<boolean>(
@@ -21,75 +25,128 @@ const useIsMobile = (): boolean => {
 };
 
 type HotspotProps = {
+  /** The inspection chapter this dot represents. */
   chapter: Chapter;
 };
 
 const CALLOUT_W_PX = 272; // 17rem @ 16px base
-const GAP = 12; // px between button and card edge
+const GAP = 12; // px gap between dot edge and card edge
 const MARGIN = 12; // minimum distance from viewport edge
+const CLOSE_DELAY = 180; // ms grace period so mouse can travel dot → card
+
+/**
+ * Module-level close timer shared across **all** `Hotspot` instances.
+ *
+ * @remarks
+ * A per-instance `useRef` timer cannot be cancelled from a different
+ * component instance. Moving the mouse from dot A to dot B would leave A's
+ * timer running, causing it to fire `setActiveChapterId(null)` 180 ms later
+ * and close B's freshly opened callout. A module-level variable ensures any
+ * instance's `clearSharedClose` cancels whichever timer is currently pending.
+ */
+let _closeTimer: ReturnType<typeof setTimeout> | null = null;
+const clearSharedClose = () => {
+  if (_closeTimer) { clearTimeout(_closeTimer); _closeTimer = null; }
+};
 
 type ScreenRect = { top: number; left: number; width: number; height: number };
 
 /**
- * Compute the card's top/left in viewport coordinates based on the button's
- * bounding rect and the desired direction. Nudges back on-screen if any edge
- * would be violated.
+ * Computes `position: fixed` `top`/`left` coordinates for the callout card
+ * based on the hotspot dot's viewport rect and the preferred open direction.
+ *
+ * @param dot - Bounding rect of the slotted wrapper div (the element
+ *   `<model-viewer>` positions with CSS transforms).
+ * @param direction - Which side of the dot the card should open toward.
+ * @param cardH - Measured height of the rendered card, or `0` on the first
+ *   pass (triggers a 240 px estimate so layout isn't deferred).
+ * @returns Viewport-relative `top` / `left` values clamped to `MARGIN` px
+ *   inset from every viewport edge.
  */
 const getCardPos = (
-  btn: ScreenRect,
+  dot: ScreenRect,
   direction: Direction,
+  cardH: number,
 ): { top: number; left: number } => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const estH = cardH || 240;
   let top = 0;
   let left = 0;
 
   switch (direction) {
     case "top":
-      top = btn.top - GAP; // card bottom sits at btn top − gap; finalised below
-      left = btn.left + btn.width / 2 - CALLOUT_W_PX / 2;
+      top  = dot.top - GAP - estH;
+      left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
       break;
     case "bottom":
-      top = btn.top + btn.height + GAP;
-      left = btn.left + btn.width / 2 - CALLOUT_W_PX / 2;
+      top  = dot.top + dot.height + GAP;
+      left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
       break;
     case "right":
-      top = btn.top + btn.height / 2; // vertical centre; finalised below
-      left = btn.left + btn.width + GAP;
+      top  = dot.top + dot.height / 2 - estH / 2;
+      left = dot.left + dot.width + GAP;
       break;
     case "left":
-      top = btn.top + btn.height / 2;
-      left = btn.left - GAP - CALLOUT_W_PX;
+      top  = dot.top + dot.height / 2 - estH / 2;
+      left = dot.left - GAP - CALLOUT_W_PX;
       break;
   }
 
-  // Clamp horizontal
   left = Math.max(MARGIN, Math.min(left, vw - CALLOUT_W_PX - MARGIN));
-
-  // For top/bottom the card height is unknown; use a generous estimate (220px)
-  const estH = 220;
-  if (direction === "top") top = top - estH; // card bottom = btn.top − gap → top = that − height
-  if (direction === "right" || direction === "left") top = top - estH / 2;
-
-  top = Math.max(MARGIN, Math.min(top, vh - estH - MARGIN));
+  top  = Math.max(MARGIN, Math.min(top,  vh - estH - MARGIN));
 
   return { top, left };
 };
 
+/**
+ * Renders a single numbered inspection hotspot on the 3D roof model.
+ *
+ * @remarks
+ * **3D slot mechanism** — The component registers itself as a named slot
+ * (`slot="hotspot-{id}"`) inside `<model-viewer>`. model-viewer projects it
+ * onto the 3D surface described by `chapter.position3d` / `chapter.normal3d`
+ * and automatically hides the dot when that surface faces away from camera.
+ *
+ * **Callout portal** — The callout card (`<aside>`) is rendered via
+ * `createPortal` into `document.body` so it escapes every `overflow`,
+ * `contain`, and stacking-context constraint imposed by `<model-viewer>`'s
+ * shadow DOM. Position is computed from the dot's `getBoundingClientRect`
+ * and updated on scroll/resize.
+ *
+ * **Hover grace period** — `mouseLeave` on the dot starts a 180 ms timer
+ * before closing. If the mouse enters the card before the timer fires the
+ * card stays open, allowing the user to read and interact with the content.
+ * The timer is module-level so switching between dots never races.
+ *
+ * Returns `null` (renders nothing) when `chapter.position3d` is absent,
+ * allowing chapters to be created in Sanity before 3D coordinates exist.
+ */
 export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   // ── All hooks must come before any conditional return ──────────────────────
   const { activeChapterId, setActiveChapterId } = useRoofInspection();
   const isOpen = activeChapterId === chapter.id;
   const isMobile = useIsMobile();
   const effectiveDirection: Direction = isMobile ? "bottom" : chapter.direction;
-  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Ref to the slotted wrapper div — what model-viewer actually positions
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  // Ref to the rendered callout aside so we can measure its real height
+  const cardRef = useRef<HTMLElement>(null);
   const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
 
-  // No 3D coords yet — skip rendering but hooks above still ran
+  const scheduleClose = () => {
+    clearSharedClose();
+    _closeTimer = setTimeout(() => setActiveChapterId(null), CLOSE_DELAY);
+  };
+
+  // Cancel any pending close on unmount
+  useEffect(() => clearSharedClose, []);
+
   const is3d = Boolean(chapter.position3d);
 
-  // When the callout opens, measure the button's viewport position and derive
-  // where the card should appear. Re-measure on scroll/resize so it tracks.
+  // Measure dot position → compute card placement.
+  // Runs once on open, then tracks scroll/resize.
   useEffect(() => {
     if (!isOpen) {
       setCardPos(null);
@@ -97,33 +154,40 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     }
 
     const measure = () => {
-      const btn = buttonRef.current;
-      if (!btn) return;
-      const r = btn.getBoundingClientRect();
-      setCardPos(getCardPos(r, effectiveDirection));
+      const el = wrapperRef.current;
+      if (!el) return;
+      const dot = el.getBoundingClientRect();
+      // Use the card's real height if already rendered, otherwise 0 (getCardPos will use estimate)
+      const cardH = cardRef.current?.getBoundingClientRect().height ?? 0;
+      setCardPos(getCardPos(dot, effectiveDirection, cardH));
     };
 
-    // First measure after paint so model-viewer has positioned the slot element
-    const raf = requestAnimationFrame(measure);
+    // Two passes: first rAF gets initial position; second rAF re-measures after
+    // the card has painted so we can use its real height for fine-tuning.
+    let raf2: number;
+    const raf1 = requestAnimationFrame(() => {
+      measure();
+      raf2 = requestAnimationFrame(measure);
+    });
+
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
     };
   }, [isOpen, effectiveDirection]);
 
   const handleClick = () => setActiveChapterId(isOpen ? null : chapter.id);
-  const handleMouseEnter = () => setActiveChapterId(chapter.id);
-  const handleMouseLeave = () => setActiveChapterId(null);
+  const handleDotEnter = () => { clearSharedClose(); setActiveChapterId(chapter.id); };
+  const handleDotLeave = scheduleClose;
+  const handleCardEnter = clearSharedClose;
+  const handleCardLeave = scheduleClose;
 
-  // Chapters without 3D coords don't render — hooks above already ran safely
   if (!is3d) return null;
 
-  // The wrapper is slotted into model-viewer — keep it minimal.
-  // The callout card is rendered via a portal into document.body so it's
-  // completely outside any overflow / contain clipping context.
   const wrapperStyle: React.CSSProperties = {
     position: "relative",
     width: "3rem",
@@ -143,7 +207,6 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     justifyContent: "center",
   };
 
-  // Inner filled dot
   const dotStyle: React.CSSProperties = {
     position: "absolute",
     inset: "0.75rem",
@@ -165,20 +228,20 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     userSelect: "none",
   };
 
-  // Callout card — rendered into document.body via a portal so it sits
-  // completely outside any overflow / contain clipping context.
+  // Card is only mounted when isOpen — no DOM at (0,0) between interactions.
+  // It renders off-screen (visibility:hidden) for the first rAF while we
+  // measure the dot position, then snaps to the correct coords.
   const cardStyle: React.CSSProperties = {
     position: "fixed",
-    top: cardPos?.top ?? 0,
-    left: cardPos?.left ?? 0,
+    top: cardPos?.top ?? -9999,
+    left: cardPos?.left ?? -9999,
     width: `${CALLOUT_W_PX}px`,
     background: theme.colors.black,
     color: theme.colors.paper,
     padding: "1.125rem 1.375rem 1.375rem",
     zIndex: 9999,
-    pointerEvents: isOpen ? "auto" : "none",
-    opacity: isOpen && cardPos ? 1 : 0,
-    transition: "opacity 220ms ease",
+    // Hide until we have a measured position so there's no flash at -9999
+    visibility: cardPos ? "visible" : "hidden",
   };
 
   const cardNumStyle: React.CSSProperties = {
@@ -222,51 +285,50 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     margin: 0,
   };
 
-  // 3D slot props — only applied when position3d is present.
-  // model-viewer reads these to project the element onto the 3D surface.
-  const slotProps = is3d
-    ? {
-        slot: `hotspot-${chapter.id}`,
-        "data-position": chapter.position3d,
-        "data-normal": chapter.normal3d ?? "",
-        "data-visibility-attribute": "visible",
-      }
-    : {};
-
-  const callout = createPortal(
-    <aside
-      style={cardStyle}
-      className="ri-hotspot-callout"
-      role="dialog"
-      aria-label={chapter.callout.title}
-      aria-hidden={!isOpen}
-    >
-      <p style={cardNumStyle}>{chapter.id}.</p>
-      <h3 style={cardTitleStyle}>{chapter.callout.title}</h3>
-      <p style={cardBodyStyle}>{chapter.callout.body}</p>
-      <span style={cardWatchLabelStyle}>What to watch for</span>
-      <p style={cardWatchStyle}>{chapter.callout.watchFor}</p>
-    </aside>,
-    document.body,
-  );
+  const slotProps = {
+    slot: `hotspot-${chapter.id}`,
+    "data-position": chapter.position3d,
+    "data-normal": chapter.normal3d ?? "",
+    "data-visibility-attribute": "visible",
+  };
 
   return (
     <>
-      <div style={wrapperStyle} {...slotProps}>
+      <div ref={wrapperRef} style={wrapperStyle} {...slotProps}>
         <button
-          ref={buttonRef}
           style={buttonStyle}
           aria-label={`${chapter.label} — point ${chapter.id}`}
           aria-expanded={isOpen}
           onClick={handleClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          onMouseEnter={handleDotEnter}
+          onMouseLeave={handleDotLeave}
         >
           <span style={dotStyle} aria-hidden="true" />
           <span style={numStyle}>{chapter.id}</span>
         </button>
       </div>
-      {callout}
+
+      {/* Portal — only mounted while open; card's own handlers keep it alive
+          while the mouse travels from the dot into the card. */}
+      {isOpen &&
+        createPortal(
+          <aside
+            ref={cardRef}
+            style={cardStyle}
+            className="ri-hotspot-callout"
+            role="dialog"
+            aria-label={chapter.callout.title}
+            onMouseEnter={handleCardEnter}
+            onMouseLeave={handleCardLeave}
+          >
+            <p style={cardNumStyle}>{chapter.id}.</p>
+            <h3 style={cardTitleStyle}>{chapter.callout.title}</h3>
+            <p style={cardBodyStyle}>{chapter.callout.body}</p>
+            <span style={cardWatchLabelStyle}>What to watch for</span>
+            <p style={cardWatchStyle}>{chapter.callout.watchFor}</p>
+          </aside>,
+          document.body,
+        )}
     </>
   );
 };

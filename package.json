@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@ai-sdk/groq": "3.0.31",
+    "@awesome.me/webawesome": "^3.7.0",
     "@google/genai": "^1.29.0",
     "@google/model-viewer": "^4.2.0",
     "@portabletext/react": "^6.0.3",

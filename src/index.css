@@ -1,3 +1,34 @@
+:root {
+  --webawesome-font-family: "Plus Jakarta Sans", sans-serif;
+  --webawesome-font-weight: 400;
+  --webawesome-font-size: 1rem;
+  --webawesome-font-color: oklch(25.66% 0.046 163.6deg);
+  --webawesome-font-color-hover: oklch(25.66% 0.046 163.6deg);
+  --webawesome-font-color-active: oklch(25.66% 0.046 163.6deg);
+  --webawesome-font-color-disabled: oklch(25.66% 0.046 163.6deg);
+  --webawesome-font-color-placeholder: oklch(25.66% 0.046 163.6deg);
+  --webawesome-font-color-selected: oklch(25.66% 0.046 163.6deg);
+  --wa-color-brand: oklch(72.81% 0.146 283.49);
+  --wa-form-control-activated-color: oklch(25.66% 0.046 163.6deg);
+  --wa-form-control-border-color: oklch(90.66% 0.0 63.6deg);
+  --wa-color-brand-fill-loud: oklch(72.81% 0.146 283.49);
+  --wa-color-brand-on-loud: oklch(1.81% 0.146 283.49);
+  --wa-line-height-condensed: 1.2;
+
+  /* Focus ring: --wa-color-focus resolves to --wa-color-brand-60 by default,
+     but that palette shade is not auto-generated from --wa-color-brand.
+     Override directly so the select's outline-color becomes visible on focus. */
+  --wa-color-focus: oklch(60% 0.281 271.32);
+}
+
+/* wa-option's internal padding is em-based (0.5em top/bottom by default).
+   External styles override the Shadow DOM :host rules, so we can set
+   padding-block directly here to give each option more vertical breathing room. */
+wa-option {
+  padding-block: 0.5em;
+}
+
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,6 +38,7 @@
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+    position: relative;
   }
 }
 
@@ -14,6 +46,7 @@
 main section[id],
 #testimonials {
   scroll-margin-top: 6rem;
+  position: relative;
 }
 
 body {
@@ -54,6 +87,11 @@ button {
   view-transition-name: site-nav;
 }
 
+@media (width <= 600px) {
+  .site-nav-vt {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+}
 /* Article index + article detail: isolate main column from full-document root transition */
 .site-articles-route {
   view-transition-name: site-articles-route;

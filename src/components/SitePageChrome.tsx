@@ -20,6 +20,7 @@ export const SitePageChrome = ({ children }: SitePageChromeProps) => {
         backgroundColor: theme.colors.paper,
         color: theme.colors.everglade,
         fontFamily: theme.fonts.body,
+        position: "relative",
       }}
     >
       <Nav {...mapNavProps(site)} />

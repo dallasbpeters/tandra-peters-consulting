@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
-import { Mail, MapPin, NavArrowDown, Phone, Send } from "iconoir-react";
+import { Mail, MapPin, Phone, Send } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { ContactProps } from "../types";
 import { usePostHog } from "@posthog/react";
+import WaSelect from '@awesome.me/webawesome/dist/react/select/index.js';
+import '@awesome.me/webawesome/dist/styles/webawesome.css';
+import WaOption from '@awesome.me/webawesome/dist/react/option/index.js';
+import WaInput from '@awesome.me/webawesome/dist/react/input/index.js';
+import WaTextarea from '@awesome.me/webawesome/dist/react/textarea/index.js';
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 const CONTACT_API_PATH = "/api/contact";
@@ -187,46 +192,6 @@ export const Contact = ({
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   };
 
-  const underlineBorder = `1px solid ${mix(theme.colors.everglade, 20)}`;
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    boxSizing: "border-box",
-    backgroundColor: "transparent",
-    border: "none",
-    borderBottom: underlineBorder,
-    borderRadius: 0,
-    padding: "0.75rem 0",
-    fontSize: "1rem",
-    color: theme.colors.everglade,
-    transition: "border-color 0.2s ease",
-  };
-
-  const selectStyle: React.CSSProperties = {
-    ...inputStyle,
-    cursor: "pointer",
-    WebkitAppearance: "none",
-    appearance: "none",
-    paddingRight: "2rem",
-  };
-
-  const selectWrapStyle: React.CSSProperties = {
-    position: "relative",
-    width: "100%",
-  };
-
-  const selectChevronStyle: React.CSSProperties = {
-    position: "absolute",
-    right: 0,
-    top: "50%",
-    transform: "translateY(-50%)",
-    pointerEvents: "none",
-    display: "flex",
-    alignItems: "center",
-    color: theme.colors.everglade,
-    opacity: 0.75,
-  };
-
   const serviceLabel = formLabels?.service ?? "Service interest";
 
   const consentLinkStyle: React.CSSProperties = {
@@ -400,20 +365,17 @@ export const Contact = ({
                   gap: "0.5rem",
                 }}
               >
-                <label htmlFor="contact-full-name" style={labelStyle}>
-                  Full Name
-                </label>
-                <input
+                <WaInput
+                  label="Full Name"
                   id="contact-full-name"
+                  name="full-name"
                   type="text"
                   className="contact-form-field"
-                  style={inputStyle}
                   placeholder="John Doe"
                   value={fullName}
                   onChange={(ev) => setFullName(ev.target.value)}
                   required
-                  maxLength={200}
-                  autoComplete="name"
+                  autocomplete="name"
                 />
               </div>
               <div
@@ -423,21 +385,20 @@ export const Contact = ({
                   gap: "0.5rem",
                 }}
               >
-                <label htmlFor="contact-email" style={labelStyle}>
-                  Email Address
-                </label>
-                <input
+                <WaInput
+                  label="Email Address"
                   id="contact-email"
+                  name="email"
                   type="email"
                   className="contact-form-field"
-                  style={inputStyle}
                   placeholder="john@example.com"
                   value={visitorEmail}
                   onChange={(ev) => setVisitorEmail(ev.target.value)}
                   required
-                  maxLength={320}
-                  autoComplete="email"
-                />
+                  autocomplete="email"
+                >
+                  <Mail slot="start" style={{ marginInlineEnd: "0.5rem" }} color="var(--wa-color-brand)" height={16} width={16} name="email"/>
+                </WaInput>
               </div>
             </div>
             <div
@@ -447,23 +408,21 @@ export const Contact = ({
                 gap: "0.5rem",
               }}
             >
-              <label htmlFor="contact-phone" style={labelStyle}>
-                Phone{" "}
-                <span style={{ fontWeight: 400, opacity: 0.85 }}>
-                  (optional)
-                </span>
-              </label>
-              <input
+              <WaInput
                 id="contact-phone"
+                name="phone"
+                label="Phone Number"
                 type="tel"
                 className="contact-form-field"
-                style={inputStyle}
+
                 placeholder="(512) 555-0100"
                 value={phoneNumber}
                 onChange={(ev) => setPhoneNumber(ev.target.value)}
-                maxLength={80}
-                autoComplete="tel"
-              />
+                autocomplete="tel"
+                withLabel={true}
+              >
+                <Phone slot="start" style={{ marginInlineEnd: "0.5rem" }} color="var(--wa-color-brand)" height={16} width={16} name="phone"></Phone>
+              </WaInput>
             </div>
             <div
               style={{
@@ -472,58 +431,49 @@ export const Contact = ({
                 gap: "0.5rem",
               }}
             >
-              <label htmlFor="contact-service" style={labelStyle}>
-                {serviceLabel}
-              </label>
-              <div style={selectWrapStyle}>
-                <select
-                  id="contact-service"
-                  value={serviceInterest}
-                  onChange={(ev) => setServiceInterest(ev.target.value)}
-                  required
+              <WaSelect
+                name="service-interest"
+                label={serviceLabel}
+                value={serviceInterest}
+                appearance="outlined"
+                placeholder="Select a service..."
+                size="m"
+                withClear
+                onChange={(e) => setServiceInterest((e.target as unknown as { value: string }).value)}
+              >
+                {serviceOptions.map((opt) => (
+                  <WaOption key={opt.value} value={opt.value} id={opt.value}>{opt.label}</WaOption>
+                ))}
+ 
+              </WaSelect>
+  
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+        
+                <WaTextarea aria-label="Your Message"
+                  label="Your Message"
+                  id="contact-message"
+                  name="message"
+                  rows={4}
                   className="contact-form-field"
-                  style={selectStyle}
-                  aria-required
-                >
-                  <option value="" disabled>
-                    Select a service…
-                  </option>
-                  {serviceOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <span style={selectChevronStyle} aria-hidden>
-                  <NavArrowDown width={22} height={22} strokeWidth={2} />
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              <label htmlFor="contact-message" style={labelStyle}>
-                Your Message
-              </label>
-              <textarea
-                id="contact-message"
-                rows={4}
-                className="contact-form-field"
-                style={{ ...inputStyle, resize: "none", minHeight: "6rem" }}
-                placeholder="Tell us about your roofing needs..."
-                value={message}
-                onChange={(ev) => setMessage(ev.target.value)}
-                required
-                maxLength={8000}
-              />
+                  style={{ resize: "none", minHeight: "6rem" }}
+                  placeholder="Tell us about your roofing needs..."
+                  value={message}
+                  onChange={(ev) => setMessage(ev.target.value)}
+                  required
+                  maxlength={8000}
+                />
             </div>
             <div style={consentRowStyle}>
               <input
                 id="contact-consent"
+                name="consent"
                 type="checkbox"
                 checked={consentToContact}
                 onChange={(ev) => setConsentToContact(ev.target.checked)}

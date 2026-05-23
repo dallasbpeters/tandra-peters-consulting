@@ -132,7 +132,7 @@
   display: grid;
   grid-template-columns: minmax(220px, 260px) 1fr;
   gap: clamp(2rem, 5vw, 5rem);
-  max-width: 1440px;
+  max-width: 80rem;
   margin-inline: auto;
   align-items: start;
   padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);

@@ -1,19 +1,63 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { theme } from "../../theme";
-import { useRoofInspection } from "./context";
+import { useCameraContext } from "./context";
 
 type DiagramProps = {
+  /** Absolute or root-relative path to the GLB model, e.g. `"/roof.glb"`. */
   src: string;
+  /** Accessible label for the landmark region. Defaults to a descriptive sentence. */
   alt?: string;
+  /**
+   * `Hotspot` components to slot into `<model-viewer>`.
+   * Each child must carry a `slot="hotspot-{id}"` attribute so model-viewer
+   * projects it onto the correct 3D surface.
+   */
   children?: React.ReactNode;
 };
 
+/**
+ * Renders the interactive `<model-viewer>` 3D canvas for the roof inspection
+ * section and wires up all imperative camera controls.
+ *
+ * @remarks
+ * **Camera control sources** — two independent `useEffect` hooks drive the
+ * camera imperatively through the `mvRef`:
+ * 1. `activeViewId` changes (toolbar tab clicks) apply a full preset from
+ *    `VIEWS` — orbit, target, and field-of-view all update together.
+ * 2. `focusChapterId` changes (left-rail button clicks) pan the camera target
+ *    to the hotspot's world-space position and optionally rotate to its
+ *    `focusOrbit` angle. Hover events intentionally do **not** move the camera.
+ *
+ * **Shadow DOM overflow fix** — `<model-viewer>` ships with `contain: strict`
+ * and `overflow: hidden` on its internal shadow elements. A polling
+ * `requestAnimationFrame` loop injects a `<style>` tag into the shadow root
+ * once the custom element upgrades, removing these constraints so hotspot
+ * callout cards can render outside the canvas boundary.
+ *
+ * **Scroll passthrough** — `wheel` events are intercepted in the capture
+ * phase and forwarded to `window.scrollBy` so hovering the canvas does not
+ * prevent the user from scrolling the page.
+ *
+ * **Aspect ratio** — uses the padding-bottom trick (`height: 0; paddingBottom:
+ * 75%`) because `<model-viewer>`'s shadow `:host { height: 150px }` rule has
+ * higher specificity than `aspect-ratio` on the host element.
+ */
 export const Diagram: React.FC<DiagramProps> = ({
   src,
   alt = "Interactive 3D model of a residential roof",
   children,
 }) => {
-  const { views, activeViewId, chapters, activeChapterId } = useRoofInspection();
+  // Subscribes ONLY to CameraContext — not to chapter-selection state.
+  // This means hover events (which only mutate activeChapterId in the sibling
+  // RoofInspectionContext) never cause Diagram to re-render or touch model-viewer.
+  const { views, activeViewId, chapters, focusChapterId } = useCameraContext();
+
+  // Keep a stable ref so the camera-focus effect can read chapters without
+  // adding them as a dependency — chapters is a new array reference on every
+  // render (computed inline in Home.tsx), so including it in [focusChapterId, chapters]
+  // would re-fire the effect on every hover, moving the camera unexpectedly.
+  const chaptersRef = useRef(chapters);
+  chaptersRef.current = chapters;
 
   // Absolute URL so model-viewer's workers resolve the GLB correctly
   const absoluteSrc = src.startsWith("http")
@@ -38,21 +82,19 @@ export const Diagram: React.FC<DiagramProps> = ({
     if (view.fieldOfView) mv.fieldOfView = view.fieldOfView;
   }, [activeViewId, views]);
 
-  // Rail chapter selection → rotate camera to face the hotspot.
-  // Sets cameraTarget to the hotspot's world-space position so it's centred
-  // in frame, and applies the per-chapter focusOrbit if defined.
+  // Explicit chapter click (rail) → rotate camera to face the hotspot.
+  // Watches focusChapterId ONLY — chapters is read via ref so that unstable
+  // array references (re-created each render in Home.tsx) don't re-fire this
+  // effect on every hover-induced re-render.
   useEffect(() => {
     const mv = mvRef.current;
-    if (!mv || !activeChapterId) return;
-    const chapter = chapters.find((c) => c.id === activeChapterId);
+    if (!mv || !focusChapterId) return;
+    const chapter = chaptersRef.current.find((c) => c.id === focusChapterId);
     if (!chapter?.position3d) return;
 
-    // Centre the camera on the hotspot
     mv.cameraTarget = chapter.position3d;
-
-    // Rotate to the chapter-specific orbit angle when provided
     if (chapter.focusOrbit) mv.cameraOrbit = chapter.focusOrbit;
-  }, [activeChapterId, chapters]);
+  }, [focusChapterId]);
 
   // Punch through the shadow DOM so hotspot callouts aren't clipped.
   // model-viewer sets `contain: strict` on :host (paint containment = clips overflow)
@@ -100,8 +142,20 @@ export const Diagram: React.FC<DiagramProps> = ({
     }
   };
 
-  // Derive the initial camera from the first/default view
-  const defaultView = views.find((v) => v.id === activeViewId) ?? views[0];
+  // Capture the initial camera strings at mount time ONLY.
+  // Using useState (not useMemo) guarantees the value is computed once and
+  // never changes — so React never writes new attribute values on re-renders
+  // caused by hover/click state updates, which would overwrite whatever the
+  // imperative useEffect has set on the model-viewer element.
+  const [initialOrbit] = useState(
+    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ?? "-115deg 45deg 6.5m",
+  );
+  const [initialTarget] = useState(
+    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ?? "auto",
+  );
+  const [initialFov] = useState(
+    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ?? "auto",
+  );
 
   // Padding-bottom trick: gives the wrapper a concrete pixel height so
   // model-viewer's position:absolute height:100% resolves correctly.
@@ -110,7 +164,7 @@ export const Diagram: React.FC<DiagramProps> = ({
     position: "relative",
     width: "100%",
     height: 0,
-    paddingBottom: "75%", // 4:3
+    paddingBottom: "85%", // 4:3
     background: theme.colors.paper,
     borderRadius: "2px",
     overflow: "visible",
@@ -140,9 +194,9 @@ export const Diagram: React.FC<DiagramProps> = ({
         id="mv"
         src={absoluteSrc}
         alt={alt}
-        camera-orbit={defaultView?.cameraOrbit ?? "-155deg 65deg auto"}
-        camera-target={defaultView?.cameraTarget ?? "auto"}
-        field-of-view={defaultView?.fieldOfView ?? "auto"}
+        camera-orbit={initialOrbit}
+        camera-target={initialTarget}
+        field-of-view={initialFov}
         min-camera-orbit="210deg 75deg 360deg"
         max-camera-orbit="auto auto 100%"
         tone-mapping="neutral"
@@ -154,6 +208,7 @@ export const Diagram: React.FC<DiagramProps> = ({
         shadow-softness=".6"
         environment-image="legacy"
         touch-action="pan-y"
+        disable-zoom
         onLoad={handleLoad}
         style={modelStyle}
       >

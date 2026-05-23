@@ -1,24 +1,9 @@
 {
   "transcripts": {
-    "02713025-98e1-43da-931b-8de25fd6ee4c": {
-      "mtime": 1774506809,
-      "lastProcessed": "2026-05-22T03:33:11Z"
-    },
-    "643acb02-626d-4466-a06d-73822e2af70b": {
-      "mtime": 1774274318,
-      "lastProcessed": "2026-05-22T03:33:11Z"
-    },
-    "760cb157-3953-4c0c-9417-10822aba7e4f": {
-      "mtime": 1774274209,
-      "lastProcessed": "2026-05-22T03:33:11Z"
-    },
-    "e3805244-e0d3-4e2f-a640-91c42c2bcf19": {
-      "mtime": 1779508563,
-      "lastProcessed": "2026-05-23T03:56:00Z"
-    },
-    "f7194b20-8e8f-407a-b49d-8e051acf4230": {
-      "mtime": 1774276298,
-      "lastProcessed": "2026-05-22T03:33:11Z"
-    }
+    "02713025-98e1-43da-931b-8de25fd6ee4c": { "mtime": 1774506809, "lastProcessed": "2026-05-22T03:33:11Z" },
+    "643acb02-626d-4466-a06d-73822e2af70b": { "mtime": 1774274318, "lastProcessed": "2026-05-22T03:33:11Z" },
+    "760cb157-3953-4c0c-9417-10822aba7e4f": { "mtime": 1774274209, "lastProcessed": "2026-05-22T03:33:11Z" },
+    "e3805244-e0d3-4e2f-a640-91c42c2bcf19": { "mtime": 1779553111, "lastProcessed": "2026-05-23T16:19:00Z" },
+    "f7194b20-8e8f-407a-b49d-8e051acf4230": { "mtime": 1774276298, "lastProcessed": "2026-05-22T03:33:11Z" }
   }
 }

@@ -8,6 +8,8 @@ import { theme } from "../theme";
 import { NavProps } from "../types";
 import { usePostHog } from "@posthog/react";
 
+
+
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
   logoTagline = "Roofing Consultant",
@@ -78,6 +80,24 @@ export const Nav: React.FC<NavProps> = ({
     setIsMobileMenuOpen(false);
   };
 
+  function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(false);
+  
+    useEffect(() => {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+      
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+  
+    return isMobile;
+  }
+
+  const isMobile = useIsMobile();
+
   const navStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -86,7 +106,7 @@ export const Nav: React.FC<NavProps> = ({
     transition: "all 0.5s",
     paddingTop: isScrolled ? "1rem" : "1.5rem",
     paddingBottom: isScrolled ? "1rem" : "1.5rem",
-    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.8)" : "transparent",
+    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.8)" : isMobile ? "rgba(255, 255, 255, 1)" : "transparent",
     backdropFilter: isScrolled ? "blur(20px)" : "none",
     boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
   };
@@ -115,7 +135,7 @@ export const Nav: React.FC<NavProps> = ({
     letterSpacing: "0.01em",
     gridArea: "text",
     fontFamily: theme.fonts.headline,
-    color: isScrolled ? theme.colors.everglade : theme.colors.white,
+    color: isScrolled ? theme.colors.everglade : isMobile ? theme.colors.black : theme.colors.white,
     textDecoration: "none",
   };
   const logoTaglineStyle: React.CSSProperties = {
@@ -142,13 +162,13 @@ export const Nav: React.FC<NavProps> = ({
     fontSize: "1rem",
     opacity: 0.6,
     textDecoration: "none",
-    color: isScrolled ? theme.colors.black : theme.colors.white,
+    color: isScrolled ? theme.colors.black : isMobile ? theme.colors.black : theme.colors.white,
     transition: "opacity 0.2s",
   };
 
   const buttonStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,
-    color: theme.colors.white,
+    color: isMobile ? theme.colors.black : theme.colors.white,
     padding: "0.75rem 1.5rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
@@ -164,12 +184,6 @@ export const Nav: React.FC<NavProps> = ({
 
   return (
     <nav style={navStyle} className="site-nav-vt">
-      <style>{`
-      @media (max-width: 768px) {
-        .site-nav-vt {
-          background-color: rgba(255, 255, 255, 0.8);
-        }
-      `}</style>
       <div className={layoutClass.containerWideRow}>
         <TransitionLink
           to="/"
@@ -315,7 +329,7 @@ export const Nav: React.FC<NavProps> = ({
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: isScrolled ? "black" : "white",
+              color: isScrolled ? "black" : isMobile ? "black" : "white",
             }}
             className="md-hidden nav-focusable"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

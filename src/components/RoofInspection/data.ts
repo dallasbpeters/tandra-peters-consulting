@@ -1,9 +1,24 @@
 import type { Chapter, View } from "./types";
 
 /**
- * The seven points Tandra checks on every residential roof inspection.
- * Positions are percentages over the `roof-sidecut.svg` diagram, cropped
- * to `object-position: 30% 30%` inside a 16:9 container.
+ * The seven inspection checkpoints Tandra covers on every residential roof.
+ *
+ * @remarks
+ * **3D positioning** — `position3d` and `normal3d` values were hand-placed in
+ * the model-viewer inspector by clicking "Add Hotspot" on `roof.glb`, then
+ * copied into Sanity and fetched at runtime via GROQ. Only chapter 7
+ * (Soffit & fascia) currently has hard-coded fallback values here; the rest
+ * are populated exclusively from Sanity.
+ *
+ * **`focusOrbit`** — Each chapter includes a tailored `camera-orbit` string so
+ * clicking its rail button rotates to a view that makes the component easy to
+ * identify. Format: `"{azimuthal}deg {polar}deg {radius}"`.
+ *   - azimuthal (0°–360°): rotation around the vertical Y-axis, 0 = front
+ *   - polar (0°–90°): elevation from above; 0 = bird's-eye, 90 = side-on
+ *   - radius: distance from target; `"auto"` fits the visible model bounds
+ *
+ * **`position`** — Legacy percentage coords for the retired 2D SVG overlay.
+ * Kept to avoid a Sanity schema breaking change, but never rendered.
  */
 export const CHAPTERS: Chapter[] = [
   {
@@ -116,22 +131,31 @@ export const CHAPTERS: Chapter[] = [
 ];
 
 /**
- * Camera positions for the interactive 3D roof model.
+ * Camera presets for the `Toolbar` tab strip.
  *
- * model-viewer camera-orbit format: "{azimuthal}deg {polar}deg {radius}"
- *   azimuthal = rotation around vertical Y-axis  (0 = front)
- *   polar     = angle from top                   (0 = directly above, 90 = side-on)
- *   radius    = distance from target             ("auto" fits the whole model)
+ * @remarks
+ * All values are forwarded verbatim to `<model-viewer>` attributes via the
+ * imperative `useEffect` in `Diagram.tsx`. Transitions between presets are
+ * smoothly animated by model-viewer's built-in interpolation.
  *
- * Tweak these values once the model is loaded in the browser — the toolbar
- * transitions are animated so test by clicking tabs, not refreshing.
+ * **Tuning tip** — Open the app in a browser, open DevTools Console, then run:
+ * ```js
+ * document.querySelector('model-viewer').getCameraOrbit()
+ * ```
+ * to read the current orbit after manually dragging the model into position.
+ * Copy those values back here and into Sanity.
+ *
+ * `model-viewer` orbit format: `"{azimuthal}deg {polar}deg {radius}"`
+ * - azimuthal: 0° = front, increases counter-clockwise when viewed from above
+ * - polar: 0° = directly above, 90° = side-on
+ * - radius: metres, percentage of bounding-sphere diameter, or `"auto"`
  */
 export const VIEWS: View[] = [
   {
     id: "cutaway",
     label: "Cutaway view",
     // Front-quarter view, slightly elevated — shows the full roof cross-section
-    cameraOrbit: "-115deg 45deg auto",
+    cameraOrbit: "-115deg 40deg 5.9m",
     cameraTarget: "auto",
     fieldOfView: "auto",
   },

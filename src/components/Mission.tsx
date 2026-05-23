@@ -57,7 +57,7 @@ export const Mission: React.FC<MissionProps> = ({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: "6rem",
+    marginBottom: "3rem",
     color: theme.colors.paper,
     gap: "3rem",
   };

@@ -78,7 +78,7 @@ export const Services: React.FC<ServicesProps> = ({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: "6rem",
+    marginBottom: "2rem",
     gap: "2rem",
   };
 
