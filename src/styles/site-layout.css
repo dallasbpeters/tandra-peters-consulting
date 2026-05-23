@@ -128,7 +128,7 @@
    On mobile the Canvas (diagram) is pulled above the Rail visually via `order`.
    ──────────────────────────────────────────────────────────────────────── */
 
-.ri-stage {
+.stage {
   display: grid;
   grid-template-columns: minmax(220px, 260px) 1fr;
   gap: clamp(2rem, 5vw, 5rem);
@@ -138,7 +138,7 @@
   padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
 }
 
-.ri-rail {
+.stage__rail {
   position: sticky;
   top: 3rem;
   align-self: start;
@@ -147,33 +147,39 @@
 }
 
 @media (width <= 700px) {
-  .ri-stage {
+  .stage {
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
   }
 
   /* aside vanishes from the flex flow; its two inner divs become direct
-     children of .ri-stage and can be ordered independently */
-  .ri-rail {
+     children of .stage and can be ordered independently */
+  .stage__rail {
     display: contents;
   }
 
   /* Mobile stacking order:
      1. title / lede  →  2. diagram  →  3. chapter tabs */
-  .ri-rail-header { order: 1; width: 100%; }
-  .ri-canvas       { order: 2; width: 100%; }
-  .ri-rail-nav     { order: 3; width: 100%; }
-
-  .ri-rail-nav ol { width: 100%; }
-
-  /* Callout cards must not be clipped by the diagram on mobile */
-  .ri-diagram {
-    overflow: visible;
+  .stage__rail-header {
+    order: 1;
+    width: 100%;
   }
 
+  .stage__canvas       {
+    order: 2;
+    width: 100%;
+  }
+
+  .stage__rail-nav     {
+    order: 3;
+    width: 100%;
+  }
+
+  .stage__rail-nav ol { width: 100%; }
+
   /* Constrain callout width to the viewport on narrow screens */
-  .ri-hotspot-callout {
+  .stage__hotspot-callout {
     max-width: calc(100vw - 3rem);
     width: min(17rem, calc(100vw - 3rem));
   }

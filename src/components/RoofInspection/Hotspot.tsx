@@ -146,7 +146,8 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const is3d = Boolean(chapter.position3d);
 
   // Measure dot position → compute card placement.
-  // Runs once on open, then tracks scroll/resize.
+  // Runs once on open, then tracks scroll, resize, AND camera-change so the
+  // card follows the dot during model-viewer's camera animation.
   useEffect(() => {
     if (!isOpen) {
       setCardPos(null);
@@ -170,13 +171,21 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
       raf2 = requestAnimationFrame(measure);
     });
 
+    // model-viewer fires "camera-change" on every frame of a camera animation.
+    // Listening here means the callout re-anchors to the dot continuously while
+    // the camera pans/rotates (e.g. after a rail click also sets focusChapterId).
+    const mv = document.getElementById("mv");
+
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
+    mv?.addEventListener("camera-change", measure);
+
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
+      mv?.removeEventListener("camera-change", measure);
     };
   }, [isOpen, effectiveDirection]);
 
@@ -315,7 +324,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
           <aside
             ref={cardRef}
             style={cardStyle}
-            className="ri-hotspot-callout"
+            className="stage__hotspot-callout"
             role="dialog"
             aria-label={chapter.callout.title}
             onMouseEnter={handleCardEnter}

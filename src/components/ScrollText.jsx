@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   motion,
   useAnimationFrame,
@@ -77,21 +78,22 @@ function renderTexasFlag(textColor, fontSize) {
   return <TexasFlag color={textColor} width={fontSize} height={fontSize} />;
 }
 
-function VelocityText({
-  children,
-  baseVelocity,
-  startPosition,
-  damping,
-  stiffness,
-  numCopies,
-  showIcon,
-  showFlag,
-  icon,
-  velocityMapping,
-  fontSize,
-  textColor,
-  style,
-}) {
+function VelocityText(props) {
+  const {
+    children,
+    baseVelocity,
+    startPosition,
+    damping,
+    stiffness,
+    numCopies,
+    showIcon,
+    showFlag,
+    icon,
+    velocityMapping,
+    fontSize,
+    textColor,
+    style,
+  } = props || {};
   const copyRef = useRef(null);
   const copyWidth = useElementWidth(copyRef);
   const baseX = useMotionValue(0);
@@ -149,6 +151,7 @@ function VelocityText({
           fontWeight: "bold",
           letterSpacing: "-0.05em",
           whiteSpace: "pre",
+          marginInlineEnd: "0.5em",
           ...style,
           ...(showIcon ? { display: "inline-flex", alignItems: "center" } : {}),
         }}
@@ -190,7 +193,7 @@ export default function ScrollVelocity(props) {
     startPosition = 0,
     damping = 50,
     stiffness = 400,
-    numCopies = 6,
+    numCopies = 3,
     velocityInputMin = 0,
     velocityInputMax = 1000,
     velocityOutputMin = 0,

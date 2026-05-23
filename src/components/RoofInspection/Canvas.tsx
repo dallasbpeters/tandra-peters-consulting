@@ -38,7 +38,7 @@ export const Canvas: React.FC<CanvasProps> = ({ hint, children }) => {
   };
 
   return (
-    <section style={canvasStyle} className="ri-canvas">
+    <section style={canvasStyle} className="stage__canvas">
       {hint && (
         <div style={hintRowStyle}>
           <p style={hintTextStyle}>{hint}</p>

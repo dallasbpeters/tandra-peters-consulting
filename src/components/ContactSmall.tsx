@@ -228,7 +228,7 @@ export const ContactSmall = ({
             outline-offset: 2px;
           }
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
-          .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
+          .send-btn:hover .send-icon { transform: translate(8px, 0) !important; }
         `}</style>
 
         <motion.div

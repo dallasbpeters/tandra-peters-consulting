@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { useSanitySite } from "../context/SanitySiteContext";

@@ -51,7 +51,7 @@ export const typeStyles = {
 
   legalMuted: {
     fontSize: "0.875rem",
-    color: mix(theme.colors.everglade, 60),
+    color: theme.colors.everglade,
     marginBottom: "2rem",
     lineHeight: 1.6,
   } satisfies CSSProperties,

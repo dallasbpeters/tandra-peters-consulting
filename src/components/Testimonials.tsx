@@ -70,7 +70,7 @@ export const Testimonials = ({
         >
           {/*
             Match Elfsight embed: class `elfsight-app-<uuid>` + `data-elfsight-app-lazy` (lazy={true} → default mode).
-            Reserve min-height so the slot isn’t 0px before the iframe mounts.
+            Reserve min-height so the slot isn’t 0 before the iframe mounts.
           */}
           <ElfsightWidget
             widgetId={widgetId}

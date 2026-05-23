@@ -35,7 +35,7 @@ type RoofInspectionProps = {
  * | `focusChapterId`  | Which chapter last received a deliberate click — drives camera movement only |
  * | `activeViewId`    | Which toolbar preset tab is selected |
  *
- * Wraps children in a `.ri-stage` div whose flex layout is defined in
+ * Wraps children in a `.stage` div whose flex layout is defined in
  * `site-layout.css` (two-column on desktop, stacked on mobile).
  *
  * @example
@@ -88,7 +88,9 @@ const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
   return (
     <RoofInspectionContext.Provider value={chapterValue}>
       <CameraContext.Provider value={cameraValue}>
-        <div className="ri-stage">{children}</div>
+        <div className="stage content-section content-section--padded">
+        
+          {children}</div>
       </CameraContext.Provider>
     </RoofInspectionContext.Provider>
   );

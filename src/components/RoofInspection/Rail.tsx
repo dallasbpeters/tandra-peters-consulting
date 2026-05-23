@@ -11,7 +11,6 @@ type RailProps = {
   lede: string;
 };
 
-const hairline = mix(theme.colors.paper, 14);
 const mutedText = mix(theme.colors.everglade, 50);
 
 /**
@@ -27,7 +26,7 @@ const mutedText = mix(theme.colors.everglade, 50);
  * events on the `Hotspot` dots open callouts without moving the camera;
  * only deliberate rail clicks drive camera movement.
  *
- * Sticky positioning and max-height overflow are handled by the `.ri-rail`
+ * Sticky positioning and max-height overflow are handled by the `.stage__rail`
  * CSS class (defined in `site-layout.css`), which is disabled on mobile
  * (`width ≤ 700px`) via a media query.
  */
@@ -39,7 +38,7 @@ export const Rail: React.FC<RailProps> = ({
   const { chapters, activeChapterId, setActiveChapterId } = useRoofInspection();
   const { setFocusChapterId } = useCameraContext();
 
-  // Sticky / max-height are handled by .ri-rail in site-layout.css,
+  // Sticky / max-height are handled by .stage__rail in site-layout.css,
   // which also disables sticky on mobile via @media (width <= 700px).
   const railStyle: React.CSSProperties = {};
 
@@ -122,10 +121,10 @@ export const Rail: React.FC<RailProps> = ({
   };
 
   return (
-    <aside style={railStyle} className="ri-rail">
-      {/* ri-rail-header and ri-rail-nav become direct flex children of
-          .ri-stage on mobile via `display: contents` on the aside */}
-      <div className="ri-rail-header">
+    <aside style={railStyle} className="stage__rail">
+      {/* stage__rail-header and stage__rail-nav become direct flex children of
+          .stage on mobile via `display: contents` on the aside */}
+      <div className="stage__rail-header">
         <div style={kickerStyle}>
           <span style={kickerRuleStyle} aria-hidden="true" />
           <span>{kicker}</span>
@@ -135,7 +134,7 @@ export const Rail: React.FC<RailProps> = ({
         <p style={ledeStyle}>{lede}</p>
       </div>
 
-      <div className="ri-rail-nav">
+      <div className="stage__rail-nav">
         <ol style={listStyle} role="list">
           {chapters.map((chapter) => {
             const isActive = activeChapterId === chapter.id;

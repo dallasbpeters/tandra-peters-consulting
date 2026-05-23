@@ -13,8 +13,8 @@
     "lint": "tsc --noEmit",
     "stylelint": "stylelint \"**/*.{css,js}\"",
     "format": "exec prettier . --write",
-    "check:lint": "eslint \"**/*.{css,js}\"",
-    "check:lint:fix": "eslint \"**/*.{css,js}\" --fix",
+    "check:lint": "pnpm dlx eslint \"**/*.{css,js}\"",
+    "check:lint:fix": "pnpm dlx eslint \"**/*.{css,js}\" --fix",
     "check:types": "tsc --noEmit \"**/*.{css,js}\"",
     "check:types:fix": "tsc --noEmit --fix \"**/*.{css,js}\""
   },
@@ -64,19 +64,33 @@
     "vite-plugin-image-optimizer": "^2.0.3"
   },
   "devDependencies": {
+    "@eslint/css": "^1.2.0",
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/express": "^4.17.21",
     "@types/geojson": "^7946.0.16",
     "@types/node": "^22.14.0",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
+    "@vitest/ui": "^4.1.7",
     "agentation": "^3.0.2",
     "concurrently": "^9.2.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.6.0",
+    "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
+    "msw": "^2.14.6",
     "prettier": "3.8.1",
     "stylelint": "^17.5.0",
     "stylelint-config-standard": "^40.0.0",
     "topojson-server": "^3.0.1",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "us-atlas": "^3.0.1"
+    "typescript-eslint": "^8.59.4",
+    "us-atlas": "^3.0.1",
+    "vitest": "^4.1.7"
   }
 }

@@ -78,7 +78,7 @@ typography:
     fontWeight: 900
     letterSpacing: 0.1em
 rounded:
-  none: 0px
+  none: 0
   sm: 4px
   lg: 16px
   full: 9999px

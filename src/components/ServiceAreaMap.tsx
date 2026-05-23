@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useMemo,
   useRef,
@@ -117,11 +117,6 @@ const titleStyle: CSSProperties = {
 
 const mapWrapStyle: CSSProperties = {
   position: "relative",
-  overflow: "hidden",
-};
-const ShaderWrapperStyle: CSSProperties = {
-  position: "absolute",
-  inset: 0,
   overflow: "hidden",
 };
 

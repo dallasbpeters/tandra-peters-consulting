@@ -12,9 +12,10 @@ import '@awesome.me/webawesome/dist/styles/webawesome.css';
 import WaOption from '@awesome.me/webawesome/dist/react/option/index.js';
 import WaInput from '@awesome.me/webawesome/dist/react/input/index.js';
 import WaTextarea from '@awesome.me/webawesome/dist/react/textarea/index.js';
+import WaCheckbox from '@awesome.me/webawesome/dist/react/checkbox/index.js';
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
-const CONTACT_API_PATH = "/api/contact";
+export const CONTACT_API_PATH = "/api/contact";
 
 export const Contact = ({
   tagline = "Contact the consultant",
@@ -207,6 +208,7 @@ export const Contact = ({
     gap: "0.75rem",
     fontSize: "0.8125rem",
     lineHeight: 1.5,
+    width: "100%",
     color: theme.colors.everglade,
   };
 
@@ -246,7 +248,7 @@ export const Contact = ({
             outline-offset: 2px;
           }
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
-          .send-btn:hover .send-icon { transform: translate(8px, 0px) !important; }
+          .send-btn:hover .send-icon { transform: translate(8px, 0) !important; }
         `}</style>
         <motion.div
           initial={{ opacity: 0, x: -50 }}
@@ -471,25 +473,16 @@ export const Contact = ({
                 />
             </div>
             <div style={consentRowStyle}>
-              <input
+              <WaCheckbox
                 id="contact-consent"
-                name="consent"
-                type="checkbox"
                 checked={consentToContact}
                 onChange={(ev) => setConsentToContact(ev.target.checked)}
                 style={checkboxStyle}
                 aria-required
                 aria-describedby="contact-consent-desc"
+                defaultValue="I agree to be contacted about my inquiry by email, phone, or SMS. I have read the Privacy Policy and Terms of Service."
               />
-              <label
-                htmlFor="contact-consent"
-                id="contact-consent-desc"
-                style={{
-                  cursor: "pointer",
-                  fontFamily: theme.fonts.body,
-                  fontWeight: 500,
-                }}
-              >
+              <p>
                 I agree to be contacted about my inquiry by email, phone, or
                 SMS. I have read the{" "}
                 <TransitionLink to="/privacy" style={consentLinkStyle}>
@@ -500,7 +493,8 @@ export const Contact = ({
                   Terms of Service
                 </TransitionLink>
                 .
-              </label>
+                </p>
+              
             </div>
             {submitStatus === "success" ||
             (submitStatus === "error" && errorMessage) ? (
