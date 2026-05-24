@@ -9,7 +9,7 @@ import { ArticlePage } from "./pages/ArticlePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { CookiePolicyPage } from "./pages/CookiePolicyPage";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const SeoDashboardPage = lazy(async () => {
   const module = await import("./pages/SeoDashboardPage");
