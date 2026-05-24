@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import  React,{ Suspense, lazy } from "react";
 import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
@@ -9,6 +9,7 @@ import { ArticlePage } from "./pages/ArticlePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { CookiePolicyPage } from "./pages/CookiePolicyPage";
+import { Analytics } from "@vercel/analytics/next"
 
 const SeoDashboardPage = lazy(async () => {
   const module = await import("./pages/SeoDashboardPage");
@@ -26,6 +27,7 @@ const RootLayout = () => (
     <SanityContentProvider>
       <SanityVisualEditing />
       <Outlet />
+      <Analytics />
     </SanityContentProvider>
   </>
 );
