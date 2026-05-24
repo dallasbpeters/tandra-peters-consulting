@@ -44,10 +44,10 @@ const buildCardSvg = (w: number, h: number) => {
         <path d="M77.136,26.153L77.136,34.829L57.862,34.829L57.862,16.279L77.136,26.153Z" style="fill:rgb(148,113,218);"/>
     </g>
     <g transform="matrix(11.437328,0,0,11.266663,303.896939,70.443415)">
-        <path d="M21.098,-0.924L37.974,16.279L-6.327,16.279L-6.327,-0.924L21.098,-0.924Z" style="fill:#FFFFFF;"/>
+        <path d="M21.098,-0.924L37.974,16.279L-6.327,16.279L-6.327,-0.924L21.098,-0.924Z" style="fill:#0b1c18;"/>
     </g>
     <g transform="matrix(12.824398,0,0,15.080385,18.012686,-271.376249)">
-        <path d="M39.227,34.829L39.227,58.775L22.294,58.775L22.294,44.375L39.227,34.829Z" style="fill:#FFFFFF;"/>
+        <path d="M39.227,34.829L39.227,58.775L22.294,58.775L22.294,44.375L39.227,34.829Z" style="fill:#0b1c18;"/>
     </g>
   <text x="50%" y="64%" text-anchor="middle" fill="${OG_COLORS.title}" font-size="${titleFs}" font-weight="700" font-family="Arial, Helvetica, sans-serif">Tandra Peters</text>
   <text x="50%" y="74%" text-anchor="middle" fill="${OG_COLORS.subtitle}" font-size="${subFs}" font-family="Arial, Helvetica, sans-serif">Birdcreek Roofing Consultant · Austin, Texas</text>

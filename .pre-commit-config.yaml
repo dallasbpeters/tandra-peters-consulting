@@ -21,4 +21,5 @@ repos:
         entry: pnpm exec eslint
         language: system
         files: \.(js|jsx|ts|tsx)$
+        exclude: ^(\.agents|\.claude|studio-tandra-peters)/
         pass_filenames: true
