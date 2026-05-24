@@ -49,18 +49,17 @@ const buildCardSvg = (w: number, h: number) => {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
   <rect width="100%" height="100%" fill="${OG_COLORS.background}"/>
-  <g id="Artboard11" serif:id="Artboard1">
-        <path d="M32,7L32,25C32,28.863 28.863,32 25,32L7,32C3.137,32 0,28.863 0,25L0,7C0,3.137 3.137,0 7,0L25,0C28.863,0 32,3.137 32,7Z" style="fill:rgb(0,26,16);"/>
-        <g transform="matrix(0.032969,0,0,0.032969,3.550347,4.030952)">
-            <path d="M273.959,258.483L484.13,258.483L484.13,680.683L273.959,681.707L273.959,258.483Z" style="fill:rgb(254,254,254);"/>
+       <g id="Teledyne" transform="matrix(0.188683,0,0,0.188683,8.424006,12.925165)">
+            <g transform="matrix(2.474844,0,0,4.276237,-71.247941,-69.040451)">
+                <path d="M77.136,26.153L77.136,34.829L57.862,34.829L57.862,16.279L77.136,26.153Z" style="fill:rgb(148,113,218);"/>
+            </g>
+            <g transform="matrix(2.512332,0,0,2.474844,-23.451832,-39.715568)">
+                <path d="M21.098,-0.924L37.974,16.279L-6.327,16.279L-6.327,-0.924L21.098,-0.924Z" style="fill:#FFFFFF;"/>
+            </g>
+            <g transform="matrix(2.817017,0,0,3.312569,-86.249385,-114.799935)">
+                <path d="M39.227,34.829L39.227,58.775L22.294,58.775L22.294,44.375L39.227,34.829Z" style="fill:#FFFFFF;"/>
+            </g>
         </g>
-        <g transform="matrix(0.032969,0,0,0.032969,3.550347,4.030952)">
-            <path d="M695.651,44.851L695.651,258.483L273.959,258.483L484.13,44.987L695.651,44.851Z" style="fill: oklch(72.81% 0.146 283.49);"/>
-        </g>
-        <g transform="matrix(0.032969,0,0,0.032969,3.550347,4.030952)">
-            <path d="M273.959,44.875L273.959,258.483L59.574,258.483L59.574,44.364L273.959,44.875Z" style="fill:rgb(254,254,254);"/>
-        </g>
-    </g>
   <text x="50%" y="64%" text-anchor="middle" fill="${OG_COLORS.title}" font-size="${titleFs}" font-weight="700" font-family="Arial, Helvetica, sans-serif">Tandra Peters</text>
   <text x="50%" y="74%" text-anchor="middle" fill="${OG_COLORS.subtitle}" font-size="${subFs}" font-family="Arial, Helvetica, sans-serif">Birdcreek Roofing Consultant · Austin, Texas</text>
 </svg>`;
