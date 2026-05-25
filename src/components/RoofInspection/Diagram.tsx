@@ -65,11 +65,13 @@ export const Diagram: React.FC<DiagramProps> = ({
     : `${window.location.origin}${src}`;
 
   // Ref gives us the DOM element so we can imperatively drive the camera
-  const mvRef = useRef<HTMLElement & {
-    cameraOrbit: string;
-    cameraTarget: string;
-    fieldOfView: string;
-  }>(null);
+  const mvRef = useRef<
+    HTMLElement & {
+      cameraOrbit: string;
+      cameraTarget: string;
+      fieldOfView: string;
+    }
+  >(null);
 
   // Toolbar view change → apply full camera preset
   useEffect(() => {
@@ -133,7 +135,15 @@ export const Diagram: React.FC<DiagramProps> = ({
   // Boost metallic/roughness on the roofing material after the model loads.
   const handleLoad = () => {
     const mv = mvRef.current as unknown as {
-      model: { materials: Array<{ name: string; pbrMetallicRoughness: { setMetallicFactor: (v: number) => void; setRoughnessFactor: (v: number) => void } }> };
+      model: {
+        materials: Array<{
+          name: string;
+          pbrMetallicRoughness: {
+            setMetallicFactor: (v: number) => void;
+            setRoughnessFactor: (v: number) => void;
+          };
+        }>;
+      };
     };
     if (!mv?.model?.materials) return;
     for (const mat of mv.model.materials) {
@@ -148,13 +158,19 @@ export const Diagram: React.FC<DiagramProps> = ({
   // caused by hover/click state updates, which would overwrite whatever the
   // imperative useEffect has set on the model-viewer element.
   const [initialOrbit] = useState(
-    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ?? "-115deg 45deg 6.5m",
+    () =>
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ??
+      "-115deg 45deg 6.5m",
   );
   const [initialTarget] = useState(
-    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ?? "auto",
+    () =>
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ??
+      "auto",
   );
   const [initialFov] = useState(
-    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ?? "auto",
+    () =>
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ??
+      "auto",
   );
 
   // Padding-bottom trick: gives the wrapper a concrete pixel height so

@@ -1,4 +1,4 @@
-import  { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
@@ -9,7 +9,7 @@ import { ArticlePage } from "./pages/ArticlePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { CookiePolicyPage } from "./pages/CookiePolicyPage";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 
 const SeoDashboardPage = lazy(async () => {
   const module = await import("./pages/SeoDashboardPage");
@@ -55,22 +55,22 @@ const appRouter = createBrowserRouter([
       { path: "privacy", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "cookies", element: <CookiePolicyPage /> },
-              {
-                path: "agent",
-                element: (
-                  <Suspense fallback={null}>
-                    <FeatureBuilderPage />
-                  </Suspense>
-                ),
-              },
-              {
-                path: "marketing",
-                element: (
-                  <Suspense fallback={null}>
-                    <MarketingAgentPage />
-                  </Suspense>
-                ),
-              },
+      {
+        path: "agent",
+        element: (
+          <Suspense fallback={null}>
+            <FeatureBuilderPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "marketing",
+        element: (
+          <Suspense fallback={null}>
+            <MarketingAgentPage />
+          </Suspense>
+        ),
+      },
     ],
   },
 ]);

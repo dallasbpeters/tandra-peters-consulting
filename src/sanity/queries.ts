@@ -10,6 +10,24 @@ export const HOME_AND_SITE_QUERY = groq`{
       ...,
       "backgroundImage": backgroundImage.asset->url
     },
+    "featuredVideo": select(
+      featuredVideoSection._type == "videoSection" => {
+        ...featuredVideoSection,
+        "video": coalesce(featuredVideoSection.video.asset->url, featuredVideoSection.video),
+        "posterUrl": coalesce(featuredVideoSection.posterUrl.asset->url, featuredVideoSection.posterUrl)
+      },
+      featuredVideo._type == "videoSection" => {
+        ...featuredVideo,
+        "video": coalesce(featuredVideo.video.asset->url, featuredVideo.video),
+        "posterUrl": coalesce(featuredVideo.posterUrl.asset->url, featuredVideo.posterUrl)
+      },
+      defined(featuredVideoSection) => {
+        "video": featuredVideoSection
+      },
+      defined(featuredVideo) => {
+        "video": featuredVideo
+      }
+    ),
     about {
       ...,
       "image": image.asset->url

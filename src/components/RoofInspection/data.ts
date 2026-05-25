@@ -78,7 +78,7 @@ export const CHAPTERS: Chapter[] = [
       title: "Decking",
       body: "Plywood or OSB nailed to the rafters. You only see it during a tear-off — and that's the moment to check for soft boards. A soft board telegraphs right through the new roof within a year.",
       watchFor:
-        "A contract that includes decking replacement at cost per sheet, not a vague \"as needed\" line that turns into a surprise.",
+        'A contract that includes decking replacement at cost per sheet, not a vague "as needed" line that turns into a surprise.',
     },
   },
   {

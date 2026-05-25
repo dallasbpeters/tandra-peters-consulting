@@ -5,21 +5,21 @@ The wizard has completed a deep integration of your project. PostHog was already
 
 ## Events summary
 
-| Event | Description | File |
-|---|---|---|
-| `hero_cta_clicked` | User clicks the primary hero CTA button | `src/components/Hero.tsx` *(existing)* |
-| `hero_secondary_cta_clicked` | User clicks the secondary hero CTA | `src/components/Hero.tsx` *(existing)* |
-| `nav_cta_clicked` | User clicks the nav consultation CTA (desktop or mobile) | `src/components/Nav.tsx` *(existing)* |
-| `service_cta_clicked` | User clicks a service card CTA | `src/components/Services.tsx` *(existing)* |
-| `birdcreek_link_clicked` | User clicks the Birdcreek "Learn More" external link | `src/components/Services.tsx` *(existing)* |
-| `faq_item_opened` | User opens a FAQ accordion item | `src/components/Faq.tsx` *(existing)* |
-| `social_share_clicked` | User clicks a social share button (platform property) | `src/components/SocialShareBar.tsx` *(existing)* |
-| `contact_form_submitted` | User successfully submits the contact form | `src/components/Contact.tsx`, `src/components/ContactSmall.tsx` *(existing)* |
-| `contact_form_error` | Contact form submission fails (status + error properties) | `src/components/Contact.tsx`, `src/components/ContactSmall.tsx` *(existing)* |
-| `call_button_tapped` | User taps the floating call/SMS button; `method` is `sms` or `tel` | `src/components/CallButton.tsx` *(new)* |
-| `article_card_clicked` | User clicks an article card; includes slug, title, category, layout, index | `src/components/ArticleGridCard.tsx` *(new)* |
-| `agent_message_sent` | User sends a message to the AI Feature Builder | `src/pages/AgentChatPage.tsx` *(new)* |
-| `agent_suggestion_clicked` | User clicks a starter suggestion in the AI Feature Builder | `src/pages/AgentChatPage.tsx` *(new)* |
+| Event                        | Description                                                                | File                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `hero_cta_clicked`           | User clicks the primary hero CTA button                                    | `src/components/Hero.tsx` _(existing)_                                       |
+| `hero_secondary_cta_clicked` | User clicks the secondary hero CTA                                         | `src/components/Hero.tsx` _(existing)_                                       |
+| `nav_cta_clicked`            | User clicks the nav consultation CTA (desktop or mobile)                   | `src/components/Nav.tsx` _(existing)_                                        |
+| `service_cta_clicked`        | User clicks a service card CTA                                             | `src/components/Services.tsx` _(existing)_                                   |
+| `birdcreek_link_clicked`     | User clicks the Birdcreek "Learn More" external link                       | `src/components/Services.tsx` _(existing)_                                   |
+| `faq_item_opened`            | User opens a FAQ accordion item                                            | `src/components/Faq.tsx` _(existing)_                                        |
+| `social_share_clicked`       | User clicks a social share button (platform property)                      | `src/components/SocialShareBar.tsx` _(existing)_                             |
+| `contact_form_submitted`     | User successfully submits the contact form                                 | `src/components/Contact.tsx`, `src/components/ContactSmall.tsx` _(existing)_ |
+| `contact_form_error`         | Contact form submission fails (status + error properties)                  | `src/components/Contact.tsx`, `src/components/ContactSmall.tsx` _(existing)_ |
+| `call_button_tapped`         | User taps the floating call/SMS button; `method` is `sms` or `tel`         | `src/components/CallButton.tsx` _(new)_                                      |
+| `article_card_clicked`       | User clicks an article card; includes slug, title, category, layout, index | `src/components/ArticleGridCard.tsx` _(new)_                                 |
+| `agent_message_sent`         | User sends a message to the AI Feature Builder                             | `src/pages/AgentChatPage.tsx` _(new)_                                        |
+| `agent_suggestion_clicked`   | User clicks a starter suggestion in the AI Feature Builder                 | `src/pages/AgentChatPage.tsx` _(new)_                                        |
 
 ## Next steps
 

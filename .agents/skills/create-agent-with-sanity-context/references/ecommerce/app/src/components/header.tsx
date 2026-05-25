@@ -13,10 +13,7 @@ export function Header() {
         </a>
 
         <nav className="flex items-center gap-6">
-          <a
-            href="/products"
-            className="text-sm text-neutral-600 hover:text-neutral-900"
-          >
+          <a href="/products" className="text-sm text-neutral-600 hover:text-neutral-900">
             Products
           </a>
 
@@ -41,5 +38,5 @@ export function Header() {
         </nav>
       </div>
     </header>
-  );
+  )
 }

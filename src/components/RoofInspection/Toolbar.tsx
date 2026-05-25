@@ -14,6 +14,7 @@ import React from "react";
 import { mix, theme } from "../../theme";
 import { useCameraContext } from "./context";
 import { motion } from "motion/react";
+import { useIsMobile } from "../../hooks/isMobile";
 
 type ToolbarProps = {
   /** Instructional copy shown to the right of the tabs. */
@@ -30,24 +31,30 @@ const mutedText = mix(theme.colors.everglade, 50);
 export const Toolbar: React.FC<ToolbarProps> = ({
   hint = "Hover or tap a number to learn more.",
 }) => {
+  const isMobile = useIsMobile();
   const { views, activeViewId, setActiveViewId } = useCameraContext();
 
   const wrapperStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "repeat( auto-fit, minmax(250px, 1fr) )",
+    gridTemplateColumns: isMobile ? "1fr" : "1.5fr 1fr",
     alignItems: "baseline",
     gap: "2rem",
     paddingBottom: "1.25rem",
     borderBottom: `1px solid ${hairline}`,
+    minWidth: 0,
   };
 
   const tabGroupStyle: React.CSSProperties = {
     display: "flex",
+    flexDirection: isMobile ? "column" : "row",
     gap: 4,
+    rowGap: 8,
     fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.2em",
     textTransform: "uppercase",
+    minWidth: 0,
+    maxWidth: "100%",
   };
 
   const tabStyle: React.CSSProperties = {
@@ -60,6 +67,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     fontWeight: "inherit",
     letterSpacing: "inherit",
     textTransform: "inherit",
+    minBlockSize: 36,
+    maxWidth: "100%",
+    textAlign: "center",
+    lineHeight: 1.25,
   };
 
   const hintStyle: React.CSSProperties = {
@@ -68,13 +79,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     fontSize: "1rem",
     color: mutedText,
     margin: 0,
-    textAlign: "right",
+    textAlign: isMobile ? "left" : "right",
+    minWidth: 0,
   };
 
   const variants = {
     initial: { scale: 1, backgroundColor: "transparent", color: mutedText },
-    active: { scale: 1, backgroundColor: theme.colors.black, color: theme.colors.paper },
-    hover: { scale: 1.05, backgroundColor: theme.colors.black, color: theme.colors.white },
+    active: {
+      scale: 1,
+      backgroundColor: theme.colors.black,
+      color: theme.colors.paper,
+    },
+    hover: {
+      scale: 1.05,
+      backgroundColor: theme.colors.black,
+      color: theme.colors.white,
+    },
     tap: { scale: 0.95 },
   };
 
@@ -84,19 +104,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {views.map((view) => {
           const isActive = activeViewId === view.id;
           return (
-                 <motion.button
-                   key={view.id}
-                   role="tab"
-                   aria-selected={isActive}
-                   style={tabStyle}
-                   onTap={() => setActiveViewId(view.id)}
-                   variants={variants}
-                   initial="initial"
-                   animate={isActive ? "active" : "initial"}
-                   whileHover="hover"
-                   whileTap="tap"
-                   transition={{ duration: 0.18, ease: "easeOut" }}
-                 >
+            <motion.button
+              key={view.id}
+              role="tab"
+              aria-selected={isActive}
+              style={tabStyle}
+              onTap={() => setActiveViewId(view.id)}
+              variants={variants}
+              initial="initial"
+              animate={isActive ? "active" : "initial"}
+              whileHover="hover"
+              whileTap="tap"
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
               {view.label}
             </motion.button>
           );

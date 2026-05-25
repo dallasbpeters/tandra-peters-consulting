@@ -31,7 +31,6 @@ Status to report in this phase:
 - A status message for each file whose edits you are planning, including a high level summary of changes
 - A status message for each file you have edited
 
-
 ---
 
 **Upon completion, continue with:** [basic-integration-1.2-revise.md](basic-integration-1.2-revise.md)

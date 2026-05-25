@@ -9,7 +9,6 @@ import * as d3 from "d3";
 import geoJson from "./texasCounties.json";
 import { mix, theme } from "../theme";
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ServiceArea = {
@@ -53,19 +52,26 @@ const COUNTIES = geoJson.counties as County[];
 // Framing the Fort Worth → Waco → Austin → San Antonio corridor with enough
 // padding that the Hill Country counties are fully visible. Lubbock just
 // enters the frame; Amarillo requires a pan north-west.
-const INIT_VB: ViewBox = { x: 0, y: 15, w: 900, h: 560 };
+const INIT_VB: ViewBox = { x: 120, y: 35, w: 760, h: 520 };
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_EYEBROW = "Service Area";
 const DEFAULT_TITLE = "Where We Work";
-const DEFAULT_DESCRIPTION = "Serving homeowners across Central Texas — from the Austin metro and San Antonio to Fort Worth, Waco, Kerrville, and the Panhandle.";
+const DEFAULT_DESCRIPTION =
+  "Serving homeowners across Central Texas — from the Austin metro and San Antonio to Fort Worth, Waco, Kerrville, and the Panhandle.";
 
 // ─── D3-compatible hex colours ────────────────────────────────────────────────
 
 const COLOR_EMPTY = "#0A482A";
 // Choropleth stops — dark (few clients) → bright (many clients)
-const CHOROPLETH_STOPS = ["#075b33", "#086e3d", "#0a8047", "#0b9251", "#0da45b"];
+const CHOROPLETH_STOPS = [
+  "#075b33",
+  "#086e3d",
+  "#0a8047",
+  "#0b9251",
+  "#0da45b",
+];
 // Fallback fill for service counties with no Sanity client-count data yet
 
 const STROKE = "#0d2017";
@@ -76,12 +82,18 @@ const STROKE_ACTIVE = "#1a3825";
 const sectionStyle: CSSProperties = {
   backgroundColor: theme.palette.everglade["950"],
   position: "relative",
+  maxHeight: 640,
+  overflow: "hidden",
 };
 
 const innerStyle: CSSProperties = { overflow: "hidden", margin: "0 auto" };
 
 const headerStyle: CSSProperties = {
-  textAlign: "center",
+  textAlign: "left",
+  position: "absolute",
+  top: "20%",
+  left: "15%",
+  zIndex: 10,
 };
 
 const descriptionStyle: CSSProperties = {
@@ -178,7 +190,9 @@ export const ServiceAreaMap = ({
   vbRef.current = vb;
 
   // Track the drag origin so handlePointerMove can compute delta
-  const dragOrigin = useRef<{ sx: number; sy: number; vb: ViewBox } | null>(null);
+  const dragOrigin = useRef<{ sx: number; sy: number; vb: ViewBox } | null>(
+    null,
+  );
   // Did the pointer move enough to count as a drag? (suppresses tooltip)
   const wasDrag = useRef(false);
 
@@ -269,7 +283,6 @@ export const ServiceAreaMap = ({
     );
   }, []);
 
-
   return (
     <section id="service-area" style={sectionStyle}>
       <div style={innerStyle}>
@@ -293,7 +306,7 @@ export const ServiceAreaMap = ({
             style={{
               display: "block",
               width: "100%",
-              height: "auto",
+              height: "clamp(30rem, 70vw, 40rem)",
               cursor: isDragging ? "grabbing" : "grab",
               userSelect: "none",
               touchAction: "none",

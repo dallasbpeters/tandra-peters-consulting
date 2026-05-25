@@ -7,7 +7,7 @@ import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
 import { viteGeminiDevApi } from "./plugins/viteGeminiDevApi";
 import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
@@ -66,19 +66,19 @@ export default defineConfig(({ mode }) => {
   }
 
   const plugins: PluginOption[] = [
-    (viteAgentDevApi(env) as unknown) as PluginOption,
-    (viteGeminiDevApi(env) as unknown) as PluginOption,
-    (viteSitemapApi(env) as unknown) as PluginOption,
-    (viteSeoDashboardApi(env) as unknown) as PluginOption,
-    (tailwindcss() as unknown) as PluginOption,
-    (react() as unknown) as PluginOption,
+    viteAgentDevApi(env) as unknown as PluginOption,
+    viteGeminiDevApi(env) as unknown as PluginOption,
+    viteSitemapApi(env) as unknown as PluginOption,
+    viteSeoDashboardApi(env) as unknown as PluginOption,
+    tailwindcss() as unknown as PluginOption,
+    react() as unknown as PluginOption,
     {
       name: "html-site-url",
       transformIndexHtml(html) {
         return html.replaceAll("%SITE_URL%", siteUrl);
       },
     } satisfies PluginOption,
-    (ViteImageOptimizer({
+    ViteImageOptimizer({
       /** Base OG PNG + roofline SVG are composited later; do not recompress the base PNG here. */
       exclude: ["roofline.svg"],
       png: { quality: 80 },
@@ -88,8 +88,8 @@ export default defineConfig(({ mode }) => {
       svg: {
         plugins: [{ name: "removeViewBox" }, { name: "sortAttrs" }],
       },
-    }) as unknown) as PluginOption,
-    (ogImageComposite() as unknown) as PluginOption,
+    }) as unknown as PluginOption,
+    ogImageComposite() as unknown as PluginOption,
   ];
 
   return {

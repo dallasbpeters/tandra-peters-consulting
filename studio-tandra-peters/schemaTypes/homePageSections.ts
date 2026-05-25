@@ -38,15 +38,15 @@ export const roofInspectionSectionType = defineType({
     defineGeminiImage({
       name: 'diagramImage',
       title: 'Diagram image',
-      description:
-        'Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.',
+      description: 'Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.',
     }),
     defineField({
       name: 'hotspots',
       title: 'Hotspots',
       type: 'array',
       of: [{type: 'roofInspectionHotspot'}],
-      description: 'Interactive annotation points on the diagram. Leave empty to use built-in defaults.',
+      description:
+        'Interactive annotation points on the diagram. Leave empty to use built-in defaults.',
       validation: (Rule) => Rule.max(12),
     }),
   ],
@@ -73,6 +73,30 @@ export const heroSectionType = defineType({
     defineGeminiImage({
       name: 'backgroundImage',
       title: 'Background image',
+      description: 'Sanity image asset (upload, Media Library, or Generate with AI).',
+    }),
+  ],
+})
+export const videoSectionType = defineType({
+  name: 'videoSection',
+  title: 'Video',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'video',
+      type: 'file',
+      title: 'Video upload',
+      description: 'Video file (upload, Media Library, or Generate with AI).',
+      options: {
+        accept: 'video/*',
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({name: 'title', type: 'string', title: 'Title'}),
+    defineField({
+      name: 'posterUrl',
+      type: 'image',
+      title: 'Poster image',
       description: 'Sanity image asset (upload, Media Library, or Generate with AI).',
     }),
   ],

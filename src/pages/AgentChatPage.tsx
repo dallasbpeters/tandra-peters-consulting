@@ -87,24 +87,24 @@ type PersistedConversation = {
 const isChatPart = (value: unknown): value is ChatPart =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      ("type" in value && (value as { type?: unknown }).type === "text"
-        ? typeof (value as { text?: unknown }).text === "string"
-        : "type" in value &&
-            (value as { type?: unknown }).type === "reasoning" &&
-            typeof (value as { text?: unknown }).text === "string"),
+    typeof value === "object" &&
+    ("type" in value && (value as { type?: unknown }).type === "text"
+      ? typeof (value as { text?: unknown }).text === "string"
+      : "type" in value &&
+        (value as { type?: unknown }).type === "reasoning" &&
+        typeof (value as { text?: unknown }).text === "string"),
   );
 
 const isChatMessage = (value: unknown): value is ChatMessage =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      typeof (value as { id?: unknown }).id === "string" &&
-      ((value as { role?: unknown }).role === "user" ||
-        (value as { role?: unknown }).role === "assistant") &&
-      typeof (value as { content?: unknown }).content === "string" &&
-      Array.isArray((value as { parts?: unknown }).parts) &&
-      (value as { parts: unknown[] }).parts.every(isChatPart),
+    typeof value === "object" &&
+    typeof (value as { id?: unknown }).id === "string" &&
+    ((value as { role?: unknown }).role === "user" ||
+      (value as { role?: unknown }).role === "assistant") &&
+    typeof (value as { content?: unknown }).content === "string" &&
+    Array.isArray((value as { parts?: unknown }).parts) &&
+    (value as { parts: unknown[] }).parts.every(isChatPart),
   );
 
 const getStorageKey = (agentSlug: string) =>
@@ -153,7 +153,6 @@ const MessageParts = ({
 
 export const AgentChatPage = ({ config }: Props) => {
   const posthog = usePostHog();
-
 
   usePageMetadata({
     title: config.pageTitle,
@@ -284,23 +283,20 @@ export const AgentChatPage = ({ config }: Props) => {
 
   const isEmpty = messages.length === 0 && !loading;
 
-  const handleCopyMessage = useCallback(
-    async (message: ChatMessage) => {
-      if (!message.content.trim()) return;
-      try {
-        await navigator.clipboard.writeText(message.content);
-        setCopiedMessageId(message.id);
-        setTimeout(() => {
-          setCopiedMessageId((current) =>
-            current === message.id ? null : current,
-          );
-        }, 1200);
-      } catch {
-        // Clipboard can fail in non-secure contexts; keep UI stable.
-      }
-    },
-    [],
-  );
+  const handleCopyMessage = useCallback(async (message: ChatMessage) => {
+    if (!message.content.trim()) return;
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopiedMessageId(message.id);
+      setTimeout(() => {
+        setCopiedMessageId((current) =>
+          current === message.id ? null : current,
+        );
+      }, 1200);
+    } catch {
+      // Clipboard can fail in non-secure contexts; keep UI stable.
+    }
+  }, []);
 
   useEffect(() => {
     if (!error) return;
@@ -364,7 +360,7 @@ export const AgentChatPage = ({ config }: Props) => {
                           {config.emptyBody}
                         </p>
                       </div>
-                        <Suggestions>
+                      <Suggestions>
                         {config.starterPrompts.map((prompt) => (
                           <Suggestion
                             key={prompt}
@@ -372,10 +368,10 @@ export const AgentChatPage = ({ config }: Props) => {
                             onClick={() => handleSuggestion(prompt)}
                             aria-label={`Start with: ${prompt}`}
                           >
-                              {prompt}
-                            </Suggestion>
-                          ))}
-                        </Suggestions>
+                            {prompt}
+                          </Suggestion>
+                        ))}
+                      </Suggestions>
                     </div>
                   </ConversationEmptyState>
                 ) : (
@@ -385,7 +381,7 @@ export const AgentChatPage = ({ config }: Props) => {
                         className={
                           message.role === "user"
                             ? "max-w-[90%] rounded-2xl border px-4 py-3"
-                            : "max-w-[92%] rounded-2xl border bg-white px-4 py-3 shadow-sm"
+                            : "max-w-[92%] rounded-2xl border bg-white px-4 py-3"
                         }
                         style={{
                           borderColor:
@@ -409,7 +405,9 @@ export const AgentChatPage = ({ config }: Props) => {
                             isStreaming={loading}
                           />
                         ) : (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          <p className="whitespace-pre-wrap">
+                            {message.content}
+                          </p>
                         )}
                       </MessageContent>
                       {message.role === "assistant" && (
@@ -438,7 +436,7 @@ export const AgentChatPage = ({ config }: Props) => {
                 {loading && (
                   <Message from="assistant">
                     <MessageContent className="max-w-[92%] rounded-2xl border bg-white px-4 py-3 shadow-sm">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <Spinner />
                         <span>Thinking…</span>
                       </div>
@@ -490,7 +488,8 @@ export const AgentChatPage = ({ config }: Props) => {
               </PromptInputFooter>
             </PromptInput>
             <p className="mt-2 text-center text-xs text-muted-foreground">
-              Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line
+              Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new
+              line
             </p>
           </div>
         </section>

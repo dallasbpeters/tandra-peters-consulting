@@ -34,6 +34,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.site-container.site-container--row > * {
+  min-width: 0;
 }
 
 .site-container.site-container--layered {
@@ -168,17 +174,19 @@
     width: 100%;
   }
 
-  .stage__canvas       {
+  .stage__canvas {
     order: 2;
     width: 100%;
   }
 
-  .stage__rail-nav     {
+  .stage__rail-nav {
     order: 3;
     width: 100%;
   }
 
-  .stage__rail-nav ol { width: 100%; }
+  .stage__rail-nav ol {
+    width: 100%;
+  }
 
   /* Constrain callout width to the viewport on narrow screens */
   .stage__hotspot-callout {

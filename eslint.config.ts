@@ -19,21 +19,35 @@ export default defineConfig([
       "studio-tandra-peters/**",
     ],
   },
-  { files: jsFiles, ignores: [".config/**", "public/**"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
+  {
+    files: jsFiles,
+    ignores: [".config/**", "public/**"],
+    plugins: { js },
+    extends: ["js/recommended"],
+    languageOptions: { globals: globals.browser },
+  },
   tseslint.configs.recommended,
   { files: jsFiles, ...pluginReact.configs.flat.recommended },
-  { files: jsFiles, ...pluginReact.configs.flat['jsx-runtime'] },
+  { files: jsFiles, ...pluginReact.configs.flat["jsx-runtime"] },
   { files: jsFiles, settings: { react: { version: "19" } } },
   {
     files: jsFiles,
     rules: {
       "react/prop-types": "off",
-      "@typescript-eslint/no-unused-vars": ["error", {
-        varsIgnorePattern: "^_",
-        argsIgnorePattern: "^_",
-        caughtErrorsIgnorePattern: "^_",
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          varsIgnorePattern: "^_",
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
-  { files: ["**/*.css"], plugins: { css }, language: "css/css", extends: ["css/recommended"] },
+  {
+    files: ["**/*.css"],
+    plugins: { css },
+    language: "css/css",
+    extends: ["css/recommended"],
+  },
 ]);

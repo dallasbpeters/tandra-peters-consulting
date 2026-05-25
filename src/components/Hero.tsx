@@ -6,7 +6,6 @@ import { HeroProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
 
-
 export const Hero: React.FC<HeroProps> = ({
   title = (
     <>
@@ -144,7 +143,6 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <section style={sectionStyle}>
-
       <motion.div
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ scale: 1, opacity: 0.5 }}
@@ -226,7 +224,6 @@ export const Hero: React.FC<HeroProps> = ({
           </motion.div>
         </motion.div>
       </div>
-
     </section>
   );
 };

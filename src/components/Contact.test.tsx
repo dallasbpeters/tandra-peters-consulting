@@ -12,13 +12,19 @@ import { mockCapture, mockIdentify, mockCaptureException } from "../test/setup";
 
 const fillRequiredFields = async (
   user: ReturnType<typeof userEvent.setup>,
-  overrides: { message?: string } = {}
+  overrides: { message?: string } = {},
 ) => {
-  await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-  await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
+  await user.type(
+    screen.getByRole("textbox", { name: /full name/i }),
+    "Jane Doe",
+  );
+  await user.type(
+    screen.getByRole("textbox", { name: /email address/i }),
+    "jane@example.com",
+  );
   await user.type(
     screen.getByRole("textbox", { name: /your message/i }),
-    overrides.message ?? "Hello, I need a roof inspection."
+    overrides.message ?? "Hello, I need a roof inspection.",
   );
   // Check the consent checkbox
   await user.click(screen.getByRole("checkbox"));
@@ -41,11 +47,19 @@ describe("Contact form", () => {
   it("renders the form with required fields", () => {
     render(<Contact />);
 
-    expect(screen.getByRole("textbox", { name: /full name/i })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: /email address/i })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: /your message/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /full name/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /email address/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /your message/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /send message/i }),
+    ).toBeInTheDocument();
   });
 
   // ── happy path ──────────────────────────────────────────────────────────────
@@ -64,11 +78,11 @@ describe("Contact form", () => {
     // PostHog tracking
     expect(mockIdentify).toHaveBeenCalledWith(
       "jane@example.com",
-      expect.objectContaining({ email: "jane@example.com", name: "Jane Doe" })
+      expect.objectContaining({ email: "jane@example.com", name: "Jane Doe" }),
     );
     expect(mockCapture).toHaveBeenCalledWith(
       "contact_form_submitted",
-      expect.objectContaining({ has_message: true })
+      expect.objectContaining({ has_message: true }),
     );
   });
 
@@ -84,8 +98,12 @@ describe("Contact form", () => {
     });
 
     expect(screen.getByRole("textbox", { name: /full name/i })).toHaveValue("");
-    expect(screen.getByRole("textbox", { name: /email address/i })).toHaveValue("");
-    expect(screen.getByRole("textbox", { name: /your message/i })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: /email address/i })).toHaveValue(
+      "",
+    );
+    expect(screen.getByRole("textbox", { name: /your message/i })).toHaveValue(
+      "",
+    );
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });
 
@@ -95,19 +113,31 @@ describe("Contact form", () => {
     render(<Contact />);
 
     // Fill everything except consent
-    await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-    await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
-    await user.type(screen.getByRole("textbox", { name: /your message/i }), "Hello");
+    await user.type(
+      screen.getByRole("textbox", { name: /full name/i }),
+      "Jane Doe",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /email address/i }),
+      "jane@example.com",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /your message/i }),
+      "Hello",
+    );
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
       expect(
-        screen.getByText(/please confirm you agree to be contacted/i)
+        screen.getByText(/please confirm you agree to be contacted/i),
       ).toBeInTheDocument();
     });
 
     // No network request should have been made
-    expect(mockCapture).not.toHaveBeenCalledWith("contact_form_submitted", expect.anything());
+    expect(mockCapture).not.toHaveBeenCalledWith(
+      "contact_form_submitted",
+      expect.anything(),
+    );
   });
 
   it("does not submit while already sending", async () => {
@@ -117,7 +147,7 @@ describe("Contact form", () => {
     });
 
     server.use(
-      http.post(CONTACT_API_PATH, () => pendingRequest as Promise<Response>)
+      http.post(CONTACT_API_PATH, () => pendingRequest as Promise<Response>),
     );
 
     render(<Contact />);
@@ -133,10 +163,15 @@ describe("Contact form", () => {
 
     // Clicking again should be a no-op
     await user.click(submitBtn);
-    expect(mockCapture).not.toHaveBeenCalledWith("contact_form_submitted", expect.anything());
+    expect(mockCapture).not.toHaveBeenCalledWith(
+      "contact_form_submitted",
+      expect.anything(),
+    );
 
     // Clean up
-    resolveRequest!(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    resolveRequest!(
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
+    );
   });
 
   // ── honeypot ────────────────────────────────────────────────────────────────
@@ -145,8 +180,9 @@ describe("Contact form", () => {
     render(<Contact />);
 
     // The honeypot input has tabIndex=-1 and aria-hidden
-    const honeypotInput = document
-      .querySelector('input[name="_hp"]') as HTMLInputElement | null;
+    const honeypotInput = document.querySelector(
+      'input[name="_hp"]',
+    ) as HTMLInputElement | null;
 
     expect(honeypotInput).toBeInTheDocument();
     expect(honeypotInput).toHaveAttribute("tabindex", "-1");
@@ -160,7 +196,7 @@ describe("Contact form", () => {
       http.post(CONTACT_API_PATH, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ ok: true });
-      })
+      }),
     );
 
     render(<Contact />);
@@ -180,8 +216,11 @@ describe("Contact form", () => {
   it("shows generic error message on generic 500 with JSON error body", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false, error: "Something failed on the server" }, { status: 500 })
-      )
+        HttpResponse.json(
+          { ok: false, error: "Something failed on the server" },
+          { status: 500 },
+        ),
+      ),
     );
 
     render(<Contact />);
@@ -189,20 +228,22 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/something failed on the server/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/something failed on the server/i),
+      ).toBeInTheDocument();
     });
 
     expect(mockCapture).toHaveBeenCalledWith(
       "contact_form_error",
-      expect.objectContaining({ status: 500 })
+      expect.objectContaining({ status: 500 }),
     );
   });
 
   it("shows 404 error message when endpoint is not found", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false }, { status: 404 })
-      )
+        HttpResponse.json({ ok: false }, { status: 404 }),
+      ),
     );
 
     render(<Contact />);
@@ -217,8 +258,8 @@ describe("Contact form", () => {
   it("shows 403 CORS/origin error message", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false }, { status: 403 })
-      )
+        HttpResponse.json({ ok: false }, { status: 403 }),
+      ),
     );
 
     render(<Contact />);
@@ -233,8 +274,8 @@ describe("Contact form", () => {
   it("shows 503 missing ATTIO_API_TOKEN error message", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false }, { status: 503 })
-      )
+        HttpResponse.json({ ok: false }, { status: 503 }),
+      ),
     );
 
     render(<Contact />);
@@ -249,8 +290,8 @@ describe("Contact form", () => {
   it("shows 502 CRM error message", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false }, { status: 502 })
-      )
+        HttpResponse.json({ ok: false }, { status: 502 }),
+      ),
     );
 
     render(<Contact />);
@@ -265,8 +306,8 @@ describe("Contact form", () => {
   it("shows unexpected-response error when response is 200 ok but data.ok is false", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false }, { status: 200 })
-      )
+        HttpResponse.json({ ok: false }, { status: 200 }),
+      ),
     );
 
     render(<Contact />);
@@ -281,12 +322,14 @@ describe("Contact form", () => {
   it("shows non-JSON HTML response error", async () => {
     // FIX 3: use status 500 so the 404-specific branch doesn't fire first
     server.use(
-      http.post(CONTACT_API_PATH, () =>
-        new HttpResponse("<html>Not Found</html>", {
-          status: 500,
-          headers: { "Content-Type": "text/html" },
-        })
-      )
+      http.post(
+        CONTACT_API_PATH,
+        () =>
+          new HttpResponse("<html>Not Found</html>", {
+            status: 500,
+            headers: { "Content-Type": "text/html" },
+          }),
+      ),
     );
 
     render(<Contact />);
@@ -294,21 +337,25 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server returned an error instead of json/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/server returned an error instead of json/i),
+      ).toBeInTheDocument();
     });
   });
 
   it("shows Vercel FUNCTION_INVOCATION_FAILED error", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () =>
-        new HttpResponse("<html>500</html>", {
-          status: 500,
-          headers: {
-            "Content-Type": "text/html",
-            "x-vercel-error": "FUNCTION_INVOCATION_FAILED",
-          },
-        })
-      )
+      http.post(
+        CONTACT_API_PATH,
+        () =>
+          new HttpResponse("<html>500</html>", {
+            status: 500,
+            headers: {
+              "Content-Type": "text/html",
+              "x-vercel-error": "FUNCTION_INVOCATION_FAILED",
+            },
+          }),
+      ),
     );
 
     render(<Contact />);
@@ -316,21 +363,25 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server failed to run on vercel/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/server failed to run on vercel/i),
+      ).toBeInTheDocument();
     });
   });
 
   it("shows server HTML error for non-FUNCTION_INVOCATION_FAILED Vercel error", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () =>
-        new HttpResponse("<html>Error</html>", {
-          status: 500,
-          headers: {
-            "Content-Type": "text/html",
-            "x-vercel-error": "FUNCTION_INVOCATION_TIMEOUT",
-          },
-        })
-      )
+      http.post(
+        CONTACT_API_PATH,
+        () =>
+          new HttpResponse("<html>Error</html>", {
+            status: 500,
+            headers: {
+              "Content-Type": "text/html",
+              "x-vercel-error": "FUNCTION_INVOCATION_TIMEOUT",
+            },
+          }),
+      ),
     );
 
     render(<Contact />);
@@ -338,7 +389,9 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server returned an error instead of json/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/server returned an error instead of json/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -346,9 +399,7 @@ describe("Contact form", () => {
 
   it("shows network error message when fetch throws", async () => {
     // FIX 2: use HttpResponse.error() — throwing inside a handler corrupts MSW
-    server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.error())
-    );
+    server.use(http.post(CONTACT_API_PATH, () => HttpResponse.error()));
 
     render(<Contact />);
     await fillRequiredFields(user);
@@ -370,16 +421,22 @@ describe("Contact form", () => {
       http.post(CONTACT_API_PATH, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ ok: true });
-      })
+      }),
     );
 
     render(<Contact />);
 
-    await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-    await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
+    await user.type(
+      screen.getByRole("textbox", { name: /full name/i }),
+      "Jane Doe",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /email address/i }),
+      "jane@example.com",
+    );
     await user.type(
       screen.getByRole("textbox", { name: /your message/i }),
-      "Need a quote please."
+      "Need a quote please.",
     );
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: /send message/i }));

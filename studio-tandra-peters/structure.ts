@@ -4,6 +4,7 @@ const SINGLETONS = new Set([
   'homePage',
   'siteSettings',
   'articlesPage',
+  'tandraIntroVideo',
   'aiContext',
   'seoDashboardInsights',
 ])
@@ -19,6 +20,14 @@ export const structure: StructureResolver = (S) =>
         .title('Site settings')
         .child(
           S.document().schemaType('siteSettings').documentId('siteSettings').title('Site settings'),
+        ),
+      S.listItem()
+        .title('Tandra intro video')
+        .child(
+          S.document()
+            .schemaType('tandraIntroVideo')
+            .documentId('tandraIntroVideo')
+            .title('Tandra intro video'),
         ),
       S.listItem()
         .title('AI context')

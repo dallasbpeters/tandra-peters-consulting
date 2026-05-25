@@ -3,9 +3,12 @@ import type { PortableTextBlock } from "@portabletext/types";
 import type { IconoirIconProps } from "./icons/serviceIconMap";
 import type { PostListItem } from "./types/article";
 
-import type { CustomElements, CustomCssProperties } from '@awesome.me/webawesome/dist/custom-elements-jsx.d.ts';
+import type {
+  CustomElements,
+  CustomCssProperties,
+} from "@awesome.me/webawesome/dist/custom-elements-jsx.d.ts";
 
-declare module 'react' {
+declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface IntrinsicElements extends CustomElements {}
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -39,6 +42,12 @@ export interface HeroProps {
   secondaryCtaText?: string;
   secondaryCtaHref?: string;
   backgroundImage?: string;
+}
+
+export interface VideoProps {
+  videoUrl?: string;
+  title?: string;
+  posterUrl?: string;
 }
 
 export interface Stat {

@@ -54,7 +54,9 @@ const buildUrlEntry = ({
   return `<url>${tags.join("")}</url>`;
 };
 
-export const generateSitemapXml = async (siteUrlEnv?: string): Promise<string> => {
+export const generateSitemapXml = async (
+  siteUrlEnv?: string,
+): Promise<string> => {
   const origin = normalizeOrigin(siteUrlEnv);
 
   const client = createClient({

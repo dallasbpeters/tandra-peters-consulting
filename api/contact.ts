@@ -455,12 +455,10 @@ const contactHandler = async (
     attioJson = await attioRes.json();
   } catch {
     console.error("Attio: 2xx but response was not JSON");
-    res
-      .status(502)
-      .json({
-        ok: false,
-        error: "Could not save your message. Try again later.",
-      });
+    res.status(502).json({
+      ok: false,
+      error: "Could not save your message. Try again later.",
+    });
     return;
   }
 
@@ -470,12 +468,10 @@ const contactHandler = async (
       "Attio: unexpected success payload",
       JSON.stringify(attioJson).slice(0, 800),
     );
-    res
-      .status(502)
-      .json({
-        ok: false,
-        error: "Could not save your message. Try again later.",
-      });
+    res.status(502).json({
+      ok: false,
+      error: "Could not save your message. Try again later.",
+    });
     return;
   }
 

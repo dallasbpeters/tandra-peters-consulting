@@ -50,7 +50,7 @@ vi.mock("@awesome.me/webawesome/dist/react/input/index.js", () => ({
     onChange,
     type = "text",
     id: _id,
-    children: _children,   // slot content – not valid on <input>
+    children: _children, // slot content – not valid on <input>
     autocomplete: _autocomplete, // web-component attribute, not camelCase
     withLabel: _withLabel, // web-component-only prop
     ...rest
@@ -86,7 +86,7 @@ vi.mock("@awesome.me/webawesome/dist/react/textarea/index.js", () => ({
     value,
     onChange,
     id: _id,
-    children: _children,   // no slot content on <textarea>
+    children: _children, // no slot content on <textarea>
     autocomplete: _autocomplete,
     withLabel: _withLabel,
     ...rest

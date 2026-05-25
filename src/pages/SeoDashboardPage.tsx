@@ -1,4 +1,3 @@
-
 import { useEffect, type CSSProperties } from "react";
 import { usePostHog } from "@posthog/react";
 import {

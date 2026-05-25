@@ -5,20 +5,20 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
   - repo: local
     hooks:
-    -   id: stylelint
+      - id: stylelint
         name: stylelint
         entry: pnpm exec stylelint
         language: system
         files: \.(css)$
         pass_filenames: true
-    -   id: eslint
+      - id: eslint
         name: eslint
-        entry: pnpm exec eslint
+        entry: pnpm exec eslint --no-warn-ignored
         language: system
         files: \.(js|jsx|ts|tsx)$
         exclude: ^(\.agents|\.claude|studio-tandra-peters)/

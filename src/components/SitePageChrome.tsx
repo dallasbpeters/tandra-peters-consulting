@@ -1,10 +1,9 @@
-import  { type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { useSanitySite } from "../context/SanitySiteContext";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
-import { theme } from "../theme";
 import type { NavItem } from "../types";
 
 type SitePageChromeProps = {
@@ -24,21 +23,13 @@ export const SitePageChrome = ({ children }: SitePageChromeProps) => {
   ];
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: theme.colors.paper,
-        color: theme.colors.everglade,
-        fontFamily: theme.fonts.body,
-        position: "relative",
-      }}
-    >
+    <>
       <Nav
         {...navProps}
         navItems={isAgentRoute ? agentNavItems : navProps.navItems}
       />
       {children}
       <Footer {...mapFooterProps(site)} />
-    </div>
+    </>
   );
 };

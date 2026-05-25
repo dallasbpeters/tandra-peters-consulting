@@ -5,6 +5,7 @@ import { getServiceIconComponent } from "../icons/serviceIconMap";
 import { asOptionalRichText, asRichTextValue } from "../portableText/value";
 import { theme } from "../theme";
 import type { HeroProps } from "../types";
+import type { VideoProps } from "../types";
 import type { AboutProps } from "../types";
 import type { ServicesProps } from "../types";
 import type { MissionProps } from "../types";
@@ -18,7 +19,10 @@ import type { NavItem, NavProps } from "../types";
 import type { FooterProps } from "../types";
 import type { TestimonialsProps } from "../types";
 import type { ServiceAreaMapProps } from "../types";
-import type { RoofInspectionSectionProps, RoofInspectionHotspotData } from "../types";
+import type {
+  RoofInspectionSectionProps,
+  RoofInspectionHotspotData,
+} from "../types";
 
 const SOCIAL_ICONS = {
   instagram: Instagram,
@@ -81,6 +85,32 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
     out.backgroundImage = hero.backgroundImage;
   }
   return out;
+};
+
+export const mapVideoProps = (video: SanityDoc): Partial<VideoProps> => {
+  if (!video) {
+    return {};
+  }
+  if (typeof video === "string") {
+    return { videoUrl: video };
+  }
+  const videoUrl =
+    typeof video.video === "string"
+      ? video.video
+      : typeof video.video?.asset?.url === "string"
+        ? video.video.asset.url
+        : undefined;
+  const posterUrl =
+    typeof video.posterUrl === "string"
+      ? video.posterUrl
+      : typeof video.posterUrl?.asset?.url === "string"
+        ? video.posterUrl.asset.url
+        : undefined;
+  return {
+    videoUrl,
+    title: video.title,
+    posterUrl,
+  };
 };
 
 export const mapAboutProps = (about: SanityDoc): Partial<AboutProps> => {
@@ -455,6 +485,9 @@ export const mapTestimonialsProps = (
 };
 
 const VALID_DIRECTIONS = new Set(["top", "right", "left", "bottom"]);
+type RawHotspot = Record<string, unknown>;
+const isRawHotspot = (value: unknown): value is RawHotspot =>
+  typeof value === "object" && value !== null;
 
 export const mapRoofInspectionProps = (
   data: SanityDoc,
@@ -489,21 +522,23 @@ export const mapRoofInspectionProps = (
   if (Array.isArray(data.hotspots) && data.hotspots.length > 0) {
     const mapped: RoofInspectionHotspotData[] = data.hotspots
       .filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (h: any) =>
+        (h): h is RawHotspot =>
+          isRawHotspot(h) &&
           typeof h.label === "string" &&
+          typeof h.direction === "string" &&
           VALID_DIRECTIONS.has(stegaClean(h.direction)) &&
           typeof h.calloutTitle === "string" &&
           typeof h.calloutBody === "string" &&
           typeof h.watchFor === "string",
       )
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((h: any): RoofInspectionHotspotData => ({
-        label: stegaClean(h.label).trim(),
-        direction: stegaClean(h.direction) as RoofInspectionHotspotData["direction"],
-        calloutTitle: stegaClean(h.calloutTitle).trim(),
-        calloutBody: stegaClean(h.calloutBody).trim(),
-        watchFor: stegaClean(h.watchFor).trim(),
+      .map((h): RoofInspectionHotspotData => ({
+        label: stegaClean(h.label as string).trim(),
+        direction: stegaClean(
+          h.direction as string,
+        ) as RoofInspectionHotspotData["direction"],
+        calloutTitle: stegaClean(h.calloutTitle as string).trim(),
+        calloutBody: stegaClean(h.calloutBody as string).trim(),
+        watchFor: stegaClean(h.watchFor as string).trim(),
         ...(typeof h.pos3dX === "number" ? { pos3dX: h.pos3dX } : {}),
         ...(typeof h.pos3dY === "number" ? { pos3dY: h.pos3dY } : {}),
         ...(typeof h.pos3dZ === "number" ? { pos3dZ: h.pos3dZ } : {}),
@@ -550,7 +585,11 @@ export const mapServiceAreaMapProps = (
           typeof a.displayName === "string" && a.displayName.trim()
             ? stegaClean(a.displayName as string).trim()
             : key;
-        return { countyKey: key, displayName: name, clientCount: a.clientCount as number };
+        return {
+          countyKey: key,
+          displayName: name,
+          clientCount: a.clientCount as number,
+        };
       });
   }
 

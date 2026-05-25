@@ -7,6 +7,7 @@ export const homePageType = defineType({
   groups: [
     {name: 'seo', title: 'SEO'},
     {name: 'hero', title: 'Hero', default: true},
+    {name: 'video', title: 'Video'},
     {name: 'marquee', title: 'Marquee'},
     {name: 'about', title: 'About'},
     {name: 'stats', title: 'Stats'},
@@ -47,6 +48,23 @@ export const homePageType = defineType({
       name: 'marquee',
       type: 'marqueeSection',
       group: 'marquee',
+    }),
+    defineField({
+      name: 'featuredVideoSection',
+      type: 'videoSection',
+      title: 'Featured Video (upload)',
+      group: 'video',
+    }),
+    defineField({
+      name: 'featuredVideo',
+      type: 'videoSection',
+      title: 'Featured Video (legacy)',
+      group: 'video',
+      hidden: true,
+      deprecated: {
+        reason:
+          'Legacy field kept only for backward compatibility. Use “Featured Video (upload)” and migrate old values into featuredVideoSection.',
+      },
     }),
     defineField({
       name: 'about',

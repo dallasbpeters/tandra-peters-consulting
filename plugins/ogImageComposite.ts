@@ -107,9 +107,7 @@ async function renderSharePng(
     .png()
     .toBuffer();
 
-  return sharp(cardPng)
-    .png({ compressionLevel: 8 })
-    .toBuffer();
+  return sharp(cardPng).png({ compressionLevel: 8 }).toBuffer();
 }
 
 /**

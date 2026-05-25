@@ -166,7 +166,9 @@ const FALLBACK_MODEL_BY_PATH: Record<AgentPath, string> = {
   "/api/marketing-agent": "llama-3.3-70b-versatile",
 };
 
-const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<Record<AgentPath, Record<string, string>>> = {
+const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<
+  Record<AgentPath, Record<string, string>>
+> = {
   "/api/marketing-agent": { "Groq-Model-Version": "latest" },
 };
 
@@ -365,9 +367,8 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         let insights: any;
         const writeToken = env.SANITY_WRITE_TOKEN;
         if (writeToken) {
-          const { sanityInsightsIntegration } = await import(
-            "@sanity/agent-context/ai-sdk"
-          );
+          const { sanityInsightsIntegration } =
+            await import("@sanity/agent-context/ai-sdk");
           const { createClient } = await import("@sanity/client");
           insights = sanityInsightsIntegration({
             client: createClient({
@@ -403,7 +404,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             }));
           } catch (toolError) {
             const toolErrorMessage =
-              toolError instanceof Error ? toolError.message : String(toolError);
+              toolError instanceof Error
+                ? toolError.message
+                : String(toolError);
             if (!isFunctionCallFailure(toolErrorMessage)) {
               throw toolError;
             }
@@ -422,7 +425,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           text = await runWithModel(PRIMARY_MODEL_BY_PATH[pathname]);
         } catch (modelError) {
           const modelErrorMessage =
-            modelError instanceof Error ? modelError.message : String(modelError);
+            modelError instanceof Error
+              ? modelError.message
+              : String(modelError);
           if (!isModelAvailabilityFailure(modelErrorMessage)) {
             throw modelError;
           }

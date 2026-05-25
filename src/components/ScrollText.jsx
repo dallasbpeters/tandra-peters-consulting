@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   motion,
   useAnimationFrame,
@@ -146,11 +145,14 @@ function VelocityText(props) {
         ref={index === 0 ? copyRef : null}
         style={{
           flexShrink: 0,
+          maxWidth: "100%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
           fontSize: fontSize || "24px",
           color: resolvedTextColor,
           fontWeight: "bold",
           letterSpacing: "-0.05em",
-          whiteSpace: "pre",
+          whiteSpace: "nowrap",
           marginInlineEnd: "0.5em",
           ...style,
           ...(showIcon ? { display: "inline-flex", alignItems: "center" } : {}),
@@ -166,7 +168,14 @@ function VelocityText(props) {
   }
 
   return (
-    <div style={{ position: "relative", overflow: "hidden", width: "100%" }}>
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        overflowX: "clip",
+        width: "100%",
+      }}
+    >
       <motion.div
         style={{
           x,

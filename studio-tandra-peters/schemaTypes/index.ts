@@ -21,6 +21,7 @@ import {
   expertiseSectionType,
   testimonialsSectionType,
   faqSectionType,
+  videoSectionType,
   contactSectionType,
   socialShareSectionType,
   articlesTeaserSectionType,
@@ -32,6 +33,7 @@ import {homePageType} from './documents/homePage'
 import {articlesPageType} from './documents/articlesPage'
 import {aiContextType} from './documents/aiContext'
 import {seoDashboardInsightsType} from './documents/seoDashboardInsights'
+import {tandraIntroVideoType} from './documents/tandraIntroVideo'
 
 export const schemaTypes = [
   blockContentType,
@@ -40,6 +42,7 @@ export const schemaTypes = [
   serviceCardType,
   birdcreekAdvantageCardType,
   missionValueType,
+  videoSectionType,
   expertiseItemType,
   faqItemType,
   seoDashboardRecommendationType,
@@ -63,6 +66,7 @@ export const schemaTypes = [
   siteSettingsType,
   homePageType,
   articlesPageType,
+  tandraIntroVideoType,
   aiContextType,
   seoDashboardInsightsType,
   postType,

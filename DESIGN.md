@@ -242,13 +242,13 @@ mountain laurel for the brand promise.
   soft badge fill on cream surfaces where everglade text needs to sit
   inside a tinted pill.
 - **`danger` `#C82F05`** — Hot vermilion, for destructive confirmation
-  only. Resist using it for "alert" — it reads as *destroy*, not warn.
+  only. Resist using it for "alert" — it reads as _destroy_, not warn.
 - **`legal-muted` `#3C5D4E`** — Deep sage-teal for small print on
   legal pages, timestamps, byline rows, and footnote labels. Sourced
   from `granite.700` (not `granite.600`) so it clears WCAG AA body
   contrast on `paper` (6.70:1), `paper-dim` (5.98:1), and
   `paper-dark` (4.86:1). If you reach for a lighter muted-text value,
-  promote it to a *meta-only* role and verify against the target
+  promote it to a _meta-only_ role and verify against the target
   surface before shipping.
 
 ## Typography
@@ -344,7 +344,7 @@ everglade on every other surface.
 
 Five card variants, each tuned to a job:
 
-- `card-article` — The lone *highlighted* element in the system. Black
+- `card-article` — The lone _highlighted_ element in the system. Black
   surface, paper text, 1rem radius, 2rem padding, 420–500px min
   height. Collectible, like loose magazine cards on a desk.
 - `card-brand` — The deep-everglade variant for testimonial bands and

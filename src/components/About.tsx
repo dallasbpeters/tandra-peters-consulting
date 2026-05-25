@@ -164,11 +164,11 @@ export const About: React.FC<AboutProps> = ({
         </motion.div>
       </div>
       <Shader style={shaderStyle}>
-      <DotGrid
-    color={theme.palette.everglade[900]}
-    density={100}
-    opacity={0.1}
-  />
+        <DotGrid
+          color={theme.palette.everglade[900]}
+          density={100}
+          opacity={0.1}
+        />
       </Shader>
     </section>
   );

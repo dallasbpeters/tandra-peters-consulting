@@ -1,4 +1,3 @@
-
 import { SitePageChrome } from "../components/SitePageChrome";
 import { Hero } from "../components/Hero";
 import ScrollVelocity from "../components/ScrollText";
@@ -7,6 +6,7 @@ import { Services } from "../components/Services";
 import { Mission } from "../components/Mission";
 import { Expertise } from "../components/Expertise";
 import { Testimonials } from "../components/Testimonials";
+import { FeaturedVideoSection } from "../components/FeaturedVideoSection";
 import { Stats } from "../components/Stats";
 import { Contact } from "../components/Contact";
 import { SocialShareBar } from "../components/SocialShareBar";
@@ -26,6 +26,7 @@ import {
   mapExpertiseProps,
   // mapFaqProps,
   mapHeroProps,
+  mapVideoProps,
   mapStatsProps,
   mapMissionProps,
   mapServicesProps,
@@ -60,6 +61,9 @@ export const Home = () => {
   });
 
   const hero = home?.hero as Record<string, unknown> | undefined;
+  const videoProps = mapVideoProps(
+    home?.featuredVideo as Record<string, unknown> | undefined,
+  );
   const marquee = home?.marquee as Record<string, unknown> | undefined;
   const about = home?.about as Record<string, unknown> | undefined;
   const stats = home?.stats as Record<string, unknown> | undefined;
@@ -98,7 +102,20 @@ export const Home = () => {
    * Roman numeral is derived from array position so editors never have to
    * manage it manually.
    */
-  const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+  const ROMAN = [
+    "i",
+    "ii",
+    "iii",
+    "iv",
+    "v",
+    "vi",
+    "vii",
+    "viii",
+    "ix",
+    "x",
+    "xi",
+    "xii",
+  ];
   const sanityChapters: Chapter[] | null =
     roofInspection.hotspots && roofInspection.hotspots.length > 0
       ? roofInspection.hotspots.map(
@@ -186,6 +203,13 @@ export const Home = () => {
             </RoofInspection.Diagram>
           </RoofInspection.Canvas>
         </RoofInspection>
+        {videoProps.videoUrl ? (
+          <FeaturedVideoSection
+            videoUrl={videoProps.videoUrl}
+            title={videoProps.title}
+            posterUrl={videoProps.posterUrl}
+          />
+        ) : null}
         <Mission {...mapMissionProps(mission)} />
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />

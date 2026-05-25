@@ -1,28 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { mix, theme } from "../../theme";
+import { useIsMobile } from "../../hooks/isMobile";
 import { useRoofInspection } from "./context";
 import type { Chapter, Direction } from "./types";
-
-/**
- * Returns `true` when the viewport width is ≤ 700 px.
- * Updates reactively on `matchMedia` change events.
- */
-const useIsMobile = (): boolean => {
-  const query = "(max-width: 700px)";
-  const [matches, setMatches] = useState<boolean>(
-    () => typeof window !== "undefined" && window.matchMedia(query).matches,
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  return matches;
-};
 
 type HotspotProps = {
   /** The inspection chapter this dot represents. */
@@ -46,7 +27,10 @@ const CLOSE_DELAY = 180; // ms grace period so mouse can travel dot → card
  */
 let _closeTimer: ReturnType<typeof setTimeout> | null = null;
 const clearSharedClose = () => {
-  if (_closeTimer) { clearTimeout(_closeTimer); _closeTimer = null; }
+  if (_closeTimer) {
+    clearTimeout(_closeTimer);
+    _closeTimer = null;
+  }
 };
 
 type ScreenRect = { top: number; left: number; width: number; height: number };
@@ -76,25 +60,25 @@ const getCardPos = (
 
   switch (direction) {
     case "top":
-      top  = dot.top - GAP - estH;
+      top = dot.top - GAP - estH;
       left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
       break;
     case "bottom":
-      top  = dot.top + dot.height + GAP;
+      top = dot.top + dot.height + GAP;
       left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
       break;
     case "right":
-      top  = dot.top + dot.height / 2 - estH / 2;
+      top = dot.top + dot.height / 2 - estH / 2;
       left = dot.left + dot.width + GAP;
       break;
     case "left":
-      top  = dot.top + dot.height / 2 - estH / 2;
+      top = dot.top + dot.height / 2 - estH / 2;
       left = dot.left - GAP - CALLOUT_W_PX;
       break;
   }
 
   left = Math.max(MARGIN, Math.min(left, vw - CALLOUT_W_PX - MARGIN));
-  top  = Math.max(MARGIN, Math.min(top,  vh - estH - MARGIN));
+  top = Math.max(MARGIN, Math.min(top, vh - estH - MARGIN));
 
   return { top, left };
 };
@@ -126,14 +110,16 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   // ── All hooks must come before any conditional return ──────────────────────
   const { activeChapterId, setActiveChapterId } = useRoofInspection();
   const isOpen = activeChapterId === chapter.id;
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(700);
   const effectiveDirection: Direction = isMobile ? "bottom" : chapter.direction;
 
   // Ref to the slotted wrapper div — what model-viewer actually positions
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Ref to the rendered callout aside so we can measure its real height
   const cardRef = useRef<HTMLElement>(null);
-  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
+  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(
+    null,
+  );
 
   const scheduleClose = () => {
     clearSharedClose();
@@ -190,7 +176,10 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   }, [isOpen, effectiveDirection]);
 
   const handleClick = () => setActiveChapterId(isOpen ? null : chapter.id);
-  const handleDotEnter = () => { clearSharedClose(); setActiveChapterId(chapter.id); };
+  const handleDotEnter = () => {
+    clearSharedClose();
+    setActiveChapterId(chapter.id);
+  };
   const handleDotLeave = scheduleClose;
   const handleCardEnter = clearSharedClose;
   const handleCardLeave = scheduleClose;

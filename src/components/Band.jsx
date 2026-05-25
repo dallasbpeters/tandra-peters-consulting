@@ -22,19 +22,19 @@ const defaultBandColors = [
 
 export default function Band(props) {
   const {
-  colors = defaultBandColors,
-  tint = "var(--color-secondary-950)",
-  minHeight = 2,
-  maxHeight = 24,
-  rotate = false,
-  scrollStart = 0,
-  scrollEnd = 0.8,
-  reverse = false,
-  autoAnimate = false,
-  speed = 1,
-  amplitude = 10,
-  className = "",
-  style = {},
+    colors = defaultBandColors,
+    tint = "var(--color-secondary-950)",
+    minHeight = 2,
+    maxHeight = 24,
+    rotate = false,
+    scrollStart = 0,
+    scrollEnd = 0.8,
+    reverse = false,
+    autoAnimate = false,
+    speed = 1,
+    amplitude = 10,
+    className = "",
+    style = {},
   } = props || {};
   const ref = useRef(null);
   const rectRef = useRef(null);

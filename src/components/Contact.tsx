@@ -150,7 +150,6 @@ export const Contact = ({
     }
   };
 
-
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
   };
@@ -330,17 +329,14 @@ export const Contact = ({
           style={formCardStyle}
           className="lg-col-6"
         >
-
-
-          {submitStatus === "success"  ? (
+          {submitStatus === "success" ? (
             <div
               role="status"
               aria-live="polite"
               style={{
                 fontSize: "0.875rem",
                 lineHeight: 1.5,
-                color:
-                  theme.colors.everglade,
+                color: theme.colors.everglade,
               }}
             >
               Thanks — your message was sent. We’ll be in touch soon.
@@ -495,20 +491,24 @@ export const Contact = ({
                 </p>
               </div>
               <AnimatePresence>
-              {errorMessage ? (
-                <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: 1.5,
-                  padding: "1rem",
-                  borderInlineStart: `4px solid ${theme.colors.danger}`,
-                  backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
-                  color: theme.colors.danger }}>{errorMessage}</motion.div>
-              ) : null}
+                {errorMessage ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      fontSize: "0.875rem",
+                      lineHeight: 1.5,
+                      padding: "1rem",
+                      borderInlineStart: `4px solid ${theme.colors.danger}`,
+                      backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
+                      color: theme.colors.danger,
+                    }}
+                  >
+                    {errorMessage}
+                  </motion.div>
+                ) : null}
               </AnimatePresence>
               <button
                 type="submit"

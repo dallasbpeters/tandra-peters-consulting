@@ -8,6 +8,9 @@
     "dev:all": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
     "build": "vite build",
     "build:vercel": "node scripts/build-vercel.mjs",
+    "video:studio": "node scripts/render-tandra-intro.mjs studio",
+    "video:still": "node scripts/render-tandra-intro.mjs still",
+    "video:render": "node scripts/render-tandra-intro.mjs render",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
@@ -86,8 +89,9 @@
   "devDependencies": {
     "@eslint/css": "^1.2.0",
     "@eslint/js": "^10.0.1",
-    "@remotion/cli": "^4.0.465",
-    "@remotion/google-fonts": "^4.0.465",
+    "@remotion/cli": "4.0.465",
+    "@remotion/google-fonts": "4.0.465",
+    "@remotion/zod-types": "4.0.465",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -106,7 +110,7 @@
     "jsdom": "^29.1.1",
     "msw": "^2.14.6",
     "prettier": "3.8.1",
-    "remotion": "^4.0.465",
+    "remotion": "4.0.465",
     "stylelint": "^17.5.0",
     "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.3.0",
@@ -115,6 +119,7 @@
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.59.4",
     "us-atlas": "^3.0.1",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.7",
+    "zod": "4.3.6"
   }
 }
