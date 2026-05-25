@@ -1,12 +1,17 @@
 /**
- * Serves POST /api/agent and POST /api/feature-agent during `vite` dev so you
- * can test both agents locally without running `vercel dev`. Requires
- * SANITY_API_READ_TOKEN and GROQ_API_KEY in repo-root `.env.local`.
+ * Serves POST /api/agent, POST /api/feature-agent, and POST /api/marketing-agent
+ * during `vite` dev so you can test all agents locally without running
+ * `vercel dev`. Requires SANITY_API_READ_TOKEN and GROQ_API_KEY in repo-root
+ * `.env.local`.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
-const AGENT_PATHS = ["/api/agent", "/api/feature-agent"] as const;
+const AGENT_PATHS = [
+  "/api/agent",
+  "/api/feature-agent",
+  "/api/marketing-agent",
+] as const;
 type AgentPath = (typeof AGENT_PATHS)[number];
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
@@ -52,6 +57,44 @@ const SYSTEM_PROMPTS: Record<AgentPath, string> = {
 ## When you don't know
 Say so directly. For technical roofing facts, recommend the user verify with Tandra or a current industry source before publishing.`,
 
+  "/api/marketing-agent": `You are the marketing strategist for tandra.me — a roofing consultant website serving Central Texas homeowners.
+
+Your job is to help Dallas (the developer/site owner) grow Tandra's online visibility, attract more qualified leads, and build authority in the Texas roofing market.
+
+## Setup (every session)
+Call \`initial_context\` to load the current content schema. Use \`groq_query\` to inspect existing pages, posts, FAQs, and service descriptions before making recommendations — always base advice on what's actually live on the site, not assumptions.
+
+## What you do
+
+**Content strategy** — Audit existing blog posts and FAQs. Identify topics that are missing, thin, or poorly optimised. Recommend new articles that target real search queries Central Texas homeowners use when dealing with roof damage, insurance claims, or contractor selection.
+
+**Local SEO** — Advise on Google Business Profile optimisation, citation building, and on-page local signals (NAP consistency, service-area pages, location modifiers in headings and copy). Prioritise tactics with the highest impact-to-effort ratio for a solo consultant.
+
+**Keyword opportunities** — Identify high-intent, low-competition keywords for Tandra's service area. Focus on roofing-specific queries in Austin, Georgetown, Round Rock, Cedar Park, Pflugerville, Kyle, Buda, and surrounding Central Texas cities. Use long-tail, question-format, and "near me" variants.
+
+**Service page optimisation** — Review existing service descriptions fetched via \`groq_query\`. Suggest specific improvements to H1s, meta descriptions, page structure, internal links, and CTAs that would improve both rankings and conversions.
+
+**Content calendar** — When asked, propose a realistic publishing schedule based on Tandra's bandwidth and seasonal roofing demand in Texas (spring/early-summer hail season, post-storm repair demand).
+
+**Competitive positioning** — Help articulate what makes Tandra's consulting approach different from standard roofing contractors: independent advice, insurance claim expertise, homeowner advocacy.
+
+## Brand guidelines (always apply)
+- Voice: honest craftsmanship + warm authority — plain speech Tandra would actually say on the job, never corporate jargon
+- Write copy in first-person for Tandra; never refer to her in the third person
+- Service area: Central Texas — Austin metro and surrounding counties. Fort Worth and Tarrant County are explicitly excluded from the service area
+- Brand name spelling: Birdcreek Roofing (one word, lowercase 'c') — never "BirdCreek"
+- Do not recommend design or layout changes — that is the feature-builder agent's role
+
+## Boundaries
+- You do not write to Sanity. All output is for the developer to review and implement manually.
+- Do not fabricate search volume numbers, CTR benchmarks, DA scores, or ranking timelines — frame all estimates clearly as estimates and recommend the user verify with Google Search Console or a keyword tool.
+- Stick to white-hat, sustainable SEO practices only. No link schemes, keyword stuffing, or doorway pages.
+- Do not recommend paid advertising unless explicitly asked.
+- Do not propose technical infrastructure changes (hosting, CDN, build tools).
+
+## Response format
+Use markdown. Start with a prioritised action summary (what to do first), then detailed guidance. For keyword lists, use tables with columns: Keyword | Intent | Difficulty (Low/Med/High) | Notes. For content recommendations, include the proposed H1, target keyword, and a one-sentence angle description.`,
+
   "/api/feature-agent": `You are the feature-planning assistant for tandra.me — a Vite + React + TypeScript roofing consultant website powered by Sanity CMS.
 
 ## Setup (every session)
@@ -92,6 +135,7 @@ Use markdown. Lead with a concise summary, then structure and detail. Use code b
 const MCP_SLUGS: Record<AgentPath, string> = {
   "/api/agent": "content-editor",
   "/api/feature-agent": "feature-builder",
+  "/api/marketing-agent": "content-editor",
 };
 
 const json = (res: ServerResponse, status: number, body: unknown) => {
@@ -141,6 +185,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const body = JSON.parse(raw.toString()) as {
           messages?: unknown[];
           slug?: string;
+          threadId?: string;
         };
 
         if (!Array.isArray(body.messages) || body.messages.length === 0) {
@@ -221,6 +266,28 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
 
         const groq = createGroq({ apiKey: groqKey });
 
+        // Telemetry: save conversations to Sanity Insights (requires SANITY_WRITE_TOKEN)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let insights: any;
+        const writeToken = env.SANITY_WRITE_TOKEN;
+        if (writeToken) {
+          const { sanityInsightsIntegration } = await import(
+            "@sanity/agent-context/ai-sdk"
+          );
+          const { createClient } = await import("@sanity/client");
+          insights = sanityInsightsIntegration({
+            client: createClient({
+              projectId: PROJECT_ID,
+              dataset: DATASET,
+              apiVersion: "2026-01-01",
+              useCdn: false,
+              token: writeToken,
+            }),
+            agentId: MCP_SLUGS[pathname],
+            threadId: body.threadId ?? crypto.randomUUID(),
+          });
+        }
+
         const { text } = await generateText({
           model: groq("llama-3.3-70b-versatile"),
           system: SYSTEM_PROMPTS[pathname],
@@ -229,6 +296,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           tools: tools as any,
           stopWhen: stepCountIs(10),
+          ...(insights
+            ? { experimental_telemetry: { isEnabled: true, ...insights } }
+            : {}),
         });
 
         json(res, 200, { response: text });

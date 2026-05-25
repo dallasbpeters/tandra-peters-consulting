@@ -98,7 +98,7 @@ posthog.capture('user_logged_in');
 
 The session and distinct ID can be passed to the backend by including the `X-POSTHOG-SESSION-ID` and `X-POSTHOG-DISTINCT-ID` headers.
 
-You should use these headers in the backend to identify events. 
+You should use these headers in the backend to identify events.
 
 **Important**: do not identify users on the server-side.
 
@@ -436,16 +436,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let localUser = users.get(username);
     if (!localUser) {
-      localUser = { 
-        username, 
-        burritoConsiderations: 0 
+      localUser = {
+        username,
+        burritoConsiderations: 0
       };
       users.set(username, localUser);
     }
 
     setUser(localUser);
     localStorage.setItem('currentUser', username);
-    
+
     // Identifying the user once on login/sign up is enough.
     posthog.identify(username);
     posthog.capture('user_logged_in');
@@ -504,7 +504,7 @@ export default function Root() {
 
 export function RootErrorBoundary() {
   const error = useRouteError();
-  
+
   const posthog = usePostHog();
   if (error) {
     posthog.captureException(error);
@@ -607,7 +607,7 @@ export default function BurritoPage() {
     setUser(updatedUser);
     setHasConsidered(true);
     setTimeout(() => setHasConsidered(false), 2000);
-    
+
     // Capture burrito consideration event
     posthog?.capture('burrito_considered', {
       total_considerations: updatedUser.burritoConsiderations,
@@ -889,4 +889,3 @@ export default defineConfig({
 ```
 
 ---
-

@@ -1,16 +1,19 @@
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type PluginOption } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
 import { viteGeminiDevApi } from "./plugins/viteGeminiDevApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
+  const defaultSiteUrl =
+    mode === "development" ? "http://localhost:3000" : "https://www.tandra.me";
   /** Canonical site origin for OG/Twitter meta in `index.html` (`%SITE_URL%`). */
-  const siteUrl = (env.VITE_SITE_URL || "https://www.tandra.me")
+  const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl)
     .trim()
     .replace(/\/$/, "");
 
@@ -61,31 +64,34 @@ export default defineConfig(({ mode }) => {
     }
   }
 
-  return {
-    plugins: [
-      viteAgentDevApi(env),
-      viteGeminiDevApi(env),
-      viteSeoDashboardApi(env),
-      react(),
-      {
-        name: "html-site-url",
-        transformIndexHtml(html) {
-          return html.replaceAll("%SITE_URL%", siteUrl);
-        },
+  const plugins: PluginOption[] = [
+    (viteAgentDevApi(env) as unknown) as PluginOption,
+    (viteGeminiDevApi(env) as unknown) as PluginOption,
+    (viteSeoDashboardApi(env) as unknown) as PluginOption,
+    (tailwindcss() as unknown) as PluginOption,
+    (react() as unknown) as PluginOption,
+    {
+      name: "html-site-url",
+      transformIndexHtml(html) {
+        return html.replaceAll("%SITE_URL%", siteUrl);
       },
-      ViteImageOptimizer({
-        /** Base OG PNG + roofline SVG are composited later; do not recompress the base PNG here. */
-        exclude: ["roofline.svg"],
-        png: { quality: 80 },
-        jpeg: { quality: 75 },
-        webp: { quality: 80 },
-        avif: { quality: 70 },
-        svg: {
-          plugins: [{ name: "removeViewBox" }, { name: "sortAttrs" }],
-        },
-      }),
-      ogImageComposite(),
-    ],
+    } satisfies PluginOption,
+    (ViteImageOptimizer({
+      /** Base OG PNG + roofline SVG are composited later; do not recompress the base PNG here. */
+      exclude: ["roofline.svg"],
+      png: { quality: 80 },
+      jpeg: { quality: 75 },
+      webp: { quality: 80 },
+      avif: { quality: 70 },
+      svg: {
+        plugins: [{ name: "removeViewBox" }, { name: "sortAttrs" }],
+      },
+    }) as unknown) as PluginOption,
+    (ogImageComposite() as unknown) as PluginOption,
+  ];
+
+  return {
+    plugins,
     define: {
       "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY),
     },

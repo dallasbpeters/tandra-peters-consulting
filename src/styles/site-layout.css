@@ -45,6 +45,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 4rem;
+  z-index: 10;
+  position: relative;
 }
 
 .site-container.site-container--footer-legal {

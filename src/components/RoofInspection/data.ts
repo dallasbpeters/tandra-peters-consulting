@@ -166,7 +166,7 @@ export const VIEWS: View[] = [
     cameraOrbit: "0deg 45deg 80deg",
     cameraTarget: "auto auto auto",
     fieldOfView: "86.88deg",
-  },  
+  },
   {
     id: "penetration",
     label: "At a penetration",

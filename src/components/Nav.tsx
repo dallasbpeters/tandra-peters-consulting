@@ -82,17 +82,17 @@ export const Nav: React.FC<NavProps> = ({
 
   function useIsMobile() {
     const [isMobile, setIsMobile] = useState(false);
-  
+
     useEffect(() => {
       const checkMobile = () => {
         setIsMobile(window.innerWidth < 768);
       };
-      
+
       checkMobile();
       window.addEventListener('resize', checkMobile);
       return () => window.removeEventListener('resize', checkMobile);
     }, []);
-  
+
     return isMobile;
   }
 
@@ -106,7 +106,7 @@ export const Nav: React.FC<NavProps> = ({
     transition: "all 0.5s",
     paddingTop: isScrolled ? "1rem" : "1.5rem",
     paddingBottom: isScrolled ? "1rem" : "1.5rem",
-    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.8)" : isMobile ? "rgba(255, 255, 255, 1)" : "transparent",
+    backgroundColor: isScrolled ? "rgba(255, 255, 255, 0.8)" : isMobile ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0)",
     backdropFilter: isScrolled ? "blur(20px)" : "none",
     boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
   };
@@ -168,7 +168,7 @@ export const Nav: React.FC<NavProps> = ({
 
   const buttonStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,
-    color: isMobile ? theme.colors.black : theme.colors.white,
+    color: theme.colors.white,
     padding: "0.75rem 1.5rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
@@ -214,7 +214,7 @@ export const Nav: React.FC<NavProps> = ({
             }
             @media (max-width: 1000px) {
               .md-flex { display: none !important; }
-              
+
             }
           `}</style>
           {navItems.map((item, i) =>
@@ -355,6 +355,7 @@ export const Nav: React.FC<NavProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ type: "spring", mass: 0.5, damping: 20, stiffness: 300 }}
             style={{
               overflow: "hidden",
             }}

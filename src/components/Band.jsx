@@ -1,5 +1,4 @@
 "use client";
-
 import {
   motion,
   useAnimationFrame,
@@ -21,7 +20,8 @@ const defaultBandColors = [
   "var(--color-secondary-300)",
 ];
 
-export default function Band({
+export default function Band(props) {
+  const {
   colors = defaultBandColors,
   tint = "var(--color-secondary-950)",
   minHeight = 2,
@@ -35,7 +35,7 @@ export default function Band({
   amplitude = 10,
   className = "",
   style = {},
-}) {
+  } = props || {};
   const ref = useRef(null);
   const rectRef = useRef(null);
   const [isMounted, setIsMounted] = useState(false);

@@ -7,12 +7,13 @@ import { mix, theme } from "../theme";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { ContactProps } from "../types";
 import { usePostHog } from "@posthog/react";
-import WaSelect from '@awesome.me/webawesome/dist/react/select/index.js';
-import '@awesome.me/webawesome/dist/styles/webawesome.css';
-import WaOption from '@awesome.me/webawesome/dist/react/option/index.js';
-import WaInput from '@awesome.me/webawesome/dist/react/input/index.js';
-import WaTextarea from '@awesome.me/webawesome/dist/react/textarea/index.js';
-import WaCheckbox from '@awesome.me/webawesome/dist/react/checkbox/index.js';
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
+import { AnimatePresence } from "motion/react";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 export const CONTACT_API_PATH = "/api/contact";
@@ -148,6 +149,8 @@ export const Contact = ({
       );
     }
   };
+
+
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
   };
@@ -327,45 +330,55 @@ export const Contact = ({
           style={formCardStyle}
           className="lg-col-6"
         >
-          <form
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
-            onSubmit={handleSubmit}
-            noValidate
-          >
-            <input
-              type="text"
-              name="_hp"
-              value={honeypot}
-              onChange={(ev) => setHoneypot(ev.target.value)}
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden
-              style={{
-                position: "absolute",
-                width: 1,
-                height: 1,
-                padding: 0,
-                margin: -1,
-                overflow: "hidden",
-                clip: "rect(0,0,0,0)",
-                whiteSpace: "nowrap",
-                border: 0,
-              }}
-            />
+
+
+          {submitStatus === "success"  ? (
             <div
+              role="status"
+              aria-live="polite"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: "2rem",
+                fontSize: "0.875rem",
+                lineHeight: 1.5,
+                color:
+                  theme.colors.everglade,
               }}
-              className="md-grid-2"
             >
+              Thanks — your message was sent. We’ll be in touch soon.
+            </div>
+          ) : (
+            <form
+              style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => e.stopPropagation()}
+              noValidate
+            >
+              <input
+                type="text"
+                name="_hp"
+                value={honeypot}
+                onChange={(ev) => setHoneypot(ev.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clip: "rect(0,0,0,0)",
+                  whiteSpace: "nowrap",
+                  border: 0,
+                }}
+              />
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
+                  display: "grid",
+                  gridTemplateColumns: "1fr",
+                  gap: "2rem",
                 }}
+                className="md-grid-2"
               >
                 <WaInput
                   label="Full Name"
@@ -379,14 +392,7 @@ export const Contact = ({
                   required
                   autocomplete="name"
                 />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
+
                 <WaInput
                   label="Email Address"
                   id="contact-email"
@@ -399,40 +405,37 @@ export const Contact = ({
                   required
                   autocomplete="email"
                 >
-                  <Mail slot="start" style={{ marginInlineEnd: "0.5rem" }} color="var(--wa-color-brand)" height={16} width={16} name="email"/>
+                  <Mail
+                    slot="start"
+                    style={{ marginInlineEnd: "0.5rem" }}
+                    color="var(--wa-color-brand)"
+                    height={16}
+                    width={16}
+                    name="email"
+                  />
                 </WaInput>
               </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
               <WaInput
                 id="contact-phone"
                 name="phone"
                 label="Phone Number"
                 type="tel"
                 className="contact-form-field"
-
                 placeholder="(512) 555-0100"
                 value={phoneNumber}
                 onChange={(ev) => setPhoneNumber(ev.target.value)}
                 autocomplete="tel"
                 withLabel={true}
               >
-                <Phone slot="start" style={{ marginInlineEnd: "0.5rem" }} color="var(--wa-color-brand)" height={16} width={16} name="phone"></Phone>
+                <Phone
+                  slot="start"
+                  style={{ marginInlineEnd: "0.5rem" }}
+                  color="var(--wa-color-brand)"
+                  height={16}
+                  width={16}
+                  name="phone"
+                ></Phone>
               </WaInput>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
               <WaSelect
                 name="service-interest"
                 label={serviceLabel}
@@ -441,116 +444,109 @@ export const Contact = ({
                 placeholder="Select a service..."
                 size="m"
                 withClear
-                onChange={(e) => setServiceInterest((e.target as unknown as { value: string }).value)}
+                onChange={(e) =>
+                  setServiceInterest(
+                    (e.target as unknown as { value: string }).value,
+                  )
+                }
               >
                 {serviceOptions.map((opt) => (
-                  <WaOption key={opt.value} value={opt.value} id={opt.value}>{opt.label}</WaOption>
+                  <WaOption key={opt.value} value={opt.value} id={opt.value}>
+                    {opt.label}
+                  </WaOption>
                 ))}
- 
               </WaSelect>
-  
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-        
-                <WaTextarea aria-label="Your Message"
-                  label="Your Message"
-                  id="contact-message"
-                  name="message"
-                  rows={4}
-                  className="contact-form-field"
-                  style={{ resize: "none", minHeight: "6rem" }}
-                  placeholder="Tell us about your roofing needs..."
-                  value={message}
-                  onChange={(ev) => setMessage(ev.target.value)}
-                  required
-                  maxlength={8000}
-                />
-            </div>
-            <div style={consentRowStyle}>
-              <WaCheckbox
-                id="contact-consent"
-                checked={consentToContact}
-                onChange={(ev) => setConsentToContact(ev.target.checked)}
-                style={checkboxStyle}
-                aria-required
-                aria-describedby="contact-consent-desc"
-                defaultValue="I agree to be contacted about my inquiry by email, phone, or SMS. I have read the Privacy Policy and Terms of Service."
+
+              <WaTextarea
+                aria-label="Your Message"
+                label="Your Message"
+                id="contact-message"
+                name="message"
+                rows={4}
+                className="contact-form-field"
+                style={{ resize: "none", minHeight: "6rem" }}
+                placeholder="Tell us about your roofing needs..."
+                value={message}
+                onChange={(ev) => setMessage(ev.target.value)}
+                required
+                maxlength={8000}
               />
-              <p>
-                I agree to be contacted about my inquiry by email, phone, or
-                SMS. I have read the{" "}
-                <TransitionLink to="/privacy" style={consentLinkStyle}>
-                  Privacy Policy
-                </TransitionLink>{" "}
-                and{" "}
-                <TransitionLink to="/terms" style={consentLinkStyle}>
-                  Terms of Service
-                </TransitionLink>
-                .
+              <div style={consentRowStyle}>
+                <WaCheckbox
+                  id="contact-consent"
+                  checked={consentToContact}
+                  onChange={(ev) => setConsentToContact(ev.target.checked)}
+                  style={checkboxStyle}
+                  aria-required
+                  aria-describedby="contact-consent-desc"
+                  defaultValue="I agree to be contacted about my inquiry by email, phone, or SMS. I have read the Privacy Policy and Terms of Service."
+                />
+                <p>
+                  I agree to be contacted about my inquiry by email, phone, or
+                  SMS. I have read the{" "}
+                  <TransitionLink to="/privacy" style={consentLinkStyle}>
+                    Privacy Policy
+                  </TransitionLink>{" "}
+                  and{" "}
+                  <TransitionLink to="/terms" style={consentLinkStyle}>
+                    Terms of Service
+                  </TransitionLink>
+                  .
                 </p>
-              
-            </div>
-            {submitStatus === "success" ||
-            (submitStatus === "error" && errorMessage) ? (
-              <div
-                role="status"
-                aria-live="polite"
+              </div>
+              <AnimatePresence>
+              {errorMessage ? (
+                <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.3 }}
                 style={{
                   fontSize: "0.875rem",
                   lineHeight: 1.5,
-                  color:
-                    submitStatus === "error"
-                      ? theme.colors.danger
-                      : theme.colors.everglade,
+                  padding: "1rem",
+                  borderInlineStart: `4px solid ${theme.colors.danger}`,
+                  backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
+                  color: theme.colors.danger }}>{errorMessage}</motion.div>
+              ) : null}
+              </AnimatePresence>
+              <button
+                type="submit"
+                disabled={submitStatus === "sending"}
+                style={{
+                  backgroundColor: theme.colors.everglade,
+                  color: theme.colors.white,
+                  width: "100%",
+                  padding: "1.5rem",
+                  fontFamily: theme.fonts.headline,
+                  fontWeight: 900,
+                  textTransform: "uppercase",
+                  borderRadius: "1rem",
+                  letterSpacing: "0.1em",
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "1rem",
+                  border: "none",
+                  cursor: submitStatus === "sending" ? "wait" : "pointer",
+                  transition: "all 0.3s",
+                  opacity: submitStatus === "sending" ? 0.75 : 1,
                 }}
+                className="send-btn"
               >
-                {submitStatus === "success"
-                  ? "Thanks — your message was sent. We’ll be in touch soon."
-                  : errorMessage}
-              </div>
-            ) : null}
-            <button
-              type="submit"
-              disabled={submitStatus === "sending"}
-              style={{
-                backgroundColor: theme.colors.everglade,
-                color: theme.colors.white,
-                width: "100%",
-                padding: "1.5rem",
-                fontFamily: theme.fonts.headline,
-                fontWeight: 900,
-                textTransform: "uppercase",
-                borderRadius: "1rem",
-                letterSpacing: "0.1em",
-                fontSize: "0.875rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem",
-                border: "none",
-                cursor: submitStatus === "sending" ? "wait" : "pointer",
-                transition: "all 0.3s",
-                opacity: submitStatus === "sending" ? 0.75 : 1,
-              }}
-              className="send-btn"
-            >
-              <span>
-                {submitStatus === "sending" ? "Sending…" : "Send Message"}
-              </span>
-              <Send
-                width={18}
-                height={18}
-                className="send-icon"
-                style={{ transition: "transform 0.3s" }}
-              />
-            </button>
-          </form>
+                <span>
+                  {submitStatus === "sending" ? "Sending…" : "Send Message"}
+                </span>
+                <Send
+                  width={18}
+                  height={18}
+                  className="send-icon"
+                  style={{ transition: "transform 0.3s" }}
+                />
+              </button>
+            </form>
+          )}
         </motion.div>
       </div>
     </section>

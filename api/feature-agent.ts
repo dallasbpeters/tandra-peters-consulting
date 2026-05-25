@@ -19,6 +19,8 @@ import {
   type ModelMessage,
   type ToolSet,
 } from "ai";
+import { createClient } from "@sanity/client";
+import { sanityInsightsIntegration } from "@sanity/agent-context/ai-sdk";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -54,6 +56,22 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 6. Sanity Studio: deploy schema, add content
 
 **Incremental scope** — Propose one feature at a time. If the request is vague, ask one clarifying question before proposing anything.
+
+## Design & Brand Context
+
+**Tandra Peters** is a roofing consultant employed by Birdcreek Roofing (one word, lowercase 'c' — never "BirdCreek"). She serves Central Texas homeowners. The site's brand voice is honest craftsmanship + warm authority — plain speech, no jargon she wouldn't say on the job.
+
+**Design system (never change these without explicit instruction):**
+- Colors: OKLCH-based palette. Primary = everglade (dark forest green). Accent = warm amber. All tokens live in \`src/theme.ts\`.
+- Typography: Manrope for headings/UI labels, Instrument Serif for body text. Do not swap these.
+- Icons: iconoir-react only — never suggest lucide-react.
+- Service area: Central Texas — Fort Worth and Tarrant County are explicitly excluded.
+- Responsive breakpoints belong in CSS files (\`site-layout.css\`), never inline.
+
+**When proposing a new component:**
+- Use theme tokens (\`theme.colors\`, \`theme.palette\`, \`theme.fonts\`), never hardcoded hex values.
+- Match the existing warm, grounded visual language — earthy greens, warm whites, generous whitespace.
+- Write copy in Tandra's first-person voice; don't refer to her in the third person.
 
 ## Boundaries
 - You do not write to Sanity. All proposals are for the developer to review and implement.
@@ -128,10 +146,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
-  const body = req.body as { messages?: ModelMessage[] };
+  const body = req.body as { messages?: ModelMessage[]; threadId?: string };
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return res.status(400).json({ error: "messages array is required" });
   }
+
+  // ── Sanity Insights telemetry (optional – requires SANITY_WRITE_TOKEN) ──────
+  const writeToken = process.env.SANITY_WRITE_TOKEN;
+  const insights = writeToken
+    ? sanityInsightsIntegration({
+        client: createClient({
+          projectId: PROJECT_ID,
+          dataset: DATASET,
+          apiVersion: "2026-01-01",
+          useCdn: false,
+          token: writeToken,
+        }),
+        agentId: "feature-agent",
+        threadId: body.threadId ?? crypto.randomUUID(),
+      })
+    : undefined;
 
   try {
     const toolsResult = (await callMcp(token, "tools/list")) as {
@@ -179,6 +213,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messages: body.messages,
       tools,
       stopWhen: stepCountIs(10),
+      ...(insights
+        ? { experimental_telemetry: { isEnabled: true, ...insights } }
+        : {}),
     });
 
     return res.status(200).json({ response: text });

@@ -13,8 +13,6 @@ const DEFAULT_ABOUT_PARAGRAPHS = [
 ];
 
 export const About: React.FC<AboutProps> = ({
-  badgeText = "5+ YEARS",
-  badgeSubtext = "Industry Expertise",
   imageSrc = "/tandra.png",
   title = <>Precision. Integrity.</>,
   body,
@@ -37,15 +35,6 @@ export const About: React.FC<AboutProps> = ({
     borderRadius: "1rem",
     overflow: "hidden",
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-  };
-
-  const badgeStyle: React.CSSProperties = {
-    position: "absolute",
-    bottom: "-2.5rem",
-    right: "-1.5rem",
-    backgroundColor: theme.colors.everglade,
-    padding: "1.5rem",
-    borderRadius: ".75rem",
   };
 
   const shaderStyle: React.CSSProperties = {
@@ -119,7 +108,7 @@ export const About: React.FC<AboutProps> = ({
               referrerPolicy="no-referrer"
             />
           </div>
-          {/* <motion.div 
+          {/* <motion.div
             initial={{ opacity: 0, scale: 0.8, x: 20 }}
             whileInView={{ opacity: 1, scale: 1, x: 0 }}
             viewport={{ once: true }}

@@ -1,3 +1,4 @@
+
 import { SitePageChrome } from "../components/SitePageChrome";
 import { Hero } from "../components/Hero";
 import ScrollVelocity from "../components/ScrollText";
@@ -91,12 +92,6 @@ export const Home = () => {
     typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
   const roofInspection = mapRoofInspectionProps(roofInspectionData);
-
-  // DEBUG — remove once position updates are confirmed working
-  if (import.meta.env.DEV) {
-    console.log("[RoofInspection] sanity raw:", roofInspectionData);
-    console.log("[RoofInspection] mapped hotspots:", roofInspection.hotspots);
-  }
 
   /**
    * Convert CMS hotspot data to the Chapter shape expected by RoofInspection.

@@ -21,6 +21,8 @@ import {
   type ModelMessage,
   type ToolSet,
 } from "ai";
+import { createClient } from "@sanity/client";
+import { sanityInsightsIntegration } from "@sanity/agent-context/ai-sdk";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -123,12 +125,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
-  const body = req.body as { messages?: ModelMessage[]; slug?: string };
+  const body = req.body as {
+    messages?: ModelMessage[];
+    slug?: string;
+    threadId?: string;
+  };
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return res.status(400).json({ error: "messages array is required" });
   }
 
   const url = mcpUrl(body.slug);
+
+  // ── Sanity Insights telemetry (optional – requires SANITY_WRITE_TOKEN) ──────
+  const writeToken = process.env.SANITY_WRITE_TOKEN;
+  const insights = writeToken
+    ? sanityInsightsIntegration({
+        client: createClient({
+          projectId: PROJECT_ID,
+          dataset: DATASET,
+          apiVersion: "2026-01-01",
+          useCdn: false,
+          token: writeToken,
+        }),
+        agentId: "content-agent",
+        threadId: body.threadId ?? crypto.randomUUID(),
+      })
+    : undefined;
 
   try {
     // ── 1. Fetch MCP tool definitions ────────────────────────────────────────
@@ -181,6 +203,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messages: body.messages,
       tools,
       stopWhen: stepCountIs(10),
+      ...(insights
+        ? { experimental_telemetry: { isEnabled: true, ...insights } }
+        : {}),
     });
 
     return res.status(200).json({ response: text });

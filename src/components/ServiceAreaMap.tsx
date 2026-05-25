@@ -53,7 +53,7 @@ const COUNTIES = geoJson.counties as County[];
 // Framing the Fort Worth → Waco → Austin → San Antonio corridor with enough
 // padding that the Hill Country counties are fully visible. Lubbock just
 // enters the frame; Amarillo requires a pan north-west.
-const INIT_VB: ViewBox = { x: 0, y: 66, w: 900, h: 780 };
+const INIT_VB: ViewBox = { x: 0, y: 15, w: 900, h: 560 };
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
@@ -78,15 +78,10 @@ const sectionStyle: CSSProperties = {
   position: "relative",
 };
 
-const innerStyle: CSSProperties = { maxHeight: "60vh", overflow: "hidden", margin: "0 auto" };
+const innerStyle: CSSProperties = { overflow: "hidden", margin: "0 auto" };
 
 const headerStyle: CSSProperties = {
-  marginBottom: "2.5rem",
   textAlign: "center",
-  position: "absolute",
-  top: "10%",
-  left: "5%",
-  zIndex: 10,
 };
 
 const descriptionStyle: CSSProperties = {
@@ -278,7 +273,7 @@ export const ServiceAreaMap = ({
   return (
     <section id="service-area" style={sectionStyle}>
       <div style={innerStyle}>
-        <header style={headerStyle}>
+        <header className="map-header" style={headerStyle}>
           {eyebrow && <p style={eyebrowStyle}>{eyebrow}</p>}
           {title && <h2 style={titleStyle}>{title}</h2>}
           {description && <p style={descriptionStyle}>{description}</p>}

@@ -5,6 +5,7 @@ import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { FooterProps } from "../types";
 import { RichText } from "../portableText/RichText";
+import FooterBg from "./FooterBg";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
@@ -49,6 +50,7 @@ export const Footer: React.FC<FooterProps> = ({
     marginTop: "-1px",
     paddingTop: "4rem",
     paddingBottom: "3rem",
+    position: "relative",
   };
 
   const socialLinkStyle: React.CSSProperties = {
@@ -99,8 +101,18 @@ export const Footer: React.FC<FooterProps> = ({
     opacity: 0.4,
   };
 
+  const footerBgStyle: React.CSSProperties = {
+    position: "absolute",
+      top: 0,
+      left: 0,
+      zIndex: 0,
+    width: "100%",
+    height: "100%",
+  };
+
   return (
     <footer style={footerStyle}>
+
       <div className={`${layoutClass.containerWideGridFooter} md-grid-12`}>
         <style>{`
           @media (min-width: 768px) {
@@ -229,6 +241,7 @@ export const Footer: React.FC<FooterProps> = ({
         <p>{copyrightText}</p>
         <p>{partnerText}</p>
       </div>
+      <FooterBg style={footerBgStyle} />
     </footer>
   );
 };

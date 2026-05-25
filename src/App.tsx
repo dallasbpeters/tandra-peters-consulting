@@ -1,4 +1,4 @@
-import  React,{ Suspense, lazy } from "react";
+import  { Suspense, lazy } from "react";
 import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
@@ -16,9 +16,14 @@ const SeoDashboardPage = lazy(async () => {
   return { default: module.SeoDashboardPage };
 });
 
-const AgentChatPage = lazy(async () => {
-  const module = await import("./pages/AgentChatPage");
-  return { default: module.AgentChatPage };
+const FeatureBuilderPage = lazy(async () => {
+  const module = await import("./pages/FeatureBuilderPage");
+  return { default: module.FeatureBuilderPage };
+});
+
+const MarketingAgentPage = lazy(async () => {
+  const module = await import("./pages/MarketingAgentPage");
+  return { default: module.MarketingAgentPage };
 });
 
 const RootLayout = () => (
@@ -50,14 +55,22 @@ const appRouter = createBrowserRouter([
       { path: "privacy", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "cookies", element: <CookiePolicyPage /> },
-      {
-        path: "agent",
-        element: (
-          <Suspense fallback={null}>
-            <AgentChatPage />
-          </Suspense>
-        ),
-      },
+              {
+                path: "agent",
+                element: (
+                  <Suspense fallback={null}>
+                    <FeatureBuilderPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: "marketing",
+                element: (
+                  <Suspense fallback={null}>
+                    <MarketingAgentPage />
+                  </Suspense>
+                ),
+              },
     ],
   },
 ]);

@@ -198,52 +198,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   "texas-homeowners": "Texas homeowners",
 };
 
-const CATEGORY_BRIEFS: Record<
-  string,
-  {
-    title: string;
-    detail: string;
-    target: string;
-    impact: "high" | "medium" | "low";
-  }
-> = {
-  "roof-replacement": {
-    title: "Add a pricing-focused roof replacement guide",
-    detail:
-      "A cost-and-scope article can capture high-intent homeowners earlier in the buying cycle and support quote CTAs from a stronger informational page.",
-    target: "/articles",
-    impact: "high",
-  },
-  "insurance-claims": {
-    title: "Publish an insurance timeline and paperwork checklist",
-    detail:
-      "Claims searches usually carry urgency. A checklist piece can win trust, reduce confusion, and feed both storm and inspection pages.",
-    target: "/articles",
-    impact: "high",
-  },
-  inspections: {
-    title: "Create an inspection red-flags explainer with visuals",
-    detail:
-      "Inspection content is a good bridge between awareness traffic and service inquiries, especially when paired with before/after proof points.",
-    target: "/articles",
-    impact: "medium",
-  },
-  maintenance: {
-    title: "Build a seasonal roof maintenance checklist",
-    detail:
-      "Maintenance content is usually easier to rank for and helps you create more internal links into higher-conversion service pages.",
-    target: "/articles",
-    impact: "medium",
-  },
-  "texas-homeowners": {
-    title: "Expand Texas-specific weather and code coverage",
-    detail:
-      "Texas-specific search intent is already a strength. More localized guidance can reinforce topical authority around weather, materials, and homeowner expectations.",
-    target: "/articles",
-    impact: "medium",
-  },
-};
-
 const DASHBOARD_QUERY = groq`{
   "homePage": *[_id == "homePage"][0]{
     seoTitle,
