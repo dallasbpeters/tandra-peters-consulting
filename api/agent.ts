@@ -53,6 +53,9 @@ const SYSTEM_PROMPT = `You are the content drafting assistant for Tandra Peters 
 ## When you don't know
 Say so directly. For technical roofing facts, recommend the user verify with Tandra or a current industry source before publishing.`;
 
+const isFunctionCallFailure = (message: string): boolean =>
+  /failed to call a function|failed_generation/i.test(message);
+
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
 const mcpUrl = (slug?: string) =>
@@ -197,16 +200,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── 3. Run Groq with tool auto-continuation ───────────────────────────────
     const groq = createGroq({ apiKey: groqKey });
 
-    const { text } = await generateText({
+    const baseRequest = {
       model: groq(GROQ_MODEL),
-      system: SYSTEM_PROMPT,
       messages: body.messages,
-      tools,
-      stopWhen: stepCountIs(10),
       ...(insights
         ? { experimental_telemetry: { isEnabled: true, ...insights } }
         : {}),
-    });
+    } as const;
+
+    let text: string;
+    try {
+      ({ text } = await generateText({
+        ...baseRequest,
+        system: SYSTEM_PROMPT,
+        tools,
+        stopWhen: stepCountIs(10),
+      }));
+    } catch (toolError) {
+      const toolErrorMessage =
+        toolError instanceof Error ? toolError.message : String(toolError);
+      if (!isFunctionCallFailure(toolErrorMessage)) {
+        throw toolError;
+      }
+
+      ({ text } = await generateText({
+        ...baseRequest,
+        system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+      }));
+    }
 
     return res.status(200).json({ response: text });
   } catch (err) {

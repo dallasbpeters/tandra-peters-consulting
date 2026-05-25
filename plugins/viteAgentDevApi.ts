@@ -33,6 +33,9 @@ const setCors = (res: ServerResponse) => {
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
 
+const isFunctionCallFailure = (message: string): boolean =>
+  /failed to call a function|failed_generation/i.test(message);
+
 const SYSTEM_PROMPTS: Record<AgentPath, string> = {
   "/api/agent": `You are the content drafting assistant for Tandra Peters Consulting — a roofing consulting website serving Austin and Texas homeowners.
 
@@ -288,18 +291,36 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           });
         }
 
-        const { text } = await generateText({
+        const baseRequest = {
           model: groq("llama-3.3-70b-versatile"),
-          system: SYSTEM_PROMPTS[pathname],
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages: body.messages as any,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tools: tools as any,
-          stopWhen: stepCountIs(10),
           ...(insights
             ? { experimental_telemetry: { isEnabled: true, ...insights } }
             : {}),
-        });
+        };
+
+        let text: string;
+        try {
+          ({ text } = await generateText({
+            ...baseRequest,
+            system: SYSTEM_PROMPTS[pathname],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            tools: tools as any,
+            stopWhen: stepCountIs(10),
+          }));
+        } catch (toolError) {
+          const toolErrorMessage =
+            toolError instanceof Error ? toolError.message : String(toolError);
+          if (!isFunctionCallFailure(toolErrorMessage)) {
+            throw toolError;
+          }
+
+          ({ text } = await generateText({
+            ...baseRequest,
+            system: `${SYSTEM_PROMPTS[pathname]}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+          }));
+        }
 
         json(res, 200, { response: text });
       } catch (err) {
