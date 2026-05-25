@@ -36,6 +36,11 @@ const pathnameOnly = (url: string | undefined): string =>
 const isFunctionCallFailure = (message: string): boolean =>
   /failed to call a function|failed_generation/i.test(message);
 
+const isModelAvailabilityFailure = (message: string): boolean =>
+  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(
+    message,
+  );
+
 const SYSTEM_PROMPTS: Record<AgentPath, string> = {
   "/api/agent": `You are the content drafting assistant for Tandra Peters Consulting — a roofing consulting website serving Austin and Texas homeowners.
 
@@ -125,6 +130,8 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 
 **Incremental scope** — Propose one feature at a time. If the request is vague, ask one clarifying question before proposing anything.
 
+**UI reference research (Mobbin MCP)** — When the request involves UI patterns, flows, or interaction design references, call Mobbin tools first (tool names prefixed with \`mobbin_\`). Cite the app/screen patterns you used and translate them into implementation recommendations for this codebase.
+
 ## Boundaries
 - You do not write to Sanity. All proposals are for the developer to review and implement.
 - Do not fabricate document IDs, image asset references, or slugs — always query first.
@@ -139,6 +146,28 @@ const MCP_SLUGS: Record<AgentPath, string> = {
   "/api/agent": "content-editor",
   "/api/feature-agent": "feature-builder",
   "/api/marketing-agent": "content-editor",
+};
+
+type RpcTool = {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+};
+
+const PRIMARY_MODEL_BY_PATH: Record<AgentPath, string> = {
+  "/api/agent": "llama-3.3-70b-versatile",
+  "/api/feature-agent": "llama-3.3-70b-versatile",
+  "/api/marketing-agent": "openai/gpt-oss-120b",
+};
+
+const FALLBACK_MODEL_BY_PATH: Record<AgentPath, string> = {
+  "/api/agent": "llama-3.3-70b-versatile",
+  "/api/feature-agent": "llama-3.3-70b-versatile",
+  "/api/marketing-agent": "llama-3.3-70b-versatile",
+};
+
+const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<Record<AgentPath, Record<string, string>>> = {
+  "/api/marketing-agent": { "Groq-Model-Version": "latest" },
 };
 
 const json = (res: ServerResponse, status: number, body: unknown) => {
@@ -203,18 +232,33 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const PROJECT_ID = "7irm699i";
         const DATASET = "production";
         const slug = body.slug ?? MCP_SLUGS[pathname];
-        const mcpUrl = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${slug}`;
+        const sanityMcpUrl = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${slug}`;
+        const mobbinMcpUrl = env.MOBBIN_MCP_URL?.trim() ?? "";
+        const mobbinMcpToken = env.MOBBIN_MCP_BEARER_TOKEN?.trim() ?? "";
 
-        const mcpHeaders = {
+        const sanityMcpHeaders = {
           "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
           Authorization: `Bearer ${token}`,
         };
+        const mobbinMcpHeaders = {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+          ...(mobbinMcpToken
+            ? { Authorization: `Bearer ${mobbinMcpToken}` }
+            : {}),
+        };
 
-        const callMcp = async (method: string, params?: unknown, id = 1) => {
-          const r = await fetch(mcpUrl, {
+        const callJsonRpc = async (
+          url: string,
+          headers: Record<string, string>,
+          method: string,
+          params?: unknown,
+          id = 1,
+        ) => {
+          const r = await fetch(url, {
             method: "POST",
-            headers: mcpHeaders,
+            headers,
             body: JSON.stringify({ jsonrpc: "2.0", method, params, id }),
           });
           const text = await r.text();
@@ -231,43 +275,90 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           return parsed.result;
         };
 
-        const toolsResult = (await callMcp("tools/list")) as {
-          tools: Array<{
-            name: string;
-            description: string;
-            inputSchema: Record<string, unknown>;
-          }>;
-        };
+        const sanityToolsResult = (await callJsonRpc(
+          sanityMcpUrl,
+          sanityMcpHeaders,
+          "tools/list",
+        )) as { tools: RpcTool[] };
 
-        const tools = Object.fromEntries(
-          toolsResult.tools.map((mcpTool) => {
-            const execute = async (input: Record<string, unknown>) => {
-              const result = (await callMcp("tools/call", {
+        const allToolEntries: Array<
+          [string, RpcTool, (input: Record<string, unknown>) => Promise<string>]
+        > = sanityToolsResult.tools.map((mcpTool) => [
+          mcpTool.name,
+          mcpTool,
+          async (input: Record<string, unknown>) => {
+            const result = (await callJsonRpc(
+              sanityMcpUrl,
+              sanityMcpHeaders,
+              "tools/call",
+              {
                 name: mcpTool.name,
                 arguments: input,
-              })) as { content?: Array<{ type: string; text?: string }> };
-              return (
-                result.content
-                  ?.filter((c) => c.type === "text")
-                  .map((c) => c.text ?? "")
-                  .join("\n") ?? JSON.stringify(result)
-              );
-            };
-
-            return [
-              mcpTool.name,
-              {
-                description: mcpTool.description,
-                parameters: jsonSchema(
-                  mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-                ),
-                execute,
               },
-            ];
-          }),
+            )) as { content?: Array<{ type: string; text?: string }> };
+            return (
+              result.content
+                ?.filter((c) => c.type === "text")
+                .map((c) => c.text ?? "")
+                .join("\n") ?? JSON.stringify(result)
+            );
+          },
+        ]);
+
+        if (pathname === "/api/feature-agent" && mobbinMcpUrl) {
+          const mobbinToolsResult = (await callJsonRpc(
+            mobbinMcpUrl,
+            mobbinMcpHeaders,
+            "tools/list",
+          )) as { tools: RpcTool[] };
+
+          for (const mobbinTool of mobbinToolsResult.tools) {
+            allToolEntries.push([
+              `mobbin_${mobbinTool.name}`,
+              {
+                ...mobbinTool,
+                description: `[Mobbin] ${mobbinTool.description}`,
+              },
+              async (input: Record<string, unknown>) => {
+                const result = (await callJsonRpc(
+                  mobbinMcpUrl,
+                  mobbinMcpHeaders,
+                  "tools/call",
+                  {
+                    name: mobbinTool.name,
+                    arguments: input,
+                  },
+                )) as { content?: Array<{ type: string; text?: string }> };
+                return (
+                  result.content
+                    ?.filter((c) => c.type === "text")
+                    .map((c) => c.text ?? "")
+                    .join("\n") ?? JSON.stringify(result)
+                );
+              },
+            ]);
+          }
+        }
+
+        const tools = Object.fromEntries(
+          allToolEntries.map(([toolName, mcpTool, execute]) => [
+            toolName,
+            {
+              description: mcpTool.description,
+              parameters: jsonSchema(
+                mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
+              ),
+              execute,
+            },
+          ]),
         );
 
-        const groq = createGroq({ apiKey: groqKey });
+        const groq = createGroq({
+          apiKey: groqKey,
+          ...(GROQ_DEFAULT_HEADERS_BY_PATH[pathname]
+            ? { headers: GROQ_DEFAULT_HEADERS_BY_PATH[pathname] }
+            : {}),
+        });
 
         // Telemetry: save conversations to Sanity Insights (requires SANITY_WRITE_TOKEN)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -292,7 +383,6 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         }
 
         const baseRequest = {
-          model: groq("llama-3.3-70b-versatile"),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages: body.messages as any,
           ...(insights
@@ -300,26 +390,43 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             : {}),
         };
 
+        const runWithModel = async (modelId: string) => {
+          let responseText: string;
+          try {
+            ({ text: responseText } = await generateText({
+              ...baseRequest,
+              model: groq(modelId),
+              system: SYSTEM_PROMPTS[pathname],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              tools: tools as any,
+              stopWhen: stepCountIs(10),
+            }));
+          } catch (toolError) {
+            const toolErrorMessage =
+              toolError instanceof Error ? toolError.message : String(toolError);
+            if (!isFunctionCallFailure(toolErrorMessage)) {
+              throw toolError;
+            }
+
+            ({ text: responseText } = await generateText({
+              ...baseRequest,
+              model: groq(modelId),
+              system: `${SYSTEM_PROMPTS[pathname]}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+            }));
+          }
+          return responseText;
+        };
+
         let text: string;
         try {
-          ({ text } = await generateText({
-            ...baseRequest,
-            system: SYSTEM_PROMPTS[pathname],
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            tools: tools as any,
-            stopWhen: stepCountIs(10),
-          }));
-        } catch (toolError) {
-          const toolErrorMessage =
-            toolError instanceof Error ? toolError.message : String(toolError);
-          if (!isFunctionCallFailure(toolErrorMessage)) {
-            throw toolError;
+          text = await runWithModel(PRIMARY_MODEL_BY_PATH[pathname]);
+        } catch (modelError) {
+          const modelErrorMessage =
+            modelError instanceof Error ? modelError.message : String(modelError);
+          if (!isModelAvailabilityFailure(modelErrorMessage)) {
+            throw modelError;
           }
-
-          ({ text } = await generateText({
-            ...baseRequest,
-            system: `${SYSTEM_PROMPTS[pathname]}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
-          }));
+          text = await runWithModel(FALLBACK_MODEL_BY_PATH[pathname]);
         }
 
         json(res, 200, { response: text });

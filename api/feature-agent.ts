@@ -5,6 +5,7 @@
  * (feature-builder slug) so the LLM can inspect the live schema and content,
  * then propose Sanity schema additions, React component structures, and
  * step-by-step implementation plans for new site features.
+ * Optionally also loads Mobbin MCP tools when MOBBIN_MCP_URL is configured.
  *
  * Expected body: { messages: ModelMessage[] }
  * Returns:       { response: string }
@@ -28,7 +29,7 @@ const PROJECT_ID = "7irm699i";
 const DATASET = "production";
 const AGENT_CONTEXT_SLUG = "feature-builder";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
-const MCP_URL = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${AGENT_CONTEXT_SLUG}`;
+const SANITY_MCP_URL = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${AGENT_CONTEXT_SLUG}`;
 
 const SYSTEM_PROMPT = `You are the feature-planning assistant for tandra.me — a Vite + React + TypeScript roofing consultant website powered by Sanity CMS.
 
@@ -56,6 +57,8 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 6. Sanity Studio: deploy schema, add content
 
 **Incremental scope** — Propose one feature at a time. If the request is vague, ask one clarifying question before proposing anything.
+
+**UI reference research (Mobbin MCP)** — When the request involves UI patterns, flows, or interaction design references, call Mobbin tools first (tool names prefixed with \`mobbin_\`). Cite the app/screen patterns you used and translate them into implementation recommendations for this codebase.
 
 ## Design & Brand Context
 
@@ -87,21 +90,34 @@ const isFunctionCallFailure = (message: string): boolean =>
 
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
-const mcpHeaders = (token: string) => ({
+type RpcTool = {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+};
+
+const sanityMcpHeaders = (token: string) => ({
   "Content-Type": "application/json",
   Accept: "application/json, text/event-stream",
   Authorization: `Bearer ${token}`,
 });
 
-async function callMcp(
-  token: string,
+const mobbinMcpHeaders = (token?: string) => ({
+  "Content-Type": "application/json",
+  Accept: "application/json, text/event-stream",
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+});
+
+async function callJsonRpc(
+  url: string,
+  headers: Record<string, string>,
   method: string,
   params?: unknown,
   id = 1,
 ): Promise<unknown> {
-  const res = await fetch(MCP_URL, {
+  const res = await fetch(url, {
     method: "POST",
-    headers: mcpHeaders(token),
+    headers,
     body: JSON.stringify({ jsonrpc: "2.0", method, params, id }),
   });
 
@@ -144,6 +160,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
+  const mobbinMcpUrl = process.env.MOBBIN_MCP_URL?.trim() ?? "";
+  const mobbinMcpToken = process.env.MOBBIN_MCP_BEARER_TOKEN?.trim() ?? "";
 
   if (!token)
     return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
@@ -171,41 +189,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : undefined;
 
   try {
-    const toolsResult = (await callMcp(token, "tools/list")) as {
-      tools: Array<{
-        name: string;
-        description: string;
-        inputSchema: Record<string, unknown>;
-      }>;
-    };
+    const sanityToolsResult = (await callJsonRpc(
+      SANITY_MCP_URL,
+      sanityMcpHeaders(token),
+      "tools/list",
+    )) as { tools: RpcTool[] };
 
-    const tools: ToolSet = Object.fromEntries(
-      toolsResult.tools.map((mcpTool) => {
-        const execute = async (input: Record<string, unknown>) => {
-          const result = (await callMcp(token, "tools/call", {
+    const allToolEntries: Array<
+      [string, RpcTool, (input: Record<string, unknown>) => Promise<string>]
+    > = sanityToolsResult.tools.map((mcpTool) => [
+      mcpTool.name,
+      mcpTool,
+      async (input: Record<string, unknown>) => {
+        const result = (await callJsonRpc(
+          SANITY_MCP_URL,
+          sanityMcpHeaders(token),
+          "tools/call",
+          {
             name: mcpTool.name,
             arguments: input,
-          })) as { content?: Array<{ type: string; text?: string }> };
+          },
+        )) as { content?: Array<{ type: string; text?: string }> };
 
-          return (
-            result.content
-              ?.filter((c) => c.type === "text")
-              .map((c) => c.text ?? "")
-              .join("\n") ?? JSON.stringify(result)
-          );
-        };
+        return (
+          result.content
+            ?.filter((c) => c.type === "text")
+            .map((c) => c.text ?? "")
+            .join("\n") ?? JSON.stringify(result)
+        );
+      },
+    ]);
 
-        return [
-          mcpTool.name,
+    if (mobbinMcpUrl) {
+      const mobbinToolsResult = (await callJsonRpc(
+        mobbinMcpUrl,
+        mobbinMcpHeaders(mobbinMcpToken),
+        "tools/list",
+      )) as { tools: RpcTool[] };
+
+      for (const mobbinTool of mobbinToolsResult.tools) {
+        allToolEntries.push([
+          `mobbin_${mobbinTool.name}`,
           {
-            description: mcpTool.description,
-            parameters: jsonSchema(
-              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-            ),
-            execute,
-          } as unknown as ToolSet[string],
-        ];
-      }),
+            ...mobbinTool,
+            description: `[Mobbin] ${mobbinTool.description}`,
+          },
+          async (input: Record<string, unknown>) => {
+            const result = (await callJsonRpc(
+              mobbinMcpUrl,
+              mobbinMcpHeaders(mobbinMcpToken),
+              "tools/call",
+              {
+                name: mobbinTool.name,
+                arguments: input,
+              },
+            )) as { content?: Array<{ type: string; text?: string }> };
+
+            return (
+              result.content
+                ?.filter((c) => c.type === "text")
+                .map((c) => c.text ?? "")
+                .join("\n") ?? JSON.stringify(result)
+            );
+          },
+        ]);
+      }
+    }
+
+    const tools: ToolSet = Object.fromEntries(
+      allToolEntries.map(([toolName, mcpTool, execute]) => [
+        toolName,
+        {
+          description: mcpTool.description,
+          parameters: jsonSchema(
+            mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
+          ),
+          execute,
+        } as unknown as ToolSet[string],
+      ]),
     );
 
     const groq = createGroq({ apiKey: groqKey });

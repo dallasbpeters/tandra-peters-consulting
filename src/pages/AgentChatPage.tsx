@@ -22,6 +22,11 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "../components/ai-elements/prompt-input";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "../components/ai-elements/reasoning";
 import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -45,10 +50,21 @@ export type AgentConfig = {
 
 type Role = "user" | "assistant";
 
+type ChatPart =
+  | {
+      type: "text";
+      text: string;
+    }
+  | {
+      type: "reasoning";
+      text: string;
+    };
+
 type ChatMessage = {
   id: string;
   role: Role;
   content: string;
+  parts: ChatPart[];
 };
 
 type ApiMessage = {
@@ -60,20 +76,136 @@ type Props = {
   config: AgentConfig;
 };
 
+const CHAT_STORAGE_PREFIX = "agent-chat:v1";
+
+type PersistedConversation = {
+  threadId: string;
+  messages: ChatMessage[];
+  updatedAt: number;
+};
+
+const isChatPart = (value: unknown): value is ChatPart =>
+  Boolean(
+    value &&
+      typeof value === "object" &&
+      ("type" in value && (value as { type?: unknown }).type === "text"
+        ? typeof (value as { text?: unknown }).text === "string"
+        : "type" in value &&
+            (value as { type?: unknown }).type === "reasoning" &&
+            typeof (value as { text?: unknown }).text === "string"),
+  );
+
+const isChatMessage = (value: unknown): value is ChatMessage =>
+  Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as { id?: unknown }).id === "string" &&
+      ((value as { role?: unknown }).role === "user" ||
+        (value as { role?: unknown }).role === "assistant") &&
+      typeof (value as { content?: unknown }).content === "string" &&
+      Array.isArray((value as { parts?: unknown }).parts) &&
+      (value as { parts: unknown[] }).parts.every(isChatPart),
+  );
+
+const getStorageKey = (agentSlug: string) =>
+  `${CHAT_STORAGE_PREFIX}:${agentSlug}`;
+
+const MessageParts = ({
+  message,
+  isLastMessage,
+  isStreaming,
+}: {
+  message: ChatMessage;
+  isLastMessage: boolean;
+  isStreaming: boolean;
+}) => {
+  const reasoningParts = message.parts.filter(
+    (part): part is Extract<ChatPart, { type: "reasoning" }> =>
+      part.type === "reasoning",
+  );
+  const reasoningText = reasoningParts.map((part) => part.text).join("\n\n");
+  const hasReasoning = reasoningParts.length > 0;
+  const lastPart = message.parts.at(-1);
+  const isReasoningStreaming =
+    isLastMessage && isStreaming && lastPart?.type === "reasoning";
+
+  return (
+    <>
+      {hasReasoning && (
+        <Reasoning className="w-full" isStreaming={isReasoningStreaming}>
+          <ReasoningTrigger />
+          <ReasoningContent>{reasoningText}</ReasoningContent>
+        </Reasoning>
+      )}
+      {message.parts.map((part, i) => {
+        if (part.type === "text") {
+          return (
+            <MessageResponse key={`${message.id}-${i}`}>
+              {part.text}
+            </MessageResponse>
+          );
+        }
+        return null;
+      })}
+    </>
+  );
+};
+
 export const AgentChatPage = ({ config }: Props) => {
   const posthog = usePostHog();
+
 
   usePageMetadata({
     title: config.pageTitle,
     description: config.pageDescription,
   });
 
-  const threadIdRef = useRef(crypto.randomUUID());
+  const threadIdRef = useRef<string>(crypto.randomUUID());
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [hasHydratedConversation, setHasHydratedConversation] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(getStorageKey(config.agentSlug));
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as Partial<PersistedConversation>;
+      if (typeof parsed.threadId === "string") {
+        threadIdRef.current = parsed.threadId;
+      }
+      if (Array.isArray(parsed.messages)) {
+        const restored = parsed.messages.filter(isChatMessage);
+        setMessages(restored);
+      }
+    } catch {
+      // Ignore malformed local conversation payloads.
+    } finally {
+      setHasHydratedConversation(true);
+    }
+  }, [config.agentSlug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!hasHydratedConversation) return;
+
+    const payload: PersistedConversation = {
+      threadId: threadIdRef.current,
+      messages,
+      updatedAt: Date.now(),
+    };
+    window.localStorage.setItem(
+      getStorageKey(config.agentSlug),
+      JSON.stringify(payload),
+    );
+  }, [config.agentSlug, hasHydratedConversation, messages]);
 
   const handleSend = useCallback(
     async (text: string) => {
@@ -84,6 +216,7 @@ export const AgentChatPage = ({ config }: Props) => {
         id: crypto.randomUUID(),
         role: "user",
         content: trimmed,
+        parts: [{ type: "text", text: trimmed }],
       };
 
       posthog?.capture("agent_message_sent", {
@@ -126,6 +259,7 @@ export const AgentChatPage = ({ config }: Props) => {
             id: crypto.randomUUID(),
             role: "assistant",
             content: data.response ?? "",
+            parts: [{ type: "text", text: data.response ?? "" }],
           },
         ]);
       } catch (err) {
@@ -245,7 +379,7 @@ export const AgentChatPage = ({ config }: Props) => {
                     </div>
                   </ConversationEmptyState>
                 ) : (
-                  messages.map((message) => (
+                  messages.map((message, index) => (
                     <Message key={message.id} from={message.role}>
                       <MessageContent
                         className={
@@ -269,7 +403,11 @@ export const AgentChatPage = ({ config }: Props) => {
                         }}
                       >
                         {message.role === "assistant" ? (
-                          <MessageResponse>{message.content}</MessageResponse>
+                          <MessageParts
+                            message={message}
+                            isLastMessage={index === messages.length - 1}
+                            isStreaming={loading}
+                          />
                         ) : (
                           <p className="whitespace-pre-wrap">{message.content}</p>
                         )}

@@ -45,6 +45,10 @@
       "destination": "/studio/index.html"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap.xml"
+    },
+    {
       "source": "/((?!api/|studio(?:/|$)).*)",
       "destination": "/index.html"
     }

@@ -28,7 +28,9 @@ const PROJECT_ID = "7irm699i";
 const DATASET = "production";
 // Reuse content-editor so the agent can read and query live site content
 const AGENT_CONTEXT_SLUG = "content-editor";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b";
+const GROQ_MODEL_FALLBACK = "llama-3.3-70b-versatile";
+const GROQ_DEFAULT_HEADERS = { "Groq-Model-Version": "latest" } as const;
 const MCP_URL = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${AGENT_CONTEXT_SLUG}`;
 
 const SYSTEM_PROMPT = `You are the marketing strategist for tandra.me — a roofing consultant website serving Central Texas homeowners.
@@ -71,6 +73,11 @@ Use markdown. Start with a prioritised action summary (what to do first), then d
 
 const isFunctionCallFailure = (message: string): boolean =>
   /failed to call a function|failed_generation/i.test(message);
+
+const isModelAvailabilityFailure = (message: string): boolean =>
+  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(
+    message,
+  );
 
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
@@ -195,35 +202,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     );
 
-    const groq = createGroq({ apiKey: groqKey });
+    const groq = createGroq({
+      apiKey: groqKey,
+      headers: GROQ_DEFAULT_HEADERS,
+    });
 
     const baseRequest = {
-      model: groq(GROQ_MODEL),
       messages: body.messages,
       ...(insights
         ? { experimental_telemetry: { isEnabled: true, ...insights } }
         : {}),
     } as const;
 
+    const runWithModel = async (modelId: string) => {
+      let responseText: string;
+      try {
+        ({ text: responseText } = await generateText({
+          ...baseRequest,
+          model: groq(modelId),
+          system: SYSTEM_PROMPT,
+          tools,
+          stopWhen: stepCountIs(10),
+        }));
+      } catch (toolError) {
+        const toolErrorMessage =
+          toolError instanceof Error ? toolError.message : String(toolError);
+        if (!isFunctionCallFailure(toolErrorMessage)) {
+          throw toolError;
+        }
+
+        ({ text: responseText } = await generateText({
+          ...baseRequest,
+          model: groq(modelId),
+          system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+        }));
+      }
+      return responseText;
+    };
+
     let text: string;
     try {
-      ({ text } = await generateText({
-        ...baseRequest,
-        system: SYSTEM_PROMPT,
-        tools,
-        stopWhen: stepCountIs(10),
-      }));
-    } catch (toolError) {
-      const toolErrorMessage =
-        toolError instanceof Error ? toolError.message : String(toolError);
-      if (!isFunctionCallFailure(toolErrorMessage)) {
-        throw toolError;
+      text = await runWithModel(GROQ_MODEL);
+    } catch (modelError) {
+      const modelErrorMessage =
+        modelError instanceof Error ? modelError.message : String(modelError);
+      if (!isModelAvailabilityFailure(modelErrorMessage)) {
+        throw modelError;
       }
-
-      ({ text } = await generateText({
-        ...baseRequest,
-        system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
-      }));
+      text = await runWithModel(GROQ_MODEL_FALLBACK);
     }
 
     return res.status(200).json({ response: text });

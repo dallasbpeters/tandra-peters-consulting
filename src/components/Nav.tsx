@@ -267,7 +267,7 @@ export const Nav: React.FC<NavProps> = ({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {isHome ? (
+          {isHome && (
             <motion.a
               href={ctaHref}
               aria-label="Jump to contact section"
@@ -291,37 +291,7 @@ export const Nav: React.FC<NavProps> = ({
             >
               {ctaText}
             </motion.a>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="hidden lg:block"
-              style={{ display: "inline-block" }}
-            >
-              <TransitionLink
-                to={{ pathname: "/", hash: ctaHref }}
-                aria-label="Jump to contact section"
-                style={buttonStyle}
-                className="nav-focusable"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    theme.colors.evergladeLight;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    theme.colors.everglade;
-                }}
-                onClick={() =>
-                  posthog?.capture("nav_cta_clicked", {
-                    cta_text: ctaText,
-                    location: "desktop",
-                  })
-                }
-              >
-                {ctaText}
-              </TransitionLink>
-            </motion.div>
-          )}
+          ) }
           <button
             style={{
               display: "none",
