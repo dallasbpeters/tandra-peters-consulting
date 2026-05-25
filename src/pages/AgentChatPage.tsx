@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { usePostHog } from "@posthog/react";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -32,6 +32,7 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mix, theme } from "../theme";
 import { Check, Copy } from "iconoir-react";
+import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 
 export type AgentConfig = {
   endpoint: string;
@@ -77,6 +78,17 @@ type Props = {
 };
 
 const CHAT_STORAGE_PREFIX = "agent-chat:v1";
+
+const cardStyle: CSSProperties = {
+  borderRadius: "1.25rem",
+  padding: "1.25rem",
+  backgroundColor: theme.colors.white,
+  border: `1px solid ${mix(theme.colors.everglade, 10)}`,
+  boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
+  minHeight: "80vh",
+  display: "grid",
+  placeItems: "center",
+};
 
 type PersistedConversation = {
   threadId: string;
@@ -153,6 +165,7 @@ const MessageParts = ({
 
 export const AgentChatPage = ({ config }: Props) => {
   const posthog = usePostHog();
+  const auth = useGoogleDashboardAuth();
 
   usePageMetadata({
     title: config.pageTitle,
@@ -166,6 +179,7 @@ export const AgentChatPage = ({ config }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [hasHydratedConversation, setHasHydratedConversation] = useState(false);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -209,7 +223,7 @@ export const AgentChatPage = ({ config }: Props) => {
   const handleSend = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || loading) return;
+      if (!trimmed || loading || !auth.token) return;
 
       const userMsg: ChatMessage = {
         id: crypto.randomUUID(),
@@ -236,7 +250,10 @@ export const AgentChatPage = ({ config }: Props) => {
       try {
         const response = await fetch(config.endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth.token}`,
+          },
           body: JSON.stringify({
             messages: history,
             threadId: threadIdRef.current,
@@ -249,8 +266,11 @@ export const AgentChatPage = ({ config }: Props) => {
         };
 
         if (!response.ok || data.error) {
+          setStatusCode(response.status);
           throw new Error(data.error ?? `Server error ${response.status}`);
         }
+
+        setStatusCode(response.status);
 
         setMessages((prev) => [
           ...prev,
@@ -267,7 +287,7 @@ export const AgentChatPage = ({ config }: Props) => {
         setLoading(false);
       }
     },
-    [config, loading, messages, posthog],
+    [auth.token, config, loading, messages, posthog],
   );
 
   const handleSuggestion = useCallback(
@@ -306,8 +326,64 @@ export const AgentChatPage = ({ config }: Props) => {
     });
   }, [config.agentSlug, error, posthog]);
 
+  useEffect(() => {
+    if (statusCode === 401 || statusCode === 403) {
+      auth.signOut(
+        "Your Google session expired or this account is not allowed.",
+      );
+    }
+  }, [auth, statusCode]);
+
   return (
     <SitePageChrome>
+      {auth.clientId && !auth.token ? (
+            <section style={cardStyle}>
+              <div
+                style={{ display: "grid", gap: "1rem", justifyItems: "start" }}
+              >
+                <div>
+                  <h2
+                    style={{
+                      fontSize: "1.2rem",
+                      color: theme.colors.everglade,
+                      marginBottom: "0.45rem",
+                    }}
+                  >
+                    Sign in to the dashboard
+                  </h2>
+                  <p
+                    style={{
+                      color: mix(theme.colors.everglade, 72),
+                      lineHeight: 1.7,
+                      maxWidth: "36rem",
+                    }}
+                  >
+                    This route is protected with Google Identity Services and a
+                    server-side allowlist. The public site stays untouched; only
+                    the dashboard API is gated.
+                  </p>
+                </div>
+                <div ref={auth.buttonRef} />
+                {auth.authError ? (
+                  <p
+                    style={{
+                      color: theme.palette.coral["800"],
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {auth.authError}
+                  </p>
+                ) : null}
+                {!auth.ready ? (
+                  <p style={{ color: mix(theme.colors.everglade, 60) }}>
+                    Loading Google sign-in…
+                  </p>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+{auth.token ? (
       <main className="mx-auto w-full px-3 pb-5 py-28 sm:px-4 sm:py-32 lg:py-36">
         <header className="mx-auto mb-6 max-w-3xl text-center">
           <p
@@ -494,6 +570,7 @@ export const AgentChatPage = ({ config }: Props) => {
           </div>
         </section>
       </main>
+) : null}
     </SitePageChrome>
   );
 };
