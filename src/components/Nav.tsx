@@ -198,7 +198,7 @@ export const Nav: React.FC<NavProps> = ({
         className={layoutClass.containerWideRow}
         style={{
           width: "100%",
-          maxWidth: "100dvw",
+          maxWidth: 1300,
           boxSizing: "border-box",
           paddingInline: isMobile ? "1rem" : "1.5rem",
           gap: isMobile ? "0.5rem" : "0.75rem",
@@ -253,7 +253,7 @@ export const Nav: React.FC<NavProps> = ({
                 aria-label={navAriaLabel(item.name, item.href)}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.05, duration: 0.2, ease: "easeInOut" }}
                 tabIndex={0}
                 style={navLinkStyle}
                 className="nav-focusable"

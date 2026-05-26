@@ -1,29 +1,72 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
   isAllowedGoogleUser,
+  isGoogleAuthGateEnabled,
   loadGoogleIdentityScript,
   parseGoogleJwtPayload,
   type GoogleAuthUser,
 } from "../lib/googleAuthCore";
 
-export type { GoogleAuthUser as GoogleDashboardUser } from "../lib/googleAuthCore";
+export type GoogleAuthGateContextValue = {
+  isGateActive: boolean;
+  isUnlocked: boolean;
+  isAuthenticated: boolean;
+  isSignInModalOpen: boolean;
+  ready: boolean;
+  authError: string | null;
+  user: GoogleAuthUser | null;
+  token: string | null;
+  buttonRef: RefObject<HTMLDivElement | null>;
+  openSignInModal: () => void;
+  closeSignInModal: () => void;
+  signOut: () => void;
+  promptSignIn: () => void;
+};
 
-export const useGoogleDashboardAuth = () => {
+export const GoogleAuthGateContext = createContext<GoogleAuthGateContextValue | null>(
+  null,
+);
+
+export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
+  const isGateActive = isGoogleAuthGateEnabled();
   const clientId = getGoogleClientId();
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<GoogleAuthUser | null>(null);
   const [ready, setReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
-  const signOut = useCallback((message?: string) => {
+  const closeSignInModal = useCallback(() => {
+    setIsSignInModalOpen(false);
+    setAuthError(null);
+  }, []);
+
+  const openSignInModal = useCallback(() => {
+    if (!isGateActive || token) {
+      return;
+    }
+    setIsSignInModalOpen(true);
+  }, [isGateActive, token]);
+
+  const signOut = useCallback(() => {
     window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
     window.google?.accounts?.id.disableAutoSelect();
     setToken(null);
     setUser(null);
-    setAuthError(message ?? null);
+    setAuthError(null);
+    setIsSignInModalOpen(false);
   }, []);
 
   const setTokenFromCredential = useCallback(
@@ -46,11 +89,16 @@ export const useGoogleDashboardAuth = () => {
       setToken(credential);
       setUser(parsed);
       setAuthError(null);
+      setIsSignInModalOpen(false);
     },
     [],
   );
 
   useEffect(() => {
+    if (!isGateActive) {
+      return;
+    }
+
     const stored = window.localStorage.getItem(GOOGLE_AUTH_STORAGE_KEY);
     if (!stored) {
       return;
@@ -67,9 +115,13 @@ export const useGoogleDashboardAuth = () => {
 
     setToken(stored);
     setUser(parsed);
-  }, []);
+  }, [isGateActive]);
 
   useEffect(() => {
+    if (!isGateActive) {
+      return;
+    }
+
     if (!clientId) {
       setAuthError("Missing VITE_GOOGLE_CLIENT_ID.");
       return;
@@ -112,11 +164,13 @@ export const useGoogleDashboardAuth = () => {
     return () => {
       cancelled = true;
     };
-  }, [clientId, setTokenFromCredential]);
+  }, [clientId, isGateActive, setTokenFromCredential]);
 
   useEffect(() => {
     if (
+      !isGateActive ||
       !ready ||
+      !isSignInModalOpen ||
       !buttonRef.current ||
       !window.google?.accounts?.id ||
       !clientId
@@ -132,15 +186,69 @@ export const useGoogleDashboardAuth = () => {
       text: "signin_with",
       shape: "pill",
     });
-  }, [clientId, ready]);
+  }, [clientId, isGateActive, isSignInModalOpen, ready]);
 
-  return {
-    authError,
-    buttonRef,
-    clientId,
-    ready,
-    signOut,
-    token,
-    user,
-  };
+  const promptSignIn = useCallback(() => {
+    if (!isGateActive || !ready || !window.google?.accounts?.id) {
+      return;
+    }
+
+    window.google.accounts.id.prompt();
+
+    window.requestAnimationFrame(() => {
+      const googleButton = buttonRef.current?.querySelector<HTMLElement>(
+        'div[role="button"], iframe',
+      );
+      googleButton?.click();
+    });
+  }, [isGateActive, ready]);
+
+  const isAuthenticated = Boolean(token && user);
+  const isUnlocked = !isGateActive || isAuthenticated;
+
+  return useMemo(
+    () => ({
+      isGateActive,
+      isUnlocked,
+      isAuthenticated,
+      isSignInModalOpen,
+      ready,
+      authError,
+      user,
+      token,
+      buttonRef,
+      openSignInModal,
+      closeSignInModal,
+      signOut,
+      promptSignIn,
+    }),
+    [
+      authError,
+      closeSignInModal,
+      isAuthenticated,
+      isGateActive,
+      isSignInModalOpen,
+      isUnlocked,
+      openSignInModal,
+      promptSignIn,
+      ready,
+      signOut,
+      token,
+      user,
+    ],
+  );
 };
+
+export const useGoogleAuthGate = (): GoogleAuthGateContextValue => {
+  const context = useContext(GoogleAuthGateContext);
+  if (!context) {
+    throw new Error(
+      "useGoogleAuthGate must be used within GoogleAuthGateProvider.",
+    );
+  }
+  return context;
+};
+
+/** Safe for components that may render outside the provider (gate reads as inactive). */
+export const useOptionalGoogleAuthGate = (): GoogleAuthGateContextValue | null =>
+  useContext(GoogleAuthGateContext);

@@ -12,7 +12,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   const defaultSiteUrl =
-    mode === "development" ? "http://localhost:3000" : "https://www.tandra.me";
+    mode === "development" ? "http://localhost:3001" : "https://www.tandra.me";
   /** Canonical site origin for OG/Twitter meta in `index.html` (`%SITE_URL%`). */
   const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl)
     .trim()

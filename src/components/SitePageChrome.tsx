@@ -5,6 +5,9 @@ import { Footer } from "./Footer";
 import { useSanitySite } from "../context/SanitySiteContext";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import type { NavItem } from "../types";
+import {
+  GoogleAuthGate,
+} from "../components/GoogleAuthGate";
 
 type SitePageChromeProps = {
   children: ReactNode;
@@ -24,10 +27,11 @@ export const SitePageChrome = ({ children }: SitePageChromeProps) => {
 
   return (
     <>
+    <GoogleAuthGate>
       <Nav
         {...navProps}
         navItems={isAgentRoute ? agentNavItems : navProps.navItems}
-      />
+      />  </GoogleAuthGate>
       {children}
       <Footer {...mapFooterProps(site)} />
     </>

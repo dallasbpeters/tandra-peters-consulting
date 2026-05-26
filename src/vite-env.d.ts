@@ -34,6 +34,15 @@ interface ImportMetaEnv {
   readonly VITE_PUBLIC_POSTHOG_UI_HOST?: string;
   /** Google OAuth web client id used by the protected `/seo` dashboard sign-in flow. */
   readonly VITE_GOOGLE_CLIENT_ID?: string;
+  /** Comma-separated emails allowed to sign in (site gate + dashboard routes). */
+  readonly VITE_GOOGLE_ALLOWED_EMAILS?: string;
+  /** Optional Google Workspace domain allowlist (e.g. birdcreekroofing.com). */
+  readonly VITE_GOOGLE_ALLOWED_DOMAIN?: string;
+  /**
+   * When `true`, home-page sections wrapped in `GoogleAuthGate` require Google sign-in.
+   * When unset or `false`, gated sections render normally (no sign-in).
+   */
+  readonly VITE_GOOGLE_AUTH_GATE_ENABLED?: string;
 }
 
 type GoogleCredentialResponse = {
@@ -93,6 +102,7 @@ interface Window {
           options: GoogleButtonConfiguration,
         ): void;
         disableAutoSelect(): void;
+        prompt(): void;
       };
     };
   };

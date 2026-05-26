@@ -40,6 +40,9 @@ const colors = {
 };
 
 const ease = Easing.bezier(0.16, 1, 0.3, 1);
+const easeOut = Easing.bezier(0.7, 0, 0.84, 0);
+const SCENE_OVERLAP = 30;
+const KICKER_MOTION = 18;
 
 const useScene = (from: number, duration: number) => {
   const frame = useCurrentFrame();
@@ -66,22 +69,43 @@ const Kicker = ({
   children,
   color = colors.paperDark,
   delay = 0,
+  from = 0,
+  duration,
 }: {
   children: ReactNode;
   color?: string;
   delay?: number;
+  from?: number;
+  duration: number;
 }) => {
   const frame = useCurrentFrame();
-  const opacity = interpolate(frame - delay, [0, 18], [0, 1], {
+  const enterStart = from + delay;
+  const exitStart =
+    from + duration - SCENE_OVERLAP + delay - KICKER_MOTION;
+
+  const enter = interpolate(frame - enterStart, [0, KICKER_MOTION], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: ease,
   });
-  const y = interpolate(frame - delay, [0, 18], [52, 0], {
+  const exit = interpolate(frame - exitStart, [0, KICKER_MOTION], [1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: ease,
+    easing: easeOut,
   });
+  const opacity = enter * exit;
+
+  const y =
+    interpolate(frame - enterStart, [0, KICKER_MOTION], [20, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: ease,
+    }) +
+    interpolate(frame - exitStart, [0, KICKER_MOTION], [0, -20], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: easeOut,
+    });
 
   return (
     <div
@@ -97,7 +121,7 @@ const Kicker = ({
         letterSpacing: "0.16em",
         lineHeight: 1,
         opacity,
-        transform: `translateY(${y}px)`,
+        transform: `translateY(-${y}px)`,
         textTransform: "uppercase",
         zIndex: 100,
         position: "relative",
@@ -309,7 +333,7 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
       <PageTexture />
       <ImagePanel from={0} src="hail-storm.jpg" />
       <div style={{ padding: "132px 128px 80px 128px" }}>
-        <Kicker color={colors.paperDark} delay={6}>
+        <Kicker color={colors.paperDark} delay={6} duration={180} from={0}>
           {content.kicker}
         </Kicker>
         <div style={{ marginTop: 72, maxWidth: 1070 }}>
@@ -358,7 +382,7 @@ const StraightAnswersScene = ({
         }}
       >
         <div>
-          <Kicker color={colors.everglade} delay={6}>
+          <Kicker color={colors.everglade} delay={6} duration={180} from={150}>
             {content.kicker}
           </Kicker>
           <div style={{ marginTop: 86 }}>
@@ -413,7 +437,7 @@ const InspectionScene = ({
       >
         <div />
         <div>
-          <Kicker color={colors.purple} delay={6}>
+          <Kicker color={colors.purple} delay={6} duration={180} from={300}>
             {content.kicker}
           </Kicker>
           <div style={{ marginTop: 76 }}>
@@ -423,7 +447,7 @@ const InspectionScene = ({
             <BigLine color={colors.purple} delay={318} size={158}>
               {content.line2}
             </BigLine>
-            <BigLine delay={332} size={158}>
+            <BigLine color={colors.accent} delay={332} size={158}>
               {content.line3}
             </BigLine>
           </div>
@@ -465,7 +489,7 @@ const ManagedScene = ({
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture dark={false} />
       <div style={{ color: colors.everglade, padding: "104px 128px" }}>
-        <Kicker color={colors.everglade} delay={6}>
+        <Kicker color={colors.everglade} delay={6} duration={210} from={450}>
           {content.kicker}
         </Kicker>
         <div style={{ marginTop: 72, maxWidth: 1280 }}>
@@ -534,9 +558,11 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
-      <ImagePip from={630} src="tandra.png" opacity={0.68} />
+      <ImagePip from={630} src="tandra.png" opacity={1} />
       <div style={{ padding: "116px 128px" }}>
-        <Kicker delay={6}>{content.kicker}</Kicker>
+        <Kicker delay={6} duration={150} from={630}>
+          {content.kicker}
+        </Kicker>
         <div style={{ marginTop: 76, maxWidth: 1080 }}>
           <BigLine delay={634} size={136}>
             {content.line1}
@@ -603,24 +629,15 @@ const ClosingScene = ({
           textAlign: "center",
         }}
       >
-        <div
-          style={{
-            color: colors.accent,
-            fontFamily: theme.fonts.headline,
-            fontSize: 28,
-            fontWeight: 800,
-            letterSpacing: "0.16em",
-            lineHeight: 1,
-            marginBottom: 52,
-            textTransform: "uppercase",
-          }}
-        >
-          {content.kicker}
+        <div style={{ marginBottom: 52 }}>
+          <Kicker color={colors.accent} delay={6} duration={150} from={750}>
+            {content.kicker}
+          </Kicker>
         </div>
         <BigLine color={colors.everglade} delay={756} size={168}>
           {content.line1}
         </BigLine>
-        <BigLine color={colors.everglade} delay={770} size={168}>
+        <BigLine color={colors.heroAccent} delay={770} size={168}>
           {content.line2}
         </BigLine>
         <div

@@ -5,6 +5,9 @@ import { theme } from "../theme";
 import { HeroProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
+import { GoogleAuthGate } from "./GoogleAuthGate";
+
+
 
 export const Hero: React.FC<HeroProps> = ({
   title = (
@@ -15,7 +18,7 @@ export const Hero: React.FC<HeroProps> = ({
     </>
   ),
   badgeText = "Birdcreek Roofing consultant · Austin, TX",
-  subtitle = "I’ve walked hundreds of roofs across Central Texas — assessments, insurance claims, and the full job from first look to final walkthrough. Crews come through Birdcreek Roofing, voted Best Roofer in Central Texas seven years running.",
+  subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",
@@ -67,24 +70,11 @@ export const Hero: React.FC<HeroProps> = ({
   const badgeStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.875rem",
-    marginBottom: "2rem",
-  };
-
-  const badgeRuleStyle: React.CSSProperties = {
-    display: "inline-block",
-    width: "1.75rem",
-    height: "1px",
-    backgroundColor: theme.colors.heroAccent,
-    opacity: 0.7,
-  };
-
-  const badgeTextStyle: React.CSSProperties = {
-    fontSize: "11px",
-    fontWeight: 700,
-    letterSpacing: "0.22em",
-    color: theme.colors.heroAccent,
-    textTransform: "uppercase",
+    gap: "0.5rem",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    padding: "0.25rem 0.75rem",
+    marginBottom: "1.5rem",
+    color: theme.colors.purple,
   };
 
   const h1Style: React.CSSProperties = {
@@ -157,8 +147,17 @@ export const Hero: React.FC<HeroProps> = ({
           style={{ maxWidth: "56rem" }}
         >
           <motion.div variants={itemVariants} style={badgeStyle}>
-            <span aria-hidden style={badgeRuleStyle} />
-            <span style={badgeTextStyle}>{badgeText}</span>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 800,
+                letterSpacing: "0.2em",
+                color: theme.colors.purple,
+                textTransform: "uppercase",
+              }}
+            >
+              {badgeText}
+            </span>
           </motion.div>
           <motion.h1 variants={itemVariants} style={h1Style}>
             {title}
@@ -176,6 +175,7 @@ export const Hero: React.FC<HeroProps> = ({
               }}
             />
           </motion.div>
+          <GoogleAuthGate>
           <motion.div
             variants={itemVariants}
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
@@ -222,8 +222,10 @@ export const Hero: React.FC<HeroProps> = ({
               {secondaryCtaText}
             </a>
           </motion.div>
+          </GoogleAuthGate>
         </motion.div>
       </div>
+
     </section>
   );
 };

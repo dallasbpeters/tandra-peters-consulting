@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RouteScrollManager } from "./components/RouteScrollManager";
+import { GoogleAuthGateProvider } from "./components/GoogleAuthGate";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
 import { SanityContentProvider } from "./context/SanitySiteContext";
 import { Home } from "./pages/Home";
@@ -29,11 +30,13 @@ const MarketingAgentPage = lazy(async () => {
 const RootLayout = () => (
   <>
     <RouteScrollManager />
-    <SanityContentProvider>
-      <SanityVisualEditing />
-      <Outlet />
-      <Analytics />
-    </SanityContentProvider>
+    <GoogleAuthGateProvider>
+      <SanityContentProvider>
+        <SanityVisualEditing />
+        <Outlet />
+        <Analytics />
+      </SanityContentProvider>
+    </GoogleAuthGateProvider>
   </>
 );
 

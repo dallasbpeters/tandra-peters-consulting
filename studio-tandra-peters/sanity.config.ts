@@ -33,7 +33,7 @@ type TransformTargetCreateIfNotExists = {
 
 const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') ||
-  (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3000')
+  (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3001')
 
 const BRAND_TONE_CONTEXT_ID = 'assist-context-brand-tone'
 const CUSTOM_AI_CONTEXT_ID = 'aiContext'

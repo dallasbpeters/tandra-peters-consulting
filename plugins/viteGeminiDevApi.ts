@@ -64,7 +64,7 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
       try {
         const { handler } =
           await import("sanity-plugin-gemini-ai-images-serverless");
-        const host = req.headers.host ?? "localhost:3000";
+        const host = req.headers.host ?? "localhost:3001";
         const pathWithQuery = req.url ?? GEMINI_PATH;
         const bodyBuf = await readBody(req);
         const bodyText =

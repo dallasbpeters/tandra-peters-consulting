@@ -6,6 +6,8 @@ import { theme } from "../theme";
 import { FooterProps } from "../types";
 import { RichText } from "../portableText/RichText";
 import FooterBg from "./FooterBg";
+import { GoogleAuthFooterTrigger } from "./GoogleAuthGate";
+import { GoogleAuthGate } from "./GoogleAuthGate";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
@@ -187,7 +189,7 @@ export const Footer: React.FC<FooterProps> = ({
             ))}
           </div>
         </div>
-
+        <GoogleAuthGate>
         <div className="md-col-3">
           <h4 style={headingStyle}>Quick Links</h4>
           <ul style={linkListStyle}>
@@ -232,11 +234,13 @@ export const Footer: React.FC<FooterProps> = ({
             ))}
           </ul>
         </div>
+        </GoogleAuthGate>
       </div>
       <div
-        className={`${layoutClass.containerWideFooterLegal} md-row`}
+        className={`${layoutClass.containerWideFooterLegal} md-row google-auth-gate__footer-bar`}
         style={bottomBarColorStyle}
       >
+        <GoogleAuthFooterTrigger />
         <p>{copyrightText}</p>
         <p>{partnerText}</p>
       </div>

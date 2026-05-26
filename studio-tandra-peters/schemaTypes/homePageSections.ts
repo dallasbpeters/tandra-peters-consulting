@@ -90,7 +90,6 @@ export const videoSectionType = defineType({
       options: {
         accept: 'video/*',
       },
-      validation: (rule) => rule.required(),
     }),
     defineField({name: 'title', type: 'string', title: 'Title'}),
     defineField({

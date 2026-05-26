@@ -31,9 +31,8 @@
 }
 
 .site-container.site-container--row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-auto-flow: column;
   gap: 0.75rem;
   min-width: 0;
 }
@@ -193,4 +192,65 @@
     max-width: calc(100vw - 3rem);
     width: min(17rem, calc(100vw - 3rem));
   }
+}
+
+/* Block: google-auth-gate */
+.google-auth-gate__footer-bar {
+  position: relative;
+}
+
+.google-auth-gate__footer-trigger {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.google-auth-gate__button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.google-auth-gate__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgb(0 0 0 / 45%);
+}
+
+.google-auth-gate__modal {
+  position: relative;
+  width: min(100%, 24rem);
+  padding: 2rem 1.75rem 1.75rem;
+  border-radius: 1rem;
+  background: oklch(97.16% 0.019 171.52);
+  box-shadow: 0 24px 48px rgb(0 0 0 / 18%);
+  text-align: center;
+}
+
+.google-auth-gate__modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: oklch(44.75% 0.03 107.54);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
 }
