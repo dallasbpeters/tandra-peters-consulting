@@ -254,3 +254,82 @@
   line-height: 1;
   cursor: pointer;
 }
+
+/* Block: featured-video — custom player chrome */
+.featured-video__frame {
+  position: relative;
+  width: 100%;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.featured-video__video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  position: relative;
+  z-index: 10;
+  contain: paint;
+}
+
+.featured-video__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+}
+
+.featured-video__progress-hit {
+  display: grid;
+  place-content: end stretch;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 0 0 ;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.featured-video__progress-track {
+  display: block;
+  width: 100%;
+  height: 4px;
+  background: rgb(255 255 255 / 22%);
+}
+
+.featured-video__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 0;
+  transition: width 0.1s linear;
+}
+
+.featured-video__progress-fill--dragging {
+  transition: none;
+}
+
+.featured-video__play {
+  position: absolute;
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
+  bottom: calc(clamp(0.75rem, 2.5vw, 1.5rem) + 4px);
+  transform: none;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  block-size: clamp(4rem, 8vw, 5.25rem);
+  inline-size: clamp(4rem, 8vw, 5.25rem);
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 999px;
+  background: rgb(4 28 19 / 80%);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
