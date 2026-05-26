@@ -177,7 +177,7 @@ export const Nav: React.FC<NavProps> = ({
   };
 
   const buttonStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.everglade,
+    backgroundColor: theme.colors.evergladeLight,
     color: theme.colors.white,
     padding: "0.75rem 1.5rem",
     fontFamily: theme.fonts.headline,
@@ -186,6 +186,7 @@ export const Nav: React.FC<NavProps> = ({
     letterSpacing: "0.1em",
     fontSize: "1rem",
     border: "none",
+    boxShadow: `inset 0 0 0 1px ${theme.colors.evergladeMuted}`,
     cursor: "pointer",
     transition: "background-color 0.2s",
     textDecoration: "none",
