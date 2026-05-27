@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { NavArrowDown } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { FaqProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
 import { plainTextFromRich } from "../portableText/plainText";
+import WaDetails from '@awesome.me/webawesome/dist/react/details/index.js';
 
 const DEFAULT_ITEMS = [
   {
@@ -149,60 +149,26 @@ export const Faq: React.FC<FaqProps> = ({
 
         <style>{`
           .faq-details {
-            border-bottom: 1px solid ${theme.colors.paperDark};
+            --spacing: 12px;
+            --hide-duration: 200ms;
+            --show-duration: 200ms;
           }
-          .faq-details:first-of-type {
-            border-top: 1px solid ${theme.colors.paperDark};
-          }
-          .faq-summary {
-            list-style: none;
+
+          .faq-details-container {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding: 1.25rem 0;
-            cursor: pointer;
-            font-family: ${theme.fonts.headline};
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: 0.02em;
-            color: ${theme.colors.everglade};
-          }
-          .faq-summary::-webkit-details-marker {
-            display: none;
-          }
-          .faq-chevron {
-            flex-shrink: 0;
-            transition: transform 0.25s ease;
-            color: ${theme.palette.blue[600]};
-          }
-          .faq-details[open] .faq-chevron {
-            transform: rotate(180deg);
-          }
-          .faq-summary:hover .faq-chevron {
-            transform: rotate(180deg);
-          }
-          .faq-details[open] .faq-summary:hover .faq-chevron {
-            transform: rotate(0deg);
-          }
-          .faq-answer {
-            padding: 0 0 1.5rem 0;
-            margin: 0;
-            color: ${mix(theme.colors.everglade, 80)};
-            line-height: 1.65;
-            font-size: 1rem;
+            flex-direction: column;
+            gap: 8px;
           }
         `}</style>
 
-        <div>
+        <div className="faq-details-container">
           {items.map((item, index) => (
-            <motion.details
+            <WaDetails
+            appearance="outlined"
+
+              summary={item.question}
               key={item._key ?? item.question}
               className="faq-details"
-              initial={{ opacity: 0, y: 8 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.35, delay: index * 0.04 }}
               onToggle={(e) => {
                 if ((e.currentTarget as HTMLDetailsElement).open) {
                   posthog?.capture("faq_item_opened", {
@@ -212,17 +178,7 @@ export const Faq: React.FC<FaqProps> = ({
                 }
               }}
             >
-              <summary className="faq-summary">
-                <span>{item.question}</span>
-                <NavArrowDown
-                  className="faq-chevron"
-                  width={22}
-                  height={22}
-                  strokeWidth={2}
-                  aria-hidden
-                />
-              </summary>
-              <div className="faq-answer">
+
                 <RichText
                   value={item.answer}
                   paragraphStyle={{
@@ -233,8 +189,7 @@ export const Faq: React.FC<FaqProps> = ({
                   }}
                   linkStyle={{ color: theme.colors.accent }}
                 />
-              </div>
-            </motion.details>
+            </WaDetails>
           ))}
         </div>
       </div>

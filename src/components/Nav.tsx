@@ -303,7 +303,6 @@ export const Nav: React.FC<NavProps> = ({
             flex: "0 0 auto",
           }}
         >
-          {isHome && (
             <motion.a
               href={ctaHref}
               aria-label="Jump to contact section"
@@ -327,7 +326,6 @@ export const Nav: React.FC<NavProps> = ({
             >
               {ctaText}
             </motion.a>
-          )}
           <button
             style={{
               display: "none",

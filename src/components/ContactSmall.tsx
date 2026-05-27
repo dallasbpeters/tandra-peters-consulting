@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { TransitionLink } from "./TransitionLink";
-import { motion } from "motion/react";
-import { Send } from "iconoir-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Mail, Phone, Send } from "iconoir-react";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { ContactProps } from "../types";
 import { usePostHog } from "@posthog/react";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
+import { Shader, LinearGradient, WaveDistortion, Dither } from "shaders/react";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 const CONTACT_API_PATH = "/api/contact";
@@ -17,6 +21,7 @@ const COMPACT_DEFAULT_MESSAGE =
 
 export const ContactSmall = ({
   title = "Get a free roofing consultation.",
+  formLabels,
 }: ContactProps) => {
   const [fullName, setFullName] = useState("");
   const [visitorEmail, setVisitorEmail] = useState("");
@@ -118,7 +123,10 @@ export const ContactSmall = ({
       }
       posthog?.identify(visitorEmail, { name: fullName, email: visitorEmail });
       posthog?.capture("contact_form_submitted", {
-        phone_number: phoneNumber,
+        service_interest: COMPACT_DEFAULT_SERVICE,
+        has_message: false,
+        has_phone: Boolean(phoneNumber.trim()),
+        form_variant: "compact",
       });
       setSubmitStatus("success");
       setFullName("");
@@ -134,19 +142,12 @@ export const ContactSmall = ({
       );
     }
   };
+
   const sectionStyle: React.CSSProperties = {
     paddingTop: "2rem",
     paddingBottom: "2rem",
     backgroundColor: theme.colors.evergladeLight,
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontFamily: theme.fonts.body,
-    fontWeight: 700,
-    fontSize: "12px",
-    letterSpacing: "0.1em",
-    color: mix(theme.colors.everglade, 40),
-    marginBottom: "0.25rem",
+    position: "relative",
   };
 
   const formCardStyle: React.CSSProperties = {
@@ -154,21 +155,8 @@ export const ContactSmall = ({
     padding: "2rem",
     borderRadius: "1rem",
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-  };
-
-  const underlineBorder = `1px solid ${mix(theme.colors.everglade, 20)}`;
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    boxSizing: "border-box",
-    backgroundColor: "transparent",
-    border: "none",
-    borderBottom: underlineBorder,
-    borderRadius: 0,
-    padding: "0.75rem 0",
-    fontSize: "1rem",
-    color: theme.colors.everglade,
-    transition: "border-color 0.2s ease",
+    position: "relative",
+    zIndex: 1,
   };
 
   const consentLinkStyle: React.CSSProperties = {
@@ -188,7 +176,7 @@ export const ContactSmall = ({
 
   const consentRowStyle: React.CSSProperties = {
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: "0.75rem",
     fontSize: "0.8125rem",
     lineHeight: 1.5,
@@ -204,18 +192,24 @@ export const ContactSmall = ({
     cursor: "pointer",
   };
 
+  const shaderStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+  };
+
+  const nameLabel = formLabels?.name ?? "Full Name";
+  const emailLabel = formLabels?.email ?? "Email Address";
+  const submitLabel = formLabels?.button ?? "Send";
+
   return (
     <section
       id="contact"
       style={sectionStyle}
-      aria-labelledby="contact-heading"
+      aria-labelledby="contact-small-heading"
     >
-      <div className={`${layoutClass.containerContactCompact} lg-grid-12`}>
+      <div className={layoutClass.containerContactCompact}>
         <style>{`
-          @media (min-width: 1024px) {
-            .lg-grid-12 { grid-template-columns: repeat(1, 1fr) !important; }
-            .md-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
-          }
           .contact-form-field::placeholder {
             color: ${mix(theme.colors.everglade, 33)};
           }
@@ -231,212 +225,227 @@ export const ContactSmall = ({
         `}</style>
 
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           style={formCardStyle}
-          className="lg-col-12"
         >
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="lg-col-12"
-          >
-            <h2 id="contact-heading" style={headingStyle}>
-              {title}
-            </h2>
-          </motion.div>
-          <form
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
-            onSubmit={handleSubmit}
-            noValidate
-          >
-            <input
-              type="text"
-              name="_hp"
-              value={honeypot}
-              onChange={(ev) => setHoneypot(ev.target.value)}
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden
-              style={{
-                position: "absolute",
-                width: 1,
-                height: 1,
-                padding: 0,
-                margin: -1,
-                overflow: "hidden",
-                clip: "rect(0,0,0,0)",
-                whiteSpace: "nowrap",
-                border: 0,
-              }}
-            />
+          <h2 id="contact-small-heading" style={headingStyle}>
+            {title}
+          </h2>
+
+          {submitStatus === "success" ? (
             <div
+              role="status"
+              aria-live="polite"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: "2rem",
-              }}
-              className="md-grid-3"
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                <label htmlFor="contact-full-name" style={labelStyle}>
-                  Full Name
-                </label>
-                <input
-                  id="contact-full-name"
-                  type="text"
-                  className="contact-form-field"
-                  style={inputStyle}
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(ev) => setFullName(ev.target.value)}
-                  required
-                  maxLength={200}
-                  autoComplete="name"
-                />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                <label htmlFor="contact-email" style={labelStyle}>
-                  Email Address
-                </label>
-                <input
-                  id="contact-email"
-                  type="email"
-                  className="contact-form-field"
-                  style={inputStyle}
-                  placeholder="john@example.com"
-                  value={visitorEmail}
-                  onChange={(ev) => setVisitorEmail(ev.target.value)}
-                  required
-                  maxLength={320}
-                  autoComplete="email"
-                />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                <label htmlFor="contact-phone" style={labelStyle}>
-                  Phone Number
-                </label>
-                <input
-                  id="contact-phone"
-                  type="tel"
-                  className="contact-form-field"
-                  style={inputStyle}
-                  placeholder="123-456-7890"
-                  value={phoneNumber}
-                  onChange={(ev) => setPhoneNumber(ev.target.value)}
-                  required
-                  maxLength={320}
-                  autoComplete="tel"
-                />
-              </div>
-            </div>
-            <div style={consentRowStyle}>
-              <input
-                id="contact-consent"
-                type="checkbox"
-                checked={consentToContact}
-                onChange={(ev) => setConsentToContact(ev.target.checked)}
-                style={checkboxStyle}
-                aria-required
-                aria-describedby="contact-consent-desc"
-              />
-              <label
-                htmlFor="contact-consent"
-                id="contact-consent-desc"
-                style={{
-                  cursor: "pointer",
-                  fontFamily: theme.fonts.body,
-                  fontWeight: 500,
-                }}
-              >
-                I agree to be contacted about my inquiry by email, phone, or
-                SMS. I have read the{" "}
-                <TransitionLink to="/privacy" style={consentLinkStyle}>
-                  Privacy Policy
-                </TransitionLink>{" "}
-                and{" "}
-                <TransitionLink to="/terms" style={consentLinkStyle}>
-                  Terms of Service
-                </TransitionLink>
-                .
-              </label>
-            </div>
-            {submitStatus === "success" ||
-            (submitStatus === "error" && errorMessage) ? (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: 1.5,
-                  color:
-                    submitStatus === "error"
-                      ? theme.colors.danger
-                      : theme.colors.everglade,
-                }}
-              >
-                {submitStatus === "success"
-                  ? "Thanks — your message was sent. We’ll be in touch soon."
-                  : errorMessage}
-              </div>
-            ) : null}
-            <button
-              type="submit"
-              disabled={submitStatus === "sending"}
-              style={{
-                backgroundColor: theme.colors.everglade,
-                color: theme.colors.white,
-                width: "100%",
-                padding: "1.5rem",
-                fontFamily: theme.fonts.headline,
-                fontWeight: 900,
-                textTransform: "uppercase",
-                borderRadius: "1rem",
-                letterSpacing: "0.1em",
                 fontSize: "0.875rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem",
-                border: "none",
-                cursor: submitStatus === "sending" ? "wait" : "pointer",
-                transition: "all 0.3s",
-                opacity: submitStatus === "sending" ? 0.75 : 1,
+                lineHeight: 1.5,
+                color: theme.colors.everglade,
               }}
-              className="send-btn"
             >
-              <span>{submitStatus === "sending" ? "Sending…" : "Send"}</span>
-              <Send
-                width={18}
-                height={18}
-                className="send-icon"
-                style={{ transition: "transform 0.3s" }}
+              Thanks — your message was sent. We’ll be in touch soon.
+            </div>
+          ) : (
+            <form
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+              }}
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => e.stopPropagation()}
+              noValidate
+            >
+              <input
+                type="text"
+                name="_hp"
+                value={honeypot}
+                onChange={(ev) => setHoneypot(ev.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clip: "rect(0,0,0,0)",
+                  whiteSpace: "nowrap",
+                  border: 0,
+                }}
               />
-            </button>
-          </form>
+
+              <WaInput
+                label={nameLabel}
+                id="contact-small-full-name"
+                name="full-name"
+                type="text"
+                className="contact-form-field"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(ev) => setFullName(ev.target.value)}
+                required
+                autocomplete="name"
+              />
+
+              <WaInput
+                label={emailLabel}
+                id="contact-small-email"
+                name="email"
+                type="email"
+                className="contact-form-field"
+                placeholder="john@example.com"
+                value={visitorEmail}
+                onChange={(ev) => setVisitorEmail(ev.target.value)}
+                required
+                autocomplete="email"
+              >
+                <Mail
+                  slot="start"
+                  style={{ marginInlineEnd: "0.5rem" }}
+                  color="var(--wa-color-brand)"
+                  height={16}
+                  width={16}
+                  aria-hidden
+                />
+              </WaInput>
+
+              <WaInput
+                id="contact-small-phone"
+                name="phone"
+                label="Phone Number"
+                type="tel"
+                className="contact-form-field"
+                placeholder="(512) 555-0100"
+                value={phoneNumber}
+                onChange={(ev) => setPhoneNumber(ev.target.value)}
+                autocomplete="tel"
+                withLabel={true}
+              >
+                <Phone
+                  slot="start"
+                  style={{ marginInlineEnd: "0.5rem" }}
+                  color="var(--wa-color-brand)"
+                  height={16}
+                  width={16}
+                  aria-hidden
+                />
+              </WaInput>
+
+              <div style={consentRowStyle}>
+                <WaCheckbox
+                  id="contact-small-consent"
+                  checked={consentToContact}
+                  onChange={(ev) => setConsentToContact(ev.target.checked)}
+                  style={checkboxStyle}
+                  aria-required
+                  aria-describedby="contact-small-consent-desc"
+                />
+                <p id="contact-small-consent-desc">
+                  I agree to be contacted about my inquiry by email, phone, or
+                  SMS. I have read the{" "}
+                  <TransitionLink to="/privacy" style={consentLinkStyle}>
+                    Privacy Policy
+                  </TransitionLink>{" "}
+                  and{" "}
+                  <TransitionLink to="/terms" style={consentLinkStyle}>
+                    Terms of Service
+                  </TransitionLink>
+                  .
+                </p>
+              </div>
+
+              <AnimatePresence>
+                {errorMessage ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.3 }}
+                    role="alert"
+                    style={{
+                      fontSize: "0.875rem",
+                      lineHeight: 1.5,
+                      padding: "1rem",
+                      borderInlineStart: `4px solid ${theme.colors.danger}`,
+                      backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
+                      color: theme.colors.danger,
+                    }}
+                  >
+                    {errorMessage}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <button
+                type="submit"
+                disabled={submitStatus === "sending"}
+                style={{
+                  backgroundColor: theme.colors.everglade,
+                  color: theme.colors.white,
+                  width: "100%",
+                  padding: "1.5rem",
+                  fontFamily: theme.fonts.headline,
+                  fontWeight: 900,
+                  textTransform: "uppercase",
+                  borderRadius: "1rem",
+                  letterSpacing: "0.1em",
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "1rem",
+                  border: "none",
+                  cursor: submitStatus === "sending" ? "wait" : "pointer",
+                  transition: "all 0.3s",
+                  opacity: submitStatus === "sending" ? 0.75 : 1,
+                }}
+                className="send-btn"
+              >
+                <span>
+                  {submitStatus === "sending" ? "Sending…" : submitLabel}
+                </span>
+                <Send
+                  width={18}
+                  height={18}
+                  className="send-icon"
+                  style={{ transition: "transform 0.3s" }}
+                />
+              </button>
+            </form>
+          )}
         </motion.div>
+        <Shader style={shaderStyle}>
+          <LinearGradient
+            colorA="#6c66de"
+            colorB="#298f07"
+            colorSpace="oklab"
+            end={{
+              x: 0.92,
+
+              y: 0.81,
+            }}
+            start={{
+              x: 0.18,
+
+              y: 0.23,
+            }}
+          />
+
+          <WaveDistortion
+            angle={81}
+            frequency={0.9}
+            speed={0.7}
+            strength={0.75}
+            transform={{ scale: 1.84 }}
+          />
+
+          <Dither blendMode="colorDodge" colorMode="source" pattern="bayer8" />
+        </Shader>
       </div>
     </section>
   );

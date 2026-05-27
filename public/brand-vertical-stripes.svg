@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="120" viewBox="0 0 360 120" fill="none" aria-hidden="true">
+  <defs>
+    <pattern id="brand-vertical-stripes" width="360" height="120" patternUnits="userSpaceOnUse">
+      <rect x="0" width="60" height="120" fill="#12533A"/>
+      <rect x="60" width="60" height="120" fill="#ACECD3"/>
+      <rect x="120" width="60" height="120" fill="#F4F4F1"/>
+      <rect x="180" width="60" height="120" fill="#CECCFF"/>
+      <rect x="240" width="60" height="120" fill="#CECCFF"/>
+      <rect x="300" width="60" height="120" fill="#CECCFF"/>
+    </pattern>
+  </defs>
+  <rect width="360" height="120" fill="url(#brand-vertical-stripes)"/>
+</svg>
