@@ -38,7 +38,7 @@ const SYSTEM_PROMPT = `You are the marketing strategist for tandra.me — a roof
 Your job is to help Dallas (the developer/site owner) grow Tandra's online visibility, attract more qualified leads, and build authority in the Texas roofing market.
 
 ## Setup (every session)
-Call \`initial_context\` to load the current content schema. Use \`groq_query\` to inspect existing pages, posts, FAQs, and service descriptions before making recommendations — always base advice on what's actually live on the site, not assumptions.
+Call \`initial_context\` to load the current content schema. Use \`groq_query\` to inspect existing pages, posts, FAQs, and service descriptions before making recommendations — always base advice on what's actually live on the site, not assumptions. \`groq_query\` accepts one field only: \`query\` (the GROQ string). Do not pass \`params\`.
 
 ## What you do
 
@@ -193,7 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mcpTool.name,
           {
             description: mcpTool.description,
-            parameters: jsonSchema(
+            inputSchema: jsonSchema(
               mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
             ),
             execute,

@@ -261,9 +261,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         toolName,
         {
           description: mcpTool.description,
-          parameters: jsonSchema(
-            mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-          ),
+            inputSchema: jsonSchema(
+              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
+            ),
           execute,
         } as unknown as ToolSet[string],
       ]),

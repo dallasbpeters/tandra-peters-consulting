@@ -188,7 +188,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // overload resolution for tool() in v6 requires the cast.
           {
             description: mcpTool.description,
-            parameters: jsonSchema(
+            inputSchema: jsonSchema(
               mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
             ),
             execute,

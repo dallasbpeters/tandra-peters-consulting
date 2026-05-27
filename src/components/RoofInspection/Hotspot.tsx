@@ -322,8 +322,12 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
             <p style={cardNumStyle}>{chapter.id}.</p>
             <h3 style={cardTitleStyle}>{chapter.callout.title}</h3>
             <p style={cardBodyStyle}>{chapter.callout.body}</p>
-            <span style={cardWatchLabelStyle}>What to watch for</span>
-            <p style={cardWatchStyle}>{chapter.callout.watchFor}</p>
+            {chapter.callout.watchFor && (
+              <>
+                <span style={cardWatchLabelStyle}>What to watch for</span>
+                <p style={cardWatchStyle}>{chapter.callout.watchFor}</p>
+              </>
+            )}
           </aside>,
           document.body,
         )}
