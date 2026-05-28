@@ -29,6 +29,14 @@ export const roofInspectionSectionType = defineType({
       initialValue: 'Inspection.',
     }),
     defineField({
+      name: 'subtitle',
+      title: 'Title — line 3 (plain)',
+      type: 'string',
+      description:
+        'Third line under the main heading in the left rail (e.g. "Seven things I check on every roof.").',
+      initialValue: 'Seven things I check on every roof.',
+    }),
+    defineField({
       name: 'lede',
       title: 'Lede',
       type: 'text',

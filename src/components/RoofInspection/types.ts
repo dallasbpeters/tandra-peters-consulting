@@ -25,6 +25,11 @@ export type Direction = "top" | "right" | "left" | "bottom";
  * in Sanity before 3D coordinates are available without breaking the UI.
  */
 export type Chapter = {
+  /**
+   * Sanity array `_key` when this chapter was mapped from CMS data.
+   * Used for stable React keys when coordinates change.
+   */
+  sanityKey?: string;
   /** Numeric string identifier, e.g. `"1"` through `"7"`. */
   id: string;
   /** Roman-numeral string shown in the rail, e.g. `"i"`, `"vii"`. */

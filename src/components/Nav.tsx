@@ -15,10 +15,7 @@ export const Nav: React.FC<NavProps> = ({
   imageSrc = "/tandra.png",
   navItems = [
     { name: "Services", href: "#services" },
-    { name: "About Tandra", href: "#about-tandra" },
     { name: "Testimonials", href: "#testimonials" },
-    { name: "FAQ", href: "#faq" },
-    { name: "Contact", href: "#contact" },
   ],
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",

@@ -1,0 +1,129 @@
+/* Dev-only axis compass — breakpoints live here per project convention. */
+.ri-dev-compass {
+  position: absolute;
+  right: 0.625rem;
+  bottom: 0.625rem;
+  z-index: 20;
+  width: 11.5rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+  border-radius: 4px;
+  background: color-mix(in oklch, oklch(18% 0.02 260) 88%, transparent);
+  color: oklch(96% 0.01 260);
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 4px 16px color-mix(in oklch, oklch(0% 0 0) 35%, transparent);
+}
+
+.ri-dev-compass__title {
+  margin: 0 0 0.375rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: oklch(78% 0.04 260);
+}
+
+.ri-dev-compass__gizmo {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: 0 auto 0.5rem;
+}
+
+.ri-dev-compass__gizmo-line {
+  stroke-linecap: round;
+}
+
+.ri-dev-compass__gizmo-label {
+  font-size: 7px;
+  font-weight: 700;
+  font-family: Menlo, monospace;
+}
+
+.ri-dev-compass__legend {
+  margin: 0;
+  display: grid;
+  gap: 0.125rem;
+}
+
+.ri-dev-compass__legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.ri-dev-compass__swatch {
+  flex: 0 0 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1px;
+}
+
+.ri-dev-compass__swatch--x {
+  background: #ff5c5c;
+}
+
+.ri-dev-compass__swatch--y {
+  background: #6ee07a;
+}
+
+.ri-dev-compass__swatch--z {
+  background: #6eb5ff;
+}
+
+.ri-dev-compass__swatch--nx {
+  background: repeating-linear-gradient(
+    135deg,
+    #ffb86c 0 2px,
+    transparent 2px 4px
+  );
+  border: 1px solid #ffb86c;
+}
+
+.ri-dev-compass__swatch--ny {
+  background: repeating-linear-gradient(
+    135deg,
+    #c8f075 0 2px,
+    transparent 2px 4px
+  );
+  border: 1px solid #c8f075;
+}
+
+.ri-dev-compass__swatch--nz {
+  background: repeating-linear-gradient(
+    135deg,
+    #a8d4ff 0 2px,
+    transparent 2px 4px
+  );
+  border: 1px solid #a8d4ff;
+}
+
+.ri-dev-compass__hint {
+  margin: 0.5rem 0 0;
+  padding-top: 0.375rem;
+  border-top: 1px solid color-mix(in oklch, oklch(100% 0 0) 12%, transparent);
+  color: oklch(72% 0.02 260);
+}
+
+.ri-dev-compass__sample {
+  margin-top: 0.375rem;
+  padding: 0.375rem;
+  border-radius: 3px;
+  background: color-mix(in oklch, oklch(100% 0 0) 6%, transparent);
+}
+
+.ri-dev-compass__sample dt {
+  margin: 0.25rem 0 0;
+  font-weight: 600;
+  color: oklch(82% 0.03 260);
+}
+
+.ri-dev-compass__sample dt:first-child {
+  margin-top: 0;
+}
+
+.ri-dev-compass__sample dd {
+  margin: 0.125rem 0 0;
+}

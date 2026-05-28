@@ -1,0 +1,141 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e6]:
+        - generic [ref=e8]: Birdcreek Roofing consultant · Austin, TX
+        - heading "Your Roof. Our Expertise." [level=1] [ref=e9]:
+          - text: Your Roof.
+          - text: Our Expertise.
+        - paragraph [ref=e11]: Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.
+    - contentinfo [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: Tandra Peters
+        - generic [ref=e30]: Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.
+        - generic [ref=e31]:
+          - link "Visit my Instagram" [ref=e32] [cursor=pointer]:
+            - /url: https://www.instagram.com/tandra/
+            - img [ref=e33]
+          - link "Visit my LinkedIn" [ref=e37] [cursor=pointer]:
+            - /url: https://www.linkedin.com/in/tandra-peters-b8b38026/
+            - img [ref=e38]
+          - link "Visit my Facebook" [ref=e42] [cursor=pointer]:
+            - /url: https://www.facebook.com/tandra.peters.3
+            - img [ref=e43]
+      - generic [ref=e45]:
+        - button "Sign in" [ref=e46] [cursor=pointer]
+        - paragraph [ref=e47]: © 2026 Tandra Peters. All Rights Reserved.
+        - paragraph [ref=e48]: Birdcreek Roofing
+  - button "v3.0.2 Output Detail Standard React Components Hide Until Restart Marker Color Clear on copy/send Block page interactions Manage MCP & Webhooks Manage MCP & Webhooks MCP Connection MCP connection allows agents to receive and act on annotations. Learn more Webhooks Auto-Send The webhook URL will receive live annotation changes and annotation data." [ref=e52] [cursor=pointer]:
+    - img [ref=e54]
+    - generic:
+      - generic:
+        - button:
+          - img
+      - generic:
+        - button:
+          - img
+      - generic:
+        - button [disabled]:
+          - img
+      - generic:
+        - button [disabled]:
+          - img
+      - generic:
+        - button [disabled]:
+          - img
+      - generic:
+        - button [disabled]:
+          - img
+      - generic:
+        - button:
+          - img
+      - generic:
+        - button:
+          - img
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - link:
+              - /url: https://agentation.com
+              - img
+            - paragraph: v3.0.2
+            - button "Switch to light mode":
+              - generic:
+                - generic:
+                  - img
+          - generic:
+            - generic:
+              - generic:
+                - text: Output Detail
+                - generic:
+                  - img
+              - button "Standard":
+                - generic: Standard
+            - generic:
+              - generic:
+                - text: React Components
+                - generic:
+                  - img
+              - generic:
+                - checkbox [checked]
+            - generic:
+              - generic:
+                - text: Hide Until Restart
+                - generic:
+                  - img
+              - generic:
+                - checkbox
+          - generic:
+            - generic: Marker Color
+            - generic:
+              - button "Indigo"
+              - button "Blue"
+              - button "Cyan"
+              - button "Green"
+              - button "Yellow"
+              - button "Orange"
+              - button "Red"
+          - generic:
+            - generic:
+              - generic:
+                - checkbox "Clear on copy/send"
+                - img
+              - generic: Clear on copy/send
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - checkbox "Block page interactions" [checked]
+                - img
+              - generic: Block page interactions
+          - button "Manage MCP & Webhooks":
+            - generic: Manage MCP & Webhooks
+            - generic:
+              - img
+        - generic:
+          - button "Manage MCP & Webhooks":
+            - img
+            - generic: Manage MCP & Webhooks
+          - generic:
+            - generic:
+              - generic:
+                - text: MCP Connection
+                - generic:
+                  - img
+            - paragraph:
+              - text: MCP connection allows agents to receive and act on annotations.
+              - link "Learn more":
+                - /url: https://agentation.dev/mcp
+          - generic:
+            - generic:
+              - generic:
+                - text: Webhooks
+                - generic:
+                  - img
+              - generic:
+                - generic: Auto-Send
+                - generic:
+                  - checkbox "Auto-Send" [checked] [disabled]
+            - paragraph: The webhook URL will receive live annotation changes and annotation data.
+            - textbox "Webhook URL"

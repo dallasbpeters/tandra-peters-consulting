@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import css from "@eslint/css";
 import { defineConfig } from "eslint/config";
 
@@ -11,6 +12,7 @@ export default defineConfig([
   {
     ignores: [
       ".config/**",
+      ".remotion/**",
       "dist/**",
       "node_modules/**",
       "public/**",
@@ -36,6 +38,7 @@ export default defineConfig([
   { files: jsFiles, settings: { react: { version: "19" } } },
   {
     files: jsFiles,
+    plugins: { "jsx-a11y": jsxA11y },
     rules: {
       "react/prop-types": "off",
       "@typescript-eslint/no-unused-vars": [
@@ -46,6 +49,18 @@ export default defineConfig([
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      "jsx-a11y/alt-text": [
+      "warn",
+      {
+        elements: ["img"],
+      },
+    ],
+    "jsx-a11y/aria-props": "warn",
+    "jsx-a11y/aria-proptypes": "warn",
+    "jsx-a11y/aria-unsupported-elements": "warn",
+    "jsx-a11y/role-has-required-aria-props": "warn",
+    "jsx-a11y/role-supports-aria-props": "warn",
+    "react/no-unknown-property": "off",
     },
   },
   {

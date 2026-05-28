@@ -1,7 +1,9 @@
 /**
- * Pre-computes Texas county SVG path strings for a 960×580 viewBox.
+ * Pre-computes Texas service-county SVG paths for a 960×580 viewBox.
+ * Source: src/data/texas-service-counties.geojson (Cartographic boundary extract).
  * Run with: node scripts/build-texas-geo.mjs
- * Output: src/components/texasCounties.json
+ * Output: src/components/texasCounties.json, src/components/serviceAreas.json,
+ *         src/components/texasStateOutline.json
  */
 import { readFileSync, writeFileSync } from "fs";
 import { feature } from "topojson-client";
@@ -10,8 +12,6 @@ import {
   geoBounds,
 } from "../node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/index.js";
 
-// Manual path builder — bypasses geoPath's sphere/antimeridian clip frames
-// which cause every county to render as a transparent hole.
 function ringToD(ring) {
   if (ring.length < 2) return "";
   return (
@@ -50,27 +50,17 @@ function centroidOf(geometry, project) {
 
 const MAP_W = 960;
 const MAP_H = 580;
-const PADDING = 20;
+const PADDING = 36;
 
-const FIPS_TO_KEY = {
-  48453: "travis",
-  48491: "williamson",
-  48209: "hays",
-  48021: "bastrop",
-  48055: "caldwell",
-  48091: "comal",
-  48187: "guadalupe",
-  48259: "kendall",
-  48029: "bexar",
-  48265: "kerr",
-  48171: "gillespie",
-  48031: "blanco",
-  48027: "bell",
-  48309: "mclennan",
-  48439: "tarrant",
-  48303: "lubbock",
-  48375: "potter",
-  48381: "randall",
+/** Counties kept in texas-service-counties.geojson — Amarillo, Lubbock, Austin + 4 neighbors. */
+const NAME_TO_KEY = {
+  Potter: "potter",
+  Lubbock: "lubbock",
+  Travis: "travis",
+  Williamson: "williamson",
+  Hays: "hays",
+  Bastrop: "bastrop",
+  Caldwell: "caldwell",
 };
 
 const KEY_TO_CITY = {
@@ -79,36 +69,24 @@ const KEY_TO_CITY = {
   hays: "San Marcos",
   bastrop: "Bastrop",
   caldwell: "Lockhart",
-  comal: "New Braunfels",
-  guadalupe: "Seguin",
-  kendall: "Boerne",
-  bexar: "San Antonio",
-  kerr: "Kerrville",
-  gillespie: "Fredericksburg",
-  blanco: "Johnson City",
-  bell: "Temple",
-  mclennan: "Waco",
-  tarrant: "Fort Worth",
   lubbock: "Lubbock",
   potter: "Amarillo",
-  randall: "Canyon",
 };
 
-// 1. Load TopoJSON and extract all Texas county features
-const topo = JSON.parse(
-  readFileSync("./node_modules/us-atlas/counties-10m.json", "utf8"),
-);
-const all = feature(topo, topo.objects.counties);
-const texas = all.features.filter((f) => String(f.id ?? "").startsWith("48"));
-
-console.log("Texas counties:", texas.length);
-console.log(
-  "geoBounds:",
-  JSON.stringify(geoBounds({ type: "FeatureCollection", features: texas })),
+const geo = JSON.parse(
+  readFileSync("./src/data/texas-service-counties.geojson", "utf8"),
 );
 
-// 2. Build the projection fitted to all 254 Texas counties
-const collection = { type: "FeatureCollection", features: texas };
+const features = geo.features.filter((f) => NAME_TO_KEY[f.properties?.name]);
+if (features.length !== Object.keys(NAME_TO_KEY).length) {
+  const got = new Set(features.map((f) => f.properties.name));
+  const missing = Object.keys(NAME_TO_KEY).filter((n) => !got.has(n));
+  throw new Error(`Missing counties in geojson: ${missing.join(", ")}`);
+}
+
+const collection = { type: "FeatureCollection", features };
+const [[west, south], [east, north]] = geoBounds(collection);
+
 const projection = geoMercator().fitExtent(
   [
     [PADDING, PADDING],
@@ -117,53 +95,102 @@ const projection = geoMercator().fitExtent(
   collection,
 );
 
-console.log("Projection scale:", projection.scale().toFixed(2));
-console.log(
-  "Projection translate:",
-  projection.translate().map((v) => v.toFixed(2)),
-);
-
-// 3. Pre-compute centroid + path string for every county.
-//    We manually project coordinates + build SVG "d" strings instead of using
-//    geoPath(projection) to avoid D3's sphere/antimeridian clip frame, which
-//    produces compound sub-paths that punch counties transparent in the browser.
-const counties = texas.map((f) => {
-  const fips = String(f.id ?? "");
-  const key = FIPS_TO_KEY[fips] ?? null;
+const counties = features.map((f) => {
+  const name = f.properties.name;
+  const key = NAME_TO_KEY[name];
+  const fips = String(f.properties.geoid ?? "");
+  const [cx, cy] = centroidOf(f.geometry, projection);
 
   return {
     fips,
     key,
-    name: f.properties?.name ?? fips,
-    city: key ? KEY_TO_CITY[key] : null,
-    ...(() => {
-      const [cx, cy] = centroidOf(f.geometry, projection);
-      return { cx, cy };
-    })(),
+    name,
+    city: KEY_TO_CITY[key] ?? null,
+    cx,
+    cy,
     d: featureToD(f.geometry, projection),
   };
 });
 
-// 4. Write output
-const output = { mapW: MAP_W, mapH: MAP_H, counties };
-writeFileSync("./src/components/texasCounties.json", JSON.stringify(output));
+counties.sort((a, b) => a.name.localeCompare(b.name));
+
+const projectedBounds = counties.reduce(
+  (acc, c) => {
+    const nums = c.d.match(/-?\d+\.?\d*/g)?.map(Number) ?? [];
+    for (let i = 0; i < nums.length; i += 2) {
+      const x = nums[i];
+      const y = nums[i + 1];
+      if (x === undefined || y === undefined) continue;
+      acc.minX = Math.min(acc.minX, x);
+      acc.minY = Math.min(acc.minY, y);
+      acc.maxX = Math.max(acc.maxX, x);
+      acc.maxY = Math.max(acc.maxY, y);
+    }
+    return acc;
+  },
+  { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
+);
+
+const vbPad = 24;
+const defaultViewBox = {
+  x: Math.floor(projectedBounds.minX - vbPad),
+  y: Math.floor(projectedBounds.minY - vbPad),
+  w: Math.ceil(projectedBounds.maxX - projectedBounds.minX + vbPad * 2),
+  h: Math.ceil(projectedBounds.maxY - projectedBounds.minY + vbPad * 2),
+};
+
+const texasOutput = {
+  mapW: MAP_W,
+  mapH: MAP_H,
+  defaultViewBox,
+  counties,
+};
+
+writeFileSync(
+  "./src/components/texasCounties.json",
+  JSON.stringify(texasOutput),
+);
+
+const serviceAreasOutput = {
+  type: "FeatureCollection",
+  features: features.map((f) => {
+    const key = NAME_TO_KEY[f.properties.name];
+    return {
+      type: "Feature",
+      properties: {
+        id: key,
+        name: f.properties.name,
+        city: KEY_TO_CITY[key] ?? null,
+        geoid: f.properties.geoid,
+      },
+      geometry: f.geometry,
+    };
+  }),
+};
+
+writeFileSync(
+  "./src/components/serviceAreas.json",
+  JSON.stringify(serviceAreasOutput),
+);
+
+const statesTopo = JSON.parse(
+  readFileSync("./node_modules/us-atlas/states-10m.json", "utf8"),
+);
+const stateFeatures = feature(statesTopo, statesTopo.objects.states).features;
+const texasState = stateFeatures.find((f) => String(f.id) === "48");
+if (!texasState) throw new Error("Texas state feature not found in us-atlas");
+
+writeFileSync(
+  "./src/components/texasStateOutline.json",
+  JSON.stringify({
+    type: "FeatureCollection",
+    features: [texasState],
+  }),
+);
 
 console.log("✓  Written src/components/texasCounties.json");
-console.log("   Size (KB):", Math.round(JSON.stringify(output).length / 1024));
-console.log(
-  "   Service counties:",
-  counties
-    .filter((c) => c.key)
-    .map((c) => c.key)
-    .join(", "),
-);
-
-// Sanity check: show projected corners
-console.log(
-  "NW corner (Panhandle):",
-  projection([-106.65, 36.5]).map((v) => v.toFixed(1)),
-);
-console.log(
-  "SE corner (S Texas):",
-  projection([-93.52, 25.84]).map((v) => v.toFixed(1)),
-);
+console.log("✓  Written src/components/serviceAreas.json");
+console.log("✓  Written src/components/texasStateOutline.json");
+console.log("   Counties:", counties.map((c) => c.key).join(", "));
+console.log("   defaultViewBox:", defaultViewBox);
+console.log("   WGS84 bounds:", { west, south, east, north });

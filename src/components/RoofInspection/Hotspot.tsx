@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { mix, theme } from "../../theme";
 import { useIsMobile } from "../../hooks/isMobile";
 import { useRoofInspection } from "./context";
+import { syncModelViewerHotspot } from "./modelViewerHotspot";
 import type { Chapter, Direction } from "./types";
 
 type HotspotProps = {
@@ -128,6 +129,28 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
 
   // Cancel any pending close on unmount
   useEffect(() => clearSharedClose, []);
+
+  // model-viewer reads data-position only when a slotted child is added.
+  // Attribute edits alone do not move dots — call updateHotspot (or remount).
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el || !chapter.position3d) {
+      return;
+    }
+
+    el.setAttribute("data-position", chapter.position3d);
+    if (chapter.normal3d) {
+      el.setAttribute("data-normal", chapter.normal3d);
+    } else {
+      el.removeAttribute("data-normal");
+    }
+
+    syncModelViewerHotspot(
+      `hotspot-${chapter.id}`,
+      chapter.position3d,
+      chapter.normal3d,
+    );
+  }, [chapter.id, chapter.position3d, chapter.normal3d]);
 
   const is3d = Boolean(chapter.position3d);
 

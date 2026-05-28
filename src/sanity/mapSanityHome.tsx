@@ -489,6 +489,22 @@ type RawHotspot = Record<string, unknown>;
 const isRawHotspot = (value: unknown): value is RawHotspot =>
   typeof value === "object" && value !== null;
 
+const toFiniteNumber = (value: unknown): number | undefined => {
+  const cleaned =
+    typeof value === "string" || typeof value === "number"
+      ? stegaClean(value)
+      : value;
+
+  if (typeof cleaned === "number" && Number.isFinite(cleaned)) {
+    return cleaned;
+  }
+  if (typeof cleaned === "string" && cleaned.trim()) {
+    const parsed = Number(cleaned.trim());
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+};
+
 export const mapRoofInspectionProps = (
   data: SanityDoc,
 ): Partial<RoofInspectionSectionProps> => {
@@ -504,6 +520,9 @@ export const mapRoofInspectionProps = (
   }
   if (typeof data.titleLine2 === "string" && data.titleLine2.trim()) {
     out.titleLine2 = stegaClean(data.titleLine2).trim();
+  }
+  if (typeof data.subtitle === "string" && data.subtitle.trim()) {
+    out.subtitle = stegaClean(data.subtitle).trim();
   }
   if (typeof data.lede === "string" && data.lede.trim()) {
     out.lede = stegaClean(data.lede).trim();
@@ -532,6 +551,7 @@ export const mapRoofInspectionProps = (
           typeof h.watchFor === "string",
       )
       .map((h): RoofInspectionHotspotData => ({
+        ...(typeof h._key === "string" ? { _key: h._key } : {}),
         label: stegaClean(h.label as string).trim(),
         direction: stegaClean(
           h.direction as string,
@@ -539,12 +559,24 @@ export const mapRoofInspectionProps = (
         calloutTitle: stegaClean(h.calloutTitle as string).trim(),
         calloutBody: stegaClean(h.calloutBody as string).trim(),
         watchFor: stegaClean(h.watchFor as string).trim(),
-        ...(typeof h.pos3dX === "number" ? { pos3dX: h.pos3dX } : {}),
-        ...(typeof h.pos3dY === "number" ? { pos3dY: h.pos3dY } : {}),
-        ...(typeof h.pos3dZ === "number" ? { pos3dZ: h.pos3dZ } : {}),
-        ...(typeof h.norm3dX === "number" ? { norm3dX: h.norm3dX } : {}),
-        ...(typeof h.norm3dY === "number" ? { norm3dY: h.norm3dY } : {}),
-        ...(typeof h.norm3dZ === "number" ? { norm3dZ: h.norm3dZ } : {}),
+        ...(toFiniteNumber(h.pos3dX) !== undefined
+          ? { pos3dX: toFiniteNumber(h.pos3dX) }
+          : {}),
+        ...(toFiniteNumber(h.pos3dY) !== undefined
+          ? { pos3dY: toFiniteNumber(h.pos3dY) }
+          : {}),
+        ...(toFiniteNumber(h.pos3dZ) !== undefined
+          ? { pos3dZ: toFiniteNumber(h.pos3dZ) }
+          : {}),
+        ...(toFiniteNumber(h.norm3dX) !== undefined
+          ? { norm3dX: toFiniteNumber(h.norm3dX) }
+          : {}),
+        ...(toFiniteNumber(h.norm3dY) !== undefined
+          ? { norm3dY: toFiniteNumber(h.norm3dY) }
+          : {}),
+        ...(toFiniteNumber(h.norm3dZ) !== undefined
+          ? { norm3dZ: toFiniteNumber(h.norm3dZ) }
+          : {}),
       }));
 
     if (mapped.length > 0) {

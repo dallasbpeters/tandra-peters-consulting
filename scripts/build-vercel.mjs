@@ -60,3 +60,10 @@ if (existsSync(path.join(studioTempDir, "vendor"))) {
 }
 
 rmSync(studioTempDir, { recursive: true, force: true });
+
+if (process.env.SKIP_REMOTION_SNAPSHOT === "1") {
+  console.log("[build:vercel] Skipping Remotion sandbox snapshot (SKIP_REMOTION_SNAPSHOT=1).");
+} else {
+  console.log("[build:vercel] Creating Remotion sandbox snapshot...");
+  run("node", ["scripts/create-remotion-snapshot.mjs"]);
+}

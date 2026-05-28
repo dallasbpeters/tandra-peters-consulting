@@ -40,11 +40,13 @@ const presentationPerspectiveFromUrl = (): boolean => {
  * Draft perspective when: Presentation iframe / preview URL, or local dev with a viewer token
  * (so /articles shows draft posts before publish — same as Studio).
  */
-const useDraftsPerspective = (): boolean =>
+export const isSanityDraftPreviewActive = (): boolean =>
   stegaEnabled() ||
   presentationPerspectiveFromUrl() ||
   (import.meta.env.DEV &&
     Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
+
+const useDraftsPerspective = isSanityDraftPreviewActive;
 
 /** Viewer token for draft reads — only used together with `perspective: "drafts"`. */
 const readTokenWhenDrafts = (drafts: boolean): string | undefined => {
@@ -71,7 +73,8 @@ export const getSanityClient = (): SanityClient => {
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
-    useCdn: import.meta.env.PROD && !drafts,
+    // CDN allows browser reads without a token; api.sanity.io requires auth (CORS).
+    useCdn: !drafts,
     ...(drafts ? { perspective: "drafts" as const } : {}),
     ...(token ? { token, ignoreBrowserTokenWarning: true } : {}),
     stega: {

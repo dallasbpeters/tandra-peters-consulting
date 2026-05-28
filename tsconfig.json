@@ -4,6 +4,7 @@
     "api",
     "contactServiceOptions.ts",
     "vite.config.ts",
+    "eslint.config.ts",
     "plugins/**/*.ts"
   ],
   "exclude": ["studio-tandra-peters", "dist", "node_modules"],
@@ -22,7 +23,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "iconoir-react": ["./node_modules/iconoir-react/dist/index.d.ts"]
+      "iconoir-react": ["./node_modules/iconoir-react/dist/index.d.ts"],
+      "@/components": ["./src/components"],
+      "@/data": ["./src/data"]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true

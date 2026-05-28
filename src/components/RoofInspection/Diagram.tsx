@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { theme } from "../../theme";
+import { DevViewerCompass } from "./DevViewerCompass";
 import { useCameraContext } from "./context";
 
 type DiagramProps = {
@@ -70,6 +71,7 @@ export const Diagram: React.FC<DiagramProps> = ({
       cameraOrbit: string;
       cameraTarget: string;
       fieldOfView: string;
+      jumpCameraToGoal?: () => void;
     }
   >(null);
 
@@ -82,6 +84,7 @@ export const Diagram: React.FC<DiagramProps> = ({
     if (view.cameraOrbit) mv.cameraOrbit = view.cameraOrbit;
     if (view.cameraTarget) mv.cameraTarget = view.cameraTarget;
     if (view.fieldOfView) mv.fieldOfView = view.fieldOfView;
+    mv.jumpCameraToGoal?.();
   }, [activeViewId, views]);
 
   // Explicit chapter click (rail) → rotate camera to face the hotspot.
@@ -230,6 +233,7 @@ export const Diagram: React.FC<DiagramProps> = ({
       >
         {children}
       </model-viewer>
+      {import.meta.env.DEV ? <DevViewerCompass /> : null}
     </div>
   );
 };

@@ -125,8 +125,8 @@ export const CHAPTERS: Chapter[] = [
       watchFor:
         "Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.",
     },
-    position3d: "-1.1556999860331416m 3.789993817368646m -1.7539746932512665m",
-    normal3d: "-1m -2.44547375624058e-27m 1.1102230246251565e-16m",
+    position3d: "2.786666m 3.137488m -4.41213m",
+    normal3d: "-1m 0m 0m",
   },
 ];
 
@@ -170,10 +170,11 @@ export const VIEWS: View[] = [
   {
     id: "penetration",
     label: "At a penetration",
-    // Above-rear angle — ridge, vent, and upper field shingles visible
+    // Close field pipe boot on the upper field — target/orbit tuned for the
+    // re-exported roof.glb (world origin shifted ~+3.94m X, -0.65m Y, -2.66m Z
+    // vs the original SimLab export). Previous target was `.7m auto .1m`.
     cameraOrbit: "0deg 10deg 55%",
-    cameraTarget: ".7m auto .1m",
-    fieldOfView: "0deg",
-    interpolationDecay: "0.5",
+    cameraTarget: "4.82m 3.89m -2.89m",
+    fieldOfView: "auto",
   },
 ];

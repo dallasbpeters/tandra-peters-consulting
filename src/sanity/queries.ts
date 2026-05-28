@@ -96,9 +96,11 @@ export const HOME_AND_SITE_QUERY = groq`{
       kicker,
       titleLine1,
       titleLine2,
+      subtitle,
       lede,
       "diagramImage": diagramImage { asset->{ url } },
       hotspots[] {
+        _key,
         label,
         direction,
         calloutTitle,

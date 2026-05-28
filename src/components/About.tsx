@@ -5,7 +5,7 @@ import { mix, theme } from "../theme";
 import { AboutProps } from "../types";
 import { RichText } from "../portableText/RichText";
 import { asRichTextValue } from "../portableText/value";
-import { Shader, DotGrid } from "shaders/react";
+import { Shader, Dither, LinearGradient } from "shaders/react";
 
 const DEFAULT_ABOUT_PARAGRAPHS = [
   "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
@@ -117,7 +117,7 @@ export const About: React.FC<AboutProps> = ({
             className="md-block"
           >
             <p style={{ fontFamily: theme.fonts.headline, fontWeight: 900, color: theme.colors.white, fontSize: "3rem", letterSpacing: "-0.05em", lineHeight: 1, margin: 0 }}>{badgeText}</p>
-            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
+            <p style={{ fontFamily: theme.fonts.headline, fontWeight: 800, color: theme.colors.textOnBrand, fontSize: "11px", textTransform: "none", letterSpacing: "0.3em", marginTop: "0.5rem", margin: 0 }}>{badgeSubtext}</p>
           </motion.div> */}
         </motion.div>
         <motion.div
@@ -164,11 +164,23 @@ export const About: React.FC<AboutProps> = ({
         </motion.div>
       </div>
       <Shader style={shaderStyle}>
-        <DotGrid
-          color={theme.palette.everglade[900]}
-          density={100}
-          opacity={0.1}
+        <LinearGradient
+          colorA="#ebebeb"
+          colorB="#ffffff"
+          colorSpace="oklab"
+          end={{
+            x: 0.92,
+
+            y: 0.81,
+          }}
+          start={{
+            x: 0.18,
+
+            y: 0.23,
+          }}
         />
+
+        <Dither blendMode="colorDodge" colorMode="source" pattern="bayer8" />
       </Shader>
     </section>
   );

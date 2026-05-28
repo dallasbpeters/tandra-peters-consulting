@@ -228,6 +228,8 @@ export interface ServiceAreaMapProps {
 }
 
 export interface RoofInspectionHotspotData {
+  /** Sanity array item key — stable identity for React keys across edits. */
+  _key?: string;
   /** Short nav label shown in the left rail. */
   label: string;
   direction: "top" | "right" | "left" | "bottom";
@@ -248,6 +250,8 @@ export interface RoofInspectionSectionProps {
   kicker?: string;
   titleLine1?: string;
   titleLine2?: string;
+  /** Third title line under the main heading in the rail. */
+  subtitle?: string;
   lede?: string;
   /** URL of the diagram image. Defaults to /roof-sidecut.svg. */
   diagramImageUrl?: string;

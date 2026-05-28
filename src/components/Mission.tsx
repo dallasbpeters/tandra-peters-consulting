@@ -87,7 +87,7 @@ export const Mission: React.FC<MissionProps> = ({
 
   const secondaryCardStyle: React.CSSProperties = {
     ...cardBaseStyle,
-    minHeight: "420px",
+    minHeight: "300px",
   };
 
   return (

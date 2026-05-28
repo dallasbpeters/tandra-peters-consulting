@@ -18,7 +18,8 @@ export const roofInspectionHotspotType = defineType({
       name: 'label',
       title: 'Chapter label',
       type: 'string',
-      description: 'Short name shown in the left rail nav (e.g. "Ridge & ridge vent").',
+      description:
+        'Short name shown in the left rail nav (e.g. "Ridge & ridge vent"). This is separate from Callout headline — update both if you rename a chapter.',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -42,7 +43,8 @@ export const roofInspectionHotspotType = defineType({
       name: 'calloutTitle',
       title: 'Callout headline',
       type: 'string',
-      description: 'Bold heading inside the detail card (e.g. "Ridge cap & vent").',
+      description:
+        'Bold heading inside the hotspot detail card only — not the left rail. The rail uses Chapter label above.',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -73,20 +75,22 @@ export const roofInspectionHotspotType = defineType({
       name: 'pos3dX',
       title: 'Position X (m)',
       type: 'number',
-      description: 'World-space X coordinate in metres.',
-      group: undefined,
+      description:
+        'World-space X in metres (model-viewer). Publish Home page after editing. Draft coords only appear on the site with VITE_SANITY_API_READ_TOKEN or after publish.',
     }),
     defineField({
       name: 'pos3dY',
       title: 'Position Y (m)',
       type: 'number',
-      description: 'World-space Y coordinate in metres.',
+      description:
+        'World-space Y in metres. Publish Home page after editing, or use Presentation preview for drafts.',
     }),
     defineField({
       name: 'pos3dZ',
       title: 'Position Z (m)',
       type: 'number',
-      description: 'World-space Z coordinate in metres.',
+      description:
+        'World-space Z in metres. Publish Home page after editing, or use Presentation preview for drafts.',
     }),
     // ── 3D surface normal ─────────────────────────────────────────────────────
     defineField({

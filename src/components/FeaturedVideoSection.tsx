@@ -120,7 +120,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
   );
 
   const handleProgressPointerDown = (
-    event: React.PointerEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLDivElement>,
   ) => {
     event.preventDefault();
     setIsDraggingProgress(true);
@@ -129,7 +129,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
   };
 
   const handleProgressPointerMove = (
-    event: React.PointerEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLDivElement>,
   ) => {
     if (!isDraggingProgress) {
       return;
@@ -139,7 +139,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
   };
 
   const handleProgressPointerUp = (
-    event: React.PointerEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLDivElement>,
   ) => {
     if (!isDraggingProgress) {
       return;
@@ -152,7 +152,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
   };
 
   const handleProgressKeyDown = (
-    event: React.KeyboardEvent<HTMLButtonElement>,
+    event: React.KeyboardEvent<HTMLDivElement>,
   ) => {
     const node = videoRef.current;
     if (!node || duration <= 0) {
@@ -271,10 +271,12 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
           />
 
           <div className="featured-video__progress">
-            <button
-              type="button"
+            <div
+              role="slider"
+              tabIndex={0}
               className="featured-video__progress-hit"
               aria-label="Seek video"
+              aria-orientation="horizontal"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progressPercent}
@@ -297,7 +299,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl }: Props) {
                   }}
                 />
               </span>
-            </button>
+            </div>
           </div>
 
           <motion.button

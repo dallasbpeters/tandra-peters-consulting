@@ -36,11 +36,6 @@ const cleanTitleTopic = (title: string): string => {
   );
 };
 
-const lowerTopic = (value: string): string => {
-  const cleaned = stripTrailingPunctuation(normalizeSentence(value));
-  return cleaned ? cleaned.toLowerCase() : "this roofing topic";
-};
-
 const formatQuestionTopic = (value: string): string => {
   const cleaned = stripTrailingPunctuation(cleanTitleTopic(value));
   return cleaned ? cleaned.toLowerCase() : "this roofing topic";

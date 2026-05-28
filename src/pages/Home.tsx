@@ -17,7 +17,7 @@ import { SocialShareBar } from "../components/SocialShareBar";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 // import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
-// import { ServiceAreaMap } from "../components/ServiceAreaMap";
+import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/SanitySiteContext";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -33,7 +33,7 @@ import {
  mapStatsProps,
  mapMissionProps,
  mapServicesProps,
-//  mapServiceAreaMapProps,
+ mapServiceAreaMapProps,
   mapSocialShareProps,
  mapTestimonialsProps,
  mapRoofInspectionProps,
@@ -45,6 +45,10 @@ import {
  type Chapter,
 } from "../components/RoofInspection";
 import type { RoofInspectionHotspotData } from "../types";
+import {
+  hotspotCoordKey,
+  parseHotspotCoords,
+} from "../components/RoofInspection/hotspotCoords";
 
 export const Home = () => {
   const { data } = useSanitySite();
@@ -82,9 +86,9 @@ export const Home = () => {
 //    | undefined;
  const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
-//  const serviceAreaMap = home?.serviceAreaMap as
-//    | Record<string, unknown>
-//    | undefined;
+ const serviceAreaMap = home?.serviceAreaMap as
+   | Record<string, unknown>
+   | undefined;
  const roofInspectionData = home?.roofInspection as
    | Record<string, unknown>
    | undefined;
@@ -123,18 +127,7 @@ export const Home = () => {
    roofInspection.hotspots && roofInspection.hotspots.length > 0
      ? roofInspection.hotspots.map(
          (h: RoofInspectionHotspotData, i: number): Chapter => {
-           const position3d =
-             typeof h.pos3dX === "number" &&
-             typeof h.pos3dY === "number" &&
-             typeof h.pos3dZ === "number"
-               ? `${h.pos3dX}m ${h.pos3dY}m ${h.pos3dZ}m`
-               : undefined;
-           const normal3d =
-             typeof h.norm3dX === "number" &&
-             typeof h.norm3dY === "number" &&
-             typeof h.norm3dZ === "number"
-               ? `${h.norm3dX}m ${h.norm3dY}m ${h.norm3dZ}m`
-               : undefined;
+           const { position3d, normal3d } = parseHotspotCoords(h);
            return {
              id: String(i + 1),
              num: ROMAN[i] ?? String(i + 1),
@@ -148,27 +141,20 @@ export const Home = () => {
              },
              position3d,
              normal3d,
+             sanityKey: h._key,
            };
          },
        )
      : null;
 
- // Merge static CHAPTERS 3D coords for any chapter that has no Sanity data yet
- const activeChapters = (sanityChapters ?? CHAPTERS).map((ch) => {
-   const staticMatch = CHAPTERS.find((c) => c.id === ch.id);
-   return {
-     ...ch,
-     position3d: ch.position3d ?? staticMatch?.position3d,
-     normal3d: ch.normal3d ?? staticMatch?.normal3d,
-   };
- });
+ const activeChapters = sanityChapters ?? CHAPTERS;
 
  const inspectionTitle = (
    <>
      {roofInspection.titleLine1 ?? "The"}{" "}
      <em>{roofInspection.titleLine2 ?? "Inspection."}</em>
      <br />
-     Seven things I check on every roof.
+     {roofInspection.subtitle ?? "Seven things I check on every roof."}
    </>
  );
 
@@ -188,8 +174,8 @@ export const Home = () => {
         <About {...mapAboutProps(about)} />
         <Stats {...mapStatsProps(stats)} />
         <Services {...mapServicesProps(services)} />
-        {/* <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />  */}
-        <iframe width="100%" height="600px" title="Felt Map" src="https://felt.com/embed/map/Service-Areas-6FGD7CjURc23eyOFi3nMaA?loc=31.825%2C-99.601%2C7z&legend=1&cooperativeGestures=1&link=1&geolocation=0&zoomControls=1&scaleBar=1" referrerPolicy="strict-origin-when-cross-origin"></iframe>
+        <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+
         <RoofInspection chapters={activeChapters} views={VIEWS}>
           <RoofInspection.Rail
             kicker={roofInspection.kicker}
@@ -203,7 +189,10 @@ export const Home = () => {
             <RoofInspection.Toolbar />
             <RoofInspection.Diagram src="/roof.glb">
               {activeChapters.map((c) => (
-                <RoofInspection.Hotspot key={c.id} chapter={c} />
+                <RoofInspection.Hotspot
+                  key={`${c.sanityKey ?? c.id}-${hotspotCoordKey(c.position3d, c.normal3d)}`}
+                  chapter={c}
+                />
               ))}
             </RoofInspection.Diagram>
           </RoofInspection.Canvas>

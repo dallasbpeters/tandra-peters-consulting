@@ -31,7 +31,7 @@ const mutedText = mix(theme.colors.everglade, 50);
  * (`width ≤ 700px`) via a media query.
  */
 export const Rail: React.FC<RailProps> = ({
-  kicker = "Tandra Peters · Roof Basics",
+  kicker,
   title,
   lede,
 }) => {
@@ -125,10 +125,12 @@ export const Rail: React.FC<RailProps> = ({
       {/* stage__rail-header and stage__rail-nav become direct flex children of
           .stage on mobile via `display: contents` on the aside */}
       <div className="stage__rail-header">
-        <div style={kickerStyle}>
-          <span style={kickerRuleStyle} aria-hidden="true" />
-          <span>{kicker}</span>
-        </div>
+        {kicker ? (
+          <div style={kickerStyle}>
+            <span style={kickerRuleStyle} aria-hidden="true" />
+            <span>{kicker}</span>
+          </div>
+        ) : null}
 
         <h2 style={titleStyle}>{title}</h2>
         <p style={ledeStyle}>{lede}</p>

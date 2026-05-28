@@ -333,3 +333,14 @@
   letter-spacing: 0.02em;
   cursor: pointer;
 }
+
+/* Service area map — copy + Mapbox side by side on wide screens */
+@media (width >= 1024px) {
+  .service-area-map-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .service-area-map-copy {
+    min-height: 480px;
+  }
+}

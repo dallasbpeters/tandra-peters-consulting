@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
-import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
+import {
+  getSanityClient,
+  isSanityDraftPreviewActive,
+  isSanityStegaUiActive,
+} from "../sanity/client";
+import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
 import type { PostListItem } from "../types/article";
 
@@ -124,6 +129,35 @@ export const useSanityHomeContent = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      void refetch();
+    };
+    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
+    return () => {
+      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
+    };
+  }, [refetch]);
+
+  // Presentation / draft preview: listen for homePage mutations so hotspot
+  // coords update while typing — Visual Editing refresh alone can lag.
+  useEffect(() => {
+    if (!isSanityDraftPreviewActive()) {
+      return;
+    }
+
+    const client = getSanityClient();
+    const subscription = client
+      .listen('*[_id == "homePage"]', {}, { includeResult: false })
+      .subscribe(() => {
+        void refetch();
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetch]);
 
   return { data, loading, error, refetch };
 };

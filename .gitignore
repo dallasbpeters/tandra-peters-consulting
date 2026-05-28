@@ -7,6 +7,8 @@ coverage/
 .env*
 !.env.example
 .vercel
+.remotion/
+.studio-dist/
 .env*.local
 .env.local
 .pnpm-store/*
