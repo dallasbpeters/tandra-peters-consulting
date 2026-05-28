@@ -343,7 +343,7 @@ export const ContactSmall = ({
                   onChange={(ev) => setConsentToContact(ev.target.checked)}
                   style={checkboxStyle}
                   aria-required
-                  aria-describedby="contact-small-consent-desc"
+                  aria-labelledby="contact-small-consent-desc"
                 />
                 <p id="contact-small-consent-desc">
                   I agree to be contacted about my inquiry by email, phone, or

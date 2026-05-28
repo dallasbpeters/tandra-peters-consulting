@@ -1,5 +1,5 @@
 import React from "react";
-import { mix, theme } from "../../theme";
+import { theme } from "../../theme";
 import { useCameraContext, useRoofInspection } from "./context";
 
 type RailProps = {
@@ -11,7 +11,7 @@ type RailProps = {
   lede: string;
 };
 
-const mutedText = mix(theme.colors.everglade, 50);
+const mutedText = theme.palette.everglade["700"];
 
 /**
  * Left-hand sticky navigation panel for the roof inspection section.
@@ -50,14 +50,14 @@ export const Rail: React.FC<RailProps> = ({
     fontWeight: 700,
     letterSpacing: "0.22em",
     textTransform: "uppercase",
-    color: theme.colors.heroAccent,
+    color: theme.palette.purple["600"],
     marginBottom: "1.5rem",
   };
 
   const kickerRuleStyle: React.CSSProperties = {
     width: "1.75rem",
     height: "1px",
-    background: theme.colors.heroAccent,
+    background: theme.palette.purple["600"],
     opacity: 0.7,
     flexShrink: 0,
   };
@@ -117,7 +117,7 @@ export const Rail: React.FC<RailProps> = ({
     fontWeight: 700,
     letterSpacing: 0,
     textTransform: "none",
-    color: theme.palette.purple[500],
+    color: theme.palette.purple["700"],
   };
 
   return (

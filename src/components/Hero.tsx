@@ -91,10 +91,10 @@ export const Hero: React.FC<HeroProps> = ({
   const pStyle: React.CSSProperties = {
     fontSize: "clamp(1rem, 2vw, 1.25rem)",
     color: theme.colors.white,
-    maxWidth: "36rem",
+    maxWidth: "45rem",
     marginBottom: "3rem",
     lineHeight: 1.6,
-    fontWeight: 300,
+    fontWeight: 500,
   };
 
   const buttonPrimaryStyle: React.CSSProperties = {

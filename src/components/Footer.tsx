@@ -191,7 +191,7 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
         <GoogleAuthGate>
         <div className="md-col-3">
-          <h4 style={headingStyle}>Quick Links</h4>
+          <h3 style={headingStyle}>Quick Links</h3>
           <ul style={linkListStyle}>
             {quickLinks.map((link, i) => (
               <li key={i}>
@@ -219,7 +219,7 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         <div className="md-col-3">
-          <h4 style={headingStyle}>Legal</h4>
+          <h3 style={headingStyle}>Legal</h3>
           <ul style={linkListStyle}>
             {legalLinks.map((link, i) => (
               <li key={i}>

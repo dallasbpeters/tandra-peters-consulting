@@ -137,9 +137,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInAriaLabel = "Share this page on LinkedIn";
   const twitterAriaLabel = "Share this page on X (Twitter)";
   const emailAriaLabel = "Share this page by email";
-  const copyAriaLabel = copied
-    ? "Page link copied"
-    : "Copy page link to clipboard";
+  const copyButtonLabel = copied ? "Copied" : "Copy link";
 
   return (
     <section style={sectionStyle} aria-label="Social sharing">
@@ -233,12 +231,11 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             }}
             style={copyButtonStyle}
             className="social-share-icon"
-            aria-label={copyAriaLabel}
-            title={copyAriaLabel}
             disabled={!pageUrl}
+            aria-live="polite"
           >
             <Link height={16} strokeWidth={1.75} aria-hidden />
-            {copied ? "Copied" : "Copy link"}
+            {copyButtonLabel}
           </button>
         </div>
       </div>

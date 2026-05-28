@@ -25,16 +25,6 @@ export const Nav: React.FC<NavProps> = ({
 
   const offHomeNavTo = (href: string) =>
     href.startsWith("#") ? { pathname: "/" as const, hash: href } : href;
-  const navAriaLabel = (itemName: string, href: string) => {
-    const label = itemName.trim();
-    if (href === "/articles") {
-      return "View all articles";
-    }
-    if (href.startsWith("#") && href.length > 1) {
-      return `Jump to ${label} section`;
-    }
-    return `Go to ${label}`;
-  };
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const posthog = usePostHog();
@@ -156,6 +146,7 @@ export const Nav: React.FC<NavProps> = ({
     display: "none",
     alignItems: "center",
     gap: "1.5rem",
+    justifyContent: "center",
   };
 
   const navLinkStyle: React.CSSProperties = {
@@ -188,6 +179,9 @@ export const Nav: React.FC<NavProps> = ({
     transition: "background-color 0.2s",
     textDecoration: "none",
     display: "inline-block",
+    alignSelf: "end",
+    justifySelf: "end",
+    marginLeft: "auto",
   };
 
   return (
@@ -201,12 +195,12 @@ export const Nav: React.FC<NavProps> = ({
           paddingInline: isMobile ? "1rem" : "1.5rem",
           gap: isMobile ? "0.5rem" : "0.75rem",
           overflowX: "clip",
+          placeItems: "stretch",
         }}
       >
         <TransitionLink
           to="/"
           className="logo-link nav-focusable"
-          aria-label={`${logoText} — home`}
           style={{
             ...logoStyle,
             textDecoration: "none",
@@ -248,7 +242,6 @@ export const Nav: React.FC<NavProps> = ({
               <motion.a
                 key={i}
                 href={item.href}
-                aria-label={navAriaLabel(item.name, item.href)}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.2, ease: "easeInOut" }}
@@ -275,7 +268,6 @@ export const Nav: React.FC<NavProps> = ({
                 <TransitionLink
                   to={offHomeNavTo(item.href)}
                   viewTransition
-                  aria-label={navAriaLabel(item.name, item.href)}
                   style={navLinkStyle}
                   className="nav-focusable"
                   onMouseEnter={(e) => {
@@ -302,7 +294,6 @@ export const Nav: React.FC<NavProps> = ({
         >
             <motion.a
               href={ctaHref}
-              aria-label="Jump to contact section"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               style={buttonStyle}
@@ -324,6 +315,10 @@ export const Nav: React.FC<NavProps> = ({
               {ctaText}
             </motion.a>
           <button
+            type="button"
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="site-mobile-nav"
             style={{
               display: "none",
               padding: "0.5rem",
@@ -342,9 +337,9 @@ export const Nav: React.FC<NavProps> = ({
               }
             `}</style>
             {isMobileMenuOpen ? (
-              <Xmark width={24} height={24} />
+              <Xmark width={24} height={24} aria-hidden />
             ) : (
-              <Menu width={24} height={24} />
+              <Menu width={24} height={24} aria-hidden />
             )}
           </button>
         </div>
@@ -365,6 +360,7 @@ export const Nav: React.FC<NavProps> = ({
             style={{
               overflow: "hidden",
             }}
+            id="site-mobile-nav"
           >
             <div
               style={{
@@ -379,7 +375,6 @@ export const Nav: React.FC<NavProps> = ({
                   <a
                     key={i}
                     href={item.href}
-                    aria-label={navAriaLabel(item.name, item.href)}
                     className="nav-focusable"
                     style={{
                       fontFamily: theme.fonts.headline,
@@ -399,7 +394,6 @@ export const Nav: React.FC<NavProps> = ({
                     key={i}
                     to={offHomeNavTo(item.href)}
                     viewTransition
-                    aria-label={navAriaLabel(item.name, item.href)}
                     className="nav-focusable"
                     style={{
                       fontFamily: theme.fonts.headline,
@@ -419,7 +413,6 @@ export const Nav: React.FC<NavProps> = ({
               {isHome ? (
                 <a
                   href={ctaHref}
-                  aria-label="Jump to contact section"
                   className="nav-focusable"
                   style={{
                     ...buttonStyle,
@@ -440,7 +433,6 @@ export const Nav: React.FC<NavProps> = ({
               ) : (
                 <TransitionLink
                   to={{ pathname: "/", hash: ctaHref }}
-                  aria-label="Jump to contact section"
                   className="nav-focusable"
                   style={{
                     ...buttonStyle,

@@ -474,10 +474,9 @@ export const Contact = ({
                   onChange={(ev) => setConsentToContact(ev.target.checked)}
                   style={checkboxStyle}
                   aria-required
-                  aria-describedby="contact-consent-desc"
-                  defaultValue="I agree to be contacted about my inquiry by email, phone, or SMS. I have read the Privacy Policy and Terms of Service."
+                  aria-labelledby="contact-consent-desc"
                 />
-                <p>
+                <p id="contact-consent-desc">
                   I agree to be contacted about my inquiry by email, phone, or
                   SMS. I have read the{" "}
                   <TransitionLink to="/privacy" style={consentLinkStyle}>

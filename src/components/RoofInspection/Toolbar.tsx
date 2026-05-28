@@ -22,7 +22,7 @@ type ToolbarProps = {
 };
 
 const hairline = mix(theme.colors.everglade, 18);
-const mutedText = mix(theme.colors.everglade, 50);
+const mutedText = theme.palette.everglade["700"];
 
 /**
  * Renders the camera-preset tab strip.
