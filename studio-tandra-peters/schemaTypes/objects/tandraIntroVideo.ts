@@ -122,6 +122,15 @@ export const tandraIntroVideoType = defineType({
       group: 'render',
       readOnly: true,
     }),
+    defineField({
+      name: 'renderContentHash',
+      title: 'Rendered content hash',
+      type: 'string',
+      group: 'render',
+      readOnly: true,
+      hidden: true,
+      description: 'Used by the Sanity publish webhook to avoid re-rendering when only render metadata changes.',
+    }),
   ],
   initialValue: {
     storm: {

@@ -31,9 +31,16 @@ type TransformTargetCreateIfNotExists = {
   initialValues?: Record<string, any>
 }
 
+const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '')
+const isLocalPreviewOrigin =
+  configuredPreviewOrigin?.startsWith('http://localhost') ||
+  configuredPreviewOrigin?.startsWith('http://127.0.0.1')
+
 const previewOrigin =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '') ||
-  (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3001')
+  process.env.NODE_ENV === 'production' && isLocalPreviewOrigin
+    ? 'https://www.tandra.me'
+    : configuredPreviewOrigin ||
+      (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3001')
 
 const BRAND_TONE_CONTEXT_ID = 'assist-context-brand-tone'
 const CUSTOM_AI_CONTEXT_ID = 'aiContext'

@@ -10,6 +10,8 @@
  *   SANITY_API_READ_TOKEN — optional; includes draft copy in renders.
  *   SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN — saves renderedVideoUrl on homePage.tandraIntroVideo.
  *   RENDER_VIDEO_SECRET  — optional; when set, require `Authorization: Bearer …`.
+ *   Sanity webhook target: POST this endpoint after publishing homePage.
+ *   It skips rendering when only render metadata changed.
  *
  * Build: `pnpm build:vercel` bundles Remotion and creates a sandbox snapshot per
  * deployment (see scripts/create-remotion-snapshot.mjs).
@@ -44,6 +46,13 @@ const isAuthorized = (req: VercelRequest): boolean => {
   const direct = req.headers["x-render-secret"];
   return typeof direct === "string" && direct === required;
 };
+
+const queryValue = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;
+
+const shouldForceRender = (req: VercelRequest): boolean =>
+  queryValue(req.query.force)?.toLowerCase() === "true" ||
+  req.headers["x-force-render"] === "true";
 
 const bundleRemotionProject = (): void => {
   execSync(`pnpm exec remotion bundle --out-dir ./${LOCAL_BUNDLE_DIR}`, {
@@ -80,7 +89,24 @@ export default async function handler(
   let sandbox: Sandbox | null = null;
 
   try {
-    const { content, source, documentId } = await fetchTandraIntroContent();
+    const { content, contentHash, renderContentHash, source, documentId } =
+      await fetchTandraIntroContent();
+
+    if (
+      !shouldForceRender(req) &&
+      source !== "fallback" &&
+      renderContentHash === contentHash
+    ) {
+      res.status(200).json({
+        skipped: true,
+        reason: "Intro video content has already been rendered.",
+        compositionId: COMPOSITION_ID,
+        copySource: source,
+        documentId,
+        contentHash,
+      });
+      return;
+    }
 
     sandbox = onVercel
       ? await restoreRemotionSnapshot()
@@ -121,7 +147,7 @@ export default async function handler(
       access: "public",
     });
 
-    const sanityPatch = await patchTandraIntroRenderedVideo(url);
+    const sanityPatch = await patchTandraIntroRenderedVideo(url, contentHash);
     let sanityError: string | undefined;
     if (sanityPatch.ok === false) {
       sanityError = sanityPatch.reason;
@@ -136,6 +162,7 @@ export default async function handler(
       compositionId: COMPOSITION_ID,
       copySource: source,
       documentId,
+      contentHash,
       sanityUpdated: sanityPatch.ok,
       ...(sanityError ? { sanityError } : {}),
     });

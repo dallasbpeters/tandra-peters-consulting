@@ -2,6 +2,7 @@
  * Sanity copy for TandraIntro renders.
  * Kept under api/ so the Vercel function bundle does not import from src/.
  */
+import { hashTandraIntroContent } from "./tandra-intro-content-hash.js";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
@@ -16,7 +17,8 @@ const INTRO_QUERY = `{
       inspection,
       managed,
       proof,
-      closing
+      closing,
+      renderContentHash
     }
   }
 }`;
@@ -166,6 +168,8 @@ export const mergeTandraIntroContent = (
 
 export type FetchTandraIntroResult = {
   content: TandraIntroContent;
+  contentHash: string;
+  renderContentHash?: string;
   source: "sanity-draft-or-published" | "sanity-published" | "fallback";
   documentId?: string;
 };
@@ -192,7 +196,11 @@ export const fetchTandraIntroContent =
         console.warn(
           `[render-tandra-intro] Sanity fetch failed (${response.status}); using default video copy.`,
         );
-        return { content: defaultTandraIntroContent, source: "fallback" };
+        return {
+          content: defaultTandraIntroContent,
+          contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+          source: "fallback",
+        };
       }
 
       const payload = (await response.json()) as {
@@ -210,7 +218,11 @@ export const fetchTandraIntroContent =
         console.warn(
           "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy.",
         );
-        return { content: defaultTandraIntroContent, source: "fallback" };
+        return {
+          content: defaultTandraIntroContent,
+          contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+          source: "fallback",
+        };
       }
 
       const documentId =
@@ -218,8 +230,16 @@ export const fetchTandraIntroContent =
           ? payload.result.home._id
           : undefined;
 
+      const content = mergeTandraIntroContent(result);
+      const renderContentHash =
+        typeof result.renderContentHash === "string"
+          ? result.renderContentHash
+          : undefined;
+
       return {
-        content: mergeTandraIntroContent(result),
+        content,
+        contentHash: hashTandraIntroContent(content),
+        renderContentHash,
         source: token ? "sanity-draft-or-published" : "sanity-published",
         documentId,
       };
@@ -227,6 +247,10 @@ export const fetchTandraIntroContent =
       console.warn(
         `[render-tandra-intro] Sanity fetch failed; using default video copy. ${error}`,
       );
-      return { content: defaultTandraIntroContent, source: "fallback" };
+      return {
+        content: defaultTandraIntroContent,
+        contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+        source: "fallback",
+      };
     }
   };

@@ -20,6 +20,7 @@ const readSanityWriteToken = (): string | undefined =>
 
 export const patchTandraIntroRenderedVideo = async (
   url: string,
+  contentHash?: string,
 ): Promise<PatchTandraIntroRenderResult> => {
   const token = readSanityWriteToken();
   if (!token) {
@@ -44,7 +45,7 @@ export const patchTandraIntroRenderedVideo = async (
       useCdn: false,
     });
 
-    await client
+    const patch = client
       .patch(HOME_PAGE_DOCUMENT_ID)
       .setIfMissing({
         tandraIntroVideo: { _type: "tandraIntroVideo" },
@@ -52,8 +53,13 @@ export const patchTandraIntroRenderedVideo = async (
       .set({
         "tandraIntroVideo.renderedVideoUrl": trimmedUrl,
         "tandraIntroVideo.renderedAt": new Date().toISOString(),
-      })
-      .commit();
+      });
+
+    if (contentHash) {
+      patch.set({ "tandraIntroVideo.renderContentHash": contentHash });
+    }
+
+    await patch.commit();
 
     return { ok: true };
   } catch (error) {
