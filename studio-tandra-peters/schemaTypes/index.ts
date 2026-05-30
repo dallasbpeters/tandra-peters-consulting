@@ -35,7 +35,7 @@ import {homePageType} from './documents/homePage'
 import {articlesPageType} from './documents/articlesPage'
 import {aiContextType} from './documents/aiContext'
 import {seoDashboardInsightsType} from './documents/seoDashboardInsights'
-import {tandraIntroVideoType} from './documents/tandraIntroVideo'
+import {tandraIntroVideoType} from './objects/tandraIntroVideo'
 import beforeAfterGalleryType from './documents/beforeAfterGallery'
 export const schemaTypes = [
   blockContentType,

@@ -18,15 +18,6 @@ const INTRO_QUERY = `{
       proof,
       closing
     }
-  },
-  "legacy": *[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] | order(_updatedAt desc)[0]{
-  _id,
-  storm,
-  straightAnswers,
-  inspection,
-  managed,
-  proof,
-  closing
   }
 }`;
 
@@ -210,11 +201,10 @@ export const fetchTandraIntroContent =
             _id?: string;
             intro?: Record<string, unknown> | null;
           } | null;
-          legacy?: Record<string, unknown> | null;
         } | null;
       };
 
-      const result = payload.result?.home?.intro ?? payload.result?.legacy;
+      const result = payload.result?.home?.intro;
 
       if (!result) {
         console.warn(
@@ -226,9 +216,7 @@ export const fetchTandraIntroContent =
       const documentId =
         typeof payload.result?.home?._id === "string"
           ? payload.result.home._id
-          : typeof payload.result?.legacy?._id === "string"
-            ? payload.result.legacy._id
-            : undefined;
+          : undefined;
 
       return {
         content: mergeTandraIntroContent(result),
