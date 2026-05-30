@@ -375,6 +375,7 @@
   flex-direction: column;
   justify-content: center;
   min-width: 0;
+  font-family: var(--ad-body-font, "Manrope", sans-serif);
 }
 
 .ad-creative-preview--photo-fill .ad-creative-copy {
@@ -435,9 +436,9 @@
 .ad-creative-copy h2 {
   margin: 0;
   color: var(--ad-ink);
-  font-family: "Instrument Serif", serif;
+  font-family: var(--ad-headline-font, "Instrument Serif", serif);
   font-size: clamp(1.85rem, 8cqw, 4.75rem);
-  font-weight: 400;
+  font-weight: var(--ad-headline-weight, 400);
   letter-spacing: 0;
   line-height: 0.98;
 }
@@ -475,6 +476,7 @@
   right: var(--ad-preview-padding, 10%);
   bottom: var(--ad-preview-padding, 6.5%);
   color: color-mix(in oklch, var(--ad-ink) 74%, transparent);
+  font-family: var(--ad-body-font, "Manrope", sans-serif);
   font-size: clamp(0.58rem, 1.5vw, 0.82rem);
   font-weight: 850;
 }

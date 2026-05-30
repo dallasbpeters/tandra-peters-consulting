@@ -42,11 +42,13 @@ type PlatformPreset = {
 };
 
 type CreativeLayout = "photo-right" | "photo-fill" | "headline-card";
+type FontPresetId = "brand-serif" | "clean-sans" | "condensed";
 
 type CreativeState = {
   platformId: string;
   layout: CreativeLayout;
   contentPadding: number;
+  fontPresetId: FontPresetId;
   eyebrow: string;
   headline: string;
   body: string;
@@ -86,6 +88,15 @@ type TextFit = {
   headlineLines: string[];
   bodyLines: string[];
   totalHeight: number;
+};
+
+type FontPreset = {
+  id: FontPresetId;
+  label: string;
+  helper: string;
+  headlineFamily: string;
+  bodyFamily: string;
+  headlineWeight: number;
 };
 
 const getSelectValue = (event: unknown): string =>
@@ -150,6 +161,37 @@ const BRAND_SWATCHES = [
 const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map(
   (swatch) => swatch.value,
 ).join(";");
+
+const FONT_PRESETS: readonly FontPreset[] = [
+  {
+    id: "brand-serif",
+    label: "Brand serif",
+    helper: "Instrument Serif headline with Manrope body.",
+    headlineFamily: '"Instrument Serif", serif',
+    bodyFamily: "Manrope, sans-serif",
+    headlineWeight: 400,
+  },
+  {
+    id: "clean-sans",
+    label: "Clean sans",
+    helper: "Manrope throughout for a direct service ad.",
+    headlineFamily: "Manrope, sans-serif",
+    bodyFamily: "Manrope, sans-serif",
+    headlineWeight: 750,
+  },
+  {
+    id: "condensed",
+    label: "Condensed",
+    helper: "Bebas Neue headline for short, urgent copy.",
+    headlineFamily: '"Bebas Neue", sans-serif',
+    bodyFamily: "Manrope, sans-serif",
+    headlineWeight: 400,
+  },
+] as const;
+
+const getSelectedFontPreset = (fontPresetId: FontPresetId) =>
+  FONT_PRESETS.find((fontPreset) => fontPreset.id === fontPresetId) ??
+  FONT_PRESETS[0];
 
 const clampNumber = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -333,6 +375,7 @@ const DEFAULT_CREATIVE: CreativeState = {
   platformId: "instagram-square",
   layout: "photo-right",
   contentPadding: 100,
+  fontPresetId: "brand-serif",
   eyebrow: "Austin roof help",
   headline: "Not sure if that roof damage is storm related?",
   body: "I will inspect it, explain what I see, and help you understand the next right step.",
@@ -410,6 +453,7 @@ const measureTextFit = (
   context: CanvasRenderingContext2D,
   creative: CreativeState,
   box: CanvasBox,
+  fontPreset: FontPreset,
   base: {
     eyebrowSize: number;
     headlineSize: number;
@@ -418,11 +462,11 @@ const measureTextFit = (
     footnoteSize: number;
   },
 ): TextFit => {
-  context.font = `400 ${base.headlineSize}px "Instrument Serif", serif`;
+  context.font = `${fontPreset.headlineWeight} ${base.headlineSize}px ${fontPreset.headlineFamily}`;
   const headlineLines = getWrappedLines(context, creative.headline, box.width);
   const headlineLineHeight = Math.round(base.headlineSize * 1.02);
 
-  context.font = `600 ${base.bodySize}px Manrope, sans-serif`;
+  context.font = `600 ${base.bodySize}px ${fontPreset.bodyFamily}`;
   const bodyLines = getWrappedLines(context, creative.body, box.width);
   const bodyLineHeight = Math.round(base.bodySize * 1.38);
 
@@ -450,6 +494,7 @@ const fitTextBlock = (
   shortestSide: number,
   shape: PlatformShape,
   layout: CreativeLayout,
+  fontPreset: FontPreset,
 ): TextFit => {
   const baseHeadline =
     shortestSide *
@@ -468,7 +513,7 @@ const fitTextBlock = (
   let fit: TextFit;
 
   do {
-    fit = measureTextFit(context, creative, box, {
+    fit = measureTextFit(context, creative, box, fontPreset, {
       eyebrowSize: Math.max(18, Math.round(shortestSide * 0.023 * scale)),
       headlineSize: Math.max(38, Math.round(baseHeadline * scale)),
       bodySize: Math.max(18, Math.round(shortestSide * 0.031 * scale)),
@@ -505,27 +550,28 @@ const drawTextBlock = (
   creative: CreativeState,
   box: CanvasBox,
   fit: TextFit,
+  fontPreset: FontPreset,
 ) => {
   let cursorY = box.y;
 
   context.fillStyle = creative.accentColor;
-  context.font = `900 ${fit.eyebrowSize}px Manrope, sans-serif`;
+  context.font = `900 ${fit.eyebrowSize}px ${fontPreset.bodyFamily}`;
   context.textBaseline = "top";
   context.fillText(creative.eyebrow.toUpperCase(), box.x, cursorY);
   cursorY += fit.eyebrowSize * 2.95;
 
   cursorY = drawTextLines(context, fit.headlineLines, box.x, cursorY, {
     color: creative.textColor,
-    font: `${fit.headlineSize}px "Instrument Serif", serif`,
+    font: `${fit.headlineSize}px ${fontPreset.headlineFamily}`,
     lineHeight: Math.round(fit.headlineSize * 1.02),
     maxWidth: box.width,
-    weight: 400,
+    weight: fontPreset.headlineWeight,
   });
 
   cursorY += fit.bodySize * 0.85;
   cursorY = drawTextLines(context, fit.bodyLines, box.x, cursorY, {
     color: creative.textColor,
-    font: `${fit.bodySize}px Manrope, sans-serif`,
+    font: `${fit.bodySize}px ${fontPreset.bodyFamily}`,
     lineHeight: Math.round(fit.bodySize * 1.38),
     maxWidth: box.width,
     weight: 600,
@@ -534,7 +580,7 @@ const drawTextBlock = (
   const ctaY = cursorY + fit.bodySize * 1.05;
   const ctaPaddingX = fit.ctaSize * 1.55;
   const ctaHeight = fit.ctaSize * 2.45;
-  context.font = `850 ${fit.ctaSize}px Manrope, sans-serif`;
+  context.font = `850 ${fit.ctaSize}px ${fontPreset.bodyFamily}`;
   const ctaWidth = Math.min(
     box.width,
     context.measureText(creative.cta).width + ctaPaddingX * 2,
@@ -607,6 +653,7 @@ const drawCreative = async (
   const height = platform.height;
   const shortestSide = Math.min(width, height);
   const shape = getPlatformShape(platform);
+  const fontPreset = getSelectedFontPreset(creative.fontPresetId);
   const paddingScale = getPaddingScale(creative);
   const margin = Math.round(
     shortestSide *
@@ -623,6 +670,9 @@ const drawCreative = async (
   context.fillRect(0, 0, width, height);
 
   const image = creative.imageUrl ? await loadImage(creative.imageUrl) : null;
+  if (document.fonts) {
+    await document.fonts.ready;
+  }
   let copyBox: CanvasBox = {
     x: margin,
     y: margin,
@@ -759,13 +809,14 @@ const drawCreative = async (
     shortestSide,
     shape,
     creative.layout,
+    fontPreset,
   );
   context.letterSpacing = "0px";
-  drawTextBlock(context, creative, copyBox, fit);
+  drawTextBlock(context, creative, copyBox, fit, fontPreset);
 
   context.fillStyle = creative.textColor;
   context.globalAlpha = 0.72;
-  context.font = `750 ${fit.footnoteSize}px Manrope, sans-serif`;
+  context.font = `750 ${fit.footnoteSize}px ${fontPreset.bodyFamily}`;
   context.fillText(
     creative.footnote,
     creative.layout === "headline-card" ? copyBox.x : margin,
@@ -886,6 +937,7 @@ export const AdDashboardPage = () => {
         platform: selectedPlatform.id,
         layout: creative.layout,
         contentPadding: creative.contentPadding,
+        fontPreset: creative.fontPresetId,
       });
     } finally {
       setExporting(false);
@@ -898,6 +950,13 @@ export const AdDashboardPage = () => {
     "--ad-accent": creative.accentColor,
     "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
     "--ad-frame-inset": getFrameInset(creative),
+    "--ad-headline-font": getSelectedFontPreset(
+      creative.fontPresetId,
+    ).headlineFamily,
+    "--ad-headline-weight": String(
+      getSelectedFontPreset(creative.fontPresetId).headlineWeight,
+    ),
+    "--ad-body-font": getSelectedFontPreset(creative.fontPresetId).bodyFamily,
     aspectRatio: `${selectedPlatform.width} / ${selectedPlatform.height}`,
   } as CSSProperties & Record<string, string>;
 
@@ -970,6 +1029,26 @@ export const AdDashboardPage = () => {
                       updateCreative("contentPadding", value)
                     }
                   />
+                  <WaSelect
+                    className="ad-dashboard-field"
+                    name="fontPreset"
+                    label="Font"
+                    value={creative.fontPresetId}
+                    appearance="outlined"
+                    size="s"
+                    onChange={(event) =>
+                      updateCreative(
+                        "fontPresetId",
+                        getSelectValue(event) as FontPresetId,
+                      )
+                    }
+                  >
+                    {FONT_PRESETS.map((fontPreset) => (
+                      <WaOption key={fontPreset.id} value={fontPreset.id}>
+                        {fontPreset.label} · {fontPreset.helper}
+                      </WaOption>
+                    ))}
+                  </WaSelect>
 
                   <div className="ad-dashboard-panel-header">
                     <Text width={20} height={20} />
