@@ -84,6 +84,7 @@ export const Home = () => {
     home?.featuredVideo as Record<string, unknown> | undefined,
     { renderedVideoUrl },
   );
+  const shouldUseRenderedIntroVideo = Boolean(renderedVideoUrl);
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" &&
     introVideo.thumbnailUrl.trim()
@@ -251,7 +252,9 @@ export const Home = () => {
             videoUrl={videoProps.videoUrl}
             title={videoProps.title}
             posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-            introContent={introVideoContent}
+            introContent={
+              shouldUseRenderedIntroVideo ? undefined : introVideoContent
+            }
           />
         ) : null}
           <Testimonials {...mapTestimonialsProps(testimonials)} />
