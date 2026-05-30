@@ -201,14 +201,7 @@ export const Home = () => {
       <main>
         <Hero {...mapHeroProps(hero)} />
 
-        {videoProps.videoUrl || introVideoContent ? (
-          <FeaturedVideoSection
-            videoUrl={videoProps.videoUrl}
-            title={videoProps.title}
-            posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-            introContent={introVideoContent}
-          />
-        ) : null}
+
 
         <GoogleAuthGate>
           <ScrollVelocity
@@ -253,6 +246,14 @@ export const Home = () => {
             />
           ) : null}
           <Expertise {...mapExpertiseProps(expertise)} />
+          {videoProps.videoUrl || introVideoContent ? (
+          <FeaturedVideoSection
+            videoUrl={videoProps.videoUrl}
+            title={videoProps.title}
+            posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
+            introContent={introVideoContent}
+          />
+        ) : null}
           <Testimonials {...mapTestimonialsProps(testimonials)} />
           {/* <Faq {...mapFaqProps(faq)} />
         <ArticlesTeaser
