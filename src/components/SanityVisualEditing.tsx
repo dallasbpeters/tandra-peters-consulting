@@ -8,7 +8,7 @@ import type {
   HistoryUpdate,
 } from "@sanity/visual-editing";
 import { useContext } from "react";
-import { SanitySiteContext } from "../context/SanitySiteContext";
+import { SanitySiteContext } from "../context/sanitySiteContextValue";
 import { dispatchSanityPresentationRefresh } from "../sanity/presentationEvents";
 
 const isPresentationContext = (): boolean => {

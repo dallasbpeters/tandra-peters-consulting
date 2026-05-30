@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
-import { useSanitySite } from "../context/SanitySiteContext";
+import { useSanitySite } from "../context/useSanitySite";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import type { NavItem } from "../types";
 import {

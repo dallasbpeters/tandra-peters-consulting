@@ -18,7 +18,7 @@ import { SeoStructuredData } from "../components/SeoStructuredData";
 import Band from "../components/Band";
 import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { theme } from "../theme";
-import { useSanitySite } from "../context/SanitySiteContext";
+import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { Agentation } from "agentation";
 import {

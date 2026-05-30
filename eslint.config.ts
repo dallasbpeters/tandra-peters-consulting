@@ -3,10 +3,12 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import jsxA11y from "eslint-plugin-jsx-a11y";
+import { reactRefresh } from "eslint-plugin-react-refresh";
 import css from "@eslint/css";
 import { defineConfig } from "eslint/config";
 
 const jsFiles = ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
+const reactRefreshViteConfig = reactRefresh.configs.vite();
 
 export default defineConfig([
   {
@@ -20,6 +22,11 @@ export default defineConfig([
       ".claude/**",
       "studio-tandra-peters/**",
     ],
+  },
+  {
+    ...reactRefreshViteConfig,
+    files: ["src/**/*.{jsx,tsx}"],
+    ignores: ["src/components/ai-elements/**"],
   },
   {
     files: jsFiles,

@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { NavArrowLeft } from "iconoir-react";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
-import { useSanitySite } from "../context/SanitySiteContext";
+import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import { TransitionLink } from "../components/TransitionLink";

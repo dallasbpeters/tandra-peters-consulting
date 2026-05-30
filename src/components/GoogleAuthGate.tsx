@@ -8,8 +8,6 @@ import {
   useOptionalGoogleAuthGate,
 } from "../hooks/useGoogleAuthGate";
 
-export { useGoogleAuthGate, useOptionalGoogleAuthGate };
-
 export const GoogleAuthGateProvider = ({ children }: { children: ReactNode }) => {
   const value = useGoogleAuthGateState();
 
