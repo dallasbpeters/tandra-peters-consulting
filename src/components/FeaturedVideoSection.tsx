@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PlayerRef } from "@remotion/player";
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
@@ -49,6 +49,10 @@ export function FeaturedVideoSection({
     useState(false);
   const isInView = useInView(sectionRef, { once: true, amount: 0.45 });
   const showRemotionPlayer = Boolean(introContent);
+  const introContentKey = useMemo(
+    () => (introContent ? JSON.stringify(introContent) : "uploaded-video"),
+    [introContent],
+  );
 
   useEffect(() => {
     const updateInputMode = () => {
@@ -120,6 +124,7 @@ export function FeaturedVideoSection({
         <div className="featured-video__frame">
           {introContent ? (
             <motion.div
+              key={introContentKey}
               variants={videoVariants}
               initial="offscreen"
               animate={isInView ? "onscreen" : "offscreen"}

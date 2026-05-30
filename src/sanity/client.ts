@@ -73,8 +73,9 @@ export const getSanityClient = (): SanityClient => {
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
-    // CDN allows browser reads without a token; api.sanity.io requires auth (CORS).
-    useCdn: !drafts,
+    // Deployed homepage sections are edited directly in Sanity/Presentation and
+    // should update immediately after publish instead of waiting on the CDN.
+    useCdn: import.meta.env.PROD ? false : !drafts,
     ...(drafts ? { perspective: "drafts" as const } : {}),
     ...(token ? { token, ignoreBrowserTokenWarning: true } : {}),
     stega: {
