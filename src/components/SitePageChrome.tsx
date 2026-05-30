@@ -19,10 +19,14 @@ export const SitePageChrome = ({ children }: SitePageChromeProps) => {
   const site = data?.site as Record<string, unknown> | null | undefined;
   const navProps = mapNavProps(site);
   const isAgentRoute =
-    location.pathname === "/agent" || location.pathname === "/marketing";
+    location.pathname === "/agent" ||
+    location.pathname === "/marketing" ||
+    location.pathname === "/ads" ||
+    location.pathname === "/advertising";
   const agentNavItems: NavItem[] = [
     { name: "Feature Agent", href: "/agent" },
     { name: "Marketing Agent", href: "/marketing" },
+    { name: "Ad Builder", href: "/ads" },
   ];
 
   return (

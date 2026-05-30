@@ -27,6 +27,11 @@ const MarketingAgentPage = lazy(async () => {
   return { default: module.MarketingAgentPage };
 });
 
+const AdDashboardPage = lazy(async () => {
+  const module = await import("./pages/AdDashboardPage");
+  return { default: module.AdDashboardPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -71,6 +76,22 @@ const appRouter = createBrowserRouter([
         element: (
           <Suspense fallback={null}>
             <MarketingAgentPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "ads",
+        element: (
+          <Suspense fallback={null}>
+            <AdDashboardPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "advertising",
+        element: (
+          <Suspense fallback={null}>
+            <AdDashboardPage />
           </Suspense>
         ),
       },

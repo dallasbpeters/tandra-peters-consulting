@@ -201,6 +201,15 @@ export const Home = () => {
       <main>
         <Hero {...mapHeroProps(hero)} />
 
+        {videoProps.videoUrl || introVideoContent ? (
+          <FeaturedVideoSection
+            videoUrl={videoProps.videoUrl}
+            title={videoProps.title}
+            posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
+            introContent={introVideoContent}
+          />
+        ) : null}
+
         <GoogleAuthGate>
           <ScrollVelocity
             direction={marqueeDirection}
@@ -234,14 +243,6 @@ export const Home = () => {
               </RoofInspection.Diagram>
             </RoofInspection.Canvas>
           </RoofInspection>
-          {videoProps.videoUrl || introVideoContent ? (
-            <FeaturedVideoSection
-              videoUrl={videoProps.videoUrl}
-              title={videoProps.title}
-              posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-              introContent={introVideoContent}
-            />
-          ) : null}
           <Mission {...mapMissionProps(mission)} />
           {beforeAfterItems && beforeAfterItems.length > 0 ? (
             <BeforeAfterSlider
