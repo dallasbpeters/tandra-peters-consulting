@@ -30,8 +30,13 @@ export default defineConfig(({ mode }) => {
   const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(
     posthogProxyTarget,
   );
+  const enablePosthogDev =
+    env.VITE_ENABLE_POSTHOG_DEV?.trim().toLowerCase() === "true";
   const usePosthogDevProxy =
-    mode === "development" && posthogProxyTarget && !posthogCloudIngestion;
+    mode === "development" &&
+    enablePosthogDev &&
+    posthogProxyTarget &&
+    !posthogCloudIngestion;
 
   const posthogProxyBase = {
     target: posthogProxyTarget,

@@ -7,7 +7,19 @@ const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2024-01-01";
 
-const INTRO_QUERY = `*[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] | order(_updatedAt desc)[0]{
+const INTRO_QUERY = `{
+  "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{
+    _id,
+    "intro": tandraIntroVideo{
+      storm,
+      straightAnswers,
+      inspection,
+      managed,
+      proof,
+      closing
+    }
+  },
+  "legacy": *[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] | order(_updatedAt desc)[0]{
   _id,
   storm,
   straightAnswers,
@@ -15,6 +27,7 @@ const INTRO_QUERY = `*[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] |
   managed,
   proof,
   closing
+  }
 }`;
 
 export type TandraIntroContent = {
@@ -117,8 +130,7 @@ const stringItems = (value: unknown, fallback: string[]): string[] =>
 const mergeScene = <T extends Record<string, unknown>>(
   fallback: T,
   incoming: unknown,
-): T =>
-  isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback;
+): T => (isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback);
 
 export const mergeTandraIntroContent = (
   incoming: unknown,
@@ -193,23 +205,33 @@ export const fetchTandraIntroContent =
       }
 
       const payload = (await response.json()) as {
-        result?: Record<string, unknown> | null;
+        result?: {
+          home?: {
+            _id?: string;
+            intro?: Record<string, unknown> | null;
+          } | null;
+          legacy?: Record<string, unknown> | null;
+        } | null;
       };
 
-      if (!payload.result) {
+      const result = payload.result?.home?.intro ?? payload.result?.legacy;
+
+      if (!result) {
         console.warn(
-          "[render-tandra-intro] No tandraIntroVideo document; using default video copy.",
+          "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy.",
         );
         return { content: defaultTandraIntroContent, source: "fallback" };
       }
 
       const documentId =
-        typeof payload.result._id === "string"
-          ? payload.result._id
-          : undefined;
+        typeof payload.result?.home?._id === "string"
+          ? payload.result.home._id
+          : typeof payload.result?.legacy?._id === "string"
+            ? payload.result.legacy._id
+            : undefined;
 
       return {
-        content: mergeTandraIntroContent(payload.result),
+        content: mergeTandraIntroContent(result),
         source: token ? "sanity-draft-or-published" : "sanity-published",
         documentId,
       };

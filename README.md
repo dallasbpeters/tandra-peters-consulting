@@ -36,16 +36,16 @@ Do not set `SKIP_REMOTION_SNAPSHOT=1` on Production unless you are deliberately 
 
 ## Remotion intro video (`TandraIntro`)
 
-The featured intro video is a Remotion composition in [`src/remotion/`](src/remotion/). On-screen copy comes from the Sanity singleton **`tandraIntroVideo`** (editable in Studio).
+The featured intro video is a Remotion composition in [`src/remotion/`](src/remotion/). On-screen copy comes from **Home page → Tandra intro video** in Sanity so it can be edited in Presentation.
 
 ### Local development
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm video:studio` | Open Remotion Studio to preview the composition |
+| Command                | Purpose                                         |
+| ---------------------- | ----------------------------------------------- |
+| `pnpm video:studio`    | Open Remotion Studio to preview the composition |
 | `pnpm video:sync-copy` | Pull CMS copy into Studio defaults (`Root.tsx`) |
-| `pnpm video:still` | Render a single preview frame |
-| `pnpm video:render` | Render MP4 locally via Remotion CLI |
+| `pnpm video:still`     | Render a single preview frame                   |
+| `pnpm video:render`    | Render MP4 locally via Remotion CLI             |
 
 **Studio note:** Remotion Studio requires inline `defaultProps` literals in `Root.tsx`. Run `pnpm video:sync-copy` after editing copy in Sanity — do not rely on `calculateMetadata` or CLI `--props` in studio mode (it locks the props panel).
 
@@ -61,14 +61,14 @@ On each deploy, [`scripts/create-remotion-snapshot.mjs`](scripts/create-remotion
 
 At render time, [`POST /api/render-tandra-intro`](api/render-tandra-intro.ts):
 
-1. Fetches latest copy from Sanity (`tandraIntroVideo`, drafts when token is set)
+1. Fetches latest copy from Sanity (`homePage.tandraIntroVideo`, drafts when token is set)
 2. Restores the sandbox snapshot for the current deployment
 3. Renders `TandraIntro` in the sandbox (~1–2 minutes)
 4. Uploads the MP4 to Vercel Blob at `videos/tandra-intro/{timestamp}.mp4`
-5. Saves the public URL on Sanity `tandraIntroVideo.renderedVideoUrl` (homepage reads this first)
+5. Saves the public URL on Sanity `homePage.tandraIntroVideo.renderedVideoUrl` (homepage reads this first)
 6. Returns JSON with the public `url`, `size`, `copySource`, and `sanityUpdated`
 
-The homepage featured video prefers `tandraIntroVideo.renderedVideoUrl` over the Home page video upload in Sanity.
+The homepage featured video prefers `homePage.tandraIntroVideo.renderedVideoUrl` over the Home page video upload in Sanity.
 
 The function has a 300s timeout (`vercel.json`).
 
@@ -76,7 +76,7 @@ The function has a 300s timeout (`vercel.json`).
 
 1. **Blob store** — attach a Vercel Blob store to the project. Vercel injects `BLOB_READ_WRITE_TOKEN` automatically.
 2. **Sanity token** (optional) — set `SANITY_API_READ_TOKEN` on Vercel so renders include draft copy before publish.
-3. **Sanity write token** — set `SANITY_WRITE_TOKEN` (or `SANITY_API_WRITE_TOKEN`) so successful renders update `tandraIntroVideo.renderedVideoUrl` for the homepage.
+3. **Sanity write token** — set `SANITY_WRITE_TOKEN` (or `SANITY_API_WRITE_TOKEN`) so successful renders update `homePage.tandraIntroVideo.renderedVideoUrl` for the homepage.
 4. **Render auth** (recommended) — set `RENDER_VIDEO_SECRET` on Production/Preview/Development. When set, requests must include:
 
    ```http
@@ -109,7 +109,7 @@ Example response:
   "size": 14478025,
   "compositionId": "TandraIntro",
   "copySource": "sanity-draft-or-published",
-  "documentId": "tandraIntroVideo",
+  "documentId": "homePage",
   "sanityUpdated": true
 }
 ```
@@ -126,12 +126,12 @@ Requires `BLOB_READ_WRITE_TOKEN` in `.env.local` (pull from Vercel after linking
 
 ### Remotion env vars (summary)
 
-| Variable | Where | Purpose |
-| --- | --- | --- |
-| `BLOB_READ_WRITE_TOKEN` | Vercel (auto) / `.env.local` | Blob uploads + snapshot metadata |
-| `SANITY_API_READ_TOKEN` | Vercel / `.env.local` | Include draft CMS copy in renders |
-| `SANITY_WRITE_TOKEN` | Vercel / `.env.local` | Save rendered video URL to Sanity after render |
-| `RENDER_VIDEO_SECRET` | Vercel / `.env.local` | Auth for `/api/render-tandra-intro` |
-| `SKIP_REMOTION_SNAPSHOT=1` | Vercel build env only | Skip snapshot step (emergency bypass) |
+| Variable                   | Where                        | Purpose                                        |
+| -------------------------- | ---------------------------- | ---------------------------------------------- |
+| `BLOB_READ_WRITE_TOKEN`    | Vercel (auto) / `.env.local` | Blob uploads + snapshot metadata               |
+| `SANITY_API_READ_TOKEN`    | Vercel / `.env.local`        | Include draft CMS copy in renders              |
+| `SANITY_WRITE_TOKEN`       | Vercel / `.env.local`        | Save rendered video URL to Sanity after render |
+| `RENDER_VIDEO_SECRET`      | Vercel / `.env.local`        | Auth for `/api/render-tandra-intro`            |
+| `SKIP_REMOTION_SNAPSHOT=1` | Vercel build env only        | Skip snapshot step (emergency bypass)          |
 
 See [`.env.example`](.env.example) for the full list of project environment variables.

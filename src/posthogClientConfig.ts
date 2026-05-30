@@ -3,10 +3,23 @@ const trimHost = (value: string | undefined): string =>
 
 const CLOUD_INGESTION_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
 
+export const isPosthogEnabled = (): boolean => {
+  const hasToken = Boolean(
+    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim(),
+  );
+
+  return (
+    hasToken &&
+    (import.meta.env.PROD ||
+      import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true")
+  );
+};
+
 /**
  * When `VITE_PUBLIC_POSTHOG_HOST` is a first-party proxy (e.g. https://t.tandra.me),
  * the browser would normally call that origin from localhost and hit CORS unless the
- * proxy sends Access-Control-Allow-Origin. In dev we use same-origin + Vite proxy instead.
+ * proxy sends Access-Control-Allow-Origin. Dev analytics is opt-in; when enabled,
+ * we use same-origin + Vite proxy instead.
  */
 export const resolvePosthogClientOptions = (): {
   api_host: string;

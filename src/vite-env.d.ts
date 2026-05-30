@@ -22,9 +22,11 @@ interface ImportMetaEnv {
   readonly VITE_CONTACT_API_URL?: string;
   /** PostHog project API key (public). */
   readonly VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?: string;
+  /** Opt into local PostHog capture/proxy traffic. Production capture is enabled when token is set. */
+  readonly VITE_ENABLE_POSTHOG_DEV?: string;
   /**
    * Ingestion / proxy origin (e.g. https://t.tandra.me or https://us.i.posthog.com).
-   * In dev, a custom host is reached via Vite proxy (same-origin) to avoid CORS.
+   * In dev, a custom host is reached via Vite proxy only when `VITE_ENABLE_POSTHOG_DEV=true`.
    */
   readonly VITE_PUBLIC_POSTHOG_HOST?: string;
   /**

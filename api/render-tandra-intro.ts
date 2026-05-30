@@ -2,13 +2,13 @@
  * POST /api/render-tandra-intro
  *
  * Renders the TandraIntro Remotion composition in a Vercel Sandbox and uploads
- * the MP4 to Vercel Blob. Copy is pulled from Sanity `tandraIntroVideo` at render
+ * the MP4 to Vercel Blob. Copy is pulled from Sanity `homePage.tandraIntroVideo` at render
  * time (drafts included when SANITY_API_READ_TOKEN is set).
  *
  * Env (Vercel → Project → Settings → Environment Variables):
  *   BLOB_READ_WRITE_TOKEN — from an attached Vercel Blob store (required).
  *   SANITY_API_READ_TOKEN — optional; includes draft copy in renders.
- *   SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN — saves renderedVideoUrl on tandraIntroVideo.
+ *   SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN — saves renderedVideoUrl on homePage.tandraIntroVideo.
  *   RENDER_VIDEO_SECRET  — optional; when set, require `Authorization: Bearer …`.
  *
  * Build: `pnpm build:vercel` bundles Remotion and creates a sandbox snapshot per

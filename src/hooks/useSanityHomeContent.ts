@@ -67,7 +67,6 @@ const resolveHomeArticleCards = (
 export type HomeDocuments = {
   home: Record<string, unknown> | null;
   site: Record<string, unknown> | null;
-  introVideo: Record<string, unknown> | null;
   latestPosts: PostListItem[];
 };
 
@@ -137,7 +136,10 @@ export const useSanityHomeContent = () => {
     };
     window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     return () => {
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        handleRefresh,
+      );
     };
   }, [refetch]);
 

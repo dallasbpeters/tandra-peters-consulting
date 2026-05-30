@@ -57,6 +57,14 @@ export const homePageType = defineType({
       group: 'video',
     }),
     defineField({
+      name: 'tandraIntroVideo',
+      type: 'tandraIntroVideo',
+      title: 'Tandra intro video',
+      group: 'video',
+      description:
+        'Remotion-powered intro video copy, thumbnail, and latest Vercel render output. This is embedded here so it can be edited in Presentation on the homepage.',
+    }),
+    defineField({
       name: 'featuredVideo',
       type: 'videoSection',
       title: 'Featured Video (legacy)',

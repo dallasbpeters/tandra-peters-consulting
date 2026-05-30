@@ -2,10 +2,6 @@ import groq from "groq";
 
 /** Resolve Sanity image fields to CDN URLs for the Vite app (no @sanity/image-url needed). */
 export const HOME_AND_SITE_QUERY = groq`{
-  "introVideo": *[_id == "tandraIntroVideo"][0]{
-    renderedVideoUrl,
-    renderedAt
-  },
   "home": *[_id == "homePage"][0]{
     ...,
     seoTitle,
@@ -32,6 +28,10 @@ export const HOME_AND_SITE_QUERY = groq`{
         "video": featuredVideo
       }
     ),
+    "tandraIntroVideo": tandraIntroVideo{
+      ...,
+      "thumbnailUrl": thumbnail.asset->url
+    },
     about {
       ...,
       "image": image.asset->url

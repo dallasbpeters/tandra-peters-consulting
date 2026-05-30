@@ -1,5 +1,5 @@
 /**
- * Persist the latest Remotion render URL on the tandraIntroVideo singleton.
+ * Persist the latest Remotion render URL on the homepage intro video object.
  * Kept under api/ so Vercel functions do not import from src/.
  */
 import { createClient } from "@sanity/client";
@@ -7,7 +7,7 @@ import { createClient } from "@sanity/client";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2024-01-01";
-const TANDRA_INTRO_DOCUMENT_ID = "tandraIntroVideo";
+const HOME_PAGE_DOCUMENT_ID = "homePage";
 
 export type PatchTandraIntroRenderResult =
   | { ok: true }
@@ -45,10 +45,13 @@ export const patchTandraIntroRenderedVideo = async (
     });
 
     await client
-      .patch(TANDRA_INTRO_DOCUMENT_ID)
+      .patch(HOME_PAGE_DOCUMENT_ID)
+      .setIfMissing({
+        tandraIntroVideo: { _type: "tandraIntroVideo" },
+      })
       .set({
-        renderedVideoUrl: trimmedUrl,
-        renderedAt: new Date().toISOString(),
+        "tandraIntroVideo.renderedVideoUrl": trimmedUrl,
+        "tandraIntroVideo.renderedAt": new Date().toISOString(),
       })
       .commit();
 

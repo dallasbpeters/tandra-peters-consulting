@@ -17,8 +17,8 @@ const stringListField = defineField({
 export const tandraIntroVideoType = defineType({
   name: 'tandraIntroVideo',
   title: 'Tandra intro video',
-  type: 'document',
-  description: 'Editable copy for the 30-second Remotion intro video.',
+  type: 'object',
+  description: 'Editable copy and render output for the 30-second Remotion intro video.',
   groups: [
     {name: 'storm', title: 'Opening', default: true},
     {name: 'straightAnswers', title: 'Straight answers'},
@@ -26,9 +26,18 @@ export const tandraIntroVideoType = defineType({
     {name: 'managed', title: 'Managed process'},
     {name: 'proof', title: 'Proof'},
     {name: 'closing', title: 'Closing'},
+    {name: 'media', title: 'Thumbnail'},
     {name: 'render', title: 'Render output'},
   ],
   fields: [
+    defineField({
+      name: 'thumbnail',
+      title: 'Video thumbnail',
+      type: 'image',
+      group: 'media',
+      options: {hotspot: true},
+      description: 'Poster image shown before the Remotion player or rendered MP4 starts.',
+    }),
     defineField({
       name: 'storm',
       title: 'Opening storm scene',

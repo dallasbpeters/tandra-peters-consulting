@@ -75,6 +75,10 @@ export const Nav: React.FC<NavProps> = ({
       padding: "0.75rem 1.5rem",
       fontFamily: theme.fonts.headline,
       fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: "0.1em",
+      fontSize: "0.875rem",
+      marginInlineStart: "auto",
     },
     nav: {
       position: "fixed",
@@ -97,81 +101,81 @@ export const Nav: React.FC<NavProps> = ({
 
     logo: {
       display: "grid",
-    gridTemplateColumns: "auto minmax(0, 1fr)",
-    gridTemplateAreas: isMobile
-      ? `"image text"`
-      : `"image text" "image tagline"`,
-    alignItems: "center",
-    gap: "0 0.5rem",
-    minWidth: 0,
+      gridTemplateColumns: "auto minmax(0, 1fr)",
+      gridTemplateAreas: isMobile
+        ? `"image text"`
+        : `"image text" "image tagline"`,
+      alignItems: "center",
+      gap: "0 0.5rem",
+      minWidth: 0,
     },
     image: {
-    minInlineSize: isMobile ? "2rem" : "2.2rem",
-    minBlockSize: isMobile ? "2rem" : "2.2rem",
-    maxInlineSize: isMobile ? "2rem" : "2.2rem",
-    maxBlockSize: isMobile ? "2rem" : "2.2rem",
-    objectFit: "cover",
-    borderRadius: "9999px",
-    gridArea: "image",
-    overflow: "hidden",
+      minInlineSize: isMobile ? "2rem" : "2.2rem",
+      minBlockSize: isMobile ? "2rem" : "2.2rem",
+      maxInlineSize: isMobile ? "2rem" : "2.2rem",
+      maxBlockSize: isMobile ? "2rem" : "2.2rem",
+      objectFit: "cover",
+      borderRadius: "9999px",
+      gridArea: "image",
+      overflow: "hidden",
     },
 
     logoText: {
-    fontSize: isMobile ? "0.95rem" : "1.15rem",
-    fontWeight: 900,
-    letterSpacing: "0.01em",
-    gridArea: "text",
-    fontFamily: theme.fonts.headline,
-    color: isScrolled
-      ? theme.colors.everglade
-      : isMobile
-        ? theme.colors.black
-        : theme.colors.white,
-    textDecoration: "none",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-    logoTagline:   {
-    fontSize: "11px",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    gridArea: "tagline",
-    display: isMobile ? "none" : "block",
-    textTransform: "uppercase",
-    fontFamily: theme.fonts.headline,
-    color: isScrolled
-      ? theme.colors.everglade
-      : isMobile
-        ? theme.colors.black
-        : theme.colors.purple,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
+      fontSize: isMobile ? "0.95rem" : "1.15rem",
+      fontWeight: 900,
+      letterSpacing: "0.01em",
+      gridArea: "text",
+      fontFamily: theme.fonts.headline,
+      color: isScrolled
+        ? theme.colors.everglade
+        : isMobile
+          ? theme.colors.black
+          : theme.colors.white,
+      textDecoration: "none",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
+    logoTagline: {
+      fontSize: "11px",
+      fontWeight: 700,
+      letterSpacing: "0.1em",
+      gridArea: "tagline",
+      display: isMobile ? "none" : "block",
+      textTransform: "uppercase",
+      fontFamily: theme.fonts.headline,
+      color: isScrolled
+        ? theme.colors.everglade
+        : isMobile
+          ? theme.colors.black
+          : theme.colors.purple,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
 
     desktopNav: {
-    display: "none",
-    alignItems: "center",
-    gap: "1.5rem",
-    justifyContent: "center",
-  },
+      display: "none",
+      alignItems: "center",
+      gap: "1.5rem",
+      justifyContent: "center",
+    },
 
     navLink: {
-    fontFamily: theme.fonts.headline,
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    fontSize: "1rem",
-    opacity: 0.6,
-    textDecoration: "none",
-    color: isScrolled
-      ? theme.colors.black
-      : isMobile
+      fontFamily: theme.fonts.headline,
+      fontWeight: 700,
+      letterSpacing: "0.1em",
+      fontSize: "0.875rem",
+      opacity: 0.6,
+      textDecoration: "none",
+      color: isScrolled
         ? theme.colors.black
-        : theme.colors.white,
-    transition: "opacity 0.2s",
-  },
-  }
+        : isMobile
+          ? theme.colors.black
+          : theme.colors.white,
+      transition: "opacity 0.2s",
+    },
+  };
 
   return (
     <nav style={styles.nav} className="site-nav-vt">
@@ -212,8 +216,8 @@ export const Nav: React.FC<NavProps> = ({
         </TransitionLink>
 
         <div
-              style={{ ...styles.desktopNav, display: "flex" }}
-              className="md-flex"
+          style={{ ...styles.desktopNav, display: "flex" }}
+          className="md-flex"
         >
           <style>{`
             .nav-focusable:focus-visible {
@@ -233,7 +237,11 @@ export const Nav: React.FC<NavProps> = ({
                 href={item.href}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.2, ease: "easeInOut" }}
+                transition={{
+                  delay: i * 0.05,
+                  duration: 0.2,
+                  ease: "easeInOut",
+                }}
                 tabIndex={0}
                 style={styles.navLink}
                 className="nav-focusable"
@@ -281,22 +289,22 @@ export const Nav: React.FC<NavProps> = ({
             flex: "0 0 auto",
           }}
         >
-            <motion.a
-              href={ctaHref}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              style={styles.button}
-              className="hidden lg:block nav-focusable"
-              whileHover={{ backgroundColor: "#854fe9" }}
-              onClick={() =>
-                posthog?.capture("nav_cta_clicked", {
-                  cta_text: ctaText,
-                  location: "desktop",
-                })
-              }
-            >
-              {ctaText}
-            </motion.a>
+          <motion.a
+            href={ctaHref}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={styles.button}
+            className="hidden lg:block nav-focusable"
+            whileHover={{ backgroundColor: "#715eec" }}
+            onClick={() =>
+              posthog?.capture("nav_cta_clicked", {
+                cta_text: ctaText,
+                location: "desktop",
+              })
+            }
+          >
+            {ctaText}
+          </motion.a>
           <button
             type="button"
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}

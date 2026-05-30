@@ -57,12 +57,12 @@ const TEXAS_STATE_GEOJSON = texasStateOutline as GeoJSON.FeatureCollection;
 
 /** Mapbox paint props must be sRGB hex. High opacity — Standard night basemap is dark underneath. */
 const MAP_COLORS = {
-  fill: "#5bea84",
+  fill: "#945bea",
   fillOpacity: 0.78,
-  stroke: "#6bffb0",
+  stroke: "#6d13cd",
   strokeWidth: 1.5,
   boundary: "rgba(255, 255, 255, 0.65)",
-  stateOutline: "#a55bea",
+  stateOutline: "#39eb65",
   stateOutlineWidth: 2.25,
   adminBoundary: "rgba(189, 188, 190, 0.88)",
   label: "#ffffff",
@@ -77,7 +77,7 @@ const DEFAULT_DESCRIPTION =
   "Serving homeowners across the Austin metro, Lubbock, and Amarillo — Travis, Williamson, Hays, Bastrop, and Caldwell counties plus the Panhandle.";
 
 const TX_CENTER: [number, number] = [-99.5, 31.0];
-const TX_ZOOM = 5.5;
+const TX_ZOOM = 5.8;
 const TX_BOUNDS = new mapboxgl.LngLatBounds([-106.65, 25.84], [-93.51, 36.5]);
 const SERVICE_AREA_PADDING = { top: 48, bottom: 48, left: 48, right: 48 };
 const SERVICE_AREA_MAX_ZOOM = 8;
@@ -200,9 +200,12 @@ function applyCountyPaint(map: mapboxgl.Map) {
   if (!map.getLayer("counties-fill")) return;
   map.setPaintProperty("counties-fill", "fill-color", MAP_COLORS.fill);
   map.setPaintProperty("counties-fill", "fill-opacity", MAP_COLORS.fillOpacity);
+  map.setPaintProperty("counties-fill", "fill-emissive-strength", 1);
   map.setPaintProperty("counties-line", "line-color", MAP_COLORS.stroke);
   map.setPaintProperty("counties-line", "line-width", MAP_COLORS.strokeWidth);
+  map.setPaintProperty("counties-line", "line-emissive-strength", 1);
   map.setPaintProperty("counties-boundary", "line-color", MAP_COLORS.boundary);
+  map.setPaintProperty("counties-boundary", "line-emissive-strength", 1);
   if (map.getLayer("tx-state-outline")) {
     map.setPaintProperty(
       "tx-state-outline",
@@ -214,6 +217,7 @@ function applyCountyPaint(map: mapboxgl.Map) {
       "line-width",
       MAP_COLORS.stateOutlineWidth,
     );
+    map.setPaintProperty("tx-state-outline", "line-emissive-strength", 1);
   }
   map.setPaintProperty("counties-labels", "text-color", MAP_COLORS.label);
   map.setPaintProperty(
@@ -221,6 +225,7 @@ function applyCountyPaint(map: mapboxgl.Map) {
     "text-halo-color",
     MAP_COLORS.labelHalo,
   );
+  map.setPaintProperty("counties-labels", "text-emissive-strength", 1);
 }
 
 function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
@@ -253,6 +258,7 @@ function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
     paint: {
       "fill-color": MAP_COLORS.fill,
       "fill-opacity": MAP_COLORS.fillOpacity,
+      "fill-emissive-strength": 1,
     },
   });
 
@@ -265,6 +271,7 @@ function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
     paint: {
       "line-color": MAP_COLORS.stroke,
       "line-width": MAP_COLORS.strokeWidth,
+      "line-emissive-strength": 1,
     },
   });
 
@@ -278,6 +285,7 @@ function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
       "line-color": MAP_COLORS.boundary,
       "line-width": 0.75,
       "line-opacity": 0.9,
+      "line-emissive-strength": 1,
     },
   });
 
@@ -290,6 +298,7 @@ function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
       "line-color": MAP_COLORS.stateOutline,
       "line-width": MAP_COLORS.stateOutlineWidth,
       "line-opacity": 1,
+      "line-emissive-strength": 1,
     },
   });
 
@@ -312,6 +321,7 @@ function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
       "text-color": MAP_COLORS.label,
       "text-halo-color": MAP_COLORS.labelHalo,
       "text-halo-width": 1.25,
+      "text-emissive-strength": 1,
     },
   });
 

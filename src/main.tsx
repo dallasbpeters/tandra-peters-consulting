@@ -5,12 +5,19 @@ import "./index.css";
 import "./styles/site-layout.css";
 import posthog from "posthog-js";
 import { PostHogProvider } from "@posthog/react";
-import { resolvePosthogClientOptions } from "./posthogClientConfig";
+import {
+  isPosthogEnabled,
+  resolvePosthogClientOptions,
+} from "./posthogClientConfig";
 
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN, {
-  ...resolvePosthogClientOptions(),
-  defaults: "2026-01-30",
-});
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
+
+if (posthogToken && isPosthogEnabled()) {
+  posthog.init(posthogToken, {
+    ...resolvePosthogClientOptions(),
+    defaults: "2026-01-30",
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <PostHogProvider client={posthog}>
