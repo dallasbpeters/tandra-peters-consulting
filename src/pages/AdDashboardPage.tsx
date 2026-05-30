@@ -21,7 +21,11 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
 import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
+import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaSlider from "@awesome.me/webawesome/dist/react/slider/index.js";
+import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
@@ -42,6 +46,7 @@ type CreativeLayout = "photo-right" | "photo-fill" | "headline-card";
 type CreativeState = {
   platformId: string;
   layout: CreativeLayout;
+  contentPadding: number;
   eyebrow: string;
   headline: string;
   body: string;
@@ -88,6 +93,10 @@ const getSelectValue = (event: unknown): string =>
 
 const getInputValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
+
+const PADDING_MIN = 60;
+const PADDING_MAX = 140;
+const PADDING_STEP = 5;
 
 const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   {
@@ -142,6 +151,49 @@ const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map(
   (swatch) => swatch.value,
 ).join(";");
 
+const clampNumber = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+const clampPadding = (value: number) =>
+  Math.round(clampNumber(value, PADDING_MIN, PADDING_MAX) / PADDING_STEP) *
+  PADDING_STEP;
+
+const getPaddingScale = (creative: Pick<CreativeState, "contentPadding">) =>
+  creative.contentPadding / 100;
+
+const formatCssNumber = (value: number) =>
+  Number.parseFloat(value.toFixed(3)).toString();
+
+const getPreviewPadding = (
+  creative: Pick<CreativeState, "contentPadding" | "layout">,
+  shape: PlatformShape,
+) => {
+  const scale = getPaddingScale(creative);
+
+  if (creative.layout === "photo-right") {
+    if (shape === "wide") {
+      return `clamp(${formatCssNumber(1 * scale)}rem, ${formatCssNumber(
+        5 * scale,
+      )}cqw, ${formatCssNumber(3 * scale)}rem)`;
+    }
+
+    if (shape === "tall") {
+      return `clamp(${formatCssNumber(1.2 * scale)}rem, ${formatCssNumber(
+        7 * scale,
+      )}cqw, ${formatCssNumber(4 * scale)}rem)`;
+    }
+
+    return `clamp(${formatCssNumber(1.2 * scale)}rem, ${formatCssNumber(
+      6 * scale,
+    )}cqw, ${formatCssNumber(4.5 * scale)}rem)`;
+  }
+
+  return `${formatCssNumber(7 * scale)}%`;
+};
+
+const getFrameInset = (creative: Pick<CreativeState, "contentPadding">) =>
+  `${formatCssNumber(5 * getPaddingScale(creative))}%`;
+
 type AdColorPickerFieldProps = {
   label: string;
   value: string;
@@ -189,6 +241,72 @@ const AdColorPickerField = ({
   );
 };
 
+type AdPaddingFieldProps = {
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+  const numberInputRef = useRef<WaNumberInputElement | null>(null);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    const numberInput = numberInputRef.current;
+
+    const updateFromSlider = () => {
+      if (!slider) return;
+      onValueChange(clampPadding(slider.value));
+    };
+
+    const updateFromNumberInput = () => {
+      if (!numberInput) return;
+      const nextValue = Number(numberInput.value ?? value);
+      if (Number.isFinite(nextValue)) {
+        onValueChange(clampPadding(nextValue));
+      }
+    };
+
+    slider?.addEventListener("input", updateFromSlider);
+    slider?.addEventListener("change", updateFromSlider);
+    numberInput?.addEventListener("input", updateFromNumberInput);
+    numberInput?.addEventListener("change", updateFromNumberInput);
+
+    return () => {
+      slider?.removeEventListener("input", updateFromSlider);
+      slider?.removeEventListener("change", updateFromSlider);
+      numberInput?.removeEventListener("input", updateFromNumberInput);
+      numberInput?.removeEventListener("change", updateFromNumberInput);
+    };
+  }, [onValueChange, value]);
+
+  return (
+    <div className="ad-dashboard-padding-field">
+      <WaSlider
+        ref={sliderRef}
+        label="Padding"
+        value={value}
+        min={PADDING_MIN}
+        max={PADDING_MAX}
+        step={PADDING_STEP}
+        size="s"
+        withTooltip
+      />
+      <WaNumberInput
+        ref={numberInputRef}
+        label="Padding %"
+        value={String(value)}
+        min={PADDING_MIN}
+        max={PADDING_MAX}
+        step={PADDING_STEP}
+        inputmode="numeric"
+        appearance="outlined"
+        size="s"
+      />
+    </div>
+  );
+};
+
 const LAYOUTS: ReadonlyArray<{
   id: CreativeLayout;
   label: string;
@@ -214,6 +332,7 @@ const LAYOUTS: ReadonlyArray<{
 const DEFAULT_CREATIVE: CreativeState = {
   platformId: "instagram-square",
   layout: "photo-right",
+  contentPadding: 100,
   eyebrow: "Austin roof help",
   headline: "Not sure if that roof damage is storm related?",
   body: "I will inspect it, explain what I see, and help you understand the next right step.",
@@ -488,12 +607,17 @@ const drawCreative = async (
   const height = platform.height;
   const shortestSide = Math.min(width, height);
   const shape = getPlatformShape(platform);
+  const paddingScale = getPaddingScale(creative);
   const margin = Math.round(
-    shortestSide * (shape === "wide" ? 0.06 : shape === "tall" ? 0.07 : 0.075),
+    shortestSide *
+      (shape === "wide" ? 0.06 : shape === "tall" ? 0.07 : 0.075) *
+      paddingScale,
   );
-  const gap = Math.round(shortestSide * 0.045);
+  const gap = Math.round(shortestSide * 0.045 * Math.max(0.8, paddingScale));
   const radius = Math.round(shortestSide * 0.034);
-  const footerReserve = Math.round(shortestSide * 0.065);
+  const footerReserve = Math.round(
+    shortestSide * 0.065 * Math.max(0.85, paddingScale),
+  );
 
   context.fillStyle = creative.backgroundColor;
   context.fillRect(0, 0, width, height);
@@ -536,7 +660,7 @@ const drawCreative = async (
     const innerWidth = width - margin * 2 - frameWidth * 2;
     const innerHeight = height - margin * 2 - frameWidth * 2;
     const innerPad = Math.round(
-      shortestSide * (shape === "wide" ? 0.048 : 0.06),
+      shortestSide * (shape === "wide" ? 0.048 : 0.06) * paddingScale,
     );
 
     context.fillStyle = creative.accentColor;
@@ -761,6 +885,7 @@ export const AdDashboardPage = () => {
       posthog?.capture("ad_creative_exported", {
         platform: selectedPlatform.id,
         layout: creative.layout,
+        contentPadding: creative.contentPadding,
       });
     } finally {
       setExporting(false);
@@ -771,6 +896,8 @@ export const AdDashboardPage = () => {
     "--ad-bg": creative.backgroundColor,
     "--ad-ink": creative.textColor,
     "--ad-accent": creative.accentColor,
+    "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
+    "--ad-frame-inset": getFrameInset(creative),
     aspectRatio: `${selectedPlatform.width} / ${selectedPlatform.height}`,
   } as CSSProperties & Record<string, string>;
 
@@ -837,6 +964,12 @@ export const AdDashboardPage = () => {
                       ))}
                     </WaSelect>
                   </div>
+                  <AdPaddingField
+                    value={creative.contentPadding}
+                    onValueChange={(value) =>
+                      updateCreative("contentPadding", value)
+                    }
+                  />
 
                   <div className="ad-dashboard-panel-header">
                     <Text width={20} height={20} />
