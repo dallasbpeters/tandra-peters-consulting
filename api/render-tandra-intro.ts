@@ -8,6 +8,7 @@
  * Env (Vercel → Project → Settings → Environment Variables):
  *   BLOB_READ_WRITE_TOKEN — from an attached Vercel Blob store (required).
  *   SANITY_API_READ_TOKEN — optional; includes draft copy in renders.
+ *   SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN — saves renderedVideoUrl on tandraIntroVideo.
  *   RENDER_VIDEO_SECRET  — optional; when set, require `Authorization: Bearer …`.
  *
  * Build: `pnpm build:vercel` bundles Remotion and creates a sandbox snapshot per
@@ -23,6 +24,7 @@ import {
 } from "@remotion/vercel";
 import { execSync } from "node:child_process";
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
+import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
 const COMPOSITION_ID = "TandraIntro";
@@ -119,12 +121,23 @@ export default async function handler(
       access: "public",
     });
 
+    const sanityPatch = await patchTandraIntroRenderedVideo(url);
+    let sanityError: string | undefined;
+    if (sanityPatch.ok === false) {
+      sanityError = sanityPatch.reason;
+      console.warn(
+        `[render-tandra-intro] Render succeeded but Sanity was not updated: ${sanityError}`,
+      );
+    }
+
     res.status(200).json({
       url,
       size,
       compositionId: COMPOSITION_ID,
       copySource: source,
       documentId,
+      sanityUpdated: sanityPatch.ok,
+      ...(sanityError ? { sanityError } : {}),
     });
   } catch (error) {
     console.error("[render-tandra-intro]", error);

@@ -2,6 +2,10 @@ import groq from "groq";
 
 /** Resolve Sanity image fields to CDN URLs for the Vite app (no @sanity/image-url needed). */
 export const HOME_AND_SITE_QUERY = groq`{
+  "introVideo": *[_id == "tandraIntroVideo"][0]{
+    renderedVideoUrl,
+    renderedAt
+  },
   "home": *[_id == "homePage"][0]{
     ...,
     seoTitle,
@@ -48,6 +52,18 @@ export const HOME_AND_SITE_QUERY = groq`{
       values[] {
         ...,
         "image": image.asset->url
+      }
+    },
+    beforeAfter {
+      eyebrow,
+      title,
+      intro,
+      items[] {
+        _key,
+        title,
+        description,
+        "beforeImage": beforeImage.asset->url,
+        "afterImage": afterImage.asset->url
       }
     },
     expertise {
@@ -149,6 +165,14 @@ export const ARTICLES_INDEX_QUERY = groq`{
     authorName,
     "image": image.asset->url
   }
+}`;
+
+export const BEFORE_AFTER_GALLERY_QUERY = groq`*[_type == "beforeAfterGallery"] | order(coalesce(orderRank, _createdAt) asc) {
+  _id,
+  title,
+  description,
+  "beforeImage": beforeImage.asset->url,
+  "afterImage": afterImage.asset->url
 }`;
 
 /** Single post by slug for /articles/:slug */

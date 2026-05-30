@@ -8,6 +8,7 @@ const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2024-01-01";
 
 const INTRO_QUERY = `*[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] | order(_updatedAt desc)[0]{
+  _id,
   storm,
   straightAnswers,
   inspection,

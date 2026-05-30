@@ -31,7 +31,7 @@ import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mix, theme } from "../theme";
-import { Check, Copy } from "iconoir-react";
+import { Check, Copy, Download } from "iconoir-react";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 
 export type AgentConfig = {
@@ -305,18 +305,65 @@ export const AgentChatPage = ({ config }: Props) => {
 
   const handleCopyMessage = useCallback(async (message: ChatMessage) => {
     if (!message.content.trim()) return;
-    try {
-      await navigator.clipboard.writeText(message.content);
+
+    const markCopied = () => {
       setCopiedMessageId(message.id);
       setTimeout(() => {
         setCopiedMessageId((current) =>
           current === message.id ? null : current,
         );
       }, 1200);
-    } catch {
-      // Clipboard can fail in non-secure contexts; keep UI stable.
+    };
+
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(message.content);
+        markCopied();
+        return;
+      } catch (err) {
+        console.warn("[copy] clipboard API failed, falling back", err);
+      }
+    }
+
+    // Fallback for non-secure contexts or browsers that block the API.
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = message.content;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      markCopied();
+    } catch (err) {
+      console.error("[copy] fallback failed", err);
     }
   }, []);
+
+  const handleDownloadMessage = useCallback(
+    (message: ChatMessage) => {
+      if (!message.content.trim()) return;
+      try {
+        const blob = new Blob([message.content], {
+          type: "text/markdown;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        anchor.href = url;
+        anchor.download = `${config.agentSlug}-${stamp}.md`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("[download] failed", err);
+      }
+    },
+    [config.agentSlug],
+  );
 
   useEffect(() => {
     if (!error) return;
@@ -457,7 +504,7 @@ export const AgentChatPage = ({ config }: Props) => {
                         className={
                           message.role === "user"
                             ? "max-w-[90%] rounded-2xl border px-4 py-3"
-                            : "max-w-[92%] rounded-2xl border bg-white px-4 py-3"
+                            : "max-w-[92%] rounded-2xl px-4 py-3"
                         }
                         style={{
                           borderColor:
@@ -487,7 +534,7 @@ export const AgentChatPage = ({ config }: Props) => {
                         )}
                       </MessageContent>
                       {message.role === "assistant" && (
-                        <MessageActions className="mt-1">
+                        <MessageActions>
                           <MessageAction
                             aria-label="Copy message"
                             tooltip={
@@ -502,6 +549,13 @@ export const AgentChatPage = ({ config }: Props) => {
                             ) : (
                               <Copy className="size-4" />
                             )}
+                          </MessageAction>
+                          <MessageAction
+                            aria-label="Download message"
+                            tooltip="Download as .md"
+                            onClick={() => handleDownloadMessage(message)}
+                          >
+                            <Download className="size-4" />
                           </MessageAction>
                         </MessageActions>
                       )}

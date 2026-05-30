@@ -8,6 +8,7 @@ import { theme } from "../theme";
 import { NavProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { useIsMobile } from "../hooks/isMobile";
+import type { CSSProperties } from "react";
 
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
@@ -67,28 +68,35 @@ export const Nav: React.FC<NavProps> = ({
   };
 
   const isMobile = useIsMobile();
+  const styles: Record<string, CSSProperties> = {
+    button: {
+      backgroundColor: theme.colors.evergladeLight,
+      color: theme.colors.white,
+      padding: "0.75rem 1.5rem",
+      fontFamily: theme.fonts.headline,
+      fontWeight: 700,
+    },
+    nav: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 50,
+      transition: "all 0.5s",
+      paddingTop: isScrolled ? "1rem" : "1.5rem",
+      paddingBottom: isScrolled ? "1rem" : "1.5rem",
+      backgroundColor: isScrolled
+        ? "rgba(255, 255, 255, 0.8)"
+        : isMobile
+          ? "rgba(255, 255, 255, 1)"
+          : "rgba(255, 255, 255, 0)",
+      backdropFilter: isScrolled ? "blur(20px)" : "none",
+      boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
+      overflowX: "clip",
+    },
 
-  const navStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 50,
-    transition: "all 0.5s",
-    paddingTop: isScrolled ? "1rem" : "1.5rem",
-    paddingBottom: isScrolled ? "1rem" : "1.5rem",
-    backgroundColor: isScrolled
-      ? "rgba(255, 255, 255, 0.8)"
-      : isMobile
-        ? "rgba(255, 255, 255, 1)"
-        : "rgba(255, 255, 255, 0)",
-    backdropFilter: isScrolled ? "blur(20px)" : "none",
-    boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
-    overflowX: "clip",
-  };
-
-  const logoStyle: React.CSSProperties = {
-    display: "grid",
+    logo: {
+      display: "grid",
     gridTemplateColumns: "auto minmax(0, 1fr)",
     gridTemplateAreas: isMobile
       ? `"image text"`
@@ -96,8 +104,8 @@ export const Nav: React.FC<NavProps> = ({
     alignItems: "center",
     gap: "0 0.5rem",
     minWidth: 0,
-  };
-  const imageStyle: React.CSSProperties = {
+    },
+    image: {
     minInlineSize: isMobile ? "2rem" : "2.2rem",
     minBlockSize: isMobile ? "2rem" : "2.2rem",
     maxInlineSize: isMobile ? "2rem" : "2.2rem",
@@ -106,9 +114,9 @@ export const Nav: React.FC<NavProps> = ({
     borderRadius: "9999px",
     gridArea: "image",
     overflow: "hidden",
-  };
+    },
 
-  const logoTextStyle: React.CSSProperties = {
+    logoText: {
     fontSize: isMobile ? "0.95rem" : "1.15rem",
     fontWeight: 900,
     letterSpacing: "0.01em",
@@ -123,8 +131,8 @@ export const Nav: React.FC<NavProps> = ({
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-  };
-  const logoTaglineStyle: React.CSSProperties = {
+  },
+    logoTagline:   {
     fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.1em",
@@ -140,16 +148,16 @@ export const Nav: React.FC<NavProps> = ({
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-  };
+  },
 
-  const desktopNavStyle: React.CSSProperties = {
+    desktopNav: {
     display: "none",
     alignItems: "center",
     gap: "1.5rem",
     justifyContent: "center",
-  };
+  },
 
-  const navLinkStyle: React.CSSProperties = {
+    navLink: {
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
     letterSpacing: "0.1em",
@@ -162,30 +170,11 @@ export const Nav: React.FC<NavProps> = ({
         ? theme.colors.black
         : theme.colors.white,
     transition: "opacity 0.2s",
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.evergladeLight,
-    color: theme.colors.white,
-    padding: "0.75rem 1.5rem",
-    fontFamily: theme.fonts.headline,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    fontSize: "1rem",
-    border: "none",
-    boxShadow: `inset 0 0 0 1px ${theme.colors.evergladeMuted}`,
-    cursor: "pointer",
-    transition: "background-color 0.2s",
-    textDecoration: "none",
-    display: "inline-block",
-    alignSelf: "end",
-    justifySelf: "end",
-    marginLeft: "auto",
-  };
+  },
+  }
 
   return (
-    <nav style={navStyle} className="site-nav-vt">
+    <nav style={styles.nav} className="site-nav-vt">
       <div
         className={layoutClass.containerWideRow}
         style={{
@@ -202,7 +191,7 @@ export const Nav: React.FC<NavProps> = ({
           to="/"
           className="logo-link nav-focusable"
           style={{
-            ...logoStyle,
+            ...styles.logo,
             textDecoration: "none",
             flex: "1 1 auto",
             minWidth: 0,
@@ -214,17 +203,17 @@ export const Nav: React.FC<NavProps> = ({
             animate={{ opacity: 1, x: 0 }}
             style={{ display: "contents" }}
           >
-            <img src={imageSrc} alt="" style={imageStyle} />
-            <span style={logoTextStyle}>{logoText}</span>
+            <img src={imageSrc} alt="" style={styles.image} />
+            <span style={styles.logoText}>{logoText}</span>
             {isMobile ? null : (
-              <span style={logoTaglineStyle}>{logoTagline}</span>
+              <span style={styles.logoTagline}>{logoTagline}</span>
             )}
           </motion.div>
         </TransitionLink>
 
         <div
-          style={{ ...desktopNavStyle, display: "flex" }}
-          className="md-flex"
+              style={{ ...styles.desktopNav, display: "flex" }}
+              className="md-flex"
         >
           <style>{`
             .nav-focusable:focus-visible {
@@ -246,7 +235,7 @@ export const Nav: React.FC<NavProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.2, ease: "easeInOut" }}
                 tabIndex={0}
-                style={navLinkStyle}
+                style={styles.navLink}
                 className="nav-focusable"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = "1";
@@ -268,7 +257,7 @@ export const Nav: React.FC<NavProps> = ({
                 <TransitionLink
                   to={offHomeNavTo(item.href)}
                   viewTransition
-                  style={navLinkStyle}
+                  style={styles.navLink}
                   className="nav-focusable"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = "1";
@@ -296,15 +285,9 @@ export const Nav: React.FC<NavProps> = ({
               href={ctaHref}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              style={buttonStyle}
+              style={styles.button}
               className="hidden lg:block nav-focusable"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  theme.colors.evergladeLight;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme.colors.everglade;
-              }}
+              whileHover={{ backgroundColor: "#854fe9" }}
               onClick={() =>
                 posthog?.capture("nav_cta_clicked", {
                   cta_text: ctaText,
@@ -415,7 +398,7 @@ export const Nav: React.FC<NavProps> = ({
                   href={ctaHref}
                   className="nav-focusable"
                   style={{
-                    ...buttonStyle,
+                    ...styles.button,
                     fontSize: "0.75rem",
                     width: "100%",
                     textAlign: "center",
@@ -435,7 +418,7 @@ export const Nav: React.FC<NavProps> = ({
                   to={{ pathname: "/", hash: ctaHref }}
                   className="nav-focusable"
                   style={{
-                    ...buttonStyle,
+                    ...styles.button,
                     fontSize: "0.75rem",
                     width: "100%",
                     textAlign: "center",

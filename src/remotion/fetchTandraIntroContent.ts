@@ -9,6 +9,7 @@ import {
 } from "./tandraIntroContent";
 
 const INTRO_QUERY = `*[_id in ["tandraIntroVideo", "drafts.tandraIntroVideo"]] | order(_updatedAt desc)[0]{
+  _id,
   storm,
   straightAnswers,
   inspection,

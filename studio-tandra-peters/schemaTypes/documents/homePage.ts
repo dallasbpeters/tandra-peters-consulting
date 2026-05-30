@@ -13,6 +13,7 @@ export const homePageType = defineType({
     {name: 'stats', title: 'Stats'},
     {name: 'services', title: 'Services'},
     {name: 'mission', title: 'Mission'},
+    {name: 'beforeAfter', title: 'Before / After'},
     {name: 'expertise', title: 'Expertise'},
     {name: 'testimonials', title: 'Testimonials'},
     {name: 'faq', title: 'FAQ'},
@@ -85,6 +86,12 @@ export const homePageType = defineType({
       name: 'mission',
       type: 'missionSection',
       group: 'mission',
+    }),
+    defineField({
+      name: 'beforeAfter',
+      title: 'Before / After',
+      type: 'beforeAfterSection',
+      group: 'beforeAfter',
     }),
     defineField({
       name: 'expertise',

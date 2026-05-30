@@ -15,6 +15,13 @@ declare module "react" {
   interface CSSProperties extends CustomCssProperties {}
 }
 
+declare module 'react' {
+  interface CSSProperties {
+    cornerShape?: string; // Or a union of specific values like 'bevel' | 'round'
+    webkitCornerShape?: string;
+  }
+}
+
 /** Sanity `blockContent` or a plain string (legacy / seed). */
 export type RichTextSource = PortableTextBlock[] | string;
 
@@ -132,6 +139,7 @@ export interface ExpertiseProps {
   title?: string;
   items?: ExpertiseItem[];
 }
+
 
 export interface Testimonial {
   name: string;

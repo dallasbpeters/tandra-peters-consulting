@@ -87,28 +87,37 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
   return out;
 };
 
-export const mapVideoProps = (video: SanityDoc): Partial<VideoProps> => {
-  if (!video) {
+export const mapVideoProps = (
+  video: SanityDoc,
+  options?: { renderedVideoUrl?: string },
+): Partial<VideoProps> => {
+  const renderedVideoUrl =
+    typeof options?.renderedVideoUrl === "string" &&
+    options.renderedVideoUrl.trim()
+      ? options.renderedVideoUrl.trim()
+      : undefined;
+
+  if (!video && !renderedVideoUrl) {
     return {};
   }
   if (typeof video === "string") {
-    return { videoUrl: video };
+    return { videoUrl: renderedVideoUrl ?? video };
   }
-  const videoUrl =
-    typeof video.video === "string"
+  const uploadedVideoUrl =
+    typeof video?.video === "string"
       ? video.video
-      : typeof video.video?.asset?.url === "string"
+      : typeof video?.video?.asset?.url === "string"
         ? video.video.asset.url
         : undefined;
   const posterUrl =
-    typeof video.posterUrl === "string"
+    typeof video?.posterUrl === "string"
       ? video.posterUrl
-      : typeof video.posterUrl?.asset?.url === "string"
+      : typeof video?.posterUrl?.asset?.url === "string"
         ? video.posterUrl.asset.url
         : undefined;
   return {
-    videoUrl,
-    title: video.title,
+    videoUrl: renderedVideoUrl ?? uploadedVideoUrl,
+    title: typeof video?.title === "string" ? video.title : undefined,
     posterUrl,
   };
 };
@@ -290,6 +299,7 @@ export const mapMissionProps = (m: SanityDoc): Partial<MissionProps> => {
     ...(values && values.length > 0 ? { services: values } : {}),
   };
 };
+
 
 export const mapExpertiseProps = (e: SanityDoc): Partial<ExpertiseProps> => {
   if (!e) {

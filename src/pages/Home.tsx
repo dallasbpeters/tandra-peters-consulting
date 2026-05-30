@@ -5,6 +5,7 @@ import {
 } from "../components/GoogleAuthGate";
 import ScrollVelocity from "../components/ScrollText";
 import { About } from "../components/About";
+import { BeforeAfterSlider } from "../components/BeforeAfterSlider";
 import { Services } from "../components/Services";
 import { Mission } from "../components/Mission";
 import { Expertise } from "../components/Expertise";
@@ -38,6 +39,7 @@ import {
  mapTestimonialsProps,
  mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
+import { asOptionalRichText } from "../portableText/value";
 import {
  RoofInspection,
  CHAPTERS,
@@ -53,6 +55,7 @@ import {
 export const Home = () => {
   const { data } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
+  const introVideo = data?.introVideo as Record<string, unknown> | null | undefined;
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
       ? home.seoTitle
@@ -68,8 +71,14 @@ export const Home = () => {
   });
 
   const hero = home?.hero as Record<string, unknown> | undefined;
+ const renderedVideoUrl =
+   typeof introVideo?.renderedVideoUrl === "string" &&
+   introVideo.renderedVideoUrl.trim()
+     ? introVideo.renderedVideoUrl.trim()
+     : undefined;
  const videoProps = mapVideoProps(
    home?.featuredVideo as Record<string, unknown> | undefined,
+   { renderedVideoUrl },
  );
  const marquee = home?.marquee as Record<string, unknown> | undefined;
  const about = home?.about as Record<string, unknown> | undefined;
@@ -103,6 +112,23 @@ export const Home = () => {
    typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
  const roofInspection = mapRoofInspectionProps(roofInspectionData);
+ const beforeAfter = home?.beforeAfter as Record<string, unknown> | undefined;
+ const asString = (v: unknown): string | undefined =>
+   typeof v === "string" && v.trim() ? v : undefined;
+ const beforeAfterItems = (beforeAfter?.items as Record<string, unknown>[] | undefined)?.map(
+   (item) => {
+     return {
+       id: asString(item._key),
+       title: asString(item.title),
+       beforeImage: asString(item.beforeImage),
+       afterImage: asString(item.afterImage),
+       description: asString(item.description),
+     };
+   },
+ )?.filter((item) => item.beforeImage && item.afterImage);
+ const beforeAfterEyebrow = asString(beforeAfter?.eyebrow);
+ const beforeAfterTitle = asString(beforeAfter?.title);
+ const beforeAfterIntro = asOptionalRichText(beforeAfter?.intro);
 
   /**
    * Convert CMS hotspot data to the Chapter shape expected by RoofInspection.
@@ -205,6 +231,14 @@ export const Home = () => {
           />
         ) : null}
         <Mission {...mapMissionProps(mission)} />
+        {beforeAfterItems && beforeAfterItems.length > 0 ? (
+          <BeforeAfterSlider
+            imagePairs={beforeAfterItems}
+            eyebrow={beforeAfterEyebrow}
+            title={beforeAfterTitle}
+            description={beforeAfterIntro}
+          />
+        ) : null}
         <Expertise {...mapExpertiseProps(expertise)} />
         <Testimonials {...mapTestimonialsProps(testimonials)} />
         {/* <Faq {...mapFaqProps(faq)} />

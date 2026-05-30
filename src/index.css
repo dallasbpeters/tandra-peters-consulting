@@ -365,4 +365,9 @@ kbd {
     /* eslint-disable-next-line css/no-invalid-at-rules */
     @apply font-sans;
   }
+
+  ul li, ol li {
+    margin-inline-start: 1.25rem;
+  }
+
 }

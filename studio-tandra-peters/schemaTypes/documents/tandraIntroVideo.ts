@@ -26,6 +26,7 @@ export const tandraIntroVideoType = defineType({
     {name: 'managed', title: 'Managed process'},
     {name: 'proof', title: 'Proof'},
     {name: 'closing', title: 'Closing'},
+    {name: 'render', title: 'Render output'},
   ],
   fields: [
     defineField({
@@ -95,6 +96,22 @@ export const tandraIntroVideoType = defineType({
       type: 'object',
       group: 'closing',
       fields: [...lineFields, defineField({name: 'cta', title: 'Call to action', type: 'string'})],
+    }),
+    defineField({
+      name: 'renderedVideoUrl',
+      title: 'Latest rendered video URL',
+      type: 'url',
+      group: 'render',
+      readOnly: true,
+      description:
+        'Set automatically after a Remotion render (POST /api/render-tandra-intro). The homepage plays this URL when present, instead of the Home page featured video upload.',
+    }),
+    defineField({
+      name: 'renderedAt',
+      title: 'Last rendered',
+      type: 'datetime',
+      group: 'render',
+      readOnly: true,
     }),
   ],
   initialValue: {

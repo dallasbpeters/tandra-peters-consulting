@@ -323,6 +323,72 @@ export const socialShareSectionType = defineType({
   ],
 })
 
+export const beforeAfterPairType = defineType({
+  name: 'beforeAfterPair',
+  title: 'Before / After Pair',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      description: 'Short label shown under the pair (e.g. "Hail damage repair, North Austin").',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'beforeImage',
+      title: 'Before image',
+      type: 'image',
+      options: {hotspot: true},
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'afterImage',
+      title: 'After image',
+      type: 'image',
+      options: {hotspot: true},
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      rows: 2,
+    }),
+  ],
+  preview: {
+    select: {title: 'title', media: 'afterImage'},
+    prepare: ({title, media}) => ({
+      title: title || 'Before / After pair',
+      media,
+    }),
+  },
+})
+
+export const beforeAfterSectionType = defineType({
+  name: 'beforeAfterSection',
+  title: 'Before / After',
+  type: 'object',
+  description: 'Image-pair slider. Add as many pairs as you like.',
+  fields: [
+    defineField({name: 'eyebrow', type: 'string', title: 'Eyebrow label'}),
+    defineField({name: 'title', type: 'string', title: 'Heading'}),
+    defineField({
+      name: 'intro',
+      title: 'Intro',
+      type: 'blockContent',
+      description: 'Optional short paragraph beside the heading.',
+    }),
+    defineField({
+      name: 'items',
+      title: 'Image pairs',
+      type: 'array',
+      of: [{type: 'beforeAfterPair'}],
+      validation: (rule) => rule.unique(),
+    }),
+  ],
+})
+
 export const articlesTeaserSectionType = defineType({
   name: 'articlesTeaserSection',
   title: 'Articles teaser',

@@ -65,7 +65,10 @@ At render time, [`POST /api/render-tandra-intro`](api/render-tandra-intro.ts):
 2. Restores the sandbox snapshot for the current deployment
 3. Renders `TandraIntro` in the sandbox (~1–2 minutes)
 4. Uploads the MP4 to Vercel Blob at `videos/tandra-intro/{timestamp}.mp4`
-5. Returns JSON with the public `url`, `size`, and `copySource`
+5. Saves the public URL on Sanity `tandraIntroVideo.renderedVideoUrl` (homepage reads this first)
+6. Returns JSON with the public `url`, `size`, `copySource`, and `sanityUpdated`
+
+The homepage featured video prefers `tandraIntroVideo.renderedVideoUrl` over the Home page video upload in Sanity.
 
 The function has a 300s timeout (`vercel.json`).
 
@@ -73,7 +76,8 @@ The function has a 300s timeout (`vercel.json`).
 
 1. **Blob store** — attach a Vercel Blob store to the project. Vercel injects `BLOB_READ_WRITE_TOKEN` automatically.
 2. **Sanity token** (optional) — set `SANITY_API_READ_TOKEN` on Vercel so renders include draft copy before publish.
-3. **Render auth** (recommended) — set `RENDER_VIDEO_SECRET` on Production/Preview/Development. When set, requests must include:
+3. **Sanity write token** — set `SANITY_WRITE_TOKEN` (or `SANITY_API_WRITE_TOKEN`) so successful renders update `tandraIntroVideo.renderedVideoUrl` for the homepage.
+4. **Render auth** (recommended) — set `RENDER_VIDEO_SECRET` on Production/Preview/Development. When set, requests must include:
 
    ```http
    Authorization: Bearer <RENDER_VIDEO_SECRET>
@@ -105,7 +109,8 @@ Example response:
   "size": 14478025,
   "compositionId": "TandraIntro",
   "copySource": "sanity-draft-or-published",
-  "documentId": "tandraIntroVideo"
+  "documentId": "tandraIntroVideo",
+  "sanityUpdated": true
 }
 ```
 
@@ -125,6 +130,7 @@ Requires `BLOB_READ_WRITE_TOKEN` in `.env.local` (pull from Vercel after linking
 | --- | --- | --- |
 | `BLOB_READ_WRITE_TOKEN` | Vercel (auto) / `.env.local` | Blob uploads + snapshot metadata |
 | `SANITY_API_READ_TOKEN` | Vercel / `.env.local` | Include draft CMS copy in renders |
+| `SANITY_WRITE_TOKEN` | Vercel / `.env.local` | Save rendered video URL to Sanity after render |
 | `RENDER_VIDEO_SECRET` | Vercel / `.env.local` | Auth for `/api/render-tandra-intro` |
 | `SKIP_REMOTION_SNAPSHOT=1` | Vercel build env only | Skip snapshot step (emergency bypass) |
 

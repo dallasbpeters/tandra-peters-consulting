@@ -26,6 +26,8 @@ import {
   socialShareSectionType,
   articlesTeaserSectionType,
   roofInspectionSectionType,
+  beforeAfterPairType,
+  beforeAfterSectionType,
 } from './homePageSections'
 import {roofInspectionHotspotType} from './objects/roofInspectionHotspot'
 import {siteSettingsType} from './documents/siteSettings'
@@ -34,10 +36,11 @@ import {articlesPageType} from './documents/articlesPage'
 import {aiContextType} from './documents/aiContext'
 import {seoDashboardInsightsType} from './documents/seoDashboardInsights'
 import {tandraIntroVideoType} from './documents/tandraIntroVideo'
-
+import beforeAfterGalleryType from './documents/beforeAfterGallery'
 export const schemaTypes = [
   blockContentType,
   navLinkType,
+  beforeAfterGalleryType,
   socialLinkType,
   serviceCardType,
   birdcreekAdvantageCardType,
@@ -63,6 +66,8 @@ export const schemaTypes = [
   socialShareSectionType,
   articlesTeaserSectionType,
   roofInspectionSectionType,
+  beforeAfterPairType,
+  beforeAfterSectionType,
   siteSettingsType,
   homePageType,
   articlesPageType,

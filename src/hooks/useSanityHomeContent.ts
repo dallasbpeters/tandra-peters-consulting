@@ -67,6 +67,7 @@ const resolveHomeArticleCards = (
 export type HomeDocuments = {
   home: Record<string, unknown> | null;
   site: Record<string, unknown> | null;
+  introVideo: Record<string, unknown> | null;
   latestPosts: PostListItem[];
 };
 
