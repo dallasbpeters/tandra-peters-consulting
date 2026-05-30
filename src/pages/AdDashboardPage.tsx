@@ -60,6 +60,26 @@ type CanvasTextOptions = {
   align?: CanvasTextAlign;
 };
 
+type PlatformShape = "square" | "wide" | "tall";
+
+type CanvasBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type TextFit = {
+  eyebrowSize: number;
+  headlineSize: number;
+  bodySize: number;
+  ctaSize: number;
+  footnoteSize: number;
+  headlineLines: string[];
+  bodyLines: string[];
+  totalHeight: number;
+};
+
 const getSelectValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
 
@@ -180,23 +200,25 @@ const drawCoverImage = (
   context.drawImage(image, dx, dy, scaledWidth, scaledHeight);
 };
 
-const wrapText = (
+const getPlatformShape = (platform: PlatformPreset): PlatformShape => {
+  const ratio = platform.width / platform.height;
+  if (ratio < 0.78) return "tall";
+  if (ratio > 1.35) return "wide";
+  return "square";
+};
+
+const getWrappedLines = (
   context: CanvasRenderingContext2D,
   text: string,
-  x: number,
-  y: number,
-  options: CanvasTextOptions,
-) => {
+  maxWidth: number,
+): string[] => {
   const words = text.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let currentLine = "";
 
   words.forEach((word) => {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (
-      context.measureText(testLine).width > options.maxWidth &&
-      currentLine
-    ) {
+    if (context.measureText(testLine).width > maxWidth && currentLine) {
       lines.push(currentLine);
       currentLine = word;
     } else {
@@ -208,6 +230,91 @@ const wrapText = (
     lines.push(currentLine);
   }
 
+  return lines;
+};
+
+const measureTextFit = (
+  context: CanvasRenderingContext2D,
+  creative: CreativeState,
+  box: CanvasBox,
+  base: {
+    eyebrowSize: number;
+    headlineSize: number;
+    bodySize: number;
+    ctaSize: number;
+    footnoteSize: number;
+  },
+): TextFit => {
+  context.font = `400 ${base.headlineSize}px "Instrument Serif", serif`;
+  const headlineLines = getWrappedLines(context, creative.headline, box.width);
+  const headlineLineHeight = Math.round(base.headlineSize * 1.02);
+
+  context.font = `600 ${base.bodySize}px Manrope, sans-serif`;
+  const bodyLines = getWrappedLines(context, creative.body, box.width);
+  const bodyLineHeight = Math.round(base.bodySize * 1.38);
+
+  const totalHeight =
+    base.eyebrowSize * 1.1 +
+    base.eyebrowSize * 1.85 +
+    headlineLines.length * headlineLineHeight +
+    base.bodySize * 0.85 +
+    bodyLines.length * bodyLineHeight +
+    base.bodySize * 1.05 +
+    base.ctaSize * 2.45;
+
+  return {
+    ...base,
+    headlineLines,
+    bodyLines,
+    totalHeight,
+  };
+};
+
+const fitTextBlock = (
+  context: CanvasRenderingContext2D,
+  creative: CreativeState,
+  box: CanvasBox,
+  shortestSide: number,
+  shape: PlatformShape,
+  layout: CreativeLayout,
+): TextFit => {
+  const baseHeadline =
+    shortestSide *
+    (layout === "headline-card"
+      ? shape === "wide"
+        ? 0.094
+        : shape === "tall"
+          ? 0.082
+          : 0.088
+      : shape === "wide"
+        ? 0.074
+        : shape === "tall"
+          ? 0.078
+          : 0.072);
+  let scale = 1;
+  let fit: TextFit;
+
+  do {
+    fit = measureTextFit(context, creative, box, {
+      eyebrowSize: Math.max(18, Math.round(shortestSide * 0.023 * scale)),
+      headlineSize: Math.max(38, Math.round(baseHeadline * scale)),
+      bodySize: Math.max(18, Math.round(shortestSide * 0.031 * scale)),
+      ctaSize: Math.max(17, Math.round(shortestSide * 0.025 * scale)),
+      footnoteSize: Math.max(16, Math.round(shortestSide * 0.021 * scale)),
+    });
+    scale -= 0.05;
+  } while (fit.totalHeight > box.height && scale >= 0.62);
+
+  return fit;
+};
+
+const drawTextLines = (
+  context: CanvasRenderingContext2D,
+  lines: string[],
+  x: number,
+  y: number,
+  options: CanvasTextOptions,
+) => {
   context.fillStyle = options.color;
   context.textAlign = options.align ?? "left";
   context.textBaseline = "top";
@@ -218,6 +325,57 @@ const wrapText = (
   });
 
   return y + lines.length * options.lineHeight;
+};
+
+const drawTextBlock = (
+  context: CanvasRenderingContext2D,
+  creative: CreativeState,
+  box: CanvasBox,
+  fit: TextFit,
+) => {
+  let cursorY = box.y;
+
+  context.fillStyle = creative.accentColor;
+  context.font = `900 ${fit.eyebrowSize}px Manrope, sans-serif`;
+  context.textBaseline = "top";
+  context.fillText(creative.eyebrow.toUpperCase(), box.x, cursorY);
+  cursorY += fit.eyebrowSize * 2.95;
+
+  cursorY = drawTextLines(context, fit.headlineLines, box.x, cursorY, {
+    color: creative.textColor,
+    font: `${fit.headlineSize}px "Instrument Serif", serif`,
+    lineHeight: Math.round(fit.headlineSize * 1.02),
+    maxWidth: box.width,
+    weight: 400,
+  });
+
+  cursorY += fit.bodySize * 0.85;
+  cursorY = drawTextLines(context, fit.bodyLines, box.x, cursorY, {
+    color: creative.textColor,
+    font: `${fit.bodySize}px Manrope, sans-serif`,
+    lineHeight: Math.round(fit.bodySize * 1.38),
+    maxWidth: box.width,
+    weight: 600,
+  });
+
+  const ctaY = cursorY + fit.bodySize * 1.05;
+  const ctaPaddingX = fit.ctaSize * 1.55;
+  const ctaHeight = fit.ctaSize * 2.45;
+  context.font = `850 ${fit.ctaSize}px Manrope, sans-serif`;
+  const ctaWidth = Math.min(
+    box.width,
+    context.measureText(creative.cta).width + ctaPaddingX * 2,
+  );
+
+  context.fillStyle = creative.accentColor;
+  roundedRect(context, box.x, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
+  context.fill();
+  context.fillStyle = creative.backgroundColor;
+  context.fillText(
+    creative.cta,
+    box.x + ctaPaddingX,
+    ctaY + fit.ctaSize * 0.68,
+  );
 };
 
 const roundedRect = (
@@ -275,145 +433,167 @@ const drawCreative = async (
   const width = platform.width;
   const height = platform.height;
   const shortestSide = Math.min(width, height);
-  const margin = Math.round(shortestSide * 0.075);
-  const isTall = height > width * 1.25;
-  const headlineSize = Math.round(shortestSide * (isTall ? 0.08 : 0.072));
-  const bodySize = Math.round(shortestSide * 0.03);
-  const smallSize = Math.round(shortestSide * 0.022);
+  const shape = getPlatformShape(platform);
+  const margin = Math.round(
+    shortestSide * (shape === "wide" ? 0.06 : shape === "tall" ? 0.07 : 0.075),
+  );
+  const gap = Math.round(shortestSide * 0.045);
+  const radius = Math.round(shortestSide * 0.034);
+  const footerReserve = Math.round(shortestSide * 0.065);
 
   context.fillStyle = creative.backgroundColor;
   context.fillRect(0, 0, width, height);
 
   const image = creative.imageUrl ? await loadImage(creative.imageUrl) : null;
+  let copyBox: CanvasBox = {
+    x: margin,
+    y: margin,
+    width: width - margin * 2,
+    height: height - margin * 2 - footerReserve,
+  };
 
   if (creative.layout === "photo-fill" && image) {
     drawCoverImage(context, image, 0, 0, width, height);
     context.fillStyle = "rgba(9, 42, 29, 0.66)";
     context.fillRect(0, 0, width, height);
+    copyBox = {
+      x: margin,
+      y:
+        shape === "tall"
+          ? Math.round(height * 0.48)
+          : shape === "wide"
+            ? Math.round(height * 0.34)
+            : Math.round(height * 0.42),
+      width:
+        shape === "wide"
+          ? Math.round(width * 0.52)
+          : width - margin * 2,
+      height:
+        shape === "tall"
+          ? height - Math.round(height * 0.48) - margin - footerReserve
+          : height - Math.round(height * 0.42) - margin - footerReserve,
+    };
   }
 
   if (creative.layout === "headline-card") {
+    const frameWidth = Math.max(14, Math.round(shortestSide * 0.026));
+    const innerX = margin + frameWidth;
+    const innerY = margin + frameWidth;
+    const innerWidth = width - margin * 2 - frameWidth * 2;
+    const innerHeight = height - margin * 2 - frameWidth * 2;
+    const innerPad = Math.round(
+      shortestSide * (shape === "wide" ? 0.048 : 0.06),
+    );
+
     context.fillStyle = creative.accentColor;
-    roundedRect(context, margin, margin, width - margin * 2, height - margin * 2, 42);
-    context.fill();
-    context.fillStyle = creative.backgroundColor;
     roundedRect(
       context,
-      margin + 18,
-      margin + 18,
-      width - margin * 2 - 36,
-      height - margin * 2 - 36,
-      28,
+      margin,
+      margin,
+      width - margin * 2,
+      height - margin * 2,
+      radius,
     );
+    context.fill();
+    context.fillStyle = creative.backgroundColor;
+    roundedRect(context, innerX, innerY, innerWidth, innerHeight, radius * 0.7);
     context.fill();
 
     if (image) {
-      const badgeSize = Math.round(Math.min(width, height) * 0.22);
-      const badgeX = width - margin - badgeSize;
-      const badgeY = height - margin - badgeSize;
-      roundedRect(context, badgeX, badgeY, badgeSize, badgeSize, 24);
+      const badgeSize = Math.round(
+        shortestSide * (shape === "wide" ? 0.31 : shape === "tall" ? 0.34 : 0.24),
+      );
+      const badgeX =
+        shape === "wide"
+          ? innerX + innerWidth - innerPad - badgeSize
+          : innerX + innerWidth - innerPad - badgeSize;
+      const badgeY =
+        shape === "tall"
+          ? innerY + innerHeight - innerPad - badgeSize
+          : innerY + innerHeight - innerPad - badgeSize;
+      roundedRect(context, badgeX, badgeY, badgeSize, badgeSize, radius * 0.55);
       context.save();
       context.clip();
       drawCoverImage(context, image, badgeX, badgeY, badgeSize, badgeSize);
       context.restore();
     }
+
+    copyBox = {
+      x: innerX + innerPad,
+      y: innerY + innerPad,
+      width:
+        image && shape === "wide"
+          ? innerWidth - innerPad * 3 - Math.round(shortestSide * 0.31)
+          : image && shape === "square"
+            ? Math.round(innerWidth * 0.66)
+            : innerWidth - innerPad * 2,
+      height:
+        image && shape === "tall"
+          ? innerHeight - innerPad * 3 - Math.round(shortestSide * 0.34)
+          : innerHeight - innerPad * 2 - footerReserve,
+    };
   }
 
-  let textMaxWidth = width - margin * 2;
-  let copyX = margin;
-  let copyY =
-    creative.layout === "photo-fill"
-      ? height * (isTall ? 0.54 : 0.46)
-      : margin * 1.2;
-
   if (creative.layout === "photo-right") {
-    if (isTall) {
+    if (shape === "tall") {
       const photoWidth = width - margin * 2;
-      const photoHeight = Math.round(height * 0.42);
+      const photoHeight = Math.round(height * 0.36);
       const photoX = margin;
       const photoY = height - margin - photoHeight;
       if (image) {
-        roundedRect(context, photoX, photoY, photoWidth, photoHeight, 32);
+        roundedRect(context, photoX, photoY, photoWidth, photoHeight, radius);
         context.save();
         context.clip();
         drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
         context.restore();
       }
+      copyBox = {
+        x: margin,
+        y: margin,
+        width: width - margin * 2,
+        height: photoY - margin - gap,
+      };
     } else {
-      const photoWidth = Math.round(width * 0.42);
+      const photoWidth = Math.round(width * (shape === "wide" ? 0.44 : 0.4));
       const photoHeight = height - margin * 2;
       const photoX = width - margin - photoWidth;
       const photoY = margin;
       if (image) {
-        roundedRect(context, photoX, photoY, photoWidth, photoHeight, 32);
+        roundedRect(context, photoX, photoY, photoWidth, photoHeight, radius);
         context.save();
         context.clip();
         drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
         context.restore();
       }
-      textMaxWidth = Math.round(width * 0.45);
+      copyBox = {
+        x: margin,
+        y: margin,
+        width: photoX - margin - gap,
+        height: height - margin * 2 - footerReserve,
+      };
     }
   }
 
-  if (creative.layout === "headline-card") {
-    textMaxWidth = Math.round(width * 0.72);
-    copyX = margin * 1.35;
-    copyY = margin * 1.35;
-  }
-
-  context.fillStyle = creative.accentColor;
-  context.font = `800 ${smallSize}px Manrope, sans-serif`;
-  context.textBaseline = "top";
+  const fit = fitTextBlock(
+    context,
+    creative,
+    copyBox,
+    shortestSide,
+    shape,
+    creative.layout,
+  );
   context.letterSpacing = "0px";
-  context.fillText(creative.eyebrow.toUpperCase(), copyX, copyY);
-
-  const afterHeadline = wrapText(
-    context,
-    creative.headline,
-    copyX,
-    copyY + smallSize * 2.1,
-    {
-      color: creative.textColor,
-      font: `${headlineSize}px "Instrument Serif", serif`,
-      lineHeight: Math.round(headlineSize * 1.05),
-      maxWidth: textMaxWidth,
-      weight: 400,
-    },
-  );
-
-  const afterBody = wrapText(
-    context,
-    creative.body,
-    copyX,
-    afterHeadline + bodySize * 0.75,
-    {
-      color: creative.textColor,
-      font: `${bodySize}px Manrope, sans-serif`,
-      lineHeight: Math.round(bodySize * 1.42),
-      maxWidth: textMaxWidth,
-      weight: 500,
-    },
-  );
-
-  const ctaY = afterBody + bodySize * 1.15;
-  context.fillStyle = creative.accentColor;
-  roundedRect(
-    context,
-    copyX,
-    ctaY,
-    Math.min(textMaxWidth, context.measureText(creative.cta).width + margin * 0.9),
-    bodySize * 2.25,
-    999,
-  );
-  context.fill();
-  context.fillStyle = creative.backgroundColor;
-  context.font = `800 ${smallSize}px Manrope, sans-serif`;
-  context.fillText(creative.cta, copyX + margin * 0.36, ctaY + bodySize * 0.55);
+  drawTextBlock(context, creative, copyBox, fit);
 
   context.fillStyle = creative.textColor;
   context.globalAlpha = 0.72;
-  context.font = `700 ${smallSize}px Manrope, sans-serif`;
-  context.fillText(creative.footnote, margin, height - margin * 0.82);
+  context.font = `750 ${fit.footnoteSize}px Manrope, sans-serif`;
+  context.fillText(
+    creative.footnote,
+    creative.layout === "headline-card" ? copyBox.x : margin,
+    height - margin * 0.75,
+    width - margin * 2,
+  );
   context.globalAlpha = 1;
 
   return new Promise<Blob>((resolve, reject) => {
@@ -466,8 +646,7 @@ export const AdDashboardPage = () => {
     () => getSelectedPlatform(creative.platformId),
     [creative.platformId],
   );
-  const selectedPlatformIsTall =
-    selectedPlatform.height > selectedPlatform.width * 1.25;
+  const selectedPlatformShape = getPlatformShape(selectedPlatform);
 
   usePageMetadata({
     title: "Ad Builder | Tandra Peters",
@@ -549,20 +728,6 @@ export const AdDashboardPage = () => {
 
           {auth.token ? (
             <>
-              <header className="ad-dashboard-header">
-                <div className="ad-dashboard-user">
-                  {auth.user?.picture ? (
-                    <img src={auth.user.picture} alt="" />
-                  ) : null}
-                  <div>
-                    <strong>{auth.user?.name ?? auth.user?.email}</strong>
-                    <span>{auth.user?.email}</span>
-                  </div>
-                  <button type="button" onClick={() => auth.signOut()}>
-                    Sign out
-                  </button>
-                </div>
-              </header>
 
               <section className="ad-dashboard-grid">
                 <aside className="ad-dashboard-panel ad-dashboard-controls">
@@ -680,6 +845,18 @@ export const AdDashboardPage = () => {
                       updateCreative("footnote", getInputValue(event))
                     }
                   />
+                  <div className="ad-dashboard-user">
+                    {auth.user?.picture ? (
+                      <img src={auth.user.picture} alt="" />
+                    ) : null}
+                    <div>
+                      <strong>{auth.user?.name ?? auth.user?.email}</strong>
+                      <span>{auth.user?.email}</span>
+                    </div>
+                    <button type="button" onClick={() => auth.signOut()}>
+                      Sign out
+                    </button>
+                  </div>
                 </aside>
 
                 <section className="ad-dashboard-stage">
@@ -703,9 +880,7 @@ export const AdDashboardPage = () => {
 
                   <div className="ad-dashboard-preview-wrap">
                     <article
-                      className={`ad-creative-preview ad-creative-preview--${creative.layout}${
-                        selectedPlatformIsTall ? " is-tall" : ""
-                      }`}
+                      className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape}`}
                       style={previewStyle}
                     >
                       {creative.imageUrl ? (
@@ -807,12 +982,6 @@ export const AdDashboardPage = () => {
                       }
                     />
                   </label>
-
-                  <div className="ad-dashboard-note">
-                    Keep the message direct: helpful roof guidance first, with
-                    no sales pressure. Use real inspection or project photos
-                    when possible.
-                  </div>
                 </aside>
               </section>
             </>

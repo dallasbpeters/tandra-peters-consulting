@@ -1,5 +1,13 @@
+:root {
+  --ad-bg: #f1ece1;
+  --ad-ink: #092a1d;
+  --ad-accent: #92b661;
+  --sidebar-width: 300px;
+  --nav-bar-offset: 84px;
+}
+
 .ad-dashboard-shell {
-  padding: clamp(6rem, 12vw, 8.5rem) clamp(3rem, 8vw, 5rem);
+  padding: 20px calc(var(--sidebar-width) + 10px);
 }
 
 .ad-dashboard-auth,
@@ -66,10 +74,10 @@
   align-items: center;
   gap: 0.75rem;
   min-width: min(100%, 24rem);
-  padding: 0.75rem;
-  border: 1px solid color-mix(in oklch, #092a1d 12%, transparent);
-  border-radius: 8px;
-  background: #f6f2ea;
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  padding-inline: 1rem;
 }
 
 .ad-dashboard-user img {
@@ -133,15 +141,15 @@
   display: grid;
   gap: 0.5rem;
   padding: 1rem;
+  top: var(--nav-bar-offset);
 }
 
 .ad-dashboard-panel.ad-dashboard-controls {
   place-content: start stretch;
   position: fixed;
   left: 0;
-  top: 0;
   bottom: 0;
-  width: 300px;
+  width: var(--sidebar-width);
   overflow: auto;
   background: white;
   box-shadow: 0 0 10px 0 rgb(0 0 0 / 10%);
@@ -152,9 +160,8 @@
   place-content: start stretch;
   position: fixed;
   right: 0;
-  top: 0;
   bottom: 0;
-  width: 300px;
+  width: var(--sidebar-width);
   overflow: auto;
   background: white;
   box-shadow: 0 0 10px 0 rgb(0 0 0 / 10%);
@@ -256,7 +263,7 @@
     linear-gradient(-45deg, rgb(9 42 29 / 6%) 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, rgb(9 42 29 / 6%) 75%),
     linear-gradient(-45deg, transparent 75%, rgb(9 42 29 / 6%) 75%);
-  background-color: #f1ece1;
+  background-color: #fff;
   background-position:
     0 0,
     0 12px,
@@ -266,6 +273,7 @@
 }
 
 .ad-creative-preview {
+  container-type: inline-size;
   position: relative;
   display: grid;
   width: min(100%, 44rem);
@@ -279,8 +287,17 @@
 
 .ad-creative-preview--photo-right {
   grid-template-columns: 1.05fr 0.9fr;
-  gap: 4%;
-  padding: 7%;
+  gap: clamp(0.75rem, 4cqw, 3rem);
+  padding: clamp(1.2rem, 6cqw, 4.5rem);
+}
+
+.ad-creative-preview--photo-right.is-wide {
+  grid-template-columns: minmax(0, 1fr) minmax(36%, 0.82fr);
+  padding: clamp(1rem, 5cqw, 3rem);
+}
+
+.ad-creative-preview--photo-right.is-square {
+  grid-template-columns: minmax(0, 1fr) 40%;
 }
 
 .ad-creative-preview--photo-fill {
@@ -361,12 +378,33 @@
   min-height: 100%;
 }
 
+.ad-creative-preview--photo-fill.is-wide .ad-creative-copy {
+  width: min(54%, 36rem);
+  align-self: center;
+}
+
+.ad-creative-preview--photo-fill.is-tall .ad-creative-copy {
+  width: min(100%, 32rem);
+  align-self: end;
+}
+
+.ad-creative-preview--headline-card.is-wide .ad-creative-copy {
+  width: min(56%, 38rem);
+}
+
+.ad-creative-preview--headline-card.is-tall .ad-creative-copy {
+  width: min(100%, 34rem);
+  min-height: auto;
+}
+
 .ad-creative-preview--photo-right.is-tall {
   grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) 36%;
+  padding: clamp(1.2rem, 7cqw, 4rem);
 }
 
 .ad-creative-preview--photo-right.is-tall .ad-creative-photo {
-  min-height: 42%;
+  min-height: 0;
   order: 2;
 }
 
@@ -378,7 +416,7 @@
 .ad-creative-copy p {
   margin: 0 0 0.72rem;
   color: var(--ad-accent);
-  font-size: clamp(0.58rem, 1.7vw, 0.9rem);
+  font-size: clamp(0.58rem, 2.3cqw, 0.92rem);
   font-weight: 900;
   letter-spacing: 0.16em;
   line-height: 1.25;
@@ -389,16 +427,24 @@
   margin: 0;
   color: var(--ad-ink);
   font-family: "Instrument Serif", serif;
-  font-size: clamp(1.8rem, 6vw, 4.7rem);
+  font-size: clamp(1.85rem, 8cqw, 4.75rem);
   font-weight: 400;
   letter-spacing: 0;
   line-height: 0.98;
 }
 
+.ad-creative-preview.is-wide .ad-creative-copy h2 {
+  font-size: clamp(1.55rem, 6cqw, 4rem);
+}
+
+.ad-creative-preview.is-tall .ad-creative-copy h2 {
+  font-size: clamp(1.85rem, 9cqw, 4.65rem);
+}
+
 .ad-creative-copy > span {
   margin-top: clamp(0.8rem, 2vw, 1.2rem);
   color: color-mix(in oklch, var(--ad-ink) 84%, transparent);
-  font-size: clamp(0.78rem, 2vw, 1.1rem);
+  font-size: clamp(0.76rem, 2.6cqw, 1.1rem);
   font-weight: 650;
   line-height: 1.45;
 }
@@ -410,15 +456,15 @@
   padding: 0.68em 1em;
   background: var(--ad-accent);
   color: var(--ad-bg);
-  font-size: clamp(0.68rem, 1.8vw, 0.92rem);
+  font-size: clamp(0.66rem, 2.2cqw, 0.92rem);
   line-height: 1;
 }
 
 .ad-creative-preview footer {
   position: absolute;
   z-index: 2;
-  left: 7%;
-  bottom: 5.5%;
+  right: 10%;
+  bottom: 6.5%;
   color: color-mix(in oklch, var(--ad-ink) 74%, transparent);
   font-size: clamp(0.58rem, 1.5vw, 0.82rem);
   font-weight: 850;
@@ -497,14 +543,6 @@
   background: white;
 }
 
-.ad-dashboard-note {
-  border-left: 3px solid #92b661;
-  padding: 0.75rem 0.85rem;
-  background: #f6f2ea;
-  color: color-mix(in oklch, #092a1d 75%, transparent);
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
 
 @media (width <= 1180px) {
   .ad-dashboard-grid {
