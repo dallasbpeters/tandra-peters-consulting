@@ -100,14 +100,14 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
 ] as const;
 
 const BRAND_SWATCHES = [
-  { label: "Everglade", value: "oklch(25.66% 0.046 163.60)" },
+  { label: "Everglade", value: "#092A1D" },
   { label: "Paper", value: "#F6F2EA" },
-  { label: "Mint", value: "oklch(94.59% 0.038 169.76)" },
-  { label: "Purple", value: "oklch(72.81% 0.146 283.49)" },
-  { label: "Laurel", value: "oklch(73.42% 0.104 138.95)" },
-  { label: "Coral", value: "oklch(68.72% 0.196 36.21)" },
-  { label: "Storm", value: "oklch(48.49% 0.291 264.12)" },
-  { label: "Granite", value: "oklch(71.45% 0.054 164.17)" },
+  { label: "Mint", value: "#D5F6E9" },
+  { label: "Purple", value: "#A48FE7" },
+  { label: "Laurel", value: "#92B661" },
+  { label: "Coral", value: "#D86642" },
+  { label: "Storm", value: "#4F6F7A" },
+  { label: "Granite", value: "#99AAA6" },
 ] as const;
 
 const LAYOUTS: ReadonlyArray<{
