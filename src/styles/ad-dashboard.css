@@ -1,5 +1,5 @@
 .ad-dashboard-shell {
-  padding-block: clamp(6rem, 12vw, 8.5rem) clamp(3rem, 8vw, 5rem);
+  padding: clamp(6rem, 12vw, 8.5rem) clamp(3rem, 8vw, 5rem);
 }
 
 .ad-dashboard-auth,
@@ -14,7 +14,7 @@
 .ad-dashboard-auth {
   display: grid;
   gap: 1.25rem;
-  max-width: 44rem;
+  max-width: 80rem;
   padding: clamp(1.25rem, 4vw, 2rem);
   border-radius: 8px;
 }
@@ -103,8 +103,6 @@
 
 .ad-dashboard-user button,
 .ad-dashboard-export,
-.ad-dashboard-preset,
-.ad-dashboard-layout,
 .ad-dashboard-color-grid button {
   cursor: pointer;
   font: inherit;
@@ -133,8 +131,20 @@
 
 .ad-dashboard-panel {
   display: grid;
-  gap: 1rem;
+  gap: .5rem;
   padding: 1rem;
+}
+
+.ad-dashboard-panel.ad-dashboard-controls {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  overflow: auto;
+  background: white;
+  box-shadow: 0 0 10px 0 rgb(0 0 0 / 10%);
+  z-index: 1000;
 }
 
 .ad-dashboard-panel-header {
@@ -160,34 +170,11 @@
   gap: 0.55rem;
 }
 
-.ad-dashboard-preset,
-.ad-dashboard-layout {
-  display: grid;
-  gap: 0.2rem;
+.ad-dashboard-preset-grid wa-select,
+.ad-dashboard-layout-grid wa-select {
+  --wa-color-focus: #92b661;
+
   width: 100%;
-  border: 1px solid color-mix(in oklch, #092a1d 14%, transparent);
-  border-radius: 8px;
-  padding: 0.7rem;
-  background: white;
-  color: #092a1d;
-  text-align: left;
-}
-
-.ad-dashboard-preset.is-active,
-.ad-dashboard-layout.is-active {
-  border-color: #092a1d;
-  background: #d5f6e9;
-}
-
-.ad-dashboard-preset span,
-.ad-dashboard-layout span {
-  font-weight: 850;
-}
-
-.ad-dashboard-preset small,
-.ad-dashboard-layout small {
-  color: color-mix(in oklch, #092a1d 62%, transparent);
-  line-height: 1.45;
 }
 
 .ad-dashboard-field {
@@ -214,9 +201,6 @@
   line-height: 1.45;
 }
 
-.ad-dashboard-field textarea {
-  resize: vertical;
-}
 
 .ad-dashboard-stage {
   min-width: 0;
@@ -372,8 +356,22 @@
 }
 
 .ad-creative-preview--headline-card .ad-creative-copy {
-  width: min(82%, 36rem);
+  width: min(72%, 36rem);
   min-height: 100%;
+}
+
+.ad-creative-preview--photo-right.is-tall {
+  grid-template-columns: 1fr;
+}
+
+.ad-creative-preview--photo-right.is-tall .ad-creative-photo {
+  min-height: 42%;
+  order: 2;
+}
+
+.ad-creative-preview--photo-right.is-tall .ad-creative-copy {
+  justify-content: start;
+  order: 1;
 }
 
 .ad-creative-copy p {

@@ -17,6 +17,8 @@ import {
   Upload,
 } from "iconoir-react";
 import { SitePageChrome } from "../components/SitePageChrome";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { layoutClass } from "../styles/layoutClasses";
@@ -55,6 +57,9 @@ type CanvasTextOptions = {
   weight?: number;
   align?: CanvasTextAlign;
 };
+
+const getSelectValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
 
 const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   {
@@ -95,12 +100,14 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
 ] as const;
 
 const BRAND_SWATCHES = [
-  { label: "Everglade", value: "#092A1D" },
+  { label: "Everglade", value: "oklch(25.66% 0.046 163.60)" },
   { label: "Paper", value: "#F6F2EA" },
-  { label: "Mint", value: "#D5F6E9" },
-  { label: "Laurel", value: "#92B661" },
-  { label: "Copper", value: "#D86642" },
-  { label: "Storm", value: "#4F6F7A" },
+  { label: "Mint", value: "oklch(94.59% 0.038 169.76)" },
+  { label: "Purple", value: "oklch(72.81% 0.146 283.49)" },
+  { label: "Laurel", value: "oklch(73.42% 0.104 138.95)" },
+  { label: "Coral", value: "oklch(68.72% 0.196 36.21)" },
+  { label: "Storm", value: "oklch(48.49% 0.291 264.12)" },
+  { label: "Granite", value: "oklch(71.45% 0.054 164.17)" },
 ] as const;
 
 const LAYOUTS: ReadonlyArray<{
@@ -255,11 +262,12 @@ const drawCreative = async (
 
   const width = platform.width;
   const height = platform.height;
-  const margin = Math.round(Math.min(width, height) * 0.075);
+  const shortestSide = Math.min(width, height);
+  const margin = Math.round(shortestSide * 0.075);
   const isTall = height > width * 1.25;
-  const headlineSize = Math.round(Math.min(width, height) * (isTall ? 0.08 : 0.072));
-  const bodySize = Math.round(Math.min(width, height) * 0.03);
-  const smallSize = Math.round(Math.min(width, height) * 0.022);
+  const headlineSize = Math.round(shortestSide * (isTall ? 0.08 : 0.072));
+  const bodySize = Math.round(shortestSide * 0.03);
+  const smallSize = Math.round(shortestSide * 0.022);
 
   context.fillStyle = creative.backgroundColor;
   context.fillRect(0, 0, width, height);
@@ -270,20 +278,6 @@ const drawCreative = async (
     drawCoverImage(context, image, 0, 0, width, height);
     context.fillStyle = "rgba(9, 42, 29, 0.66)";
     context.fillRect(0, 0, width, height);
-  }
-
-  if (creative.layout === "photo-right" && image) {
-    const photoWidth = isTall ? width - margin * 2 : Math.round(width * 0.42);
-    const photoHeight = isTall
-      ? Math.round(height * 0.42)
-      : height - margin * 2;
-    const photoX = isTall ? margin : width - margin - photoWidth;
-    const photoY = isTall ? height - margin - photoHeight : margin;
-    roundedRect(context, photoX, photoY, photoWidth, photoHeight, 32);
-    context.save();
-    context.clip();
-    drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
-    context.restore();
   }
 
   if (creative.layout === "headline-card") {
@@ -313,12 +307,47 @@ const drawCreative = async (
     }
   }
 
-  const textMaxWidth =
-    creative.layout === "photo-right" && !isTall
-      ? Math.round(width * 0.45)
-      : width - margin * 2;
-  const copyX = margin;
-  const copyY = creative.layout === "photo-fill" ? height * 0.46 : margin * 1.2;
+  let textMaxWidth = width - margin * 2;
+  let copyX = margin;
+  let copyY =
+    creative.layout === "photo-fill"
+      ? height * (isTall ? 0.54 : 0.46)
+      : margin * 1.2;
+
+  if (creative.layout === "photo-right") {
+    if (isTall) {
+      const photoWidth = width - margin * 2;
+      const photoHeight = Math.round(height * 0.42);
+      const photoX = margin;
+      const photoY = height - margin - photoHeight;
+      if (image) {
+        roundedRect(context, photoX, photoY, photoWidth, photoHeight, 32);
+        context.save();
+        context.clip();
+        drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
+        context.restore();
+      }
+    } else {
+      const photoWidth = Math.round(width * 0.42);
+      const photoHeight = height - margin * 2;
+      const photoX = width - margin - photoWidth;
+      const photoY = margin;
+      if (image) {
+        roundedRect(context, photoX, photoY, photoWidth, photoHeight, 32);
+        context.save();
+        context.clip();
+        drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
+        context.restore();
+      }
+      textMaxWidth = Math.round(width * 0.45);
+    }
+  }
+
+  if (creative.layout === "headline-card") {
+    textMaxWidth = Math.round(width * 0.72);
+    copyX = margin * 1.35;
+    copyY = margin * 1.35;
+  }
 
   context.fillStyle = creative.accentColor;
   context.font = `800 ${smallSize}px Manrope, sans-serif`;
@@ -425,6 +454,8 @@ export const AdDashboardPage = () => {
     () => getSelectedPlatform(creative.platformId),
     [creative.platformId],
   );
+  const selectedPlatformIsTall =
+    selectedPlatform.height > selectedPlatform.width * 1.25;
 
   usePageMetadata({
     title: "Ad Builder | Tandra Peters",
@@ -501,21 +532,12 @@ export const AdDashboardPage = () => {
   return (
     <SitePageChrome>
       <main className={layoutClass.pageMain}>
-        <div className={`${layoutClass.containerWide} ad-dashboard-shell`}>
+        <div className="ad-dashboard-shell">
           {!auth.token ? <AuthPanel auth={auth} /> : null}
 
           {auth.token ? (
             <>
               <header className="ad-dashboard-header">
-                <div>
-                  <p className="ad-dashboard-eyebrow">Advertising dashboard</p>
-                  <h1>Build platform-ready ad images.</h1>
-                  <p>
-                    Compose a fast, brand-aligned creative from Tandra&apos;s colors,
-                    copy, and uploaded job photos. Export a PNG sized for the
-                    selected platform.
-                  </p>
-                </div>
                 <div className="ad-dashboard-user">
                   {auth.user?.picture ? (
                     <img src={auth.user.picture} alt="" />
@@ -537,24 +559,26 @@ export const AdDashboardPage = () => {
                     <h2>Format</h2>
                   </div>
                   <div className="ad-dashboard-preset-grid">
-                    {PLATFORM_PRESETS.map((platform) => (
-                      <button
-                        key={platform.id}
-                        type="button"
-                        className={
-                          platform.id === creative.platformId
-                            ? "ad-dashboard-preset is-active"
-                            : "ad-dashboard-preset"
-                        }
-                        onClick={() => updateCreative("platformId", platform.id)}
-                      >
-                        <span>{platform.label}</span>
-                        <small>
-                          {platform.width} x {platform.height} |{" "}
-                          {platform.helper}
-                        </small>
-                      </button>
-                    ))}
+                    <WaSelect
+                      name="platform"
+                      label="Platform"
+                      value={creative.platformId}
+                      appearance="outlined"
+                      size="m"
+                      onChange={(event) =>
+                        updateCreative(
+                          "platformId",
+                          getSelectValue(event),
+                        )
+                      }
+                    >
+                      {PLATFORM_PRESETS.map((platform) => (
+                        <WaOption key={platform.id} value={platform.id}>
+                          {platform.label} · {platform.width} x{" "}
+                          {platform.height} · {platform.helper}
+                        </WaOption>
+                      ))}
+                    </WaSelect>
                   </div>
 
                   <div className="ad-dashboard-panel-header">
@@ -562,21 +586,25 @@ export const AdDashboardPage = () => {
                     <h2>Layout</h2>
                   </div>
                   <div className="ad-dashboard-layout-grid">
-                    {LAYOUTS.map((layout) => (
-                      <button
-                        key={layout.id}
-                        type="button"
-                        className={
-                          layout.id === creative.layout
-                            ? "ad-dashboard-layout is-active"
-                            : "ad-dashboard-layout"
-                        }
-                        onClick={() => updateCreative("layout", layout.id)}
-                      >
-                        <span>{layout.label}</span>
-                        <small>{layout.helper}</small>
-                      </button>
-                    ))}
+                    <WaSelect
+                      name="layout"
+                      label="Layout"
+                      value={creative.layout}
+                      appearance="outlined"
+                      size="m"
+                      onChange={(event) =>
+                        updateCreative(
+                          "layout",
+                          getSelectValue(event) as CreativeLayout,
+                        )
+                      }
+                    >
+                      {LAYOUTS.map((layout) => (
+                        <WaOption key={layout.id} value={layout.id}>
+                          {layout.label} · {layout.helper}
+                        </WaOption>
+                      ))}
+                    </WaSelect>
                   </div>
 
                   <div className="ad-dashboard-panel-header">
@@ -653,7 +681,9 @@ export const AdDashboardPage = () => {
 
                   <div className="ad-dashboard-preview-wrap">
                     <article
-                      className={`ad-creative-preview ad-creative-preview--${creative.layout}`}
+                      className={`ad-creative-preview ad-creative-preview--${creative.layout}${
+                        selectedPlatformIsTall ? " is-tall" : ""
+                      }`}
                       style={previewStyle}
                     >
                       {creative.imageUrl ? (
