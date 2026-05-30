@@ -119,7 +119,7 @@
 
 .ad-dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(17rem, 0.85fr) minmax(24rem, 1.55fr) minmax(16rem, 0.75fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
 }
@@ -192,29 +192,16 @@
 }
 
 .ad-dashboard-field {
-  display: grid;
-  gap: 0.35rem;
+  --wa-color-focus: #92b661;
+
+  width: 100%;
 }
 
-.ad-dashboard-field span,
 .ad-dashboard-color-field span {
   color: color-mix(in oklch, #092a1d 72%, transparent);
   font-size: 0.78rem;
   font-weight: 850;
 }
-
-.ad-dashboard-field input,
-.ad-dashboard-field textarea {
-  width: 100%;
-  border: 1px solid color-mix(in oklch, #092a1d 14%, transparent);
-  border-radius: 8px;
-  padding: 0.72rem 0.78rem;
-  background: white;
-  color: #092a1d;
-  font: inherit;
-  line-height: 1.45;
-}
-
 
 .ad-dashboard-stage {
   min-width: 0;

@@ -17,7 +17,9 @@ import {
   Upload,
 } from "iconoir-react";
 import { SitePageChrome } from "../components/SitePageChrome";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -59,6 +61,9 @@ type CanvasTextOptions = {
 };
 
 const getSelectValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
+
+const getInputValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
 
 const PLATFORM_PRESETS: readonly PlatformPreset[] = [
@@ -564,7 +569,7 @@ export const AdDashboardPage = () => {
                       label="Platform"
                       value={creative.platformId}
                       appearance="outlined"
-                      size="m"
+                      size="s"
                       onChange={(event) =>
                         updateCreative(
                           "platformId",
@@ -591,7 +596,7 @@ export const AdDashboardPage = () => {
                       label="Layout"
                       value={creative.layout}
                       appearance="outlined"
-                      size="m"
+                      size="s"
                       onChange={(event) =>
                         updateCreative(
                           "layout",
@@ -611,53 +616,63 @@ export const AdDashboardPage = () => {
                     <Text width={20} height={20} />
                     <h2>Copy</h2>
                   </div>
-                  <label className="ad-dashboard-field">
-                    <span>Eyebrow</span>
-                    <input
-                      value={creative.eyebrow}
-                      onChange={(event) =>
-                        updateCreative("eyebrow", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-field">
-                    <span>Headline</span>
-                    <textarea
-                      value={creative.headline}
-                      rows={3}
-                      onChange={(event) =>
-                        updateCreative("headline", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-field">
-                    <span>Supporting copy</span>
-                    <textarea
-                      value={creative.body}
-                      rows={4}
-                      onChange={(event) =>
-                        updateCreative("body", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-field">
-                    <span>CTA</span>
-                    <input
-                      value={creative.cta}
-                      onChange={(event) =>
-                        updateCreative("cta", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-field">
-                    <span>Footer</span>
-                    <input
-                      value={creative.footnote}
-                      onChange={(event) =>
-                        updateCreative("footnote", event.target.value)
-                      }
-                    />
-                  </label>
+                  <WaInput
+                    className="ad-dashboard-field"
+                    label="Eyebrow"
+                    value={creative.eyebrow}
+                    appearance="outlined"
+                    size="s"
+                    withClear
+                    onInput={(event) =>
+                      updateCreative("eyebrow", getInputValue(event))
+                    }
+                  />
+                  <WaTextarea
+                    className="ad-dashboard-field"
+                    label="Headline"
+                    value={creative.headline}
+                    rows={3}
+                    resize="vertical"
+                    appearance="outlined"
+                    size="s"
+                    onInput={(event) =>
+                      updateCreative("headline", getInputValue(event))
+                    }
+                  />
+                  <WaTextarea
+                    className="ad-dashboard-field"
+                    label="Supporting copy"
+                    value={creative.body}
+                    rows={4}
+                    resize="vertical"
+                    appearance="outlined"
+                    size="s"
+                    onInput={(event) =>
+                      updateCreative("body", getInputValue(event))
+                    }
+                  />
+                  <WaInput
+                    className="ad-dashboard-field"
+                    label="CTA"
+                    value={creative.cta}
+                    appearance="outlined"
+                    size="s"
+                    withClear
+                    onInput={(event) =>
+                      updateCreative("cta", getInputValue(event))
+                    }
+                  />
+                  <WaInput
+                    className="ad-dashboard-field"
+                    label="Footer"
+                    value={creative.footnote}
+                    appearance="outlined"
+                    size="s"
+                    withClear
+                    onInput={(event) =>
+                      updateCreative("footnote", getInputValue(event))
+                    }
+                  />
                 </aside>
 
                 <section className="ad-dashboard-stage">
