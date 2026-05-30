@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -17,6 +18,8 @@ import {
   Upload,
 } from "iconoir-react";
 import { SitePageChrome } from "../components/SitePageChrome";
+import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
+import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
@@ -134,6 +137,57 @@ const BRAND_SWATCHES = [
   { label: "Storm", value: "#4F6F7A" },
   { label: "Granite", value: "#99AAA6" },
 ] as const;
+
+const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map(
+  (swatch) => swatch.value,
+).join(";");
+
+type AdColorPickerFieldProps = {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+};
+
+const AdColorPickerField = ({
+  label,
+  value,
+  onValueChange,
+}: AdColorPickerFieldProps) => {
+  const pickerRef = useRef<WaColorPickerElement | null>(null);
+
+  useEffect(() => {
+    const picker = pickerRef.current;
+    if (!picker) return undefined;
+
+    const handleValueChange = () => {
+      onValueChange(picker.value ?? "");
+    };
+
+    picker.addEventListener("input", handleValueChange);
+    picker.addEventListener("change", handleValueChange);
+
+    return () => {
+      picker.removeEventListener("input", handleValueChange);
+      picker.removeEventListener("change", handleValueChange);
+    };
+  }, [onValueChange]);
+
+  return (
+    <div className="ad-dashboard-color-field">
+      <span>{label}</span>
+      <WaColorPicker
+        ref={pickerRef}
+        label={label}
+        value={value}
+        format="hex"
+        uppercase
+        size="s"
+        placement="left-start"
+        swatches={COLOR_PICKER_SWATCHES}
+      />
+    </div>
+  );
+};
 
 const LAYOUTS: ReadonlyArray<{
   id: CreativeLayout;
@@ -952,36 +1006,27 @@ export const AdDashboardPage = () => {
                     <ColorWheel width={20} height={20} />
                     <h2>Fine tune</h2>
                   </div>
-                  <label className="ad-dashboard-color-field">
-                    <span>Background</span>
-                    <input
-                      type="color"
-                      value={creative.backgroundColor}
-                      onChange={(event) =>
-                        updateCreative("backgroundColor", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-color-field">
-                    <span>Text</span>
-                    <input
-                      type="color"
-                      value={creative.textColor}
-                      onChange={(event) =>
-                        updateCreative("textColor", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="ad-dashboard-color-field">
-                    <span>Accent</span>
-                    <input
-                      type="color"
-                      value={creative.accentColor}
-                      onChange={(event) =>
-                        updateCreative("accentColor", event.target.value)
-                      }
-                    />
-                  </label>
+                  <AdColorPickerField
+                    label="Background"
+                    value={creative.backgroundColor}
+                    onValueChange={(value) =>
+                      updateCreative("backgroundColor", value)
+                    }
+                  />
+                  <AdColorPickerField
+                    label="Text"
+                    value={creative.textColor}
+                    onValueChange={(value) =>
+                      updateCreative("textColor", value)
+                    }
+                  />
+                  <AdColorPickerField
+                    label="Accent"
+                    value={creative.accentColor}
+                    onValueChange={(value) =>
+                      updateCreative("accentColor", value)
+                    }
+                  />
                 </aside>
               </section>
             </>

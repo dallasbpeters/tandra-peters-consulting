@@ -535,12 +535,8 @@
   align-items: center;
 }
 
-.ad-dashboard-color-field input {
-  width: 3rem;
-  height: 2.25rem;
-  border: 1px solid color-mix(in oklch, #092a1d 16%, transparent);
-  border-radius: 8px;
-  background: white;
+.ad-dashboard-color-field wa-color-picker {
+  --wa-color-focus: #92b661;
 }
 
 
