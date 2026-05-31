@@ -14,3 +14,4 @@ coverage/
 .pnpm-store/*
 .agents/skills/.skillshare-manifest.json
 .skillshare/config.yaml
+.playwright-cli/*

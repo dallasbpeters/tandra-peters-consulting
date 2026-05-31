@@ -14,6 +14,7 @@ import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { asOptionalRichText } from "../portableText/value";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
+import { isSanityPresentationPreviewActive } from "../sanity/client";
 import { sanityImageUrl } from "../sanity/imageUrl";
 import {
   mapAboutProps,
@@ -133,7 +134,8 @@ export const Home = () => {
   const videoProps = mapVideoProps(home?.featuredVideo as Record<string, unknown> | undefined, {
     renderedVideoUrl,
   });
-  const shouldUseRenderedIntroVideo = Boolean(renderedVideoUrl);
+  const shouldUseRenderedIntroVideo =
+    Boolean(renderedVideoUrl) && !isSanityPresentationPreviewActive();
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
       ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })

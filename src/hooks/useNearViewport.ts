@@ -15,23 +15,35 @@ export const useNearViewport = <T extends Element>(
       return;
     }
 
-    const node = ref.current;
-    if (!node) {
-      return;
-    }
+    let observer: IntersectionObserver | null = null;
+    let rafId = 0;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setIsNear(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin },
-    );
+    const attach = () => {
+      const node = ref.current;
+      if (!node) {
+        rafId = requestAnimationFrame(attach);
+        return;
+      }
 
-    observer.observe(node);
-    return () => observer.disconnect();
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            setIsNear(true);
+            observer?.disconnect();
+          }
+        },
+        { rootMargin },
+      );
+
+      observer.observe(node);
+    };
+
+    attach();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer?.disconnect();
+    };
   }, [isNear, rootMargin]);
 
   return isNear;

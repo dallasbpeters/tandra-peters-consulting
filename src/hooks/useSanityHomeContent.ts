@@ -135,8 +135,8 @@ export const useSanityHomeContent = () => {
     };
   }, [refetch]);
 
-  // Presentation / draft preview: listen for homePage mutations so hotspot
-  // coords update while typing — Visual Editing refresh alone can lag.
+  // Presentation / draft preview: listen for homePage mutations so nested
+  // fields update while typing — Visual Editing refresh alone can lag.
   useEffect(() => {
     if (!isSanityDraftPreviewActive()) {
       return;
@@ -144,7 +144,7 @@ export const useSanityHomeContent = () => {
 
     const client = getSanityClient();
     const subscription = client
-      .listen('*[_id == "homePage"]', {}, { includeResult: false })
+      .listen('*[_id in ["homePage", "drafts.homePage"]]', {}, { includeResult: false })
       .subscribe(() => {
         void refetch();
       });

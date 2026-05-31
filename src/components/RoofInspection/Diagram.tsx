@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { useNearViewport } from "../../hooks/useNearViewport";
 import { theme } from "../../theme";
 import { useCameraContext } from "./context";
 import { DevViewerCompass } from "./DevViewerCompass";
@@ -18,19 +17,31 @@ type DiagramProps = {
   children?: React.ReactNode;
 };
 
-let modelViewerPromise: Promise<void> | null = null;
+const isModelViewerDefined = () =>
+  typeof customElements !== "undefined" && !!customElements.get("model-viewer");
 
-const loadModelViewer = (): Promise<void> => {
-  if (typeof window === "undefined") {
-    return Promise.resolve();
-  }
-  if (customElements.get("model-viewer")) {
-    return Promise.resolve();
-  }
-  if (!modelViewerPromise) {
-    modelViewerPromise = import("@google/model-viewer").then(() => undefined);
-  }
-  return modelViewerPromise;
+/** Waits for `/model-viewer.min.js` (index.html) to register the custom element. */
+const useModelViewerReady = () => {
+  const [ready, setReady] = useState(isModelViewerDefined);
+
+  useEffect(() => {
+    if (ready) {
+      return;
+    }
+
+    let cancelled = false;
+    void customElements.whenDefined("model-viewer").then(() => {
+      if (!cancelled) {
+        setReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+
+  return ready;
 };
 
 /**
@@ -69,17 +80,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   // This means hover events (which only mutate activeChapterId in the sibling
   // RoofInspectionContext) never cause Diagram to re-render or touch model-viewer.
   const { views, activeViewId, chapters, focusChapterId } = useCameraContext();
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const isNearViewport = useNearViewport(wrapperRef, "600px 0px");
-  const [modelViewerReady, setModelViewerReady] = useState(false);
-
-  useEffect(() => {
-    if (!isNearViewport) {
-      return;
-    }
-
-    void loadModelViewer().then(() => setModelViewerReady(true));
-  }, [isNearViewport]);
+  const modelViewerReady = useModelViewerReady();
 
   // Keep a stable ref so the camera-focus effect can read chapters without
   // adding them as a dependency — chapters is a new array reference on every
@@ -134,32 +135,41 @@ export const Diagram: React.FC<DiagramProps> = ({
   // element upgrades, which can happen after the first React render.
   useEffect(() => {
     const mv = mvRef.current as Element | null;
-    if (!mv) return;
+    if (!mv) {
+      return;
+    }
 
-    let rafId: number;
+    let rafId = 0;
+    let cancelled = false;
 
     const tryInject = () => {
+      if (cancelled) {
+        return;
+      }
+
       const shadow = mv.shadowRoot;
       if (shadow) {
         if (!shadow.querySelector("#ri-overflow-fix")) {
           const style = document.createElement("style");
           style.id = "ri-overflow-fix";
-          // Override every layer that can clip: the host contain, the container,
-          // the userInput div, and anything else via *.
           style.textContent = `
             :host { contain: none !important; overflow: visible !important; }
             .container, .userInput { overflow: visible !important; }
           `;
           shadow.appendChild(style);
         }
-        return; // injected — stop polling
+        return;
       }
+
       rafId = requestAnimationFrame(tryInject);
     };
 
     rafId = requestAnimationFrame(tryInject);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [src, children, modelViewerReady]);
 
   // Boost metallic/roughness on the roofing material after the model loads.
   const handleLoad = () => {
@@ -228,7 +238,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   };
 
   return (
-    <div ref={wrapperRef} style={wrapperStyle} role="region" aria-label={alt}>
+    <div style={wrapperStyle} role="region" aria-label={alt}>
       {modelViewerReady ? (
         <model-viewer
           ref={mvRef as React.Ref<HTMLElement>}
@@ -244,7 +254,7 @@ export const Diagram: React.FC<DiagramProps> = ({
           ar-modes="webxr scene-viewer quick-look"
           camera-controls={true}
           interaction-prompt="none"
-          loading="lazy"
+          loading="eager"
           shadow-intensity="1.5"
           shadow-softness=".6"
           environment-image="legacy"

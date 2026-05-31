@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3001 --host=0.0.0.0",
+    "copy:model-viewer": "node scripts/copy-model-viewer.mjs",
+    "dev": "node scripts/copy-model-viewer.mjs && vite --port=3001 --host=0.0.0.0",
     "dev:all": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
-    "build": "vite build",
+    "build": "node scripts/copy-model-viewer.mjs && vite build",
     "build:vercel": "node scripts/build-vercel.mjs",
     "video:studio": "tsx scripts/render-tandra-intro.mjs studio",
     "video:sync-copy": "tsx scripts/sync-tandra-intro-copy.mjs",

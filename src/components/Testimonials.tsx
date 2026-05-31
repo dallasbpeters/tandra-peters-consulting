@@ -1,27 +1,12 @@
 import React from "react";
-import { ElfsightWidget } from "react-elfsight-widget";
 
 import type { TestimonialsProps } from "../types";
 
 import { RichText } from "../portableText/RichText";
 import { hasPortableTextContent } from "../portableText/value";
-import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-
-/**
- * Elfsight install code looks like:
- * `<div class="elfsight-app-942cf3c9-7b21-4e39-92a1-8c5a2aef07b5" data-elfsight-app-lazy></div>`
- * Put only the UUID in env (with or without `elfsight-app-` — we normalize).
- */
-const normalizeElfsightWidgetId = (raw: string) => {
-  let id = raw.trim();
-  if (!id) return "";
-  id = id.replace(/^elfsight-app-/i, "");
-  id = id.replace(/^["']|["']$/g, "");
-  return id;
-};
-
-const envWidgetId = normalizeElfsightWidgetId(import.meta.env.VITE_ELFSIGHT_WIDGET_ID ?? "");
+import { GoogleReviews } from "./reviews/google-reviews";
+import { reviews } from "./reviews/reviews-data";
 
 const srOnly: React.CSSProperties = {
   position: "absolute",
@@ -36,15 +21,19 @@ const srOnly: React.CSSProperties = {
 };
 
 /**
- * Google reviews via [Elfsight](https://elfsight.com/google-reviews-widget/).
- * Set `VITE_ELFSIGHT_WIDGET_ID` after you publish the widget in your Elfsight dashboard.
+ * Google reviews from synced Elfsight data (`src/data/reviews.ts`).
  */
-export const Testimonials = ({
-  elfsightWidgetId: cmsWidgetId,
-  emptyStateNote,
-}: TestimonialsProps) => {
-  const widgetId = normalizeElfsightWidgetId(cmsWidgetId ?? "") || envWidgetId;
+export const Testimonials = ({ emptyStateNote }: TestimonialsProps) => {
   const useCmsEmptyState = hasPortableTextContent(emptyStateNote);
+
+  if (reviews.length > 0) {
+    return (
+      <div id="testimonials" style={{ position: "relative" }}>
+        <h2 style={srOnly}>Client reviews and testimonials</h2>
+        <GoogleReviews />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -56,33 +45,10 @@ export const Testimonials = ({
         paddingInline: "1.5rem",
         backgroundColor: theme.colors.everglade,
         position: "relative",
-        overflow: "visible",
       }}
     >
       <h2 style={srOnly}>Client reviews and testimonials</h2>
-      {widgetId ? (
-        <div
-          className={layoutClass.containerWide}
-          style={{
-            width: "100%",
-            minHeight: "min(28rem, 60vh)",
-          }}
-        >
-          {/*
-            Match Elfsight embed: class `elfsight-app-<uuid>` + `data-elfsight-app-lazy` (lazy={true} → default mode).
-            Reserve min-height so the slot isn’t 0 before the iframe mounts.
-          */}
-          <ElfsightWidget
-            widgetId={widgetId}
-            lazy
-            style={{
-              display: "block",
-              width: "100%",
-              minHeight: "min(26rem, 55vh)",
-            }}
-          />
-        </div>
-      ) : useCmsEmptyState ? (
+      {useCmsEmptyState ? (
         <div
           style={{
             color: theme.colors.textOnBrand,
@@ -115,19 +81,7 @@ export const Testimonials = ({
             fontSize: "0.95rem",
           }}
         >
-          To show Google reviews here, create a{" "}
-          <a
-            href="https://elfsight.com/google-reviews-widget/"
-            style={{ color: theme.colors.accentLight }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            free Elfsight Google Reviews widget
-          </a>
-          , then add your widget ID to{" "}
-          <code style={{ color: theme.colors.textOnBrand }}>VITE_ELFSIGHT_WIDGET_ID</code> in{" "}
-          <code style={{ color: theme.colors.textOnBrand }}>.env.local</code> and restart the dev
-          server.
+          Reviews will appear here once review data is synced.
         </p>
       )}
     </div>

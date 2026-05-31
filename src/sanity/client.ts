@@ -31,13 +31,16 @@ const presentationPerspectiveFromUrl = (): boolean => {
   return new URLSearchParams(window.location.search).has("sanity-preview-perspective");
 };
 
+/** True only for Sanity Presentation / preview URLs, not plain local draft reads. */
+export const isSanityPresentationPreviewActive = (): boolean =>
+  stegaEnabled() || presentationPerspectiveFromUrl();
+
 /**
  * Draft perspective when: Presentation iframe / preview URL, or local dev with a viewer token
  * (so /articles shows draft posts before publish — same as Studio).
  */
 export const isSanityDraftPreviewActive = (): boolean =>
-  stegaEnabled() ||
-  presentationPerspectiveFromUrl() ||
+  isSanityPresentationPreviewActive() ||
   (import.meta.env.DEV && Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
 
 const useDraftsPerspective = isSanityDraftPreviewActive;
