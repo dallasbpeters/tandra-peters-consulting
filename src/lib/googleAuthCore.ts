@@ -8,6 +8,11 @@ export type GoogleAuthUser = {
 /** Shared with dashboard routes — one sign-in covers both. */
 export const GOOGLE_AUTH_STORAGE_KEY = "tandra:seo-dashboard:google-id-token";
 const GOOGLE_SCRIPT_ID = "google-identity-services";
+type GoogleCredentialHandler = (credential: string | null) => void;
+
+const googleCredentialHandlers = new Set<GoogleCredentialHandler>();
+let googleIdentityClientId: string | null = null;
+let googleIdentityInitializePromise: Promise<void> | null = null;
 
 const normalizeEmail = (value: string): string => value.trim().toLowerCase();
 
@@ -107,6 +112,48 @@ export const loadGoogleIdentityScript = (): Promise<void> =>
     script.onerror = () => reject(new Error("Failed to load Google script"));
     document.head.appendChild(script);
   });
+
+export const subscribeGoogleCredential = (
+  handler: GoogleCredentialHandler,
+): (() => void) => {
+  googleCredentialHandlers.add(handler);
+  return () => {
+    googleCredentialHandlers.delete(handler);
+  };
+};
+
+export const initializeGoogleIdentity = (clientId: string): Promise<void> => {
+  if (googleIdentityClientId === clientId) {
+    return Promise.resolve();
+  }
+
+  if (googleIdentityInitializePromise) {
+    return googleIdentityInitializePromise;
+  }
+
+  googleIdentityInitializePromise = loadGoogleIdentityScript()
+    .then(() => {
+      if (!window.google?.accounts?.id) {
+        throw new Error("Could not load Google sign-in.");
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => {
+          googleCredentialHandlers.forEach((handler) => {
+            handler(response.credential ?? null);
+          });
+        },
+        auto_select: false,
+      });
+      googleIdentityClientId = clientId;
+    })
+    .finally(() => {
+      googleIdentityInitializePromise = null;
+    });
+
+  return googleIdentityInitializePromise;
+};
 
 export const getGoogleClientId = (): string =>
   import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? "";

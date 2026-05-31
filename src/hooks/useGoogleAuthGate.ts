@@ -11,10 +11,11 @@ import {
 import {
   getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
+  initializeGoogleIdentity,
   isAllowedGoogleUser,
   isGoogleAuthGateEnabled,
-  loadGoogleIdentityScript,
   parseGoogleJwtPayload,
+  subscribeGoogleCredential,
   type GoogleAuthUser,
 } from "../lib/googleAuthCore";
 
@@ -128,25 +129,24 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
     }
 
     let cancelled = false;
+    const unsubscribe = subscribeGoogleCredential((credential) => {
+      if (cancelled) {
+        return;
+      }
+
+      if (credential) {
+        setTokenFromCredential(credential);
+      } else {
+        setAuthError("Google sign-in did not return a credential.");
+      }
+    });
 
     const setup = async () => {
       try {
-        await loadGoogleIdentityScript();
+        await initializeGoogleIdentity(clientId);
         if (cancelled || !window.google?.accounts?.id) {
           return;
         }
-
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            if (response.credential) {
-              setTokenFromCredential(response.credential);
-            } else {
-              setAuthError("Google sign-in did not return a credential.");
-            }
-          },
-          auto_select: false,
-        });
         setReady(true);
       } catch (error) {
         if (!cancelled) {
@@ -163,6 +163,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [clientId, isGateActive, setTokenFromCredential]);
 

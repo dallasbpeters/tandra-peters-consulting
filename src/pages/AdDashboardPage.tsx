@@ -57,6 +57,7 @@ type CreativeState = {
   backgroundColor: string;
   textColor: string;
   accentColor: string;
+  imageFile: File | null;
   imageUrl: string | null;
   imageName: string | null;
 };
@@ -384,6 +385,7 @@ const DEFAULT_CREATIVE: CreativeState = {
   backgroundColor: "#092A1D",
   textColor: "#F6F2EA",
   accentColor: "#D5F6E9",
+  imageFile: null,
   imageUrl: null,
   imageName: null,
 };
@@ -399,6 +401,37 @@ const loadImage = (src: string) =>
     img.onerror = () => reject(new Error("Could not load uploaded image."));
     img.src = src;
   });
+
+const loadImageFile = async (file: File) => {
+  const url = URL.createObjectURL(file);
+  try {
+    return await loadImage(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
+const loadCreativeImage = async (creative: CreativeState) => {
+  if (creative.imageFile) {
+    return loadImageFile(creative.imageFile);
+  }
+
+  if (!creative.imageUrl) {
+    return null;
+  }
+
+  try {
+    return await loadImage(creative.imageUrl);
+  } catch (error) {
+    if (creative.imageUrl.startsWith("blob:")) {
+      throw new Error(
+        "The uploaded image reference expired. Re-upload the image.",
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+};
 
 const drawCoverImage = (
   context: CanvasRenderingContext2D,
@@ -669,7 +702,7 @@ const drawCreative = async (
   context.fillStyle = creative.backgroundColor;
   context.fillRect(0, 0, width, height);
 
-  const image = creative.imageUrl ? await loadImage(creative.imageUrl) : null;
+  const image = await loadCreativeImage(creative);
   if (document.fonts) {
     await document.fonts.ready;
   }
@@ -871,6 +904,7 @@ export const AdDashboardPage = () => {
   const posthog = usePostHog();
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
     [creative.platformId],
@@ -917,16 +951,19 @@ export const AdDashboardPage = () => {
 
         return {
           ...current,
+          imageFile: file,
           imageUrl: url,
           imageName: file.name,
         };
       });
+      setExportError(null);
     },
     [],
   );
 
   const handleExport = useCallback(async () => {
     setExporting(true);
+    setExportError(null);
     try {
       const blob = await drawCreative(creative, selectedPlatform);
       downloadBlob(
@@ -939,6 +976,10 @@ export const AdDashboardPage = () => {
         contentPadding: creative.contentPadding,
         fontPreset: creative.fontPresetId,
       });
+    } catch (error) {
+      setExportError(
+        error instanceof Error ? error.message : "Could not export PNG.",
+      );
     } finally {
       setExporting(false);
     }
@@ -1143,6 +1184,11 @@ export const AdDashboardPage = () => {
                       {exporting ? "Exporting..." : "Export PNG"}
                     </button>
                   </div>
+                  {exportError ? (
+                    <p className="ad-dashboard-error ad-dashboard-export-error">
+                      {exportError}
+                    </p>
+                  ) : null}
 
                   <div className="ad-dashboard-preview-wrap">
                     <article
