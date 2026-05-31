@@ -23,3 +23,9 @@ repos:
         files: \.(js|jsx|ts|tsx)$
         exclude: ^(\.agents|\.claude|studio-tandra-peters)/
         pass_filenames: true
+      - id: oxfmt
+        name: oxfmt
+        entry: pnpm run fmt:check
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: true

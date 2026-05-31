@@ -9,11 +9,19 @@ const studioTempDir = path.join(repoRoot, ".studio-dist");
 const studioDir = path.join(repoRoot, "studio-tandra-peters");
 
 const run = (command, args, cwd = repoRoot) => {
-  execFileSync(command, args, {
-    cwd,
-    stdio: "inherit",
-    env: process.env,
-  });
+  try {
+    execFileSync(command, args, {
+      cwd,
+      stdio: "inherit",
+      env: process.env,
+    });
+  } catch (error) {
+    const stderr = error.stderr?.toString?.().trim();
+    const stdout = error.stdout?.toString?.().trim();
+    if (stderr) console.error(stderr);
+    if (stdout) console.error(stdout);
+    throw error;
+  }
 };
 
 rmSync(distDir, { recursive: true, force: true });

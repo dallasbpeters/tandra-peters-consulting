@@ -50,6 +50,7 @@ try {
     access: "public",
     contentType: "application/json",
     addRandomSuffix: false,
+    allowOverwrite: true,
     token: blobToken,
   });
 
