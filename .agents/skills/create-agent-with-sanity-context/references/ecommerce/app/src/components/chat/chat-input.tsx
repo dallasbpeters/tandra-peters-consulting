@@ -1,16 +1,16 @@
-import {Send, Square} from 'lucide-react'
+import { Send, Square } from "lucide-react";
 
-import {Button} from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 interface ChatInputProps {
-  input: string
-  setInput: (value: string) => void
-  onSubmit: (e: React.FormEvent) => void
-  disabled: boolean
+  input: string;
+  setInput: (value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  disabled: boolean;
 }
 
 export function ChatInput(props: ChatInputProps) {
-  const {input, setInput, onSubmit, disabled} = props
+  const { input, setInput, onSubmit, disabled } = props;
 
   return (
     <form onSubmit={onSubmit} className="flex gap-2">
@@ -27,5 +27,5 @@ export function ChatInput(props: ChatInputProps) {
         {disabled ? <Square className="h-3 w-3" /> : <Send className="h-4 w-4" />}
       </Button>
     </form>
-  )
+  );
 }

@@ -1,9 +1,10 @@
-import React from "react";
 import { motion } from "motion/react";
+import React from "react";
+
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { MissionProps } from "../types";
-import { RichText } from "../portableText/RichText";
 
 export const Mission: React.FC<MissionProps> = ({
   tagline = "Our Mission",

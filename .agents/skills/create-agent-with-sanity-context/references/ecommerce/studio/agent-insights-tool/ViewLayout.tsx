@@ -1,14 +1,14 @@
-import {Box, Card, Flex, Heading, Stack, Text} from '@sanity/ui'
+import { Box, Card, Flex, Heading, Stack, Text } from "@sanity/ui";
 
 interface ViewLayoutProps {
-  title: string
-  description: string
-  children: React.ReactNode
-  border?: boolean
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  border?: boolean;
 }
 
 export function ViewLayout(props: ViewLayoutProps) {
-  const {title, description, children, border} = props
+  const { title, description, children, border } = props;
 
   return (
     <Flex direction="column" height="fill" overflow="auto" gap={2}>
@@ -29,5 +29,5 @@ export function ViewLayout(props: ViewLayoutProps) {
         <Box paddingY={3} />
       </Box>
     </Flex>
-  )
+  );
 }

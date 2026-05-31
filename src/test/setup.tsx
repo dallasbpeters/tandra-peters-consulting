@@ -1,8 +1,9 @@
 import "@testing-library/jest-dom";
-import React from "react";
 import { setupServer } from "msw/node";
-import { handlers } from "./handlers";
+import React from "react";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
+
+import { handlers } from "./handlers";
 
 // ── Browser API stubs (jsdom doesn't implement these) ─────────────────────────
 if (typeof globalThis.IntersectionObserver === "undefined") {
@@ -144,23 +145,15 @@ vi.mock("@awesome.me/webawesome/dist/react/select/index.js", () => ({
 }));
 
 vi.mock("@awesome.me/webawesome/dist/react/option/index.js", () => ({
-  default: ({
-    value,
-    children,
-  }: {
-    value?: string;
-    children?: React.ReactNode;
-  }) => <option value={value}>{children}</option>,
+  default: ({ value, children }: { value?: string; children?: React.ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
 }));
 
 vi.mock("../components/TransitionLink", () => ({
-  TransitionLink: ({
-    children,
-    to,
-  }: {
-    children: React.ReactNode;
-    to: string;
-  }) => <a href={to}>{children}</a>,
+  TransitionLink: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock("@awesome.me/webawesome/dist/styles/webawesome.css", () => ({}));

@@ -1,18 +1,11 @@
-const trimHost = (value: string | undefined): string =>
-  (value ?? "").trim().replace(/\/$/, "");
+const trimHost = (value: string | undefined): string => (value ?? "").trim().replace(/\/$/, "");
 
 const CLOUD_INGESTION_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
 
 export const isPosthogEnabled = (): boolean => {
-  const hasToken = Boolean(
-    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim(),
-  );
+  const hasToken = Boolean(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim());
 
-  return (
-    hasToken &&
-    (import.meta.env.PROD ||
-      import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true")
-  );
+  return hasToken && (import.meta.env.PROD || import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true");
 };
 
 /**
@@ -31,21 +24,16 @@ export const resolvePosthogClientOptions = (): {
   disable_surveys: boolean;
 } => {
   const configuredHost =
-    trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) ||
-    "https://us.i.posthog.com";
+    trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) || "https://us.i.posthog.com";
   const isCloudIngestion = CLOUD_INGESTION_RE.test(configuredHost);
 
-  const useDevSameOrigin =
-    import.meta.env.DEV && configuredHost && !isCloudIngestion;
+  const useDevSameOrigin = import.meta.env.DEV && configuredHost && !isCloudIngestion;
 
   const api_host = useDevSameOrigin ? window.location.origin : configuredHost;
 
   const uiFromEnv = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_UI_HOST);
   const ui_host =
-    uiFromEnv ||
-    (!isCloudIngestion && configuredHost
-      ? "https://us.posthog.com"
-      : undefined);
+    uiFromEnv || (!isCloudIngestion && configuredHost ? "https://us.posthog.com" : undefined);
 
   return {
     api_host,

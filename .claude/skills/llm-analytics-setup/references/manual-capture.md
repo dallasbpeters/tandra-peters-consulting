@@ -60,15 +60,12 @@
         $ai_trace_id: "trace_id_here",
         $ai_model: "gpt-4o-mini",
         $ai_provider: "openai",
-        $ai_input: [
-          { role: "user", content: "Tell me a fun fact about hedgehogs" },
-        ],
+        $ai_input: [{ role: "user", content: "Tell me a fun fact about hedgehogs" }],
         $ai_input_tokens: 10,
         $ai_output_choices: [
           {
             role: "assistant",
-            content:
-              "Hedgehogs have around 5,000 to 7,000 spines on their backs!",
+            content: "Hedgehogs have around 5,000 to 7,000 spines on their backs!",
           },
         ],
         $ai_output_tokens: 20,

@@ -4,8 +4,7 @@ const SANITY_IMAGE_PATH = "/api/sanity-image";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 
-const pathnameOnly = (url: string | undefined) =>
-  (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
 
 const parseAllowedSanityImageUrl = (raw: string | null): URL | null => {
   if (!raw) {
@@ -56,9 +55,7 @@ export const viteSanityImageApi = (): Plugin => ({
       }
 
       const requestUrl = new URL(req.url ?? SANITY_IMAGE_PATH, "http://dev");
-      const imageUrl = parseAllowedSanityImageUrl(
-        requestUrl.searchParams.get("url"),
-      );
+      const imageUrl = parseAllowedSanityImageUrl(requestUrl.searchParams.get("url"));
 
       if (!imageUrl) {
         res.statusCode = 400;
@@ -93,8 +90,7 @@ export const viteSanityImageApi = (): Plugin => ({
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
-            error:
-              error instanceof Error ? error.message : "Could not fetch image.",
+            error: error instanceof Error ? error.message : "Could not fetch image.",
           }),
         );
       }

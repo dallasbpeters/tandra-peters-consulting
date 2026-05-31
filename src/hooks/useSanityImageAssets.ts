@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { getSanityClient } from "../sanity/client";
 import { SANITY_IMAGE_LIBRARY_QUERY } from "../sanity/queries";
 
@@ -28,9 +29,7 @@ type SanityImageAssetResult = {
   };
 };
 
-const toImageAsset = (
-  asset: SanityImageAssetResult,
-): SanityImageAsset | null => {
+const toImageAsset = (asset: SanityImageAssetResult): SanityImageAsset | null => {
   if (!asset._id || !asset.url) {
     return null;
   }
@@ -65,9 +64,7 @@ export const useSanityImageAssets = () => {
 
       try {
         const client = getSanityClient();
-        const result = await client.fetch<SanityImageAssetResult[]>(
-          SANITY_IMAGE_LIBRARY_QUERY,
-        );
+        const result = await client.fetch<SanityImageAssetResult[]>(SANITY_IMAGE_LIBRARY_QUERY);
         if (cancelled) {
           return;
         }
@@ -76,9 +73,7 @@ export const useSanityImageAssets = () => {
       } catch (loadError) {
         if (!cancelled) {
           setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Could not load Sanity images.",
+            loadError instanceof Error ? loadError.message : "Could not load Sanity images.",
           );
         }
       } finally {

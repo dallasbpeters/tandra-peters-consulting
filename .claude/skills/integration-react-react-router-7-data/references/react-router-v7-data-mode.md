@@ -128,11 +128,7 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     import { usePostHog } from "@posthog/react";
     function App() {
       const posthog = usePostHog();
-      return (
-        <button onClick={() => posthog?.capture("button_clicked")}>
-          Click me
-        </button>
-      );
+      return <button onClick={() => posthog?.capture("button_clicked")}>Click me</button>;
     }
     ```
 
@@ -154,11 +150,7 @@ This guide walks you through setting up PostHog for React Router V7 in data mode
     import { usePostHog } from "@posthog/react";
     function App() {
       const posthog = usePostHog();
-      return (
-        <button onClick={() => posthog?.capture("button_clicked")}>
-          Click me
-        </button>
-      );
+      return <button onClick={() => posthog?.capture("button_clicked")}>Click me</button>;
     }
     ```
 

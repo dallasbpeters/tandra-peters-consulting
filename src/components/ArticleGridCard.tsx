@@ -1,14 +1,17 @@
 import type { CSSProperties } from "react";
-import { TransitionLink } from "./TransitionLink";
-import { mix, theme } from "../theme";
+
+import { usePostHog } from "@posthog/react";
+
 import type { PostListItem } from "../types/article";
+
 import { postCategoryLabel } from "../article/categoryLabels";
 import {
   FALLBACK_ARTICLE_COVER,
   formatArticleCardDate,
   postCoverImageSrc,
 } from "../article/postCoverImage";
-import { usePostHog } from "@posthog/react";
+import { mix, theme } from "../theme";
+import { TransitionLink } from "./TransitionLink";
 
 const cardBaseStyle: CSSProperties = {
   backgroundColor: theme.colors.black,
@@ -37,11 +40,7 @@ export type ArticleGridCardProps = {
   layout?: "featured" | "standard";
 };
 
-export const ArticleGridCard = ({
-  post,
-  cardIndex,
-  layout = "standard",
-}: ArticleGridCardProps) => {
+export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: ArticleGridCardProps) => {
   const posthog = usePostHog();
   const isMain = layout === "featured";
   const imgSrc = postCoverImageSrc(post.image) ?? FALLBACK_ARTICLE_COVER;
@@ -68,10 +67,7 @@ export const ArticleGridCard = ({
         })
       }
     >
-      <div
-        className="articles-teaser-card"
-        style={isMain ? mainCardStyle : cardBaseStyle}
-      >
+      <div className="articles-teaser-card" style={isMain ? mainCardStyle : cardBaseStyle}>
         <div
           style={{
             position: "absolute",

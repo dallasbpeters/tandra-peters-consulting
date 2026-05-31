@@ -1,157 +1,165 @@
-'use client'
+"use client";
 
-import {useChat} from '@ai-sdk/react'
-import {DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage} from 'ai'
-import {MessageCircle, X} from 'lucide-react'
-import {useRouter} from 'next/navigation'
-import {useCallback, useEffect, useRef, useState} from 'react'
+import { useChat } from "@ai-sdk/react";
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls,
+  type UIMessage,
+} from "ai";
+import { MessageCircle, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   AGENT_CHAT_HIDDEN_ATTRIBUTE,
   captureScreenshot,
   getDocumentContext,
   getPageContent,
-} from '@/lib/capture-context'
-import {CLIENT_TOOL_NAMES, type ProductFiltersInput, productFiltersSchema} from '@/lib/client-tools'
+} from "@/lib/capture-context";
+import {
+  CLIENT_TOOL_NAMES,
+  type ProductFiltersInput,
+  productFiltersSchema,
+} from "@/lib/client-tools";
 
-import {ChatInput} from './chat-input'
-import {Loader} from './loader'
-import {Message} from './message/message'
+import { ChatInput } from "./chat-input";
+import { Loader } from "./loader";
+import { Message } from "./message/message";
 
 /**
  * Checks if the last message is waiting for text to be streamed.
  * Used to show a loader when waiting for text.
  */
 function isWaitingForText(messages: UIMessage[]): boolean {
-  const last = messages[messages.length - 1]
-  if (!last || last.role !== 'assistant') return true
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "assistant") return true;
 
-  const parts = last.parts ?? []
-  if (parts.length === 0) return true
+  const parts = last.parts ?? [];
+  if (parts.length === 0) return true;
 
-  const lastPart = parts[parts.length - 1]
-  return !(lastPart.type === 'text' && lastPart.text.trim().length > 0)
+  const lastPart = parts[parts.length - 1];
+  return !(lastPart.type === "text" && lastPart.text.trim().length > 0);
 }
 
 interface ChatProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
-export function Chat({onClose}: ChatProps) {
-  const router = useRouter()
-  const [input, setInput] = useState('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+export function Chat({ onClose }: ChatProps) {
+  const router = useRouter();
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Queue for screenshot to send after tool output
-  const pendingScreenshotRef = useRef<string | null>(null)
+  const pendingScreenshotRef = useRef<string | null>(null);
 
   // Apply product filters by navigating to /products with URL params
   const applyProductFilters = useCallback(
     (filters: ProductFiltersInput): string => {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
 
-      filters.category?.forEach((v) => params.append('category', v))
-      filters.color?.forEach((v) => params.append('color', v))
-      filters.size?.forEach((v) => params.append('size', v))
-      filters.brand?.forEach((v) => params.append('brand', v))
-      if (filters.minPrice) params.set('minPrice', String(filters.minPrice))
-      if (filters.maxPrice) params.set('maxPrice', String(filters.maxPrice))
-      if (filters.sort) params.set('sort', filters.sort)
+      filters.category?.forEach((v) => params.append("category", v));
+      filters.color?.forEach((v) => params.append("color", v));
+      filters.size?.forEach((v) => params.append("size", v));
+      filters.brand?.forEach((v) => params.append("brand", v));
+      if (filters.minPrice) params.set("minPrice", String(filters.minPrice));
+      if (filters.maxPrice) params.set("maxPrice", String(filters.maxPrice));
+      if (filters.sort) params.set("sort", filters.sort);
 
-      const newUrl = `/products${params.toString() ? `?${params}` : ''}`
-      router.push(newUrl, {scroll: false})
-      return newUrl
+      const newUrl = `/products${params.toString() ? `?${params}` : ""}`;
+      router.push(newUrl, { scroll: false });
+      return newUrl;
     },
     [router],
-  )
+  );
 
-  const {messages, sendMessage, status, addToolOutput, error, regenerate} = useChat({
+  const { messages, sendMessage, status, addToolOutput, error, regenerate } = useChat({
     transport: new DefaultChatTransport({
-      body: () => ({documentContext: getDocumentContext()}),
+      body: () => ({ documentContext: getDocumentContext() }),
     }),
     // Auto-continue for regular tools, but skip when screenshot is pending
     // as we send the screenshot manually after the tool output is received.
-    sendAutomaticallyWhen: ({messages}) => {
-      if (pendingScreenshotRef.current) return false
-      return lastAssistantMessageIsCompleteWithToolCalls({messages})
+    sendAutomaticallyWhen: ({ messages }) => {
+      if (pendingScreenshotRef.current) return false;
+      return lastAssistantMessageIsCompleteWithToolCalls({ messages });
     },
-    onToolCall: async ({toolCall}) => {
-      if (toolCall.dynamic) return
+    onToolCall: async ({ toolCall }) => {
+      if (toolCall.dynamic) return;
 
       const respond = (output: unknown): void => {
-        addToolOutput({tool: toolCall.toolName, toolCallId: toolCall.toolCallId, output})
-      }
+        addToolOutput({ tool: toolCall.toolName, toolCallId: toolCall.toolCallId, output });
+      };
 
       switch (toolCall.toolName) {
         case CLIENT_TOOL_NAMES.PAGE_CONTEXT: {
-          respond(getPageContent())
-          return
+          respond(getPageContent());
+          return;
         }
 
         case CLIENT_TOOL_NAMES.SCREENSHOT: {
           try {
-            pendingScreenshotRef.current = await captureScreenshot()
-            respond('Screenshot captured. It will arrive in the next message.')
+            pendingScreenshotRef.current = await captureScreenshot();
+            respond("Screenshot captured. It will arrive in the next message.");
           } catch (err) {
-            respond(`Failed: ${err instanceof Error ? err.message : String(err)}`)
+            respond(`Failed: ${err instanceof Error ? err.message : String(err)}`);
           }
 
-          return
+          return;
         }
 
         case CLIENT_TOOL_NAMES.SET_FILTERS: {
-          const parsed = productFiltersSchema.safeParse(toolCall.input)
+          const parsed = productFiltersSchema.safeParse(toolCall.input);
 
           if (!parsed.success) {
-            respond(`Invalid input: ${parsed.error.message}`)
-            return
+            respond(`Invalid input: ${parsed.error.message}`);
+            return;
           }
 
-          const url = applyProductFilters(parsed.data)
-          respond(`Filters applied. Navigated to ${url}`)
+          const url = applyProductFilters(parsed.data);
+          respond(`Filters applied. Navigated to ${url}`);
         }
       }
     },
-  })
+  });
 
   // The `addToolOutput` does not support files, so we send the screenshot after
   // the tool output is received and the status is ready as a follow-up message.
   useEffect(() => {
-    if (status !== 'ready' || !pendingScreenshotRef.current) return
+    if (status !== "ready" || !pendingScreenshotRef.current) return;
 
-    const screenshot = pendingScreenshotRef.current
-    pendingScreenshotRef.current = null
+    const screenshot = pendingScreenshotRef.current;
+    pendingScreenshotRef.current = null;
 
     sendMessage({
       files: [
         {
-          type: 'file',
-          filename: 'screenshot.jpg',
-          mediaType: 'image/jpeg',
+          type: "file",
+          filename: "screenshot.jpg",
+          mediaType: "image/jpeg",
           url: screenshot,
         },
       ],
-    })
-  }, [status, sendMessage])
+    });
+  }, [status, sendMessage]);
 
   // Scroll to the bottom of the messages when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({behavior: 'smooth'})
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
-    sendMessage({text: input})
-    setInput('')
-  }
+    e.preventDefault();
+    if (!input.trim()) return;
+    sendMessage({ text: input });
+    setInput("");
+  };
 
-  const isLoading = status === 'submitted' || status === 'streaming'
-  const showLoader = isLoading && isWaitingForText(messages)
+  const isLoading = status === "submitted" || status === "streaming";
+  const showLoader = isLoading && isWaitingForText(messages);
 
   return (
     <div
-      {...{[AGENT_CHAT_HIDDEN_ATTRIBUTE]: 'true'}}
+      {...{ [AGENT_CHAT_HIDDEN_ATTRIBUTE]: "true" }}
       className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
     >
       {/* Header */}
@@ -200,7 +208,7 @@ export function Chat({onClose}: ChatProps) {
             {error && (
               <div className="flex justify-start">
                 <div className="flex flex-col gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-                  <span>{error.message || 'Something went wrong.'}</span>
+                  <span>{error.message || "Something went wrong."}</span>
 
                   <button
                     type="button"
@@ -223,5 +231,5 @@ export function Chat({onClose}: ChatProps) {
         <ChatInput input={input} setInput={setInput} onSubmit={handleSubmit} disabled={isLoading} />
       </div>
     </div>
-  )
+  );
 }

@@ -1,14 +1,19 @@
 import { Suspense, lazy } from "react";
-import { SitePageChrome } from "../components/SitePageChrome";
+
+import type { RoofInspectionHotspotData } from "../types";
+
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
-import { Hero } from "../components/Hero";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
+import { Hero } from "../components/Hero";
+import { CHAPTERS, type Chapter } from "../components/RoofInspection";
+import { parseHotspotCoords } from "../components/RoofInspection/hotspotCoords";
 // import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
-// import { ArticlesTeaser } from "../components/ArticlesTeaser";
-import { theme } from "../theme";
+import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { asOptionalRichText } from "../portableText/value";
+import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
 import {
   mapAboutProps,
   // mapArticlesTeaserEditorialProps,
@@ -25,17 +30,10 @@ import {
   mapTestimonialsProps,
   mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
-import { asOptionalRichText } from "../portableText/value";
-import { CHAPTERS, type Chapter } from "../components/RoofInspection";
-import type { RoofInspectionHotspotData } from "../types";
-import {
-  parseHotspotCoords,
-} from "../components/RoofInspection/hotspotCoords";
-import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
+// import { ArticlesTeaser } from "../components/ArticlesTeaser";
+import { theme } from "../theme";
 
-const HomeRoofInspection = lazy(
-  () => import("../components/HomeRoofInspection"),
-);
+const HomeRoofInspection = lazy(() => import("../components/HomeRoofInspection"));
 const ScrollVelocity = lazy(async () => import("../components/ScrollText"));
 const About = lazy(async () => {
   const module = await import("../components/About");
@@ -92,9 +90,7 @@ const DevAgentation = import.meta.env.DEV
 export const Home = () => {
   const { data, loading, error } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
-  const introVideo = home?.tandraIntroVideo as
-    | Record<string, unknown>
-    | undefined;
+  const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
       ? home.seoTitle
@@ -121,31 +117,24 @@ export const Home = () => {
     return (
       <main>
         <section className="home-loading-hero" aria-label="Homepage unavailable">
-          {import.meta.env.DEV && error ? (
-            <p role="alert">{error.message}</p>
-          ) : null}
+          {import.meta.env.DEV && error ? <p role="alert">{error.message}</p> : null}
         </section>
       </main>
     );
   }
 
   const hero = home?.hero as Record<string, unknown> | undefined;
-  const introVideoContent = introVideo
-    ? mergeTandraIntroContent(introVideo)
-    : undefined;
+  const introVideoContent = introVideo ? mergeTandraIntroContent(introVideo) : undefined;
   const renderedVideoUrl =
-    typeof introVideo?.renderedVideoUrl === "string" &&
-    introVideo.renderedVideoUrl.trim()
+    typeof introVideo?.renderedVideoUrl === "string" && introVideo.renderedVideoUrl.trim()
       ? introVideo.renderedVideoUrl.trim()
       : undefined;
-  const videoProps = mapVideoProps(
-    home?.featuredVideo as Record<string, unknown> | undefined,
-    { renderedVideoUrl },
-  );
+  const videoProps = mapVideoProps(home?.featuredVideo as Record<string, unknown> | undefined, {
+    renderedVideoUrl,
+  });
   const shouldUseRenderedIntroVideo = Boolean(renderedVideoUrl);
   const introVideoThumbnailUrl =
-    typeof introVideo?.thumbnailUrl === "string" &&
-    introVideo.thumbnailUrl.trim()
+    typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
       ? introVideo.thumbnailUrl.trim()
       : undefined;
   const marquee = home?.marquee as Record<string, unknown> | undefined;
@@ -154,37 +143,26 @@ export const Home = () => {
   const services = home?.services as Record<string, unknown> | undefined;
   const mission = home?.mission as Record<string, unknown> | undefined;
   const expertise = home?.expertise as Record<string, unknown> | undefined;
-  const testimonials = home?.testimonials as
-    | Record<string, unknown>
-    | undefined;
+  const testimonials = home?.testimonials as Record<string, unknown> | undefined;
   //  const faq = home?.faq as Record<string, unknown> | undefined;
   //  const articlesTeaser = home?.articlesTeaser as
   //    | Record<string, unknown>
   //    | undefined;
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
-  const serviceAreaMap = home?.serviceAreaMap as
-    | Record<string, unknown>
-    | undefined;
-  const roofInspectionData = home?.roofInspection as
-    | Record<string, unknown>
-    | undefined;
+  const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
+  const roofInspectionData = home?.roofInspection as Record<string, unknown> | undefined;
 
   const marqueeText =
-    typeof marquee?.text === "string" && marquee.text.trim()
-      ? marquee.text
-      : undefined;
+    typeof marquee?.text === "string" && marquee.text.trim() ? marquee.text : undefined;
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
-  const marqueeVelocity =
-    typeof marquee?.velocity === "number" ? marquee.velocity : 80;
+  const marqueeVelocity = typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
   const roofInspection = mapRoofInspectionProps(roofInspectionData);
   const beforeAfter = home?.beforeAfter as Record<string, unknown> | undefined;
   const asString = (v: unknown): string | undefined =>
     typeof v === "string" && v.trim() ? v : undefined;
-  const beforeAfterItems = (
-    beforeAfter?.items as Record<string, unknown>[] | undefined
-  )
+  const beforeAfterItems = (beforeAfter?.items as Record<string, unknown>[] | undefined)
     ?.map((item) => {
       return {
         id: asString(item._key),
@@ -204,42 +182,27 @@ export const Home = () => {
    * Roman numeral is derived from array position so editors never have to
    * manage it manually.
    */
-  const ROMAN = [
-    "i",
-    "ii",
-    "iii",
-    "iv",
-    "v",
-    "vi",
-    "vii",
-    "viii",
-    "ix",
-    "x",
-    "xi",
-    "xii",
-  ];
+  const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
   const sanityChapters: Chapter[] | null =
     roofInspection.hotspots && roofInspection.hotspots.length > 0
-      ? roofInspection.hotspots.map(
-          (h: RoofInspectionHotspotData, i: number): Chapter => {
-            const { position3d, normal3d } = parseHotspotCoords(h);
-            return {
-              id: String(i + 1),
-              num: ROMAN[i] ?? String(i + 1),
-              label: h.label,
-              position: { top: "0%", left: "0%" },
-              direction: h.direction,
-              callout: {
-                title: h.calloutTitle,
-                body: h.calloutBody,
-                watchFor: h.watchFor,
-              },
-              position3d,
-              normal3d,
-              sanityKey: h._key,
-            };
-          },
-        )
+      ? roofInspection.hotspots.map((h: RoofInspectionHotspotData, i: number): Chapter => {
+          const { position3d, normal3d } = parseHotspotCoords(h);
+          return {
+            id: String(i + 1),
+            num: ROMAN[i] ?? String(i + 1),
+            label: h.label,
+            position: { top: "0%", left: "0%" },
+            direction: h.direction,
+            callout: {
+              title: h.calloutTitle,
+              body: h.calloutBody,
+              watchFor: h.watchFor,
+            },
+            position3d,
+            normal3d,
+            sanityKey: h._key,
+          };
+        })
       : null;
 
   const activeChapters = sanityChapters ?? CHAPTERS;
@@ -249,8 +212,6 @@ export const Home = () => {
       <SeoStructuredData />
       <main>
         {hero ? <Hero {...mapHeroProps(hero)} /> : null}
-
-
 
         <GoogleAuthGate>
           <Suspense fallback={null}>
@@ -273,10 +234,7 @@ export const Home = () => {
 
             {roofInspectionData ? (
               <DeferUntilVisible minHeight="36rem" rootMargin="600px 0px">
-                <HomeRoofInspection
-                  chapters={activeChapters}
-                  roofInspection={roofInspection}
-                />
+                <HomeRoofInspection chapters={activeChapters} roofInspection={roofInspection} />
               </DeferUntilVisible>
             ) : null}
             {mission ? <Mission {...mapMissionProps(mission)} /> : null}
@@ -294,14 +252,10 @@ export const Home = () => {
                 videoUrl={videoProps.videoUrl}
                 title={videoProps.title}
                 posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-                introContent={
-                  shouldUseRenderedIntroVideo ? undefined : introVideoContent
-                }
+                introContent={shouldUseRenderedIntroVideo ? undefined : introVideoContent}
               />
             ) : null}
-            {testimonials ? (
-              <Testimonials {...mapTestimonialsProps(testimonials)} />
-            ) : null}
+            {testimonials ? <Testimonials {...mapTestimonialsProps(testimonials)} /> : null}
             {/* <Faq {...mapFaqProps(faq)} />
           <ArticlesTeaser
             posts={data?.latestPosts ?? []}
@@ -321,9 +275,7 @@ export const Home = () => {
               ]}
             />
             {contact ? <Contact {...mapContactProps(contact)} /> : null}
-            {socialShare ? (
-              <SocialShareBar {...mapSocialShareProps(socialShare)} />
-            ) : null}
+            {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
           </Suspense>
         </GoogleAuthGate>
       </main>

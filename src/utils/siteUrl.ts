@@ -14,11 +14,7 @@ export const resolveSiteOrigin = (): string => {
  * Public URL to put in share dialogs. Uses `VITE_SITE_URL` + current route so
  * Facebook/LinkedIn/X get a real https link (localhost URLs are rejected or useless).
  */
-export const buildSharePageUrl = (
-  pathname: string,
-  search: string,
-  hash: string,
-): string => {
+export const buildSharePageUrl = (pathname: string, search: string, hash: string): string => {
   const origin = resolveSiteOrigin();
   return `${origin}${pathname}${search}${hash}`;
 };

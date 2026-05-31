@@ -1,11 +1,12 @@
+import { usePostHog } from "@posthog/react";
+import { Facebook, Linkedin, Twitter, Mail, Link } from "iconoir-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Facebook, Linkedin, Twitter, Mail, Link } from "iconoir-react";
+
+import { plainTextFromRich } from "../portableText/plainText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { SocialShareBarProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import { plainTextFromRich } from "../portableText/plainText";
 import { buildSharePageUrl } from "../utils/siteUrl";
 
 const copyTextFallback = (text: string) => {
@@ -141,10 +142,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 
   return (
     <section style={sectionStyle} aria-label="Social sharing">
-      <div
-        className={`${layoutClass.containerWide} social-share-inner`}
-        style={innerFlexStyle}
-      >
+      <div className={`${layoutClass.containerWide} social-share-inner`} style={innerFlexStyle}>
         <style>{`
           @media (min-width: 640px) {
             .social-share-inner {
@@ -175,9 +173,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             className="social-share-icon"
             aria-label={facebookAriaLabel}
             title={facebookAriaLabel}
-            onClick={() =>
-              posthog?.capture("social_share_clicked", { platform: "facebook" })
-            }
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "facebook" })}
           >
             <Facebook height={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -189,9 +185,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             className="social-share-icon"
             aria-label={linkedInAriaLabel}
             title={linkedInAriaLabel}
-            onClick={() =>
-              posthog?.capture("social_share_clicked", { platform: "linkedin" })
-            }
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "linkedin" })}
           >
             <Linkedin height={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -203,9 +197,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             className="social-share-icon"
             aria-label={twitterAriaLabel}
             title={twitterAriaLabel}
-            onClick={() =>
-              posthog?.capture("social_share_clicked", { platform: "twitter" })
-            }
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "twitter" })}
           >
             <Twitter height={18} strokeWidth={1.75} aria-hidden />
           </a>
@@ -215,9 +207,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             className="social-share-icon"
             aria-label={emailAriaLabel}
             title={emailAriaLabel}
-            onClick={() =>
-              posthog?.capture("social_share_clicked", { platform: "email" })
-            }
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
           >
             <Mail height={18} strokeWidth={1.75} aria-hidden />
           </a>

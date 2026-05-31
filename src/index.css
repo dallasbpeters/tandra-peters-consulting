@@ -142,17 +142,22 @@ kbd {
 }
 
 .number-field {
-   input {
+  input {
     color: oklch(0% 0 0);
   }
 }
 
-button, input[type="button"], input[type="reset"], input[type="submit"], input[type="file"], a.wa-button {
-    --wa-color-fill-loud: oklch(100% 0 0);
-    --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
-    --wa-form-control-border-style: solid;
-    --wa-form-control-border-width: 1px;
-  }
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"],
+input[type="file"],
+a.wa-button {
+  --wa-color-fill-loud: oklch(100% 0 0);
+  --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
+  --wa-form-control-border-style: solid;
+  --wa-form-control-border-width: 1px;
+}
 
 /*
  * View Transitions API — route changes (TransitionLink + startViewTransition).
@@ -166,7 +171,6 @@ button, input[type="button"], input[type="reset"], input[type="submit"], input[t
 .footer {
   display: var(--footer-display);
 }
-
 
 @media (width <= 600px) {
   .site-nav-vt {
@@ -409,8 +413,8 @@ button, input[type="button"], input[type="reset"], input[type="submit"], input[t
     @apply font-sans;
   }
 
-  ul li, ol li {
+  ul li,
+  ol li {
     margin-inline-start: 1.25rem;
   }
-
 }

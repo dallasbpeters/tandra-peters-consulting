@@ -1,5 +1,6 @@
-import { readFileSync, writeFileSync } from "node:fs";
 import { config as loadEnv } from "dotenv";
+import { readFileSync, writeFileSync } from "node:fs";
+
 import { fetchTandraIntroContent } from "../src/remotion/fetchTandraIntroContent.ts";
 
 loadEnv({ path: ".env.local" });
@@ -27,9 +28,7 @@ const sourceText = readFileSync(ROOT_FILE, "utf8");
 const pattern = /defaultProps=\{\{[\s\S]*?\}\}\s*\n\s*durationInFrames=/;
 
 if (!pattern.test(sourceText)) {
-  console.error(
-    "[video:sync-copy] Could not find defaultProps block in src/remotion/Root.tsx.",
-  );
+  console.error("[video:sync-copy] Could not find defaultProps block in src/remotion/Root.tsx.");
   process.exit(1);
 }
 

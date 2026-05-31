@@ -1,13 +1,15 @@
-import React, { useEffect, useMemo } from "react";
+import WaDetails from "@awesome.me/webawesome/dist/react/details/index.js";
+import { usePostHog } from "@posthog/react";
 import { motion } from "motion/react";
+import React, { useEffect, useMemo } from "react";
+
+import { plainTextFromRich } from "../portableText/plainText";
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { FaqProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import { RichText } from "../portableText/RichText";
-import { plainTextFromRich } from "../portableText/plainText";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
-import WaDetails from '@awesome.me/webawesome/dist/react/details/index.js';
+
+import { FaqProps } from "../types";
 
 const DEFAULT_ITEMS = [
   {
@@ -16,8 +18,7 @@ const DEFAULT_ITEMS = [
       "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.",
   },
   {
-    question:
-      "How is working with you different from hiring a roofer directly?",
+    question: "How is working with you different from hiring a roofer directly?",
     answer:
       "I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.",
   },
@@ -165,8 +166,7 @@ export const Faq: React.FC<FaqProps> = ({
         <div className="faq-details-container">
           {items.map((item, index) => (
             <WaDetails
-            appearance="outlined"
-
+              appearance="outlined"
               summary={item.question}
               key={item._key ?? item.question}
               className="faq-details"
@@ -179,17 +179,16 @@ export const Faq: React.FC<FaqProps> = ({
                 }
               }}
             >
-
-                <RichText
-                  value={item.answer}
-                  paragraphStyle={{
-                    margin: 0,
-                    color: "inherit",
-                    lineHeight: "inherit",
-                    fontSize: "inherit",
-                  }}
-                  linkStyle={{ color: theme.colors.accent }}
-                />
+              <RichText
+                value={item.answer}
+                paragraphStyle={{
+                  margin: 0,
+                  color: "inherit",
+                  lineHeight: "inherit",
+                  fontSize: "inherit",
+                }}
+                linkStyle={{ color: theme.colors.accent }}
+              />
             </WaDetails>
           ))}
         </div>

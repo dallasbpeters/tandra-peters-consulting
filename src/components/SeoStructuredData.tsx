@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const SCRIPT_ID = "professional-service-json-ld";

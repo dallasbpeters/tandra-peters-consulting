@@ -1,11 +1,12 @@
-import { type ReactNode } from "react";
 import { NavArrowLeft } from "iconoir-react";
-import { Nav } from "../components/Nav";
+import { type ReactNode } from "react";
+
 import { Footer } from "../components/Footer";
+import { Nav } from "../components/Nav";
+import { TransitionLink } from "../components/TransitionLink";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
-import { TransitionLink } from "../components/TransitionLink";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
 import { theme } from "../theme";
@@ -68,9 +69,8 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
           </TransitionLink>
           <h1 style={typeStyles.legalPageTitle}>{title}</h1>
           <p style={typeStyles.legalMuted}>
-            This page is provided for transparency. It is not legal advice. For
-            questions about your rights or obligations, consult a qualified
-            attorney.
+            This page is provided for transparency. It is not legal advice. For questions about your
+            rights or obligations, consult a qualified attorney.
           </p>
           <div style={typeStyles.legalBody}>{children}</div>
         </article>

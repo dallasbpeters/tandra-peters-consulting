@@ -1,4 +1,4 @@
-import {defineQuery} from 'next-sanity'
+import { defineQuery } from "next-sanity";
 
 // All filter options in a single query for efficiency
 export const FILTER_OPTIONS_QUERY = defineQuery(/* groq */ `{
@@ -28,4 +28,4 @@ export const FILTER_OPTIONS_QUERY = defineQuery(/* groq */ `{
     "min": math::min(*[_type == "product" && defined(price.amount)].price.amount),
     "max": math::max(*[_type == "product" && defined(price.amount)].price.amount)
   }
-}`)
+}`);

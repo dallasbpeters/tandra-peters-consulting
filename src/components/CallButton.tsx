@@ -1,12 +1,10 @@
-import React from "react";
-import { motion } from "motion/react";
-import { theme } from "../theme";
 import { usePostHog } from "@posthog/react";
+import { motion } from "motion/react";
+import React from "react";
 
-export const CallButton = ({
-  label = "Call or text 512-968-3965",
-  phone = "(512) 968-3965",
-}) => {
+import { theme } from "../theme";
+
+export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512) 968-3965" }) => {
   const posthog = usePostHog();
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,

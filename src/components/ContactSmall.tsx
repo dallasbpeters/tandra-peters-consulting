@@ -1,24 +1,25 @@
-import React, { useState } from "react";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
 import "@fontsource/bebas-neue/latin-400.css";
-import { TransitionLink } from "./TransitionLink";
-import { AnimatePresence, motion } from "motion/react";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import { usePostHog } from "@posthog/react";
 import { Mail, Phone, Send } from "iconoir-react";
+import { AnimatePresence, motion } from "motion/react";
+import React, { useState } from "react";
+import { Shader, LinearGradient, WaveDistortion, Dither } from "shaders/react";
+
 import { layoutClass } from "../styles/layoutClasses";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+
 import { mix, theme } from "../theme";
 import { ContactProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
-import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
-import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
-import { Shader, LinearGradient, WaveDistortion, Dither } from "shaders/react";
+import { TransitionLink } from "./TransitionLink";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 const CONTACT_API_PATH = "/api/contact";
 
 /** Compact form has no service picker; API requires `serviceInterest` + `message`. */
 const COMPACT_DEFAULT_SERVICE = "shingle-roofing";
-const COMPACT_DEFAULT_MESSAGE =
-  "Please contact me using the email and phone provided.";
+const COMPACT_DEFAULT_MESSAGE = "Please contact me using the email and phone provided.";
 
 export const ContactSmall = ({
   title = "Get a free roofing consultation.",
@@ -29,9 +30,9 @@ export const ContactSmall = ({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "sending" | "success" | "error">(
+    "idle",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
 
@@ -44,9 +45,7 @@ export const ContactSmall = ({
 
     if (!consentToContact) {
       setSubmitStatus("error");
-      setErrorMessage(
-        "Please confirm you agree to be contacted before sending your message.",
-      );
+      setErrorMessage("Please confirm you agree to be contacted before sending your message.");
       return;
     }
 
@@ -78,9 +77,7 @@ export const ContactSmall = ({
       if (!res.ok || !data.ok) {
         setSubmitStatus("error");
         const fromApi =
-          typeof data.error === "string" && data.error.trim()
-            ? data.error.trim()
-            : "";
+          typeof data.error === "string" && data.error.trim() ? data.error.trim() : "";
         const byStatus = (() => {
           if (fromApi) return "";
           if (res.status === 404) {
@@ -102,9 +99,7 @@ export const ContactSmall = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 ||
-              vercelFnError ||
-              contentType.includes("text/html"))
+            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -204,11 +199,7 @@ export const ContactSmall = ({
   const submitLabel = formLabels?.button ?? "Send";
 
   return (
-    <section
-      id="contact"
-      style={sectionStyle}
-      aria-labelledby="contact-small-heading"
-    >
+    <section id="contact" style={sectionStyle} aria-labelledby="contact-small-heading">
       <div className={layoutClass.containerContactCompact}>
         <style>{`
           .contact-form-field::placeholder {
@@ -347,8 +338,7 @@ export const ContactSmall = ({
                   aria-labelledby="contact-small-consent-desc"
                 />
                 <p id="contact-small-consent-desc">
-                  I agree to be contacted about my inquiry by email, phone, or
-                  SMS. I have read the{" "}
+                  I agree to be contacted about my inquiry by email, phone, or SMS. I have read the{" "}
                   <TransitionLink to="/privacy" style={consentLinkStyle}>
                     Privacy Policy
                   </TransitionLink>{" "}
@@ -407,9 +397,7 @@ export const ContactSmall = ({
                 }}
                 className="send-btn"
               >
-                <span>
-                  {submitStatus === "sending" ? "Sending…" : submitLabel}
-                </span>
+                <span>{submitStatus === "sending" ? "Sending…" : submitLabel}</span>
                 <Send
                   width={18}
                   height={18}

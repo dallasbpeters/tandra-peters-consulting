@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 /**
  * Camera-preset tab strip for the 3D roof model.
  *
@@ -11,10 +12,10 @@
  * it to surface view-switching controls to users.
  */
 import React from "react";
+
+import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
 import { useCameraContext } from "./context";
-import { motion } from "motion/react";
-import { useIsMobile } from "../../hooks/isMobile";
 
 type ToolbarProps = {
   /** Instructional copy shown to the right of the tabs. */

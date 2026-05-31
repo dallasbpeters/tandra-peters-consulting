@@ -19,7 +19,6 @@
     "init:blueprints": "dotenv -e ../.env -- sanity blueprints init",
     "start": "dotenv -e ../.env -- sanity start"
   },
-  "prettier": "@sanity/prettier-config",
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",
     "@sanity/agent-context": "workspace:*",
@@ -44,5 +43,6 @@
     "@types/react": "^19",
     "dotenv-cli": "^11.0.0",
     "typescript": "^5"
-  }
+  },
+  "prettier": "@sanity/prettier-config"
 }

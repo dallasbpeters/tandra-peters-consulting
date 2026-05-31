@@ -1,15 +1,14 @@
-/* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
+import { PostHogProvider } from "@posthog/react";
+import posthog from "posthog-js";
+
 import "./styles/fonts.css";
 import "./index.css";
 import "./styles/site-layout.css";
-import posthog from "posthog-js";
-import { PostHogProvider } from "@posthog/react";
-import {
-  isPosthogEnabled,
-  resolvePosthogClientOptions,
-} from "./posthogClientConfig";
+/* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
+import { createRoot } from "react-dom/client";
+
+import App from "./App.tsx";
+import { isPosthogEnabled, resolvePosthogClientOptions } from "./posthogClientConfig";
 
 const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
 

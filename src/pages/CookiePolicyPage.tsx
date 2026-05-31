@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
+
 import { TransitionLink } from "../components/TransitionLink";
+import { theme } from "../theme";
 import { LegalLayout } from "./LegalLayout";
 import { legalSection } from "./legalSection";
-import { theme } from "../theme";
 
 const linkStyle: CSSProperties = {
   color: theme.colors.everglade,

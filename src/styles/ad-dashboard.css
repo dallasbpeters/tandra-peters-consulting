@@ -97,8 +97,7 @@ footer {
 .ad-dashboard-header,
 .ad-dashboard-panel,
 .ad-dashboard-stage {
-  border: 1px solid
-    color-mix(in oklch, var(--color-everglade, #092a1d) 12%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-everglade, #092a1d) 12%, transparent);
   background: color-mix(in oklch, var(--ad-wa-panel) 88%, #f6f2ea 12%);
 
   /* eslint-disable-next-line css/no-invalid-properties */
@@ -703,9 +702,7 @@ footer {
 
 .ad-creative-preview--headline-card.is-tall .ad-creative-photo {
   top: auto;
-  bottom: calc(
-    var(--ad-preview-padding, 7%) + var(--ad-headline-card-footer-space)
-  );
+  bottom: calc(var(--ad-preview-padding, 7%) + var(--ad-headline-card-footer-space));
   width: clamp(7rem, 28cqw, 13rem);
 }
 
@@ -715,8 +712,8 @@ footer {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto auto auto;
   justify-content: stretch;
-  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem))
-    var(--ad-image-top-text-inset) clamp(1.25rem, 3cqw, 2.5rem);
+  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem)) var(--ad-image-top-text-inset)
+    clamp(1.25rem, 3cqw, 2.5rem);
 }
 
 .ad-creative-preview--poster-cover .ad-creative-copy {
@@ -724,8 +721,8 @@ footer {
   grid-row: 1;
   display: grid;
   justify-content: stretch;
-  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem))
-    var(--ad-poster-cover-text-inset) clamp(1.25rem, 3cqw, 2.5rem);
+  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem)) var(--ad-poster-cover-text-inset)
+    clamp(1.25rem, 3cqw, 2.5rem);
 }
 
 .ad-creative-preview--image-top.is-wide .ad-creative-copy,
@@ -943,9 +940,7 @@ footer {
   );
 }
 
-.ad-creative-preview.ad-creative-preview--photo-right.is-square.has-no-image
-  .ad-creative-copy
-  h2 {
+.ad-creative-preview.ad-creative-preview--photo-right.is-square.has-no-image .ad-creative-copy h2 {
   font-size: clamp(
     calc(2.55rem * var(--ad-headline-size-scale, 1)),
     calc(14cqw * var(--ad-headline-size-scale, 1)),
@@ -963,9 +958,7 @@ footer {
   );
 }
 
-.ad-creative-preview.ad-creative-preview--headline-card.is-square.has-image
-  .ad-creative-copy
-  h2 {
+.ad-creative-preview.ad-creative-preview--headline-card.is-square.has-image .ad-creative-copy h2 {
   font-size: clamp(
     calc(2.55rem * var(--ad-headline-size-scale, 1)),
     calc(14cqw * var(--ad-headline-size-scale, 1)),
@@ -973,14 +966,11 @@ footer {
   );
 }
 
-.ad-creative-preview.ad-creative-preview--headline-card.is-square.has-image
-  .ad-creative-copy {
+.ad-creative-preview.ad-creative-preview--headline-card.is-square.has-image .ad-creative-copy {
   --ad-headline-card-text-width: min(100%, 34rem);
 }
 
-.ad-creative-preview.ad-creative-preview--photo-right.is-square.has-image
-  .ad-creative-copy
-  h2 {
+.ad-creative-preview.ad-creative-preview--photo-right.is-square.has-image .ad-creative-copy h2 {
   font-size: clamp(
     calc(2.55rem * var(--ad-headline-size-scale, 1)),
     calc(12cqw * var(--ad-headline-size-scale, 1)),
@@ -988,9 +978,7 @@ footer {
   );
 }
 
-.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image
-  .ad-creative-copy
-  h2 {
+.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image .ad-creative-copy h2 {
   font-size: clamp(
     calc(2.55rem * var(--ad-headline-size-scale, 1)),
     calc(14cqw * var(--ad-headline-size-scale, 1)),
@@ -998,9 +986,7 @@ footer {
   );
 }
 
-.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image
-  .ad-creative-copy
-  span {
+.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image .ad-creative-copy span {
   font-size: clamp(
     calc(1.55rem * var(--ad-body-size-scale, 1)),
     calc(4cqw * var(--ad-body-size-scale, 1)),
@@ -1009,9 +995,7 @@ footer {
   font-weight: 400;
 }
 
-.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image
-  .ad-creative-copy
-  strong {
+.ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image .ad-creative-copy strong {
   font-size: clamp(
     calc(1.1rem * var(--ad-cta-size-scale, 1)),
     calc(2cqw * var(--ad-cta-size-scale, 1)),

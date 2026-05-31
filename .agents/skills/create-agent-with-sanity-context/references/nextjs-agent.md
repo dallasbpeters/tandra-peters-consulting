@@ -178,10 +178,7 @@ transport: new DefaultChatTransport({
 Then access it on the server at [ecommerce/app/src/app/api/chat/route.ts](ecommerce/app/src/app/api/chat/route.ts) (`documentContext`):
 
 ```ts
-const {
-  messages,
-  documentContext,
-}: { messages: UIMessage[]; documentContext: DocumentContext } =
+const { messages, documentContext }: { messages: UIMessage[]; documentContext: DocumentContext } =
   await req.json();
 ```
 

@@ -1,4 +1,4 @@
-import {defineQuery} from 'next-sanity'
+import { defineQuery } from "next-sanity";
 
 // All categories
 export const CATEGORIES_QUERY = defineQuery(/* groq */ `
@@ -8,7 +8,7 @@ export const CATEGORIES_QUERY = defineQuery(/* groq */ `
     "slug": slug.current,
     description
   }
-`)
+`);
 
 // Single category
 export const CATEGORY_QUERY = defineQuery(/* groq */ `
@@ -18,4 +18,4 @@ export const CATEGORY_QUERY = defineQuery(/* groq */ `
     "slug": slug.current,
     description
   }
-`)
+`);

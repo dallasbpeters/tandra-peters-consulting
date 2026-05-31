@@ -2,8 +2,7 @@ import { useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Ensures footer / in-app navigations land at a sensible scroll position:

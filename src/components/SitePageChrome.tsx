@@ -1,17 +1,12 @@
-import {
-  Suspense,
-  lazy,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { Nav } from "./Nav";
+
+import type { NavItem } from "../types";
+
+import { GoogleAuthGate } from "../components/GoogleAuthGate";
 import { useSanitySite } from "../context/useSanitySite";
 import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
-import type { NavItem } from "../types";
-import { GoogleAuthGate } from "../components/GoogleAuthGate";
+import { Nav } from "./Nav";
 
 const Footer = lazy(async () => {
   const module = await import("./Footer");
@@ -78,10 +73,7 @@ export const SitePageChrome = ({ children }: SitePageChromeProps) => {
   return (
     <>
       <GoogleAuthGate>
-        <Nav
-          {...navProps}
-          navItems={isAgentRoute ? agentNavItems : navProps.navItems}
-        />
+        <Nav {...navProps} navItems={isAgentRoute ? agentNavItems : navProps.navItems} />
       </GoogleAuthGate>
       {children}
       <div ref={sentinelRef} aria-hidden="true" />

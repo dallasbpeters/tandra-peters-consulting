@@ -1,24 +1,22 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
-import { viteFalDevApi } from "./plugins/viteFalDevApi";
+
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
+import { viteFalDevApi } from "./plugins/viteFalDevApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
-import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
+import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteUnsplashApi } from "./plugins/viteUnsplashApi";
-import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
-  const defaultSiteUrl =
-    mode === "development" ? "http://localhost:3001" : "https://www.tandra.me";
+  const defaultSiteUrl = mode === "development" ? "http://localhost:3001" : "https://www.tandra.me";
   /** Canonical site origin for OG/Twitter meta in `index.html` (`%SITE_URL%`). */
-  const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl)
-    .trim()
-    .replace(/\/$/, "");
+  const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl).trim().replace(/\/$/, "");
 
   /** Origin only (e.g. https://www.tandra.me). Strips `/api/contact` if pasted by mistake. */
   const contactProxyTarget = (() => {
@@ -27,18 +25,11 @@ export default defineConfig(({ mode }) => {
     return raw.replace(/\/api\/contact$/i, "").replace(/\/api$/i, "");
   })();
 
-  const posthogProxyTarget =
-    env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(/\/$/, "") ?? "";
-  const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(
-    posthogProxyTarget,
-  );
-  const enablePosthogDev =
-    env.VITE_ENABLE_POSTHOG_DEV?.trim().toLowerCase() === "true";
+  const posthogProxyTarget = env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(/\/$/, "") ?? "";
+  const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(posthogProxyTarget);
+  const enablePosthogDev = env.VITE_ENABLE_POSTHOG_DEV?.trim().toLowerCase() === "true";
   const usePosthogDevProxy =
-    mode === "development" &&
-    enablePosthogDev &&
-    posthogProxyTarget &&
-    !posthogCloudIngestion;
+    mode === "development" && enablePosthogDev && posthogProxyTarget && !posthogCloudIngestion;
 
   const posthogProxyBase = {
     target: posthogProxyTarget,

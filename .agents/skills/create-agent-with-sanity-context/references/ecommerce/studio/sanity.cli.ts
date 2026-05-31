@@ -1,22 +1,22 @@
-import {defineCliConfig} from 'sanity/cli'
+import { defineCliConfig } from "sanity/cli";
 
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID
-const dataset = process.env.SANITY_STUDIO_DATASET
-const apiHost = process.env.SANITY_STUDIO_API_HOST
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID;
+const dataset = process.env.SANITY_STUDIO_DATASET;
+const apiHost = process.env.SANITY_STUDIO_API_HOST;
 
 if (!projectId) {
-  throw new Error('Missing SANITY_STUDIO_PROJECT_ID environment variable')
+  throw new Error("Missing SANITY_STUDIO_PROJECT_ID environment variable");
 }
 
 if (!dataset) {
-  throw new Error('Missing SANITY_STUDIO_DATASET environment variable')
+  throw new Error("Missing SANITY_STUDIO_DATASET environment variable");
 }
 
 export default defineCliConfig({
   api: {
     projectId,
     dataset,
-    ...(apiHost && {apiHost}),
+    ...(apiHost && { apiHost }),
   },
   deployment: {
     /**
@@ -27,6 +27,6 @@ export default defineCliConfig({
   },
   vite: {
     // Load .env from parent directory
-    envDir: '..',
+    envDir: "..",
   },
-})
+});

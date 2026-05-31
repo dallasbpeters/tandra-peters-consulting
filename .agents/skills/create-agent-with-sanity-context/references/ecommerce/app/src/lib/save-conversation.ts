@@ -1,22 +1,22 @@
-import {type UIMessage} from 'ai'
+import { type UIMessage } from "ai";
 
-import {writeClient} from '@/sanity/lib/write-client'
+import { writeClient } from "@/sanity/lib/write-client";
 
 interface ConversationMessage {
-  role: string
-  content: string
+  role: string;
+  content: string;
 }
 
 interface SaveConversationInput {
-  chatId: string
-  messages: UIMessage[]
+  chatId: string;
+  messages: UIMessage[];
 }
 
 /**
  * Saves conversation to Sanity for classification using a Sanity Function.
  */
 export async function saveConversation(input: SaveConversationInput): Promise<void> {
-  const {chatId, messages} = input
+  const { chatId, messages } = input;
 
   // Format messages for storage, filtering out empty ones
   // Concatenate ALL text parts (assistant messages can have multiple: intermediate + final)
@@ -25,18 +25,18 @@ export async function saveConversation(input: SaveConversationInput): Promise<vo
       role: message.role,
       content:
         message.parts
-          ?.filter((part): part is {type: 'text'; text: string} => part.type === 'text')
+          ?.filter((part): part is { type: "text"; text: string } => part.type === "text")
           .map((part) => part.text)
-          .join('\n\n') ?? '',
+          .join("\n\n") ?? "",
     }))
-    .filter((message) => message.content.trim() !== '')
+    .filter((message) => message.content.trim() !== "");
 
   await writeClient.createOrReplace(
     {
-      _type: 'agent.conversation',
+      _type: "agent.conversation",
       _id: chatId,
       messages: conversationMessages,
     },
-    {autoGenerateArrayKeys: true},
-  )
+    { autoGenerateArrayKeys: true },
+  );
 }

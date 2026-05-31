@@ -187,15 +187,9 @@ const normalizeModel = (value: unknown): FalModel => {
 };
 
 const isFalImageSize = (value: unknown): value is FalImageSize =>
-  typeof value === "string" &&
-  IMAGE_SIZE_OPTIONS.includes(value as FalImageSize);
+  typeof value === "string" && IMAGE_SIZE_OPTIONS.includes(value as FalImageSize);
 
-const clampInteger = (
-  value: unknown,
-  fallback: number,
-  min: number,
-  max: number,
-) => {
+const clampInteger = (value: unknown, fallback: number, min: number, max: number) => {
   const numeric =
     typeof value === "number"
       ? value
@@ -208,12 +202,7 @@ const clampInteger = (
   return Math.min(max, Math.max(min, Math.round(numeric)));
 };
 
-const clampNumber = (
-  value: unknown,
-  fallback: number,
-  min: number,
-  max: number,
-) => {
+const clampNumber = (value: unknown, fallback: number, min: number, max: number) => {
   const numeric =
     typeof value === "number"
       ? value
@@ -390,29 +379,21 @@ const normalizeJobs = (body: FalGenerateImageBody): NormalizedJob[] => {
 
   const model = normalizeModel(body.model);
   const modelConfig = IMAGE_MODEL_CONFIGS[model];
-  const imageSize = isFalImageSize(body.imageSize)
-    ? body.imageSize
-    : "landscape_4_3";
+  const imageSize = isFalImageSize(body.imageSize) ? body.imageSize : "landscape_4_3";
   const numImages = clampInteger(body.numImages, 1, 1, 4);
   const outputFormat = normalizeOutputFormat(body.outputFormat, model);
   const referenceImageUrl =
-    typeof body.referenceImageUrl === "string"
-      ? body.referenceImageUrl.trim()
-      : "";
+    typeof body.referenceImageUrl === "string" ? body.referenceImageUrl.trim() : "";
   const seed =
-    body.seed === "" || body.seed == null
-      ? undefined
-      : clampInteger(body.seed, 0, 0, 2147483647);
+    body.seed === "" || body.seed == null ? undefined : clampInteger(body.seed, 0, 0, 2147483647);
   const enhancePrompt = body.enhancePrompt !== false;
   const strength = clampNumber(body.strength, 0.72, 0.05, 1);
-  const variations =
-    body.mode === "series" ? parseSeriesVariations(body.seriesVariations) : [];
+  const variations = body.mode === "series" ? parseSeriesVariations(body.seriesVariations) : [];
   const promptJobs = buildPromptJobs(prompt, variations);
 
   return promptJobs.map((job) => {
     if (referenceImageUrl) {
-      const endpoint =
-        modelConfig.imageEndpoint ?? "fal-ai/flux/dev/image-to-image";
+      const endpoint = modelConfig.imageEndpoint ?? "fal-ai/flux/dev/image-to-image";
       const imageModel = modelConfig.imageEndpoint ? model : "fal-ai/flux/dev";
       return {
         endpoint,
@@ -459,8 +440,7 @@ export const handler = async (request: Request): Promise<Response> => {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Headers":
-          "Content-Type, Authorization, X-API-Key",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Origin": "*",
       },
@@ -472,10 +452,7 @@ export const handler = async (request: Request): Promise<Response> => {
   }
 
   if (!falKey?.trim()) {
-    return jsonResponse(
-      { error: "Fal API is not configured. Set FAL_KEY." },
-      500,
-    );
+    return jsonResponse({ error: "Fal API is not configured. Set FAL_KEY." }, 500);
   }
 
   try {
@@ -498,14 +475,12 @@ export const handler = async (request: Request): Promise<Response> => {
       const data = result.data as FalImageOutput;
       return (
         data.images
-          ?.filter(
-            (image): image is Required<Pick<FalImage, "url">> & FalImage =>
-              Boolean(image.url),
+          ?.filter((image): image is Required<Pick<FalImage, "url">> & FalImage =>
+            Boolean(image.url),
           )
           .map((image, index) => ({
             contentType: image.content_type ?? "image/png",
-            fileName:
-              image.file_name ?? `fal-${result.requestId}-${index + 1}.png`,
+            fileName: image.file_name ?? `fal-${result.requestId}-${index + 1}.png`,
             fileSize: image.file_size,
             height: image.height,
             prompt: data.prompt ?? job.prompt,

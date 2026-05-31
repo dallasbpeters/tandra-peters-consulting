@@ -1,15 +1,19 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
+import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
+
 import "@fontsource/bebas-neue/latin-400.css";
-import { toBlob } from "html-to-image";
+import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
+import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
+
+import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaSlider from "@awesome.me/webawesome/dist/react/slider/index.js";
+import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import { usePostHog } from "@posthog/react";
+import { toBlob } from "html-to-image";
 import {
   ColorWheel,
   Download,
@@ -20,25 +24,21 @@ import {
   Trash,
   Upload,
 } from "iconoir-react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+
 import { AdImagePicker } from "../components/AdImagePicker";
 import { SitePageChrome } from "../components/SitePageChrome";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
-import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
-import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
-import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
-import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
-import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
-import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
-import WaSlider from "@awesome.me/webawesome/dist/react/slider/index.js";
-import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
-import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
-import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
-import {
-  useSanityImageAssets,
-  type SanityImageAsset,
-} from "../hooks/useSanityImageAssets";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { useSanityImageAssets, type SanityImageAsset } from "../hooks/useSanityImageAssets";
 import { layoutClass } from "../styles/layoutClasses";
 import "../styles/ad-dashboard.css";
 
@@ -50,12 +50,7 @@ type PlatformPreset = {
   height: number;
 };
 
-type CreativeLayout =
-  | "photo-right"
-  | "photo-fill"
-  | "headline-card"
-  | "image-top"
-  | "poster-cover";
+type CreativeLayout = "photo-right" | "photo-fill" | "headline-card" | "image-top" | "poster-cover";
 type FontPresetId = "brand-serif" | "clean-sans" | "condensed";
 
 type CreativeState = {
@@ -158,9 +153,7 @@ const BRAND_SWATCHES = [
   { label: "Moss", value: "#217D57" },
 ] as const;
 
-const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((swatch) => swatch.value).join(
-  ";",
-);
+const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((swatch) => swatch.value).join(";");
 
 const FONT_PRESETS: readonly FontPreset[] = [
   {
@@ -187,32 +180,26 @@ const FONT_PRESETS: readonly FontPreset[] = [
 ] as const;
 
 const getSelectedFontPreset = (fontPresetId: FontPresetId) =>
-  FONT_PRESETS.find((fontPreset) => fontPreset.id === fontPresetId) ??
-  FONT_PRESETS[0];
+  FONT_PRESETS.find((fontPreset) => fontPreset.id === fontPresetId) ?? FONT_PRESETS[0];
 
 const clampNumber = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
 const clampPadding = (value: number) =>
-  Math.round(clampNumber(value, PADDING_MIN, PADDING_MAX) / PADDING_STEP) *
-  PADDING_STEP;
+  Math.round(clampNumber(value, PADDING_MIN, PADDING_MAX) / PADDING_STEP) * PADDING_STEP;
 
 const clampTypeSize = (value: number) =>
-  Math.round(
-    clampNumber(value, TYPE_SIZE_MIN, TYPE_SIZE_MAX) / TYPE_SIZE_STEP,
-  ) * TYPE_SIZE_STEP;
+  Math.round(clampNumber(value, TYPE_SIZE_MIN, TYPE_SIZE_MAX) / TYPE_SIZE_STEP) * TYPE_SIZE_STEP;
 
 const getSafeTypeSize = (value: number) =>
   Number.isFinite(value) ? clampTypeSize(value) : DEFAULT_TYPE_SIZE;
 
-const getSafeColor = (value: string | undefined, fallback: string) =>
-  value || fallback;
+const getSafeColor = (value: string | undefined, fallback: string) => value || fallback;
 
 const getPaddingScale = (creative: Pick<CreativeState, "contentPadding">) =>
   creative.contentPadding / 100;
 
-const formatCssNumber = (value: number) =>
-  Number.parseFloat(value.toFixed(3)).toString();
+const formatCssNumber = (value: number) => Number.parseFloat(value.toFixed(3)).toString();
 
 const getPreviewPadding = (
   creative: Pick<CreativeState, "contentPadding" | "layout">,
@@ -272,11 +259,7 @@ type AdColorPickerFieldProps = {
   onValueChange: (value: string) => void;
 };
 
-const AdColorPickerField = ({
-  label,
-  value,
-  onValueChange,
-}: AdColorPickerFieldProps) => {
+const AdColorPickerField = ({ label, value, onValueChange }: AdColorPickerFieldProps) => {
   const pickerRef = useRef<WaColorPickerElement | null>(null);
 
   useEffect(() => {
@@ -291,10 +274,7 @@ const AdColorPickerField = ({
     if (!picker) return undefined;
 
     const handleValueChange = (event: Event) => {
-      const nextValue =
-        (event.target as WaColorPickerElement | null)?.value ??
-        picker.value ??
-        "";
+      const nextValue = (event.target as WaColorPickerElement | null)?.value ?? picker.value ?? "";
       if (nextValue) {
         onValueChange(nextValue);
       }
@@ -397,11 +377,7 @@ type AdTypeSizeFieldProps = {
   onValueChange: (value: number) => void;
 };
 
-const AdTypeSizeField = ({
-  label,
-  value,
-  onValueChange,
-}: AdTypeSizeFieldProps) => {
+const AdTypeSizeField = ({ label, value, onValueChange }: AdTypeSizeFieldProps) => {
   const sliderRef = useRef<WaSliderElement | null>(null);
   const numberInputRef = useRef<WaNumberInputElement | null>(null);
   const safeValue = getSafeTypeSize(value);
@@ -520,8 +496,7 @@ const DEFAULT_CREATIVE: CreativeState = {
 };
 
 const getSelectedPlatform = (platformId: string) =>
-  PLATFORM_PRESETS.find((platform) => platform.id === platformId) ??
-  PLATFORM_PRESETS[0];
+  PLATFORM_PRESETS.find((platform) => platform.id === platformId) ?? PLATFORM_PRESETS[0];
 
 const toCanvasImageUrl = (url: string) => {
   try {
@@ -536,8 +511,7 @@ const toCanvasImageUrl = (url: string) => {
 
     if (
       parsed.protocol === "https:" &&
-      (parsed.hostname === "images.unsplash.com" ||
-        parsed.hostname === "plus.unsplash.com")
+      (parsed.hostname === "images.unsplash.com" || parsed.hostname === "plus.unsplash.com")
     ) {
       return `/api/unsplash-image?url=${encodeURIComponent(url)}`;
     }
@@ -601,10 +575,7 @@ const exportPreviewNode = async (
       throw new Error("The ad preview is not ready yet.");
     }
 
-    const pixelRatio = Math.min(
-      platform.width / previewWidth,
-      platform.height / previewHeight,
-    );
+    const pixelRatio = Math.min(platform.width / previewWidth, platform.height / previewHeight);
 
     const blob = await toBlob(node, {
       backgroundColor,
@@ -630,18 +601,14 @@ const exportPreviewNode = async (
   }
 };
 
-const AuthPanel = ({
-  auth,
-}: {
-  auth: ReturnType<typeof useGoogleDashboardAuth>;
-}) => (
+const AuthPanel = ({ auth }: { auth: ReturnType<typeof useGoogleDashboardAuth> }) => (
   <section className="ad-dashboard-auth">
     <div>
       <p className="ad-dashboard-eyebrow">Google gated</p>
       <h1>Sign in to build ad creative.</h1>
       <p>
-        This dashboard is restricted to allowed Google accounts and does not
-        expose the creative tools on the public site.
+        This dashboard is restricted to allowed Google accounts and does not expose the creative
+        tools on the public site.
       </p>
     </div>
     {!auth.clientId ? (
@@ -652,9 +619,7 @@ const AuthPanel = ({
       <>
         <div ref={auth.buttonRef} />
         {!auth.ready ? <p>Loading Google sign-in...</p> : null}
-        {auth.authError ? (
-          <p className="ad-dashboard-error">{auth.authError}</p>
-        ) : null}
+        {auth.authError ? <p className="ad-dashboard-error">{auth.authError}</p> : null}
       </>
     )}
   </section>
@@ -678,8 +643,7 @@ export const AdDashboardPage = () => {
 
   usePageMetadata({
     title: "Ad Builder | Tandra Peters",
-    description:
-      "Internal advertising dashboard for creating brand-aligned platform ad images.",
+    description: "Internal advertising dashboard for creating brand-aligned platform ad images.",
     robots: "noindex, nofollow",
   });
 
@@ -754,26 +718,23 @@ export const AdDashboardPage = () => {
     [],
   );
 
-  const handleImageChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+  const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-      const url = URL.createObjectURL(file);
-      setCreative((current) => {
-        revokeObjectUrl(current.imageUrl);
+    const url = URL.createObjectURL(file);
+    setCreative((current) => {
+      revokeObjectUrl(current.imageUrl);
 
-        return {
-          ...current,
-          imageFile: file,
-          imageUrl: url,
-          imageName: file.name,
-        };
-      });
-      setExportError(null);
-    },
-    [],
-  );
+      return {
+        ...current,
+        imageFile: file,
+        imageUrl: url,
+        imageName: file.name,
+      };
+    });
+    setExportError(null);
+  }, []);
 
   const handleImageRemove = useCallback(() => {
     setCreative((current) => {
@@ -813,11 +774,7 @@ export const AdDashboardPage = () => {
     setExporting(true);
     setExportError(null);
     try {
-      const blob = await exportPreviewNode(
-        previewNode,
-        selectedPlatform,
-        creative.backgroundColor,
-      );
+      const blob = await exportPreviewNode(previewNode, selectedPlatform, creative.backgroundColor);
       downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
       posthog?.capture("ad_creative_exported", {
         platform: selectedPlatform.id,
@@ -831,9 +788,7 @@ export const AdDashboardPage = () => {
         headlineColor: getSafeColor(creative.headlineColor, creative.textColor),
       });
     } catch (error) {
-      setExportError(
-        error instanceof Error ? error.message : "Could not export PNG.",
-      );
+      setExportError(error instanceof Error ? error.message : "Could not export PNG.");
     } finally {
       setExporting(false);
     }
@@ -842,39 +797,23 @@ export const AdDashboardPage = () => {
   const previewStyle = {
     "--ad-bg": creative.backgroundColor,
     "--ad-ink": creative.textColor,
-    "--ad-headline-ink": getSafeColor(
-      creative.headlineColor,
-      creative.textColor,
-    ),
+    "--ad-headline-ink": getSafeColor(creative.headlineColor, creative.textColor),
     "--ad-accent": creative.accentColor,
     "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
     "--ad-preview-base-width": getPreviewBaseWidth(selectedPlatformShape),
     "--ad-preview-scale": formatCssNumber(previewScale),
     "--ad-frame-inset": getFrameInset(creative),
-    "--ad-headline-font": getSelectedFontPreset(creative.fontPresetId)
-      .headlineFamily,
-    "--ad-headline-weight": String(
-      getSelectedFontPreset(creative.fontPresetId).headlineWeight,
-    ),
-    "--ad-headline-size-scale": formatCssNumber(
-      getSafeTypeSize(creative.headlineSize) / 100,
-    ),
-    "--ad-eyebrow-size-scale": formatCssNumber(
-      getSafeTypeSize(creative.eyebrowSize) / 100,
-    ),
-    "--ad-body-size-scale": formatCssNumber(
-      getSafeTypeSize(creative.bodySize) / 100,
-    ),
-    "--ad-cta-size-scale": formatCssNumber(
-      getSafeTypeSize(creative.ctaSize) / 100,
-    ),
+    "--ad-headline-font": getSelectedFontPreset(creative.fontPresetId).headlineFamily,
+    "--ad-headline-weight": String(getSelectedFontPreset(creative.fontPresetId).headlineWeight),
+    "--ad-headline-size-scale": formatCssNumber(getSafeTypeSize(creative.headlineSize) / 100),
+    "--ad-eyebrow-size-scale": formatCssNumber(getSafeTypeSize(creative.eyebrowSize) / 100),
+    "--ad-body-size-scale": formatCssNumber(getSafeTypeSize(creative.bodySize) / 100),
+    "--ad-cta-size-scale": formatCssNumber(getSafeTypeSize(creative.ctaSize) / 100),
     "--ad-body-font": getSelectedFontPreset(creative.fontPresetId).bodyFamily,
     aspectRatio: `${selectedPlatform.width} / ${selectedPlatform.height}`,
     borderBlockEnd: `10px solid color-mix(in oklch, ${creative.accentColor} 82%, transparent)`,
   } as CSSProperties & Record<string, string>;
-  const previewImageUrl = creative.imageUrl
-    ? toCanvasImageUrl(creative.imageUrl)
-    : null;
+  const previewImageUrl = creative.imageUrl ? toCanvasImageUrl(creative.imageUrl) : null;
 
   return (
     <SitePageChrome>
@@ -898,14 +837,12 @@ export const AdDashboardPage = () => {
                         value={creative.platformId}
                         appearance="outlined"
                         size="xs"
-                        onChange={(event) =>
-                          updateCreative("platformId", getSelectValue(event))
-                        }
+                        onChange={(event) => updateCreative("platformId", getSelectValue(event))}
                       >
                         {PLATFORM_PRESETS.map((platform) => (
                           <WaOption key={platform.id} value={platform.id}>
-                            {platform.label} · {platform.width} x{" "}
-                            {platform.height} · {platform.helper}
+                            {platform.label} · {platform.width} x {platform.height} ·{" "}
+                            {platform.helper}
                           </WaOption>
                         ))}
                       </WaSelect>
@@ -923,10 +860,7 @@ export const AdDashboardPage = () => {
                         appearance="outlined"
                         size="xs"
                         onChange={(event) =>
-                          updateCreative(
-                            "layout",
-                            getSelectValue(event) as CreativeLayout,
-                          )
+                          updateCreative("layout", getSelectValue(event) as CreativeLayout)
                         }
                       >
                         {LAYOUTS.map((layout) => (
@@ -938,9 +872,7 @@ export const AdDashboardPage = () => {
                     </div>
                     <AdPaddingField
                       value={creative.contentPadding}
-                      onValueChange={(value) =>
-                        updateCreative("contentPadding", value)
-                      }
+                      onValueChange={(value) => updateCreative("contentPadding", value)}
                     />
                     <WaSelect
                       className="ad-dashboard-field"
@@ -950,10 +882,7 @@ export const AdDashboardPage = () => {
                       appearance="outlined"
                       size="xs"
                       onChange={(event) =>
-                        updateCreative(
-                          "fontPresetId",
-                          getSelectValue(event) as FontPresetId,
-                        )
+                        updateCreative("fontPresetId", getSelectValue(event) as FontPresetId)
                       }
                     >
                       {FONT_PRESETS.map((fontPreset) => (
@@ -970,30 +899,22 @@ export const AdDashboardPage = () => {
                     <AdTypeSizeField
                       label="Headline"
                       value={creative.headlineSize}
-                      onValueChange={(value) =>
-                        updateCreative("headlineSize", value)
-                      }
+                      onValueChange={(value) => updateCreative("headlineSize", value)}
                     />
                     <AdTypeSizeField
                       label="Eyebrow"
                       value={creative.eyebrowSize}
-                      onValueChange={(value) =>
-                        updateCreative("eyebrowSize", value)
-                      }
+                      onValueChange={(value) => updateCreative("eyebrowSize", value)}
                     />
                     <AdTypeSizeField
                       label="Supporting copy"
                       value={creative.bodySize}
-                      onValueChange={(value) =>
-                        updateCreative("bodySize", value)
-                      }
+                      onValueChange={(value) => updateCreative("bodySize", value)}
                     />
                     <AdTypeSizeField
                       label="CTA"
                       value={creative.ctaSize}
-                      onValueChange={(value) =>
-                        updateCreative("ctaSize", value)
-                      }
+                      onValueChange={(value) => updateCreative("ctaSize", value)}
                     />
 
                     <WaInput
@@ -1003,9 +924,7 @@ export const AdDashboardPage = () => {
                       appearance="outlined"
                       size="xs"
                       withClear
-                      onInput={(event) =>
-                        updateCreative("eyebrow", getInputValue(event))
-                      }
+                      onInput={(event) => updateCreative("eyebrow", getInputValue(event))}
                     />
                     <WaTextarea
                       className="ad-dashboard-field"
@@ -1015,9 +934,7 @@ export const AdDashboardPage = () => {
                       resize="vertical"
                       appearance="outlined"
                       size="xs"
-                      onInput={(event) =>
-                        updateCreative("headline", getInputValue(event))
-                      }
+                      onInput={(event) => updateCreative("headline", getInputValue(event))}
                     />
                     <WaTextarea
                       className="ad-dashboard-field"
@@ -1027,9 +944,7 @@ export const AdDashboardPage = () => {
                       resize="vertical"
                       appearance="outlined"
                       size="xs"
-                      onInput={(event) =>
-                        updateCreative("body", getInputValue(event))
-                      }
+                      onInput={(event) => updateCreative("body", getInputValue(event))}
                     />
                     <WaInput
                       className="ad-dashboard-field"
@@ -1038,15 +953,11 @@ export const AdDashboardPage = () => {
                       appearance="outlined"
                       size="xs"
                       withClear
-                      onInput={(event) =>
-                        updateCreative("cta", getInputValue(event))
-                      }
+                      onInput={(event) => updateCreative("cta", getInputValue(event))}
                     />
                   </div>
                   <div className="ad-dashboard-user">
-                    {auth.user?.picture ? (
-                      <img src={auth.user.picture} alt="" />
-                    ) : null}
+                    {auth.user?.picture ? <img src={auth.user.picture} alt="" /> : null}
                     <div>
                       <strong>{auth.user?.name ?? auth.user?.email}</strong>
                       <span>{auth.user?.email}</span>
@@ -1076,15 +987,10 @@ export const AdDashboardPage = () => {
                     </button>
                   </div>
                   {exportError ? (
-                    <p className="ad-dashboard-error ad-dashboard-export-error">
-                      {exportError}
-                    </p>
+                    <p className="ad-dashboard-error ad-dashboard-export-error">{exportError}</p>
                   ) : null}
 
-                  <div
-                    className="ad-dashboard-preview-wrap"
-                    ref={previewWrapRef}
-                  >
+                  <div className="ad-dashboard-preview-wrap" ref={previewWrapRef}>
                     <article
                       ref={previewRef}
                       className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape} ${
@@ -1121,16 +1027,9 @@ export const AdDashboardPage = () => {
                     <h2>Image</h2>
                   </div>
                   <label className="ad-dashboard-upload">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                    <input type="file" accept="image/*" onChange={handleImageChange} />
                     <MediaImage width={22} height={22} />
-                    <span>
-                      {creative.imageName ??
-                        "Choose roof, project, or portrait photo"}
-                    </span>
+                    <span>{creative.imageName ?? "Choose roof, project, or portrait photo"}</span>
                   </label>
                   <AdImagePicker
                     images={imageLibrary.images}
@@ -1165,10 +1064,7 @@ export const AdDashboardPage = () => {
                           setCreative((current) => ({
                             ...current,
                             backgroundColor: swatch.value,
-                            textColor:
-                              swatch.value === "#F6F2EA"
-                                ? "#092A1D"
-                                : current.textColor,
+                            textColor: swatch.value === "#F6F2EA" ? "#092A1D" : current.textColor,
                           }))
                         }
                       >
@@ -1185,33 +1081,22 @@ export const AdDashboardPage = () => {
                     <AdColorPickerField
                       label="Bg"
                       value={creative.backgroundColor}
-                      onValueChange={(value) =>
-                        updateCreative("backgroundColor", value)
-                      }
+                      onValueChange={(value) => updateCreative("backgroundColor", value)}
                     />
                     <AdColorPickerField
                       label="Text"
                       value={creative.textColor}
-                      onValueChange={(value) =>
-                        updateCreative("textColor", value)
-                      }
+                      onValueChange={(value) => updateCreative("textColor", value)}
                     />
                     <AdColorPickerField
                       label="Headline"
-                      value={getSafeColor(
-                        creative.headlineColor,
-                        creative.textColor,
-                      )}
-                      onValueChange={(value) =>
-                        updateCreative("headlineColor", value)
-                      }
+                      value={getSafeColor(creative.headlineColor, creative.textColor)}
+                      onValueChange={(value) => updateCreative("headlineColor", value)}
                     />
                     <AdColorPickerField
                       label="Accent"
                       value={creative.accentColor}
-                      onValueChange={(value) =>
-                        updateCreative("accentColor", value)
-                      }
+                      onValueChange={(value) => updateCreative("accentColor", value)}
                     />
                   </div>
                 </aside>

@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+
 import type { CameraContextValue, RoofInspectionContextValue } from "./types";
 
 /**
@@ -7,8 +8,7 @@ import type { CameraContextValue, RoofInspectionContextValue } from "./types";
  * Consumed by `Hotspot` and `Rail`. Intentionally excludes camera state so
  * that `activeChapterId` changes (hover) do not trigger `Diagram` re-renders.
  */
-export const RoofInspectionContext =
-  createContext<RoofInspectionContextValue | null>(null);
+export const RoofInspectionContext = createContext<RoofInspectionContextValue | null>(null);
 
 /**
  * Camera context — drives toolbar presets and chapter-focus camera movement.
@@ -27,9 +27,7 @@ export const CameraContext = createContext<CameraContextValue | null>(null);
 export const useRoofInspection = (): RoofInspectionContextValue => {
   const ctx = useContext(RoofInspectionContext);
   if (!ctx) {
-    throw new Error(
-      "useRoofInspection must be used inside a <RoofInspection> root component.",
-    );
+    throw new Error("useRoofInspection must be used inside a <RoofInspection> root component.");
   }
   return ctx;
 };
@@ -47,9 +45,7 @@ export const useRoofInspection = (): RoofInspectionContextValue => {
 export const useCameraContext = (): CameraContextValue => {
   const ctx = useContext(CameraContext);
   if (!ctx) {
-    throw new Error(
-      "useCameraContext must be used inside a <RoofInspection> root component.",
-    );
+    throw new Error("useCameraContext must be used inside a <RoofInspection> root component.");
   }
   return ctx;
 };

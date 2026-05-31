@@ -1,3 +1,5 @@
+import type { PlayerRef } from "@remotion/player";
+
 import {
   useCallback,
   useEffect,
@@ -7,11 +9,8 @@ import {
   type PointerEvent,
   type SyntheticEvent,
 } from "react";
-import type { PlayerRef } from "@remotion/player";
-import {
-  REMOTION_DURATION_IN_FRAMES,
-  REMOTION_DURATION_SECONDS,
-} from "../FeaturedRemotionPlayer";
+
+import { REMOTION_DURATION_IN_FRAMES, REMOTION_DURATION_SECONDS } from "../FeaturedRemotionPlayer";
 import { PlayPauseButton } from "./PlayPauseButton";
 import { SeekBar } from "./SeekBar";
 import { VideoPoster } from "./VideoPoster";
@@ -39,9 +38,7 @@ export const VideoControls = ({
 }: Props) => {
   const progressTrackRef = useRef<HTMLDivElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(
-    isRemotion ? REMOTION_DURATION_SECONDS : 0,
-  );
+  const [duration, setDuration] = useState(isRemotion ? REMOTION_DURATION_SECONDS : 0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
 

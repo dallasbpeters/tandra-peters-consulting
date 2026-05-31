@@ -1,9 +1,6 @@
 import { createClient, type SanityClient } from "@sanity/client";
-import {
-  SANITY_API_VERSION,
-  SANITY_DATASET,
-  SANITY_PROJECT_ID,
-} from "./projectDetails";
+
+import { SANITY_API_VERSION, SANITY_DATASET, SANITY_PROJECT_ID } from "./projectDetails";
 
 const fallbackStudioUrl = import.meta.env.PROD
   ? "https://www.tandra.me/studio"
@@ -31,9 +28,7 @@ const presentationPerspectiveFromUrl = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
-  return new URLSearchParams(window.location.search).has(
-    "sanity-preview-perspective",
-  );
+  return new URLSearchParams(window.location.search).has("sanity-preview-perspective");
 };
 
 /**
@@ -43,8 +38,7 @@ const presentationPerspectiveFromUrl = (): boolean => {
 export const isSanityDraftPreviewActive = (): boolean =>
   stegaEnabled() ||
   presentationPerspectiveFromUrl() ||
-  (import.meta.env.DEV &&
-    Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
+  (import.meta.env.DEV && Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
 
 const useDraftsPerspective = isSanityDraftPreviewActive;
 

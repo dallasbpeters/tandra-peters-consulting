@@ -1,86 +1,88 @@
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {useColorSchemeValue} from 'sanity'
-import {useStudioClient} from '../hooks/useStudioClient'
-import WaButton from '@awesome.me/webawesome/dist/react/button/index.js'
-import WaCheckbox from '@awesome.me/webawesome/dist/react/checkbox/index.js'
-import WaInput from '@awesome.me/webawesome/dist/react/input/index.js'
-import WaNumberInput from '@awesome.me/webawesome/dist/react/number-input/index.js'
-import WaOption from '@awesome.me/webawesome/dist/react/option/index.js'
-import WaSelect from '@awesome.me/webawesome/dist/react/select/index.js'
-import WaSlider from '@awesome.me/webawesome/dist/react/slider/index.js'
-import WaTextarea from '@awesome.me/webawesome/dist/react/textarea/index.js'
-import type WaCheckboxElement from '@awesome.me/webawesome/dist/components/checkbox/checkbox.js'
-import type WaNumberInputElement from '@awesome.me/webawesome/dist/components/number-input/number-input.js'
-import type WaSliderElement from '@awesome.me/webawesome/dist/components/slider/slider.js'
-import {falStudioApiEndpoint} from '../falStudioConfig'
-import './falImageStudioTool.css'
+import type WaCheckboxElement from "@awesome.me/webawesome/dist/components/checkbox/checkbox.js";
+import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
+import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
 
-type GenerateMode = 'text' | 'image' | 'series'
+import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaSlider from "@awesome.me/webawesome/dist/react/slider/index.js";
+import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useColorSchemeValue } from "sanity";
+
+import { falStudioApiEndpoint } from "../falStudioConfig";
+import { useStudioClient } from "../hooks/useStudioClient";
+import "./falImageStudioTool.css";
+
+type GenerateMode = "text" | "image" | "series";
 type FalModelId =
-  | 'fal-ai/flux/schnell'
-  | 'fal-ai/flux/dev'
-  | 'fal-ai/flux/krea'
-  | 'fal-ai/flux-pro/v1.1'
-  | 'fal-ai/flux-pro/v1.1-ultra'
-  | 'fal-ai/flux-pro/kontext/text-to-image'
-  | 'fal-ai/flux-2/flash'
-  | 'fal-ai/flux-2'
-  | 'fal-ai/flux-2-pro'
-  | 'fal-ai/qwen-image'
-  | 'fal-ai/ideogram/v3'
-  | 'fal-ai/recraft/v4/text-to-image'
-  | 'fal-ai/bytedance/seedream/v4/text-to-image'
-  | 'fal-ai/imagen4/preview'
-  | 'fal-ai/nano-banana-pro'
+  | "fal-ai/flux/schnell"
+  | "fal-ai/flux/dev"
+  | "fal-ai/flux/krea"
+  | "fal-ai/flux-pro/v1.1"
+  | "fal-ai/flux-pro/v1.1-ultra"
+  | "fal-ai/flux-pro/kontext/text-to-image"
+  | "fal-ai/flux-2/flash"
+  | "fal-ai/flux-2"
+  | "fal-ai/flux-2-pro"
+  | "fal-ai/qwen-image"
+  | "fal-ai/ideogram/v3"
+  | "fal-ai/recraft/v4/text-to-image"
+  | "fal-ai/bytedance/seedream/v4/text-to-image"
+  | "fal-ai/imagen4/preview"
+  | "fal-ai/nano-banana-pro";
 type FalImageSize =
-  | 'square_hd'
-  | 'square'
-  | 'portrait_4_3'
-  | 'portrait_16_9'
-  | 'landscape_4_3'
-  | 'landscape_16_9'
+  | "square_hd"
+  | "square"
+  | "portrait_4_3"
+  | "portrait_16_9"
+  | "landscape_4_3"
+  | "landscape_16_9";
 
 type SanityImageAsset = {
-  _id: string
-  altText?: string
-  originalFilename?: string
-  title?: string
-  url: string
+  _id: string;
+  altText?: string;
+  originalFilename?: string;
+  title?: string;
+  url: string;
   metadata?: {
     dimensions?: {
-      height?: number
-      width?: number
-    }
-    lqip?: string
-  }
-}
+      height?: number;
+      width?: number;
+    };
+    lqip?: string;
+  };
+};
 
 type FalGeneratedImage = {
-  contentType: string
-  fileName: string
-  fileSize?: number
-  height?: number
-  prompt?: string
-  requestId?: string
-  url: string
-  variation?: string
-  width?: number
-}
+  contentType: string;
+  fileName: string;
+  fileSize?: number;
+  height?: number;
+  prompt?: string;
+  requestId?: string;
+  url: string;
+  variation?: string;
+  width?: number;
+};
 
 type FalGenerateResponse =
   | {
-      ok: true
-      images: FalGeneratedImage[]
+      ok: true;
+      images: FalGeneratedImage[];
       jobs: {
-        endpoint: string
-        requestId: string
-        variation?: string
-      }[]
+        endpoint: string;
+        requestId: string;
+        variation?: string;
+      }[];
     }
   | {
-      error?: string
-      ok?: false
-    }
+      error?: string;
+      ok?: false;
+    };
 
 const imageAssetQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order(_createdAt desc)[0...160] {
   _id,
@@ -95,274 +97,279 @@ const imageAssetQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order
     },
     lqip
   }
-}`
+}`;
 
 const MODEL_OPTIONS: {
-  description: string
-  family: string
-  id: FalModelId
-  imageReference?: boolean
-  label: string
-  supportsWebp?: boolean
+  description: string;
+  family: string;
+  id: FalModelId;
+  imageReference?: boolean;
+  label: string;
+  supportsWebp?: boolean;
 }[] = [
   {
-    id: 'fal-ai/flux/schnell',
-    family: 'Flux',
-    label: 'Flux | Schnell',
-    description: 'Fast drafts and social concepts',
+    id: "fal-ai/flux/schnell",
+    family: "Flux",
+    label: "Flux | Schnell",
+    description: "Fast drafts and social concepts",
     imageReference: true,
   },
   {
-    id: 'fal-ai/flux/dev',
-    family: 'Flux',
-    label: 'Flux | Dev',
-    description: 'Higher-quality campaign images',
+    id: "fal-ai/flux/dev",
+    family: "Flux",
+    label: "Flux | Dev",
+    description: "Higher-quality campaign images",
     imageReference: true,
   },
   {
-    id: 'fal-ai/flux/krea',
-    family: 'Flux',
-    label: 'Flux | Krea',
-    description: 'Photorealistic brand and product-style image drafts',
+    id: "fal-ai/flux/krea",
+    family: "Flux",
+    label: "Flux | Krea",
+    description: "Photorealistic brand and product-style image drafts",
   },
   {
-    id: 'fal-ai/flux-pro/v1.1',
-    family: 'Flux Pro',
-    label: 'Flux Pro | 1.1',
-    description: 'Sharper commercial concepts with better prompt following',
+    id: "fal-ai/flux-pro/v1.1",
+    family: "Flux Pro",
+    label: "Flux Pro | 1.1",
+    description: "Sharper commercial concepts with better prompt following",
   },
   {
-    id: 'fal-ai/flux-pro/v1.1-ultra',
-    family: 'Flux Pro',
-    label: 'Flux Pro | 1.1 Ultra',
-    description: 'Premium high-detail creative output',
+    id: "fal-ai/flux-pro/v1.1-ultra",
+    family: "Flux Pro",
+    label: "Flux Pro | 1.1 Ultra",
+    description: "Premium high-detail creative output",
   },
   {
-    id: 'fal-ai/flux-pro/kontext/text-to-image',
-    family: 'Flux Kontext',
-    label: 'Flux Kontext | Text to image',
-    description: 'Context-aware text-to-image concepts',
+    id: "fal-ai/flux-pro/kontext/text-to-image",
+    family: "Flux Kontext",
+    label: "Flux Kontext | Text to image",
+    description: "Context-aware text-to-image concepts",
   },
   {
-    id: 'fal-ai/flux-2/flash',
-    family: 'Flux 2',
-    label: 'Flux 2 | Flash',
-    description: 'Fast newer-generation image drafts',
+    id: "fal-ai/flux-2/flash",
+    family: "Flux 2",
+    label: "Flux 2 | Flash",
+    description: "Fast newer-generation image drafts",
     supportsWebp: true,
   },
   {
-    id: 'fal-ai/flux-2',
-    family: 'Flux 2',
-    label: 'Flux 2 | Standard',
-    description: 'Newer-generation balanced image generation',
+    id: "fal-ai/flux-2",
+    family: "Flux 2",
+    label: "Flux 2 | Standard",
+    description: "Newer-generation balanced image generation",
     supportsWebp: true,
   },
   {
-    id: 'fal-ai/flux-2-pro',
-    family: 'Flux 2',
+    id: "fal-ai/flux-2-pro",
+    family: "Flux 2",
     imageReference: true,
-    label: 'Flux 2 | Pro',
-    description: 'Higher-end Flux 2 generation and image edits',
+    label: "Flux 2 | Pro",
+    description: "Higher-end Flux 2 generation and image edits",
   },
   {
-    id: 'fal-ai/qwen-image',
-    family: 'Qwen',
+    id: "fal-ai/qwen-image",
+    family: "Qwen",
     imageReference: true,
-    label: 'Qwen | Image',
-    description: 'Strong typography, signs, and visual detail',
+    label: "Qwen | Image",
+    description: "Strong typography, signs, and visual detail",
   },
   {
-    id: 'fal-ai/ideogram/v3',
-    family: 'Ideogram',
-    label: 'Ideogram | V3',
-    description: 'Ad concepts with strong composition and text rendering',
+    id: "fal-ai/ideogram/v3",
+    family: "Ideogram",
+    label: "Ideogram | V3",
+    description: "Ad concepts with strong composition and text rendering",
   },
   {
-    id: 'fal-ai/recraft/v4/text-to-image',
-    family: 'Recraft',
-    label: 'Recraft | V4',
-    description: 'Graphic design, illustration, and controlled brand visuals',
+    id: "fal-ai/recraft/v4/text-to-image",
+    family: "Recraft",
+    label: "Recraft | V4",
+    description: "Graphic design, illustration, and controlled brand visuals",
     supportsWebp: true,
   },
   {
-    id: 'fal-ai/bytedance/seedream/v4/text-to-image',
-    family: 'Seedream',
-    label: 'Seedream | V4',
-    description: 'Flexible high-quality campaign image generation',
+    id: "fal-ai/bytedance/seedream/v4/text-to-image",
+    family: "Seedream",
+    label: "Seedream | V4",
+    description: "Flexible high-quality campaign image generation",
   },
   {
-    id: 'fal-ai/imagen4/preview',
-    family: 'Google',
-    label: 'Imagen 4 | Preview',
-    description: 'Google image generation through Fal',
+    id: "fal-ai/imagen4/preview",
+    family: "Google",
+    label: "Imagen 4 | Preview",
+    description: "Google image generation through Fal",
   },
   {
-    id: 'fal-ai/nano-banana-pro',
-    family: 'Google',
-    label: 'Nano Banana | Pro',
-    description: 'Nano Banana image generation through Fal',
+    id: "fal-ai/nano-banana-pro",
+    family: "Google",
+    label: "Nano Banana | Pro",
+    description: "Nano Banana image generation through Fal",
   },
-]
+];
 
-const SIZE_OPTIONS: {id: FalImageSize; label: string}[] = [
-  {id: 'square_hd', label: 'Square HD'},
-  {id: 'square', label: 'Square'},
-  {id: 'landscape_4_3', label: 'Landscape 4:3'},
-  {id: 'landscape_16_9', label: 'Landscape 16:9'},
-  {id: 'portrait_4_3', label: 'Portrait 4:3'},
-  {id: 'portrait_16_9', label: 'Portrait 16:9'},
-]
+const SIZE_OPTIONS: { id: FalImageSize; label: string }[] = [
+  { id: "square_hd", label: "Square HD" },
+  { id: "square", label: "Square" },
+  { id: "landscape_4_3", label: "Landscape 4:3" },
+  { id: "landscape_16_9", label: "Landscape 16:9" },
+  { id: "portrait_4_3", label: "Portrait 4:3" },
+  { id: "portrait_16_9", label: "Portrait 16:9" },
+];
 
 const DEFAULT_PROMPT = `Create a realistic, brand-safe roofing marketing image for an Austin homeowner.
 Subject: storm clouds over a Central Texas neighborhood with visible roof detail.
 Mood: clear, trustworthy, practical.
-Style: polished editorial advertising photo, natural light, no text, no logos, no watermarks.`
+Style: polished editorial advertising photo, natural light, no text, no logos, no watermarks.`;
 
 const DEFAULT_SERIES = `Storm damage concern
 Free inspection offer
 Insurance claim support
-Roof repair before replacement`
+Roof repair before replacement`;
 
-const getSelectValue = (event: unknown): string => (event as {target: {value: string}}).target.value
+const getSelectValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
 
-const getInputValue = (event: unknown): string => (event as {target: {value: string}}).target.value
+const getInputValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
 
 const getNumberInputValue = (event: unknown): number => {
-  const value = (event as {target: WaNumberInputElement}).target.value
-  return Number(value)
-}
+  const value = (event as { target: WaNumberInputElement }).target.value;
+  return Number(value);
+};
 
 const getSliderValue = (event: unknown): number => {
-  const value = (event as {target: WaSliderElement}).target.value
-  return Number(value)
-}
+  const value = (event as { target: WaSliderElement }).target.value;
+  return Number(value);
+};
 
 const getCheckboxValue = (event: unknown): boolean =>
-  Boolean((event as {target: WaCheckboxElement}).target.checked)
+  Boolean((event as { target: WaCheckboxElement }).target.checked);
 
 const imageLabel = (asset: SanityImageAsset): string =>
-  asset.title?.trim() || asset.altText?.trim() || asset.originalFilename?.trim() || 'Untitled image'
+  asset.title?.trim() ||
+  asset.altText?.trim() ||
+  asset.originalFilename?.trim() ||
+  "Untitled image";
 
 const fileSize = (bytes?: number): string => {
   if (!bytes) {
-    return 'Unknown size'
+    return "Unknown size";
   }
 
-  const units = ['B', 'KB', 'MB', 'GB']
-  let value = bytes
-  let unit = 0
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
 
   while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024
-    unit += 1
+    value /= 1024;
+    unit += 1;
   }
 
-  return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${units[unit]}`
-}
+  return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${units[unit]}`;
+};
 
 const imageDimensions = (image: FalGeneratedImage | SanityImageAsset): string => {
   const width =
-    'url' in image && 'contentType' in image ? image.width : image.metadata?.dimensions?.width
+    "url" in image && "contentType" in image ? image.width : image.metadata?.dimensions?.width;
   const height =
-    'url' in image && 'contentType' in image ? image.height : image.metadata?.dimensions?.height
+    "url" in image && "contentType" in image ? image.height : image.metadata?.dimensions?.height;
   if (!width || !height) {
-    return 'Unknown dimensions'
+    return "Unknown dimensions";
   }
-  return `${width} x ${height}`
-}
+  return `${width} x ${height}`;
+};
 
 const safeFilename = (value: string, fallback: string): string => {
   const clean = value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return clean || fallback
-}
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return clean || fallback;
+};
 
 export function FalImageStudioTool() {
-  const client = useStudioClient({apiVersion: '2026-05-01'})
-  const colorScheme = useColorSchemeValue()
-  const [prompt, setPrompt] = useState(DEFAULT_PROMPT)
-  const [mode, setMode] = useState<GenerateMode>('text')
-  const [model, setModel] = useState<FalModelId>('fal-ai/flux/schnell')
-  const [imageSize, setImageSize] = useState<FalImageSize>('landscape_4_3')
-  const [numImages, setNumImages] = useState(2)
-  const [outputFormat, setOutputFormat] = useState<'jpeg' | 'png' | 'webp'>('png')
-  const [enhancePrompt, setEnhancePrompt] = useState(true)
-  const [seed, setSeed] = useState('')
-  const [strength, setStrength] = useState(0.72)
-  const [seriesVariations, setSeriesVariations] = useState(DEFAULT_SERIES)
-  const [assets, setAssets] = useState<SanityImageAsset[]>([])
-  const [assetSearch, setAssetSearch] = useState('')
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
-  const [loadingAssets, setLoadingAssets] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [savingUrl, setSavingUrl] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-  const [result, setResult] = useState<Extract<FalGenerateResponse, {ok: true}> | null>(null)
+  const client = useStudioClient({ apiVersion: "2026-05-01" });
+  const colorScheme = useColorSchemeValue();
+  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
+  const [mode, setMode] = useState<GenerateMode>("text");
+  const [model, setModel] = useState<FalModelId>("fal-ai/flux/schnell");
+  const [imageSize, setImageSize] = useState<FalImageSize>("landscape_4_3");
+  const [numImages, setNumImages] = useState(2);
+  const [outputFormat, setOutputFormat] = useState<"jpeg" | "png" | "webp">("png");
+  const [enhancePrompt, setEnhancePrompt] = useState(true);
+  const [seed, setSeed] = useState("");
+  const [strength, setStrength] = useState(0.72);
+  const [seriesVariations, setSeriesVariations] = useState(DEFAULT_SERIES);
+  const [assets, setAssets] = useState<SanityImageAsset[]>([]);
+  const [assetSearch, setAssetSearch] = useState("");
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [loadingAssets, setLoadingAssets] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [savingUrl, setSavingUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [result, setResult] = useState<Extract<FalGenerateResponse, { ok: true }> | null>(null);
 
   const loadAssets = useCallback(async () => {
-    setLoadingAssets(true)
+    setLoadingAssets(true);
     try {
-      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetQuery)
-      setAssets(nextAssets)
+      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetQuery);
+      setAssets(nextAssets);
       setSelectedAssetId((current) =>
         current && nextAssets.some((asset) => asset._id === current) ? current : null,
-      )
+      );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not load Sanity images.')
+      setError(caught instanceof Error ? caught.message : "Could not load Sanity images.");
     } finally {
-      setLoadingAssets(false)
+      setLoadingAssets(false);
     }
-  }, [client])
+  }, [client]);
 
   useEffect(() => {
-    void loadAssets()
-  }, [loadAssets])
+    void loadAssets();
+  }, [loadAssets]);
 
   const selectedModel = useMemo(
     () => MODEL_OPTIONS.find((option) => option.id === model) ?? MODEL_OPTIONS[0],
     [model],
-  )
+  );
 
   useEffect(() => {
-    if (outputFormat === 'webp' && !selectedModel.supportsWebp) {
-      setOutputFormat('png')
+    if (outputFormat === "webp" && !selectedModel.supportsWebp) {
+      setOutputFormat("png");
     }
-  }, [outputFormat, selectedModel.supportsWebp])
+  }, [outputFormat, selectedModel.supportsWebp]);
 
   const filteredAssets = useMemo(() => {
-    const query = assetSearch.trim().toLowerCase()
+    const query = assetSearch.trim().toLowerCase();
     if (!query) {
-      return assets
+      return assets;
     }
     return assets.filter((asset) =>
       [asset.title, asset.altText, asset.originalFilename, asset._id]
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(query)),
-    )
-  }, [assetSearch, assets])
+    );
+  }, [assetSearch, assets]);
 
   const selectedAsset = useMemo(
     () => assets.find((asset) => asset._id === selectedAssetId) ?? null,
     [assets, selectedAssetId],
-  )
-  const usesReferenceImage = Boolean(selectedAsset && (mode === 'image' || mode === 'series'))
+  );
+  const usesReferenceImage = Boolean(selectedAsset && (mode === "image" || mode === "series"));
 
   const clearNotice = () => {
-    window.setTimeout(() => setNotice(null), 2800)
-  }
+    window.setTimeout(() => setNotice(null), 2800);
+  };
 
   const handleGenerate = async () => {
-    setGenerating(true)
-    setError(null)
-    setNotice(null)
+    setGenerating(true);
+    setError(null);
+    setNotice(null);
 
     try {
-      if (mode === 'image' && !selectedAsset) {
-        throw new Error('Select a Sanity image to use as the reference.')
+      if (mode === "image" && !selectedAsset) {
+        throw new Error("Select a Sanity image to use as the reference.");
       }
 
       const response = await fetch(falStudioApiEndpoint, {
@@ -379,69 +386,69 @@ export function FalImageStudioTool() {
           seriesVariations,
           strength,
         }),
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST',
-      })
-      const body = (await response.json().catch(() => ({}))) as FalGenerateResponse
-      if (!response.ok || !('ok' in body) || body.ok !== true) {
-        const message = 'error' in body ? body.error : undefined
-        throw new Error(message || `Fal request failed with ${response.status}.`)
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const body = (await response.json().catch(() => ({}))) as FalGenerateResponse;
+      if (!response.ok || !("ok" in body) || body.ok !== true) {
+        const message = "error" in body ? body.error : undefined;
+        throw new Error(message || `Fal request failed with ${response.status}.`);
       }
-      setResult(body)
-      setNotice(`Generated ${body.images.length} image${body.images.length === 1 ? '' : 's'}.`)
-      clearNotice()
+      setResult(body);
+      setNotice(`Generated ${body.images.length} image${body.images.length === 1 ? "" : "s"}.`);
+      clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not generate images with Fal.')
+      setError(caught instanceof Error ? caught.message : "Could not generate images with Fal.");
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
-  }
+  };
 
   const handleSaveToSanity = async (image: FalGeneratedImage, index: number) => {
-    setSavingUrl(image.url)
-    setError(null)
-    setNotice(null)
+    setSavingUrl(image.url);
+    setError(null);
+    setNotice(null);
 
     try {
-      const response = await fetch(image.url)
+      const response = await fetch(image.url);
       if (!response.ok) {
-        throw new Error(`Could not download generated image (${response.status}).`)
+        throw new Error(`Could not download generated image (${response.status}).`);
       }
-      const blob = await response.blob()
+      const blob = await response.blob();
       const extension =
-        image.contentType.includes('jpeg') || image.contentType.includes('jpg')
-          ? 'jpg'
-          : image.contentType.includes('webp')
-            ? 'webp'
-            : 'png'
-      const filename = `${safeFilename((image.variation || prompt).slice(0, 56), 'fal-image')}-${index + 1}.${extension}`
-      const asset = await client.assets.upload('image', blob, {
+        image.contentType.includes("jpeg") || image.contentType.includes("jpg")
+          ? "jpg"
+          : image.contentType.includes("webp")
+            ? "webp"
+            : "png";
+      const filename = `${safeFilename((image.variation || prompt).slice(0, 56), "fal-image")}-${index + 1}.${extension}`;
+      const asset = await client.assets.upload("image", blob, {
         contentType: image.contentType,
         filename,
-      })
+      });
       await client
         .patch(asset._id)
         .set({
           altText: (image.prompt || prompt).slice(0, 180),
           description: `Generated with ${selectedModel.label} in AI Image Studio.`,
-          title: filename.replace(/\.[^.]+$/, ''),
+          title: filename.replace(/\.[^.]+$/, ""),
         })
-        .commit()
-      setNotice('Saved generated image to Sanity assets.')
-      clearNotice()
+        .commit();
+      setNotice("Saved generated image to Sanity assets.");
+      clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not save generated image.')
+      setError(caught instanceof Error ? caught.message : "Could not save generated image.");
     } finally {
-      setSavingUrl(null)
+      setSavingUrl(null);
     }
-  }
+  };
 
   return (
     <main
       className={
-        colorScheme === 'dark'
-          ? 'studio-tool fis studio-tool--dark'
-          : 'studio-tool fis studio-tool--light'
+        colorScheme === "dark"
+          ? "studio-tool fis studio-tool--dark"
+          : "studio-tool fis studio-tool--light"
       }
     >
       <header className="fis__header">
@@ -456,7 +463,7 @@ export function FalImageStudioTool() {
           size="xs"
           variant="brand"
         >
-          {generating ? 'Generating...' : 'Generate images'}
+          {generating ? "Generating..." : "Generate images"}
         </WaButton>
       </header>
 
@@ -490,7 +497,7 @@ export function FalImageStudioTool() {
             />
           </div>
 
-          {mode === 'series' ? (
+          {mode === "series" ? (
             <div className="fis__control-group">
               <label>Series directions</label>
               <WaTextarea
@@ -568,7 +575,7 @@ export function FalImageStudioTool() {
                 value={outputFormat}
                 withClear={false}
                 onInput={(event) =>
-                  setOutputFormat(getSelectValue(event) as 'jpeg' | 'png' | 'webp')
+                  setOutputFormat(getSelectValue(event) as "jpeg" | "png" | "webp")
                 }
               >
                 <WaOption value="png">PNG</WaOption>
@@ -642,7 +649,7 @@ export function FalImageStudioTool() {
               <strong>{imageLabel(selectedAsset)}</strong>
               <span>
                 {imageDimensions(selectedAsset)}
-                {mode === 'series' ? ' · used across the series' : ''}
+                {mode === "series" ? " · used across the series" : ""}
               </span>
               <WaButton onClick={() => setSelectedAssetId(null)} size="xs">
                 Clear reference
@@ -655,12 +662,12 @@ export function FalImageStudioTool() {
               <WaButton
                 appearance="plain"
                 className={
-                  asset._id === selectedAssetId ? 'fis__asset-tile is-selected' : 'fis__asset-tile'
+                  asset._id === selectedAssetId ? "fis__asset-tile is-selected" : "fis__asset-tile"
                 }
                 key={asset._id}
                 onClick={() => {
-                  setSelectedAssetId(asset._id)
-                  setMode((current) => (current === 'series' ? 'series' : 'image'))
+                  setSelectedAssetId(asset._id);
+                  setMode((current) => (current === "series" ? "series" : "image"));
                 }}
                 size="xs"
                 title={imageLabel(asset)}
@@ -671,7 +678,7 @@ export function FalImageStudioTool() {
                   src={`${asset.url}?w=260&h=190&fit=crop&auto=format`}
                   style={
                     asset.metadata?.lqip
-                      ? {backgroundImage: `url(${asset.metadata.lqip})`}
+                      ? { backgroundImage: `url(${asset.metadata.lqip})` }
                       : undefined
                   }
                 />
@@ -692,7 +699,7 @@ export function FalImageStudioTool() {
                 <div>
                   <strong>{result.images.length} generated images</strong>
                   <span>
-                    {result.jobs.length} Fal job{result.jobs.length === 1 ? '' : 's'}
+                    {result.jobs.length} Fal job{result.jobs.length === 1 ? "" : "s"}
                   </span>
                 </div>
               </div>
@@ -713,7 +720,7 @@ export function FalImageStudioTool() {
                         size="xs"
                         variant="brand"
                       >
-                        {savingUrl === image.url ? 'Saving...' : 'Save to Sanity'}
+                        {savingUrl === image.url ? "Saving..." : "Save to Sanity"}
                       </WaButton>
                       <WaButton href={image.url} rel="noreferrer" size="xs" target="_blank">
                         Open
@@ -732,5 +739,5 @@ export function FalImageStudioTool() {
         </section>
       </section>
     </main>
-  )
+  );
 }

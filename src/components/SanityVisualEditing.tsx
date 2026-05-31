@@ -1,20 +1,14 @@
-import {
-  Suspense,
-  lazy,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import type {
   HistoryAdapter,
   HistoryAdapterNavigate,
   HistoryRefresh,
   HistoryUpdate,
 } from "@sanity/visual-editing";
+
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useContext } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import { SanitySiteContext } from "../context/sanitySiteContextValue";
 import { dispatchSanityPresentationRefresh } from "../sanity/presentationEvents";
 
@@ -69,9 +63,7 @@ export const SanityVisualEditing = () => {
   const refetch = ctx?.refetch ?? noop;
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
-  const [onHistoryNavigate, setOnHistoryNavigate] = useState<
-    HistoryAdapterNavigate | undefined
-  >();
+  const [onHistoryNavigate, setOnHistoryNavigate] = useState<HistoryAdapterNavigate | undefined>();
 
   useEffect(() => {
     navigateRef.current = navigate;

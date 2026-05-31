@@ -74,29 +74,17 @@
 }
 
 .ri-dev-compass__swatch--nx {
-  background: repeating-linear-gradient(
-    135deg,
-    #ffb86c 0 2px,
-    transparent 2px 4px
-  );
+  background: repeating-linear-gradient(135deg, #ffb86c 0 2px, transparent 2px 4px);
   border: 1px solid #ffb86c;
 }
 
 .ri-dev-compass__swatch--ny {
-  background: repeating-linear-gradient(
-    135deg,
-    #c8f075 0 2px,
-    transparent 2px 4px
-  );
+  background: repeating-linear-gradient(135deg, #c8f075 0 2px, transparent 2px 4px);
   border: 1px solid #c8f075;
 }
 
 .ri-dev-compass__swatch--nz {
-  background: repeating-linear-gradient(
-    135deg,
-    #a8d4ff 0 2px,
-    transparent 2px 4px
-  );
+  background: repeating-linear-gradient(135deg, #a8d4ff 0 2px, transparent 2px 4px);
   border: 1px solid #a8d4ff;
 }
 

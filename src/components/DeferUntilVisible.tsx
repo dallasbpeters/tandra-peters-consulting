@@ -1,4 +1,5 @@
 import { useRef, type ReactNode } from "react";
+
 import { useNearViewport } from "../hooks/useNearViewport";
 
 type DeferUntilVisibleProps = {
@@ -23,11 +24,7 @@ export const DeferUntilVisible = ({
   const isNear = useNearViewport(ref, rootMargin);
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{ minHeight: isNear ? undefined : minHeight }}
-    >
+    <div ref={ref} className={className} style={{ minHeight: isNear ? undefined : minHeight }}>
       {isNear ? children : null}
     </div>
   );

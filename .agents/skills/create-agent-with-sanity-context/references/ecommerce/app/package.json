@@ -11,7 +11,6 @@
     "start": "next start",
     "typegen": "sanity typegen generate"
   },
-  "prettier": "@sanity/prettier-config",
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",
     "@ai-sdk/mcp": "^1.0.25",
@@ -49,5 +48,6 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4.2.1",
     "typescript": "^5"
-  }
+  },
+  "prettier": "@sanity/prettier-config"
 }

@@ -1,12 +1,12 @@
-import Link from 'next/link'
+import Link from "next/link";
 
-import {ProductGrid} from '@/components/product-grid'
-import {Button} from '@/components/ui/button'
-import {client} from '@/sanity/lib/client'
-import {FEATURED_PRODUCTS_QUERY} from '@/sanity/queries'
+import { ProductGrid } from "@/components/product-grid";
+import { Button } from "@/components/ui/button";
+import { client } from "@/sanity/lib/client";
+import { FEATURED_PRODUCTS_QUERY } from "@/sanity/queries";
 
 export default async function HomePage() {
-  const products = await client.fetch(FEATURED_PRODUCTS_QUERY)
+  const products = await client.fetch(FEATURED_PRODUCTS_QUERY);
 
   return (
     <main>
@@ -34,5 +34,5 @@ export default async function HomePage() {
         <ProductGrid products={products} />
       </section>
     </main>
-  )
+  );
 }

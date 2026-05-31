@@ -1,6 +1,6 @@
+import { theme } from "../theme";
 import { LegalLayout } from "./LegalLayout";
 import { legalSection } from "./legalSection";
-import { theme } from "../theme";
 
 export const PrivacyPolicyPage = () => (
   <LegalLayout title="Privacy Policy">

@@ -1,26 +1,26 @@
 import type { CSSProperties } from "react";
-import { motion } from "motion/react";
+
 import { NavArrowRight } from "iconoir-react";
-import { TransitionLink } from "./TransitionLink";
-import { layoutClass } from "../styles/layoutClasses";
-import { mix, theme } from "../theme";
+import { motion } from "motion/react";
+
 import type { ArticlesTeaserProps } from "../types";
+
 import { FALLBACK_ARTICLE_COVER } from "../article/postCoverImage";
 import { RichText } from "../portableText/RichText";
+import { layoutClass } from "../styles/layoutClasses";
+import { mix, theme } from "../theme";
 import { ArticleCardSharedStyles } from "./ArticleCardSharedStyles";
 import { ArticleGridCard } from "./ArticleGridCard";
+import { TransitionLink } from "./TransitionLink";
 
 const DEFAULT_EYEBROW = "Guides & insights";
 const DEFAULT_TITLE = "Roofing articles";
-const DEFAULT_INTRO =
-  "Latest guides on replacement, insurance, and caring for your Texas roof.";
+const DEFAULT_INTRO = "Latest guides on replacement, insurance, and caring for your Texas roof.";
 const DEFAULT_VIEW_ALL = "View all articles";
 
 const studioUrl =
   import.meta.env.VITE_SANITY_STUDIO_URL?.trim() ||
-  (import.meta.env.PROD
-    ? "https://www.tandra.me/studio"
-    : "http://localhost:3333");
+  (import.meta.env.PROD ? "https://www.tandra.me/studio" : "http://localhost:3333");
 
 export const ArticlesTeaser = ({
   posts,
@@ -153,12 +153,7 @@ export const ArticlesTeaser = ({
               }}
             >
               {viewAllLabel}
-              <NavArrowRight
-                width={16}
-                height={16}
-                strokeWidth={2}
-                aria-hidden
-              />
+              <NavArrowRight width={16} height={16} strokeWidth={2} aria-hidden />
             </TransitionLink>
           </div>
         </motion.div>
@@ -218,9 +213,8 @@ export const ArticlesTeaser = ({
                 }}
               >
                 The homepage reads the latest{" "}
-                <strong style={{ color: theme.colors.white }}>post</strong>{" "}
-                documents from Sanity. Publish at least one article in Studio,
-                or seed demo posts from the studio project.
+                <strong style={{ color: theme.colors.white }}>post</strong> documents from Sanity.
+                Publish at least one article in Studio, or seed demo posts from the studio project.
               </p>
               <p
                 style={{
@@ -248,10 +242,7 @@ export const ArticlesTeaser = ({
                     <code style={{ color: theme.colors.accentLight }}>
                       studio-tandra-peters
                     </code>{" "}
-                    run{" "}
-                    <code style={{ color: theme.colors.accentLight }}>
-                      pnpm seed:posts
-                    </code>
+                    run <code style={{ color: theme.colors.accentLight }}>pnpm seed:posts</code>
                   </>
                 ) : null}
               </p>
@@ -260,11 +251,7 @@ export const ArticlesTeaser = ({
         ) : (
           <div style={gridStyle} className="articles-cards-grid">
             {displayPosts.map((p, i) => (
-              <div
-                key={p._id}
-                className="articles-cards-grid-item"
-                style={{ minWidth: 0 }}
-              >
+              <div key={p._id} className="articles-cards-grid-item" style={{ minWidth: 0 }}>
                 <ArticleGridCard
                   post={p}
                   cardIndex={i}

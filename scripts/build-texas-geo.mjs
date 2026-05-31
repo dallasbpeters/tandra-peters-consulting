@@ -7,6 +7,7 @@
  */
 import { readFileSync, writeFileSync } from "fs";
 import { feature } from "topojson-client";
+
 import {
   geoMercator,
   geoBounds,
@@ -14,33 +15,23 @@ import {
 
 function ringToD(ring) {
   if (ring.length < 2) return "";
-  return (
-    "M" +
-    ring.map(([x, y]) => `${+x.toFixed(2)},${+y.toFixed(2)}`).join("L") +
-    "Z"
-  );
+  return "M" + ring.map(([x, y]) => `${+x.toFixed(2)},${+y.toFixed(2)}`).join("L") + "Z";
 }
 
 function featureToD(geometry, project) {
-  const projectRing = (ring) =>
-    ring.map((coord) => project(coord)).filter(Boolean);
+  const projectRing = (ring) => ring.map((coord) => project(coord)).filter(Boolean);
 
   if (geometry.type === "Polygon") {
     return geometry.coordinates.map(projectRing).map(ringToD).join("");
   }
   if (geometry.type === "MultiPolygon") {
-    return geometry.coordinates
-      .flatMap((poly) => poly.map(projectRing).map(ringToD))
-      .join("");
+    return geometry.coordinates.flatMap((poly) => poly.map(projectRing).map(ringToD)).join("");
   }
   return "";
 }
 
 function centroidOf(geometry, project) {
-  const ring =
-    geometry.type === "Polygon"
-      ? geometry.coordinates[0]
-      : geometry.coordinates[0][0];
+  const ring = geometry.type === "Polygon" ? geometry.coordinates[0] : geometry.coordinates[0][0];
   const pts = ring.map((coord) => project(coord)).filter(Boolean);
   if (!pts.length) return [0, 0];
   const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
@@ -73,9 +64,7 @@ const KEY_TO_CITY = {
   potter: "Amarillo",
 };
 
-const geo = JSON.parse(
-  readFileSync("./src/data/texas-service-counties.geojson", "utf8"),
-);
+const geo = JSON.parse(readFileSync("./src/data/texas-service-counties.geojson", "utf8"));
 
 const features = geo.features.filter((f) => NAME_TO_KEY[f.properties?.name]);
 if (features.length !== Object.keys(NAME_TO_KEY).length) {
@@ -146,10 +135,7 @@ const texasOutput = {
   counties,
 };
 
-writeFileSync(
-  "./src/components/texasCounties.json",
-  JSON.stringify(texasOutput),
-);
+writeFileSync("./src/components/texasCounties.json", JSON.stringify(texasOutput));
 
 const serviceAreasOutput = {
   type: "FeatureCollection",
@@ -168,14 +154,9 @@ const serviceAreasOutput = {
   }),
 };
 
-writeFileSync(
-  "./src/components/serviceAreas.json",
-  JSON.stringify(serviceAreasOutput),
-);
+writeFileSync("./src/components/serviceAreas.json", JSON.stringify(serviceAreasOutput));
 
-const statesTopo = JSON.parse(
-  readFileSync("./node_modules/us-atlas/states-10m.json", "utf8"),
-);
+const statesTopo = JSON.parse(readFileSync("./node_modules/us-atlas/states-10m.json", "utf8"));
 const stateFeatures = feature(statesTopo, statesTopo.objects.states).features;
 const texasState = stateFeatures.find((f) => String(f.id) === "48");
 if (!texasState) throw new Error("Texas state feature not found in us-atlas");

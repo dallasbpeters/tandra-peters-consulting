@@ -1,12 +1,13 @@
-import React from "react";
-import type { PortableTextBlock } from "@portabletext/types";
-import type { IconoirIconProps } from "./icons/serviceIconMap";
-import type { PostListItem } from "./types/article";
-
 import type {
   CustomElements,
   CustomCssProperties,
 } from "@awesome.me/webawesome/dist/custom-elements-jsx.d.ts";
+import type { PortableTextBlock } from "@portabletext/types";
+
+import React from "react";
+
+import type { IconoirIconProps } from "./icons/serviceIconMap";
+import type { PostListItem } from "./types/article";
 
 declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -15,7 +16,7 @@ declare module "react" {
   interface CSSProperties extends CustomCssProperties {}
 }
 
-declare module 'react' {
+declare module "react" {
   interface CSSProperties {
     cornerShape?: string; // Or a union of specific values like 'bevel' | 'round'
     webkitCornerShape?: string;
@@ -139,7 +140,6 @@ export interface ExpertiseProps {
   title?: string;
   items?: ExpertiseItem[];
 }
-
 
 export interface Testimonial {
   name: string;

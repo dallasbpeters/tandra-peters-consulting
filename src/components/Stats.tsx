@@ -1,6 +1,7 @@
-import React from "react";
-import { motion } from "motion/react";
 import { HomeUser, Hammer, Home } from "iconoir-react";
+import { motion } from "motion/react";
+import React from "react";
+
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { Stat, StatsProps } from "../types";

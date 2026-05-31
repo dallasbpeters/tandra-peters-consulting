@@ -13,16 +13,11 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+
 import { createGroq } from "@ai-sdk/groq";
-import {
-  generateText,
-  jsonSchema,
-  stepCountIs,
-  type ModelMessage,
-  type ToolSet,
-} from "ai";
-import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/agent-context/ai-sdk";
+import { createClient } from "@sanity/client";
+import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -108,9 +103,7 @@ async function callMcp(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS for local dev
   const origin = req.headers.origin ?? "";
-  const allowed = (process.env.ALLOWED_ORIGINS ?? "")
-    .split(",")
-    .map((o) => o.trim());
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim());
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -118,14 +111,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!token)
-    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
   const body = req.body as {
@@ -188,9 +179,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // overload resolution for tool() in v6 requires the cast.
           {
             description: mcpTool.description,
-            inputSchema: jsonSchema(
-              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-            ),
+            inputSchema: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
             execute,
           } as unknown as ToolSet[string],
         ];
@@ -203,9 +192,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const baseRequest = {
       model: groq(GROQ_MODEL),
       messages: body.messages,
-      ...(insights
-        ? { experimental_telemetry: { isEnabled: true, ...insights } }
-        : {}),
+      ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
     } as const;
 
     let text: string;
@@ -217,8 +204,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         stopWhen: stepCountIs(10),
       }));
     } catch (toolError) {
-      const toolErrorMessage =
-        toolError instanceof Error ? toolError.message : String(toolError);
+      const toolErrorMessage = toolError instanceof Error ? toolError.message : String(toolError);
       if (!isFunctionCallFailure(toolErrorMessage)) {
         throw toolError;
       }

@@ -1,16 +1,9 @@
-import {postType} from './postType'
-import {blockContentType} from './objects/blockContent'
-import {navLinkType} from './objects/navLink'
-import {socialLinkType} from './objects/socialLink'
-import {serviceCardType} from './objects/serviceCard'
-import {birdcreekAdvantageCardType} from './objects/birdcreekAdvantageCard'
-import {missionValueType} from './objects/missionValue'
-import {expertiseItemType} from './objects/expertiseItem'
-import {faqItemType} from './objects/faqItem'
-import {seoDashboardRecommendationType} from './objects/seoDashboardRecommendation'
-import {seoDashboardOpportunityType} from './objects/seoDashboardOpportunity'
-import {serviceAreaMapType} from './serviceAreaMap'
-import {statRowType} from './objects/statRow'
+import { aiContextType } from "./documents/aiContext";
+import { articlesPageType } from "./documents/articlesPage";
+import beforeAfterGalleryType from "./documents/beforeAfterGallery";
+import { homePageType } from "./documents/homePage";
+import { seoDashboardInsightsType } from "./documents/seoDashboardInsights";
+import { siteSettingsType } from "./documents/siteSettings";
 import {
   heroSectionType,
   marqueeSectionType,
@@ -28,15 +21,22 @@ import {
   roofInspectionSectionType,
   beforeAfterPairType,
   beforeAfterSectionType,
-} from './homePageSections'
-import {roofInspectionHotspotType} from './objects/roofInspectionHotspot'
-import {siteSettingsType} from './documents/siteSettings'
-import {homePageType} from './documents/homePage'
-import {articlesPageType} from './documents/articlesPage'
-import {aiContextType} from './documents/aiContext'
-import {seoDashboardInsightsType} from './documents/seoDashboardInsights'
-import {tandraIntroVideoType} from './objects/tandraIntroVideo'
-import beforeAfterGalleryType from './documents/beforeAfterGallery'
+} from "./homePageSections";
+import { birdcreekAdvantageCardType } from "./objects/birdcreekAdvantageCard";
+import { blockContentType } from "./objects/blockContent";
+import { expertiseItemType } from "./objects/expertiseItem";
+import { faqItemType } from "./objects/faqItem";
+import { missionValueType } from "./objects/missionValue";
+import { navLinkType } from "./objects/navLink";
+import { roofInspectionHotspotType } from "./objects/roofInspectionHotspot";
+import { seoDashboardOpportunityType } from "./objects/seoDashboardOpportunity";
+import { seoDashboardRecommendationType } from "./objects/seoDashboardRecommendation";
+import { serviceCardType } from "./objects/serviceCard";
+import { socialLinkType } from "./objects/socialLink";
+import { statRowType } from "./objects/statRow";
+import { tandraIntroVideoType } from "./objects/tandraIntroVideo";
+import { postType } from "./postType";
+import { serviceAreaMapType } from "./serviceAreaMap";
 export const schemaTypes = [
   blockContentType,
   navLinkType,
@@ -75,4 +75,4 @@ export const schemaTypes = [
   aiContextType,
   seoDashboardInsightsType,
   postType,
-]
+];

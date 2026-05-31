@@ -1,12 +1,11 @@
+import { readFileSync } from "fs";
+
 import {
   geoMercator,
   geoBounds,
 } from "../node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/index.js";
-import { readFileSync } from "fs";
 
-const data = JSON.parse(
-  readFileSync("./src/components/texasCounties.json", "utf8"),
-);
+const data = JSON.parse(readFileSync("./src/components/texasCounties.json", "utf8"));
 
 console.log("Features:", data.features.length);
 

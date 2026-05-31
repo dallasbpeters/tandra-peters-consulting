@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, type CSSProperties } from "react";
-import { motion, AnimatePresence, Variants } from "motion/react";
 import type { PortableTextBlock } from "@portabletext/types";
+
+import { motion, AnimatePresence, Variants } from "motion/react";
+import { useState, useRef, useCallback, type CSSProperties } from "react";
+
+import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { theme } from "../theme";
-import { useIsMobile } from "../hooks/isMobile";
 
 interface ImagePair {
   id?: string;
@@ -32,9 +34,7 @@ const colors = {
   white: "#ffffff",
 };
 
-
 const styles: Record<string, CSSProperties> = {
-
   section: {
     padding: "4rem 1.5rem",
     display: "grid",
@@ -165,8 +165,7 @@ const styles: Record<string, CSSProperties> = {
     position: "absolute",
     inset: 0,
     zIndex: 1,
-    background:
-      "linear-gradient(to top, rgba(11, 13, 20, 0.85), transparent 60%)",
+    background: "linear-gradient(to top, rgba(11, 13, 20, 0.85), transparent 60%)",
   },
   thumbLabel: {
     position: "absolute",
@@ -213,8 +212,7 @@ export function BeforeAfterSlider({
     if (!isDragging) return;
     handleMove(e.clientX);
   };
-  const handleTouchMove = (e: React.TouchEvent) =>
-    handleMove(e.touches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => handleMove(e.touches[0].clientX);
   const handleClick = (e: React.MouseEvent) => handleMove(e.clientX);
 
   const hasHeader = Boolean(eyebrow || title || description);
@@ -321,9 +319,7 @@ export function BeforeAfterSlider({
                   style={{
                     ...styles.thumbButtonBase,
                     blockSize: isMobile ? "75px" : "100px",
-                    boxShadow: isSelected
-                      ? `0 0 0 4px ${colors.primary}`
-                      : "none",
+                    boxShadow: isSelected ? `0 0 0 4px ${colors.primary}` : "none",
                   }}
                 >
                   <img
@@ -332,10 +328,7 @@ export function BeforeAfterSlider({
                     style={styles.thumbImage}
                     draggable={false}
                   />
-                  <div
-                    className="ba-thumb-overlay"
-                    style={styles.thumbOverlay}
-                  />
+                  <div className="ba-thumb-overlay" style={styles.thumbOverlay} />
                   <span style={styles.thumbLabel}>{pair.title}</span>
                 </motion.button>
               );

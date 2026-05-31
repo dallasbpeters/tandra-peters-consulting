@@ -1,5 +1,6 @@
-import { spawnSync } from "node:child_process";
 import { config as loadEnv } from "dotenv";
+import { spawnSync } from "node:child_process";
+
 import { fetchTandraIntroContent } from "../src/remotion/fetchTandraIntroContent.ts";
 
 loadEnv({ path: ".env.local" });
@@ -17,12 +18,7 @@ const command =
           "--frame=450",
           "--scale=0.5",
         ]
-      : [
-          "render",
-          "src/remotion/index.ts",
-          "TandraIntro",
-          "out/tandra-intro.mp4",
-        ];
+      : ["render", "src/remotion/index.ts", "TandraIntro", "out/tandra-intro.mp4"];
 
 const remotionArgs = ["exec", "remotion", ...command];
 
@@ -37,17 +33,14 @@ if (mode === "studio") {
       "[video] Using fallback copy — check Sanity publish state and SANITY_API_READ_TOKEN in .env.local.",
     );
   } else {
-    console.info(
-      `[video] Using Sanity copy (${source}${documentId ? `: ${documentId}` : ""}).`,
-    );
+    console.info(`[video] Using Sanity copy (${source}${documentId ? `: ${documentId}` : ""}).`);
   }
   remotionArgs.push("--props", JSON.stringify({ content }));
 }
 
 const result = spawnSync("pnpm", remotionArgs, {
-    stdio: "inherit",
-    env: process.env,
-  },
-);
+  stdio: "inherit",
+  env: process.env,
+});
 
 process.exit(result.status ?? 1);

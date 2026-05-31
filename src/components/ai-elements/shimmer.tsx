@@ -1,10 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import type { MotionProps } from "motion/react";
-import { motion } from "motion/react";
 import type { CSSProperties, ElementType, JSX } from "react";
+
+import { motion } from "motion/react";
 import { memo, useMemo } from "react";
+
+import { cn } from "@/lib/utils";
 
 type MotionHTMLProps = MotionProps & Record<string, unknown>;
 
@@ -38,14 +40,9 @@ const ShimmerComponent = ({
   duration = 2,
   spread = 2,
 }: TextShimmerProps) => {
-  const MotionComponent = getMotionComponent(
-    Component as keyof JSX.IntrinsicElements,
-  );
+  const MotionComponent = getMotionComponent(Component as keyof JSX.IntrinsicElements);
 
-  const dynamicSpread = useMemo(
-    () => (children?.length ?? 0) * spread,
-    [children, spread],
-  );
+  const dynamicSpread = useMemo(() => (children?.length ?? 0) * spread, [children, spread]);
 
   return (
     <MotionComponent

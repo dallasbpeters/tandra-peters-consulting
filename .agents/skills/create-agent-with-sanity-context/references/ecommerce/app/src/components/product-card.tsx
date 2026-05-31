@@ -1,21 +1,21 @@
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from "next/image";
+import Link from "next/link";
 
-import {Badge} from '@/components/ui/badge'
-import {formatPrice} from '@/lib/utils'
-import {urlFor} from '@/sanity/lib/image'
+import { Badge } from "@/components/ui/badge";
+import { formatPrice } from "@/lib/utils";
+import { urlFor } from "@/sanity/lib/image";
 
-import type {PRODUCTS_QUERY_RESULT} from '../../sanity.types'
+import type { PRODUCTS_QUERY_RESULT } from "../../sanity.types";
 
-type Product = PRODUCTS_QUERY_RESULT[number]
+type Product = PRODUCTS_QUERY_RESULT[number];
 
 interface ProductCardProps {
-  product: Product
+  product: Product;
 }
 
-export function ProductCard({product}: ProductCardProps) {
-  const {title, slug, image, price, category, brand} = product
-  const hasDiscount = price?.compareAtPrice && price.compareAtPrice > (price.amount ?? 0)
+export function ProductCard({ product }: ProductCardProps) {
+  const { title, slug, image, price, category, brand } = product;
+  const hasDiscount = price?.compareAtPrice && price.compareAtPrice > (price.amount ?? 0);
 
   return (
     <Link href={`/products/${slug}`} className="group block">
@@ -23,11 +23,11 @@ export function ProductCard({product}: ProductCardProps) {
         {image?.asset?.url ? (
           <Image
             src={urlFor(image).width(600).height(800).url()}
-            alt={image.alt || title || 'Product image'}
+            alt={image.alt || title || "Product image"}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            placeholder={image.asset.metadata?.lqip ? 'blur' : 'empty'}
+            placeholder={image.asset.metadata?.lqip ? "blur" : "empty"}
             blurDataURL={image.asset.metadata?.lqip || undefined}
           />
         ) : (
@@ -46,7 +46,7 @@ export function ProductCard({product}: ProductCardProps) {
           <p className="text-xs text-neutral-500">
             {brand?.title}
 
-            {brand?.title && category?.title && ' · '}
+            {brand?.title && category?.title && " · "}
 
             {category?.title}
           </p>
@@ -65,5 +65,5 @@ export function ProductCard({product}: ProductCardProps) {
         </div>
       </div>
     </Link>
-  )
+  );
 }

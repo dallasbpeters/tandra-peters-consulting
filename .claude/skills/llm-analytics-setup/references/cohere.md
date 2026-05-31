@@ -126,9 +126,7 @@
     ```typescript
     const completion = await openai.chat.completions.create({
       model: "command-a-03-2025",
-      messages: [
-        { role: "user", content: "Tell me a fun fact about hedgehogs" },
-      ],
+      messages: [{ role: "user", content: "Tell me a fun fact about hedgehogs" }],
       posthogDistinctId: "user_123", // optional
       posthogTraceId: "trace_123", // optional
       posthogProperties: { conversation_id: "abc123", paid: true }, // optional

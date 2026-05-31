@@ -9,14 +9,10 @@ const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2024-01-01";
 const HOME_PAGE_DOCUMENT_ID = "homePage";
 
-export type PatchTandraIntroRenderResult =
-  | { ok: true }
-  | { ok: false; reason: string };
+export type PatchTandraIntroRenderResult = { ok: true } | { ok: false; reason: string };
 
 const readSanityWriteToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() ||
-  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
-  undefined;
+  process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim() || undefined;
 
 export const patchTandraIntroRenderedVideo = async (
   url: string,
@@ -63,8 +59,7 @@ export const patchTandraIntroRenderedVideo = async (
 
     return { ok: true };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown Sanity patch error.";
+    const message = error instanceof Error ? error.message : "Unknown Sanity patch error.";
     console.error("[patch-tandra-intro-render]", error);
     return { ok: false, reason: message };
   }

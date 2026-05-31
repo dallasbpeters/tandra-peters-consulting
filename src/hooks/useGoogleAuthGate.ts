@@ -8,6 +8,7 @@ import {
   useState,
   type RefObject,
 } from "react";
+
 import {
   getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
@@ -35,9 +36,7 @@ export type GoogleAuthGateContextValue = {
   promptSignIn: () => void;
 };
 
-export const GoogleAuthGateContext = createContext<GoogleAuthGateContextValue | null>(
-  null,
-);
+export const GoogleAuthGateContext = createContext<GoogleAuthGateContextValue | null>(null);
 
 export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
   const isGateActive = isGoogleAuthGateEnabled();
@@ -70,30 +69,27 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
     setIsSignInModalOpen(false);
   }, []);
 
-  const setTokenFromCredential = useCallback(
-    (credential: string) => {
-      const parsed = parseGoogleJwtPayload(credential);
-      if (!parsed) {
-        setAuthError("Google returned an unusable ID token.");
-        return;
-      }
+  const setTokenFromCredential = useCallback((credential: string) => {
+    const parsed = parseGoogleJwtPayload(credential);
+    if (!parsed) {
+      setAuthError("Google returned an unusable ID token.");
+      return;
+    }
 
-      if (!isAllowedGoogleUser(parsed)) {
-        window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
-        setToken(null);
-        setUser(null);
-        setAuthError("This Google account is not allowed.");
-        return;
-      }
+    if (!isAllowedGoogleUser(parsed)) {
+      window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
+      setToken(null);
+      setUser(null);
+      setAuthError("This Google account is not allowed.");
+      return;
+    }
 
-      window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
-      setToken(credential);
-      setUser(parsed);
-      setAuthError(null);
-      setIsSignInModalOpen(false);
-    },
-    [],
-  );
+    window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
+    setToken(credential);
+    setUser(parsed);
+    setAuthError(null);
+    setIsSignInModalOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!isGateActive) {
@@ -150,11 +146,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
         setReady(true);
       } catch (error) {
         if (!cancelled) {
-          setAuthError(
-            error instanceof Error
-              ? error.message
-              : "Could not load Google sign-in.",
-          );
+          setAuthError(error instanceof Error ? error.message : "Could not load Google sign-in.");
         }
       }
     };
@@ -243,9 +235,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
 export const useGoogleAuthGate = (): GoogleAuthGateContextValue => {
   const context = useContext(GoogleAuthGateContext);
   if (!context) {
-    throw new Error(
-      "useGoogleAuthGate must be used within GoogleAuthGateProvider.",
-    );
+    throw new Error("useGoogleAuthGate must be used within GoogleAuthGateProvider.");
   }
   return context;
 };

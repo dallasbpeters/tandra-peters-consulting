@@ -18,6 +18,7 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type { Sandbox } from "@vercel/sandbox";
+
 import {
   addBundleToSandbox,
   createSandbox,
@@ -25,6 +26,7 @@ import {
   uploadToVercelBlob,
 } from "@remotion/vercel";
 import { execSync } from "node:child_process";
+
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
 import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
@@ -51,8 +53,7 @@ const queryValue = (value: string | string[] | undefined): string | undefined =>
   Array.isArray(value) ? value[0] : value;
 
 const shouldForceRender = (req: VercelRequest): boolean =>
-  queryValue(req.query.force)?.toLowerCase() === "true" ||
-  req.headers["x-force-render"] === "true";
+  queryValue(req.query.force)?.toLowerCase() === "true" || req.headers["x-force-render"] === "true";
 
 const bundleRemotionProject = (): void => {
   execSync(`pnpm exec remotion bundle --out-dir ./${LOCAL_BUNDLE_DIR}`, {
@@ -61,10 +62,7 @@ const bundleRemotionProject = (): void => {
   });
 };
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
@@ -79,8 +77,7 @@ export default async function handler(
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!blobToken) {
     res.status(500).json({
-      error:
-        "BLOB_READ_WRITE_TOKEN is not configured. Attach a Vercel Blob store to this project.",
+      error: "BLOB_READ_WRITE_TOKEN is not configured. Attach a Vercel Blob store to this project.",
     });
     return;
   }
@@ -92,11 +89,7 @@ export default async function handler(
     const { content, contentHash, renderContentHash, source, documentId } =
       await fetchTandraIntroContent();
 
-    if (
-      !shouldForceRender(req) &&
-      source !== "fallback" &&
-      renderContentHash === contentHash
-    ) {
+    if (!shouldForceRender(req) && source !== "fallback" && renderContentHash === contentHash) {
       res.status(200).json({
         skipped: true,
         reason: "Intro video content has already been rendered.",
@@ -112,9 +105,7 @@ export default async function handler(
       ? await restoreRemotionSnapshot()
       : await createSandbox({
           onProgress: ({ progress, message }) => {
-            console.log(
-              `[render-tandra-intro] ${message} (${Math.round(progress * 100)}%)`,
-            );
+            console.log(`[render-tandra-intro] ${message} (${Math.round(progress * 100)}%)`);
           },
         });
 
@@ -169,10 +160,7 @@ export default async function handler(
   } catch (error) {
     console.error("[render-tandra-intro]", error);
     res.status(500).json({
-      error:
-        error instanceof Error
-          ? error.message
-          : "Remotion render failed unexpectedly.",
+      error: error instanceof Error ? error.message : "Remotion render failed unexpectedly.",
     });
   } finally {
     await sandbox?.stop().catch(() => {});

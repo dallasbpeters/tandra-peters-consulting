@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
-import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
-import { POST_BY_SLUG_QUERY } from "../sanity/queries";
-import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
+import { useCallback, useEffect, useState } from "react";
+
 import type { PostDetail } from "../types/article";
+
+import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
+import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
+import { POST_BY_SLUG_QUERY } from "../sanity/queries";
 
 export const useSanityPostBySlug = (slug: string | undefined) => {
   const [post, setPost] = useState<PostDetail | null>(null);
@@ -46,15 +48,9 @@ export const useSanityPostBySlug = (slug: string | undefined) => {
       void refetch();
     };
 
-    window.addEventListener(
-      SANITY_PRESENTATION_REFRESH_EVENT,
-      onPresentationRefresh,
-    );
+    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
     return () => {
-      window.removeEventListener(
-        SANITY_PRESENTATION_REFRESH_EVENT,
-        onPresentationRefresh,
-      );
+      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
     };
   }, [refetch]);
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { theme } from "../../theme";
+
 import { useNearViewport } from "../../hooks/useNearViewport";
-import { DevViewerCompass } from "./DevViewerCompass";
+import { theme } from "../../theme";
 import { useCameraContext } from "./context";
+import { DevViewerCompass } from "./DevViewerCompass";
 
 type DiagramProps = {
   /** Absolute or root-relative path to the GLB model, e.g. `"/roof.glb"`. */
@@ -88,9 +89,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   chaptersRef.current = chapters;
 
   // Absolute URL so model-viewer's workers resolve the GLB correctly
-  const absoluteSrc = src.startsWith("http")
-    ? src
-    : `${window.location.origin}${src}`;
+  const absoluteSrc = src.startsWith("http") ? src : `${window.location.origin}${src}`;
 
   // Ref gives us the DOM element so we can imperatively drive the camera
   const mvRef = useRef<
@@ -189,18 +188,13 @@ export const Diagram: React.FC<DiagramProps> = ({
   // imperative useEffect has set on the model-viewer element.
   const [initialOrbit] = useState(
     () =>
-      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ??
-      "-115deg 45deg 6.5m",
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ?? "-115deg 45deg 6.5m",
   );
   const [initialTarget] = useState(
-    () =>
-      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ??
-      "auto",
+    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ?? "auto",
   );
   const [initialFov] = useState(
-    () =>
-      (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ??
-      "auto",
+    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ?? "auto",
   );
 
   // Padding-bottom trick: gives the wrapper a concrete pixel height so
@@ -234,12 +228,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   };
 
   return (
-    <div
-      ref={wrapperRef}
-      style={wrapperStyle}
-      role="region"
-      aria-label={alt}
-    >
+    <div ref={wrapperRef} style={wrapperStyle} role="region" aria-label={alt}>
       {modelViewerReady ? (
         <model-viewer
           ref={mvRef as React.Ref<HTMLElement>}

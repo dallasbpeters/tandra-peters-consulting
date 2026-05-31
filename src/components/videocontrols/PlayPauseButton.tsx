@@ -1,6 +1,7 @@
+import type { SyntheticEvent } from "react";
+
 import { Pause, Play } from "iconoir-react";
 import { motion } from "motion/react";
-import type { SyntheticEvent } from "react";
 
 type Props = {
   isPlaying: boolean;

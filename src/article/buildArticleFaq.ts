@@ -1,13 +1,13 @@
-import { plainTextFromRich } from "../portableText/plainText";
 import type { FaqItem, FaqProps } from "../types";
 import type { PostDetail } from "../types/article";
-import { postCategoryLabel } from "./categoryLabels";
+
+import { plainTextFromRich } from "../portableText/plainText";
 import { mapFaqProps } from "../sanity/mapSanityHome";
+import { postCategoryLabel } from "./categoryLabels";
 
 const trim = (value: string | null | undefined): string => value?.trim() ?? "";
 
-const normalizeSentence = (value: string): string =>
-  value.replace(/\s+/g, " ").trim();
+const normalizeSentence = (value: string): string => value.replace(/\s+/g, " ").trim();
 
 const stripTrailingPunctuation = (value: string): string =>
   value.replace(/[.?!:;,\s]+$/g, "").trim();
@@ -47,10 +47,7 @@ const topicIncludesHomeownerAudience = (questionTopic: string): boolean =>
 const stripAudienceFromTopic = (questionTopic: string): string => {
   const cleaned = stripTrailingPunctuation(
     normalizeSentence(
-      questionTopic.replace(
-        /\b(?:austin|texas|area|local)\s+homeowners?\b|\bhomeowners?\b/gi,
-        " ",
-      ),
+      questionTopic.replace(/\b(?:austin|texas|area|local)\s+homeowners?\b|\bhomeowners?\b/gi, " "),
     ),
   );
 
@@ -84,20 +81,17 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
       `${summaryLine} The best comparison is not just material price. Homeowners usually need to compare lifespan, repairability, curb appeal, insurance implications, ventilation needs, and how the roof will perform in Texas weather.`,
     middleItems: [
       {
-        question:
-          "How do cost, lifespan, and maintenance differ between shingles and metal?",
+        question: "How do cost, lifespan, and maintenance differ between shingles and metal?",
         answer:
           "Shingles usually cost less upfront and are simpler to repair in isolated areas, while metal often costs more initially but can offer longer service life and different maintenance tradeoffs. The smarter choice depends on how long you plan to stay, your budget, and how much long-term value matters to you.",
       },
       {
-        question:
-          "Which roofing system usually handles Texas heat, hail, and wind better?",
+        question: "Which roofing system usually handles Texas heat, hail, and wind better?",
         answer:
           "Both systems can perform well in Texas when the product choice and installation details are right. What matters most is the exact shingle or panel system, the fastening method, the flashing package, and whether ventilation and underlayment are treated as part of the full roof assembly.",
       },
       {
-        question:
-          "When does metal roofing make sense despite the higher upfront cost?",
+        question: "When does metal roofing make sense despite the higher upfront cost?",
         answer:
           "Metal tends to make more sense when homeowners want longer-term durability, a specific architectural look, or a roof system they do not expect to revisit soon. It is usually worth the premium only when the details, budget, and long-term ownership plans all line up.",
       },
@@ -109,8 +103,7 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
   },
   "homeowners-insurance-roof-damage-claims-guide": {
     topic: "roof damage insurance claims",
-    leadQuestion:
-      "What should Austin homeowners know before filing a roof damage insurance claim?",
+    leadQuestion: "What should Austin homeowners know before filing a roof damage insurance claim?",
     leadAnswer: (summaryLine) =>
       `${summaryLine} Before filing, it helps to understand what caused the damage, what you can document clearly, and whether the roof condition points to a covered storm event or a wear-and-tear issue that the carrier may challenge.`,
     middleItems: [
@@ -120,8 +113,7 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
           "Clear photos, dates, inspection notes, prior repair history, and a written scope comparison all help. The goal is to show what happened, how widespread the damage is, and why the requested repair or replacement scope matches the actual roof condition.",
       },
       {
-        question:
-          "What should you ask when the adjuster's scope looks too small?",
+        question: "What should you ask when the adjuster's scope looks too small?",
         answer:
           "Ask how the carrier accounted for all damaged slopes, accessories, flashing, code-related items, and any components needed for a proper system repair. If the line items do not match what was found on site, that is the moment to ask for clarification instead of assuming the estimate is complete.",
       },
@@ -139,39 +131,33 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
   },
   "how-to-choose-roofing-consultant-austin-texas": {
     topic: "choosing a roofing consultant",
-    leadQuestion:
-      "What should Austin homeowners look for when choosing a roofing consultant?",
+    leadQuestion: "What should Austin homeowners look for when choosing a roofing consultant?",
     leadAnswer: (summaryLine) =>
       `${summaryLine} The best consultants make the roof easier to understand. Homeowners should look for clear communication, practical education, honest scope guidance, and a process that stays aligned with the actual installation work.`,
     middleItems: [
       {
-        question:
-          "How is a roofing consultant different from a salesperson or estimator?",
+        question: "How is a roofing consultant different from a salesperson or estimator?",
         answer:
           "A strong consultant helps you understand condition, options, tradeoffs, and timing before you are pushed toward a yes-or-no decision. The value is not just price delivery. It is translating roof findings into a plan that makes sense for your house and situation.",
       },
       {
-        question:
-          "What questions help you judge whether the guidance is trustworthy?",
+        question: "What questions help you judge whether the guidance is trustworthy?",
         answer:
           "Ask what evidence supports the recommendation, what is included in scope, what might be missing, and how the advice connects to warranty, ventilation, flashing, and long-term performance. Good guidance gets more specific when you ask harder questions, not more evasive.",
       },
       {
-        question:
-          "Why does installer alignment matter when choosing a consultant?",
+        question: "Why does installer alignment matter when choosing a consultant?",
         answer:
           "Advice is more useful when it lines up with the team that will actually build the roof. Alignment reduces the gap between what was promised, what was approved, and what gets installed once the project moves from conversation to execution.",
       },
     ],
-    closingQuestion:
-      "What should you do next if you're comparing roofing consultants in Austin?",
+    closingQuestion: "What should you do next if you're comparing roofing consultants in Austin?",
     closingAnswer:
       "Compare how each person explains the roof, not just how quickly they offer a quote. The right next step is usually a conversation where you can test clarity, ask detailed questions, and see whether the guidance feels specific to your home rather than scripted.",
   },
   "maintaining-your-roof-after-installation": {
     topic: "roof maintenance after installation",
-    leadQuestion:
-      "What should homeowners focus on first after a new roof is installed?",
+    leadQuestion: "What should homeowners focus on first after a new roof is installed?",
     leadAnswer: (summaryLine) =>
       `${summaryLine} Right after installation, the biggest priorities are protecting drainage, keeping debris off the roof, and catching small changes before they turn into leaks or warranty headaches.`,
     middleItems: [
@@ -181,14 +167,12 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
           "A newer roof still deserves periodic attention, especially after hail, high wind, or heavy debris events. Most homeowners should at least do a visual perimeter check after major weather and consider a professional review when the roof starts moving out of its early-life window.",
       },
       {
-        question:
-          "What kinds of small maintenance issues turn into expensive problems?",
+        question: "What kinds of small maintenance issues turn into expensive problems?",
         answer:
           "Clogged gutters, branch abrasion, loose metal details, sealant failures at penetrations, and minor storm movement are the common ones. They seem manageable at first, but they can turn into deck damage or interior staining if no one catches them early.",
       },
       {
-        question:
-          "When should you call a professional instead of just monitoring it?",
+        question: "When should you call a professional instead of just monitoring it?",
         answer:
           "Call when you see active leaking, displaced materials, repeated debris buildup in the same areas, suspicious ceiling spots, or any condition that seems to be getting worse between checks. Monitoring is fine for stable conditions, not for visible progression.",
       },
@@ -206,14 +190,12 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
       `${summaryLine} The decision usually comes down to how widespread the damage is, how old the roof already was, and whether a repair would restore reliable performance or only buy a little time.`,
     middleItems: [
       {
-        question:
-          "What roof conditions usually push the decision toward replacement?",
+        question: "What roof conditions usually push the decision toward replacement?",
         answer:
           "Replacement becomes more likely when damage is spread across multiple slopes, the shingles are already aging out, repairs would be highly visible or repetitive, or the underlying roof system shows signs of larger failure. The pattern matters just as much as the severity.",
       },
       {
-        question:
-          "How does insurance affect a repair-versus-replacement decision?",
+        question: "How does insurance affect a repair-versus-replacement decision?",
         answer:
           "Insurance can shape the conversation, but it should not replace the actual roof analysis. The policy, adjuster findings, and approved scope all matter, yet homeowners still need to understand whether the roof will truly perform well after the proposed work is done.",
       },
@@ -230,8 +212,7 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
   },
   "texas-weather-roof-lifespan-warning-signs": {
     topic: "roof lifespan and warning signs in Texas",
-    leadQuestion:
-      "What warning signs usually mean a Texas roof needs a closer look?",
+    leadQuestion: "What warning signs usually mean a Texas roof needs a closer look?",
     leadAnswer: (summaryLine) =>
       `${summaryLine} In Texas, the biggest warning signs are usually material aging, visible movement, repeated interior clues, and anything that suggests the roof is no longer shedding heat or water the way it should.`,
     middleItems: [
@@ -241,14 +222,12 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
           "Texas weather stresses roofs from multiple directions at once. Heat and UV accelerate aging, hail bruises and weakens materials, and wind can loosen or crease components that were already vulnerable. Over time, those forces shorten the margin for small problems.",
       },
       {
-        question:
-          "When do aging signs point to replacement instead of maintenance?",
+        question: "When do aging signs point to replacement instead of maintenance?",
         answer:
           "Maintenance still helps when the issues are localized and the roof has meaningful life left. Replacement becomes the better conversation when deterioration is widespread, repeated fixes are stacking up, or the roof is showing multiple signs that the system is nearing the end of reliable service.",
       },
       {
-        question:
-          "How often should Texas homeowners schedule a roof check as the roof ages?",
+        question: "How often should Texas homeowners schedule a roof check as the roof ages?",
         answer:
           "The older the roof gets, the less sense it makes to wait for obvious interior damage. As roofs move into higher-risk years, periodic checks after major weather and occasional professional inspections help homeowners plan before the next storm makes the decision for them.",
       },
@@ -260,26 +239,22 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
   },
   "texas-roof-replacement-process-homeowners-guide": {
     topic: "the roof replacement process",
-    leadQuestion:
-      "What should homeowners expect first in the roof replacement process?",
+    leadQuestion: "What should homeowners expect first in the roof replacement process?",
     leadAnswer: (summaryLine) =>
       `${summaryLine} Most projects start with understanding the actual roof condition, the likely scope, and whether insurance or financing conversations need to happen before scheduling work.`,
     middleItems: [
       {
-        question:
-          "How do inspection, insurance, scheduling, and installation usually unfold?",
+        question: "How do inspection, insurance, scheduling, and installation usually unfold?",
         answer:
           "A well-run replacement usually moves from inspection to scope review, then into any insurance coordination that is needed, followed by scheduling, installation, and closeout documentation. The smoother that sequence is, the less stressful the project tends to feel for the homeowner.",
       },
       {
-        question:
-          "What delays or surprises most often affect a roof replacement timeline?",
+        question: "What delays or surprises most often affect a roof replacement timeline?",
         answer:
           "Weather, hidden decking issues, incomplete insurance scopes, material availability, and communication gaps are the most common ones. Good prep does not remove every surprise, but it does make them easier to manage when they come up.",
       },
       {
-        question:
-          "What should you review before work starts on replacement day?",
+        question: "What should you review before work starts on replacement day?",
         answer:
           "Review the approved scope, material selections, ventilation details, flashing plan, cleanup expectations, and any contingencies for hidden damage. That conversation helps make sure everyone is aligned before tear-off begins.",
       },
@@ -296,14 +271,12 @@ const ARTICLE_FAQ_PRESETS: Record<string, ArticleFaqPreset> = {
       `${summaryLine} A useful inspection looks beyond obvious shingle damage and explains how the roof system is performing as a whole, including flashings, penetrations, ventilation, and signs of moisture or wear.`,
     middleItems: [
       {
-        question:
-          "What problems are easiest to miss without a full inspection?",
+        question: "What problems are easiest to miss without a full inspection?",
         answer:
           "Flashing failures, subtle hail or wind damage, ventilation imbalance, deteriorating seals at penetrations, and early moisture clues in the attic are all easy to miss without a closer look. Those details often determine whether the next step is monitoring, repair, or replacement.",
       },
       {
-        question:
-          "How often should homeowners schedule a roof inspection in Texas?",
+        question: "How often should homeowners schedule a roof inspection in Texas?",
         answer:
           "Most homeowners should think about inspections after major storms, when leaks appear, when buying or selling, or as the roof ages into a higher-risk period. The right timing depends on the roof material, age, nearby tree cover, and recent weather exposure.",
       },
@@ -475,8 +448,7 @@ const getCategoryItems = (
           question: audienceAwareQuestion(
             questionTopic,
             `What should homeowners do next after learning about ${questionTopic}?`,
-            (cleanedTopic) =>
-              `What should you do next after learning about ${cleanedTopic}?`,
+            (cleanedTopic) => `What should you do next after learning about ${cleanedTopic}?`,
           ),
           answer:
             "Use the article to narrow the questions you need answered, then get a roof-specific evaluation of your property so the next step is tied to your actual conditions and not just general online guidance.",
@@ -486,9 +458,7 @@ const getCategoryItems = (
 };
 
 export const buildArticleFaqProps = (post: PostDetail): FaqProps => {
-  const authoredFaq = mapFaqProps(
-    post.faq as Record<string, unknown> | null | undefined,
-  );
+  const authoredFaq = mapFaqProps(post.faq as Record<string, unknown> | null | undefined);
   if (authoredFaq.items && authoredFaq.items.length > 0) {
     return {
       tagline: authoredFaq.tagline ?? "Article FAQ",
@@ -531,8 +501,7 @@ export const buildArticleFaqProps = (post: PostDetail): FaqProps => {
       question: audienceAwareQuestion(
         questionTopic,
         `What should Austin homeowners know about ${questionTopic}?`,
-        (cleanedTopic) =>
-          `What should Austin homeowners know about ${cleanedTopic}?`,
+        (cleanedTopic) => `What should Austin homeowners know about ${cleanedTopic}?`,
       ),
       answer: `${summaryLine} In practice, homeowners usually need to understand how the issue shows up on the actual roof, whether it is isolated or widespread, and what the next weather event is likely to do to it.`,
     },
@@ -552,8 +521,7 @@ export const buildArticleFaqProps = (post: PostDetail): FaqProps => {
   return {
     tagline: "Article FAQ",
     title: "Common questions homeowners ask next",
-    intro:
-      "A few practical follow-up questions homeowners usually ask after reading this article.",
+    intro: "A few practical follow-up questions homeowners usually ask after reading this article.",
     items,
   };
 };

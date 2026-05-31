@@ -28,12 +28,9 @@ const CONTACT_SERVICE_ROWS = [
   },
 ] as const;
 
-const SERVICE_VALUE_SET = new Set<string>(
-  CONTACT_SERVICE_ROWS.map((o) => o.value),
-);
+const SERVICE_VALUE_SET = new Set<string>(CONTACT_SERVICE_ROWS.map((o) => o.value));
 
-const isValidContactServiceValue = (v: string): boolean =>
-  SERVICE_VALUE_SET.has(v);
+const isValidContactServiceValue = (v: string): boolean => SERVICE_VALUE_SET.has(v);
 
 const contactServiceLabel = (value: string): string | null => {
   const row = CONTACT_SERVICE_ROWS.find((o) => o.value === value);
@@ -130,9 +127,7 @@ const normalizePhoneForAttio = (raw: string): string | null => {
   return `+${digits}`;
 };
 
-const phoneNumbersPayload = (
-  raw: string,
-): Array<{ original_phone_number: string }> | null => {
+const phoneNumbersPayload = (raw: string): Array<{ original_phone_number: string }> | null => {
   const normalized = normalizePhoneForAttio(raw);
   if (!normalized) return null;
   return [{ original_phone_number: normalized }];
@@ -266,10 +261,7 @@ const postAttioPersonNote = async (
   return { ok: res.ok, status: res.status, body };
 };
 
-const contactHandler = async (
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> => {
+const contactHandler = async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   const origin = req.headers.origin as string | undefined;
   applyCors(res, origin);
 
@@ -311,13 +303,11 @@ const contactHandler = async (
     return;
   }
 
-  const fullName =
-    typeof body.fullName === "string" ? body.fullName.trim() : "";
+  const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const propertyAddress =
     typeof body.propertyAddress === "string" ? body.propertyAddress.trim() : "";
-  const phoneNumber =
-    typeof body.phoneNumber === "string" ? body.phoneNumber.trim() : "";
+  const phoneNumber = typeof body.phoneNumber === "string" ? body.phoneNumber.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const serviceInterestRaw =
     typeof body.serviceInterest === "string" ? body.serviceInterest.trim() : "";
@@ -464,10 +454,7 @@ const contactHandler = async (
 
   const recordId = recordIdFromAssertResponse(attioJson);
   if (!recordId) {
-    console.error(
-      "Attio: unexpected success payload",
-      JSON.stringify(attioJson).slice(0, 800),
-    );
+    console.error("Attio: unexpected success payload", JSON.stringify(attioJson).slice(0, 800));
     res.status(502).json({
       ok: false,
       error: "Could not save your message. Try again later.",
@@ -485,12 +472,7 @@ const contactHandler = async (
     phoneNumber,
   });
 
-  const noteRes = await postAttioPersonNote(
-    token,
-    recordId,
-    noteTitle,
-    noteContent,
-  );
+  const noteRes = await postAttioPersonNote(token, recordId, noteTitle, noteContent);
   if (!noteRes.ok) {
     console.error("Attio note create failed", {
       status: noteRes.status,
@@ -511,10 +493,7 @@ const contactHandler = async (
   res.status(200).json({ ok: true });
 };
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     await contactHandler(req, res);
   } catch (err) {

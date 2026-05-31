@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { CameraContext, RoofInspectionContext } from "./context";
+
 import type { Chapter, View } from "./types";
+
+import { CameraContext, RoofInspectionContext } from "./context";
 
 export type RoofInspectionProps = {
   /** Inspection checkpoint data, typically `CHAPTERS` from `data.ts` or mapped from Sanity. */
@@ -27,9 +29,7 @@ export const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
 }) => {
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [focusChapterId, setFocusChapterId] = useState<string | null>(null);
-  const [activeViewId, setActiveViewId] = useState<string>(
-    defaultViewId ?? views[0]?.id ?? "",
-  );
+  const [activeViewId, setActiveViewId] = useState<string>(defaultViewId ?? views[0]?.id ?? "");
 
   const chapterValue = useMemo(
     () => ({ chapters, activeChapterId, setActiveChapterId }),
@@ -51,9 +51,7 @@ export const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
   return (
     <RoofInspectionContext.Provider value={chapterValue}>
       <CameraContext.Provider value={cameraValue}>
-        <div className="stage content-section content-section--padded">
-          {children}
-        </div>
+        <div className="stage content-section content-section--padded">{children}</div>
       </CameraContext.Provider>
     </RoofInspectionContext.Provider>
   );

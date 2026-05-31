@@ -1,21 +1,22 @@
-import { useParams } from "react-router-dom";
 import { NavArrowLeft } from "iconoir-react";
-import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
-import { SitePageChrome } from "../components/SitePageChrome";
-import { TransitionLink } from "../components/TransitionLink";
+import { useParams } from "react-router-dom";
+
+import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
+import { buildArticleFaqProps } from "../article/buildArticleFaq";
+import { postCategoryLabel } from "../article/categoryLabels";
 import { ArticleJsonLd } from "../components/ArticleJsonLd";
+import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
+import { ContactSmall } from "../components/ContactSmall";
+import { Faq } from "../components/Faq";
+import { SitePageChrome } from "../components/SitePageChrome";
+import { SocialShareBar } from "../components/SocialShareBar";
+import { TransitionLink } from "../components/TransitionLink";
 import { usePageMetadata } from "../hooks/usePageMetadata";
-import { RichText } from "../portableText/RichText";
 import { useSanityPostBySlug } from "../hooks/useSanityPostBySlug";
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
 import { theme } from "../theme";
-import { postCategoryLabel } from "../article/categoryLabels";
-import { SocialShareBar } from "../components/SocialShareBar";
-import { ContactSmall } from "../components/ContactSmall";
-import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
-import { Faq } from "../components/Faq";
-import { buildArticleFaqProps } from "../article/buildArticleFaq";
 
 const formatDate = (iso: string | undefined) => {
   if (!iso) {
@@ -164,9 +165,7 @@ export const ArticlePage = () => {
               marginBottom: "2rem",
             }}
           >
-            <time dateTime={post.publishedAt}>
-              {formatDate(post.publishedAt)}
-            </time>
+            <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
             {post.authorName ? (
               <>
                 {" · "}
@@ -241,11 +240,7 @@ export const ArticlePage = () => {
       <Faq {...articleFaqProps} paddingTop="0" />
       <SocialShareBar
         heading="Know someone who could benefit from this article?"
-        shareText={
-          post.excerpt?.trim()
-            ? `${post.title} — ${post.excerpt.trim()}`
-            : post.title
-        }
+        shareText={post.excerpt?.trim() ? `${post.title} — ${post.excerpt.trim()}` : post.title}
       />
       <ContactSmall
         title="Get a free consultation."

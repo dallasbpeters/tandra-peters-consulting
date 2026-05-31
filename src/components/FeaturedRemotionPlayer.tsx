@@ -1,7 +1,9 @@
-import { forwardRef, memo, useMemo } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
-import { TandraIntro } from "../remotion/TandraIntro";
+import { forwardRef, memo, useMemo } from "react";
+
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
+
+import { TandraIntro } from "../remotion/TandraIntro";
 
 type Props = {
   content: TandraIntroContent;
@@ -10,8 +12,7 @@ type Props = {
 
 const REMOTION_FPS = 30;
 export const REMOTION_DURATION_IN_FRAMES = 900;
-export const REMOTION_DURATION_SECONDS =
-  REMOTION_DURATION_IN_FRAMES / REMOTION_FPS;
+export const REMOTION_DURATION_SECONDS = REMOTION_DURATION_IN_FRAMES / REMOTION_FPS;
 
 export const FeaturedRemotionPlayer = memo(
   forwardRef<PlayerRef, Props>(({ content, posterUrl }, ref) => {
@@ -19,13 +20,7 @@ export const FeaturedRemotionPlayer = memo(
     const renderPoster = useMemo(
       () =>
         posterUrl
-          ? () => (
-              <img
-                alt=""
-                className="featured-video__poster-image"
-                src={posterUrl}
-              />
-            )
+          ? () => <img alt="" className="featured-video__poster-image" src={posterUrl} />
           : undefined,
       [posterUrl],
     );

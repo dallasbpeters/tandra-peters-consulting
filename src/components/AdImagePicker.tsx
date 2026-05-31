@@ -1,10 +1,13 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { MediaImage, RefreshDouble } from "iconoir-react";
+import type WaPopoverElement from "@awesome.me/webawesome/dist/components/popover/popover.js";
+
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaPopover from "@awesome.me/webawesome/dist/react/popover/index.js";
 import WaSwitch from "@awesome.me/webawesome/dist/react/switch/index.js";
-import type WaPopoverElement from "@awesome.me/webawesome/dist/components/popover/popover.js";
+import { MediaImage, RefreshDouble } from "iconoir-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+
 import type { SanityImageAsset } from "../hooks/useSanityImageAssets";
+
 import { useUnsplashImageSearch } from "../hooks/useUnsplashImageSearch";
 
 type ImageSource = "sanity" | "unsplash";
@@ -62,11 +65,9 @@ export const AdImagePicker = ({
   const currentImages = imageSource === "sanity" ? images : unsplash.images;
   const currentLoading = imageSource === "sanity" ? loading : unsplash.loading;
   const currentError = imageSource === "sanity" ? error : unsplash.error;
-  const currentRefresh =
-    imageSource === "sanity" ? onRefresh : unsplash.refresh;
+  const currentRefresh = imageSource === "sanity" ? onRefresh : unsplash.refresh;
   const selectedImage = useMemo(
-    () =>
-      currentImages.find((image) => image.url === selectedImageUrl) ?? null,
+    () => currentImages.find((image) => image.url === selectedImageUrl) ?? null,
     [currentImages, selectedImageUrl],
   );
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
@@ -95,11 +96,7 @@ export const AdImagePicker = ({
 
   return (
     <div className="ad-image-picker">
-      <button
-        id={triggerId}
-        type="button"
-        className="ad-image-picker__trigger"
-      >
+      <button id={triggerId} type="button" className="ad-image-picker__trigger">
         {selectedImage ? (
           <img src={thumbnailUrl(selectedImage.url)} alt="" />
         ) : (
@@ -110,9 +107,7 @@ export const AdImagePicker = ({
         <span>
           <strong>
             {selectedImage?.label ??
-              (imageSource === "sanity"
-                ? "Choose from Sanity"
-                : "Search Unsplash")}
+              (imageSource === "sanity" ? "Choose from Sanity" : "Search Unsplash")}
           </strong>
           <small>
             {currentLoading
@@ -136,9 +131,7 @@ export const AdImagePicker = ({
           <div className="ad-image-picker__topbar">
             <div>
               <strong>
-                {imageSource === "sanity"
-                  ? "Sanity image library"
-                  : "Unsplash search"}
+                {imageSource === "sanity" ? "Sanity image library" : "Unsplash search"}
               </strong>
               <span>
                 {currentLoading
@@ -152,17 +145,11 @@ export const AdImagePicker = ({
               className="ad-image-picker__source-toggle"
               checked={imageSource === "unsplash"}
               size="s"
-              onChange={(event) =>
-                setImageSource(getSwitchChecked(event) ? "unsplash" : "sanity")
-              }
+              onChange={(event) => setImageSource(getSwitchChecked(event) ? "unsplash" : "sanity")}
             >
               Search Unsplash
             </WaSwitch>
-            <button
-              type="button"
-              onClick={currentRefresh}
-              disabled={currentLoading}
-            >
+            <button type="button" onClick={currentRefresh} disabled={currentLoading}>
               <RefreshDouble width={15} height={15} />
               Refresh
             </button>
@@ -180,15 +167,11 @@ export const AdImagePicker = ({
             />
           ) : null}
 
-          {currentError ? (
-            <p className="ad-dashboard-error">{currentError}</p>
-          ) : null}
+          {currentError ? <p className="ad-dashboard-error">{currentError}</p> : null}
 
           {!currentLoading && !currentError && currentImages.length === 0 ? (
             <p className="ad-image-picker__empty">
-              {imageSource === "sanity"
-                ? "No Sanity images found."
-                : "No Unsplash photos found."}
+              {imageSource === "sanity" ? "No Sanity images found." : "No Unsplash photos found."}
             </p>
           ) : null}
 
@@ -199,18 +182,14 @@ export const AdImagePicker = ({
                   src={previewUrl(activeImage.url)}
                   alt=""
                   style={
-                    activeImage.lqip
-                      ? { backgroundImage: `url(${activeImage.lqip})` }
-                      : undefined
+                    activeImage.lqip ? { backgroundImage: `url(${activeImage.lqip})` } : undefined
                   }
                 />
                 <div>
                   <strong>{activeImage.label}</strong>
                   <span>
                     {imageAttribution(activeImage)
-                      ? `${imageMeta(activeImage)} · ${imageAttribution(
-                          activeImage,
-                        )}`
+                      ? `${imageMeta(activeImage)} · ${imageAttribution(activeImage)}`
                       : imageMeta(activeImage)}
                   </span>
                   <button type="button" onClick={handleUseImage}>
@@ -224,9 +203,7 @@ export const AdImagePicker = ({
                   <button
                     key={image.id}
                     type="button"
-                    className={
-                      image.id === activeImage.id ? "is-selected" : undefined
-                    }
+                    className={image.id === activeImage.id ? "is-selected" : undefined}
                     onClick={() => setActiveImageId(image.id)}
                     title={`${image.label} (${imageMeta(image)})`}
                   >
@@ -234,18 +211,12 @@ export const AdImagePicker = ({
                       src={thumbnailUrl(image.url)}
                       alt=""
                       loading="lazy"
-                      style={
-                        image.lqip
-                          ? { backgroundImage: `url(${image.lqip})` }
-                          : undefined
-                      }
+                      style={image.lqip ? { backgroundImage: `url(${image.lqip})` } : undefined}
                     />
                     <span>
                       <strong>{image.label}</strong>
                       <small>
-                        {imageAttribution(image)
-                          ? imageAttribution(image)
-                          : imageMeta(image)}
+                        {imageAttribution(image) ? imageAttribution(image) : imageMeta(image)}
                       </small>
                     </span>
                   </button>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
@@ -27,29 +28,26 @@ export const useGoogleDashboardAuth = () => {
     setAuthError(message ?? null);
   }, []);
 
-  const setTokenFromCredential = useCallback(
-    (credential: string) => {
-      const parsed = parseGoogleJwtPayload(credential);
-      if (!parsed) {
-        setAuthError("Google returned an unusable ID token.");
-        return;
-      }
+  const setTokenFromCredential = useCallback((credential: string) => {
+    const parsed = parseGoogleJwtPayload(credential);
+    if (!parsed) {
+      setAuthError("Google returned an unusable ID token.");
+      return;
+    }
 
-      if (!isAllowedGoogleUser(parsed)) {
-        window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
-        setToken(null);
-        setUser(null);
-        setAuthError("This Google account is not allowed.");
-        return;
-      }
+    if (!isAllowedGoogleUser(parsed)) {
+      window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
+      setToken(null);
+      setUser(null);
+      setAuthError("This Google account is not allowed.");
+      return;
+    }
 
-      window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
-      setToken(credential);
-      setUser(parsed);
-      setAuthError(null);
-    },
-    [],
-  );
+    window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
+    setToken(credential);
+    setUser(parsed);
+    setAuthError(null);
+  }, []);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(GOOGLE_AUTH_STORAGE_KEY);
@@ -98,11 +96,7 @@ export const useGoogleDashboardAuth = () => {
         setReady(true);
       } catch (error) {
         if (!cancelled) {
-          setAuthError(
-            error instanceof Error
-              ? error.message
-              : "Could not load Google sign-in.",
-          );
+          setAuthError(error instanceof Error ? error.message : "Could not load Google sign-in.");
         }
       }
     };
@@ -116,12 +110,7 @@ export const useGoogleDashboardAuth = () => {
   }, [clientId, setTokenFromCredential]);
 
   useEffect(() => {
-    if (
-      !ready ||
-      !buttonRef.current ||
-      !window.google?.accounts?.id ||
-      !clientId
-    ) {
+    if (!ready || !buttonRef.current || !window.google?.accounts?.id || !clientId) {
       return;
     }
 

@@ -229,10 +229,7 @@ type Matches = [
   },
 ];
 
-type Annotations = GetAnnotations<
-  Info & { module: Module; matches: Matches },
-  false
->;
+type Annotations = GetAnnotations<Info & { module: Module; matches: Matches }, false>;
 
 export namespace Route {
   // links
@@ -252,8 +249,7 @@ export namespace Route {
   export type MiddlewareFunction = Annotations["MiddlewareFunction"];
 
   // clientMiddleware
-  export type ClientMiddlewareFunction =
-    Annotations["ClientMiddlewareFunction"];
+  export type ClientMiddlewareFunction = Annotations["ClientMiddlewareFunction"];
 
   // loader
   export type LoaderArgs = Annotations["LoaderArgs"];
@@ -305,10 +301,7 @@ type Matches = [
   },
 ];
 
-type Annotations = GetAnnotations<
-  Info & { module: Module; matches: Matches },
-  false
->;
+type Annotations = GetAnnotations<Info & { module: Module; matches: Matches }, false>;
 
 export namespace Route {
   // links
@@ -328,8 +321,7 @@ export namespace Route {
   export type MiddlewareFunction = Annotations["MiddlewareFunction"];
 
   // clientMiddleware
-  export type ClientMiddlewareFunction =
-    Annotations["ClientMiddlewareFunction"];
+  export type ClientMiddlewareFunction = Annotations["ClientMiddlewareFunction"];
 
   // loader
   export type LoaderArgs = Annotations["LoaderArgs"];
@@ -442,10 +434,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  const login = async (
-    username: string,
-    password: string,
-  ): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     // Client-side only fake auth - no server calls
     if (!username || !password) {
       return false;
@@ -481,9 +470,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, login, logout, setUser: setUserState }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, setUser: setUserState }}>
       {children}
     </AuthContext.Provider>
   );
@@ -642,8 +629,7 @@ export default function BurritoPage() {
 
         {hasConsidered && (
           <p className="success">
-            Thank you for your consideration! Count:{" "}
-            {user.burritoConsiderations}
+            Thank you for your consideration! Count: {user.burritoConsiderations}
           </p>
         )}
       </div>
@@ -732,9 +718,7 @@ export default function Home() {
         </button>
       </form>
 
-      <p className="note">
-        Note: This is a demo app. Use any username and password to sign in.
-      </p>
+      <p className="note">Note: This is a demo app. Use any username and password to sign in.</p>
     </div>
   );
 }
@@ -803,8 +787,8 @@ export default function ProfilePage() {
         <h3>Your Burrito Journey</h3>
         {user.burritoConsiderations === 0 ? (
           <p>
-            You haven&apos;t considered any burritos yet. Visit the Burrito
-            Consideration page to start!
+            You haven&apos;t considered any burritos yet. Visit the Burrito Consideration page to
+            start!
           </p>
         ) : user.burritoConsiderations === 1 ? (
           <p>You&apos;ve considered the burrito potential once. Keep going!</p>

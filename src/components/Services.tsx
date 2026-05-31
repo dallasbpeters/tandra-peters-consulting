@@ -1,13 +1,14 @@
-import React from "react";
-import { motion } from "motion/react";
+import { usePostHog } from "@posthog/react";
 import { ArrowDownRight, Page, Search, ShieldCheck } from "iconoir-react";
+import { motion } from "motion/react";
+import React from "react";
+
+import { useIsMobile } from "../hooks/isMobile";
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { ServicesProps } from "../types";
 import BirdcreekLogo from "./BirdCreekLogo";
-import { RichText } from "../portableText/RichText";
-import { usePostHog } from "@posthog/react";
-import { useIsMobile } from "../hooks/isMobile";
 
 export const Services: React.FC<ServicesProps> = ({
   tagline = "Roofing consulting services",
@@ -236,9 +237,7 @@ export const Services: React.FC<ServicesProps> = ({
                     style={{
                       width: isMain ? "4rem" : "3rem",
                       height: isMain ? "4rem" : "3rem",
-                      backgroundColor: isMain
-                        ? theme.colors.accentLight
-                        : theme.colors.paperDim,
+                      backgroundColor: isMain ? theme.colors.accentLight : theme.colors.paperDim,
                       borderRadius: "9999px",
                       display: "flex",
                       alignItems: "center",
@@ -246,9 +245,7 @@ export const Services: React.FC<ServicesProps> = ({
                       marginBottom: "2.5rem",
                       transition: "all 0.5s",
                     }}
-                    className={
-                      isMain ? "group-hover-scale" : "group-hover-bg-accent"
-                    }
+                    className={isMain ? "group-hover-scale" : "group-hover-bg-accent"}
                   >
                     {!isMain && (
                       <style>{`
@@ -264,12 +261,8 @@ export const Services: React.FC<ServicesProps> = ({
                   </div>
                   <h3
                     style={{
-                      color: isMain
-                        ? theme.colors.white
-                        : theme.colors.everglade,
-                      fontSize: isMain
-                        ? "clamp(2rem, 5vw, 3.75rem)"
-                        : "1.875rem",
+                      color: isMain ? theme.colors.white : theme.colors.everglade,
+                      fontSize: isMain ? "clamp(2rem, 5vw, 3.75rem)" : "1.875rem",
                       lineHeight: isMain ? 1 : 1.25,
                       marginBottom: "1.5rem",
                       fontFamily: theme.fonts.headline,
@@ -281,9 +274,7 @@ export const Services: React.FC<ServicesProps> = ({
                   </h3>
                   <div
                     style={{
-                      color: isMain
-                        ? theme.colors.white
-                        : mix(theme.colors.everglade, 60),
+                      color: isMain ? theme.colors.white : mix(theme.colors.everglade, 60),
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
                       fontSize: isMain ? "1rem" : "1.1rem",
@@ -298,9 +289,7 @@ export const Services: React.FC<ServicesProps> = ({
                         fontSize: "inherit",
                       }}
                       linkStyle={{
-                        color: isMain
-                          ? theme.colors.accentLight
-                          : theme.colors.accent,
+                        color: isMain ? theme.colors.accentLight : theme.colors.accent,
                       }}
                     />
                   </div>
@@ -316,9 +305,7 @@ export const Services: React.FC<ServicesProps> = ({
                 >
                   <span
                     style={{
-                      color: isMain
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : theme.colors.paperDark,
+                      color: isMain ? "rgba(255, 255, 255, 0.2)" : theme.colors.paperDark,
                       fontFamily: theme.fonts.headline,
                       fontWeight: 900,
                       fontSize: isMain ? "6rem" : "3.75rem",
@@ -338,12 +325,8 @@ export const Services: React.FC<ServicesProps> = ({
                       window.location.href = "#contact";
                     }}
                     style={{
-                      backgroundColor: isMain
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "transparent",
-                      color: isMain
-                        ? theme.colors.white
-                        : "rgba(0, 26, 16, 0.4)",
+                      backgroundColor: isMain ? "rgba(255, 255, 255, 0.1)" : "transparent",
+                      color: isMain ? theme.colors.white : "rgba(0, 26, 16, 0.4)",
                       padding: isMain ? "1.5rem" : "0",
                       borderRadius: "9999px",
                       border: "none",
@@ -352,12 +335,10 @@ export const Services: React.FC<ServicesProps> = ({
                     }}
                     className={isMain ? "group-hover-rotate" : ""}
                     onMouseEnter={(e) =>
-                      !isMain &&
-                      (e.currentTarget.style.color = theme.colors.everglade)
+                      !isMain && (e.currentTarget.style.color = theme.colors.everglade)
                     }
                     onMouseLeave={(e) =>
-                      !isMain &&
-                      (e.currentTarget.style.color = "rgba(0, 26, 16, 0.4)")
+                      !isMain && (e.currentTarget.style.color = "rgba(0, 26, 16, 0.4)")
                     }
                   >
                     <ArrowDownRight

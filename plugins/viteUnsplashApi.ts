@@ -1,5 +1,6 @@
-import type { Plugin } from "vite";
 import type { ServerResponse } from "node:http";
+import type { Plugin } from "vite";
+
 import {
   parseAllowedUnsplashImageUrl,
   readUnsplashAccessKey,
@@ -9,22 +10,15 @@ import {
 const UNSPLASH_SEARCH_PATH = "/api/unsplash-search";
 const UNSPLASH_IMAGE_PATH = "/api/unsplash-image";
 
-const pathnameOnly = (url: string | undefined) =>
-  (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
 
-const sendJson = (
-  res: ServerResponse,
-  statusCode: number,
-  payload: unknown,
-) => {
+const sendJson = (res: ServerResponse, statusCode: number, payload: unknown) => {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify(payload));
 };
 
-export const viteUnsplashApi = (
-  env: Record<string, string | undefined>,
-): Plugin => ({
+export const viteUnsplashApi = (env: Record<string, string | undefined>): Plugin => ({
   name: "vite-unsplash-api",
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
@@ -76,18 +70,13 @@ export const viteUnsplashApi = (
           sendJson(res, 200, { images });
         } catch (error) {
           sendJson(res, 502, {
-            error:
-              error instanceof Error
-                ? error.message
-                : "Could not search Unsplash.",
+            error: error instanceof Error ? error.message : "Could not search Unsplash.",
           });
         }
         return;
       }
 
-      const imageUrl = parseAllowedUnsplashImageUrl(
-        requestUrl.searchParams.get("url"),
-      );
+      const imageUrl = parseAllowedUnsplashImageUrl(requestUrl.searchParams.get("url"));
       if (!imageUrl) {
         sendJson(res, 400, { error: "Invalid Unsplash image URL." });
         return;
@@ -112,8 +101,7 @@ export const viteUnsplashApi = (
         res.end(Buffer.from(await upstream.arrayBuffer()));
       } catch (error) {
         sendJson(res, 500, {
-          error:
-            error instanceof Error ? error.message : "Could not fetch image.",
+          error: error instanceof Error ? error.message : "Could not fetch image.",
         });
       }
     });

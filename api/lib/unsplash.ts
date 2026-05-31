@@ -66,10 +66,7 @@ const parseEnvFile = (contents: string): EnvLike =>
 
 const readLocalAustinLeadsUnsplashKey = (): string | undefined => {
   try {
-    const envPath = resolve(
-      process.cwd(),
-      "../austin-leads-platform/.env.development.local",
-    );
+    const envPath = resolve(process.cwd(), "../austin-leads-platform/.env.development.local");
     return parseEnvFile(readFileSync(envPath, "utf8")).UNSPLASH_ACCESS_KEY;
   } catch {
     return undefined;
@@ -143,9 +140,7 @@ export const searchUnsplashImages = async ({
   return (payload.results ?? []).map(toImageAsset).filter(Boolean);
 };
 
-export const parseAllowedUnsplashImageUrl = (
-  raw: string | undefined | null,
-): URL | null => {
+export const parseAllowedUnsplashImageUrl = (raw: string | undefined | null): URL | null => {
   if (!raw) {
     return null;
   }
@@ -156,10 +151,7 @@ export const parseAllowedUnsplashImageUrl = (
       return null;
     }
 
-    if (
-      url.hostname !== "images.unsplash.com" &&
-      url.hostname !== "plus.unsplash.com"
-    ) {
+    if (url.hostname !== "images.unsplash.com" && url.hostname !== "plus.unsplash.com") {
       return null;
     }
 

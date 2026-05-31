@@ -1,34 +1,34 @@
-import {CommentIcon, DashboardIcon} from '@sanity/icons'
-import {Box, Button, Card, Flex, Stack, Text} from '@sanity/ui'
-import {useRouter, useRouterState} from 'sanity/router'
+import { CommentIcon, DashboardIcon } from "@sanity/icons";
+import { Box, Button, Card, Flex, Stack, Text } from "@sanity/ui";
+import { useRouter, useRouterState } from "sanity/router";
 
-import {ConversationsView} from './ConversationsView'
-import {OverviewView} from './OverviewView'
+import { ConversationsView } from "./ConversationsView";
+import { OverviewView } from "./OverviewView";
 
 export function AgentInsightsTool() {
-  const router = useRouter()
-  const routerState = useRouterState()
+  const router = useRouter();
+  const routerState = useRouterState();
 
   // Get the current path from router state
-  const currentPath = routerState?.path
+  const currentPath = routerState?.path;
 
   const navigateTo = (path: string) => {
-    router.navigate({path})
-  }
+    router.navigate({ path });
+  };
 
   const renderContent = () => {
     switch (currentPath) {
-      case 'conversations':
-        return <ConversationsView />
-      case 'overview':
+      case "conversations":
+        return <ConversationsView />;
+      case "overview":
       default:
-        return <OverviewView />
+        return <OverviewView />;
     }
-  }
+  };
 
   return (
     <Flex height="fill" overflow="hidden">
-      <Card padding={4} style={{width: 250}} borderRight height="fill">
+      <Card padding={4} style={{ width: 250 }} borderRight height="fill">
         <Flex direction="column" gap={4}>
           <Box>
             <Text muted size={1} weight="medium">
@@ -41,20 +41,20 @@ export function AgentInsightsTool() {
               icon={DashboardIcon}
               justify="flex-start"
               mode="bleed"
-              onClick={() => navigateTo('overview')}
-              selected={currentPath === 'overview' || !currentPath}
+              onClick={() => navigateTo("overview")}
+              selected={currentPath === "overview" || !currentPath}
               text="Overview"
-              tone={currentPath === 'overview' || !currentPath ? 'primary' : undefined}
+              tone={currentPath === "overview" || !currentPath ? "primary" : undefined}
             />
 
             <Button
               icon={CommentIcon}
               justify="flex-start"
               mode="bleed"
-              onClick={() => navigateTo('conversations')}
-              selected={currentPath === 'conversations'}
+              onClick={() => navigateTo("conversations")}
+              selected={currentPath === "conversations"}
               text="Conversations"
-              tone={currentPath === 'conversations' ? 'primary' : undefined}
+              tone={currentPath === "conversations" ? "primary" : undefined}
             />
           </Stack>
         </Flex>
@@ -64,5 +64,5 @@ export function AgentInsightsTool() {
         {renderContent()}
       </Flex>
     </Flex>
-  )
+  );
 }

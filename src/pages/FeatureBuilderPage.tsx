@@ -4,8 +4,7 @@ const FEATURE_BUILDER_CONFIG: AgentConfig = {
   endpoint: "/api/feature-agent",
   agentSlug: "feature-builder",
   pageTitle: "Feature Builder | Tandra Peters",
-  pageDescription:
-    "AI-powered feature planning assistant for the tandra.me website.",
+  pageDescription: "AI-powered feature planning assistant for the tandra.me website.",
   eyebrow: "Tandra.me",
   title: "Feature Builder",
   subtitle:
@@ -24,6 +23,4 @@ const FEATURE_BUILDER_CONFIG: AgentConfig = {
   ] as const,
 };
 
-export const FeatureBuilderPage = () => (
-  <AgentChatPage config={FEATURE_BUILDER_CONFIG} />
-);
+export const FeatureBuilderPage = () => <AgentChatPage config={FEATURE_BUILDER_CONFIG} />;

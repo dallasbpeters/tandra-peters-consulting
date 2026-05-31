@@ -1,11 +1,11 @@
+import css from "@eslint/css";
 import js from "@eslint/js";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import pluginReact from "eslint-plugin-react";
+import { reactRefresh } from "eslint-plugin-react-refresh";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import pluginReact from "eslint-plugin-react";
-import jsxA11y from "eslint-plugin-jsx-a11y";
-import { reactRefresh } from "eslint-plugin-react-refresh";
-import css from "@eslint/css";
-import { defineConfig } from "eslint/config";
 
 const jsFiles = ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 const reactRefreshViteConfig = reactRefresh.configs.vite();
@@ -57,17 +57,17 @@ export default defineConfig([
         },
       ],
       "jsx-a11y/alt-text": [
-      "warn",
-      {
-        elements: ["img"],
-      },
-    ],
-    "jsx-a11y/aria-props": "warn",
-    "jsx-a11y/aria-proptypes": "warn",
-    "jsx-a11y/aria-unsupported-elements": "warn",
-    "jsx-a11y/role-has-required-aria-props": "warn",
-    "jsx-a11y/role-supports-aria-props": "warn",
-    "react/no-unknown-property": "off",
+        "warn",
+        {
+          elements: ["img"],
+        },
+      ],
+      "jsx-a11y/aria-props": "warn",
+      "jsx-a11y/aria-proptypes": "warn",
+      "jsx-a11y/aria-unsupported-elements": "warn",
+      "jsx-a11y/role-has-required-aria-props": "warn",
+      "jsx-a11y/role-supports-aria-props": "warn",
+      "react/no-unknown-property": "off",
     },
   },
   {

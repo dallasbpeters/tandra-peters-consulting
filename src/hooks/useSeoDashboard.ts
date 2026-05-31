@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+
 import type { SeoDashboardPayload } from "../types/seo";
 
 type UseSeoDashboardState = {
@@ -49,9 +50,7 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
       setLoading(true);
       try {
         const response = await fetch(
-          options?.regenerate
-            ? "/api/seo/dashboard?regenerate=1"
-            : "/api/seo/dashboard",
+          options?.regenerate ? "/api/seo/dashboard?regenerate=1" : "/api/seo/dashboard",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -63,9 +62,7 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
 
         if (!response.ok) {
           setStatusCode(response.status);
-          throw new Error(
-            payload?.detail || payload?.error || "Request failed",
-          );
+          throw new Error(payload?.detail || payload?.error || "Request failed");
         }
 
         if (!payload) {
@@ -79,9 +76,7 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
         if (!statusCode) {
           setStatusCode(null);
         }
-        setError(
-          err instanceof Error ? err.message : "Could not load dashboard",
-        );
+        setError(err instanceof Error ? err.message : "Could not load dashboard");
       } finally {
         setLoading(false);
       }

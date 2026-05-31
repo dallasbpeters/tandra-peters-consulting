@@ -67,10 +67,7 @@ type GoogleButtonConfiguration = {
 declare namespace React {
   namespace JSX {
     interface IntrinsicElements {
-      "model-viewer": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
+      "model-viewer": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         src?: string;
         alt?: string;
         "camera-orbit"?: string;
@@ -99,10 +96,7 @@ interface Window {
           callback: (response: GoogleCredentialResponse) => void;
           auto_select?: boolean;
         }): void;
-        renderButton(
-          parent: HTMLElement,
-          options: GoogleButtonConfiguration,
-        ): void;
+        renderButton(parent: HTMLElement, options: GoogleButtonConfiguration): void;
         disableAutoSelect(): void;
         prompt(): void;
       };

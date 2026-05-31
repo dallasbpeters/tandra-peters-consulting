@@ -1,17 +1,17 @@
-import React from "react";
+import { usePostHog } from "@posthog/react";
 import { motion, type Variants } from "motion/react";
+import React from "react";
+
+import { useIsMobile } from "../hooks/isMobile";
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { HeroProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import { RichText } from "../portableText/RichText";
 import { GoogleAuthGate } from "./GoogleAuthGate";
-import { useIsMobile } from "../hooks/isMobile";
 
 const fallbackHeroImage = "/roof.jpeg";
 
-const isSanityImageUrl = (url: string) =>
-  /^https:\/\/cdn\.sanity\.io\/images\//i.test(url);
+const isSanityImageUrl = (url: string) => /^https:\/\/cdn\.sanity\.io\/images\//i.test(url);
 
 const optimizedHeroImageUrl = (url: string, width: number): string => {
   if (!isSanityImageUrl(url)) {
@@ -222,9 +222,7 @@ export const Hero: React.FC<HeroProps> = ({
               <a
                 href={ctaHref}
                 style={buttonPrimaryStyle}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.filter = "brightness(1.1)")
-                }
+                onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.1)")}
                 onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
                 onClick={() =>
                   posthog?.capture("hero_cta_clicked", {
@@ -239,12 +237,9 @@ export const Hero: React.FC<HeroProps> = ({
                 href={secondaryCtaHref}
                 style={buttonSecondaryStyle}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    "rgba(255, 255, 255, 0.05)")
+                  (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)")
                 }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 onClick={() =>
                   posthog?.capture("hero_secondary_cta_clicked", {
                     cta_text: secondaryCtaText,

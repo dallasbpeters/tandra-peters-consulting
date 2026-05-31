@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import {useSearchParams} from 'next/navigation'
+import { useSearchParams } from "next/navigation";
 
 import {
   Pagination,
@@ -10,50 +10,50 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination'
+} from "@/components/ui/pagination";
 
 interface ProductPaginationProps {
-  currentPage: number
-  totalPages: number
+  currentPage: number;
+  totalPages: number;
 }
 
 export function ProductPagination(props: ProductPaginationProps) {
-  const {currentPage, totalPages} = props
-  const searchParams = useSearchParams()
+  const { currentPage, totalPages } = props;
+  const searchParams = useSearchParams();
 
   // Preserve existing filter params when navigating pages
   const createPageURL = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('page', String(page))
-    return `/products?${params.toString()}`
-  }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    return `/products?${params.toString()}`;
+  };
 
   // Generate page numbers to display (current +/- 1, plus first/last)
-  const getPageNumbers = (): (number | 'ellipsis')[] => {
-    const pages: (number | 'ellipsis')[] = []
+  const getPageNumbers = (): (number | "ellipsis")[] => {
+    const pages: (number | "ellipsis")[] = [];
 
     if (totalPages <= 5) {
-      return Array.from({length: totalPages}, (_, i) => i + 1)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    pages.push(1)
+    pages.push(1);
 
-    if (currentPage > 3) pages.push('ellipsis')
+    if (currentPage > 3) pages.push("ellipsis");
 
     for (
       let i = Math.max(2, currentPage - 1);
       i <= Math.min(totalPages - 1, currentPage + 1);
       i++
     ) {
-      pages.push(i)
+      pages.push(i);
     }
 
-    if (currentPage < totalPages - 2) pages.push('ellipsis')
+    if (currentPage < totalPages - 2) pages.push("ellipsis");
 
-    pages.push(totalPages)
+    pages.push(totalPages);
 
-    return pages
-  }
+    return pages;
+  };
 
   return (
     <Pagination className="mt-8">
@@ -62,12 +62,12 @@ export function ProductPagination(props: ProductPaginationProps) {
           <PaginationPrevious
             href={currentPage > 1 ? createPageURL(currentPage - 1) : undefined}
             aria-disabled={currentPage <= 1}
-            className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+            className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
 
         {getPageNumbers().map((page, i) =>
-          page === 'ellipsis' ? (
+          page === "ellipsis" ? (
             <PaginationItem key={`ellipsis-${i}`}>
               <PaginationEllipsis />
             </PaginationItem>
@@ -84,10 +84,10 @@ export function ProductPagination(props: ProductPaginationProps) {
           <PaginationNext
             href={currentPage < totalPages ? createPageURL(currentPage + 1) : undefined}
             aria-disabled={currentPage >= totalPages}
-            className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+            className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
-  )
+  );
 }

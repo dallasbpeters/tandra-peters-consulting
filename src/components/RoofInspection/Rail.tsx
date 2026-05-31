@@ -1,4 +1,5 @@
 import React from "react";
+
 import { theme } from "../../theme";
 import { useCameraContext, useRoofInspection } from "./context";
 
@@ -30,11 +31,7 @@ const mutedText = theme.palette.everglade["700"];
  * CSS class (defined in `site-layout.css`), which is disabled on mobile
  * (`width ≤ 700px`) via a media query.
  */
-export const Rail: React.FC<RailProps> = ({
-  kicker,
-  title,
-  lede,
-}) => {
+export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
   const { chapters, activeChapterId, setActiveChapterId } = useRoofInspection();
   const { setFocusChapterId } = useCameraContext();
 

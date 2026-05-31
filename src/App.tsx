@@ -1,11 +1,12 @@
+import { Analytics } from "@vercel/analytics/react";
 import { Suspense, lazy } from "react";
 import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
-import { RouteScrollManager } from "./components/RouteScrollManager";
+
 import { GoogleAuthGateProvider } from "./components/GoogleAuthGate";
+import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
 import { SanityContentProvider } from "./context/SanitySiteContext";
 import { Home } from "./pages/Home";
-import { Analytics } from "@vercel/analytics/react";
 
 const ArticlesIndexPage = lazy(async () => {
   const module = await import("./pages/ArticlesIndexPage");

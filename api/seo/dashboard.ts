@@ -1,12 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import {
-  getSeoDashboard,
-  regenerateSeoDashboard,
-} from "../../server/seo/dashboardService.js";
-import {
-  DashboardAuthError,
-  authorizeSeoDashboardRequest,
-} from "../../server/seo/googleAuth.js";
+
+import { getSeoDashboard, regenerateSeoDashboard } from "../../server/seo/dashboardService.js";
+import { DashboardAuthError, authorizeSeoDashboardRequest } from "../../server/seo/googleAuth.js";
 
 const applyCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -14,10 +9,7 @@ const applyCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 };
 
-export default async function seoDashboard(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+export default async function seoDashboard(req: VercelRequest, res: VercelResponse) {
   applyCors(res);
 
   if (req.method === "OPTIONS") {
@@ -37,9 +29,7 @@ export default async function seoDashboard(
       req.query.regenerate === "true" ||
       req.query.refresh === "1" ||
       req.query.refresh === "true";
-    const payload = regenerate
-      ? await regenerateSeoDashboard()
-      : await getSeoDashboard();
+    const payload = regenerate ? await regenerateSeoDashboard() : await getSeoDashboard();
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json(payload);
   } catch (error) {

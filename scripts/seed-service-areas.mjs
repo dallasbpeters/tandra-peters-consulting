@@ -4,8 +4,7 @@ import { readFileSync } from "fs";
 // Load token from .env.local
 const envRaw = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const tokenMatch = envRaw.match(/SANITY_API_READ_TOKEN="([^"]+)"/);
-if (!tokenMatch)
-  throw new Error("SANITY_API_READ_TOKEN not found in .env.local");
+if (!tokenMatch) throw new Error("SANITY_API_READ_TOKEN not found in .env.local");
 
 const client = createClient({
   projectId: "7irm699i",

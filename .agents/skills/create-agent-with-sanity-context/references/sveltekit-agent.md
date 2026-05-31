@@ -54,12 +54,7 @@ ANTHROPIC_API_KEY=your-anthropic-key
 Create `src/routes/api/chat/+server.ts`:
 
 ```ts
-import {
-  streamText,
-  convertToModelMessages,
-  stepCountIs,
-  type UIMessage,
-} from "ai";
+import { streamText, convertToModelMessages, stepCountIs, type UIMessage } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createMCPClient } from "@ai-sdk/mcp";
 import type { RequestHandler } from "./$types";
@@ -107,9 +102,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Stream the response
     const result = streamText({
-      model: createAnthropic({ apiKey: ANTHROPIC_API_KEY })(
-        "claude-sonnet-4-20250514",
-      ),
+      model: createAnthropic({ apiKey: ANTHROPIC_API_KEY })("claude-sonnet-4-20250514"),
       messages: await convertToModelMessages(messages),
       system: SYSTEM_PROMPT,
       tools: mcpTools,

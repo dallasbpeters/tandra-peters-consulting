@@ -1,14 +1,16 @@
+import type { CSSProperties } from "react";
+
+import { usePostHog } from "@posthog/react";
+import { Menu, Xmark } from "iconoir-react";
+import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { TransitionLink } from "./TransitionLink";
-import { motion, AnimatePresence } from "motion/react";
-import { Menu, Xmark } from "iconoir-react";
+
+import { useIsMobile } from "../hooks/isMobile";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { NavProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import { useIsMobile } from "../hooks/isMobile";
-import type { CSSProperties } from "react";
+import { TransitionLink } from "./TransitionLink";
 
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
@@ -41,27 +43,26 @@ export const Nav: React.FC<NavProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHome]);
 
-  const handleMobileNavClick =
-    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-      if (!isHome) {
-        setIsMobileMenuOpen(false);
-        return;
-      }
-      if (href.startsWith("#") && href !== "#") {
-        e.preventDefault();
-        setIsMobileMenuOpen(false);
-        const id = href.slice(1);
-        window.setTimeout(() => {
-          document.getElementById(id)?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-          window.history.replaceState(null, "", href);
-        }, 200);
-        return;
-      }
+  const handleMobileNavClick = (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isHome) {
       setIsMobileMenuOpen(false);
-    };
+      return;
+    }
+    if (href.startsWith("#") && href !== "#") {
+      e.preventDefault();
+      setIsMobileMenuOpen(false);
+      const id = href.slice(1);
+      window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+        window.history.replaceState(null, "", href);
+      }, 200);
+      return;
+    }
+    setIsMobileMenuOpen(false);
+  };
 
   const handleMobileSectionLinkClose = () => {
     setIsMobileMenuOpen(false);
@@ -102,9 +103,7 @@ export const Nav: React.FC<NavProps> = ({
     logo: {
       display: "grid",
       gridTemplateColumns: "auto minmax(0, 1fr)",
-      gridTemplateAreas: isMobile
-        ? `"image text"`
-        : `"image text" "image tagline"`,
+      gridTemplateAreas: isMobile ? `"image text"` : `"image text" "image tagline"`,
       alignItems: "center",
       gap: "0 0.5rem",
       minWidth: 0,
@@ -168,11 +167,7 @@ export const Nav: React.FC<NavProps> = ({
       fontSize: "0.875rem",
       opacity: 0.6,
       textDecoration: "none",
-      color: isScrolled
-        ? theme.colors.black
-        : isMobile
-          ? theme.colors.black
-          : theme.colors.white,
+      color: isScrolled ? theme.colors.black : isMobile ? theme.colors.black : theme.colors.white,
       transition: "opacity 0.2s",
     },
   };
@@ -209,16 +204,11 @@ export const Nav: React.FC<NavProps> = ({
           >
             <img src={imageSrc} alt="" style={styles.image} height="3rem" width="auto" />
             <span style={styles.logoText}>{logoText}</span>
-            {isMobile ? null : (
-              <span style={styles.logoTagline}>{logoTagline}</span>
-            )}
+            {isMobile ? null : <span style={styles.logoTagline}>{logoTagline}</span>}
           </motion.div>
         </TransitionLink>
 
-        <div
-          style={{ ...styles.desktopNav, display: "flex" }}
-          className="md-flex"
-        >
+        <div style={{ ...styles.desktopNav, display: "flex" }} className="md-flex">
           <style>{`
             .nav-focusable:focus-visible {
               outline: 2px solid ${theme.colors.everglade} !important;

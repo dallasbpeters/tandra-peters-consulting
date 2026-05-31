@@ -1,10 +1,11 @@
-import { type CSSProperties } from "react";
 import { motion } from "motion/react";
-import { SitePageChrome } from "../components/SitePageChrome";
+import { type CSSProperties } from "react";
+
 import { ArticleCardSharedStyles } from "../components/ArticleCardSharedStyles";
 import { ArticleGridCard } from "../components/ArticleGridCard";
-import { useSanityArticlesIndex } from "../hooks/useSanityArticlesIndex";
+import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { useSanityArticlesIndex } from "../hooks/useSanityArticlesIndex";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
@@ -45,11 +46,7 @@ export const ArticlesIndexPage = () => {
             />
           </div>
 
-          {loading ? (
-            <p style={{ color: theme.colors.evergladeMuted }}>
-              Loading articles…
-            </p>
-          ) : null}
+          {loading ? <p style={{ color: theme.colors.evergladeMuted }}>Loading articles…</p> : null}
           {error ? (
             <p style={{ color: theme.colors.evergladeMuted }}>
               Could not load articles. Please try again later.
@@ -58,13 +55,10 @@ export const ArticlesIndexPage = () => {
 
           {!loading && !error && posts.length === 0 ? (
             <p style={{ color: theme.colors.evergladeMuted }}>
-              No published articles to show. In Sanity Studio, open each post
-              and click Publish (drafts are hidden on the public site). For
-              local preview of drafts, add{" "}
-              <code style={{ fontSize: "0.9em" }}>
-                VITE_SANITY_API_READ_TOKEN
-              </code>{" "}
-              to <code style={{ fontSize: "0.9em" }}>.env.local</code>.
+              No published articles to show. In Sanity Studio, open each post and click Publish
+              (drafts are hidden on the public site). For local preview of drafts, add{" "}
+              <code style={{ fontSize: "0.9em" }}>VITE_SANITY_API_READ_TOKEN</code> to{" "}
+              <code style={{ fontSize: "0.9em" }}>.env.local</code>.
             </p>
           ) : null}
 

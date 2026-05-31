@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+
 import { buildSharePageUrl } from "../utils/siteUrl";
 
 type MetaConfig = {
@@ -9,32 +10,24 @@ type MetaConfig = {
   robots?: string | null;
 };
 
-const DEFAULT_TITLE =
-  "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
+const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
 const DEFAULT_DESCRIPTION =
   "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
 
-const ensureMeta = (
-  selector: string,
-  attrs: Record<string, string>,
-): HTMLMetaElement => {
+const ensureMeta = (selector: string, attrs: Record<string, string>): HTMLMetaElement => {
   const existing = document.head.querySelector<HTMLMetaElement>(selector);
   if (existing) {
     return existing;
   }
 
   const meta = document.createElement("meta");
-  Object.entries(attrs).forEach(([key, value]) =>
-    meta.setAttribute(key, value),
-  );
+  Object.entries(attrs).forEach(([key, value]) => meta.setAttribute(key, value));
   document.head.appendChild(meta);
   return meta;
 };
 
 const ensureCanonical = (): HTMLLinkElement => {
-  const existing = document.head.querySelector<HTMLLinkElement>(
-    'link[rel="canonical"]',
-  );
+  const existing = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (existing) {
     return existing;
   }
@@ -66,10 +59,7 @@ export const usePageMetadata = ({
     ensureMeta('meta[property="og:description"]', {
       property: "og:description",
     }).setAttribute("content", description);
-    ensureMeta('meta[property="og:url"]', { property: "og:url" }).setAttribute(
-      "content",
-      url,
-    );
+    ensureMeta('meta[property="og:url"]', { property: "og:url" }).setAttribute("content", url);
     ensureMeta('meta[property="og:type"]', {
       property: "og:type",
     }).setAttribute("content", type);
@@ -80,10 +70,7 @@ export const usePageMetadata = ({
       name: "twitter:description",
     }).setAttribute("content", description);
     if (robots) {
-      ensureMeta('meta[name="robots"]', { name: "robots" }).setAttribute(
-        "content",
-        robots,
-      );
+      ensureMeta('meta[name="robots"]', { name: "robots" }).setAttribute("content", robots);
     }
     ensureCanonical().setAttribute("href", url);
 

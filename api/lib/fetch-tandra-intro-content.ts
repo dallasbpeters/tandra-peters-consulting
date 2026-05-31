@@ -91,12 +91,7 @@ export const defaultTandraIntroContent: TandraIntroContent = {
     line1: "EXPERIENCE AND PROFESSIONALISM",
     line2: "HIGH-QUALITY MATERIALS",
     line3: "Exceptional Customer Service",
-    items: [
-      "Claim guidance",
-      "Paperwork review",
-      "Birdcreek crews",
-      "Final walkthrough",
-    ],
+    items: ["Claim guidance", "Paperwork review", "Birdcreek crews", "Final walkthrough"],
   },
   proof: {
     kicker: "Built for Austin-area homeowners",
@@ -120,22 +115,15 @@ const stringItems = (value: unknown, fallback: string[]): string[] =>
     ? value.filter((item): item is string => typeof item === "string")
     : fallback;
 
-const mergeScene = <T extends Record<string, unknown>>(
-  fallback: T,
-  incoming: unknown,
-): T => (isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback);
+const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
+  isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback;
 
-export const mergeTandraIntroContent = (
-  incoming: unknown,
-): TandraIntroContent => {
+export const mergeTandraIntroContent = (incoming: unknown): TandraIntroContent => {
   if (!isRecord(incoming)) {
     return defaultTandraIntroContent;
   }
 
-  const managed = mergeScene(
-    defaultTandraIntroContent.managed,
-    incoming.managed,
-  );
+  const managed = mergeScene(defaultTandraIntroContent.managed, incoming.managed);
   const proof = mergeScene(defaultTandraIntroContent.proof, incoming.proof);
 
   return {
@@ -144,10 +132,7 @@ export const mergeTandraIntroContent = (
       defaultTandraIntroContent.straightAnswers,
       incoming.straightAnswers,
     ),
-    inspection: mergeScene(
-      defaultTandraIntroContent.inspection,
-      incoming.inspection,
-    ),
+    inspection: mergeScene(defaultTandraIntroContent.inspection, incoming.inspection),
     managed: {
       ...managed,
       items: stringItems(
@@ -179,73 +164,21 @@ const readSanityToken = (): string | undefined =>
   process.env.VITE_SANITY_API_READ_TOKEN?.trim() ||
   undefined;
 
-export const fetchTandraIntroContent =
-  async (): Promise<FetchTandraIntroResult> => {
-    const token = readSanityToken();
-    const host = token
-      ? `https://${SANITY_PROJECT_ID}.api.sanity.io`
-      : `https://${SANITY_PROJECT_ID}.apicdn.sanity.io`;
-    const url = `${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(INTRO_QUERY)}`;
+export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult> => {
+  const token = readSanityToken();
+  const host = token
+    ? `https://${SANITY_PROJECT_ID}.api.sanity.io`
+    : `https://${SANITY_PROJECT_ID}.apicdn.sanity.io`;
+  const url = `${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(INTRO_QUERY)}`;
 
-    try {
-      const response = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+  try {
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
 
-      if (!response.ok) {
-        console.warn(
-          `[render-tandra-intro] Sanity fetch failed (${response.status}); using default video copy.`,
-        );
-        return {
-          content: defaultTandraIntroContent,
-          contentHash: hashTandraIntroContent(defaultTandraIntroContent),
-          source: "fallback",
-        };
-      }
-
-      const payload = (await response.json()) as {
-        result?: {
-          home?: {
-            _id?: string;
-            intro?: Record<string, unknown> | null;
-          } | null;
-        } | null;
-      };
-
-      const result = payload.result?.home?.intro;
-
-      if (!result) {
-        console.warn(
-          "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy.",
-        );
-        return {
-          content: defaultTandraIntroContent,
-          contentHash: hashTandraIntroContent(defaultTandraIntroContent),
-          source: "fallback",
-        };
-      }
-
-      const documentId =
-        typeof payload.result?.home?._id === "string"
-          ? payload.result.home._id
-          : undefined;
-
-      const content = mergeTandraIntroContent(result);
-      const renderContentHash =
-        typeof result.renderContentHash === "string"
-          ? result.renderContentHash
-          : undefined;
-
-      return {
-        content,
-        contentHash: hashTandraIntroContent(content),
-        renderContentHash,
-        source: token ? "sanity-draft-or-published" : "sanity-published",
-        documentId,
-      };
-    } catch (error) {
+    if (!response.ok) {
       console.warn(
-        `[render-tandra-intro] Sanity fetch failed; using default video copy. ${error}`,
+        `[render-tandra-intro] Sanity fetch failed (${response.status}); using default video copy.`,
       );
       return {
         content: defaultTandraIntroContent,
@@ -253,4 +186,49 @@ export const fetchTandraIntroContent =
         source: "fallback",
       };
     }
-  };
+
+    const payload = (await response.json()) as {
+      result?: {
+        home?: {
+          _id?: string;
+          intro?: Record<string, unknown> | null;
+        } | null;
+      } | null;
+    };
+
+    const result = payload.result?.home?.intro;
+
+    if (!result) {
+      console.warn(
+        "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy.",
+      );
+      return {
+        content: defaultTandraIntroContent,
+        contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+        source: "fallback",
+      };
+    }
+
+    const documentId =
+      typeof payload.result?.home?._id === "string" ? payload.result.home._id : undefined;
+
+    const content = mergeTandraIntroContent(result);
+    const renderContentHash =
+      typeof result.renderContentHash === "string" ? result.renderContentHash : undefined;
+
+    return {
+      content,
+      contentHash: hashTandraIntroContent(content),
+      renderContentHash,
+      source: token ? "sanity-draft-or-published" : "sanity-published",
+      documentId,
+    };
+  } catch (error) {
+    console.warn(`[render-tandra-intro] Sanity fetch failed; using default video copy. ${error}`);
+    return {
+      content: defaultTandraIntroContent,
+      contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+      source: "fallback",
+    };
+  }
+};

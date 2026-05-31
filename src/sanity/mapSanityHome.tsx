@@ -1,9 +1,7 @@
-import React from "react";
 import { stegaClean } from "@sanity/client/stega";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
-import { getServiceIconComponent } from "../icons/serviceIconMap";
-import { asOptionalRichText, asRichTextValue } from "../portableText/value";
-import { theme } from "../theme";
+import React from "react";
+
 import type { HeroProps } from "../types";
 import type { VideoProps } from "../types";
 import type { AboutProps } from "../types";
@@ -19,10 +17,11 @@ import type { NavItem, NavProps } from "../types";
 import type { FooterProps } from "../types";
 import type { TestimonialsProps } from "../types";
 import type { ServiceAreaMapProps } from "../types";
-import type {
-  RoofInspectionSectionProps,
-  RoofInspectionHotspotData,
-} from "../types";
+import type { RoofInspectionSectionProps, RoofInspectionHotspotData } from "../types";
+
+import { getServiceIconComponent } from "../icons/serviceIconMap";
+import { asOptionalRichText, asRichTextValue } from "../portableText/value";
+import { theme } from "../theme";
 
 const SOCIAL_ICONS = {
   instagram: Instagram,
@@ -52,9 +51,7 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
       <>
         {hero.titleLine1}
         <br />
-        <span style={{ color: theme.colors.heroAccent }}>
-          {hero.titleLine2}
-        </span>
+        <span style={{ color: theme.colors.heroAccent }}>{hero.titleLine2}</span>
       </>
     ) : undefined;
 
@@ -92,8 +89,7 @@ export const mapVideoProps = (
   options?: { renderedVideoUrl?: string },
 ): Partial<VideoProps> => {
   const renderedVideoUrl =
-    typeof options?.renderedVideoUrl === "string" &&
-    options.renderedVideoUrl.trim()
+    typeof options?.renderedVideoUrl === "string" && options.renderedVideoUrl.trim()
       ? options.renderedVideoUrl.trim()
       : undefined;
 
@@ -163,16 +159,9 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
     ) : undefined;
 
   const services = svc.services?.map(
-    (row: {
-      id: string;
-      title: string;
-      description?: unknown;
-      icon?: string;
-      image?: string;
-    }) => {
+    (row: { id: string; title: string; description?: unknown; icon?: string; image?: string }) => {
       const Icon = getServiceIconComponent(row.icon);
-      const description =
-        asOptionalRichText(row.description) ?? RICH_TEXT_PLACEHOLDER;
+      const description = asOptionalRichText(row.description) ?? RICH_TEXT_PLACEHOLDER;
       return {
         id: row.id,
         title: row.title,
@@ -188,10 +177,7 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
   // Build birdcreekAdvantage from any available Sanity fields, falling back to
   // defaults per-field. This ensures stega metadata always reaches the component
   // so Presentation overlays appear even when only some fields are populated.
-  const rawBca = svc.birdcreekAdvantage as
-    | Record<string, unknown>
-    | null
-    | undefined;
+  const rawBca = svc.birdcreekAdvantage as Record<string, unknown> | null | undefined;
   const birdcreekAdvantage = rawBca
     ? {
         title:
@@ -202,9 +188,7 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
           asOptionalRichText(rawBca.description) ??
           "Direct access to Austin's premier roofing company, combining Tandra's consultation with Birdcreek's legendary execution.",
         ctaLabel:
-          typeof rawBca.ctaLabel === "string" && rawBca.ctaLabel
-            ? rawBca.ctaLabel
-            : "Learn More",
+          typeof rawBca.ctaLabel === "string" && rawBca.ctaLabel ? rawBca.ctaLabel : "Learn More",
         ctaHref:
           typeof rawBca.ctaHref === "string" && rawBca.ctaHref
             ? rawBca.ctaHref
@@ -225,44 +209,31 @@ export const mapStatsProps = (stats: SanityDoc): Partial<StatsProps> => {
   if (!stats) {
     return {};
   }
-  const rows = stats.items as
-    | { name?: string; value?: string; icon?: string }[]
-    | undefined;
+  const rows = stats.items as { name?: string; value?: string; icon?: string }[] | undefined;
   const items =
     rows
-      ?.map(
-        (row: {
-          _key?: string;
-          name?: string;
-          value?: string | number;
-          icon?: string;
-        }) => {
-          const name = typeof row.name === "string" ? row.name.trim() : "";
-          const valueRaw = row.value;
-          const value =
-            typeof valueRaw === "number" && Number.isFinite(valueRaw)
-              ? String(valueRaw)
-              : typeof valueRaw === "string"
-                ? valueRaw.trim()
-                : "";
-          if (!name || !value) {
-            return null;
-          }
-          return {
-            ...(typeof row._key === "string" && row._key
-              ? { rowKey: row._key }
-              : {}),
-            name,
-            value,
-            icon: getServiceIconComponent(row.icon),
-          };
-        },
-      )
+      ?.map((row: { _key?: string; name?: string; value?: string | number; icon?: string }) => {
+        const name = typeof row.name === "string" ? row.name.trim() : "";
+        const valueRaw = row.value;
+        const value =
+          typeof valueRaw === "number" && Number.isFinite(valueRaw)
+            ? String(valueRaw)
+            : typeof valueRaw === "string"
+              ? valueRaw.trim()
+              : "";
+        if (!name || !value) {
+          return null;
+        }
+        return {
+          ...(typeof row._key === "string" && row._key ? { rowKey: row._key } : {}),
+          name,
+          value,
+          icon: getServiceIconComponent(row.icon),
+        };
+      })
       .filter((row): row is Stat => row !== null) ?? [];
   return {
-    ...(typeof stats.title === "string" && stats.title.trim()
-      ? { title: stats.title.trim() }
-      : {}),
+    ...(typeof stats.title === "string" && stats.title.trim() ? { title: stats.title.trim() } : {}),
     ...(items.length > 0 ? { items } : {}),
   };
 };
@@ -272,14 +243,8 @@ export const mapMissionProps = (m: SanityDoc): Partial<MissionProps> => {
     return {};
   }
   const values = m.values?.map(
-    (row: {
-      id: string;
-      title: string;
-      description?: unknown;
-      image?: string;
-    }) => {
-      const description =
-        asOptionalRichText(row.description) ?? RICH_TEXT_PLACEHOLDER;
+    (row: { id: string; title: string; description?: unknown; image?: string }) => {
+      const description = asOptionalRichText(row.description) ?? RICH_TEXT_PLACEHOLDER;
       return {
         id: row.id,
         title: row.title,
@@ -299,7 +264,6 @@ export const mapMissionProps = (m: SanityDoc): Partial<MissionProps> => {
     ...(values && values.length > 0 ? { services: values } : {}),
   };
 };
-
 
 export const mapExpertiseProps = (e: SanityDoc): Partial<ExpertiseProps> => {
   if (!e) {
@@ -330,16 +294,13 @@ export const mapFaqProps = (f: SanityDoc): Partial<FaqProps> => {
   }
   const items = f.items
     ?.map((row: { _key?: string; question?: string; answer?: unknown }) => {
-      const question =
-        typeof row.question === "string" ? row.question.trim() : "";
+      const question = typeof row.question === "string" ? row.question.trim() : "";
       if (!question) {
         return null;
       }
       const answer = asOptionalRichText(row.answer) ?? RICH_TEXT_PLACEHOLDER;
       return {
-        ...(typeof row._key === "string" && row._key.trim()
-          ? { _key: row._key }
-          : {}),
+        ...(typeof row._key === "string" && row._key.trim() ? { _key: row._key } : {}),
         question,
         answer,
       };
@@ -369,9 +330,7 @@ export const mapContactProps = (c: SanityDoc): Partial<ContactProps> => {
   };
 };
 
-export const mapSocialShareProps = (
-  s: SanityDoc,
-): Partial<SocialShareBarProps> => {
+export const mapSocialShareProps = (s: SanityDoc): Partial<SocialShareBarProps> => {
   if (!s) {
     return {};
   }
@@ -392,12 +351,8 @@ export const mapArticlesTeaserEditorialProps = (
   const intro = asOptionalRichText(s.intro);
 
   return {
-    ...(typeof s.eyebrow === "string" && s.eyebrow.trim()
-      ? { eyebrow: s.eyebrow.trim() }
-      : {}),
-    ...(typeof s.title === "string" && s.title.trim()
-      ? { title: s.title.trim() }
-      : {}),
+    ...(typeof s.eyebrow === "string" && s.eyebrow.trim() ? { eyebrow: s.eyebrow.trim() } : {}),
+    ...(typeof s.title === "string" && s.title.trim() ? { title: s.title.trim() } : {}),
     ...(intro ? { intro } : {}),
     ...(typeof s.viewAllLabel === "string" && s.viewAllLabel.trim()
       ? { viewAllLabel: s.viewAllLabel.trim() }
@@ -447,9 +402,7 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
     })
     .filter(Boolean) as FooterProps["socialLinks"];
 
-  const quickLinksRaw: NavItem[] | undefined = Array.isArray(
-    site.footerQuickLinks,
-  )
+  const quickLinksRaw: NavItem[] | undefined = Array.isArray(site.footerQuickLinks)
     ? site.footerQuickLinks.map((l: { name: string; href: string }) => ({
         name: l.name,
         href: l.href,
@@ -470,16 +423,12 @@ export const mapFooterProps = (site: SanityDoc): Partial<FooterProps> => {
     ...(socialLinks?.length ? { socialLinks } : {}),
     ...(quickLinksRaw?.length ? { quickLinks: quickLinksRaw } : {}),
     ...(legalLinks?.length ? { legalLinks } : {}),
-    ...(site.footerCopyrightText
-      ? { copyrightText: site.footerCopyrightText }
-      : {}),
+    ...(site.footerCopyrightText ? { copyrightText: site.footerCopyrightText } : {}),
     ...(site.footerPartnerText ? { partnerText: site.footerPartnerText } : {}),
   };
 };
 
-export const mapTestimonialsProps = (
-  t: SanityDoc,
-): Partial<TestimonialsProps> => {
+export const mapTestimonialsProps = (t: SanityDoc): Partial<TestimonialsProps> => {
   if (!t) {
     return {};
   }
@@ -501,9 +450,7 @@ const isRawHotspot = (value: unknown): value is RawHotspot =>
 
 const toFiniteNumber = (value: unknown): number | undefined => {
   const cleaned =
-    typeof value === "string" || typeof value === "number"
-      ? stegaClean(value)
-      : value;
+    typeof value === "string" || typeof value === "number" ? stegaClean(value) : value;
 
   if (typeof cleaned === "number" && Number.isFinite(cleaned)) {
     return cleaned;
@@ -515,9 +462,7 @@ const toFiniteNumber = (value: unknown): number | undefined => {
   return undefined;
 };
 
-export const mapRoofInspectionProps = (
-  data: SanityDoc,
-): Partial<RoofInspectionSectionProps> => {
+export const mapRoofInspectionProps = (data: SanityDoc): Partial<RoofInspectionSectionProps> => {
   if (!data) return {};
 
   const out: Partial<RoofInspectionSectionProps> = {};
@@ -560,34 +505,28 @@ export const mapRoofInspectionProps = (
           typeof h.calloutBody === "string" &&
           typeof h.watchFor === "string",
       )
-      .map((h): RoofInspectionHotspotData => ({
-        ...(typeof h._key === "string" ? { _key: h._key } : {}),
-        label: stegaClean(h.label as string).trim(),
-        direction: stegaClean(
-          h.direction as string,
-        ) as RoofInspectionHotspotData["direction"],
-        calloutTitle: stegaClean(h.calloutTitle as string).trim(),
-        calloutBody: stegaClean(h.calloutBody as string).trim(),
-        watchFor: stegaClean(h.watchFor as string).trim(),
-        ...(toFiniteNumber(h.pos3dX) !== undefined
-          ? { pos3dX: toFiniteNumber(h.pos3dX) }
-          : {}),
-        ...(toFiniteNumber(h.pos3dY) !== undefined
-          ? { pos3dY: toFiniteNumber(h.pos3dY) }
-          : {}),
-        ...(toFiniteNumber(h.pos3dZ) !== undefined
-          ? { pos3dZ: toFiniteNumber(h.pos3dZ) }
-          : {}),
-        ...(toFiniteNumber(h.norm3dX) !== undefined
-          ? { norm3dX: toFiniteNumber(h.norm3dX) }
-          : {}),
-        ...(toFiniteNumber(h.norm3dY) !== undefined
-          ? { norm3dY: toFiniteNumber(h.norm3dY) }
-          : {}),
-        ...(toFiniteNumber(h.norm3dZ) !== undefined
-          ? { norm3dZ: toFiniteNumber(h.norm3dZ) }
-          : {}),
-      }));
+      .map(
+        (h): RoofInspectionHotspotData => ({
+          ...(typeof h._key === "string" ? { _key: h._key } : {}),
+          label: stegaClean(h.label as string).trim(),
+          direction: stegaClean(h.direction as string) as RoofInspectionHotspotData["direction"],
+          calloutTitle: stegaClean(h.calloutTitle as string).trim(),
+          calloutBody: stegaClean(h.calloutBody as string).trim(),
+          watchFor: stegaClean(h.watchFor as string).trim(),
+          ...(toFiniteNumber(h.pos3dX) !== undefined ? { pos3dX: toFiniteNumber(h.pos3dX) } : {}),
+          ...(toFiniteNumber(h.pos3dY) !== undefined ? { pos3dY: toFiniteNumber(h.pos3dY) } : {}),
+          ...(toFiniteNumber(h.pos3dZ) !== undefined ? { pos3dZ: toFiniteNumber(h.pos3dZ) } : {}),
+          ...(toFiniteNumber(h.norm3dX) !== undefined
+            ? { norm3dX: toFiniteNumber(h.norm3dX) }
+            : {}),
+          ...(toFiniteNumber(h.norm3dY) !== undefined
+            ? { norm3dY: toFiniteNumber(h.norm3dY) }
+            : {}),
+          ...(toFiniteNumber(h.norm3dZ) !== undefined
+            ? { norm3dZ: toFiniteNumber(h.norm3dZ) }
+            : {}),
+        }),
+      );
 
     if (mapped.length > 0) {
       out.hotspots = mapped;
@@ -597,9 +536,7 @@ export const mapRoofInspectionProps = (
   return out;
 };
 
-export const mapServiceAreaMapProps = (
-  data: SanityDoc,
-): Partial<ServiceAreaMapProps> => {
+export const mapServiceAreaMapProps = (data: SanityDoc): Partial<ServiceAreaMapProps> => {
   if (!data) return {};
 
   const out: Partial<ServiceAreaMapProps> = {};

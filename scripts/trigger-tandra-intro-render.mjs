@@ -49,7 +49,5 @@ if (!response.ok) {
   process.exit(1);
 }
 
-console.log(
-  `[video:render:vercel] Done in ${Math.round((Date.now() - started) / 1000)}s`,
-);
+console.log(`[video:render:vercel] Done in ${Math.round((Date.now() - started) / 1000)}s`);
 console.log(JSON.stringify(payload, null, 2));

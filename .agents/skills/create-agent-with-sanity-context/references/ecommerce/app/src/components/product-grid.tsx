@@ -1,13 +1,14 @@
-import type {PRODUCTS_QUERY_RESULT} from '../../sanity.types'
-import {ProductCard} from './product-card'
+import type { PRODUCTS_QUERY_RESULT } from "../../sanity.types";
+
+import { ProductCard } from "./product-card";
 
 interface ProductGridProps {
-  products: PRODUCTS_QUERY_RESULT
+  products: PRODUCTS_QUERY_RESULT;
 }
 
-export function ProductGrid({products}: ProductGridProps) {
+export function ProductGrid({ products }: ProductGridProps) {
   if (!products.length) {
-    return <div className="py-12 text-center text-neutral-500">No products found.</div>
+    return <div className="py-12 text-center text-neutral-500">No products found.</div>;
   }
 
   return (
@@ -16,5 +17,5 @@ export function ProductGrid({products}: ProductGridProps) {
         <ProductCard key={product._id} product={product} />
       ))}
     </div>
-  )
+  );
 }

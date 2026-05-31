@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+
 import { theme } from "../theme";
 
 const pStyle: CSSProperties = {
@@ -16,11 +17,7 @@ const h2Style: CSSProperties = {
   color: theme.colors.evergladeMuted,
 };
 
-export const legalSection = (
-  key: string,
-  heading: string,
-  paragraphs: string[],
-) => (
+export const legalSection = (key: string, heading: string, paragraphs: string[]) => (
   <section key={key} aria-labelledby={`legal-${key}`}>
     <h2 id={`legal-${key}`} style={h2Style}>
       {heading}

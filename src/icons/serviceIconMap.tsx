@@ -1,4 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
+
 import {
   BadgeCheck,
   Calendar,
@@ -34,10 +35,8 @@ import {
   WarningTriangle,
   Wrench,
 } from "iconoir-react";
-import {
-  LEGACY_SERVICE_ICON_ALIASES,
-  type ServiceIconKey,
-} from "../sanity/serviceIconMeta";
+
+import { LEGACY_SERVICE_ICON_ALIASES, type ServiceIconKey } from "../sanity/serviceIconMeta";
 
 export type IconoirIconProps = SVGProps<SVGSVGElement> & {
   className?: string;
@@ -88,7 +87,6 @@ export const getServiceIconComponent = (
   if (!key) {
     return Search;
   }
-  const normalized =
-    LEGACY_SERVICE_ICON_ALIASES[key] ?? (key as ServiceIconKey);
+  const normalized = LEGACY_SERVICE_ICON_ALIASES[key] ?? (key as ServiceIconKey);
   return SERVICE_ICONS[normalized] ?? Search;
 };

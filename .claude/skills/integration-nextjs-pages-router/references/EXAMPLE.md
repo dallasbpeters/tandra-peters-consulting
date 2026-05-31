@@ -279,10 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  const login = async (
-    username: string,
-    password: string,
-  ): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -340,9 +337,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, login, logout, incrementBurritoConsiderations }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, incrementBurritoConsiderations }}>
       {children}
     </AuthContext.Provider>
   );
@@ -368,14 +363,11 @@ let posthogClient: PostHog | null = null;
 
 export function getPostHogClient() {
   if (!posthogClient) {
-    posthogClient = new PostHog(
-      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!,
-      {
-        host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0,
-      },
-    );
+    posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      flushAt: 1,
+      flushInterval: 0,
+    });
   }
   return posthogClient;
 }
@@ -433,15 +425,9 @@ export default function Document() {
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getPostHogClient } from "@/lib/posthog-server";
 
-const users = new Map<
-  string,
-  { username: string; burritoConsiderations: number }
->();
+const users = new Map<string, { username: string; burritoConsiderations: number }>();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -497,10 +483,7 @@ type Data = {
   name: string;
 };
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
+export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   res.status(200).json({ name: "John Doe" });
 }
 ```
@@ -561,8 +544,7 @@ export default function BurritoPage() {
 
             {hasConsidered && (
               <p className="success">
-                Thank you for your consideration! Count:{" "}
-                {user.burritoConsiderations}
+                Thank you for your consideration! Count: {user.burritoConsiderations}
               </p>
             )}
           </div>
@@ -667,8 +649,7 @@ export default function Home() {
             </form>
 
             <p className="note">
-              Note: This is a demo app. Use any username and password to sign
-              in.
+              Note: This is a demo app. Use any username and password to sign in.
             </p>
           </div>
         )}
@@ -728,8 +709,7 @@ export default function ProfilePage() {
               <strong>Username:</strong> {user.username}
             </p>
             <p>
-              <strong>Burrito Considerations:</strong>{" "}
-              {user.burritoConsiderations}
+              <strong>Burrito Considerations:</strong> {user.burritoConsiderations}
             </p>
           </div>
 
@@ -747,13 +727,11 @@ export default function ProfilePage() {
             <h3>Your Burrito Journey</h3>
             {user.burritoConsiderations === 0 ? (
               <p>
-                You haven&apos;t considered any burritos yet. Visit the Burrito
-                Consideration page to start!
+                You haven&apos;t considered any burritos yet. Visit the Burrito Consideration page
+                to start!
               </p>
             ) : user.burritoConsiderations === 1 ? (
-              <p>
-                You&apos;ve considered the burrito potential once. Keep going!
-              </p>
+              <p>You&apos;ve considered the burrito potential once. Keep going!</p>
             ) : user.burritoConsiderations < 5 ? (
               <p>You&apos;re getting the hang of burrito consideration!</p>
             ) : user.burritoConsiderations < 10 ? (

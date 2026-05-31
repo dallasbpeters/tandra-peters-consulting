@@ -107,12 +107,7 @@ export const defaultTandraIntroContent: TandraIntroContent = {
     line1: "EXPERIENCE AND PROFESSIONALISM",
     line2: "HIGH-QUALITY MATERIALS",
     line3: "Exceptional Customer Service",
-    items: [
-      "Claim guidance",
-      "Paperwork review",
-      "Birdcreek crews",
-      "Final walkthrough",
-    ],
+    items: ["Claim guidance", "Paperwork review", "Birdcreek crews", "Final walkthrough"],
   },
   proof: {
     kicker: "Built for Austin-area homeowners",

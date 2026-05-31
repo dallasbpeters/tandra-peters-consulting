@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
 import { stegaClean } from "@sanity/client/stega";
+import { useCallback, useEffect, useState } from "react";
+
+import type { PostListItem } from "../types/article";
+
 import {
   getSanityClient,
   isSanityDraftPreviewActive,
@@ -7,7 +10,6 @@ import {
 } from "../sanity/client";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
-import type { PostListItem } from "../types/article";
 
 const isPostListItem = (v: unknown): v is PostListItem => {
   if (!v || typeof v !== "object") {
@@ -29,9 +31,7 @@ const filterResolvedPosts = (v: unknown): PostListItem[] => {
   return v.filter(isPostListItem);
 };
 
-const teaserMaxPosts = (
-  home: Record<string, unknown> | null | undefined,
-): number => {
+const teaserMaxPosts = (home: Record<string, unknown> | null | undefined): number => {
   const teaser = home?.articlesTeaser as Record<string, unknown> | undefined;
   const raw = teaser?.maxPosts;
   if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -49,12 +49,7 @@ const resolveHomeArticleCards = (
   const teaser = home?.articlesTeaser as Record<string, unknown> | undefined;
   const fromArticles = filterResolvedPosts(teaser?.articlesResolved);
   const fromLegacy = filterResolvedPosts(teaser?.legacyFeaturedResolved);
-  const manual =
-    fromArticles.length > 0
-      ? fromArticles
-      : fromLegacy.length > 0
-        ? fromLegacy
-        : [];
+  const manual = fromArticles.length > 0 ? fromArticles : fromLegacy.length > 0 ? fromLegacy : [];
 
   if (manual.length > 0) {
     return manual.slice(0, n);
@@ -136,10 +131,7 @@ export const useSanityHomeContent = () => {
     };
     window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     return () => {
-      window.removeEventListener(
-        SANITY_PRESENTATION_REFRESH_EVENT,
-        handleRefresh,
-      );
+      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     };
   }, [refetch]);
 

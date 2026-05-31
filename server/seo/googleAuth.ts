@@ -25,8 +25,7 @@ const envValue = (env: EnvSource | undefined, key: string): string =>
   trim(env?.[key] ?? process.env[key]);
 
 const getConfig = (env?: EnvSource) => {
-  const clientId =
-    envValue(env, "GOOGLE_CLIENT_ID") || envValue(env, "VITE_GOOGLE_CLIENT_ID");
+  const clientId = envValue(env, "GOOGLE_CLIENT_ID") || envValue(env, "VITE_GOOGLE_CLIENT_ID");
   const allowedEmails = envValue(env, "GOOGLE_ALLOWED_EMAILS")
     .split(",")
     .map((value) => value.trim().toLowerCase())
@@ -40,9 +39,7 @@ const getConfig = (env?: EnvSource) => {
   };
 };
 
-const extractBearerToken = (
-  authorizationHeader: string | undefined,
-): string => {
+const extractBearerToken = (authorizationHeader: string | undefined): string => {
   const value = trim(authorizationHeader);
   if (!value.toLowerCase().startsWith("bearer ")) {
     throw new DashboardAuthError(401, "Missing bearer token");
@@ -65,10 +62,7 @@ export const authorizeSeoDashboardRequest = async (
   }
 
   if (config.allowedEmails.length === 0 && !config.allowedDomain) {
-    throw new DashboardAuthError(
-      500,
-      "Missing dashboard allowlist configuration",
-    );
+    throw new DashboardAuthError(500, "Missing dashboard allowlist configuration");
   }
 
   const idToken = extractBearerToken(authorizationHeader);
@@ -88,10 +82,8 @@ export const authorizeSeoDashboardRequest = async (
   }
 
   const hostedDomain = trim(payload.hd).toLowerCase();
-  const emailAllowed =
-    config.allowedEmails.length > 0 && config.allowedEmails.includes(email);
-  const domainAllowed =
-    Boolean(config.allowedDomain) && hostedDomain === config.allowedDomain;
+  const emailAllowed = config.allowedEmails.length > 0 && config.allowedEmails.includes(email);
+  const domainAllowed = Boolean(config.allowedDomain) && hostedDomain === config.allowedDomain;
 
   if (config.allowedEmails.length > 0 || config.allowedDomain) {
     if (!emailAllowed && !domainAllowed) {
@@ -101,11 +93,7 @@ export const authorizeSeoDashboardRequest = async (
 
   return {
     email,
-    name:
-      trim(typeof payload.name === "string" ? payload.name : undefined) ||
-      undefined,
-    picture:
-      trim(typeof payload.picture === "string" ? payload.picture : undefined) ||
-      undefined,
+    name: trim(typeof payload.name === "string" ? payload.name : undefined) || undefined,
+    picture: trim(typeof payload.picture === "string" ? payload.picture : undefined) || undefined,
   };
 };

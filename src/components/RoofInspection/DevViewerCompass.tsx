@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+
 import { useCameraContext, useRoofInspection } from "./context";
+import { getModelViewer } from "./modelViewerHotspot";
 import {
   formatVec3,
   parseMetersTriple,
@@ -7,7 +9,6 @@ import {
   type ModelViewerNav,
   type Vec3,
 } from "./projectWorldToView";
-import { getModelViewer } from "./modelViewerHotspot";
 import "../../styles/roof-inspection-dev-compass.css";
 
 type AxisKey = "x" | "y" | "z";
@@ -24,10 +25,7 @@ type AxisDraw = {
   ly: number;
 };
 
-const WORLD_AXES: Record<
-  AxisKey,
-  { world: Vec3; label: string; color: string; field: string }
-> = {
+const WORLD_AXES: Record<AxisKey, { world: Vec3; label: string; color: string; field: string }> = {
   x: { world: { x: 1, y: 0, z: 0 }, label: "+X", color: "#ff5c5c", field: "pos3dX / norm3dX" },
   y: { world: { x: 0, y: 1, z: 0 }, label: "+Y", color: "#6ee07a", field: "pos3dY / norm3dY" },
   z: { world: { x: 0, y: 0, z: 1 }, label: "+Z", color: "#6eb5ff", field: "pos3dZ / norm3dZ" },
@@ -80,12 +78,15 @@ export const DevViewerCompass: React.FC = () => {
   const activeNorm = parseMetersTriple(activeChapter?.normal3d);
 
   useEffect(() => {
-    let mv: (HTMLElement & ModelViewerNav & {
-      positionAndNormalFromPoint?: (
-        x: number,
-        y: number,
-      ) => { position: Vec3; normal: Vec3 } | null;
-    }) | null = null;
+    let mv:
+      | (HTMLElement &
+          ModelViewerNav & {
+            positionAndNormalFromPoint?: (
+              x: number,
+              y: number,
+            ) => { position: Vec3; normal: Vec3 } | null;
+          })
+      | null = null;
     let rafId = 0;
 
     const scale = 0.72;
@@ -259,7 +260,10 @@ export const DevViewerCompass: React.FC = () => {
         </dl>
       ) : null}
 
-      <p className="ri-dev-compass__hint">Click the model to sample coords. Solid = position axes; dashed = normal direction (same +X/+Y/+Z frame).</p>
+      <p className="ri-dev-compass__hint">
+        Click the model to sample coords. Solid = position axes; dashed = normal direction (same
+        +X/+Y/+Z frame).
+      </p>
     </div>
   );
 };

@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import {MessageCircle, X} from 'lucide-react'
-import {useState} from 'react'
+import { MessageCircle, X } from "lucide-react";
+import { useState } from "react";
 
-import {Chat} from './chat'
+import { Chat } from "./chat";
 
 export function ChatButton() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
@@ -14,7 +14,7 @@ export function ChatButton() {
       <div
         className={`
           mb-4 h-[500px] w-[380px] transition-all duration-300 ease-out origin-bottom-right
-          ${isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'}
+          ${isOpen ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"}
         `}
       >
         <Chat onClose={() => setIsOpen(false)} />
@@ -28,14 +28,14 @@ export function ChatButton() {
       >
         <div className="relative h-6 w-6">
           <MessageCircle
-            className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${isOpen ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}
+            className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${isOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
           />
 
           <X
-            className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${isOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}
+            className={`absolute inset-0 h-6 w-6 transition-all duration-300 ${isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}
           />
         </div>
       </button>
     </div>
-  )
+  );
 }

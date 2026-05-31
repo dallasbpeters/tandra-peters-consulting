@@ -1,10 +1,12 @@
 import React from "react";
 import { ElfsightWidget } from "react-elfsight-widget";
-import { layoutClass } from "../styles/layoutClasses";
-import { theme } from "../theme";
+
 import type { TestimonialsProps } from "../types";
+
 import { RichText } from "../portableText/RichText";
 import { hasPortableTextContent } from "../portableText/value";
+import { layoutClass } from "../styles/layoutClasses";
+import { theme } from "../theme";
 
 /**
  * Elfsight install code looks like:
@@ -19,9 +21,7 @@ const normalizeElfsightWidgetId = (raw: string) => {
   return id;
 };
 
-const envWidgetId = normalizeElfsightWidgetId(
-  import.meta.env.VITE_ELFSIGHT_WIDGET_ID ?? "",
-);
+const envWidgetId = normalizeElfsightWidgetId(import.meta.env.VITE_ELFSIGHT_WIDGET_ID ?? "");
 
 const srOnly: React.CSSProperties = {
   position: "absolute",
@@ -125,11 +125,9 @@ export const Testimonials = ({
             free Elfsight Google Reviews widget
           </a>
           , then add your widget ID to{" "}
-          <code style={{ color: theme.colors.textOnBrand }}>
-            VITE_ELFSIGHT_WIDGET_ID
-          </code>{" "}
-          in <code style={{ color: theme.colors.textOnBrand }}>.env.local</code>{" "}
-          and restart the dev server.
+          <code style={{ color: theme.colors.textOnBrand }}>VITE_ELFSIGHT_WIDGET_ID</code> in{" "}
+          <code style={{ color: theme.colors.textOnBrand }}>.env.local</code> and restart the dev
+          server.
         </p>
       )}
     </div>

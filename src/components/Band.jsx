@@ -81,8 +81,7 @@ export default function Band(props) {
       rectRef.current = event.currentTarget.getBoundingClientRect();
     }
 
-    const x =
-      ((event.clientX - rectRef.current.left) / rectRef.current.width) * 100;
+    const x = ((event.clientX - rectRef.current.left) / rectRef.current.width) * 100;
     offsetSpring.set((x - 50) * 0.5);
   }
 
@@ -149,17 +148,12 @@ export default function Band(props) {
     Math.max(0, Math.min(100, index * step + mouseOffset + autoOffset)),
   );
 
-  const customProperties = stopPositions.reduce(
-    (accumulator, position, index) => {
-      accumulator[`--stop${index}`] = `${position}%`;
-      return accumulator;
-    },
-    {},
-  );
+  const customProperties = stopPositions.reduce((accumulator, position, index) => {
+    accumulator[`--stop${index}`] = `${position}%`;
+    return accumulator;
+  }, {});
 
-  const transitionValue = stopPositions
-    .map((_, index) => `--stop${index} 1s ease-out`)
-    .join(", ");
+  const transitionValue = stopPositions.map((_, index) => `--stop${index} 1s ease-out`).join(", ");
 
   const gradientBg = `linear-gradient(90deg, ${palette.map((color, index) => `${color} var(--stop${index})`).join(", ")})`;
 

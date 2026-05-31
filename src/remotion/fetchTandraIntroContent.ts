@@ -1,12 +1,5 @@
-import {
-  SANITY_API_VERSION,
-  SANITY_DATASET,
-  SANITY_PROJECT_ID,
-} from "../sanity/projectDetails";
-import {
-  defaultTandraIntroContent,
-  type TandraIntroContent,
-} from "./tandraIntroContent";
+import { SANITY_API_VERSION, SANITY_DATASET, SANITY_PROJECT_ID } from "../sanity/projectDetails";
+import { defaultTandraIntroContent, type TandraIntroContent } from "./tandraIntroContent";
 
 const INTRO_QUERY = `{
   "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{
@@ -30,22 +23,15 @@ const stringItems = (value: unknown, fallback: string[]): string[] =>
     ? value.filter((item): item is string => typeof item === "string")
     : fallback;
 
-const mergeScene = <T extends Record<string, unknown>>(
-  fallback: T,
-  incoming: unknown,
-): T => (isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback);
+const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
+  isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback;
 
-export const mergeTandraIntroContent = (
-  incoming: unknown,
-): TandraIntroContent => {
+export const mergeTandraIntroContent = (incoming: unknown): TandraIntroContent => {
   if (!isRecord(incoming)) {
     return defaultTandraIntroContent;
   }
 
-  const managed = mergeScene(
-    defaultTandraIntroContent.managed,
-    incoming.managed,
-  );
+  const managed = mergeScene(defaultTandraIntroContent.managed, incoming.managed);
   const proof = mergeScene(defaultTandraIntroContent.proof, incoming.proof);
 
   return {
@@ -54,10 +40,7 @@ export const mergeTandraIntroContent = (
       defaultTandraIntroContent.straightAnswers,
       incoming.straightAnswers,
     ),
-    inspection: mergeScene(
-      defaultTandraIntroContent.inspection,
-      incoming.inspection,
-    ),
+    inspection: mergeScene(defaultTandraIntroContent.inspection, incoming.inspection),
     managed: {
       ...managed,
       items: stringItems(
@@ -79,8 +62,7 @@ export const mergeTandraIntroContent = (
 const readSanityToken = (): string | undefined => {
   if (typeof process !== "undefined" && process.env) {
     const fromProcess =
-      process.env.SANITY_API_READ_TOKEN?.trim() ||
-      process.env.VITE_SANITY_API_READ_TOKEN?.trim();
+      process.env.SANITY_API_READ_TOKEN?.trim() || process.env.VITE_SANITY_API_READ_TOKEN?.trim();
     if (fromProcess) {
       return fromProcess;
     }
@@ -99,58 +81,49 @@ export type FetchTandraIntroResult = {
   documentId?: string;
 };
 
-export const fetchTandraIntroContent =
-  async (): Promise<FetchTandraIntroResult> => {
-    const token = readSanityToken();
-    const host = token
-      ? `https://${SANITY_PROJECT_ID}.api.sanity.io`
-      : `https://${SANITY_PROJECT_ID}.apicdn.sanity.io`;
-    const url = `${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(INTRO_QUERY)}`;
+export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult> => {
+  const token = readSanityToken();
+  const host = token
+    ? `https://${SANITY_PROJECT_ID}.api.sanity.io`
+    : `https://${SANITY_PROJECT_ID}.apicdn.sanity.io`;
+  const url = `${host}/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(INTRO_QUERY)}`;
 
-    try {
-      const response = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+  try {
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
 
-      if (!response.ok) {
-        console.warn(
-          `[video] Sanity fetch failed (${response.status}); using default video copy.`,
-        );
-        return { content: defaultTandraIntroContent, source: "fallback" };
-      }
-
-      const payload = (await response.json()) as {
-        result?: {
-          home?: {
-            _id?: string;
-            intro?: Record<string, unknown> | null;
-          } | null;
-        } | null;
-      };
-
-      const result = payload.result?.home?.intro;
-
-      if (!result) {
-        console.warn(
-          "[video] No homepage tandraIntroVideo content found; using default video copy.",
-        );
-        return { content: defaultTandraIntroContent, source: "fallback" };
-      }
-
-      const documentId =
-        typeof payload.result?.home?._id === "string"
-          ? payload.result.home._id
-          : undefined;
-
-      return {
-        content: mergeTandraIntroContent(result),
-        source: token ? "sanity-draft-or-published" : "sanity-published",
-        documentId,
-      };
-    } catch (error) {
-      console.warn(
-        `[video] Sanity fetch failed; using default video copy. ${error}`,
-      );
+    if (!response.ok) {
+      console.warn(`[video] Sanity fetch failed (${response.status}); using default video copy.`);
       return { content: defaultTandraIntroContent, source: "fallback" };
     }
-  };
+
+    const payload = (await response.json()) as {
+      result?: {
+        home?: {
+          _id?: string;
+          intro?: Record<string, unknown> | null;
+        } | null;
+      } | null;
+    };
+
+    const result = payload.result?.home?.intro;
+
+    if (!result) {
+      console.warn("[video] No homepage tandraIntroVideo content found; using default video copy.");
+      return { content: defaultTandraIntroContent, source: "fallback" };
+    }
+
+    const documentId =
+      typeof payload.result?.home?._id === "string" ? payload.result.home._id : undefined;
+
+    return {
+      content: mergeTandraIntroContent(result),
+      source: token ? "sanity-draft-or-published" : "sanity-published",
+      documentId,
+    };
+  } catch (error) {
+    console.warn(`[video] Sanity fetch failed; using default video copy. ${error}`);
+    return { content: defaultTandraIntroContent, source: "fallback" };
+  }
+};

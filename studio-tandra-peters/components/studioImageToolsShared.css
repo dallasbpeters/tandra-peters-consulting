@@ -234,7 +234,7 @@
 }
 
 .studio-tool wa-option:hover::part(base),
-.studio-tool wa-option[aria-selected='true']::part(base) {
+.studio-tool wa-option[aria-selected="true"]::part(base) {
   background: var(--studio-tool-brand-ring);
   color: var(--studio-tool-text);
 }
@@ -279,30 +279,27 @@
     box-shadow var(--wa-transition-fast) var(--wa-transition-easing);
 }
 
-.studio-tool
-  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):hover::part(base) {
+.studio-tool wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):hover::part(base) {
   border-color: var(--studio-tool-brand);
   background: var(--studio-tool-brand-ring);
   color: var(--studio-tool-text);
 }
 
 .studio-tool
-  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):focus-visible::part(
-    base
-  ) {
+  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):focus-visible::part(base) {
   border-color: var(--studio-tool-brand);
   box-shadow: 0 0 0 2px var(--studio-tool-brand-ring);
 }
 
-.studio-tool wa-button[variant='brand']::part(base),
-.studio-tool wa-button[appearance='filled']::part(base) {
+.studio-tool wa-button[variant="brand"]::part(base),
+.studio-tool wa-button[appearance="filled"]::part(base) {
   border-color: var(--studio-tool-brand);
   background: var(--studio-tool-brand);
   color: var(--wa-color-brand-on-normal);
 }
 
-.studio-tool wa-button[variant='brand']:not([disabled]):hover::part(base),
-.studio-tool wa-button[appearance='filled']:not([disabled]):hover::part(base) {
+.studio-tool wa-button[variant="brand"]:not([disabled]):hover::part(base),
+.studio-tool wa-button[appearance="filled"]:not([disabled]):hover::part(base) {
   border-color: var(--wa-color-brand-border-loud);
   background: var(--wa-color-brand-fill-loud);
   color: var(--wa-color-brand-on-loud);

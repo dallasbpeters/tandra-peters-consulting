@@ -1,12 +1,13 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { theme } from "../theme";
+
 import {
   GoogleAuthGateContext,
   useGoogleAuthGate,
   useGoogleAuthGateState,
   useOptionalGoogleAuthGate,
 } from "../hooks/useGoogleAuthGate";
+import { theme } from "../theme";
 
 export const GoogleAuthGateProvider = ({ children }: { children: ReactNode }) => {
   const value = useGoogleAuthGateState();

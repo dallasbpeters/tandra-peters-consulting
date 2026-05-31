@@ -11,16 +11,11 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+
 import { createGroq } from "@ai-sdk/groq";
-import {
-  generateText,
-  jsonSchema,
-  stepCountIs,
-  type ModelMessage,
-  type ToolSet,
-} from "ai";
-import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/agent-context/ai-sdk";
+import { createClient } from "@sanity/client";
+import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -75,9 +70,7 @@ const isFunctionCallFailure = (message: string): boolean =>
   /failed to call a function|failed_generation/i.test(message);
 
 const isModelAvailabilityFailure = (message: string): boolean =>
-  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(
-    message,
-  );
+  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(message);
 
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
@@ -87,12 +80,7 @@ const mcpHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
 });
 
-async function callMcp(
-  token: string,
-  method: string,
-  params?: unknown,
-  id = 1,
-): Promise<unknown> {
+async function callMcp(token: string, method: string, params?: unknown, id = 1): Promise<unknown> {
   const res = await fetch(MCP_URL, {
     method: "POST",
     headers: mcpHeaders(token),
@@ -123,9 +111,7 @@ async function callMcp(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin ?? "";
-  const allowed = (process.env.ALLOWED_ORIGINS ?? "")
-    .split(",")
-    .map((o) => o.trim());
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim());
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -133,14 +119,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!token)
-    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
   if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
 
   const body = req.body as { messages?: ModelMessage[]; threadId?: string };
@@ -193,9 +177,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mcpTool.name,
           {
             description: mcpTool.description,
-            inputSchema: jsonSchema(
-              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-            ),
+            inputSchema: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
             execute,
           } as unknown as ToolSet[string],
         ];
@@ -209,9 +191,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const baseRequest = {
       messages: body.messages,
-      ...(insights
-        ? { experimental_telemetry: { isEnabled: true, ...insights } }
-        : {}),
+      ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
     } as const;
 
     const runWithModel = async (modelId: string) => {
@@ -225,8 +205,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           stopWhen: stepCountIs(10),
         }));
       } catch (toolError) {
-        const toolErrorMessage =
-          toolError instanceof Error ? toolError.message : String(toolError);
+        const toolErrorMessage = toolError instanceof Error ? toolError.message : String(toolError);
         if (!isFunctionCallFailure(toolErrorMessage)) {
           throw toolError;
         }

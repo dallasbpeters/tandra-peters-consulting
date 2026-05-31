@@ -10,8 +10,9 @@ import {
   useVelocity,
 } from "motion/react";
 import { useLayoutEffect, useRef, useState } from "react";
-import TexasFlag from "./TexasFlag";
+
 import { theme } from "../theme";
+import TexasFlag from "./TexasFlag";
 
 function useElementWidth(ref) {
   const [width, setWidth] = useState(0);
@@ -39,15 +40,9 @@ function wrap(min, max, value) {
 function renderOptionalIcon(iconName, fontSize) {
   if (!iconName || typeof iconName !== "string") return null;
 
-  const iconSize =
-    typeof fontSize === "number" ? fontSize : Number.parseFloat(fontSize) || 18;
+  const iconSize = typeof fontSize === "number" ? fontSize : Number.parseFloat(fontSize) || 18;
   const normalized = iconName.trim();
-  const isTexasFlag = [
-    "TexasFlag",
-    "texasFlag",
-    "texas-flag",
-    "tx-flag",
-  ].includes(normalized);
+  const isTexasFlag = ["TexasFlag", "texasFlag", "texas-flag", "tx-flag"].includes(normalized);
 
   if (isTexasFlag) {
     return (
@@ -114,10 +109,8 @@ function VelocityText(props) {
       scrollDirectionRef.current = baseDirection;
     }
 
-    const moveBy =
-      scrollDirectionRef.current * Math.abs(baseVelocity) * (delta / 1000);
-    const additional =
-      scrollDirectionRef.current * Math.abs(moveBy) * Math.abs(velocityValue);
+    const moveBy = scrollDirectionRef.current * Math.abs(baseVelocity) * (delta / 1000);
+    const additional = scrollDirectionRef.current * Math.abs(moveBy) * Math.abs(velocityValue);
     baseX.set(baseX.get() + moveBy + additional);
   });
 
@@ -145,9 +138,7 @@ function VelocityText(props) {
         }}
       >
         {children}
-        {showIcon
-          ? renderOptionalIcon(icon, resolvedTextColor, fontSize)
-          : null}
+        {showIcon ? renderOptionalIcon(icon, resolvedTextColor, fontSize) : null}
         {showFlag ? renderTexasFlag(resolvedTextColor, fontSize) : null}
       </span>,
     );
@@ -178,10 +169,7 @@ function VelocityText(props) {
 
 export default function ScrollVelocity(props) {
   const {
-    texts = [
-      { text: "Texas Solar and Roofing Pros" },
-      { text: "Texas Solar and Roofing Pros" },
-    ],
+    texts = [{ text: "Texas Solar and Roofing Pros" }, { text: "Texas Solar and Roofing Pros" }],
     showIcon = false,
     velocity = 100,
     direction = "left",
@@ -221,11 +209,7 @@ export default function ScrollVelocity(props) {
     >
       {texts.map((item, index) => {
         const textContent = typeof item === "string" ? item : item?.text;
-        const itemIcon = showFlag
-          ? "TexasFlag"
-          : typeof item === "string"
-            ? undefined
-            : item?.icon;
+        const itemIcon = showFlag ? "TexasFlag" : typeof item === "string" ? undefined : item?.icon;
         const rowMultiplier = index % 2 !== 0 ? -1 : 1;
         const finalVelocity = velocity * directionMultiplier * rowMultiplier;
 

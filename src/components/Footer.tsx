@@ -1,13 +1,14 @@
-import React from "react";
-import { TransitionLink } from "./TransitionLink";
 import { Facebook, Instagram, Linkedin } from "iconoir-react";
+import React from "react";
+
+import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { FooterProps } from "../types";
-import { RichText } from "../portableText/RichText";
 import FooterBg from "./FooterBg";
 import { GoogleAuthFooterTrigger } from "./GoogleAuthGate";
 import { GoogleAuthGate } from "./GoogleAuthGate";
+import { TransitionLink } from "./TransitionLink";
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
@@ -179,61 +180,52 @@ export const Footer: React.FC<FooterProps> = ({
                 aria-label={social.platform ?? "Visit social profile"}
                 className="social-link"
               >
-                <social.icon
-                  width={18}
-                  height={18}
-                  strokeWidth={1.5}
-                  aria-hidden
-                />
+                <social.icon width={18} height={18} strokeWidth={1.5} aria-hidden />
               </a>
             ))}
           </div>
         </div>
         <GoogleAuthGate>
-        <div className="md-col-3">
-          <h3 style={headingStyle}>Quick Links</h3>
-          <ul style={linkListStyle}>
-            {quickLinks.map((link, i) => (
-              <li key={i}>
-                {link.href.startsWith("#") ? (
-                  <TransitionLink
-                    to={{ pathname: "/", hash: link.href }}
-                    style={linkStyle}
-                    className="footer-link"
-                  >
-                    {link.name}
-                  </TransitionLink>
-                ) : (
-                  <TransitionLink
-                    to={link.href}
-                    viewTransition
-                    style={linkStyle}
-                    className="footer-link"
-                  >
-                    {link.name}
-                  </TransitionLink>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+          <div className="md-col-3">
+            <h3 style={headingStyle}>Quick Links</h3>
+            <ul style={linkListStyle}>
+              {quickLinks.map((link, i) => (
+                <li key={i}>
+                  {link.href.startsWith("#") ? (
+                    <TransitionLink
+                      to={{ pathname: "/", hash: link.href }}
+                      style={linkStyle}
+                      className="footer-link"
+                    >
+                      {link.name}
+                    </TransitionLink>
+                  ) : (
+                    <TransitionLink
+                      to={link.href}
+                      viewTransition
+                      style={linkStyle}
+                      className="footer-link"
+                    >
+                      {link.name}
+                    </TransitionLink>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <div className="md-col-3">
-          <h3 style={headingStyle}>Legal</h3>
-          <ul style={linkListStyle}>
-            {legalLinks.map((link, i) => (
-              <li key={i}>
-                <TransitionLink
-                  to={link.href}
-                  style={linkStyle}
-                  className="footer-link"
-                >
-                  {link.name}
-                </TransitionLink>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <div className="md-col-3">
+            <h3 style={headingStyle}>Legal</h3>
+            <ul style={linkListStyle}>
+              {legalLinks.map((link, i) => (
+                <li key={i}>
+                  <TransitionLink to={link.href} style={linkStyle} className="footer-link">
+                    {link.name}
+                  </TransitionLink>
+                </li>
+              ))}
+            </ul>
+          </div>
         </GoogleAuthGate>
       </div>
       <div

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import type { SanityImageAsset } from "./useSanityImageAssets";
 
 const DEFAULT_UNSPLASH_QUERY = "Austin roofing";
@@ -41,10 +42,9 @@ export const useUnsplashImageSearch = (enabled: boolean) => {
       setLoading(true);
       setError(null);
 
-      void fetch(
-        `/api/unsplash-search?query=${encodeURIComponent(trimmedQuery)}`,
-        { signal: abortController.signal },
-      )
+      void fetch(`/api/unsplash-search?query=${encodeURIComponent(trimmedQuery)}`, {
+        signal: abortController.signal,
+      })
         .then(async (response) => {
           const payload = (await response.json()) as UnsplashSearchPayload;
           if (!response.ok) {
@@ -59,9 +59,7 @@ export const useUnsplashImageSearch = (enabled: boolean) => {
           }
 
           setError(
-            searchError instanceof Error
-              ? searchError.message
-              : "Could not search Unsplash.",
+            searchError instanceof Error ? searchError.message : "Could not search Unsplash.",
           );
         })
         .finally(() => {

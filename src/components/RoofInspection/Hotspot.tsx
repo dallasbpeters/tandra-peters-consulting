@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { mix, theme } from "../../theme";
+
+import type { Chapter, Direction } from "./types";
+
 import { useIsMobile } from "../../hooks/isMobile";
+import { mix, theme } from "../../theme";
 import { useRoofInspection } from "./context";
 import { syncModelViewerHotspot } from "./modelViewerHotspot";
-import type { Chapter, Direction } from "./types";
 
 type HotspotProps = {
   /** The inspection chapter this dot represents. */
@@ -118,9 +120,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Ref to the rendered callout aside so we can measure its real height
   const cardRef = useRef<HTMLElement>(null);
-  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(
-    null,
-  );
+  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
 
   const scheduleClose = () => {
     clearSharedClose();
@@ -145,11 +145,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
       el.removeAttribute("data-normal");
     }
 
-    syncModelViewerHotspot(
-      `hotspot-${chapter.id}`,
-      chapter.position3d,
-      chapter.normal3d,
-    );
+    syncModelViewerHotspot(`hotspot-${chapter.id}`, chapter.position3d, chapter.normal3d);
   }, [chapter.id, chapter.position3d, chapter.normal3d]);
 
   const is3d = Boolean(chapter.position3d);

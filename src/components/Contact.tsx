@@ -1,20 +1,21 @@
-import React, { useState } from "react";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
 import "@fontsource/bebas-neue/latin-400.css";
-import { TransitionLink } from "./TransitionLink";
-import { motion } from "motion/react";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
+import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
+import { usePostHog } from "@posthog/react";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
+import { motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import React, { useState } from "react";
+
+import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { ContactProps } from "../types";
-import { usePostHog } from "@posthog/react";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
-import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
-import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
-import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
-import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
-import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
-import { AnimatePresence } from "motion/react";
+import { TransitionLink } from "./TransitionLink";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 export const CONTACT_API_PATH = "/api/contact";
@@ -35,9 +36,9 @@ export const Contact = ({
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "sending" | "success" | "error">(
+    "idle",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
 
@@ -50,9 +51,7 @@ export const Contact = ({
 
     if (!consentToContact) {
       setSubmitStatus("error");
-      setErrorMessage(
-        "Please confirm you agree to be contacted before sending your message.",
-      );
+      setErrorMessage("Please confirm you agree to be contacted before sending your message.");
       return;
     }
 
@@ -84,9 +83,7 @@ export const Contact = ({
       if (!res.ok || !data.ok) {
         setSubmitStatus("error");
         const fromApi =
-          typeof data.error === "string" && data.error.trim()
-            ? data.error.trim()
-            : "";
+          typeof data.error === "string" && data.error.trim() ? data.error.trim() : "";
         const byStatus = (() => {
           if (fromApi) return "";
           if (res.status === 404) {
@@ -108,9 +105,7 @@ export const Contact = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 ||
-              vercelFnError ||
-              contentType.includes("text/html"))
+            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -285,9 +280,7 @@ export const Contact = ({
           >
             {title}
           </h2>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
                 <Mail style={{ color: "inherit" }} />
@@ -442,9 +435,7 @@ export const Contact = ({
                 size="m"
                 withClear
                 onChange={(e) =>
-                  setServiceInterest(
-                    (e.target as unknown as { value: string }).value,
-                  )
+                  setServiceInterest((e.target as unknown as { value: string }).value)
                 }
               >
                 {serviceOptions.map((opt) => (
@@ -478,8 +469,7 @@ export const Contact = ({
                   aria-labelledby="contact-consent-desc"
                 />
                 <p id="contact-consent-desc">
-                  I agree to be contacted about my inquiry by email, phone, or
-                  SMS. I have read the{" "}
+                  I agree to be contacted about my inquiry by email, phone, or SMS. I have read the{" "}
                   <TransitionLink to="/privacy" style={consentLinkStyle}>
                     Privacy Policy
                   </TransitionLink>{" "}
@@ -535,9 +525,7 @@ export const Contact = ({
                 }}
                 className="send-btn"
               >
-                <span>
-                  {submitStatus === "sending" ? "Sending…" : "Send Message"}
-                </span>
+                <span>{submitStatus === "sending" ? "Sending…" : "Send Message"}</span>
                 <Send
                   width={18}
                   height={18}

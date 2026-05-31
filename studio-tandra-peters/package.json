@@ -1,9 +1,12 @@
 {
   "name": "tandra-peters",
-  "private": true,
   "version": "1.0.0",
-  "main": "package.json",
+  "private": true,
+  "keywords": [
+    "sanity"
+  ],
   "license": "UNLICENSED",
+  "main": "package.json",
   "scripts": {
     "build": "sanity build",
     "deploy": "sanity deploy",
@@ -16,9 +19,6 @@
     "seed:posts": "tsx scripts/seedPosts.ts",
     "seed:all": "tsx scripts/seed.ts && tsx scripts/seedPosts.ts"
   },
-  "keywords": [
-    "sanity"
-  ],
   "dependencies": {
     "@awesome.me/webawesome": "^3.7.0",
     "@sanity/agent-context": "^0.6.0",

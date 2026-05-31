@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+
 import type { PostDetail } from "../types/article";
+
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const SCRIPT_ID = "article-json-ld";
@@ -19,8 +21,7 @@ export const ArticleJsonLd = ({ post, path }: ArticleJsonLdProps) => {
         ? `${origin}${post.image.startsWith("/") ? "" : "/"}${post.image}`
         : undefined;
     const authorName = post.authorName?.trim() || "Tandra Peters";
-    const description =
-      post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
+    const description = post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
 
     const data = {
       "@context": "https://schema.org",

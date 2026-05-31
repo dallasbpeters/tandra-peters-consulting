@@ -1,8 +1,6 @@
 import { useContext } from "react";
-import {
-  SanitySiteContext,
-  type SanitySiteContextValue,
-} from "./sanitySiteContextValue";
+
+import { SanitySiteContext, type SanitySiteContextValue } from "./sanitySiteContextValue";
 
 export const useSanitySite = (): SanitySiteContextValue => {
   const ctx = useContext(SanitySiteContext);

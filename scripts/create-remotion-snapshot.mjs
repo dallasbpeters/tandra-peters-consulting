@@ -1,9 +1,9 @@
+import { addBundleToSandbox, createSandbox } from "@remotion/vercel";
+import { put } from "@vercel/blob";
+import { config as loadEnv } from "dotenv";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { config as loadEnv } from "dotenv";
-import { put } from "@vercel/blob";
-import { addBundleToSandbox, createSandbox } from "@remotion/vercel";
 
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const bundleDir = path.join(repoRoot, ".remotion");
@@ -54,9 +54,7 @@ try {
     token: blobToken,
   });
 
-  console.log(
-    `[create-remotion-snapshot] Snapshot saved (${snapshotId}) → ${blobKey}`,
-  );
+  console.log(`[create-remotion-snapshot] Snapshot saved (${snapshotId}) → ${blobKey}`);
 } finally {
   await sandbox.stop().catch(() => {});
 }

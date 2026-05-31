@@ -1,40 +1,40 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from "sanity";
 
 export const brand = defineType({
-  name: 'brand',
-  title: 'Brands',
-  type: 'document',
+  name: "brand",
+  title: "Brands",
+  type: "document",
   fields: [
     defineField({
-      name: 'title',
-      title: 'Brand Name',
-      type: 'string',
+      name: "title",
+      title: "Brand Name",
+      type: "string",
       description: 'Brand name (e.g., "Urban Threads", "EcoWear Co.")',
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'slug',
-      title: 'Slug',
-      type: 'slug',
-      description: 'URL-friendly identifier',
+      name: "slug",
+      title: "Slug",
+      type: "slug",
+      description: "URL-friendly identifier",
       options: {
-        source: 'title',
+        source: "title",
         maxLength: 96,
       },
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'description',
-      title: 'Description',
-      type: 'text',
+      name: "description",
+      title: "Description",
+      type: "text",
       rows: 3,
-      description: 'Brand description and story',
+      description: "Brand description and story",
     }),
     defineField({
-      name: 'logo',
-      title: 'Logo',
-      type: 'image',
-      description: 'Brand logo image',
+      name: "logo",
+      title: "Logo",
+      type: "image",
+      description: "Brand logo image",
       options: {
         hotspot: true,
       },
@@ -42,8 +42,8 @@ export const brand = defineType({
   ],
   preview: {
     select: {
-      title: 'title',
-      media: 'logo',
+      title: "title",
+      media: "logo",
     },
   },
-})
+});

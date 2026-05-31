@@ -1,33 +1,34 @@
-import {defineField, defineType} from 'sanity'
-import {SERVICE_ICON_OPTIONS} from '../serviceIconMeta'
+import { defineField, defineType } from "sanity";
+
+import { SERVICE_ICON_OPTIONS } from "../serviceIconMeta";
 
 export const statRowType = defineType({
-  name: 'statRow',
-  title: 'Stat',
-  type: 'object',
+  name: "statRow",
+  title: "Stat",
+  type: "object",
   fields: [
     defineField({
-      name: 'name',
-      type: 'string',
-      title: 'Label',
+      name: "name",
+      type: "string",
+      title: "Label",
       validation: (r) => r.required(),
     }),
     defineField({
-      name: 'value',
-      type: 'string',
-      title: 'Value',
+      name: "value",
+      type: "string",
+      title: "Value",
       validation: (r) => r.required(),
     }),
     defineField({
-      name: 'icon',
-      type: 'string',
-      title: 'Icon (Iconoir)',
+      name: "icon",
+      type: "string",
+      title: "Icon (Iconoir)",
       options: {
         list: [...SERVICE_ICON_OPTIONS],
-        layout: 'dropdown',
+        layout: "dropdown",
       },
-      initialValue: 'home',
+      initialValue: "home",
       validation: (r) => r.required(),
     }),
   ],
-})
+});

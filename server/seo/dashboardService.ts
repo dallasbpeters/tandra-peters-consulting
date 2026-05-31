@@ -1,7 +1,8 @@
-import { createClient } from "@sanity/client";
 import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@sanity/client";
 import groq from "groq";
 import fs from "node:fs/promises";
+
 import { plainTextFromRich } from "../../src/portableText/plainText.js";
 
 type SeoAuditStatus = "good" | "warning" | "critical";
@@ -259,8 +260,7 @@ const parseNumber = (value: unknown): number => {
   return 0;
 };
 
-const clampScore = (score: number): number =>
-  Math.max(0, Math.min(100, Math.round(score)));
+const clampScore = (score: number): number => Math.max(0, Math.min(100, Math.round(score)));
 
 const scoreToStatus = (score: number): SeoAuditStatus => {
   if (score < 60) {
@@ -348,20 +348,10 @@ const countHeadings = (blocks: PortableTextBlockLike[]): number =>
   }).length;
 
 const countListItems = (blocks: PortableTextBlockLike[]): number =>
-  blocks.filter(
-    (block) => typeof block.listItem === "string" && block.listItem.length > 0,
-  ).length;
+  blocks.filter((block) => typeof block.listItem === "string" && block.listItem.length > 0).length;
 
-const getHrefType = (
-  href: string,
-  siteUrl: string,
-): "internal" | "external" | "ignore" => {
-  if (
-    !href ||
-    href.startsWith("#") ||
-    href.startsWith("mailto:") ||
-    href.startsWith("tel:")
-  ) {
+const getHrefType = (href: string, siteUrl: string): "internal" | "external" | "ignore" => {
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
     return "ignore";
   }
 
@@ -408,8 +398,7 @@ const countLinks = (
 
     const children = Array.isArray(block.children)
       ? block.children.filter(
-          (child): child is PortableTextChild =>
-            typeof child === "object" && child !== null,
+          (child): child is PortableTextChild => typeof child === "object" && child !== null,
         )
       : [];
 
@@ -420,10 +409,7 @@ const countLinks = (
       const hrefs = new Set(
         marks
           .map((mark) => linkMarkDefs.get(mark))
-          .filter(
-            (href): href is string =>
-              typeof href === "string" && href.length > 0,
-          ),
+          .filter((href): href is string => typeof href === "string" && href.length > 0),
       );
 
       for (const href of hrefs) {
@@ -440,16 +426,13 @@ const countLinks = (
   return { internalLinks, externalLinks };
 };
 
-const formatArticlePath = (slug: string | null | undefined): string =>
-  `/articles/${trim(slug)}`;
+const formatArticlePath = (slug: string | null | undefined): string => `/articles/${trim(slug)}`;
 
 const getPosthogPersonalApiKey = (): string =>
-  trim(process.env.POSTHOG_PERSONAL_API_KEY) ||
-  trim(process.env.POSTHOG_PERSONALAPI_KEY);
+  trim(process.env.POSTHOG_PERSONAL_API_KEY) || trim(process.env.POSTHOG_PERSONALAPI_KEY);
 
 const hasPosthogConfig = (): boolean =>
-  getPosthogPersonalApiKey().length > 0 &&
-  trim(process.env.POSTHOG_PROJECT_ID).length > 0;
+  getPosthogPersonalApiKey().length > 0 && trim(process.env.POSTHOG_PROJECT_ID).length > 0;
 
 const getSiteUrl = (): string =>
   trim(process.env.VITE_SITE_URL).replace(/\/$/, "") || DEFAULT_SITE_URL;
@@ -474,9 +457,7 @@ const buildCurrentUrlFilter = (siteUrl: string): string => {
     `lower(toString(properties.$current_url)) LIKE 'https://${hostname}%'`,
     `lower(toString(properties.$current_url)) LIKE 'http://${hostname}%'`,
   ]);
-  return clauses.length > 1
-    ? `(${clauses.join(" OR ")})`
-    : (clauses[0] ?? "1 = 0");
+  return clauses.length > 1 ? `(${clauses.join(" OR ")})` : (clauses[0] ?? "1 = 0");
 };
 
 const getPosthogHost = (): string => {
@@ -485,18 +466,12 @@ const getPosthogHost = (): string => {
     return direct;
   }
 
-  const uiHost = trim(process.env.VITE_PUBLIC_POSTHOG_UI_HOST).replace(
-    /\/$/,
-    "",
-  );
+  const uiHost = trim(process.env.VITE_PUBLIC_POSTHOG_UI_HOST).replace(/\/$/, "");
   if (uiHost) {
     return uiHost;
   }
 
-  const ingestion = trim(process.env.VITE_PUBLIC_POSTHOG_HOST).replace(
-    /\/$/,
-    "",
-  );
+  const ingestion = trim(process.env.VITE_PUBLIC_POSTHOG_HOST).replace(/\/$/, "");
   if (/^https:\/\/us\.i\.posthog\.com$/i.test(ingestion)) {
     return "https://us.posthog.com";
   }
@@ -521,9 +496,7 @@ const daysSince = (iso: string | null | undefined): number | null => {
 const getPostFreshnessDate = (post: PostRecord): string | null | undefined =>
   post._updatedAt ?? post._createdAt ?? post.publishedAt;
 
-const toObjectRows = <T extends Record<string, unknown>>(
-  payload: unknown,
-): T[] => {
+const toObjectRows = <T extends Record<string, unknown>>(payload: unknown): T[] => {
   if (!payload || typeof payload !== "object") {
     return [];
   }
@@ -542,11 +515,7 @@ const toObjectRows = <T extends Record<string, unknown>>(
     return [];
   }
 
-  if (
-    typeof results[0] === "object" &&
-    results[0] !== null &&
-    !Array.isArray(results[0])
-  ) {
+  if (typeof results[0] === "object" && results[0] !== null && !Array.isArray(results[0])) {
     return results as T[];
   }
 
@@ -554,19 +523,14 @@ const toObjectRows = <T extends Record<string, unknown>>(
     const keys = columns.map((column) => String(column));
     return results.map((row) => {
       const values = Array.isArray(row) ? row : [];
-      return Object.fromEntries(
-        keys.map((key, index) => [key, values[index]]),
-      ) as T;
+      return Object.fromEntries(keys.map((key, index) => [key, values[index]])) as T;
     });
   }
 
   return [];
 };
 
-const normalizePath = (
-  rawUrl: string | null | undefined,
-  siteUrl: string,
-): string => {
+const normalizePath = (rawUrl: string | null | undefined, siteUrl: string): string => {
   const value = trim(rawUrl);
   if (!value) {
     return "/";
@@ -575,9 +539,7 @@ const normalizePath = (
   try {
     const site = new URL(siteUrl);
     const allowedHosts = new Set(getAnalyticsHostnames(siteUrl));
-    const url = value.startsWith("http")
-      ? new URL(value)
-      : new URL(value, site.origin);
+    const url = value.startsWith("http") ? new URL(value) : new URL(value, site.origin);
     const path = `${url.pathname}${url.search ? "" : ""}`;
     if (allowedHosts.has(url.hostname.toLowerCase())) {
       return path || "/";
@@ -637,58 +599,51 @@ const fetchSanityContent = async (): Promise<SanityDashboardQuery> => {
   };
 };
 
-const fetchSavedDashboardSnapshot =
-  async (): Promise<SeoDashboardPayload | null> => {
-    const client = buildSanityClient(false);
-    const snapshot = await client.fetch<SeoDashboardSnapshotDocument | null>(
-      DASHBOARD_SNAPSHOT_QUERY,
-    );
-    const rawPayload =
-      typeof snapshot?.snapshotPayload === "string"
-        ? snapshot.snapshotPayload.trim()
-        : "";
-    if (!rawPayload) {
+const fetchSavedDashboardSnapshot = async (): Promise<SeoDashboardPayload | null> => {
+  const client = buildSanityClient(false);
+  const snapshot = await client.fetch<SeoDashboardSnapshotDocument | null>(
+    DASHBOARD_SNAPSHOT_QUERY,
+  );
+  const rawPayload =
+    typeof snapshot?.snapshotPayload === "string" ? snapshot.snapshotPayload.trim() : "";
+  if (!rawPayload) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(rawPayload) as SeoDashboardPayload;
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      !payload.generatedAt ||
+      !payload.sourceStatus ||
+      !payload.analytics ||
+      !Array.isArray(payload.recommendations) ||
+      !Array.isArray(payload.opportunities)
+    ) {
       return null;
     }
 
-    try {
-      const payload = JSON.parse(rawPayload) as SeoDashboardPayload;
-      if (
-        !payload ||
-        typeof payload !== "object" ||
-        !payload.generatedAt ||
-        !payload.sourceStatus ||
-        !payload.analytics ||
-        !Array.isArray(payload.recommendations) ||
-        !Array.isArray(payload.opportunities)
-      ) {
-        return null;
-      }
-
-      return {
-        ...payload,
-        sourceStatus: {
-          ...payload.sourceStatus,
-          notes: [
-            `Loaded cached dashboard snapshot from ${formatSnapshotTimestamp(snapshot?.lastGeneratedAt || payload.generatedAt)}. Use Regenerate snapshot to refresh metrics and AI recommendations.`,
-            ...payload.sourceStatus.notes.filter(
-              (note) =>
-                !note.startsWith("Loaded cached dashboard snapshot from "),
-            ),
-          ],
-        },
-      };
-    } catch {
-      return null;
-    }
-  };
+    return {
+      ...payload,
+      sourceStatus: {
+        ...payload.sourceStatus,
+        notes: [
+          `Loaded cached dashboard snapshot from ${formatSnapshotTimestamp(snapshot?.lastGeneratedAt || payload.generatedAt)}. Use Regenerate snapshot to refresh metrics and AI recommendations.`,
+          ...payload.sourceStatus.notes.filter(
+            (note) => !note.startsWith("Loaded cached dashboard snapshot from "),
+          ),
+        ],
+      },
+    };
+  } catch {
+    return null;
+  }
+};
 
 const readIndexHtml = async (): Promise<string> => {
   try {
-    return await fs.readFile(
-      new URL("../../index.html", import.meta.url),
-      "utf8",
-    );
+    return await fs.readFile(new URL("../../index.html", import.meta.url), "utf8");
   } catch {
     return "";
   }
@@ -718,9 +673,7 @@ const sanitizeImpact = (value: unknown): "high" | "medium" | "low" => {
   return "medium";
 };
 
-const sanitizeOpportunityType = (
-  value: unknown,
-): "fix" | "refresh" | "new-content" => {
+const sanitizeOpportunityType = (value: unknown): "fix" | "refresh" | "new-content" => {
   if (value === "fix" || value === "refresh" || value === "new-content") {
     return value;
   }
@@ -820,12 +773,8 @@ const sanitizeAiOpportunities = (value: unknown): SeoOpportunity[] => {
   return opportunities;
 };
 
-const cleanStringList = (
-  value: (string | null)[] | null | undefined,
-): string[] =>
-  Array.isArray(value)
-    ? value.map((item) => cleanText(item)).filter(Boolean)
-    : [];
+const cleanStringList = (value: (string | null)[] | null | undefined): string[] =>
+  Array.isArray(value) ? value.map((item) => cleanText(item)).filter(Boolean) : [];
 
 const persistDashboardSnapshot = async (args: {
   payload: SeoDashboardPayload;
@@ -922,14 +871,10 @@ const generateAiInsights = async (args: {
     aiContext: args.aiContext
       ? {
           instructions: cleanText(args.aiContext.instructions),
-          businessPriorities: cleanStringList(
-            args.aiContext.businessPriorities,
-          ),
+          businessPriorities: cleanStringList(args.aiContext.businessPriorities),
           guardrails: cleanStringList(args.aiContext.guardrails),
           targetKeywords: cleanStringList(args.aiContext.targetKeywords),
-          preferredInternalLinks: cleanStringList(
-            args.aiContext.preferredInternalLinks,
-          ),
+          preferredInternalLinks: cleanStringList(args.aiContext.preferredInternalLinks),
         }
       : null,
   };
@@ -1017,30 +962,25 @@ const fetchPosthogRows = async <T extends Record<string, unknown>>(
     return [];
   }
 
-  const response = await fetch(
-    `${getPosthogHost()}/api/projects/${projectId}/query/`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${personalApiKey}`,
-      },
-      body: JSON.stringify({
-        query: {
-          kind: "HogQLQuery",
-          query: sql,
-        },
-        name,
-        refresh: "force_blocking",
-      }),
+  const response = await fetch(`${getPosthogHost()}/api/projects/${projectId}/query/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${personalApiKey}`,
     },
-  );
+    body: JSON.stringify({
+      query: {
+        kind: "HogQLQuery",
+        query: sql,
+      },
+      name,
+      refresh: "force_blocking",
+    }),
+  });
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(
-      `PostHog query failed (${response.status}): ${body.slice(0, 240)}`,
-    );
+    throw new Error(`PostHog query failed (${response.status}): ${body.slice(0, 240)}`);
   }
 
   return toObjectRows<T>(await response.json());
@@ -1069,10 +1009,9 @@ const buildAnalytics = async (siteUrl: string) => {
 
   try {
     const currentUrlFilter = buildCurrentUrlFilter(siteUrl);
-    const [overviewRows, deltaRows, dailyRows, topPageRows] = await Promise.all(
-      [
-        fetchPosthogRows<PosthogOverviewRow>(
-          `
+    const [overviewRows, deltaRows, dailyRows, topPageRows] = await Promise.all([
+      fetchPosthogRows<PosthogOverviewRow>(
+        `
         SELECT
           countIf(event = '$pageview') AS pageviews_7d,
           uniqIf(distinct_id, event = '$pageview') AS visitors_7d,
@@ -1082,10 +1021,10 @@ const buildAnalytics = async (siteUrl: string) => {
         WHERE timestamp >= now() - INTERVAL 7 DAY
           AND ${currentUrlFilter}
         `,
-          "seo_dashboard_overview_last_7d",
-        ),
-        fetchPosthogRows<PosthogDeltaRow>(
-          `
+        "seo_dashboard_overview_last_7d",
+      ),
+      fetchPosthogRows<PosthogDeltaRow>(
+        `
         SELECT
           countIf(event = '$pageview') AS pageviews_prev_7d,
           countIf(event = 'contact_form_submitted') AS leads_prev_7d
@@ -1094,10 +1033,10 @@ const buildAnalytics = async (siteUrl: string) => {
           AND timestamp < now() - INTERVAL 7 DAY
           AND ${currentUrlFilter}
         `,
-          "seo_dashboard_previous_window",
-        ),
-        fetchPosthogRows<PosthogDailyRow>(
-          `
+        "seo_dashboard_previous_window",
+      ),
+      fetchPosthogRows<PosthogDailyRow>(
+        `
         SELECT
           toString(toDate(timestamp)) AS day,
           count() AS pageviews
@@ -1108,10 +1047,10 @@ const buildAnalytics = async (siteUrl: string) => {
         GROUP BY day
         ORDER BY day ASC
         `,
-          "seo_dashboard_daily_pageviews",
-        ),
-        fetchPosthogRows<PosthogTopPageRow>(
-          `
+        "seo_dashboard_daily_pageviews",
+      ),
+      fetchPosthogRows<PosthogTopPageRow>(
+        `
         SELECT
           properties.$current_url AS url,
           count() AS pageviews
@@ -1124,10 +1063,9 @@ const buildAnalytics = async (siteUrl: string) => {
         ORDER BY pageviews DESC
         LIMIT 8
         `,
-          "seo_dashboard_top_pages",
-        ),
-      ],
-    );
+        "seo_dashboard_top_pages",
+      ),
+    ]);
 
     const overview = overviewRows[0] ?? {};
     const delta = deltaRows[0] ?? {};
@@ -1141,11 +1079,8 @@ const buildAnalytics = async (siteUrl: string) => {
       visitors7d: parseNumber(overview.visitors_7d),
       leads7d: parseNumber(overview.leads_7d),
       ctaClicks7d: parseNumber(overview.cta_clicks_7d),
-      deltaPageviews:
-        parseNumber(overview.pageviews_7d) -
-        parseNumber(delta.pageviews_prev_7d),
-      deltaLeads:
-        parseNumber(overview.leads_7d) - parseNumber(delta.leads_prev_7d),
+      deltaPageviews: parseNumber(overview.pageviews_7d) - parseNumber(delta.pageviews_prev_7d),
+      deltaLeads: parseNumber(overview.leads_7d) - parseNumber(delta.leads_prev_7d),
       topPages: aggregateTopPages(
         topPageRows
           .map((row) => ({
@@ -1193,10 +1128,7 @@ const buildContentAnalysis = (args: {
   const wordCount = countWords(args.post.body);
   const headingCount = countHeadings(blocks);
   const listCount = countListItems(blocks);
-  const { internalLinks, externalLinks } = countLinks(
-    args.post.body,
-    args.siteUrl,
-  );
+  const { internalLinks, externalLinks } = countLinks(args.post.body, args.siteUrl);
   const excerptLength = trim(args.post.excerpt).length;
   const seoDescriptionLength = trim(args.post.seoDescription).length;
   const titleLength = trim(args.post.title).length;
@@ -1215,9 +1147,7 @@ const buildContentAnalysis = (args: {
   } else if (wordCount < 800) {
     score -= 10;
     issues.push(`Body is only ${wordCount} words, which limits topical depth.`);
-    actions.push(
-      "Add one or two more sections so the article covers the topic more completely.",
-    );
+    actions.push("Add one or two more sections so the article covers the topic more completely.");
   }
 
   if (headingCount === 0) {
@@ -1228,21 +1158,15 @@ const buildContentAnalysis = (args: {
     );
   } else if (wordCount >= 700 && headingCount < 2) {
     score -= 6;
-    issues.push(
-      `Body has ${headingCount} subhead for ${wordCount} words of copy.`,
-    );
-    actions.push(
-      "Add another H2 or H3 so the article structure is easier to follow.",
-    );
+    issues.push(`Body has ${headingCount} subhead for ${wordCount} words of copy.`);
+    actions.push("Add another H2 or H3 so the article structure is easier to follow.");
   }
 
   if (internalLinks === 0) {
     score -= 12;
     issues.push("Body has no internal links to related site content.");
     const relatedTargets = args.siblingPosts
-      .filter(
-        (post) => post._id !== args.post._id && trim(post.slug).length > 0,
-      )
+      .filter((post) => post._id !== args.post._id && trim(post.slug).length > 0)
       .slice(0, 2)
       .map((post) => `"${trim(post.title) || formatArticlePath(post.slug)}"`)
       .join(" and ");
@@ -1270,31 +1194,23 @@ const buildContentAnalysis = (args: {
   if (!trim(args.post.excerpt)) {
     score -= 12;
     issues.push("Article excerpt is missing.");
-    actions.push(
-      "Add a 1-2 sentence excerpt for cards, shares, and listing views.",
-    );
+    actions.push("Add a 1-2 sentence excerpt for cards, shares, and listing views.");
   } else if (excerptLength < 110) {
     score -= 5;
     issues.push(`Excerpt is only ${excerptLength} characters.`);
-    actions.push(
-      "Lengthen the excerpt so article cards explain the value of clicking through.",
-    );
+    actions.push("Lengthen the excerpt so article cards explain the value of clicking through.");
   }
 
   if (!trim(args.post.image)) {
     score -= 10;
     issues.push("Lead image is missing.");
-    actions.push(
-      "Upload a lead image so article cards and social shares look complete.",
-    );
+    actions.push("Upload a lead image so article cards and social shares look complete.");
   }
 
   if (!trim(args.post.authorName)) {
     score -= 6;
     issues.push("Author name is missing.");
-    actions.push(
-      "Add the author name so the article carries a clearer byline.",
-    );
+    actions.push("Add the author name so the article carries a clearer byline.");
   }
 
   const age = daysSince(getPostFreshnessDate(args.post));
@@ -1315,8 +1231,7 @@ const buildContentAnalysis = (args: {
     path: formatArticlePath(args.post.slug),
     title: trim(args.post.title) || "Untitled article",
     categoryLabel:
-      (CATEGORY_LABELS[trim(args.post.category)] ??
-        trim(args.post.category).replace(/-/g, " ")) ||
+      (CATEGORY_LABELS[trim(args.post.category)] ?? trim(args.post.category).replace(/-/g, " ")) ||
       "Uncategorized",
     score: clampScore(score),
     status: scoreToStatus(score),
@@ -1358,12 +1273,8 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   const missingSeoDescription = posts.filter(
     (post) => trim(post.seoDescription).length === 0,
   ).length;
-  const missingExcerpt = posts.filter(
-    (post) => trim(post.excerpt).length === 0,
-  ).length;
-  const missingImage = posts.filter(
-    (post) => trim(post.image).length === 0,
-  ).length;
+  const missingExcerpt = posts.filter((post) => trim(post.excerpt).length === 0).length;
+  const missingImage = posts.filter((post) => trim(post.image).length === 0).length;
   const stalePosts = posts.filter((post) => {
     const age = daysSince(getPostFreshnessDate(post));
     return age !== null && age > 180;
@@ -1405,18 +1316,13 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
       buildContentAnalysis({
         post,
         siteUrl,
-        siblingPosts:
-          postsByCategory.get(trim(post.category) || "uncategorized") ?? [],
+        siblingPosts: postsByCategory.get(trim(post.category) || "uncategorized") ?? [],
       }),
     )
     .sort((a, b) => a.score - b.score);
 
-  const thinContentPosts = contentAnalyses.filter(
-    (post) => post.wordCount < 800,
-  );
-  const postsWithoutInternalLinks = contentAnalyses.filter(
-    (post) => post.internalLinks === 0,
-  );
+  const thinContentPosts = contentAnalyses.filter((post) => post.wordCount < 800);
+  const postsWithoutInternalLinks = contentAnalyses.filter((post) => post.internalLinks === 0);
   const postsWithWeakStructure = contentAnalyses.filter((post) => {
     if (post.wordCount >= 700) {
       return post.headingCount < 2;
@@ -1432,11 +1338,8 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
           ((publishedPosts - missingImage) / publishedPosts) * 12 +
           ((publishedPosts - stalePosts.length) / publishedPosts) * 10 +
           ((publishedPosts - thinContentPosts.length) / publishedPosts) * 18 +
-          ((publishedPosts - postsWithoutInternalLinks.length) /
-            publishedPosts) *
-            10 +
-          ((publishedPosts - postsWithWeakStructure.length) / publishedPosts) *
-            8,
+          ((publishedPosts - postsWithoutInternalLinks.length) / publishedPosts) * 10 +
+          ((publishedPosts - postsWithWeakStructure.length) / publishedPosts) * 8,
   );
 
   const shellChecks = {
@@ -1449,33 +1352,21 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   const globalIssues: string[] = [];
   const globalActions: string[] = [];
   if (!shellChecks.hasCanonical) {
-    globalIssues.push(
-      "Canonical link tag is missing from the static document shell.",
-    );
+    globalIssues.push("Canonical link tag is missing from the static document shell.");
     globalActions.push(
       "Add a canonical tag in index.html so every entry point has a stable default URL.",
     );
   }
   if (!shellChecks.hasOgImage) {
-    globalIssues.push(
-      "Open Graph image tag is missing from the static document shell.",
-    );
-    globalActions.push(
-      "Add an og:image tag that points at a branded social card.",
-    );
+    globalIssues.push("Open Graph image tag is missing from the static document shell.");
+    globalActions.push("Add an og:image tag that points at a branded social card.");
   }
   if (!shellChecks.hasTwitterImage) {
-    globalIssues.push(
-      "Twitter image tag is missing from the static document shell.",
-    );
-    globalActions.push(
-      "Add twitter:image so X shares use the same branded image.",
-    );
+    globalIssues.push("Twitter image tag is missing from the static document shell.");
+    globalActions.push("Add twitter:image so X shares use the same branded image.");
   }
   if (!shellChecks.hasFbAppId) {
-    globalIssues.push(
-      "Facebook app id is missing from the static document shell.",
-    );
+    globalIssues.push("Facebook app id is missing from the static document shell.");
     globalActions.push(
       "Add fb:app_id in index.html for cleaner Facebook debugging and attribution.",
     );
@@ -1485,12 +1376,9 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   const homeActions: string[] = [];
   const hero = contentData.homePage?.hero;
   const hasHomeSeoTitle = trim(contentData.homePage?.seoTitle).length > 0;
-  const hasHomeSeoDescription =
-    trim(contentData.homePage?.seoDescription).length > 0;
-  const hasHeroHeading =
-    trim(hero?.titleLine1).length > 0 || trim(hero?.titleLine2).length > 0;
-  const hasHeroSupport =
-    trim(hero?.badge).length > 0 || hasPortableTextContent(hero?.subtitle);
+  const hasHomeSeoDescription = trim(contentData.homePage?.seoDescription).length > 0;
+  const hasHeroHeading = trim(hero?.titleLine1).length > 0 || trim(hero?.titleLine2).length > 0;
+  const hasHeroSupport = trim(hero?.badge).length > 0 || hasPortableTextContent(hero?.subtitle);
 
   if (!hasHomeSeoTitle) {
     homeIssues.push("Homepage SEO title is missing.");
@@ -1558,24 +1446,18 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
       title: "Global meta shell",
       score: clampScore(100 - globalIssues.length * 18),
       issues:
-        globalIssues.length > 0
-          ? globalIssues
-          : ["Static social and canonical tags are present."],
+        globalIssues.length > 0 ? globalIssues : ["Static social and canonical tags are present."],
       actions:
         globalActions.length > 0
           ? globalActions
-          : [
-              "Keep the current shell tags in sync with any future branding changes.",
-            ],
+          : ["Keep the current shell tags in sync with any future branding changes."],
     }),
     buildAudit({
       path: "/",
       title: "Homepage",
       score: clampScore(100 - homeIssues.length * 18),
       issues:
-        homeIssues.length > 0
-          ? homeIssues
-          : ["Homepage metadata and hero content are populated."],
+        homeIssues.length > 0 ? homeIssues : ["Homepage metadata and hero content are populated."],
       actions:
         homeActions.length > 0
           ? homeActions
@@ -1592,9 +1474,7 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
       actions:
         articlesActions.length > 0
           ? articlesActions
-          : [
-              "Keep category coverage balanced so the hub serves multiple search intents.",
-            ],
+          : ["Keep category coverage balanced so the hub serves multiple search intents."],
     }),
     ...postAudits,
   ];
@@ -1656,14 +1536,11 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
     overview: {
       technicalScore,
       contentScore,
-      opportunities:
-        aiInsights.opportunities.length + aiInsights.recommendations.length,
+      opportunities: aiInsights.opportunities.length + aiInsights.recommendations.length,
       totalPages: publishedPosts + 5,
       totalPublishedPosts: publishedPosts,
-      criticalIssues: audits.filter((audit) => audit.status === "critical")
-        .length,
-      warningIssues: audits.filter((audit) => audit.status === "warning")
-        .length,
+      criticalIssues: audits.filter((audit) => audit.status === "critical").length,
+      warningIssues: audits.filter((audit) => audit.status === "warning").length,
     },
     analytics,
     content: contentSnapshot,

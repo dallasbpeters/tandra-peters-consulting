@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PlayerRef } from "@remotion/player";
-import type { TandraIntroContent } from "../remotion/tandraIntroContent";
-import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
+
 import { motion, useInView, type Variants } from "motion/react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
+
+import type { TandraIntroContent } from "../remotion/tandraIntroContent";
+
 import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
 
@@ -35,18 +38,13 @@ const mediaSurfaceStyle: React.CSSProperties = {
   zIndex: 10,
 };
 
-export function FeaturedVideoSection({
-  videoUrl,
-  posterUrl,
-  introContent,
-}: Props) {
+export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Props) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playerRef = useRef<PlayerRef | null>(null);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
-  const [hideControlsUntilMouseLeave, setHideControlsUntilMouseLeave] =
-    useState(false);
+  const [hideControlsUntilMouseLeave, setHideControlsUntilMouseLeave] = useState(false);
   const isInView = useInView(sectionRef, { once: true, amount: 0.45 });
   const showRemotionPlayer = Boolean(introContent);
   const introContentKey = useMemo(
@@ -74,8 +72,7 @@ export function FeaturedVideoSection({
     }
   }, [isMobileDevice]);
 
-  const shouldShowControls =
-    isMobileDevice || (isHoveringVideo && !hideControlsUntilMouseLeave);
+  const shouldShowControls = isMobileDevice || (isHoveringVideo && !hideControlsUntilMouseLeave);
 
   const videoVariants: Variants = {
     offscreen: {

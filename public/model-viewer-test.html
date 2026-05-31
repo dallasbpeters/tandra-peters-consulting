@@ -195,18 +195,10 @@
           >
             Cutaway
           </button>
-          <button
-            data-orbit="-10deg 88deg 55%"
-            data-target="0m -0.4m 0m"
-            data-fov="22deg"
-          >
+          <button data-orbit="-10deg 88deg 55%" data-target="0m -0.4m 0m" data-fov="22deg">
             Eave
           </button>
-          <button
-            data-orbit="160deg 45deg 50%"
-            data-target="0m 0.4m 0m"
-            data-fov="20deg"
-          >
+          <button data-orbit="160deg 45deg 50%" data-target="0m 0.4m 0m" data-fov="20deg">
             Penetration
           </button>
         </div>
@@ -238,9 +230,7 @@
       const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
       log(
         "[WebGL]",
-        gl
-          ? "available (" + gl.constructor.name + ")"
-          : "NOT AVAILABLE — this is the problem",
+        gl ? "available (" + gl.constructor.name + ")" : "NOT AVAILABLE — this is the problem",
       );
 
       // ── Fetch check: can the page reach roof.glb? ──
@@ -248,14 +238,7 @@
       const glbUrl = "http://localhost:3000/roof.glb";
       fetch(glbUrl, { method: "HEAD" })
         .then((r) =>
-          log(
-            "[fetch]",
-            glbUrl,
-            "→",
-            r.status,
-            r.headers.get("content-length") ?? "?",
-            "bytes",
-          ),
+          log("[fetch]", glbUrl, "→", r.status, r.headers.get("content-length") ?? "?", "bytes"),
         )
         .catch((e) => log("[fetch] FAILED:", e.message));
 
@@ -292,9 +275,7 @@
       // ── Toolbar ──
       document.querySelectorAll("#toolbar button").forEach((btn) => {
         btn.addEventListener("click", () => {
-          document
-            .querySelectorAll("#toolbar button")
-            .forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll("#toolbar button").forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           mvR.setAttribute("camera-orbit", btn.dataset.orbit);
           mvR.setAttribute("camera-target", btn.dataset.target);

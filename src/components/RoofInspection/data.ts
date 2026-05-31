@@ -107,8 +107,7 @@ export const CHAPTERS: Chapter[] = [
     callout: {
       title: "Drip edge",
       body: "The L-shaped metal that runs along the eave and rakes, kicking water away from the fascia into the gutter. Code in Texas. Skipped on more cheap re-roofs than I'd like to count.",
-      watchFor:
-        "Stain lines on the fascia board below — water's been running where it shouldn't.",
+      watchFor: "Stain lines on the fascia board below — water's been running where it shouldn't.",
     },
   },
   {

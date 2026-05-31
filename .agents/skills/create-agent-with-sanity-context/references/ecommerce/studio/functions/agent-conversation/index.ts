@@ -1,38 +1,38 @@
-import {anthropic} from '@ai-sdk/anthropic'
-import {createClient} from '@sanity/client'
-import {documentEventHandler} from '@sanity/functions'
-import {generateText, Output} from 'ai'
-import {z} from 'zod'
+import { anthropic } from "@ai-sdk/anthropic";
+import { createClient } from "@sanity/client";
+import { documentEventHandler } from "@sanity/functions";
+import { generateText, Output } from "ai";
+import { z } from "zod";
 
 const classificationSchema = z.object({
   summary: z
     .string()
     .describe(
-      'A brief factual summary of what the user asked for. Just state the request, no judgment or commentary.',
+      "A brief factual summary of what the user asked for. Just state the request, no judgment or commentary.",
     ),
   successRate: z
     .number()
     .describe(
-      '0-100 score: Did the conversation achieve its goal? 100 = user got exactly what they needed, 50 = partially helped, 0 = complete failure.',
+      "0-100 score: Did the conversation achieve its goal? 100 = user got exactly what they needed, 50 = partially helped, 0 = complete failure.",
     ),
   agentConfusion: z
     .number()
     .describe(
-      '0-100 score: How much did the agent struggle to respond helpfully? 0 = responded confidently (even if redirecting off-topic questions), 100 = completely lost or gave wrong info. Note: gracefully handling off-topic questions is NOT confusion.',
+      "0-100 score: How much did the agent struggle to respond helpfully? 0 = responded confidently (even if redirecting off-topic questions), 100 = completely lost or gave wrong info. Note: gracefully handling off-topic questions is NOT confusion.",
     ),
   userConfusion: z
     .number()
     .describe(
-      '0-100 score: How unclear was the user request? 0 = crystal clear, 100 = completely incomprehensible',
+      "0-100 score: How unclear was the user request? 0 = crystal clear, 100 = completely incomprehensible",
     ),
-  contentGap: z.string().describe('Content that the agent could not find').optional(),
-})
+  contentGap: z.string().describe("Content that the agent could not find").optional(),
+});
 
-type ConversationClassification = z.infer<typeof classificationSchema>
+type ConversationClassification = z.infer<typeof classificationSchema>;
 
 interface ConversationMessage {
-  role: string
-  content: string
+  role: string;
+  content: string;
 }
 
 /**
@@ -42,13 +42,13 @@ async function classifyMessages(
   messages: ConversationMessage[],
 ): Promise<ConversationClassification | null> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('ANTHROPIC_API_KEY not set, skipping classification')
-    return null
+    console.error("ANTHROPIC_API_KEY not set, skipping classification");
+    return null;
   }
 
   try {
-    const {output} = await generateText({
-      model: anthropic('claude-haiku-4-5'),
+    const { output } = await generateText({
+      model: anthropic("claude-haiku-4-5"),
       output: Output.object({
         schema: classificationSchema,
       }),
@@ -67,28 +67,28 @@ Also determine:
 <conversation>
 ${JSON.stringify(messages, null, 2)}
 </conversation>`,
-    })
+    });
 
-    return output ?? null
+    return output ?? null;
   } catch (error) {
-    console.error('Classification failed:', error)
-    return null
+    console.error("Classification failed:", error);
+    return null;
   }
 }
 
-export const handler = documentEventHandler(async ({context, event}) => {
+export const handler = documentEventHandler(async ({ context, event }) => {
   const client = createClient({
     ...context.clientOptions,
-    apiVersion: '2026-01-01',
-  })
-  const classification = await classifyMessages(event.data.messages)
+    apiVersion: "2026-01-01",
+  });
+  const classification = await classifyMessages(event.data.messages);
   if (!classification) {
-    console.error('Classification failed')
-    return
+    console.error("Classification failed");
+    return;
   }
   await client
     .patch(event.data._id)
-    .setIfMissing({classification: {}})
+    .setIfMissing({ classification: {} })
     .set({
       classification: {
         successRate: classification.successRate,
@@ -96,7 +96,7 @@ export const handler = documentEventHandler(async ({context, event}) => {
         userConfusion: classification.userConfusion,
       },
     })
-    .set({summary: classification.summary})
-    .set({contentGap: classification.contentGap || undefined})
-    .commit()
-})
+    .set({ summary: classification.summary })
+    .set({ contentGap: classification.contentGap || undefined })
+    .commit();
+});

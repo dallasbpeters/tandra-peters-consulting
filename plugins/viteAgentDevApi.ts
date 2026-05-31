@@ -7,11 +7,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
-const AGENT_PATHS = [
-  "/api/agent",
-  "/api/feature-agent",
-  "/api/marketing-agent",
-] as const;
+const AGENT_PATHS = ["/api/agent", "/api/feature-agent", "/api/marketing-agent"] as const;
 type AgentPath = (typeof AGENT_PATHS)[number];
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
@@ -30,16 +26,13 @@ const setCors = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 };
 
-const pathnameOnly = (url: string | undefined): string =>
-  (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
 
 const isFunctionCallFailure = (message: string): boolean =>
   /failed to call a function|failed_generation/i.test(message);
 
 const isModelAvailabilityFailure = (message: string): boolean =>
-  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(
-    message,
-  );
+  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(message);
 
 const SYSTEM_PROMPTS: Record<AgentPath, string> = {
   "/api/agent": `You are the content drafting assistant for Tandra Peters Consulting — a roofing consulting website serving Austin and Texas homeowners.
@@ -166,9 +159,7 @@ const FALLBACK_MODEL_BY_PATH: Record<AgentPath, string> = {
   "/api/marketing-agent": "llama-3.3-70b-versatile",
 };
 
-const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<
-  Record<AgentPath, Record<string, string>>
-> = {
+const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<Record<AgentPath, Record<string, string>>> = {
   "/api/marketing-agent": { "Groq-Model-Version": "latest" },
 };
 
@@ -246,9 +237,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const mobbinMcpHeaders = {
           "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
-          ...(mobbinMcpToken
-            ? { Authorization: `Bearer ${mobbinMcpToken}` }
-            : {}),
+          ...(mobbinMcpToken ? { Authorization: `Bearer ${mobbinMcpToken}` } : {}),
         };
 
         const callJsonRpc = async (
@@ -272,8 +261,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             result?: unknown;
             error?: { message: string };
           };
-          if (parsed.error)
-            throw new Error(`MCP error: ${parsed.error.message}`);
+          if (parsed.error) throw new Error(`MCP error: ${parsed.error.message}`);
           return parsed.result;
         };
 
@@ -289,15 +277,10 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           mcpTool.name,
           mcpTool,
           async (input: Record<string, unknown>) => {
-            const result = (await callJsonRpc(
-              sanityMcpUrl,
-              sanityMcpHeaders,
-              "tools/call",
-              {
-                name: mcpTool.name,
-                arguments: input,
-              },
-            )) as { content?: Array<{ type: string; text?: string }> };
+            const result = (await callJsonRpc(sanityMcpUrl, sanityMcpHeaders, "tools/call", {
+              name: mcpTool.name,
+              arguments: input,
+            })) as { content?: Array<{ type: string; text?: string }> };
             return (
               result.content
                 ?.filter((c) => c.type === "text")
@@ -322,15 +305,10 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
                 description: `[Mobbin] ${mobbinTool.description}`,
               },
               async (input: Record<string, unknown>) => {
-                const result = (await callJsonRpc(
-                  mobbinMcpUrl,
-                  mobbinMcpHeaders,
-                  "tools/call",
-                  {
-                    name: mobbinTool.name,
-                    arguments: input,
-                  },
-                )) as { content?: Array<{ type: string; text?: string }> };
+                const result = (await callJsonRpc(mobbinMcpUrl, mobbinMcpHeaders, "tools/call", {
+                  name: mobbinTool.name,
+                  arguments: input,
+                })) as { content?: Array<{ type: string; text?: string }> };
                 return (
                   result.content
                     ?.filter((c) => c.type === "text")
@@ -347,9 +325,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             toolName,
             {
               description: mcpTool.description,
-              inputSchema: jsonSchema(
-                mcpTool.inputSchema as Parameters<typeof jsonSchema>[0],
-              ),
+              inputSchema: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
               execute,
             },
           ]),
@@ -367,8 +343,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         let insights: any;
         const writeToken = env.SANITY_WRITE_TOKEN;
         if (writeToken) {
-          const { sanityInsightsIntegration } =
-            await import("@sanity/agent-context/ai-sdk");
+          const { sanityInsightsIntegration } = await import("@sanity/agent-context/ai-sdk");
           const { createClient } = await import("@sanity/client");
           insights = sanityInsightsIntegration({
             client: createClient({
@@ -386,9 +361,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const baseRequest = {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages: body.messages as any,
-          ...(insights
-            ? { experimental_telemetry: { isEnabled: true, ...insights } }
-            : {}),
+          ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
         };
 
         const runWithModel = async (modelId: string) => {
@@ -404,9 +377,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             }));
           } catch (toolError) {
             const toolErrorMessage =
-              toolError instanceof Error
-                ? toolError.message
-                : String(toolError);
+              toolError instanceof Error ? toolError.message : String(toolError);
             if (!isFunctionCallFailure(toolErrorMessage)) {
               throw toolError;
             }
@@ -425,9 +396,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           text = await runWithModel(PRIMARY_MODEL_BY_PATH[pathname]);
         } catch (modelError) {
           const modelErrorMessage =
-            modelError instanceof Error
-              ? modelError.message
-              : String(modelError);
+            modelError instanceof Error ? modelError.message : String(modelError);
           if (!isModelAvailabilityFailure(modelErrorMessage)) {
             throw modelError;
           }

@@ -1,13 +1,6 @@
-import {defineConfig} from 'sanity'
-import {structureTool} from 'sanity/structure'
-import {defineDocuments, defineLocations, presentationTool} from 'sanity/presentation'
-import {visionTool} from '@sanity/vision'
-import {agentContextPlugin} from '@sanity/agent-context/studio'
-import {schemaTypes} from './schemaTypes'
-import {structure} from './structure'
-import {FalImageStudioTool} from './components/FalImageStudioTool'
-import {SanityImageManagerTool} from './components/SanityImageManagerTool'
-import {StarFilledIcon} from '@sanity/icons'
+import type { SanityClient } from "@sanity/client";
+
+import { agentContextPlugin } from "@sanity/agent-context/studio";
 import {
   assist,
   defineAssistFieldAction,
@@ -16,113 +9,122 @@ import {
   isType,
   useUserInput,
   type AssistFieldActionProps,
-} from '@sanity/assist'
-import {useMemo} from 'react'
-import type {SanityClient} from '@sanity/client'
-import {type SchemaType} from 'sanity'
-import {useStudioClient} from './hooks/useStudioClient'
+} from "@sanity/assist";
+import { StarFilledIcon } from "@sanity/icons";
+import { visionTool } from "@sanity/vision";
+import { useMemo } from "react";
+import { defineConfig } from "sanity";
+import { type SchemaType } from "sanity";
+import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
+import { structureTool } from "sanity/structure";
+
+import { FalImageStudioTool } from "./components/FalImageStudioTool";
+import { SanityImageManagerTool } from "./components/SanityImageManagerTool";
+import { useStudioClient } from "./hooks/useStudioClient";
+import { schemaTypes } from "./schemaTypes";
+import { structure } from "./structure";
 
 // @sanity/client's TransformTargetDocument omits _type and initialValues from the
 // createIfNotExists variant in its TypeScript types, but the Sanity API accepts them.
 // Without _type the API cannot create a draft when none exists yet.
 type TransformTargetCreateIfNotExists = {
-  operation: 'createIfNotExists'
-  _id: string
-  _type?: string
+  operation: "createIfNotExists";
+  _id: string;
+  _type?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialValues?: Record<string, any>
-}
+  initialValues?: Record<string, any>;
+};
 
-const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, '')
+const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "");
 const isLocalPreviewOrigin =
-  configuredPreviewOrigin?.startsWith('http://localhost') ||
-  configuredPreviewOrigin?.startsWith('http://127.0.0.1')
+  configuredPreviewOrigin?.startsWith("http://localhost") ||
+  configuredPreviewOrigin?.startsWith("http://127.0.0.1");
 
 const previewOrigin =
-  process.env.NODE_ENV === 'production' && isLocalPreviewOrigin
-    ? 'https://www.tandra.me'
+  process.env.NODE_ENV === "production" && isLocalPreviewOrigin
+    ? "https://www.tandra.me"
     : configuredPreviewOrigin ||
-      (process.env.NODE_ENV === 'production' ? 'https://www.tandra.me' : 'http://localhost:3001')
+      (process.env.NODE_ENV === "production" ? "https://www.tandra.me" : "http://localhost:3001");
 
-const BRAND_TONE_CONTEXT_ID = 'assist-context-brand-tone'
-const CUSTOM_AI_CONTEXT_ID = 'aiContext'
+const BRAND_TONE_CONTEXT_ID = "assist-context-brand-tone";
+const CUSTOM_AI_CONTEXT_ID = "aiContext";
 
 type PortableTextChild = {
-  _type?: string
-  text?: string
-}
+  _type?: string;
+  text?: string;
+};
 
 type PortableTextBlockLike = {
-  _type?: string
-  children?: PortableTextChild[]
-}
+  _type?: string;
+  children?: PortableTextChild[];
+};
 
 type BrandToneContextPayload = {
   assistContext?: {
-    title?: string
-    context?: PortableTextBlockLike[]
-  } | null
+    title?: string;
+    context?: PortableTextBlockLike[];
+  } | null;
   customContext?: {
-    instructions?: string
-    businessPriorities?: string[]
-    guardrails?: string[]
-    targetKeywords?: string[]
-  } | null
-}
+    instructions?: string;
+    businessPriorities?: string[];
+    guardrails?: string[];
+    targetKeywords?: string[];
+  } | null;
+};
 
 const blocksToPlainText = (blocks: PortableTextBlockLike[] | undefined): string => {
   if (!Array.isArray(blocks)) {
-    return ''
+    return "";
   }
   return blocks
     .map((block) =>
       Array.isArray(block.children)
         ? block.children
-            .filter((child) => child?._type === 'span' && typeof child.text === 'string')
+            .filter((child) => child?._type === "span" && typeof child.text === "string")
             .map((child) => child.text?.trim())
             .filter(Boolean)
-            .join('')
-        : '',
+            .join("")
+        : "",
     )
     .filter(Boolean)
-    .join('\n\n')
-    .trim()
-}
+    .join("\n\n")
+    .trim();
+};
 
 const isPortableTextField = (schemaType: SchemaType): boolean => {
-  if (!isType(schemaType, 'array')) {
-    return false
+  if (!isType(schemaType, "array")) {
+    return false;
   }
-  const members = 'of' in schemaType ? schemaType.of : undefined
-  return Array.isArray(members) && members.some((member) => isType(member, 'block'))
-}
+  const members = "of" in schemaType ? schemaType.of : undefined;
+  return Array.isArray(members) && members.some((member) => isType(member, "block"));
+};
 
 const isRewriteableField = (schemaType: SchemaType): boolean => {
   if (
-    isType(schemaType, 'boolean') ||
-    isType(schemaType, 'number') ||
-    isType(schemaType, 'date') ||
-    isType(schemaType, 'datetime') ||
-    isType(schemaType, 'url') ||
-    isType(schemaType, 'email') ||
-    isType(schemaType, 'slug') ||
-    isType(schemaType, 'reference') ||
-    isType(schemaType, 'crossDatasetReference') ||
-    isType(schemaType, 'image') ||
-    isType(schemaType, 'file') ||
-    isType(schemaType, 'geopoint')
+    isType(schemaType, "boolean") ||
+    isType(schemaType, "number") ||
+    isType(schemaType, "date") ||
+    isType(schemaType, "datetime") ||
+    isType(schemaType, "url") ||
+    isType(schemaType, "email") ||
+    isType(schemaType, "slug") ||
+    isType(schemaType, "reference") ||
+    isType(schemaType, "crossDatasetReference") ||
+    isType(schemaType, "image") ||
+    isType(schemaType, "file") ||
+    isType(schemaType, "geopoint")
   ) {
-    return false
+    return false;
   }
 
   return (
-    isType(schemaType, 'string') ||
-    isType(schemaType, 'text') ||
+    isType(schemaType, "string") ||
+    isType(schemaType, "text") ||
     isPortableTextField(schemaType) ||
-    isType(schemaType, 'object') ||
-    isType(schemaType, 'array')
-  )
-}
+    isType(schemaType, "object") ||
+    isType(schemaType, "array")
+  );
+};
 
 const buildDocumentRewriteInstruction = (goal: string) =>
   `
@@ -142,7 +144,7 @@ Rules:
 - Avoid cold, corporate, or overly mechanical positioning. Do not use phrases like "Architectural Advisor" unless the editor explicitly asks for them.
 - Use the most natural point of view for the content. Do not force first-person, third-person, or any other perspective if it makes the copy feel unnatural.
 - If the target includes multiple fields, rewrite only the text-bearing parts and leave structural data intact.
-`.trim()
+`.trim();
 
 const loadBrandToneContext = async (client: SanityClient): Promise<string> => {
   const data = await client.fetch<BrandToneContextPayload>(
@@ -162,25 +164,25 @@ const loadBrandToneContext = async (client: SanityClient): Promise<string> => {
       assistId: BRAND_TONE_CONTEXT_ID,
       customId: CUSTOM_AI_CONTEXT_ID,
     },
-  )
+  );
 
-  const assistText = blocksToPlainText(data?.assistContext?.context)
-  const custom = data?.customContext
+  const assistText = blocksToPlainText(data?.assistContext?.context);
+  const custom = data?.customContext;
   const customParts = [
-    custom?.instructions ? `Core direction:\n${custom.instructions}` : '',
+    custom?.instructions ? `Core direction:\n${custom.instructions}` : "",
     custom?.businessPriorities?.length
-      ? `Business priorities:\n- ${custom.businessPriorities.join('\n- ')}`
-      : '',
-    custom?.guardrails?.length ? `Guardrails:\n- ${custom.guardrails.join('\n- ')}` : '',
+      ? `Business priorities:\n- ${custom.businessPriorities.join("\n- ")}`
+      : "",
+    custom?.guardrails?.length ? `Guardrails:\n- ${custom.guardrails.join("\n- ")}` : "",
     custom?.targetKeywords?.length
-      ? `Important phrases to use naturally when relevant:\n- ${custom.targetKeywords.join('\n- ')}`
-      : '',
+      ? `Important phrases to use naturally when relevant:\n- ${custom.targetKeywords.join("\n- ")}`
+      : "",
   ]
     .filter(Boolean)
-    .join('\n\n')
+    .join("\n\n");
 
-  return [assistText, customParts].filter(Boolean).join('\n\n').trim()
-}
+  return [assistText, customParts].filter(Boolean).join("\n\n").trim();
+};
 
 const buildRewriteInstruction = (goal: string) =>
   `
@@ -203,7 +205,7 @@ Rules:
 
 Current field value:
 $field
-`.trim()
+`.trim();
 
 const createBrandVoiceAction = (
   title: string,
@@ -214,12 +216,12 @@ const createBrandVoiceAction = (
   defineAssistFieldAction({
     title,
     onAction: async () => {
-      const brandContext = await loadBrandToneContext(client)
+      const brandContext = await loadBrandToneContext(client);
       await client.agent.action.transform({
         schemaId: props.schemaId,
         documentId: props.documentIdForAction,
         targetDocument: {
-          operation: 'createIfNotExists',
+          operation: "createIfNotExists",
           _id: props.documentIdForAction,
           _type: props.documentSchemaType.name,
           initialValues: props.getDocumentValue(),
@@ -227,15 +229,15 @@ const createBrandVoiceAction = (
         instruction: buildRewriteInstruction(goal),
         instructionParams: {
           brandContext,
-          field: {type: 'field', path: props.path},
+          field: { type: "field", path: props.path },
         },
-        target: props.path.length ? {path: props.path} : undefined,
+        target: props.path.length ? { path: props.path } : undefined,
         conditionalPaths: {
           paths: props.getConditionalPaths(),
         },
-      })
+      });
     },
-  })
+  });
 
 const createDocumentBrandVoiceAction = (
   title: string,
@@ -246,12 +248,12 @@ const createDocumentBrandVoiceAction = (
   defineAssistFieldAction({
     title,
     onAction: async () => {
-      const brandContext = await loadBrandToneContext(client)
+      const brandContext = await loadBrandToneContext(client);
       await client.agent.action.transform({
         schemaId: props.schemaId,
         documentId: props.documentIdForAction,
         targetDocument: {
-          operation: 'createIfNotExists',
+          operation: "createIfNotExists",
           _id: props.documentIdForAction,
           _type: props.documentSchemaType.name,
           initialValues: props.getDocumentValue(),
@@ -263,12 +265,12 @@ const createDocumentBrandVoiceAction = (
         conditionalPaths: {
           paths: props.getConditionalPaths(),
         },
-      })
+      });
     },
-  })
+  });
 
 const brandVoiceFieldActions = {
-  title: 'Brand voice rewrites',
+  title: "Brand voice rewrites",
   useFieldActions: (props: AssistFieldActionProps) => {
     const {
       actionType,
@@ -279,14 +281,14 @@ const brandVoiceFieldActions = {
       path,
       schemaId,
       schemaType,
-    } = props
-    const client = useStudioClient({apiVersion: 'vX'})
-    const getUserInput = useUserInput()
-    const pathKey = JSON.stringify(path)
+    } = props;
+    const client = useStudioClient({ apiVersion: "vX" });
+    const getUserInput = useUserInput();
+    const pathKey = JSON.stringify(path);
 
     return useMemo(() => {
-      if (actionType === 'field' && !isRewriteableField(schemaType)) {
-        return []
+      if (actionType === "field" && !isRewriteableField(schemaType)) {
+        return [];
       }
 
       const actionProps: AssistFieldActionProps = {
@@ -298,56 +300,56 @@ const brandVoiceFieldActions = {
         path,
         schemaId,
         schemaType,
-      }
+      };
 
-      if (actionType === 'document') {
+      if (actionType === "document") {
         return [
           defineAssistFieldActionGroup({
-            title: 'Brand voice rewrites',
+            title: "Brand voice rewrites",
             children: [
               createDocumentBrandVoiceAction(
-                'Rewrite document in brand voice',
-                'Rewrite the document so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning of each text-bearing field.',
+                "Rewrite document in brand voice",
+                "Rewrite the document so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning of each text-bearing field.",
                 actionProps,
                 client,
               ),
               createDocumentBrandVoiceAction(
-                'Warm up document tone',
-                'Make the document warmer, more human, and more conversational without sounding salesy or over-polished.',
+                "Warm up document tone",
+                "Make the document warmer, more human, and more conversational without sounding salesy or over-polished.",
                 actionProps,
                 client,
               ),
               createDocumentBrandVoiceAction(
-                'Tighten document for clarity',
-                'Make the document clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.',
+                "Tighten document for clarity",
+                "Make the document clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.",
                 actionProps,
                 client,
               ),
               defineFieldActionDivider(),
               defineAssistFieldAction({
-                title: 'Custom document rewrite...',
+                title: "Custom document rewrite...",
                 onAction: async () => {
                   const input = await getUserInput({
-                    title: 'Custom rewrite goal',
+                    title: "Custom rewrite goal",
                     inputs: [
                       {
-                        id: 'goal',
-                        title: 'Rewrite goal',
+                        id: "goal",
+                        title: "Rewrite goal",
                         description:
-                          'Describe what should change across the document, such as warmer, shorter, clearer, or more local.',
+                          "Describe what should change across the document, such as warmer, shorter, clearer, or more local.",
                       },
                     ],
-                  })
-                  const goal = input?.[0]?.result?.trim()
+                  });
+                  const goal = input?.[0]?.result?.trim();
                   if (!goal) {
-                    return
+                    return;
                   }
-                  const brandContext = await loadBrandToneContext(client)
+                  const brandContext = await loadBrandToneContext(client);
                   await client.agent.action.transform({
                     schemaId,
                     documentId: documentIdForAction,
                     targetDocument: {
-                      operation: 'createIfNotExists',
+                      operation: "createIfNotExists",
                       _id: documentIdForAction,
                       _type: documentSchemaType.name,
                       initialValues: getDocumentValue(),
@@ -359,67 +361,67 @@ const brandVoiceFieldActions = {
                     conditionalPaths: {
                       paths: getConditionalPaths(),
                     },
-                  })
+                  });
                 },
               }),
             ],
           }),
-        ]
+        ];
       }
 
       return [
         defineAssistFieldActionGroup({
-          title: 'Brand voice rewrites',
+          title: "Brand voice rewrites",
           children: [
             createBrandVoiceAction(
-              'Rewrite in brand voice',
-              'Rewrite this content so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning.',
+              "Rewrite in brand voice",
+              "Rewrite this content so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning.",
               actionProps,
               client,
             ),
             createBrandVoiceAction(
-              'Warm up the tone',
-              'Make this content warmer, more human, and more conversational without sounding salesy or over-polished.',
+              "Warm up the tone",
+              "Make this content warmer, more human, and more conversational without sounding salesy or over-polished.",
               actionProps,
               client,
             ),
             createBrandVoiceAction(
-              'Tighten for clarity',
-              'Make this content clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.',
+              "Tighten for clarity",
+              "Make this content clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.",
               actionProps,
               client,
             ),
             createBrandVoiceAction(
-              'Strengthen trust',
-              'Rewrite this content to feel more reassuring, credible, and confidence-building for homeowners while staying grounded in the original facts.',
+              "Strengthen trust",
+              "Rewrite this content to feel more reassuring, credible, and confidence-building for homeowners while staying grounded in the original facts.",
               actionProps,
               client,
             ),
             defineFieldActionDivider(),
             defineAssistFieldAction({
-              title: 'Custom rewrite...',
+              title: "Custom rewrite...",
               onAction: async () => {
                 const input = await getUserInput({
-                  title: 'Custom rewrite goal',
+                  title: "Custom rewrite goal",
                   inputs: [
                     {
-                      id: 'goal',
-                      title: 'Rewrite goal',
+                      id: "goal",
+                      title: "Rewrite goal",
                       description:
-                        'Describe what should change, such as shorter, clearer, more local, or more homeowner-friendly.',
+                        "Describe what should change, such as shorter, clearer, more local, or more homeowner-friendly.",
                     },
                   ],
-                })
-                const goal = input?.[0]?.result?.trim()
+                });
+                const goal = input?.[0]?.result?.trim();
                 if (!goal) {
-                  return
+                  return;
                 }
-                const brandContext = await loadBrandToneContext(client)
+                const brandContext = await loadBrandToneContext(client);
                 await client.agent.action.transform({
                   schemaId,
                   documentId: documentIdForAction,
                   targetDocument: {
-                    operation: 'createIfNotExists',
+                    operation: "createIfNotExists",
                     _id: documentIdForAction,
                     _type: documentSchemaType.name,
                     initialValues: getDocumentValue(),
@@ -427,18 +429,18 @@ const brandVoiceFieldActions = {
                   instruction: buildRewriteInstruction(goal),
                   instructionParams: {
                     brandContext,
-                    field: {type: 'field', path},
+                    field: { type: "field", path },
                   },
-                  target: path.length ? {path} : undefined,
+                  target: path.length ? { path } : undefined,
                   conditionalPaths: {
                     paths: getConditionalPaths(),
                   },
-                })
+                });
               },
             }),
           ],
         }),
-      ]
+      ];
     }, [
       actionType,
       client,
@@ -451,28 +453,28 @@ const brandVoiceFieldActions = {
       pathKey,
       schemaId,
       schemaType,
-    ])
+    ]);
   },
-}
+};
 
 export default defineConfig({
-  name: 'default',
-  title: 'Tandra Peters',
-  basePath: '/studio',
+  name: "default",
+  title: "Tandra Peters",
+  basePath: "/studio",
   icon: StarFilledIcon,
-  projectId: '7irm699i',
-  dataset: 'production',
-  appId: 'on6anif3y43e3t03oiwrgp30',
+  projectId: "7irm699i",
+  dataset: "production",
+  appId: "on6anif3y43e3t03oiwrgp30",
   tools: (prev) => [
     ...prev,
     {
-      name: 'image-manager',
-      title: 'Image Manager',
+      name: "image-manager",
+      title: "Image Manager",
       component: SanityImageManagerTool,
     },
     {
-      name: 'fal-image-studio',
-      title: 'AI Image Studio',
+      name: "fal-image-studio",
+      title: "AI Image Studio",
       component: FalImageStudioTool,
     },
   ],
@@ -484,74 +486,74 @@ export default defineConfig({
     assist({
       fieldActions: brandVoiceFieldActions,
     }),
-    structureTool({structure}),
+    structureTool({ structure }),
     presentationTool({
       previewUrl: {
         initial: previewOrigin,
       },
       allowOrigins: [
-        'http://localhost:*',
-        'http://127.0.0.1:*',
-        'https://www.tandra.me',
-        'https://tandra.me',
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "https://www.tandra.me",
+        "https://tandra.me",
       ],
       resolve: {
         mainDocuments: defineDocuments([
-          {route: '/', filter: `_type == "homePage"`},
-          {route: '/articles', filter: `_id == "articlesPage"`},
+          { route: "/", filter: `_type == "homePage"` },
+          { route: "/articles", filter: `_id == "articlesPage"` },
           {
-            route: '/articles/:slug',
-            resolve: ({params}) => {
-              const slug = params.slug?.trim()
+            route: "/articles/:slug",
+            resolve: ({ params }) => {
+              const slug = params.slug?.trim();
               if (!slug) {
-                return undefined
+                return undefined;
               }
               return {
                 filter: `_type == "post" && slug.current == $slug`,
-                params: {slug},
-              }
+                params: { slug },
+              };
             },
           },
-          {route: '/privacy', filter: `_type == "siteSettings"`},
-          {route: '/terms', filter: `_type == "siteSettings"`},
-          {route: '/cookies', filter: `_type == "siteSettings"`},
+          { route: "/privacy", filter: `_type == "siteSettings"` },
+          { route: "/terms", filter: `_type == "siteSettings"` },
+          { route: "/cookies", filter: `_type == "siteSettings"` },
         ]),
         locations: {
           homePage: defineLocations({
-            select: {id: '_id'},
+            select: { id: "_id" },
             resolve: () => ({
-              locations: [{title: 'Home', href: '/'}],
+              locations: [{ title: "Home", href: "/" }],
             }),
           }),
           siteSettings: defineLocations({
-            select: {id: '_id'},
+            select: { id: "_id" },
             resolve: () => ({
               locations: [
-                {title: 'Home', href: '/'},
-                {title: 'Privacy', href: '/privacy'},
-                {title: 'Terms', href: '/terms'},
-                {title: 'Cookies', href: '/cookies'},
+                { title: "Home", href: "/" },
+                { title: "Privacy", href: "/privacy" },
+                { title: "Terms", href: "/terms" },
+                { title: "Cookies", href: "/cookies" },
               ],
             }),
           }),
           articlesPage: defineLocations({
-            select: {id: '_id'},
+            select: { id: "_id" },
             resolve: () => ({
-              locations: [{title: 'Articles', href: '/articles'}],
+              locations: [{ title: "Articles", href: "/articles" }],
             }),
           }),
           post: defineLocations({
-            select: {title: 'title', slug: 'slug.current'},
+            select: { title: "title", slug: "slug.current" },
             resolve: (doc) => {
-              const slug = typeof doc?.slug === 'string' ? doc.slug.trim() : ''
+              const slug = typeof doc?.slug === "string" ? doc.slug.trim() : "";
               const title =
-                typeof doc?.title === 'string' && doc.title.trim() ? doc.title.trim() : 'Article'
+                typeof doc?.title === "string" && doc.title.trim() ? doc.title.trim() : "Article";
               if (!slug) {
-                return {locations: [{title, href: '/articles'}]}
+                return { locations: [{ title, href: "/articles" }] };
               }
               return {
-                locations: [{title, href: `/articles/${slug}`}],
-              }
+                locations: [{ title, href: `/articles/${slug}` }],
+              };
             },
           }),
         },
@@ -563,4 +565,4 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
   },
-})
+});

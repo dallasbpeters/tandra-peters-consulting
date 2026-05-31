@@ -1,4 +1,4 @@
-import {Loader2} from 'lucide-react'
+import { Loader2 } from "lucide-react";
 
 export function Loader() {
   return (
@@ -7,5 +7,5 @@ export function Loader() {
 
       <span>Thinking...</span>
     </div>
-  )
+  );
 }

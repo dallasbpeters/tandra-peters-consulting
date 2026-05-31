@@ -1,24 +1,17 @@
-import {
-  RoofInspection,
-  VIEWS,
-  type Chapter,
-} from "./RoofInspection";
-import { hotspotCoordKey } from "./RoofInspection/hotspotCoords";
 import type { RoofInspectionSectionProps } from "../types";
+
+import { RoofInspection, VIEWS, type Chapter } from "./RoofInspection";
+import { hotspotCoordKey } from "./RoofInspection/hotspotCoords";
 
 export type HomeRoofInspectionProps = {
   chapters: Chapter[];
   roofInspection: Partial<RoofInspectionSectionProps>;
 };
 
-const HomeRoofInspection = ({
-  chapters,
-  roofInspection,
-}: HomeRoofInspectionProps) => {
+const HomeRoofInspection = ({ chapters, roofInspection }: HomeRoofInspectionProps) => {
   const inspectionTitle = (
     <>
-      {roofInspection.titleLine1 ?? "The"}{" "}
-      <em>{roofInspection.titleLine2 ?? "Inspection."}</em>
+      {roofInspection.titleLine1 ?? "The"} <em>{roofInspection.titleLine2 ?? "Inspection."}</em>
       <br />
       {roofInspection.subtitle ?? "Seven things I check on every roof."}
     </>

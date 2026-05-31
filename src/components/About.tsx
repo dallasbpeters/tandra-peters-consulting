@@ -1,11 +1,12 @@
-import React from "react";
 import { motion } from "motion/react";
+import React from "react";
+import { Shader, Dither, LinearGradient } from "shaders/react";
+
+import { RichText } from "../portableText/RichText";
+import { asRichTextValue } from "../portableText/value";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import { AboutProps } from "../types";
-import { RichText } from "../portableText/RichText";
-import { asRichTextValue } from "../portableText/value";
-import { Shader, Dither, LinearGradient } from "shaders/react";
 
 const DEFAULT_ABOUT_PARAGRAPHS = [
   "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",

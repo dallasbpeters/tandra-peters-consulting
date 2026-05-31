@@ -1,15 +1,15 @@
-import {Box, Card, Flex, Grid, Heading, Spinner, Stack, Text} from '@sanity/ui'
-import {useEffect, useState} from 'react'
-import {DEFAULT_STUDIO_CLIENT_OPTIONS, useClient} from 'sanity'
+import { Box, Card, Flex, Grid, Heading, Spinner, Stack, Text } from "@sanity/ui";
+import { useEffect, useState } from "react";
+import { DEFAULT_STUDIO_CLIENT_OPTIONS, useClient } from "sanity";
 
-import {ViewLayout} from './ViewLayout'
+import { ViewLayout } from "./ViewLayout";
 
 interface Stats {
-  total: number
-  avgSuccess: number | null
-  avgAgentConfusion: number | null
-  avgUserConfusion: number | null
-  contentGapRate: number | null
+  total: number;
+  avgSuccess: number | null;
+  avgAgentConfusion: number | null;
+  avgUserConfusion: number | null;
+  contentGapRate: number | null;
 }
 
 const QUERY = `{
@@ -18,16 +18,16 @@ const QUERY = `{
   "avgAgentConfusion": round(math::avg(*[_type == "agent.conversation"].classification.agentConfusion)),
   "avgUserConfusion": round(math::avg(*[_type == "agent.conversation"].classification.userConfusion)),
   "contentGapRate": round(count(*[_type == "agent.conversation" && defined(contentGap)]) / count(*[_type == "agent.conversation"]) * 100)
-}`
+}`;
 
 interface StatCardProps {
-  label: string
-  value: string | number
-  muted?: boolean
+  label: string;
+  value: string | number;
+  muted?: boolean;
 }
 
 function StatCard(props: StatCardProps) {
-  const {label, value, muted} = props
+  const { label, value, muted } = props;
 
   return (
     <Card padding={4} radius={2} tone="transparent">
@@ -41,20 +41,20 @@ function StatCard(props: StatCardProps) {
         </Heading>
       </Stack>
     </Card>
-  )
+  );
 }
 
 export function OverviewView() {
-  const client = useClient(DEFAULT_STUDIO_CLIENT_OPTIONS)
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const client = useClient(DEFAULT_STUDIO_CLIENT_OPTIONS);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     client.fetch<Stats>(QUERY).then((data) => {
-      setStats(data)
-      setLoading(false)
-    })
-  }, [client])
+      setStats(data);
+      setLoading(false);
+    });
+  }, [client]);
 
   if (loading) {
     return (
@@ -63,7 +63,7 @@ export function OverviewView() {
           <Spinner muted />
         </Flex>
       </ViewLayout>
-    )
+    );
   }
 
   return (
@@ -100,5 +100,5 @@ export function OverviewView() {
         </Stack>
       </Box>
     </ViewLayout>
-  )
+  );
 }

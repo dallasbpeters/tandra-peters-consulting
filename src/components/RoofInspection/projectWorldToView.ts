@@ -83,9 +83,7 @@ export const projectWorldAxisToCompass = (
   };
 };
 
-export const parseMetersTriple = (
-  value: string | undefined,
-): Vec3 | null => {
+export const parseMetersTriple = (value: string | undefined): Vec3 | null => {
   if (!value?.trim()) {
     return null;
   }

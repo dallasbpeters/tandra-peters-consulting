@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
+
 import { loadFont as loadInstrumentSerif } from "@remotion/google-fonts/InstrumentSerif";
 import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
-import type { ReactNode } from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -10,11 +11,10 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+
+import type { TandraIntroContent, TandraIntroProps } from "./tandraIntroContent";
+
 import { theme } from "../theme";
-import type {
-  TandraIntroContent,
-  TandraIntroProps,
-} from "./tandraIntroContent";
 
 loadManrope("normal", {
   weights: ["300", "400", "700", "800"],
@@ -80,8 +80,7 @@ const Kicker = ({
 }) => {
   const frame = useCurrentFrame();
   const enterStart = from + delay;
-  const exitStart =
-    from + duration - SCENE_OVERLAP + delay - KICKER_MOTION;
+  const exitStart = from + duration - SCENE_OVERLAP + delay - KICKER_MOTION;
 
   const enter = interpolate(frame - enterStart, [0, KICKER_MOTION], [0, 1], {
     extrapolateLeft: "clamp",
@@ -363,11 +362,7 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
   );
 };
 
-const StraightAnswersScene = ({
-  content,
-}: {
-  content: TandraIntroContent["straightAnswers"];
-}) => {
+const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straightAnswers"] }) => {
   const { reveal } = useScene(150, 180);
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
@@ -416,11 +411,7 @@ const StraightAnswersScene = ({
   );
 };
 
-const InspectionScene = ({
-  content,
-}: {
-  content: TandraIntroContent["inspection"];
-}) => {
+const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"] }) => {
   const { reveal } = useScene(300, 180);
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
@@ -472,11 +463,7 @@ const InspectionScene = ({
   );
 };
 
-const ManagedScene = ({
-  content,
-}: {
-  content: TandraIntroContent["managed"];
-}) => {
+const ManagedScene = ({ content }: { content: TandraIntroContent["managed"] }) => {
   const { reveal } = useScene(450, 210);
   const frame = useCurrentFrame();
   const rule = interpolate(frame, [464, 520], [0, 1], {
@@ -515,16 +502,11 @@ const ManagedScene = ({
           }}
         >
           {content.items.map((item, index) => {
-            const itemOpacity = interpolate(
-              frame,
-              [522 + index * 10, 540 + index * 10],
-              [0, 1],
-              {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-                easing: ease,
-              },
-            );
+            const itemOpacity = interpolate(frame, [522 + index * 10, 540 + index * 10], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              easing: ease,
+            });
             return (
               <div
                 key={item}
@@ -587,10 +569,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
           }}
         >
           {content.items.map((item, index) => (
-            <span
-              key={item}
-              style={index === 1 ? { color: colors.accentLight } : undefined}
-            >
+            <span key={item} style={index === 1 ? { color: colors.accentLight } : undefined}>
               {item}
             </span>
           ))}
@@ -600,11 +579,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
   );
 };
 
-const ClosingScene = ({
-  content,
-}: {
-  content: TandraIntroContent["closing"];
-}) => {
+const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) => {
   const { reveal } = useScene(750, 150);
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();

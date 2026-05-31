@@ -1,5 +1,7 @@
-import { toPlainText } from "@portabletext/toolkit";
 import type { PortableTextBlock } from "@portabletext/types";
+
+import { toPlainText } from "@portabletext/toolkit";
+
 import { coercePortableTextInput } from "./value.js";
 
 /** Flatten Portable Text or pass through plain strings (share URLs, JSON-LD, etc.). */

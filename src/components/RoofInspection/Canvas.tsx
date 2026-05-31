@@ -1,4 +1,5 @@
 import React from "react";
+
 import { mix, theme } from "../../theme";
 
 type CanvasProps = {

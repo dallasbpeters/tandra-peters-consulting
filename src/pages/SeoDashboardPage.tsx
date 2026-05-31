@@ -1,11 +1,14 @@
-import { useEffect, type CSSProperties } from "react";
 import { usePostHog } from "@posthog/react";
-import {
-  Refresh,
-  StatsUpSquare,
-  WarningTriangle,
-  Internet,
-} from "iconoir-react";
+import { Refresh, StatsUpSquare, WarningTriangle, Internet } from "iconoir-react";
+import { useEffect, type CSSProperties } from "react";
+
+import type {
+  SeoAuditItem,
+  SeoContentAnalysisItem,
+  SeoDashboardPayload,
+  SeoRecommendationPriority,
+} from "../types/seo";
+
 import { SitePageChrome } from "../components/SitePageChrome";
 import { TransitionLink } from "../components/TransitionLink";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
@@ -14,12 +17,6 @@ import { useSeoDashboard } from "../hooks/useSeoDashboard";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
 import { mix, theme } from "../theme";
-import type {
-  SeoAuditItem,
-  SeoContentAnalysisItem,
-  SeoDashboardPayload,
-  SeoRecommendationPriority,
-} from "../types/seo";
 
 const shellStyle: CSSProperties = {
   display: "grid",
@@ -61,9 +58,7 @@ const responsiveRowStyle: CSSProperties = {
   gap: "1rem",
 };
 
-const chipStyle = (
-  tone: "good" | "warning" | "critical" | "neutral",
-): CSSProperties => {
+const chipStyle = (tone: "good" | "warning" | "critical" | "neutral"): CSSProperties => {
   const tones = {
     good: {
       bg: theme.palette.accent["100"],
@@ -138,18 +133,11 @@ const formatDateTime = (value: string): string => {
   }
 };
 
-const MiniBars = ({
-  points,
-}: {
-  points: SeoDashboardPayload["analytics"]["dailyPageviews"];
-}) => {
+const MiniBars = ({ points }: { points: SeoDashboardPayload["analytics"]["dailyPageviews"] }) => {
   if (points.length === 0) {
     return (
-      <div
-        style={{ color: mix(theme.colors.everglade, 60), fontSize: "0.95rem" }}
-      >
-        Traffic trend will appear here once PostHog server metrics are
-        available.
+      <div style={{ color: mix(theme.colors.everglade, 60), fontSize: "0.95rem" }}>
+        Traffic trend will appear here once PostHog server metrics are available.
       </div>
     );
   }
@@ -251,9 +239,7 @@ const MetricCard = ({
   </article>
 );
 
-const opportunityChip = (
-  type: "fix" | "refresh" | "new-content",
-): CSSProperties =>
+const opportunityChip = (type: "fix" | "refresh" | "new-content"): CSSProperties =>
   type === "fix"
     ? chipStyle("critical")
     : type === "refresh"
@@ -279,9 +265,7 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
       }}
     >
       <div>
-        <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
-          {audit.title}
-        </div>
+        <div style={{ fontWeight: 700, color: theme.colors.everglade }}>{audit.title}</div>
         <div
           style={{
             fontSize: "0.86rem",
@@ -300,9 +284,7 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
         }}
       >
         <span style={chipStyle(audit.status)}>{audit.status}</span>
-        <span style={{ fontWeight: 700, color: theme.colors.everglade }}>
-          {audit.score}/100
-        </span>
+        <span style={{ fontWeight: 700, color: theme.colors.everglade }}>{audit.score}/100</span>
       </div>
     </div>
     <div style={{ color: mix(theme.colors.everglade, 80), lineHeight: 1.6 }}>
@@ -324,11 +306,7 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
   </div>
 );
 
-const ContentAnalysisCard = ({
-  analysis,
-}: {
-  analysis: SeoContentAnalysisItem;
-}) => (
+const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem }) => (
   <article
     style={{
       padding: "1rem",
@@ -349,9 +327,7 @@ const ContentAnalysisCard = ({
       }}
     >
       <div>
-        <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
-          {analysis.title}
-        </div>
+        <div style={{ fontWeight: 700, color: theme.colors.everglade }}>{analysis.title}</div>
         <div
           style={{
             fontSize: "0.84rem",
@@ -370,9 +346,7 @@ const ContentAnalysisCard = ({
         }}
       >
         <span style={chipStyle(analysis.status)}>{analysis.status}</span>
-        <span style={{ fontWeight: 700, color: theme.colors.everglade }}>
-          {analysis.score}/100
-        </span>
+        <span style={{ fontWeight: 700, color: theme.colors.everglade }}>{analysis.score}/100</span>
       </div>
     </div>
 
@@ -411,9 +385,7 @@ const ContentAnalysisCard = ({
           >
             {metric.label}
           </div>
-          <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
-            {metric.value}
-          </div>
+          <div style={{ fontWeight: 700, color: theme.colors.everglade }}>{metric.value}</div>
         </div>
       ))}
     </div>
@@ -439,9 +411,7 @@ const ContentAnalysisCard = ({
 export const SeoDashboardPage = () => {
   const posthog = usePostHog();
   const auth = useGoogleDashboardAuth();
-  const { data, loading, error, statusCode, regenerate } = useSeoDashboard(
-    auth.token,
-  );
+  const { data, loading, error, statusCode, regenerate } = useSeoDashboard(auth.token);
 
   usePageMetadata({
     title: "SEO Dashboard | Tandra Peters",
@@ -456,9 +426,7 @@ export const SeoDashboardPage = () => {
 
   useEffect(() => {
     if (statusCode === 401 || statusCode === 403) {
-      auth.signOut(
-        "Your Google session expired or this account is not allowed.",
-      );
+      auth.signOut("Your Google session expired or this account is not allowed.");
     }
   }, [auth, statusCode]);
 
@@ -495,17 +463,15 @@ export const SeoDashboardPage = () => {
                   lineHeight: 1.6,
                 }}
               >
-                Add <code>VITE_GOOGLE_CLIENT_ID</code> to the app env so the
-                dashboard can render the Google sign-in button.
+                Add <code>VITE_GOOGLE_CLIENT_ID</code> to the app env so the dashboard can render
+                the Google sign-in button.
               </p>
             </section>
           ) : null}
 
           {auth.clientId && !auth.token ? (
             <section style={cardStyle}>
-              <div
-                style={{ display: "grid", gap: "1rem", justifyItems: "start" }}
-              >
+              <div style={{ display: "grid", gap: "1rem", justifyItems: "start" }}>
                 <div>
                   <h2
                     style={{
@@ -523,9 +489,8 @@ export const SeoDashboardPage = () => {
                       maxWidth: "36rem",
                     }}
                   >
-                    This route is protected with Google Identity Services and a
-                    server-side allowlist. The public site stays untouched; only
-                    the dashboard API is gated.
+                    This route is protected with Google Identity Services and a server-side
+                    allowlist. The public site stays untouched; only the dashboard API is gated.
                   </p>
                 </div>
                 <div ref={auth.buttonRef} />
@@ -540,9 +505,7 @@ export const SeoDashboardPage = () => {
                   </p>
                 ) : null}
                 {!auth.ready ? (
-                  <p style={{ color: mix(theme.colors.everglade, 60) }}>
-                    Loading Google sign-in…
-                  </p>
+                  <p style={{ color: mix(theme.colors.everglade, 60) }}>Loading Google sign-in…</p>
                 ) : null}
               </div>
             </section>
@@ -579,9 +542,7 @@ export const SeoDashboardPage = () => {
                     />
                   ) : null}
                   <div>
-                    <div
-                      style={{ fontWeight: 700, color: theme.colors.everglade }}
-                    >
+                    <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
                       {auth.user.name || auth.user.email}
                     </div>
                     <div
@@ -628,9 +589,7 @@ export const SeoDashboardPage = () => {
             <>
               {loading && !data ? (
                 <section style={cardStyle}>
-                  <p style={{ color: theme.colors.everglade }}>
-                    Loading saved dashboard snapshot…
-                  </p>
+                  <p style={{ color: theme.colors.everglade }}>Loading saved dashboard snapshot…</p>
                 </section>
               ) : null}
 
@@ -677,9 +636,7 @@ export const SeoDashboardPage = () => {
                       }}
                     >
                       <div style={{ maxWidth: "40rem" }}>
-                        <div style={chipStyle("neutral")}>
-                          Internal SEO Dashboard
-                        </div>
+                        <div style={chipStyle("neutral")}>Internal SEO Dashboard</div>
                         <h1
                           style={{
                             ...typeStyles.pageListTitle,
@@ -688,8 +645,7 @@ export const SeoDashboardPage = () => {
                             marginBottom: "0.85rem",
                           }}
                         >
-                          Search visibility, content hygiene, and traffic
-                          signals in one place.
+                          Search visibility, content hygiene, and traffic signals in one place.
                         </h1>
                         <p
                           style={{
@@ -699,10 +655,9 @@ export const SeoDashboardPage = () => {
                             maxWidth: "36rem",
                           }}
                         >
-                          This dashboard stays isolated from the public site. It
-                          audits the current Sanity content, checks the static
-                          SEO shell, and pulls PostHog metrics server-side when
-                          those credentials are available.
+                          This dashboard stays isolated from the public site. It audits the current
+                          Sanity content, checks the static SEO shell, and pulls PostHog metrics
+                          server-side when those credentials are available.
                         </p>
                       </div>
                       <button
@@ -742,9 +697,7 @@ export const SeoDashboardPage = () => {
                     <MetricCard
                       label="Observed pageviews"
                       value={
-                        data.analytics.pageviews7d == null
-                          ? "—"
-                          : `${data.analytics.pageviews7d}`
+                        data.analytics.pageviews7d == null ? "—" : `${data.analytics.pageviews7d}`
                       }
                       subtext={`${data.analytics.timeframeLabel} · ${data.analytics.scopeLabel}`}
                     />
@@ -827,21 +780,14 @@ export const SeoDashboardPage = () => {
                         >
                           <span style={chipStyle("good")}>Healthy</span>
                           <strong>
-                            {
-                              data.audits.filter(
-                                (audit) => audit.status === "good",
-                              ).length
-                            }
+                            {data.audits.filter((audit) => audit.status === "good").length}
                           </strong>
                         </div>
                       </div>
                     </article>
                   </section>
 
-                  <section
-                    style={sectionGridStyle}
-                    className="seo-dashboard-two-column"
-                  >
+                  <section style={sectionGridStyle} className="seo-dashboard-two-column">
                     <article style={cardStyle}>
                       <div
                         style={{
@@ -855,9 +801,7 @@ export const SeoDashboardPage = () => {
                         <div>
                           <div
                             style={chipStyle(
-                              data.sourceStatus.posthogConnected
-                                ? "good"
-                                : "warning",
+                              data.sourceStatus.posthogConnected ? "good" : "warning",
                             )}
                           >
                             <Internet width={14} height={14} />
@@ -916,10 +860,7 @@ export const SeoDashboardPage = () => {
                             {data.analytics.pageviews7d ?? "—"}
                           </div>
                           <div style={deltaTone(data.analytics.deltaPageviews)}>
-                            {formatDelta(
-                              data.analytics.deltaPageviews,
-                              "pageviews",
-                            )}
+                            {formatDelta(data.analytics.deltaPageviews, "pageviews")}
                           </div>
                         </div>
                         <div>
@@ -1112,9 +1053,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Published posts
                           </span>
                           <strong>{data.content.publishedPosts}</strong>
@@ -1126,9 +1065,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Missing SEO descriptions
                           </span>
                           <strong>{data.content.missingSeoDescription}</strong>
@@ -1140,9 +1077,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Missing excerpts
                           </span>
                           <strong>{data.content.missingExcerpt}</strong>
@@ -1154,9 +1089,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Missing lead images
                           </span>
                           <strong>{data.content.missingImage}</strong>
@@ -1168,9 +1101,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Stale posts
                           </span>
                           <strong>{data.content.stalePosts}</strong>
@@ -1182,9 +1113,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Thin articles
                           </span>
                           <strong>{data.content.thinContentPosts}</strong>
@@ -1196,14 +1125,10 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Posts with no internal links
                           </span>
-                          <strong>
-                            {data.content.postsWithoutInternalLinks}
-                          </strong>
+                          <strong>{data.content.postsWithoutInternalLinks}</strong>
                         </div>
                         <div
                           style={{
@@ -1212,9 +1137,7 @@ export const SeoDashboardPage = () => {
                             gap: "1rem",
                           }}
                         >
-                          <span
-                            style={{ color: mix(theme.colors.everglade, 68) }}
-                          >
+                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
                             Posts with weak structure
                           </span>
                           <strong>{data.content.postsWithWeakStructure}</strong>
@@ -1270,8 +1193,7 @@ export const SeoDashboardPage = () => {
                           ))
                         ) : (
                           <p style={{ color: mix(theme.colors.everglade, 65) }}>
-                            Publish some categorized articles and this cluster
-                            view will fill in.
+                            Publish some categorized articles and this cluster view will fill in.
                           </p>
                         )}
                       </div>
@@ -1295,17 +1217,13 @@ export const SeoDashboardPage = () => {
                         lineHeight: 1.6,
                       }}
                     >
-                      These article checks are based on the actual Sanity body
-                      content: word count, headings, lists, and internal versus
-                      external links.
+                      These article checks are based on the actual Sanity body content: word count,
+                      headings, lists, and internal versus external links.
                     </p>
                     <div style={{ display: "grid", gap: "0.9rem" }}>
                       {data.contentAnalyses.length > 0 ? (
                         data.contentAnalyses.map((analysis) => (
-                          <ContentAnalysisCard
-                            key={analysis.path}
-                            analysis={analysis}
-                          />
+                          <ContentAnalysisCard key={analysis.path} analysis={analysis} />
                         ))
                       ) : (
                         <p
@@ -1314,8 +1232,8 @@ export const SeoDashboardPage = () => {
                             lineHeight: 1.6,
                           }}
                         >
-                          Publish some articles and this analysis panel will
-                          fill in with real content metrics.
+                          Publish some articles and this analysis panel will fill in with real
+                          content metrics.
                         </p>
                       )}
                     </div>
@@ -1355,9 +1273,7 @@ export const SeoDashboardPage = () => {
                               <strong style={{ color: theme.colors.everglade }}>
                                 {recommendation.title}
                               </strong>
-                              <span
-                                style={priorityTone(recommendation.priority)}
-                              >
+                              <span style={priorityTone(recommendation.priority)}>
                                 {recommendation.priority}
                               </span>
                             </div>
@@ -1396,9 +1312,7 @@ export const SeoDashboardPage = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <span style={{ color: theme.colors.everglade }}>
-                                {page.path}
-                              </span>
+                              <span style={{ color: theme.colors.everglade }}>{page.path}</span>
                               <strong>{page.pageviews}</strong>
                             </div>
                           ))
@@ -1409,9 +1323,8 @@ export const SeoDashboardPage = () => {
                               lineHeight: 1.6,
                             }}
                           >
-                            No top-page data yet. Once PostHog server access is
-                            working, this panel will rank the routes people
-                            actually see.
+                            No top-page data yet. Once PostHog server access is working, this panel
+                            will rank the routes people actually see.
                           </p>
                         )}
                       </div>
@@ -1435,16 +1348,14 @@ export const SeoDashboardPage = () => {
                         lineHeight: 1.6,
                       }}
                     >
-                      The rows below are ordered by overall severity, mixing
-                      site shell checks with the weakest content pages.
+                      The rows below are ordered by overall severity, mixing site shell checks with
+                      the weakest content pages.
                     </p>
                     <div>
                       {data.audits.map((audit, index) => (
                         <div
                           key={`${audit.path}-${audit.title}`}
-                          style={
-                            index === 0 ? { borderTop: "none" } : undefined
-                          }
+                          style={index === 0 ? { borderTop: "none" } : undefined}
                         >
                           <AuditRow audit={audit} />
                         </div>
