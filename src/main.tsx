@@ -1,6 +1,7 @@
 /* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import "./styles/fonts.css";
 import "./index.css";
 import "./styles/site-layout.css";
 import posthog from "posthog-js";

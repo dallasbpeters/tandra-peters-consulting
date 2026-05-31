@@ -8,6 +8,7 @@ import { mix, theme } from "../theme";
 import type { ServiceAreaMapProps } from "../types";
 import { Shader, ChromaFlow } from "shaders/react";
 import { useIsMobile } from "../hooks/isMobile";
+import { useNearViewport } from "../hooks/useNearViewport";
 
 type ServiceArea = NonNullable<ServiceAreaMapProps["areas"]>[number];
 
@@ -341,6 +342,7 @@ export const MapBox = ({
 }: ServiceAreaMapProps) => {
   const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
+  const isNearViewport = useNearViewport(containerRef, "480px 0px");
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const txFeaturesRef = useRef<GeoJSON.Feature[]>([]);
   const configuredFipsRef = useRef<string[]>([]);
@@ -375,6 +377,10 @@ export const MapBox = ({
   }, [fipsToArea]);
 
   useEffect(() => {
+    if (!isNearViewport) {
+      return;
+    }
+
     const container = containerRef.current;
     if (!container || !mapboxToken) return;
 
@@ -453,7 +459,7 @@ export const MapBox = ({
       map.remove();
       mapRef.current = null;
     };
-  }, [mapboxToken]);
+  }, [isNearViewport, mapboxToken]);
 
   useEffect(() => {
     const map = mapRef.current;

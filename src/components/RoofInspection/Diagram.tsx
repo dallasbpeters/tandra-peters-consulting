@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { theme } from "../../theme";
+import { useNearViewport } from "../../hooks/useNearViewport";
 import { DevViewerCompass } from "./DevViewerCompass";
 import { useCameraContext } from "./context";
 
@@ -16,38 +17,19 @@ type DiagramProps = {
   children?: React.ReactNode;
 };
 
-let modelViewerScriptPromise: Promise<void> | null = null;
+let modelViewerPromise: Promise<void> | null = null;
 
-const loadModelViewerScript = () => {
+const loadModelViewer = (): Promise<void> => {
   if (typeof window === "undefined") {
     return Promise.resolve();
   }
   if (customElements.get("model-viewer")) {
     return Promise.resolve();
   }
-  if (modelViewerScriptPromise) {
-    return modelViewerScriptPromise;
+  if (!modelViewerPromise) {
+    modelViewerPromise = import("@google/model-viewer").then(() => undefined);
   }
-
-  modelViewerScriptPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[src="/model-viewer.min.js"]',
-    );
-    if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(), { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.type = "module";
-    script.src = "/model-viewer.min.js";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load model-viewer."));
-    document.head.appendChild(script);
-  });
-
-  return modelViewerScriptPromise;
+  return modelViewerPromise;
 };
 
 /**
@@ -86,10 +68,17 @@ export const Diagram: React.FC<DiagramProps> = ({
   // This means hover events (which only mutate activeChapterId in the sibling
   // RoofInspectionContext) never cause Diagram to re-render or touch model-viewer.
   const { views, activeViewId, chapters, focusChapterId } = useCameraContext();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isNearViewport = useNearViewport(wrapperRef, "600px 0px");
+  const [modelViewerReady, setModelViewerReady] = useState(false);
 
   useEffect(() => {
-    void loadModelViewerScript();
-  }, []);
+    if (!isNearViewport) {
+      return;
+    }
+
+    void loadModelViewer().then(() => setModelViewerReady(true));
+  }, [isNearViewport]);
 
   // Keep a stable ref so the camera-focus effect can read chapters without
   // adding them as a dependency — chapters is a new array reference on every
@@ -245,33 +234,40 @@ export const Diagram: React.FC<DiagramProps> = ({
   };
 
   return (
-    <div style={wrapperStyle} role="region" aria-label={alt}>
-      <model-viewer
-        ref={mvRef as React.Ref<HTMLElement>}
-        id="mv"
-        src={absoluteSrc}
-        alt={alt}
-        camera-orbit={initialOrbit}
-        camera-target={initialTarget}
-        field-of-view={initialFov}
-        min-camera-orbit="210deg 75deg 360deg"
-        max-camera-orbit="auto auto 100%"
-        tone-mapping="neutral"
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls={true}
-        interaction-prompt="none"
-        loading="eager"
-        shadow-intensity="1.5"
-        shadow-softness=".6"
-        environment-image="legacy"
-        touch-action="pan-y"
-        disable-zoom
-        onLoad={handleLoad}
-        style={modelStyle}
-      >
-        {children}
-      </model-viewer>
-      {import.meta.env.DEV ? <DevViewerCompass /> : null}
+    <div
+      ref={wrapperRef}
+      style={wrapperStyle}
+      role="region"
+      aria-label={alt}
+    >
+      {modelViewerReady ? (
+        <model-viewer
+          ref={mvRef as React.Ref<HTMLElement>}
+          id="mv"
+          src={absoluteSrc}
+          alt={alt}
+          camera-orbit={initialOrbit}
+          camera-target={initialTarget}
+          field-of-view={initialFov}
+          min-camera-orbit="210deg 75deg 360deg"
+          max-camera-orbit="auto auto 100%"
+          tone-mapping="neutral"
+          ar-modes="webxr scene-viewer quick-look"
+          camera-controls={true}
+          interaction-prompt="none"
+          loading="lazy"
+          shadow-intensity="1.5"
+          shadow-softness=".6"
+          environment-image="legacy"
+          touch-action="pan-y"
+          disable-zoom
+          onLoad={handleLoad}
+          style={modelStyle}
+        >
+          {children}
+        </model-viewer>
+      ) : null}
+      {import.meta.env.DEV && modelViewerReady ? <DevViewerCompass /> : null}
     </div>
   );
 };

@@ -115,10 +115,10 @@ const palette = {
 
 export const theme = {
   fonts: {
-    headline: '"Manrope", sans-serif',
+    headline: '"Manrope Variable", sans-serif',
     headlineAlt: '"Instrument Serif", serif',
     special: '"Bebas Neue", sans-serif',
-    body: '"Manrope", sans-serif',
+    body: '"Manrope Variable", sans-serif',
   },
   palette,
   colors: {

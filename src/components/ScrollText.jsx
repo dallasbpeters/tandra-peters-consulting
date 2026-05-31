@@ -9,7 +9,6 @@ import {
   useTransform,
   useVelocity,
 } from "motion/react";
-import * as IconoirIcons from "iconoir-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import TexasFlag from "./TexasFlag";
 import { theme } from "../theme";
@@ -37,7 +36,7 @@ function wrap(min, max, value) {
   return mod + min;
 }
 
-function renderOptionalIcon(iconName, textColor, fontSize) {
+function renderOptionalIcon(iconName, fontSize) {
   if (!iconName || typeof iconName !== "string") return null;
 
   const iconSize =
@@ -60,17 +59,7 @@ function renderOptionalIcon(iconName, textColor, fontSize) {
     );
   }
 
-  const IconComponent = IconoirIcons[normalized];
-  if (!IconComponent) return null;
-
-  return (
-    <IconComponent
-      color={textColor}
-      width={iconSize}
-      height={iconSize}
-      style={{ marginRight: 10 }}
-    />
-  );
+  return null;
 }
 
 function renderTexasFlag(textColor, fontSize) {
@@ -145,15 +134,12 @@ function VelocityText(props) {
         ref={index === 0 ? copyRef : null}
         style={{
           flexShrink: 0,
-          maxWidth: "100%",
           overflow: "hidden",
-          textOverflow: "ellipsis",
           fontSize: fontSize || "24px",
           color: resolvedTextColor,
           fontWeight: "bold",
-          letterSpacing: "-0.05em",
+          letterSpacing: "0.05em",
           whiteSpace: "nowrap",
-          marginInlineEnd: "0.5em",
           ...style,
           ...(showIcon ? { display: "inline-flex", alignItems: "center" } : {}),
         }}

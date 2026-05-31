@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "@fontsource/bebas-neue/latin-400.css";
 import { TransitionLink } from "./TransitionLink";
 import { motion } from "motion/react";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";

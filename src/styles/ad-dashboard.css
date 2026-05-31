@@ -661,7 +661,7 @@ footer {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  font-family: var(--ad-body-font, "Manrope", sans-serif);
+  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
 }
 
 .ad-creative-preview--photo-fill .ad-creative-copy {
@@ -880,7 +880,7 @@ footer {
 
 .ad-creative-preview--poster-cover .ad-creative-copy > span {
   color: color-mix(in oklch, var(--ad-headline-ink, #fff) 92%, transparent);
-  font-family: var(--ad-body-font, "Manrope", sans-serif);
+  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
   font-weight: 850;
 }
 
@@ -1066,7 +1066,7 @@ footer {
   gap: clamp(1rem, 4cqw, 3rem);
   margin-top: clamp(0.9rem, 2.5cqw, 1.75rem);
   color: color-mix(in oklch, var(--ad-ink) 74%, transparent);
-  font-family: var(--ad-body-font, "Manrope", sans-serif);
+  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
   font-size: clamp(0.58rem, 1.5vw, 1rem);
   font-weight: 600;
 }

@@ -17,6 +17,15 @@ importers:
       '@fal-ai/client':
         specifier: ^1.10.1
         version: 1.10.1
+      '@fontsource-variable/manrope':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/bebas-neue':
+        specifier: ^5.2.7
+        version: 5.2.7
+      '@fontsource/instrument-serif':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@google/genai':
         specifier: ^2.7.0
         version: 2.7.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))
@@ -1998,6 +2007,15 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@fontsource-variable/manrope@5.2.8':
+    resolution: {integrity: sha512-nc9lOuCRz73UHnovDE2bwXUdghE2SEOc7Aii0qGe3CLyE03W1a7VnY5Z6euRiapiKbCkGS+eXbY3s/kvWeGeSw==}
+
+  '@fontsource/bebas-neue@5.2.7':
+    resolution: {integrity: sha512-DsmBrmq55d9BCU0mt4DT4RZDdH8vhWRKEUOfbuNB1EEjMuwbtFvM8N+3gIlkYSFbsb10P8Q19BV5OdpMu2h0fA==}
+
+  '@fontsource/instrument-serif@5.2.8':
+    resolution: {integrity: sha512-s+bkz+syj2rO00Rmq9g0P+PwuLig33DR1xDR8pTWmovH1pUjwnncrFk++q9mmOex8fUQ7oW80gPpPDaw7V1MMw==}
 
   '@google/genai@2.7.0':
     resolution: {integrity: sha512-tv0DRtcndt2oEhBYy+5mA0TaXH98+L1Gt0AP9unBfH7DP20KhB7+O3QqAN1Lz+laMARGTHS7BFQSNpLbl4gm1g==}
@@ -12783,6 +12801,12 @@ snapshots:
       react-dom: 19.2.6(react@19.2.6)
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@fontsource-variable/manrope@5.2.8': {}
+
+  '@fontsource/bebas-neue@5.2.7': {}
+
+  '@fontsource/instrument-serif@5.2.8': {}
 
   '@google/genai@2.7.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))':
     dependencies:

@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { SitePageChrome } from "../components/SitePageChrome";
+import { DeferUntilVisible } from "../components/DeferUntilVisible";
 import { Hero } from "../components/Hero";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
 // import { Faq } from "../components/Faq";
@@ -25,19 +26,16 @@ import {
   mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
 import { asOptionalRichText } from "../portableText/value";
-import {
-  RoofInspection,
-  CHAPTERS,
-  VIEWS,
-  type Chapter,
-} from "../components/RoofInspection";
+import { CHAPTERS, type Chapter } from "../components/RoofInspection";
 import type { RoofInspectionHotspotData } from "../types";
 import {
-  hotspotCoordKey,
   parseHotspotCoords,
 } from "../components/RoofInspection/hotspotCoords";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
 
+const HomeRoofInspection = lazy(
+  () => import("../components/HomeRoofInspection"),
+);
 const ScrollVelocity = lazy(async () => import("../components/ScrollText"));
 const About = lazy(async () => {
   const module = await import("../components/About");
@@ -246,15 +244,6 @@ export const Home = () => {
 
   const activeChapters = sanityChapters ?? CHAPTERS;
 
-  const inspectionTitle = (
-    <>
-      {roofInspection.titleLine1 ?? "The"}{" "}
-      <em>{roofInspection.titleLine2 ?? "Inspection."}</em>
-      <br />
-      {roofInspection.subtitle ?? "Seven things I check on every roof."}
-    </>
-  );
-
   return (
     <SitePageChrome>
       <SeoStructuredData />
@@ -277,28 +266,18 @@ export const Home = () => {
             {stats ? <Stats {...mapStatsProps(stats)} /> : null}
             {services ? <Services {...mapServicesProps(services)} /> : null}
             {serviceAreaMap ? (
-              <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+              <DeferUntilVisible minHeight="28rem">
+                <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+              </DeferUntilVisible>
             ) : null}
 
             {roofInspectionData ? (
-              <RoofInspection chapters={activeChapters} views={VIEWS}>
-                <RoofInspection.Rail
-                  kicker={roofInspection.kicker}
-                  title={inspectionTitle}
-                  lede={roofInspection.lede}
+              <DeferUntilVisible minHeight="36rem" rootMargin="600px 0px">
+                <HomeRoofInspection
+                  chapters={activeChapters}
+                  roofInspection={roofInspection}
                 />
-                <RoofInspection.Canvas>
-                  <RoofInspection.Toolbar />
-                  <RoofInspection.Diagram src="/roof.glb">
-                    {activeChapters.map((c) => (
-                      <RoofInspection.Hotspot
-                        key={`${c.sanityKey ?? c.id}-${hotspotCoordKey(c.position3d, c.normal3d)}`}
-                        chapter={c}
-                      />
-                    ))}
-                  </RoofInspection.Diagram>
-                </RoofInspection.Canvas>
-              </RoofInspection>
+              </DeferUntilVisible>
             ) : null}
             {mission ? <Mission {...mapMissionProps(mission)} /> : null}
             {beforeAfterItems && beforeAfterItems.length > 0 ? (

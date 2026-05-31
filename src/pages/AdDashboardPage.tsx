@@ -7,6 +7,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import "@fontsource/bebas-neue/latin-400.css";
 import { toBlob } from "html-to-image";
 import { usePostHog } from "@posthog/react";
 import {
@@ -166,21 +167,21 @@ const FONT_PRESETS: readonly FontPreset[] = [
     id: "brand-serif",
     label: "Instrument Serif",
     headlineFamily: '"Instrument Serif", serif',
-    bodyFamily: "Manrope, sans-serif",
+    bodyFamily: "Manrope Variable, sans-serif",
     headlineWeight: 400,
   },
   {
     id: "clean-sans",
-    label: "Manrope",
-    headlineFamily: "Manrope, sans-serif",
-    bodyFamily: "Manrope, sans-serif",
+    label: "Manrope Variable",
+    headlineFamily: "Manrope Variable, sans-serif",
+    bodyFamily: "Manrope Variable, sans-serif",
     headlineWeight: 750,
   },
   {
     id: "condensed",
     label: "Bebas Neue",
     headlineFamily: '"Bebas Neue", sans-serif',
-    bodyFamily: "Manrope, sans-serif",
+    bodyFamily: "Manrope Variable, sans-serif",
     headlineWeight: 400,
   },
 ] as const;
