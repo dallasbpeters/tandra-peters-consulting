@@ -175,6 +175,22 @@ export const BEFORE_AFTER_GALLERY_QUERY = groq`*[_type == "beforeAfterGallery"] 
   "afterImage": afterImage.asset->url
 }`;
 
+export const SANITY_IMAGE_LIBRARY_QUERY = groq`*[_type == "sanity.imageAsset" && defined(url)] | order(_createdAt desc)[0...80] {
+  _id,
+  _createdAt,
+  originalFilename,
+  title,
+  altText,
+  url,
+  metadata {
+    lqip,
+    dimensions {
+      width,
+      height
+    }
+  }
+}`;
+
 /** Single post by slug for /articles/:slug */
 export const POST_BY_SLUG_QUERY = groq`*[_type == "post" && slug.current == $slug][0] {
   ...,

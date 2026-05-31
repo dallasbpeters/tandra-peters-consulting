@@ -6,6 +6,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { toBlob } from "html-to-image";
 import { usePostHog } from "@posthog/react";
 import {
   ColorWheel,
@@ -14,10 +15,11 @@ import {
   MediaImage,
   Palette,
   Page,
-  Text,
   Upload,
 } from "iconoir-react";
+import { AdImagePicker } from "../components/AdImagePicker";
 import { SitePageChrome } from "../components/SitePageChrome";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
 import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
@@ -29,6 +31,10 @@ import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
+import {
+  useSanityImageAssets,
+  type SanityImageAsset,
+} from "../hooks/useSanityImageAssets";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { layoutClass } from "../styles/layoutClasses";
 import "../styles/ad-dashboard.css";
@@ -41,7 +47,12 @@ type PlatformPreset = {
   height: number;
 };
 
-type CreativeLayout = "photo-right" | "photo-fill" | "headline-card";
+type CreativeLayout =
+  | "photo-right"
+  | "photo-fill"
+  | "headline-card"
+  | "image-top"
+  | "poster-cover";
 type FontPresetId = "brand-serif" | "clean-sans" | "condensed";
 
 type CreativeState = {
@@ -49,52 +60,29 @@ type CreativeState = {
   layout: CreativeLayout;
   contentPadding: number;
   fontPresetId: FontPresetId;
+  headlineSize: number;
+  eyebrowSize: number;
+  ctaSize: number;
   eyebrow: string;
   headline: string;
   body: string;
   cta: string;
   footnote: string;
+  footnote2?: string;
   backgroundColor: string;
   textColor: string;
+  headlineColor: string;
   accentColor: string;
   imageFile: File | null;
   imageUrl: string | null;
   imageName: string | null;
 };
 
-type CanvasTextOptions = {
-  maxWidth: number;
-  lineHeight: number;
-  color: string;
-  font: string;
-  weight?: number;
-  align?: CanvasTextAlign;
-};
-
 type PlatformShape = "square" | "wide" | "tall";
-
-type CanvasBox = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type TextFit = {
-  eyebrowSize: number;
-  headlineSize: number;
-  bodySize: number;
-  ctaSize: number;
-  footnoteSize: number;
-  headlineLines: string[];
-  bodyLines: string[];
-  totalHeight: number;
-};
 
 type FontPreset = {
   id: FontPresetId;
   label: string;
-  helper: string;
   headlineFamily: string;
   bodyFamily: string;
   headlineWeight: number;
@@ -106,9 +94,13 @@ const getSelectValue = (event: unknown): string =>
 const getInputValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
 
-const PADDING_MIN = 60;
-const PADDING_MAX = 140;
+const PADDING_MIN = 24;
+const PADDING_MAX = 120;
 const PADDING_STEP = 5;
+const DEFAULT_TYPE_SIZE = 100;
+const TYPE_SIZE_MIN = 50;
+const TYPE_SIZE_MAX = 160;
+const TYPE_SIZE_STEP = 5;
 
 const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   {
@@ -152,38 +144,36 @@ const BRAND_SWATCHES = [
   { label: "Everglade", value: "#092A1D" },
   { label: "Paper", value: "#F6F2EA" },
   { label: "Mint", value: "#D5F6E9" },
-  { label: "Purple", value: "#A48FE7" },
-  { label: "Laurel", value: "#92B661" },
-  { label: "Coral", value: "#D86642" },
-  { label: "Storm", value: "#4F6F7A" },
-  { label: "Granite", value: "#99AAA6" },
+  { label: "Purple", value: "#9C99FF" },
+  { label: "Laurel", value: "#A5CA9B" },
+  { label: "Coral", value: "#FB6237" },
+  { label: "Storm", value: "#46656B" },
+  { label: "Granite", value: "#667A71" },
+  { label: "Blue", value: "#335CFF" },
 ] as const;
 
-const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map(
-  (swatch) => swatch.value,
-).join(";");
+const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((swatch) => swatch.value).join(
+  ";",
+);
 
 const FONT_PRESETS: readonly FontPreset[] = [
   {
     id: "brand-serif",
-    label: "Brand serif",
-    helper: "Instrument Serif headline with Manrope body.",
+    label: "Instrument Serif",
     headlineFamily: '"Instrument Serif", serif',
     bodyFamily: "Manrope, sans-serif",
     headlineWeight: 400,
   },
   {
     id: "clean-sans",
-    label: "Clean sans",
-    helper: "Manrope throughout for a direct service ad.",
+    label: "Manrope",
     headlineFamily: "Manrope, sans-serif",
     bodyFamily: "Manrope, sans-serif",
     headlineWeight: 750,
   },
   {
     id: "condensed",
-    label: "Condensed",
-    helper: "Bebas Neue headline for short, urgent copy.",
+    label: "Bebas Neue",
     headlineFamily: '"Bebas Neue", sans-serif',
     bodyFamily: "Manrope, sans-serif",
     headlineWeight: 400,
@@ -201,6 +191,17 @@ const clampPadding = (value: number) =>
   Math.round(clampNumber(value, PADDING_MIN, PADDING_MAX) / PADDING_STEP) *
   PADDING_STEP;
 
+const clampTypeSize = (value: number) =>
+  Math.round(
+    clampNumber(value, TYPE_SIZE_MIN, TYPE_SIZE_MAX) / TYPE_SIZE_STEP,
+  ) * TYPE_SIZE_STEP;
+
+const getSafeTypeSize = (value: number) =>
+  Number.isFinite(value) ? clampTypeSize(value) : DEFAULT_TYPE_SIZE;
+
+const getSafeColor = (value: string | undefined, fallback: string) =>
+  value || fallback;
+
 const getPaddingScale = (creative: Pick<CreativeState, "contentPadding">) =>
   creative.contentPadding / 100;
 
@@ -212,6 +213,22 @@ const getPreviewPadding = (
   shape: PlatformShape,
 ) => {
   const scale = getPaddingScale(creative);
+
+  if (
+    creative.layout === "headline-card" ||
+    creative.layout === "image-top" ||
+    creative.layout === "poster-cover"
+  ) {
+    if (shape === "wide") {
+      return `clamp(2.5rem, ${formatCssNumber(5.8 * scale)}cqw, 5rem)`;
+    }
+
+    if (shape === "tall") {
+      return `clamp(2.25rem, ${formatCssNumber(7.2 * scale)}cqw, 5rem)`;
+    }
+
+    return `clamp(2.25rem, ${formatCssNumber(6.2 * scale)}cqw, 5rem)`;
+  }
 
   if (creative.layout === "photo-right") {
     if (shape === "wide") {
@@ -269,14 +286,13 @@ const AdColorPickerField = ({
 
   return (
     <div className="ad-dashboard-color-field">
-      <span>{label}</span>
       <WaColorPicker
         ref={pickerRef}
         label={label}
         value={value}
         format="hex"
         uppercase
-        size="s"
+        size="m"
         placement="left-start"
         swatches={COLOR_PICKER_SWATCHES}
       />
@@ -350,6 +366,78 @@ const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => {
   );
 };
 
+type AdTypeSizeFieldProps = {
+  label: string;
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+const AdTypeSizeField = ({
+  label,
+  value,
+  onValueChange,
+}: AdTypeSizeFieldProps) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+  const numberInputRef = useRef<WaNumberInputElement | null>(null);
+  const safeValue = getSafeTypeSize(value);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    const numberInput = numberInputRef.current;
+
+    const updateFromSlider = () => {
+      if (!slider) return;
+      onValueChange(clampTypeSize(slider.value));
+    };
+
+    const updateFromNumberInput = () => {
+      if (!numberInput) return;
+      const nextValue = Number(numberInput.value ?? safeValue);
+      if (Number.isFinite(nextValue)) {
+        onValueChange(clampTypeSize(nextValue));
+      }
+    };
+
+    slider?.addEventListener("input", updateFromSlider);
+    slider?.addEventListener("change", updateFromSlider);
+    numberInput?.addEventListener("input", updateFromNumberInput);
+    numberInput?.addEventListener("change", updateFromNumberInput);
+
+    return () => {
+      slider?.removeEventListener("input", updateFromSlider);
+      slider?.removeEventListener("change", updateFromSlider);
+      numberInput?.removeEventListener("input", updateFromNumberInput);
+      numberInput?.removeEventListener("change", updateFromNumberInput);
+    };
+  }, [label, onValueChange, safeValue]);
+
+  return (
+    <div className="ad-dashboard-size-field">
+      <WaSlider
+        ref={sliderRef}
+        label={label}
+        value={safeValue}
+        min={TYPE_SIZE_MIN}
+        max={TYPE_SIZE_MAX}
+        step={TYPE_SIZE_STEP}
+        size="s"
+        withTooltip
+      />
+      <WaNumberInput
+        ref={numberInputRef}
+        label={`${label} %`}
+        value={String(safeValue)}
+        min={TYPE_SIZE_MIN}
+        max={TYPE_SIZE_MAX}
+        step={TYPE_SIZE_STEP}
+        inputmode="numeric"
+        appearance="outlined"
+        size="s"
+      />
+    </div>
+  );
+};
+
 const LAYOUTS: ReadonlyArray<{
   id: CreativeLayout;
   label: string;
@@ -370,6 +458,16 @@ const LAYOUTS: ReadonlyArray<{
     label: "Text first",
     helper: "Bold message, small image badge.",
   },
+  {
+    id: "image-top",
+    label: "Image top",
+    helper: "Top photo with headline crossing the split.",
+  },
+  {
+    id: "poster-cover",
+    label: "Cover headline",
+    helper: "Photo poster with a brand band.",
+  },
 ];
 
 const DEFAULT_CREATIVE: CreativeState = {
@@ -377,13 +475,18 @@ const DEFAULT_CREATIVE: CreativeState = {
   layout: "photo-right",
   contentPadding: 100,
   fontPresetId: "brand-serif",
+  headlineSize: 100,
+  eyebrowSize: 100,
+  ctaSize: 100,
   eyebrow: "Austin roof help",
-  headline: "Not sure if that roof damage is storm related?",
+  headline: "Summer storms are coming, is your roof ready?",
   body: "I will inspect it, explain what I see, and help you understand the next right step.",
-  cta: "Book a free inspection",
-  footnote: "Tandra Peters | Birdcreek Roofing",
+  cta: "Call or Text 512-968-3982",
+  footnote: "Tandra Peters",
+  footnote2: "Birdcreek Roofing",
   backgroundColor: "#092A1D",
   textColor: "#F6F2EA",
+  headlineColor: "#F6F2EA",
   accentColor: "#D5F6E9",
   imageFile: null,
   imageUrl: null,
@@ -394,59 +497,35 @@ const getSelectedPlatform = (platformId: string) =>
   PLATFORM_PRESETS.find((platform) => platform.id === platformId) ??
   PLATFORM_PRESETS[0];
 
-const loadImage = (src: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Could not load uploaded image."));
-    img.src = src;
-  });
-
-const loadImageFile = async (file: File) => {
-  const url = URL.createObjectURL(file);
+const toCanvasImageUrl = (url: string) => {
   try {
-    return await loadImage(url);
-  } finally {
+    const parsed = new URL(url);
+    if (
+      parsed.protocol === "https:" &&
+      parsed.hostname === "cdn.sanity.io" &&
+      parsed.pathname.startsWith("/images/7irm699i/production/")
+    ) {
+      return `/api/sanity-image?url=${encodeURIComponent(url)}`;
+    }
+
+    if (
+      parsed.protocol === "https:" &&
+      (parsed.hostname === "images.unsplash.com" ||
+        parsed.hostname === "plus.unsplash.com")
+    ) {
+      return `/api/unsplash-image?url=${encodeURIComponent(url)}`;
+    }
+  } catch {
+    return url;
+  }
+
+  return url;
+};
+
+const revokeObjectUrl = (url: string | null) => {
+  if (url?.startsWith("blob:")) {
     URL.revokeObjectURL(url);
   }
-};
-
-const loadCreativeImage = async (creative: CreativeState) => {
-  if (creative.imageFile) {
-    return loadImageFile(creative.imageFile);
-  }
-
-  if (!creative.imageUrl) {
-    return null;
-  }
-
-  try {
-    return await loadImage(creative.imageUrl);
-  } catch (error) {
-    if (creative.imageUrl.startsWith("blob:")) {
-      throw new Error(
-        "The uploaded image reference expired. Re-upload the image.",
-        { cause: error },
-      );
-    }
-    throw error;
-  }
-};
-
-const drawCoverImage = (
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-) => {
-  const scale = Math.max(width / image.width, height / image.height);
-  const scaledWidth = image.width * scale;
-  const scaledHeight = image.height * scale;
-  const dx = x + (width - scaledWidth) / 2;
-  const dy = y + (height - scaledHeight) / 2;
-  context.drawImage(image, dx, dy, scaledWidth, scaledHeight);
 };
 
 const getPlatformShape = (platform: PlatformPreset): PlatformShape => {
@@ -454,208 +533,6 @@ const getPlatformShape = (platform: PlatformPreset): PlatformShape => {
   if (ratio < 0.78) return "tall";
   if (ratio > 1.35) return "wide";
   return "square";
-};
-
-const getWrappedLines = (
-  context: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] => {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let currentLine = "";
-
-  words.forEach((word) => {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (context.measureText(testLine).width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
-    }
-  });
-
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines;
-};
-
-const measureTextFit = (
-  context: CanvasRenderingContext2D,
-  creative: CreativeState,
-  box: CanvasBox,
-  fontPreset: FontPreset,
-  base: {
-    eyebrowSize: number;
-    headlineSize: number;
-    bodySize: number;
-    ctaSize: number;
-    footnoteSize: number;
-  },
-): TextFit => {
-  context.font = `${fontPreset.headlineWeight} ${base.headlineSize}px ${fontPreset.headlineFamily}`;
-  const headlineLines = getWrappedLines(context, creative.headline, box.width);
-  const headlineLineHeight = Math.round(base.headlineSize * 1.02);
-
-  context.font = `600 ${base.bodySize}px ${fontPreset.bodyFamily}`;
-  const bodyLines = getWrappedLines(context, creative.body, box.width);
-  const bodyLineHeight = Math.round(base.bodySize * 1.38);
-
-  const totalHeight =
-    base.eyebrowSize * 1.1 +
-    base.eyebrowSize * 1.85 +
-    headlineLines.length * headlineLineHeight +
-    base.bodySize * 0.85 +
-    bodyLines.length * bodyLineHeight +
-    base.bodySize * 1.05 +
-    base.ctaSize * 2.45;
-
-  return {
-    ...base,
-    headlineLines,
-    bodyLines,
-    totalHeight,
-  };
-};
-
-const fitTextBlock = (
-  context: CanvasRenderingContext2D,
-  creative: CreativeState,
-  box: CanvasBox,
-  shortestSide: number,
-  shape: PlatformShape,
-  layout: CreativeLayout,
-  fontPreset: FontPreset,
-): TextFit => {
-  const baseHeadline =
-    shortestSide *
-    (layout === "headline-card"
-      ? shape === "wide"
-        ? 0.094
-        : shape === "tall"
-          ? 0.082
-          : 0.088
-      : shape === "wide"
-        ? 0.074
-        : shape === "tall"
-          ? 0.078
-          : 0.072);
-  let scale = 1;
-  let fit: TextFit;
-
-  do {
-    fit = measureTextFit(context, creative, box, fontPreset, {
-      eyebrowSize: Math.max(18, Math.round(shortestSide * 0.023 * scale)),
-      headlineSize: Math.max(38, Math.round(baseHeadline * scale)),
-      bodySize: Math.max(18, Math.round(shortestSide * 0.031 * scale)),
-      ctaSize: Math.max(17, Math.round(shortestSide * 0.025 * scale)),
-      footnoteSize: Math.max(16, Math.round(shortestSide * 0.021 * scale)),
-    });
-    scale -= 0.05;
-  } while (fit.totalHeight > box.height && scale >= 0.62);
-
-  return fit;
-};
-
-const drawTextLines = (
-  context: CanvasRenderingContext2D,
-  lines: string[],
-  x: number,
-  y: number,
-  options: CanvasTextOptions,
-) => {
-  context.fillStyle = options.color;
-  context.textAlign = options.align ?? "left";
-  context.textBaseline = "top";
-  context.font = `${options.weight ?? 500} ${options.font}`;
-
-  lines.forEach((line, index) => {
-    context.fillText(line, x, y + index * options.lineHeight);
-  });
-
-  return y + lines.length * options.lineHeight;
-};
-
-const drawTextBlock = (
-  context: CanvasRenderingContext2D,
-  creative: CreativeState,
-  box: CanvasBox,
-  fit: TextFit,
-  fontPreset: FontPreset,
-) => {
-  let cursorY = box.y;
-
-  context.fillStyle = creative.accentColor;
-  context.font = `900 ${fit.eyebrowSize}px ${fontPreset.bodyFamily}`;
-  context.textBaseline = "top";
-  context.fillText(creative.eyebrow.toUpperCase(), box.x, cursorY);
-  cursorY += fit.eyebrowSize * 2.95;
-
-  cursorY = drawTextLines(context, fit.headlineLines, box.x, cursorY, {
-    color: creative.textColor,
-    font: `${fit.headlineSize}px ${fontPreset.headlineFamily}`,
-    lineHeight: Math.round(fit.headlineSize * 1.02),
-    maxWidth: box.width,
-    weight: fontPreset.headlineWeight,
-  });
-
-  cursorY += fit.bodySize * 0.85;
-  cursorY = drawTextLines(context, fit.bodyLines, box.x, cursorY, {
-    color: creative.textColor,
-    font: `${fit.bodySize}px ${fontPreset.bodyFamily}`,
-    lineHeight: Math.round(fit.bodySize * 1.38),
-    maxWidth: box.width,
-    weight: 600,
-  });
-
-  const ctaY = cursorY + fit.bodySize * 1.05;
-  const ctaPaddingX = fit.ctaSize * 1.55;
-  const ctaHeight = fit.ctaSize * 2.45;
-  context.font = `850 ${fit.ctaSize}px ${fontPreset.bodyFamily}`;
-  const ctaWidth = Math.min(
-    box.width,
-    context.measureText(creative.cta).width + ctaPaddingX * 2,
-  );
-
-  context.fillStyle = creative.accentColor;
-  roundedRect(context, box.x, ctaY, ctaWidth, ctaHeight, ctaHeight / 2);
-  context.fill();
-  context.fillStyle = creative.backgroundColor;
-  context.fillText(
-    creative.cta,
-    box.x + ctaPaddingX,
-    ctaY + fit.ctaSize * 0.68,
-  );
-};
-
-const roundedRect = (
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) => {
-  const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
-
-  context.beginPath();
-  context.moveTo(x + safeRadius, y);
-  context.lineTo(x + width - safeRadius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
-  context.lineTo(x + width, y + height - safeRadius);
-  context.quadraticCurveTo(
-    x + width,
-    y + height,
-    x + width - safeRadius,
-    y + height,
-  );
-  context.lineTo(x + safeRadius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
-  context.lineTo(x, y + safeRadius);
-  context.quadraticCurveTo(x, y, x + safeRadius, y);
-  context.closePath();
 };
 
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -669,204 +546,56 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const drawCreative = async (
-  creative: CreativeState,
+const exportPreviewNode = async (
+  node: HTMLElement,
   platform: PlatformPreset,
-) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = platform.width;
-  canvas.height = platform.height;
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Canvas is not available in this browser.");
-  }
-
-  const width = platform.width;
-  const height = platform.height;
-  const shortestSide = Math.min(width, height);
-  const shape = getPlatformShape(platform);
-  const fontPreset = getSelectedFontPreset(creative.fontPresetId);
-  const paddingScale = getPaddingScale(creative);
-  const margin = Math.round(
-    shortestSide *
-      (shape === "wide" ? 0.06 : shape === "tall" ? 0.07 : 0.075) *
-      paddingScale,
-  );
-  const gap = Math.round(shortestSide * 0.045 * Math.max(0.8, paddingScale));
-  const radius = Math.round(shortestSide * 0.034);
-  const footerReserve = Math.round(
-    shortestSide * 0.065 * Math.max(0.85, paddingScale),
-  );
-
-  context.fillStyle = creative.backgroundColor;
-  context.fillRect(0, 0, width, height);
-
-  const image = await loadCreativeImage(creative);
+  backgroundColor: string,
+): Promise<Blob> => {
   if (document.fonts) {
     await document.fonts.ready;
   }
-  let copyBox: CanvasBox = {
-    x: margin,
-    y: margin,
-    width: width - margin * 2,
-    height: height - margin * 2 - footerReserve,
+
+  const previewBounds = node.getBoundingClientRect();
+  if (previewBounds.width <= 0 || previewBounds.height <= 0) {
+    throw new Error("The ad preview is not ready yet.");
+  }
+
+  const pixelRatio = Math.min(
+    platform.width / previewBounds.width,
+    platform.height / previewBounds.height,
+  );
+  const previousStyle = {
+    boxShadow: node.style.boxShadow,
   };
 
-  if (creative.layout === "photo-fill" && image) {
-    drawCoverImage(context, image, 0, 0, width, height);
-    context.fillStyle = "rgba(9, 42, 29, 0.66)";
-    context.fillRect(0, 0, width, height);
-    copyBox = {
-      x: margin,
-      y:
-        shape === "tall"
-          ? Math.round(height * 0.48)
-          : shape === "wide"
-            ? Math.round(height * 0.34)
-            : Math.round(height * 0.42),
-      width:
-        shape === "wide"
-          ? Math.round(width * 0.52)
-          : width - margin * 2,
-      height:
-        shape === "tall"
-          ? height - Math.round(height * 0.48) - margin - footerReserve
-          : height - Math.round(height * 0.42) - margin - footerReserve,
-    };
-  }
+  node.style.boxShadow = "none";
 
-  if (creative.layout === "headline-card") {
-    const frameWidth = Math.max(14, Math.round(shortestSide * 0.026));
-    const innerX = margin + frameWidth;
-    const innerY = margin + frameWidth;
-    const innerWidth = width - margin * 2 - frameWidth * 2;
-    const innerHeight = height - margin * 2 - frameWidth * 2;
-    const innerPad = Math.round(
-      shortestSide * (shape === "wide" ? 0.048 : 0.06) * paddingScale,
-    );
-
-    context.fillStyle = creative.accentColor;
-    roundedRect(
-      context,
-      margin,
-      margin,
-      width - margin * 2,
-      height - margin * 2,
-      radius,
-    );
-    context.fill();
-    context.fillStyle = creative.backgroundColor;
-    roundedRect(context, innerX, innerY, innerWidth, innerHeight, radius * 0.7);
-    context.fill();
-
-    if (image) {
-      const badgeSize = Math.round(
-        shortestSide * (shape === "wide" ? 0.31 : shape === "tall" ? 0.34 : 0.24),
-      );
-      const badgeX =
-        shape === "wide"
-          ? innerX + innerWidth - innerPad - badgeSize
-          : innerX + innerWidth - innerPad - badgeSize;
-      const badgeY =
-        shape === "tall"
-          ? innerY + innerHeight - innerPad - badgeSize
-          : innerY + innerHeight - innerPad - badgeSize;
-      roundedRect(context, badgeX, badgeY, badgeSize, badgeSize, radius * 0.55);
-      context.save();
-      context.clip();
-      drawCoverImage(context, image, badgeX, badgeY, badgeSize, badgeSize);
-      context.restore();
-    }
-
-    copyBox = {
-      x: innerX + innerPad,
-      y: innerY + innerPad,
-      width:
-        image && shape === "wide"
-          ? innerWidth - innerPad * 3 - Math.round(shortestSide * 0.31)
-          : image && shape === "square"
-            ? Math.round(innerWidth * 0.66)
-            : innerWidth - innerPad * 2,
-      height:
-        image && shape === "tall"
-          ? innerHeight - innerPad * 3 - Math.round(shortestSide * 0.34)
-          : innerHeight - innerPad * 2 - footerReserve,
-    };
-  }
-
-  if (creative.layout === "photo-right") {
-    if (shape === "tall") {
-      const photoWidth = width - margin * 2;
-      const photoHeight = Math.round(height * 0.36);
-      const photoX = margin;
-      const photoY = height - margin - photoHeight;
-      if (image) {
-        roundedRect(context, photoX, photoY, photoWidth, photoHeight, radius);
-        context.save();
-        context.clip();
-        drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
-        context.restore();
-      }
-      copyBox = {
-        x: margin,
-        y: margin,
-        width: width - margin * 2,
-        height: photoY - margin - gap,
-      };
-    } else {
-      const photoWidth = Math.round(width * (shape === "wide" ? 0.44 : 0.4));
-      const photoHeight = height - margin * 2;
-      const photoX = width - margin - photoWidth;
-      const photoY = margin;
-      if (image) {
-        roundedRect(context, photoX, photoY, photoWidth, photoHeight, radius);
-        context.save();
-        context.clip();
-        drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
-        context.restore();
-      }
-      copyBox = {
-        x: margin,
-        y: margin,
-        width: photoX - margin - gap,
-        height: height - margin * 2 - footerReserve,
-      };
-    }
-  }
-
-  const fit = fitTextBlock(
-    context,
-    creative,
-    copyBox,
-    shortestSide,
-    shape,
-    creative.layout,
-    fontPreset,
-  );
-  context.letterSpacing = "0px";
-  drawTextBlock(context, creative, copyBox, fit, fontPreset);
-
-  context.fillStyle = creative.textColor;
-  context.globalAlpha = 0.72;
-  context.font = `750 ${fit.footnoteSize}px ${fontPreset.bodyFamily}`;
-  context.fillText(
-    creative.footnote,
-    creative.layout === "headline-card" ? copyBox.x : margin,
-    height - margin * 0.75,
-    width - margin * 2,
-  );
-  context.globalAlpha = 1;
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("Could not export PNG."));
-      }
-    }, "image/png");
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => resolve());
   });
+
+  try {
+    const blob = await toBlob(node, {
+      backgroundColor,
+      cacheBust: true,
+      canvasWidth: platform.width,
+      canvasHeight: platform.height,
+      height: previewBounds.height,
+      includeQueryParams: true,
+      pixelRatio,
+      skipAutoScale: true,
+      type: "image/png",
+      width: previewBounds.width,
+    });
+
+    if (!blob) {
+      throw new Error("Could not export PNG.");
+    }
+
+    return blob;
+  } finally {
+    node.style.boxShadow = previousStyle.boxShadow;
+  }
 };
 
 const AuthPanel = ({
@@ -902,6 +631,8 @@ const AuthPanel = ({
 export const AdDashboardPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
+  const imageLibrary = useSanityImageAssets();
+  const previewRef = useRef<HTMLElement | null>(null);
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -924,9 +655,7 @@ export const AdDashboardPage = () => {
 
   useEffect(
     () => () => {
-      if (creative.imageUrl) {
-        URL.revokeObjectURL(creative.imageUrl);
-      }
+      revokeObjectUrl(creative.imageUrl);
     },
     [creative.imageUrl],
   );
@@ -945,9 +674,7 @@ export const AdDashboardPage = () => {
 
       const url = URL.createObjectURL(file);
       setCreative((current) => {
-        if (current.imageUrl) {
-          URL.revokeObjectURL(current.imageUrl);
-        }
+        revokeObjectUrl(current.imageUrl);
 
         return {
           ...current,
@@ -961,20 +688,45 @@ export const AdDashboardPage = () => {
     [],
   );
 
+  const handleSanityImageSelect = useCallback((image: SanityImageAsset) => {
+    setCreative((current) => {
+      revokeObjectUrl(current.imageUrl);
+
+      return {
+        ...current,
+        imageFile: null,
+        imageUrl: image.url,
+        imageName: image.label,
+      };
+    });
+    setExportError(null);
+  }, []);
+
   const handleExport = useCallback(async () => {
+    const previewNode = previewRef.current;
+    if (!previewNode) {
+      setExportError("The ad preview is not ready yet.");
+      return;
+    }
+
     setExporting(true);
     setExportError(null);
     try {
-      const blob = await drawCreative(creative, selectedPlatform);
-      downloadBlob(
-        blob,
-        `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`,
+      const blob = await exportPreviewNode(
+        previewNode,
+        selectedPlatform,
+        creative.backgroundColor,
       );
+      downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
       posthog?.capture("ad_creative_exported", {
         platform: selectedPlatform.id,
         layout: creative.layout,
         contentPadding: creative.contentPadding,
         fontPreset: creative.fontPresetId,
+        headlineSize: getSafeTypeSize(creative.headlineSize),
+        eyebrowSize: getSafeTypeSize(creative.eyebrowSize),
+        ctaSize: getSafeTypeSize(creative.ctaSize),
+        headlineColor: getSafeColor(creative.headlineColor, creative.textColor),
       });
     } catch (error) {
       setExportError(
@@ -988,18 +740,34 @@ export const AdDashboardPage = () => {
   const previewStyle = {
     "--ad-bg": creative.backgroundColor,
     "--ad-ink": creative.textColor,
+    "--ad-headline-ink": getSafeColor(
+      creative.headlineColor,
+      creative.textColor,
+    ),
     "--ad-accent": creative.accentColor,
     "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
     "--ad-frame-inset": getFrameInset(creative),
-    "--ad-headline-font": getSelectedFontPreset(
-      creative.fontPresetId,
-    ).headlineFamily,
+    "--ad-headline-font": getSelectedFontPreset(creative.fontPresetId)
+      .headlineFamily,
     "--ad-headline-weight": String(
       getSelectedFontPreset(creative.fontPresetId).headlineWeight,
     ),
+    "--ad-headline-size-scale": formatCssNumber(
+      getSafeTypeSize(creative.headlineSize) / 100,
+    ),
+    "--ad-eyebrow-size-scale": formatCssNumber(
+      getSafeTypeSize(creative.eyebrowSize) / 100,
+    ),
+    "--ad-cta-size-scale": formatCssNumber(
+      getSafeTypeSize(creative.ctaSize) / 100,
+    ),
     "--ad-body-font": getSelectedFontPreset(creative.fontPresetId).bodyFamily,
     aspectRatio: `${selectedPlatform.width} / ${selectedPlatform.height}`,
+    borderBlockEnd: `10px solid color-mix(in oklch, ${creative.accentColor} 82%, transparent)`,
   } as CSSProperties & Record<string, string>;
+  const previewImageUrl = creative.imageUrl
+    ? toCanvasImageUrl(creative.imageUrl)
+    : null;
 
   return (
     <SitePageChrome>
@@ -1009,149 +777,180 @@ export const AdDashboardPage = () => {
 
           {auth.token ? (
             <>
-
               <section className="ad-dashboard-grid">
                 <aside className="ad-dashboard-panel ad-dashboard-controls">
-                  <div className="ad-dashboard-panel-header">
-                    <Page width={20} height={20} />
-                    <h2>Format</h2>
-                  </div>
-                  <div className="ad-dashboard-preset-grid">
+                  <div className="ad-dashboard-inner">
+                    <div className="ad-dashboard-panel-header">
+                      <Page width={20} height={20} />
+                      <h2>Format</h2>
+                    </div>
+                    <div className="ad-dashboard-preset-grid">
+                      <WaSelect
+                        name="platform"
+                        label="Platform"
+                        value={creative.platformId}
+                        appearance="outlined"
+                        size="s"
+                        onChange={(event) =>
+                          updateCreative("platformId", getSelectValue(event))
+                        }
+                      >
+                        {PLATFORM_PRESETS.map((platform) => (
+                          <WaOption key={platform.id} value={platform.id}>
+                            {platform.label} · {platform.width} x{" "}
+                            {platform.height} · {platform.helper}
+                          </WaOption>
+                        ))}
+                      </WaSelect>
+                    </div>
+
+                    <div className="ad-dashboard-panel-header">
+                      <Instagram width={20} height={20} />
+                      <h2>Layout</h2>
+                    </div>
+                    <div className="ad-dashboard-layout-grid">
+                      <WaSelect
+                        name="layout"
+                        label="Layout"
+                        value={creative.layout}
+                        appearance="outlined"
+                        size="s"
+                        onChange={(event) =>
+                          updateCreative(
+                            "layout",
+                            getSelectValue(event) as CreativeLayout,
+                          )
+                        }
+                      >
+                        {LAYOUTS.map((layout) => (
+                          <WaOption key={layout.id} value={layout.id}>
+                            {layout.label} · {layout.helper}
+                          </WaOption>
+                        ))}
+                      </WaSelect>
+                    </div>
+                    <AdPaddingField
+                      value={creative.contentPadding}
+                      onValueChange={(value) =>
+                        updateCreative("contentPadding", value)
+                      }
+                    />
                     <WaSelect
-                      name="platform"
-                      label="Platform"
-                      value={creative.platformId}
+                      className="ad-dashboard-field"
+                      name="fontPreset"
+                      label="Font"
+                      value={creative.fontPresetId}
                       appearance="outlined"
                       size="s"
                       onChange={(event) =>
                         updateCreative(
-                          "platformId",
-                          getSelectValue(event),
+                          "fontPresetId",
+                          getSelectValue(event) as FontPresetId,
                         )
                       }
                     >
-                      {PLATFORM_PRESETS.map((platform) => (
-                        <WaOption key={platform.id} value={platform.id}>
-                          {platform.label} · {platform.width} x{" "}
-                          {platform.height} · {platform.helper}
+                      {FONT_PRESETS.map((fontPreset) => (
+                        <WaOption key={fontPreset.id} value={fontPreset.id}>
+                          {fontPreset.label}
                         </WaOption>
                       ))}
                     </WaSelect>
-                  </div>
 
-                  <div className="ad-dashboard-panel-header">
-                    <Instagram width={20} height={20} />
-                    <h2>Layout</h2>
-                  </div>
-                  <div className="ad-dashboard-layout-grid">
-                    <WaSelect
-                      name="layout"
-                      label="Layout"
-                      value={creative.layout}
+                    <div className="ad-dashboard-panel-header">
+                      <ColorWheel width={20} height={20} />
+                      <h2>Type sizes</h2>
+                    </div>
+                    <AdTypeSizeField
+                      label="Headline"
+                      value={creative.headlineSize}
+                      onValueChange={(value) =>
+                        updateCreative("headlineSize", value)
+                      }
+                    />
+                    <AdTypeSizeField
+                      label="Eyebrow"
+                      value={creative.eyebrowSize}
+                      onValueChange={(value) =>
+                        updateCreative("eyebrowSize", value)
+                      }
+                    />
+                    <AdTypeSizeField
+                      label="CTA"
+                      value={creative.ctaSize}
+                      onValueChange={(value) =>
+                        updateCreative("ctaSize", value)
+                      }
+                    />
+
+                    <WaInput
+                      className="ad-dashboard-field"
+                      label="Eyebrow"
+                      value={creative.eyebrow}
                       appearance="outlined"
                       size="s"
-                      onChange={(event) =>
-                        updateCreative(
-                          "layout",
-                          getSelectValue(event) as CreativeLayout,
-                        )
+                      withClear
+                      onInput={(event) =>
+                        updateCreative("eyebrow", getInputValue(event))
                       }
-                    >
-                      {LAYOUTS.map((layout) => (
-                        <WaOption key={layout.id} value={layout.id}>
-                          {layout.label} · {layout.helper}
-                        </WaOption>
-                      ))}
-                    </WaSelect>
+                    />
+                    <WaTextarea
+                      className="ad-dashboard-field"
+                      label="Headline"
+                      value={creative.headline}
+                      rows={3}
+                      resize="vertical"
+                      appearance="outlined"
+                      size="s"
+                      onInput={(event) =>
+                        updateCreative("headline", getInputValue(event))
+                      }
+                    />
+                    <WaTextarea
+                      className="ad-dashboard-field"
+                      label="Supporting copy"
+                      value={creative.body}
+                      rows={4}
+                      resize="vertical"
+                      appearance="outlined"
+                      size="s"
+                      onInput={(event) =>
+                        updateCreative("body", getInputValue(event))
+                      }
+                    />
+                    <WaInput
+                      className="ad-dashboard-field"
+                      label="CTA"
+                      value={creative.cta}
+                      appearance="outlined"
+                      size="s"
+                      withClear
+                      onInput={(event) =>
+                        updateCreative("cta", getInputValue(event))
+                      }
+                    />
+                    <WaInput
+                      className="ad-dashboard-field"
+                      label="Byline"
+                      value={creative.footnote}
+                      appearance="outlined"
+                      size="s"
+                      withClear
+                      onInput={(event) =>
+                        updateCreative("footnote", getInputValue(event))
+                      }
+                    />
+                    <WaInput
+                      className="ad-dashboard-field"
+                      label="Brand"
+                      value={creative.footnote2}
+                      appearance="outlined"
+                      size="s"
+                      withClear
+                      onInput={(event) =>
+                        updateCreative("footnote2", getInputValue(event))
+                      }
+                    />
                   </div>
-                  <AdPaddingField
-                    value={creative.contentPadding}
-                    onValueChange={(value) =>
-                      updateCreative("contentPadding", value)
-                    }
-                  />
-                  <WaSelect
-                    className="ad-dashboard-field"
-                    name="fontPreset"
-                    label="Font"
-                    value={creative.fontPresetId}
-                    appearance="outlined"
-                    size="s"
-                    onChange={(event) =>
-                      updateCreative(
-                        "fontPresetId",
-                        getSelectValue(event) as FontPresetId,
-                      )
-                    }
-                  >
-                    {FONT_PRESETS.map((fontPreset) => (
-                      <WaOption key={fontPreset.id} value={fontPreset.id}>
-                        {fontPreset.label} · {fontPreset.helper}
-                      </WaOption>
-                    ))}
-                  </WaSelect>
-
-                  <div className="ad-dashboard-panel-header">
-                    <Text width={20} height={20} />
-                    <h2>Copy</h2>
-                  </div>
-                  <WaInput
-                    className="ad-dashboard-field"
-                    label="Eyebrow"
-                    value={creative.eyebrow}
-                    appearance="outlined"
-                    size="s"
-                    withClear
-                    onInput={(event) =>
-                      updateCreative("eyebrow", getInputValue(event))
-                    }
-                  />
-                  <WaTextarea
-                    className="ad-dashboard-field"
-                    label="Headline"
-                    value={creative.headline}
-                    rows={3}
-                    resize="vertical"
-                    appearance="outlined"
-                    size="s"
-                    onInput={(event) =>
-                      updateCreative("headline", getInputValue(event))
-                    }
-                  />
-                  <WaTextarea
-                    className="ad-dashboard-field"
-                    label="Supporting copy"
-                    value={creative.body}
-                    rows={4}
-                    resize="vertical"
-                    appearance="outlined"
-                    size="s"
-                    onInput={(event) =>
-                      updateCreative("body", getInputValue(event))
-                    }
-                  />
-                  <WaInput
-                    className="ad-dashboard-field"
-                    label="CTA"
-                    value={creative.cta}
-                    appearance="outlined"
-                    size="s"
-                    withClear
-                    onInput={(event) =>
-                      updateCreative("cta", getInputValue(event))
-                    }
-                  />
-                  <WaInput
-                    className="ad-dashboard-field"
-                    label="Footer"
-                    value={creative.footnote}
-                    appearance="outlined"
-                    size="s"
-                    withClear
-                    onInput={(event) =>
-                      updateCreative("footnote", getInputValue(event))
-                    }
-                  />
                   <div className="ad-dashboard-user">
                     {auth.user?.picture ? (
                       <img src={auth.user.picture} alt="" />
@@ -1192,27 +991,50 @@ export const AdDashboardPage = () => {
 
                   <div className="ad-dashboard-preview-wrap">
                     <article
-                      className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape}`}
+                      ref={previewRef}
+                      className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape} ${
+                        previewImageUrl ? "has-image" : "has-no-image"
+                      }`}
                       style={previewStyle}
                     >
-                      {creative.imageUrl ? (
+                      {previewImageUrl ? (
                         <div
                           className="ad-creative-photo"
-                          style={{ backgroundImage: `url(${creative.imageUrl})` }}
+                          style={{ backgroundImage: `url(${previewImageUrl})` }}
                         />
-                      ) : (
-                        <div className="ad-creative-photo ad-creative-photo--empty">
-                          <MediaImage width={34} height={34} />
-                          <span>Upload a job photo</span>
-                        </div>
-                      )}
+                      ) : null}
                       <div className="ad-creative-copy">
                         <p>{creative.eyebrow}</p>
                         <h2>{creative.headline}</h2>
                         <span>{creative.body}</span>
                         <strong>{creative.cta}</strong>
                       </div>
-                      <footer>{creative.footnote}</footer>
+                      {creative.footnote2 ? (
+                        <footer>
+                          <span className="ad-creative-footer-copy">
+                            {creative.footnote} |{" "}
+                            <span className="ad-creative-footnote-2">
+                              {creative.footnote2}
+                            </span>
+                          </span>
+                          <img
+                            className="ad-creative-logo"
+                            src="/BC_Horizontal_Color.svg"
+                            alt="Birdcreek Roofing"
+                          />
+                        </footer>
+                      ) : (
+                        <footer>
+                          <span className="ad-creative-footer-copy">
+                            {creative.footnote}
+                          </span>
+                          <img
+                            className="ad-creative-logo"
+                            src="/BC_Horizontal_Color.svg"
+                            alt="Birdcreek Roofing"
+                          />
+                        </footer>
+                      )}
                     </article>
                   </div>
                 </section>
@@ -1230,9 +1052,18 @@ export const AdDashboardPage = () => {
                     />
                     <MediaImage width={22} height={22} />
                     <span>
-                      {creative.imageName ?? "Choose roof, project, or portrait photo"}
+                      {creative.imageName ??
+                        "Choose roof, project, or portrait photo"}
                     </span>
                   </label>
+                  <AdImagePicker
+                    images={imageLibrary.images}
+                    loading={imageLibrary.loading}
+                    error={imageLibrary.error}
+                    selectedImageUrl={creative.imageUrl}
+                    onRefresh={imageLibrary.refresh}
+                    onSelect={handleSanityImageSelect}
+                  />
 
                   <div className="ad-dashboard-panel-header">
                     <Palette width={20} height={20} />
@@ -1264,27 +1095,39 @@ export const AdDashboardPage = () => {
                     <ColorWheel width={20} height={20} />
                     <h2>Fine tune</h2>
                   </div>
-                  <AdColorPickerField
-                    label="Background"
-                    value={creative.backgroundColor}
-                    onValueChange={(value) =>
-                      updateCreative("backgroundColor", value)
-                    }
-                  />
-                  <AdColorPickerField
-                    label="Text"
-                    value={creative.textColor}
-                    onValueChange={(value) =>
-                      updateCreative("textColor", value)
-                    }
-                  />
-                  <AdColorPickerField
-                    label="Accent"
-                    value={creative.accentColor}
-                    onValueChange={(value) =>
-                      updateCreative("accentColor", value)
-                    }
-                  />
+                  <div className="ad-dashboard-color-grid">
+                    <AdColorPickerField
+                      label="Bg"
+                      value={creative.backgroundColor}
+                      onValueChange={(value) =>
+                        updateCreative("backgroundColor", value)
+                      }
+                    />
+                    <AdColorPickerField
+                      label="Text"
+                      value={creative.textColor}
+                      onValueChange={(value) =>
+                        updateCreative("textColor", value)
+                      }
+                    />
+                    <AdColorPickerField
+                      label="Headline"
+                      value={getSafeColor(
+                        creative.headlineColor,
+                        creative.textColor,
+                      )}
+                      onValueChange={(value) =>
+                        updateCreative("headlineColor", value)
+                      }
+                    />
+                    <AdColorPickerField
+                      label="Accent"
+                      value={creative.accentColor}
+                      onValueChange={(value) =>
+                        updateCreative("accentColor", value)
+                      }
+                    />
+                  </div>
                 </aside>
               </section>
             </>

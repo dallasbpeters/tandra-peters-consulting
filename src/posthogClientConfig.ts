@@ -24,6 +24,11 @@ export const isPosthogEnabled = (): boolean => {
 export const resolvePosthogClientOptions = (): {
   api_host: string;
   ui_host?: string;
+  autocapture: boolean;
+  capture_performance: boolean;
+  disable_external_dependency_loading: boolean;
+  disable_session_recording: boolean;
+  disable_surveys: boolean;
 } => {
   const configuredHost =
     trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) ||
@@ -45,5 +50,10 @@ export const resolvePosthogClientOptions = (): {
   return {
     api_host,
     ...(ui_host ? { ui_host } : {}),
+    autocapture: false,
+    capture_performance: false,
+    disable_external_dependency_loading: true,
+    disable_session_recording: true,
+    disable_surveys: true,
   };
 };

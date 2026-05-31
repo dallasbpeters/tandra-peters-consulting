@@ -110,10 +110,10 @@ export const Nav: React.FC<NavProps> = ({
       minWidth: 0,
     },
     image: {
-      minInlineSize: isMobile ? "2rem" : "2.2rem",
-      minBlockSize: isMobile ? "2rem" : "2.2rem",
-      maxInlineSize: isMobile ? "2rem" : "2.2rem",
-      maxBlockSize: isMobile ? "2rem" : "2.2rem",
+      minInlineSize: isMobile ? "2rem" : "3rem",
+      minBlockSize: isMobile ? "2rem" : "3rem",
+      maxInlineSize: isMobile ? "2rem" : "3rem",
+      maxBlockSize: isMobile ? "2rem" : "3rem",
       objectFit: "cover",
       borderRadius: "9999px",
       gridArea: "image",
@@ -207,7 +207,7 @@ export const Nav: React.FC<NavProps> = ({
             animate={{ opacity: 1, x: 0 }}
             style={{ display: "contents" }}
           >
-            <img src={imageSrc} alt="" style={styles.image} />
+            <img src={imageSrc} alt="" style={styles.image} height="3rem" width="auto" />
             <span style={styles.logoText}>{logoText}</span>
             {isMobile ? null : (
               <span style={styles.logoTagline}>{logoTagline}</span>

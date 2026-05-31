@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { VisualEditing } from "@sanity/visual-editing/react";
 import type {
   HistoryAdapter,
   HistoryAdapterNavigate,
@@ -51,6 +58,11 @@ const toRouterPath = (url: string): string => {
  * `StrictMode` and can break the Presentation ↔ comlink handshake in dev.
  */
 const noop = () => Promise.resolve();
+
+const VisualEditing = lazy(async () => {
+  const module = await import("@sanity/visual-editing/react");
+  return { default: module.VisualEditing };
+});
 
 export const SanityVisualEditing = () => {
   const ctx = useContext(SanitySiteContext);
@@ -114,5 +126,9 @@ export const SanityVisualEditing = () => {
     return null;
   }
 
-  return <VisualEditing portal history={history} refresh={refresh} />;
+  return (
+    <Suspense fallback={null}>
+      <VisualEditing portal history={history} refresh={refresh} />
+    </Suspense>
+  );
 };

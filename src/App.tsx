@@ -5,12 +5,32 @@ import { GoogleAuthGateProvider } from "./components/GoogleAuthGate";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
 import { SanityContentProvider } from "./context/SanitySiteContext";
 import { Home } from "./pages/Home";
-import { ArticlesIndexPage } from "./pages/ArticlesIndexPage";
-import { ArticlePage } from "./pages/ArticlePage";
-import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
-import { TermsOfServicePage } from "./pages/TermsOfServicePage";
-import { CookiePolicyPage } from "./pages/CookiePolicyPage";
 import { Analytics } from "@vercel/analytics/react";
+
+const ArticlesIndexPage = lazy(async () => {
+  const module = await import("./pages/ArticlesIndexPage");
+  return { default: module.ArticlesIndexPage };
+});
+
+const ArticlePage = lazy(async () => {
+  const module = await import("./pages/ArticlePage");
+  return { default: module.ArticlePage };
+});
+
+const PrivacyPolicyPage = lazy(async () => {
+  const module = await import("./pages/PrivacyPolicyPage");
+  return { default: module.PrivacyPolicyPage };
+});
+
+const TermsOfServicePage = lazy(async () => {
+  const module = await import("./pages/TermsOfServicePage");
+  return { default: module.TermsOfServicePage };
+});
+
+const CookiePolicyPage = lazy(async () => {
+  const module = await import("./pages/CookiePolicyPage");
+  return { default: module.CookiePolicyPage };
+});
 
 const SeoDashboardPage = lazy(async () => {
   const module = await import("./pages/SeoDashboardPage");
@@ -50,8 +70,22 @@ const appRouter = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
-      { path: "articles", element: <ArticlesIndexPage /> },
-      { path: "articles/:slug", element: <ArticlePage /> },
+      {
+        path: "articles",
+        element: (
+          <Suspense fallback={null}>
+            <ArticlesIndexPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "articles/:slug",
+        element: (
+          <Suspense fallback={null}>
+            <ArticlePage />
+          </Suspense>
+        ),
+      },
       {
         path: "seo",
         element: (
@@ -60,9 +94,30 @@ const appRouter = createBrowserRouter([
           </Suspense>
         ),
       },
-      { path: "privacy", element: <PrivacyPolicyPage /> },
-      { path: "terms", element: <TermsOfServicePage /> },
-      { path: "cookies", element: <CookiePolicyPage /> },
+      {
+        path: "privacy",
+        element: (
+          <Suspense fallback={null}>
+            <PrivacyPolicyPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "terms",
+        element: (
+          <Suspense fallback={null}>
+            <TermsOfServicePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "cookies",
+        element: (
+          <Suspense fallback={null}>
+            <CookiePolicyPage />
+          </Suspense>
+        ),
+      },
       {
         path: "agent",
         element: (

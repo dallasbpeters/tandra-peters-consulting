@@ -1,26 +1,13 @@
+import { Suspense, lazy } from "react";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { Hero } from "../components/Hero";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
-import ScrollVelocity from "../components/ScrollText";
-import { About } from "../components/About";
-import { BeforeAfterSlider } from "../components/BeforeAfterSlider";
-import { Services } from "../components/Services";
-import { Mission } from "../components/Mission";
-import { Expertise } from "../components/Expertise";
-import { Testimonials } from "../components/Testimonials";
-import { FeaturedVideoSection } from "../components/FeaturedVideoSection";
-import { Stats } from "../components/Stats";
-import { Contact } from "../components/Contact";
-import { SocialShareBar } from "../components/SocialShareBar";
 // import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 // import { ArticlesTeaser } from "../components/ArticlesTeaser";
-import Band from "../components/Band";
-import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { theme } from "../theme";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
-import { Agentation } from "agentation";
 import {
   mapAboutProps,
   // mapArticlesTeaserEditorialProps,
@@ -51,8 +38,61 @@ import {
 } from "../components/RoofInspection/hotspotCoords";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
 
+const ScrollVelocity = lazy(async () => import("../components/ScrollText"));
+const About = lazy(async () => {
+  const module = await import("../components/About");
+  return { default: module.About };
+});
+const BeforeAfterSlider = lazy(async () => {
+  const module = await import("../components/BeforeAfterSlider");
+  return { default: module.BeforeAfterSlider };
+});
+const Services = lazy(async () => {
+  const module = await import("../components/Services");
+  return { default: module.Services };
+});
+const Mission = lazy(async () => {
+  const module = await import("../components/Mission");
+  return { default: module.Mission };
+});
+const Expertise = lazy(async () => {
+  const module = await import("../components/Expertise");
+  return { default: module.Expertise };
+});
+const Testimonials = lazy(async () => {
+  const module = await import("../components/Testimonials");
+  return { default: module.Testimonials };
+});
+const FeaturedVideoSection = lazy(async () => {
+  const module = await import("../components/FeaturedVideoSection");
+  return { default: module.FeaturedVideoSection };
+});
+const Stats = lazy(async () => {
+  const module = await import("../components/Stats");
+  return { default: module.Stats };
+});
+const Contact = lazy(async () => {
+  const module = await import("../components/Contact");
+  return { default: module.Contact };
+});
+const SocialShareBar = lazy(async () => {
+  const module = await import("../components/SocialShareBar");
+  return { default: module.SocialShareBar };
+});
+const Band = lazy(async () => import("../components/Band"));
+const ServiceAreaMap = lazy(async () => {
+  const module = await import("../components/ServiceAreaMap");
+  return { default: module.ServiceAreaMap };
+});
+const DevAgentation = import.meta.env.DEV
+  ? lazy(async () => {
+      const module = await import("agentation");
+      return { default: module.Agentation };
+    })
+  : null;
+
 export const Home = () => {
-  const { data } = useSanitySite();
+  const { data, loading, error } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
   const introVideo = home?.tandraIntroVideo as
     | Record<string, unknown>
@@ -70,6 +110,26 @@ export const Home = () => {
     title: seoTitle,
     description: seoDescription,
   });
+
+  if (loading && !data) {
+    return (
+      <main>
+        <section className="home-loading-hero" aria-label="Loading homepage" />
+      </main>
+    );
+  }
+
+  if (!home) {
+    return (
+      <main>
+        <section className="home-loading-hero" aria-label="Homepage unavailable">
+          {import.meta.env.DEV && error ? (
+            <p role="alert">{error.message}</p>
+          ) : null}
+        </section>
+      </main>
+    );
+  }
 
   const hero = home?.hero as Record<string, unknown> | undefined;
   const introVideoContent = introVideo
@@ -115,8 +175,7 @@ export const Home = () => {
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim()
       ? marquee.text
-      : "Amarillo - Canyon - Lubbock - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin - Surrounding Areas - San Antonio - Kerrville - Belton - Temple - Waco - Fort Worth - Austin & Surrounding Areas -";
-
+      : undefined;
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
   const marqueeVelocity =
     typeof marquee?.velocity === "number" ? marquee.velocity : 80;
@@ -200,104 +259,119 @@ export const Home = () => {
     <SitePageChrome>
       <SeoStructuredData />
       <main>
-        <Hero {...mapHeroProps(hero)} />
+        {hero ? <Hero {...mapHeroProps(hero)} /> : null}
 
 
 
         <GoogleAuthGate>
-          <ScrollVelocity
-            direction={marqueeDirection}
-            velocity={marqueeVelocity}
-            texts={[{ text: marqueeText }]}
-            fontSize="1.2rem"
-          />
-          <About {...mapAboutProps(about)} />
-          <Stats {...mapStatsProps(stats)} />
-          <Services {...mapServicesProps(services)} />
-          <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+          <Suspense fallback={null}>
+            {marqueeText ? (
+              <ScrollVelocity
+                direction={marqueeDirection}
+                velocity={marqueeVelocity}
+                texts={[{ text: marqueeText }]}
+                fontSize="1.2rem"
+              />
+            ) : null}
+            {about ? <About {...mapAboutProps(about)} /> : null}
+            {stats ? <Stats {...mapStatsProps(stats)} /> : null}
+            {services ? <Services {...mapServicesProps(services)} /> : null}
+            {serviceAreaMap ? (
+              <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
+            ) : null}
 
-          <RoofInspection chapters={activeChapters} views={VIEWS}>
-            <RoofInspection.Rail
-              kicker={roofInspection.kicker}
-              title={inspectionTitle}
-              lede={
-                roofInspection.lede ??
-                "You don't need to be a roofer to know what you're looking at — just someone who'll point out the seven places that matter. Hover any number on the photo."
-              }
+            {roofInspectionData ? (
+              <RoofInspection chapters={activeChapters} views={VIEWS}>
+                <RoofInspection.Rail
+                  kicker={roofInspection.kicker}
+                  title={inspectionTitle}
+                  lede={roofInspection.lede}
+                />
+                <RoofInspection.Canvas>
+                  <RoofInspection.Toolbar />
+                  <RoofInspection.Diagram src="/roof.glb">
+                    {activeChapters.map((c) => (
+                      <RoofInspection.Hotspot
+                        key={`${c.sanityKey ?? c.id}-${hotspotCoordKey(c.position3d, c.normal3d)}`}
+                        chapter={c}
+                      />
+                    ))}
+                  </RoofInspection.Diagram>
+                </RoofInspection.Canvas>
+              </RoofInspection>
+            ) : null}
+            {mission ? <Mission {...mapMissionProps(mission)} /> : null}
+            {beforeAfterItems && beforeAfterItems.length > 0 ? (
+              <BeforeAfterSlider
+                imagePairs={beforeAfterItems}
+                eyebrow={beforeAfterEyebrow}
+                title={beforeAfterTitle}
+                description={beforeAfterIntro}
+              />
+            ) : null}
+            {expertise ? <Expertise {...mapExpertiseProps(expertise)} /> : null}
+            {videoProps.videoUrl || introVideoContent ? (
+              <FeaturedVideoSection
+                videoUrl={videoProps.videoUrl}
+                title={videoProps.title}
+                posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
+                introContent={
+                  shouldUseRenderedIntroVideo ? undefined : introVideoContent
+                }
+              />
+            ) : null}
+            {testimonials ? (
+              <Testimonials {...mapTestimonialsProps(testimonials)} />
+            ) : null}
+            {/* <Faq {...mapFaqProps(faq)} />
+          <ArticlesTeaser
+            posts={data?.latestPosts ?? []}
+            {...mapArticlesTeaserEditorialProps(articlesTeaser)}
+          />  */}
+            <Band
+              minHeight={8}
+              maxHeight={16}
+              tint={theme.colors.everglade}
+              colors={[
+                theme.colors.evergladeLight,
+                theme.colors.evergladeMuted,
+                theme.colors.paper,
+                theme.colors.purple,
+                theme.colors.purple,
+                theme.colors.purple,
+              ]}
             />
-            <RoofInspection.Canvas>
-              <RoofInspection.Toolbar />
-              <RoofInspection.Diagram src="/roof.glb">
-                {activeChapters.map((c) => (
-                  <RoofInspection.Hotspot
-                    key={`${c.sanityKey ?? c.id}-${hotspotCoordKey(c.position3d, c.normal3d)}`}
-                    chapter={c}
-                  />
-                ))}
-              </RoofInspection.Diagram>
-            </RoofInspection.Canvas>
-          </RoofInspection>
-          <Mission {...mapMissionProps(mission)} />
-          {beforeAfterItems && beforeAfterItems.length > 0 ? (
-            <BeforeAfterSlider
-              imagePairs={beforeAfterItems}
-              eyebrow={beforeAfterEyebrow}
-              title={beforeAfterTitle}
-              description={beforeAfterIntro}
-            />
-          ) : null}
-          <Expertise {...mapExpertiseProps(expertise)} />
-          {videoProps.videoUrl || introVideoContent ? (
-          <FeaturedVideoSection
-            videoUrl={videoProps.videoUrl}
-            title={videoProps.title}
-            posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-            introContent={
-              shouldUseRenderedIntroVideo ? undefined : introVideoContent
-            }
-          />
-        ) : null}
-          <Testimonials {...mapTestimonialsProps(testimonials)} />
-          {/* <Faq {...mapFaqProps(faq)} />
-        <ArticlesTeaser
-          posts={data?.latestPosts ?? []}
-          {...mapArticlesTeaserEditorialProps(articlesTeaser)}
-        />  */}
-          <Band
-            minHeight={8}
-            maxHeight={16}
-            tint={theme.colors.everglade}
-            colors={[
-              theme.colors.evergladeLight,
-              theme.colors.evergladeMuted,
-              theme.colors.paper,
-              theme.colors.purple,
-              theme.colors.purple,
-              theme.colors.purple,
-            ]}
-          />
-          <Contact {...mapContactProps(contact)} />
-          <SocialShareBar {...mapSocialShareProps(socialShare)} />
+            {contact ? <Contact {...mapContactProps(contact)} /> : null}
+            {socialShare ? (
+              <SocialShareBar {...mapSocialShareProps(socialShare)} />
+            ) : null}
+          </Suspense>
         </GoogleAuthGate>
       </main>
 
-      <Band
-        minHeight={8}
-        maxHeight={16}
-        reverse={true}
-        rotate={true}
-        tint={theme.colors.everglade}
-        colors={[
-          theme.colors.evergladeLight,
-          theme.colors.evergladeMuted,
-          theme.colors.paper,
-          theme.colors.purple,
-          theme.colors.purple,
-          theme.colors.purple,
-        ]}
-      />
+      <Suspense fallback={null}>
+        <Band
+          minHeight={8}
+          maxHeight={16}
+          reverse={true}
+          rotate={true}
+          tint={theme.colors.everglade}
+          colors={[
+            theme.colors.evergladeLight,
+            theme.colors.evergladeMuted,
+            theme.colors.paper,
+            theme.colors.purple,
+            theme.colors.purple,
+            theme.colors.purple,
+          ]}
+        />
+      </Suspense>
 
-      {process.env.NODE_ENV === "development" && <Agentation />}
+      {DevAgentation ? (
+        <Suspense fallback={null}>
+          <DevAgentation />
+        </Suspense>
+      ) : null}
     </SitePageChrome>
   );
 };

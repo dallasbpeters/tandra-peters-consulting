@@ -6,6 +6,7 @@ import { FaqProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
 import { plainTextFromRich } from "../portableText/plainText";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import WaDetails from '@awesome.me/webawesome/dist/react/details/index.js';
 
 const DEFAULT_ITEMS = [

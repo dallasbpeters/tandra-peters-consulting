@@ -113,7 +113,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer style={footerStyle}>
+    <footer className="footer" style={footerStyle}>
       <div className={`${layoutClass.containerWideGridFooter} md-grid-12`}>
         <style>{`
           @media (min-width: 768px) {

@@ -142,21 +142,29 @@ export const About: React.FC<AboutProps> = ({
           >
             <img
               style={certificationImageStyle}
+              height="4rem"
+              width="auto"
               src="/roofing-soloar-alliance.png"
               alt="Roofing Solar Alliance"
             />
             <img
               style={certificationImageStyle}
+              height="4rem"
+              width="auto"
               src="/roof-pro.png"
               alt="Roof Pro"
             />
             <img
               style={certificationImageStyle}
+              height="4rem"
+              width="auto"
               src="/tamko-pro.png"
               alt="Tamko Pro"
             />
             <img
               style={certificationImageStyle}
+              height="4rem"
+              width="auto"
               src="/gaf-master-elite.png"
               alt="GAF Master Elite"
             />

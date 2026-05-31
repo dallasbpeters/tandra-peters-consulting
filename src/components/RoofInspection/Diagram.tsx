@@ -16,6 +16,40 @@ type DiagramProps = {
   children?: React.ReactNode;
 };
 
+let modelViewerScriptPromise: Promise<void> | null = null;
+
+const loadModelViewerScript = () => {
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
+  if (customElements.get("model-viewer")) {
+    return Promise.resolve();
+  }
+  if (modelViewerScriptPromise) {
+    return modelViewerScriptPromise;
+  }
+
+  modelViewerScriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[src="/model-viewer.min.js"]',
+    );
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = "/model-viewer.min.js";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load model-viewer."));
+    document.head.appendChild(script);
+  });
+
+  return modelViewerScriptPromise;
+};
+
 /**
  * Renders the interactive `<model-viewer>` 3D canvas for the roof inspection
  * section and wires up all imperative camera controls.
@@ -52,6 +86,10 @@ export const Diagram: React.FC<DiagramProps> = ({
   // This means hover events (which only mutate activeChapterId in the sibling
   // RoofInspectionContext) never cause Diagram to re-render or touch model-viewer.
   const { views, activeViewId, chapters, focusChapterId } = useCameraContext();
+
+  useEffect(() => {
+    void loadModelViewerScript();
+  }, []);
 
   // Keep a stable ref so the camera-focus effect can read chapters without
   // adding them as a dependency — chapters is a new array reference on every

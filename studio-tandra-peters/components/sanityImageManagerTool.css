@@ -1,0 +1,411 @@
+.sanity-image-manager {
+  min-height: 100vh;
+  background: #f6f4ef;
+  color: #16241e;
+}
+
+.sanity-image-manager button,
+.sanity-image-manager input,
+.sanity-image-manager textarea {
+  font: inherit;
+}
+
+.sanity-image-manager__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgb(22 36 30 / 12%);
+  background: #fffaf1;
+}
+
+.sanity-image-manager__header p {
+  margin: 0 0 0.25rem;
+  color: #7d4c35;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sanity-image-manager__header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: 0;
+}
+
+.sanity-image-manager__actions,
+.sanity-image-manager__detail-actions,
+.sanity-image-manager__footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.sanity-image-manager button,
+.sanity-image-manager__upload,
+.sanity-image-manager__detail-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgb(22 36 30 / 18%);
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #16241e;
+  cursor: pointer;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sanity-image-manager button:hover,
+.sanity-image-manager__upload:hover,
+.sanity-image-manager__detail-actions a:hover {
+  border-color: rgb(22 36 30 / 36%);
+}
+
+.sanity-image-manager button:disabled,
+.sanity-image-manager__upload:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sanity-image-manager__upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sanity-image-manager__alert,
+.sanity-image-manager__notice {
+  margin: 1rem 1.5rem 0;
+  padding: 0.85rem 1rem;
+  border-radius: 0.45rem;
+  font-weight: 750;
+}
+
+.sanity-image-manager__alert {
+  border: 1px solid rgb(142 40 30 / 24%);
+  background: #fff1ee;
+  color: #8e281e;
+}
+
+.sanity-image-manager__notice {
+  border: 1px solid rgb(22 94 53 / 20%);
+  background: #eef8f1;
+  color: #165e35;
+}
+
+.sanity-image-manager__workspace {
+  display: grid;
+  grid-template-columns: minmax(19rem, 27rem) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.sanity-image-manager__library,
+.sanity-image-manager__detail {
+  min-width: 0;
+  border: 1px solid rgb(22 36 30 / 12%);
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 4rem rgb(22 36 30 / 8%);
+}
+
+.sanity-image-manager__library {
+  overflow: hidden;
+}
+
+.sanity-image-manager__search {
+  padding: 1rem;
+  border-bottom: 1px solid rgb(22 36 30 / 10%);
+}
+
+.sanity-image-manager__search input,
+.sanity-image-manager__form input,
+.sanity-image-manager__form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgb(22 36 30 / 16%);
+  border-radius: 0.45rem;
+  background: #fffdf8;
+  color: #16241e;
+}
+
+.sanity-image-manager__search input {
+  min-height: 2.7rem;
+  padding: 0 0.8rem;
+}
+
+.sanity-image-manager__count {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgb(22 36 30 / 10%);
+  color: rgb(22 36 30 / 68%);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.sanity-image-manager__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.7rem;
+  max-height: calc(100vh - 14rem);
+  overflow: auto;
+  padding: 1rem;
+}
+
+.sanity-image-manager__tile {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  min-height: 0;
+  padding: 0.45rem;
+  text-align: left;
+}
+
+.sanity-image-manager__tile.is-selected {
+  border-color: #7d4c35;
+  box-shadow: 0 0 0 2px rgb(125 76 53 / 20%);
+}
+
+.sanity-image-manager__tile img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.35rem;
+  background: #e7e0d5;
+  object-fit: cover;
+}
+
+.sanity-image-manager__tile span,
+.sanity-image-manager__tile small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sanity-image-manager__tile span {
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.sanity-image-manager__tile small {
+  color: rgb(22 36 30 / 62%);
+  font-size: 0.75rem;
+}
+
+.sanity-image-manager__detail {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) minmax(21rem, 29rem);
+  overflow: hidden;
+}
+
+.sanity-image-manager__preview {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 9rem);
+  padding: 1rem;
+  background:
+    linear-gradient(45deg, #eee9df 25%, transparent 25%),
+    linear-gradient(-45deg, #eee9df 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eee9df 75%),
+    linear-gradient(-45deg, transparent 75%, #eee9df 75%);
+  background-color: #faf8f3;
+  background-position:
+    0 0,
+    0 0.75rem,
+    0.75rem -0.75rem,
+    -0.75rem 0;
+  background-size: 1.5rem 1.5rem;
+}
+
+.sanity-image-manager__preview img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 12rem);
+  border-radius: 0.5rem;
+  box-shadow: 0 1.25rem 4rem rgb(22 36 30 / 18%);
+  object-fit: contain;
+}
+
+.sanity-image-manager__panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  max-height: calc(100vh - 8rem);
+  overflow: auto;
+  padding: 1.25rem;
+  border-left: 1px solid rgb(22 36 30 / 10%);
+}
+
+.sanity-image-manager__summary {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.sanity-image-manager__summary h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.sanity-image-manager__summary p {
+  margin: 0.3rem 0 0;
+  color: rgb(22 36 30 / 60%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.sanity-image-manager__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.sanity-image-manager__meta div {
+  padding: 0.75rem;
+  border: 1px solid rgb(22 36 30 / 10%);
+  border-radius: 0.45rem;
+  background: #fffaf1;
+}
+
+.sanity-image-manager__meta dt {
+  margin-bottom: 0.25rem;
+  color: rgb(22 36 30 / 58%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sanity-image-manager__meta dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.sanity-image-manager__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sanity-image-manager__form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.sanity-image-manager__form input,
+.sanity-image-manager__form textarea {
+  padding: 0.7rem 0.75rem;
+}
+
+.sanity-image-manager__form textarea {
+  resize: vertical;
+}
+
+.sanity-image-manager__references {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.sanity-image-manager__references strong {
+  font-size: 0.9rem;
+}
+
+.sanity-image-manager__references p {
+  margin: 0;
+  color: rgb(22 36 30 / 64%);
+}
+
+.sanity-image-manager__references ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sanity-image-manager__references li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem;
+  border: 1px solid rgb(22 36 30 / 10%);
+  border-radius: 0.4rem;
+  background: #faf8f3;
+}
+
+.sanity-image-manager__references span {
+  font-weight: 800;
+}
+
+.sanity-image-manager__references small {
+  color: rgb(22 36 30 / 62%);
+}
+
+.sanity-image-manager__danger {
+  color: #8e281e;
+}
+
+.sanity-image-manager__empty,
+.sanity-image-manager__empty-detail {
+  color: rgb(22 36 30 / 64%);
+  font-weight: 800;
+}
+
+.sanity-image-manager__empty {
+  padding: 1rem;
+}
+
+.sanity-image-manager__empty-detail {
+  display: grid;
+  min-height: calc(100vh - 9rem);
+  place-items: center;
+}
+
+@media (width <= 76rem) {
+  .sanity-image-manager__workspace,
+  .sanity-image-manager__detail {
+    grid-template-columns: 1fr;
+  }
+
+  .sanity-image-manager__grid,
+  .sanity-image-manager__panel {
+    max-height: none;
+  }
+
+  .sanity-image-manager__preview {
+    min-height: 24rem;
+  }
+
+  .sanity-image-manager__panel {
+    border-left: 0;
+    border-top: 1px solid rgb(22 36 30 / 10%);
+  }
+}
+
+@media (width <= 48rem) {
+  .sanity-image-manager__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sanity-image-manager__actions,
+  .sanity-image-manager__detail-actions,
+  .sanity-image-manager__footer-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .sanity-image-manager__meta {
+    grid-template-columns: 1fr;
+  }
+}

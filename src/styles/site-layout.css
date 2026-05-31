@@ -116,6 +116,11 @@
   min-height: calc(100vh - 6.5rem);
 }
 
+.home-loading-hero {
+  min-height: 80svh;
+  background: #031f15;
+}
+
 .site-page-main.site-page-main--article {
   padding-bottom: 5rem;
 }

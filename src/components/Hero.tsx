@@ -7,7 +7,33 @@ import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
 import { GoogleAuthGate } from "./GoogleAuthGate";
 
+const fallbackHeroImage = "/roof.jpeg";
 
+const isSanityImageUrl = (url: string) =>
+  /^https:\/\/cdn\.sanity\.io\/images\//i.test(url);
+
+const optimizedHeroImageUrl = (url: string, width: number): string => {
+  if (!isSanityImageUrl(url)) {
+    return url;
+  }
+
+  const nextUrl = new URL(url);
+  nextUrl.searchParams.set("w", String(width));
+  nextUrl.searchParams.set("fit", "crop");
+  nextUrl.searchParams.set("auto", "format");
+  nextUrl.searchParams.set("q", "78");
+  return nextUrl.toString();
+};
+
+const heroImageSrcSet = (url: string): string | undefined => {
+  if (!isSanityImageUrl(url)) {
+    return undefined;
+  }
+
+  return [640, 960, 1280, 1600, 2000]
+    .map((width) => `${optimizedHeroImageUrl(url, width)} ${width}w`)
+    .join(", ");
+};
 
 export const Hero: React.FC<HeroProps> = ({
   title = (
@@ -23,7 +49,7 @@ export const Hero: React.FC<HeroProps> = ({
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",
   secondaryCtaHref = "#services",
-  backgroundImage = "/roof.png",
+  backgroundImage = fallbackHeroImage,
 }) => {
   const posthog = usePostHog();
 
@@ -58,13 +84,15 @@ export const Hero: React.FC<HeroProps> = ({
     overflow: "hidden",
   };
 
-  const bgImageStyle: React.CSSProperties = {
+  const heroImageStyle: React.CSSProperties = {
     position: "absolute",
     inset: 0,
+    width: "100%",
+    height: "100%",
     pointerEvents: "none",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundImage: `url('${backgroundImage}')`,
+    objectFit: "cover",
+    objectPosition: "center",
+    opacity: 0.5,
   };
 
   const badgeStyle: React.CSSProperties = {
@@ -133,11 +161,15 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <section style={sectionStyle}>
-      <motion.div
-        initial={{ scale: 1.1, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.5 }}
-        transition={{ duration: 1.5 }}
-        style={bgImageStyle}
+      <img
+        aria-hidden="true"
+        alt=""
+        decoding="async"
+        fetchPriority="high"
+        sizes="100vw"
+        src={optimizedHeroImageUrl(backgroundImage, 1280)}
+        srcSet={heroImageSrcSet(backgroundImage)}
+        style={heroImageStyle}
       />
       <div className={layoutClass.containerWideLayered}>
         <motion.div
@@ -176,56 +208,55 @@ export const Hero: React.FC<HeroProps> = ({
             />
           </motion.div>
           <GoogleAuthGate>
-          <motion.div
-            variants={itemVariants}
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-            className="sm-row"
-          >
-            <style>{`
-              @media (min-width: 640px) {
-                .sm-row { flex-direction: row !important; }
-              }
-            `}</style>
-            <a
-              href={ctaHref}
-              style={buttonPrimaryStyle}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.filter = "brightness(1.1)")
-              }
-              onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
-              onClick={() =>
-                posthog?.capture("hero_cta_clicked", {
-                  cta_text: ctaText,
-                  cta_href: ctaHref,
-                })
-              }
+            <motion.div
+              variants={itemVariants}
+              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+              className="sm-row"
             >
-              {ctaText}
-            </a>
-            <a
-              href={secondaryCtaHref}
-              style={buttonSecondaryStyle}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "rgba(255, 255, 255, 0.05)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "transparent")
-              }
-              onClick={() =>
-                posthog?.capture("hero_secondary_cta_clicked", {
-                  cta_text: secondaryCtaText,
-                  cta_href: secondaryCtaHref,
-                })
-              }
-            >
-              {secondaryCtaText}
-            </a>
-          </motion.div>
+              <style>{`
+                @media (min-width: 640px) {
+                  .sm-row { flex-direction: row !important; }
+                }
+              `}</style>
+              <a
+                href={ctaHref}
+                style={buttonPrimaryStyle}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.filter = "brightness(1.1)")
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+                onClick={() =>
+                  posthog?.capture("hero_cta_clicked", {
+                    cta_text: ctaText,
+                    cta_href: ctaHref,
+                  })
+                }
+              >
+                {ctaText}
+              </a>
+              <a
+                href={secondaryCtaHref}
+                style={buttonSecondaryStyle}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(255, 255, 255, 0.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+                onClick={() =>
+                  posthog?.capture("hero_secondary_cta_clicked", {
+                    cta_text: secondaryCtaText,
+                    cta_href: secondaryCtaHref,
+                  })
+                }
+              >
+                {secondaryCtaText}
+              </a>
+            </motion.div>
           </GoogleAuthGate>
         </motion.div>
       </div>
-
     </section>
   );
 };

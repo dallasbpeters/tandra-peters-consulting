@@ -7,6 +7,7 @@ import {agentContextPlugin} from '@sanity/agent-context/studio'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {geminiStudioApiEndpoint} from './geminiStudioConfig'
+import {SanityImageManagerTool} from './components/SanityImageManagerTool'
 import {StarFilledIcon} from '@sanity/icons'
 import {
   assist,
@@ -461,6 +462,14 @@ export default defineConfig({
   projectId: '7irm699i',
   dataset: 'production',
   appId: 'on6anif3y43e3t03oiwrgp30',
+  tools: (prev) => [
+    ...prev,
+    {
+      name: 'image-manager',
+      title: 'Image Manager',
+      component: SanityImageManagerTool,
+    },
+  ],
 
   // AI Assist: open any document → ✨ in the document header → “Manage instructions” → “Enable AI assistance”
   // once per project (creates the “Sanity AI” token). Growth plan+ required. Custom fieldActions need this enabled.

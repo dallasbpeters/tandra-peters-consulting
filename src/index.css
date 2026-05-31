@@ -12,11 +12,14 @@
   --webawesome-font-color-selected: oklch(25.66% 0.046 163.6deg);
   --wa-color-brand: oklch(72.81% 0.146 283.49deg);
   --wa-form-control-activated-color: oklch(25.66% 0.046 163.6deg);
-  --wa-form-control-border-color: oklch(90.66% 0 63.6deg);
+  --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
+  --wa-form-control-border-style: solid;
+  --wa-form-control-border-width: 1px;
   --wa-color-brand-fill-loud: oklch(72.81% 0.146 283.49deg);
   --wa-color-brand-on-loud: oklch(1.81% 0.146 283.49deg);
   --wa-line-height-condensed: 1.2;
   --wa-color-overlay-inline: oklch(100.145 0 0);
+  --footer-display: block;
 
   /* Focus ring: --wa-color-focus resolves to --wa-color-brand-60 by default,
      but that palette shade is not auto-generated from --wa-color-brand.
@@ -138,6 +141,13 @@ kbd {
   border-color: var(--border);
 }
 
+button, input[type="button"], input[type="reset"], input[type="submit"], input[type="file"], a.wa-button {
+    --wa-color-fill-loud: oklch(100% 0 0);
+    --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
+    --wa-form-control-border-style: solid;
+    --wa-form-control-border-width: 1px;
+  }
+
 /*
  * View Transitions API — route changes (TransitionLink + startViewTransition).
  * Nav is a separate named transition so it is not blurred/scaled with the page.
@@ -146,6 +156,11 @@ kbd {
   /* eslint-disable-next-line css/use-baseline */
   view-transition-name: site-nav;
 }
+
+.footer {
+  display: var(--footer-display);
+}
+
 
 @media (width <= 600px) {
   .site-nav-vt {

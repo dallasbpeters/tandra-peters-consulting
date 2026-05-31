@@ -5,8 +5,10 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
 import { viteGeminiDevApi } from "./plugins/viteGeminiDevApi";
+import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
+import { viteUnsplashApi } from "./plugins/viteUnsplashApi";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
@@ -73,6 +75,8 @@ export default defineConfig(({ mode }) => {
   const plugins: PluginOption[] = [
     viteAgentDevApi(env) as unknown as PluginOption,
     viteGeminiDevApi(env) as unknown as PluginOption,
+    viteSanityImageApi() as unknown as PluginOption,
+    viteUnsplashApi(env) as unknown as PluginOption,
     viteSitemapApi(env) as unknown as PluginOption,
     viteSeoDashboardApi(env) as unknown as PluginOption,
     tailwindcss() as unknown as PluginOption,
