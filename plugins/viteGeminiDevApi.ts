@@ -4,6 +4,7 @@
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { enrichGeminiErrorResponse } from "../api/lib/gemini-error.js";
 
 const GEMINI_PATH = "/api/gemini/generate-image";
 
@@ -60,10 +61,12 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
       if (env.GEMINI_PLUGIN_API_KEY?.trim()) {
         process.env.GEMINI_PLUGIN_API_KEY = env.GEMINI_PLUGIN_API_KEY.trim();
       }
+      if (env.GEMINI_IMAGE_MODEL?.trim()) {
+        process.env.GEMINI_IMAGE_MODEL = env.GEMINI_IMAGE_MODEL.trim();
+      }
 
       try {
-        const { handler } =
-          await import("sanity-plugin-gemini-ai-images-serverless");
+        const { handler } = await import("../api/lib/gemini-generate-image.js");
         const host = req.headers.host ?? "localhost:3001";
         const pathWithQuery = req.url ?? GEMINI_PATH;
         const bodyBuf = await readBody(req);
@@ -90,7 +93,7 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
           body: bodyText,
         });
 
-        const webRes = await handler(webReq);
+        const webRes = await enrichGeminiErrorResponse(await handler(webReq));
         res.statusCode = webRes.status;
         webRes.headers.forEach((value, key) => {
           if (key.toLowerCase() === "content-encoding") {

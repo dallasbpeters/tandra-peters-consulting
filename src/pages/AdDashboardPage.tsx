@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -255,6 +256,12 @@ const getPreviewPadding = (
 
 const getFrameInset = (creative: Pick<CreativeState, "contentPadding">) =>
   `${formatCssNumber(5 * getPaddingScale(creative))}%`;
+
+const getPreviewBaseWidth = (shape: PlatformShape) => {
+  if (shape === "wide") return "56rem";
+  if (shape === "tall") return "28rem";
+  return "44rem";
+};
 
 type AdColorPickerFieldProps = {
   label: string;
@@ -558,37 +565,42 @@ const exportPreviewNode = async (
     await document.fonts.ready;
   }
 
-  const previewBounds = node.getBoundingClientRect();
-  if (previewBounds.width <= 0 || previewBounds.height <= 0) {
-    throw new Error("The ad preview is not ready yet.");
-  }
-
-  const pixelRatio = Math.min(
-    platform.width / previewBounds.width,
-    platform.height / previewBounds.height,
-  );
   const previousStyle = {
     boxShadow: node.style.boxShadow,
+    transform: node.style.transform,
   };
 
   node.style.boxShadow = "none";
-
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
+  node.style.transform = "none";
 
   try {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+
+    const previewWidth = node.offsetWidth;
+    const previewHeight = node.offsetHeight;
+
+    if (previewWidth <= 0 || previewHeight <= 0) {
+      throw new Error("The ad preview is not ready yet.");
+    }
+
+    const pixelRatio = Math.min(
+      platform.width / previewWidth,
+      platform.height / previewHeight,
+    );
+
     const blob = await toBlob(node, {
       backgroundColor,
       cacheBust: true,
       canvasWidth: platform.width,
       canvasHeight: platform.height,
-      height: previewBounds.height,
+      height: previewHeight,
       includeQueryParams: true,
       pixelRatio,
       skipAutoScale: true,
       type: "image/png",
-      width: previewBounds.width,
+      width: previewWidth,
     });
 
     if (!blob) {
@@ -598,6 +610,7 @@ const exportPreviewNode = async (
     return blob;
   } finally {
     node.style.boxShadow = previousStyle.boxShadow;
+    node.style.transform = previousStyle.transform;
   }
 };
 
@@ -635,10 +648,12 @@ export const AdDashboardPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
   const imageLibrary = useSanityImageAssets();
+  const previewWrapRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLElement | null>(null);
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
     [creative.platformId],
@@ -662,6 +677,59 @@ export const AdDashboardPage = () => {
     },
     [creative.imageUrl],
   );
+
+  useLayoutEffect(() => {
+    const wrapper = previewWrapRef.current;
+    const preview = previewRef.current;
+    if (!wrapper || !preview) return undefined;
+
+    let frame = 0;
+
+    const updatePreviewScale = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const wrapperStyles = getComputedStyle(wrapper);
+        const horizontalPadding =
+          Number.parseFloat(wrapperStyles.paddingLeft) +
+          Number.parseFloat(wrapperStyles.paddingRight);
+        const verticalPadding =
+          Number.parseFloat(wrapperStyles.paddingTop) +
+          Number.parseFloat(wrapperStyles.paddingBottom);
+        const availableWidth = wrapper.clientWidth - horizontalPadding;
+        const availableHeight = wrapper.clientHeight - verticalPadding;
+        const previewWidth = preview.offsetWidth;
+        const previewHeight = preview.offsetHeight;
+
+        if (
+          availableWidth <= 0 ||
+          availableHeight <= 0 ||
+          previewWidth <= 0 ||
+          previewHeight <= 0
+        ) {
+          setPreviewScale(1);
+          return;
+        }
+
+        const nextScale = Math.min(
+          1,
+          availableWidth / previewWidth,
+          availableHeight / previewHeight,
+        );
+
+        setPreviewScale(Number.parseFloat(Math.max(0.1, nextScale).toFixed(3)));
+      });
+    };
+
+    const resizeObserver = new ResizeObserver(updatePreviewScale);
+    resizeObserver.observe(wrapper);
+    resizeObserver.observe(preview);
+    updatePreviewScale();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+    };
+  }, [creative.layout, selectedPlatform.height, selectedPlatform.width]);
 
   const updateCreative = useCallback(
     <K extends keyof CreativeState>(key: K, value: CreativeState[K]) => {
@@ -764,6 +832,8 @@ export const AdDashboardPage = () => {
     ),
     "--ad-accent": creative.accentColor,
     "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
+    "--ad-preview-base-width": getPreviewBaseWidth(selectedPlatformShape),
+    "--ad-preview-scale": formatCssNumber(previewScale),
     "--ad-frame-inset": getFrameInset(creative),
     "--ad-headline-font": getSelectedFontPreset(creative.fontPresetId)
       .headlineFamily,
@@ -1017,7 +1087,10 @@ export const AdDashboardPage = () => {
                     </p>
                   ) : null}
 
-                  <div className="ad-dashboard-preview-wrap">
+                  <div
+                    className="ad-dashboard-preview-wrap"
+                    ref={previewWrapRef}
+                  >
                     <article
                       ref={previewRef}
                       className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape} ${

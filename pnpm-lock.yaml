@@ -188,9 +188,6 @@ importers:
       sanity:
         specifier: ^5.27.0
         version: 5.27.0(@emotion/is-prop-valid@1.4.0)(@noble/hashes@2.2.0)(@oclif/core@4.11.4)(@sanity/cli-core@1.3.2(@noble/hashes@2.2.0)(@types/node@22.19.19)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(@types/node@22.19.19)(@types/react@19.2.15)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(styled-components@6.4.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(terser@5.48.0)(typescript@5.8.3)
-      sanity-plugin-gemini-ai-images-serverless:
-        specifier: ^1.1.0
-        version: 1.1.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))
       shaders:
         specifier: ^2.5.128
         version: 2.5.128(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -9653,10 +9650,6 @@ packages:
   sandbox@2.5.6:
     resolution: {integrity: sha512-tnFr7nyiuEhsAGb+xy60SDbij0790X+FgDljh3J/2HaRM6yQgNJkQKHbDH8ld7mR+PozXGgEfJ2Dc/5OyFnwsg==}
     hasBin: true
-
-  sanity-plugin-gemini-ai-images-serverless@1.1.0:
-    resolution: {integrity: sha512-LfhMxui3aU1XiLCs9adfvBtsvJNTFUFwdHfkNcb7mn9z1VFSrx7w2G2T+gHqPVsE2FclPmrcxDZ2r0Phtqy8sA==}
-    engines: {node: '>=20.0.0'}
 
   sanity-plugin-gemini-ai-images@1.3.0:
     resolution: {integrity: sha512-2vW6wWyuT2s8SJE6hDcOKvraNVhFhkzksrtqqMXRDygUHCL3OxSMexAtw0gmylRowkqNBxhN3kyhWDJNWUzwaQ==}
@@ -21980,15 +21973,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
       - supports-color
-
-  sanity-plugin-gemini-ai-images-serverless@1.1.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6)):
-    dependencies:
-      '@google/genai': 1.52.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))
-    transitivePeerDependencies:
-      - '@modelcontextprotocol/sdk'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   sanity-plugin-gemini-ai-images@1.3.0(@sanity/ui@3.2.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.6(react@19.2.6))(react-is@19.2.6)(react@19.2.6)(styled-components@6.4.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)))(react@19.2.6)(sanity@5.27.0(@emotion/is-prop-valid@1.4.0)(@noble/hashes@2.2.0)(@oclif/core@4.11.4)(@sanity/cli-core@1.3.2(@noble/hashes@2.2.0)(@types/node@22.19.19)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(@types/node@22.19.19)(@types/react@19.2.15)(jiti@2.7.0)(lightningcss@1.32.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(styled-components@6.4.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(terser@5.48.0)(typescript@6.0.3)):
     dependencies:

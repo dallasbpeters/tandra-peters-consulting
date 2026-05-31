@@ -1,14 +1,15 @@
 /**
  * Vercel: POST /api/gemini/generate-image — Gemini image generation for Sanity Studio
- * (sanity-plugin-gemini-ai-images + sanity-plugin-gemini-ai-images-serverless).
+ * (sanity-plugin-gemini-ai-images client + api/lib/gemini-generate-image.ts handler).
  *
- * Env: GEMINI_API_KEY (required). Optional: GEMINI_PLUGIN_API_KEY — if set, clients must send X-API-Key.
+ * Env: GEMINI_API_KEY (required).
+ * Optional: GEMINI_PLUGIN_API_KEY (require X-API-Key), GEMINI_IMAGE_MODEL (default gemini-3.1-flash-image).
  *
- * Local: `pnpm dev` (Vite on port 3000) serves this route via `plugins/viteGeminiDevApi.ts`.
- * Alternatively run `vercel dev` from the repo root.
+ * Local: `pnpm dev` (Vite port 3001) serves this route via `plugins/viteGeminiDevApi.ts`.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handler as geminiHandler } from "sanity-plugin-gemini-ai-images-serverless";
+import { handler as geminiHandler } from "../lib/gemini-generate-image.js";
+import { enrichGeminiErrorResponse } from "../lib/gemini-error.js";
 
 const addCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -75,6 +76,8 @@ export default async function geminiGenerateImage(
     return;
   }
 
-  const webRes = await geminiHandler(toWebRequest(req));
+  const webRes = await enrichGeminiErrorResponse(
+    await geminiHandler(toWebRequest(req)),
+  );
   await sendWebResponse(res, webRes);
 }
