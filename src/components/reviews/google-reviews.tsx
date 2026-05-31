@@ -24,7 +24,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "0.16em",
     textTransform: "uppercase",
-    color: theme.colors.accent,
+    color: theme.colors.everglade,
     margin: 0,
   },
   title: {

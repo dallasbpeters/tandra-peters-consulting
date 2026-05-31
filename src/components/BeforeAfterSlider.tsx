@@ -306,7 +306,7 @@ export function BeforeAfterSlider({
               return (
                 <motion.button
                   variants={thumbButtonVariants}
-                  initial="hidden"
+                  initial={false}
                   animate="visible"
                   exit="exit"
                   whileHover={{ scale: 1.05, borderColor: "#9f78e6" }}
@@ -324,7 +324,7 @@ export function BeforeAfterSlider({
                 >
                   <img
                     src={pair.afterImage || "/placeholder.svg"}
-                    alt={pair.title}
+                    alt=""
                     style={styles.thumbImage}
                     draggable={false}
                   />

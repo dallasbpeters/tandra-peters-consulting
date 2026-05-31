@@ -1,4 +1,3 @@
-import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
 import "@fontsource/bebas-neue/latin-400.css";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import { usePostHog } from "@posthog/react";
@@ -329,12 +328,13 @@ export const ContactSmall = ({
               </WaInput>
 
               <div style={consentRowStyle}>
-                <WaCheckbox
+                <input
+                  type="checkbox"
                   id="contact-small-consent"
                   checked={consentToContact}
                   onChange={(ev) => setConsentToContact(ev.target.checked)}
                   style={checkboxStyle}
-                  aria-required
+                  required
                   aria-labelledby="contact-small-consent-desc"
                 />
                 <p id="contact-small-consent-desc">

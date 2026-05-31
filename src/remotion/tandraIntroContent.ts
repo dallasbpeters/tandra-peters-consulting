@@ -122,3 +122,71 @@ export const defaultTandraIntroContent: TandraIntroContent = {
     cta: "Call or text 512-968-3965",
   },
 };
+
+/** Frame → "MM:SS.mmm" timestamp for WebVTT. */
+const vttTime = (frame: number, fps = 30): string => {
+  const totalMs = Math.round((frame / fps) * 1000);
+  const ms = totalMs % 1000;
+  const totalSec = Math.floor(totalMs / 1000);
+  const sec = totalSec % 60;
+  const min = Math.floor(totalSec / 60);
+  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
+};
+
+/**
+ * Build a WebVTT string from live Sanity intro-video content.
+ * Scene start frames match the Remotion composition (30fps, 900 total frames).
+ */
+export const generateVttFromContent = (c: TandraIntroContent): string => {
+  const FPS = 30;
+  const scenes: Array<{ from: number; to: number; lines: string[] }> = [
+    {
+      from: 0,
+      to: 149,
+      lines: [`${c.storm.line1} ${c.storm.line2}`, c.storm.body],
+    },
+    {
+      from: 150,
+      to: 299,
+      lines: [
+        `${c.straightAnswers.line1} ${c.straightAnswers.line2} ${c.straightAnswers.line3}`,
+        c.straightAnswers.quote,
+      ],
+    },
+    {
+      from: 300,
+      to: 449,
+      lines: [
+        `${c.inspection.line1} ${c.inspection.line2} ${c.inspection.line3}`,
+        c.inspection.body,
+      ],
+    },
+    {
+      from: 450,
+      to: 629,
+      lines: [
+        `${c.managed.line1} ${c.managed.line2} ${c.managed.line3}`,
+        c.managed.items.join(" · "),
+      ],
+    },
+    {
+      from: 630,
+      to: 749,
+      lines: [`${c.proof.line1} ${c.proof.line2}`, c.proof.items.join(" · ")],
+    },
+    {
+      from: 750,
+      to: 899,
+      lines: [`${c.closing.line1} ${c.closing.line2}`, c.closing.cta],
+    },
+  ];
+
+  const cues = scenes
+    .map(
+      ({ from, to, lines }, i) =>
+        `${i + 1}\n${vttTime(from, FPS)} --> ${vttTime(to, FPS)}\n${lines.filter(Boolean).join("\n")}`,
+    )
+    .join("\n\n");
+
+  return `WEBVTT\n\n${cues}\n`;
+};

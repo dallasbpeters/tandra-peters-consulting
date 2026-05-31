@@ -20,7 +20,7 @@ const starStyles = {
 } satisfies Record<string, CSSProperties>;
 
 export const Stars = ({ rating, size = 16 }: { rating: number; size?: number }) => (
-  <div style={starStyles.stars} aria-label={`${rating} out of 5 stars`}>
+  <div role="img" style={starStyles.stars} aria-label={`${rating} out of 5 stars`}>
     {Array.from({ length: 5 }).map((_, i) => (
       <svg
         key={i}

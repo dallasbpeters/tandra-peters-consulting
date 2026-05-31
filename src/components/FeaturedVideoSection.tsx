@@ -6,6 +6,7 @@ import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
+import { generateVttFromContent } from "../remotion/tandraIntroContent";
 import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
 
@@ -51,6 +52,18 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
     () => (introContent ? JSON.stringify(introContent) : "uploaded-video"),
     [introContent],
   );
+
+  const captionsUrl = useMemo(() => {
+    if (!introContent) return null;
+    const vtt = generateVttFromContent(introContent);
+    return URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+  }, [introContent]);
+
+  useEffect(() => {
+    return () => {
+      if (captionsUrl) URL.revokeObjectURL(captionsUrl);
+    };
+  }, [captionsUrl]);
 
   useEffect(() => {
     const updateInputMode = () => {
@@ -146,7 +159,11 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
                 playsInline
                 poster={posterUrl}
                 controls={false}
-              />
+              >
+                {captionsUrl ? (
+                  <track kind="captions" src={captionsUrl} srcLang="en" label="English" default />
+                ) : null}
+              </motion.video>
             </>
           ) : null}
           <VideoControls
