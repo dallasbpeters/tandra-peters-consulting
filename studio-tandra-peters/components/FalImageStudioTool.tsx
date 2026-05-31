@@ -645,7 +645,7 @@ export function FalImageStudioTool() {
 
           {selectedAsset ? (
             <div className="fis__selected-reference">
-              <img alt="" src={`${selectedAsset.url}?w=720&h=480&fit=crop&auto=format`} />
+              <img alt="" src={`${selectedAsset.url}?w=720&h=480&fit=crop&fm=webp`} />
               <strong>{imageLabel(selectedAsset)}</strong>
               <span>
                 {imageDimensions(selectedAsset)}
@@ -675,7 +675,7 @@ export function FalImageStudioTool() {
                 <img
                   alt=""
                   loading="lazy"
-                  src={`${asset.url}?w=260&h=190&fit=crop&auto=format`}
+                  src={`${asset.url}?w=260&h=190&fit=crop&fm=webp`}
                   style={
                     asset.metadata?.lqip
                       ? { backgroundImage: `url(${asset.metadata.lqip})` }

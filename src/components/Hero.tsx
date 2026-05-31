@@ -4,6 +4,7 @@ import React from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
+import { isSanityCdnUrl, sanityImageUrl } from "../sanity/imageUrl";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { HeroProps } from "../types";
@@ -11,23 +12,16 @@ import { GoogleAuthGate } from "./GoogleAuthGate";
 
 const fallbackHeroImage = "/roof.jpeg";
 
-const isSanityImageUrl = (url: string) => /^https:\/\/cdn\.sanity\.io\/images\//i.test(url);
-
 const optimizedHeroImageUrl = (url: string, width: number): string => {
-  if (!isSanityImageUrl(url)) {
+  if (!isSanityCdnUrl(url)) {
     return url;
   }
 
-  const nextUrl = new URL(url);
-  nextUrl.searchParams.set("w", String(width));
-  nextUrl.searchParams.set("fit", "crop");
-  nextUrl.searchParams.set("auto", "format");
-  nextUrl.searchParams.set("q", "78");
-  return nextUrl.toString();
+  return sanityImageUrl(url, { w: width, fit: "crop", q: 78 });
 };
 
 const heroImageSrcSet = (url: string): string | undefined => {
-  if (!isSanityImageUrl(url)) {
+  if (!isSanityCdnUrl(url)) {
     return undefined;
   }
 

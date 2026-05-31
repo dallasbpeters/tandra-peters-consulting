@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import type { PostDetail } from "../types/article";
 
+import { postCoverImageSrc } from "../article/postCoverImage";
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const SCRIPT_ID = "article-json-ld";
@@ -15,11 +16,7 @@ export const ArticleJsonLd = ({ post, path }: ArticleJsonLdProps) => {
   useEffect(() => {
     const origin = resolveSiteOrigin();
     const url = `${origin}${path.startsWith("/") ? path : `/${path}`}`;
-    const imageUrl = post.image?.startsWith("http")
-      ? post.image
-      : post.image
-        ? `${origin}${post.image.startsWith("/") ? "" : "/"}${post.image}`
-        : undefined;
+    const imageUrl = postCoverImageSrc(post.image, { w: 1200, fit: "max" });
     const authorName = post.authorName?.trim() || "Tandra Peters";
     const description = post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
 

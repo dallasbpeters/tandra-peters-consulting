@@ -1,5 +1,7 @@
 import type { Plugin } from "vite";
 
+import { sanityImageUrl } from "../src/sanity/imageUrl";
+
 const SANITY_IMAGE_PATH = "/api/sanity-image";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
@@ -65,7 +67,7 @@ export const viteSanityImageApi = (): Plugin => ({
       }
 
       try {
-        const upstream = await fetch(imageUrl);
+        const upstream = await fetch(sanityImageUrl(imageUrl.toString()));
         if (!upstream.ok) {
           res.statusCode = upstream.status;
           res.setHeader("Content-Type", "application/json");

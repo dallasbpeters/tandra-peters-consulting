@@ -14,6 +14,7 @@ import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { asOptionalRichText } from "../portableText/value";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
+import { sanityImageUrl } from "../sanity/imageUrl";
 import {
   mapAboutProps,
   // mapArticlesTeaserEditorialProps,
@@ -135,7 +136,7 @@ export const Home = () => {
   const shouldUseRenderedIntroVideo = Boolean(renderedVideoUrl);
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
-      ? introVideo.thumbnailUrl.trim()
+      ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })
       : undefined;
   const marquee = home?.marquee as Record<string, unknown> | undefined;
   const about = home?.about as Record<string, unknown> | undefined;
@@ -167,8 +168,12 @@ export const Home = () => {
       return {
         id: asString(item._key),
         title: asString(item.title),
-        beforeImage: asString(item.beforeImage),
-        afterImage: asString(item.afterImage),
+        beforeImage: asString(item.beforeImage)
+          ? sanityImageUrl(asString(item.beforeImage)!, { w: 1200, fit: "max" })
+          : undefined,
+        afterImage: asString(item.afterImage)
+          ? sanityImageUrl(asString(item.afterImage)!, { w: 1200, fit: "max" })
+          : undefined,
         description: asString(item.description),
       };
     })

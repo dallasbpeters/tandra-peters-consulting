@@ -22,6 +22,7 @@ import type { RoofInspectionSectionProps, RoofInspectionHotspotData } from "../t
 import { getServiceIconComponent } from "../icons/serviceIconMap";
 import { asOptionalRichText, asRichTextValue } from "../portableText/value";
 import { theme } from "../theme";
+import { sanityImageUrl, type SanityImageTransform } from "./imageUrl";
 
 const SOCIAL_ICONS = {
   instagram: Instagram,
@@ -37,6 +38,13 @@ const SOCIAL_PLATFORM_LABELS: Record<keyof typeof SOCIAL_ICONS, string> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SanityDoc = Record<string, any> | null | undefined;
+
+const toSanityImage = (url: unknown, params?: SanityImageTransform): string | undefined => {
+  if (typeof url !== "string" || !url.trim()) {
+    return undefined;
+  }
+  return sanityImageUrl(stegaClean(url).trim(), params);
+};
 
 /** Shown when a required rich-text field is empty or unreadable (avoids dropping cards/rows). */
 const RICH_TEXT_PLACEHOLDER =
@@ -79,7 +87,7 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
     out.secondaryCtaHref = hero.secondaryCtaHref;
   }
   if (hero.backgroundImage) {
-    out.backgroundImage = hero.backgroundImage;
+    out.backgroundImage = toSanityImage(hero.backgroundImage);
   }
   return out;
 };
@@ -105,12 +113,13 @@ export const mapVideoProps = (
       : typeof video?.video?.asset?.url === "string"
         ? video.video.asset.url
         : undefined;
-  const posterUrl =
+  const posterUrl = toSanityImage(
     typeof video?.posterUrl === "string"
       ? video.posterUrl
       : typeof video?.posterUrl?.asset?.url === "string"
         ? video.posterUrl.asset.url
-        : undefined;
+        : undefined,
+  );
   return {
     videoUrl: renderedVideoUrl ?? uploadedVideoUrl,
     title: typeof video?.title === "string" ? video.title : undefined,
@@ -136,7 +145,7 @@ export const mapAboutProps = (about: SanityDoc): Partial<AboutProps> => {
   return {
     ...(about.badgeText ? { badgeText: about.badgeText } : {}),
     ...(about.badgeSubtext ? { badgeSubtext: about.badgeSubtext } : {}),
-    ...(about.image ? { imageSrc: about.image } : {}),
+    ...(about.image ? { imageSrc: toSanityImage(about.image) } : {}),
     ...(title ? { title } : {}),
     ...(body ? { body } : {}),
   };
@@ -167,7 +176,7 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
         title: row.title,
         description,
         icon: Icon,
-        ...(row.image ? { image: row.image } : {}),
+        ...(row.image ? { image: toSanityImage(row.image) } : {}),
       };
     },
   );
@@ -249,7 +258,7 @@ export const mapMissionProps = (m: SanityDoc): Partial<MissionProps> => {
         id: row.id,
         title: row.title,
         description,
-        ...(row.image ? { image: row.image } : {}),
+        ...(row.image ? { image: toSanityImage(row.image) } : {}),
       };
     },
   );
@@ -276,7 +285,7 @@ export const mapExpertiseProps = (e: SanityDoc): Partial<ExpertiseProps> => {
         id: row.id,
         title: row.title,
         desc,
-        ...(row.image ? { image: row.image } : {}),
+        ...(row.image ? { image: toSanityImage(row.image) } : {}),
       };
     },
   );
@@ -377,7 +386,7 @@ export const mapNavProps = (site: SanityDoc): Partial<NavProps> => {
   return {
     ...(site.navLogoText ? { logoText: site.navLogoText } : {}),
     ...(site.navLogoTagline ? { logoTagline: site.navLogoTagline } : {}),
-    ...(site.navLogoImage ? { imageSrc: site.navLogoImage } : {}),
+    ...(site.navLogoImage ? { imageSrc: toSanityImage(site.navLogoImage) } : {}),
     ...(navItemsRaw?.length ? { navItems: navItemsRaw } : {}),
     ...(site.navCtaText ? { ctaText: site.navCtaText } : {}),
     ...(site.navCtaHref ? { ctaHref: site.navCtaHref } : {}),
@@ -486,7 +495,7 @@ export const mapRoofInspectionProps = (data: SanityDoc): Partial<RoofInspectionS
   // Diagram image — Sanity image asset URL
   const img = data.diagramImage;
   if (img?.asset?.url && typeof img.asset.url === "string") {
-    out.diagramImageUrl = img.asset.url;
+    out.diagramImageUrl = toSanityImage(img.asset.url);
   } else if (img?.asset?._ref && typeof img.asset._ref === "string") {
     // Fallback: let the component handle missing URL gracefully
     out.diagramImageUrl = undefined;

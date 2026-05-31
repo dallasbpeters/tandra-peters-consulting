@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { buildArticleFaqProps } from "../article/buildArticleFaq";
 import { postCategoryLabel } from "../article/categoryLabels";
+import { postCoverImageSrc } from "../article/postCoverImage";
 import { ArticleJsonLd } from "../components/ArticleJsonLd";
 import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
 import { ContactSmall } from "../components/ContactSmall";
@@ -184,7 +185,7 @@ export const ArticlePage = () => {
               }}
             >
               <img
-                src={post.image}
+                src={postCoverImageSrc(post.image, { w: 1200, fit: "max" })}
                 alt=""
                 style={{
                   width: "100%",

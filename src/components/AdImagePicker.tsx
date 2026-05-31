@@ -9,6 +9,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { SanityImageAsset } from "../hooks/useSanityImageAssets";
 
 import { useUnsplashImageSearch } from "../hooks/useUnsplashImageSearch";
+import { sanityImageUrl } from "../sanity/imageUrl";
 
 type ImageSource = "sanity" | "unsplash";
 
@@ -21,15 +22,9 @@ type AdImagePickerProps = {
   onSelect: (image: SanityImageAsset) => void;
 };
 
-const thumbnailUrl = (url: string) => {
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}w=240&h=160&fit=crop&auto=format`;
-};
+const thumbnailUrl = (url: string) => sanityImageUrl(url, { w: 240, h: 160, fit: "crop" });
 
-const previewUrl = (url: string) => {
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}w=1200&h=840&fit=max&auto=format`;
-};
+const previewUrl = (url: string) => sanityImageUrl(url, { w: 1200, h: 840, fit: "max" });
 
 const imageMeta = (image: SanityImageAsset) => {
   if (!image.width || !image.height) {

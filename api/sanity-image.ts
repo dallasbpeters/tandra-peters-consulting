@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import { sanityImageUrl } from "./lib/sanity-image-url.js";
+
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 
@@ -49,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const upstream = await fetch(imageUrl);
+  const upstream = await fetch(sanityImageUrl(imageUrl.toString()));
   if (!upstream.ok) {
     res.status(upstream.status).json({ error: "Could not fetch image." });
     return;

@@ -353,7 +353,7 @@ export function SanityImageManagerTool() {
                 <img
                   alt=""
                   loading="lazy"
-                  src={`${asset.url}?w=360&h=260&fit=crop&auto=format`}
+                  src={`${asset.url}?w=360&h=260&fit=crop&fm=webp`}
                   style={
                     asset.metadata?.lqip
                       ? { backgroundImage: `url(${asset.metadata.lqip})` }
@@ -375,7 +375,7 @@ export function SanityImageManagerTool() {
           {selectedAsset ? (
             <>
               <div className="sim__preview">
-                <img alt="" src={`${selectedAsset.url}?w=1200&auto=format`} />
+                <img alt="" src={`${selectedAsset.url}?w=1200&fm=webp`} />
               </div>
 
               <div className="sim__panel">
