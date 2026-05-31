@@ -1,5 +1,9 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import {useClient} from 'sanity'
+import {useColorSchemeValue} from 'sanity'
+import WaButton from '@awesome.me/webawesome/dist/react/button/index.js'
+import WaInput from '@awesome.me/webawesome/dist/react/input/index.js'
+import WaTextarea from '@awesome.me/webawesome/dist/react/textarea/index.js'
+import {useStudioClient} from '../hooks/useStudioClient'
 import './sanityImageManagerTool.css'
 
 type SanityImageAsset = {
@@ -60,6 +64,8 @@ const imageAssetQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order
   }
 }`
 
+const getInputValue = (event: unknown): string => (event as {target: {value: string}}).target.value
+
 const fileSize = (bytes?: number): string => {
   if (!bytes) {
     return 'Unknown size'
@@ -104,7 +110,8 @@ const formatDate = (value: string): string =>
   }).format(new Date(value))
 
 export function SanityImageManagerTool() {
-  const client = useClient({apiVersion: '2026-05-01'})
+  const client = useStudioClient({apiVersion: '2026-05-01'})
+  const colorScheme = useColorSchemeValue()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [assets, setAssets] = useState<SanityImageAsset[]>([])
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
@@ -271,63 +278,72 @@ export function SanityImageManagerTool() {
     }
   }
 
+  const rootClassName =
+    colorScheme === 'dark' ? 'studio-tool sim studio-tool--dark' : 'studio-tool sim studio-tool--light'
+
   return (
-    <main className="sanity-image-manager">
-      <header className="sanity-image-manager__header">
+    <main className={rootClassName}>
+      <header className="sim__header">
         <div>
           <p>Assets</p>
           <h1>Image Manager</h1>
         </div>
-        <div className="sanity-image-manager__actions">
-          <button disabled={loading} onClick={() => void loadAssets()} type="button">
+        <div className="sim__actions">
+          <WaButton disabled={loading} onClick={() => void loadAssets()} size="xs">
             Refresh
-          </button>
-          <label className="sanity-image-manager__upload">
-            <input
-              accept="image/*"
-              disabled={uploading}
-              onChange={(event) => void handleUpload(event.currentTarget.files)}
-              ref={fileInputRef}
-              type="file"
-            />
+          </WaButton>
+          <input
+            accept="image/*"
+            className="sim__upload-input"
+            disabled={uploading}
+            onChange={(event) => void handleUpload(event.currentTarget.files)}
+            ref={fileInputRef}
+            type="file"
+          />
+          <WaButton
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            size="xs"
+            variant="brand"
+          >
             {uploading ? 'Uploading...' : 'Upload image'}
-          </label>
+          </WaButton>
         </div>
       </header>
 
-      {error ? <div className="sanity-image-manager__alert">{error}</div> : null}
-      {notice ? <div className="sanity-image-manager__notice">{notice}</div> : null}
+      {error ? <div className="sim__alert">{error}</div> : null}
+      {notice ? <div className="sim__notice">{notice}</div> : null}
 
-      <section className="sanity-image-manager__workspace">
-        <aside className="sanity-image-manager__library">
-          <div className="sanity-image-manager__search">
-            <input
+      <section className="sim__workspace">
+        <aside className="sim__library">
+          <div className="sim__search">
+            <WaInput
               aria-label="Search images"
-              onChange={(event) => setSearch(event.currentTarget.value)}
+              onInput={(event) => setSearch(getInputValue(event))}
               placeholder="Search filename, title, alt text, or asset ID"
+              size="xs"
               type="search"
               value={search}
             />
           </div>
 
-          <div className="sanity-image-manager__count">
+          <div className="sim__count">
             {loading
               ? 'Loading images...'
               : `${filteredAssets.length} of ${assets.length} images shown`}
           </div>
 
-          <div className="sanity-image-manager__grid">
+          <div className="sim__grid">
             {filteredAssets.map((asset) => (
-              <button
+              <WaButton
+                appearance="plain"
                 className={
-                  asset._id === selectedAsset?._id
-                    ? 'sanity-image-manager__tile is-selected'
-                    : 'sanity-image-manager__tile'
+                  asset._id === selectedAsset?._id ? 'sim__tile is-selected' : 'sim__tile'
                 }
                 key={asset._id}
                 onClick={() => setSelectedAssetId(asset._id)}
+                size="xs"
                 title={imageLabel(asset)}
-                type="button"
               >
                 <img
                   alt=""
@@ -341,39 +357,39 @@ export function SanityImageManagerTool() {
                 />
                 <span>{imageLabel(asset)}</span>
                 <small>{imageDimensions(asset)}</small>
-              </button>
+              </WaButton>
             ))}
           </div>
 
           {!loading && filteredAssets.length === 0 ? (
-            <div className="sanity-image-manager__empty">No images match that search.</div>
+            <div className="sim__empty">No images match that search.</div>
           ) : null}
         </aside>
 
-        <section className="sanity-image-manager__detail">
+        <section className="sim__detail">
           {selectedAsset ? (
             <>
-              <div className="sanity-image-manager__preview">
+              <div className="sim__preview">
                 <img alt="" src={`${selectedAsset.url}?w=1200&auto=format`} />
               </div>
 
-              <div className="sanity-image-manager__panel">
-                <div className="sanity-image-manager__summary">
+              <div className="sim__panel">
+                <div className="sim__summary">
                   <div>
                     <h2>{imageLabel(selectedAsset)}</h2>
                     <p>{selectedAsset._id}</p>
                   </div>
-                  <div className="sanity-image-manager__detail-actions">
-                    <button onClick={() => void handleCopyUrl()} type="button">
+                  <div className="sim__detail-actions">
+                    <WaButton onClick={() => void handleCopyUrl()} size="xs">
                       Copy URL
-                    </button>
-                    <a href={selectedAsset.url} rel="noreferrer" target="_blank">
+                    </WaButton>
+                    <WaButton href={selectedAsset.url} rel="noreferrer" size="xs" target="_blank">
                       Open
-                    </a>
+                    </WaButton>
                   </div>
                 </div>
 
-                <dl className="sanity-image-manager__meta">
+                <dl className="sim__meta">
                   <div>
                     <dt>Dimensions</dt>
                     <dd>{imageDimensions(selectedAsset)}</dd>
@@ -396,34 +412,31 @@ export function SanityImageManagerTool() {
                   </div>
                 </dl>
 
-                <div className="sanity-image-manager__form">
-                  <label>
-                    Title
-                    <input
-                      onChange={(event) => setDraftTitle(event.currentTarget.value)}
-                      type="text"
-                      value={draftTitle}
-                    />
-                  </label>
-                  <label>
-                    Alt text
-                    <input
-                      onChange={(event) => setDraftAltText(event.currentTarget.value)}
-                      type="text"
-                      value={draftAltText}
-                    />
-                  </label>
-                  <label>
-                    Description
-                    <textarea
-                      onChange={(event) => setDraftDescription(event.currentTarget.value)}
-                      rows={3}
-                      value={draftDescription}
-                    />
-                  </label>
+                <div className="sim__form">
+                  <WaInput
+                    label="Title"
+                    onInput={(event) => setDraftTitle(getInputValue(event))}
+                    size="xs"
+                    type="text"
+                    value={draftTitle}
+                  />
+                  <WaInput
+                    label="Alt text"
+                    onInput={(event) => setDraftAltText(getInputValue(event))}
+                    size="xs"
+                    type="text"
+                    value={draftAltText}
+                  />
+                  <WaTextarea
+                    label="Description"
+                    onInput={(event) => setDraftDescription(getInputValue(event))}
+                    rows={3}
+                    size="xs"
+                    value={draftDescription}
+                  />
                 </div>
 
-                <div className="sanity-image-manager__references">
+                <div className="sim__references">
                   <strong>References</strong>
                   {selectedAsset.references?.length ? (
                     <ul>
@@ -439,28 +452,33 @@ export function SanityImageManagerTool() {
                   )}
                 </div>
 
-                <div className="sanity-image-manager__footer-actions">
-                  <button disabled={saving} onClick={() => void handleSaveMetadata()} type="button">
+                <div className="sim__footer-actions">
+                  <WaButton
+                    disabled={saving}
+                    onClick={() => void handleSaveMetadata()}
+                    size="xs"
+                    variant="brand"
+                  >
                     {saving ? 'Saving...' : 'Save details'}
-                  </button>
-                  <button
-                    className="sanity-image-manager__danger"
+                  </WaButton>
+                  <WaButton
+                    className="sim__danger"
                     disabled={saving || Boolean(selectedAsset.usedBy)}
                     onClick={() => void handleDelete()}
+                    size="xs"
                     title={
                       selectedAsset.usedBy
                         ? 'Images that are still used by documents are protected here.'
                         : 'Delete this image asset'
                     }
-                    type="button"
                   >
                     Delete image
-                  </button>
+                  </WaButton>
                 </div>
               </div>
             </>
           ) : (
-            <div className="sanity-image-manager__empty-detail">
+            <div className="sim__empty-detail">
               {loading ? 'Loading image library...' : 'Select or upload an image.'}
             </div>
           )}

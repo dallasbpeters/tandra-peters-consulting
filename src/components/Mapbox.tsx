@@ -7,6 +7,7 @@ import texasStateOutline from "./texasStateOutline.json";
 import { mix, theme } from "../theme";
 import type { ServiceAreaMapProps } from "../types";
 import { Shader, ChromaFlow } from "shaders/react";
+import { useIsMobile } from "../hooks/isMobile";
 
 type ServiceArea = NonNullable<ServiceAreaMapProps["areas"]>[number];
 
@@ -338,6 +339,7 @@ export const MapBox = ({
   description = DEFAULT_DESCRIPTION,
   areas = [],
 }: ServiceAreaMapProps) => {
+  const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const txFeaturesRef = useRef<GeoJSON.Feature[]>([]);
@@ -501,13 +503,14 @@ export const MapBox = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "3.5rem 2.5rem",
+            padding: "1rem",
             borderRight: `1px solid ${mix(theme.colors.white, 8)}`,
-            maxInlineSize: "500px",
+            maxInlineSize: "80vw",
             position: "absolute",
-            top: "0%",
+            top: isMobile ? "40%" : "5%",
             left: "5%",
             zIndex: 10,
+            backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "transparent",
           }}
           className="service-area-map-copy"
         >

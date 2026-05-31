@@ -1,15 +1,10 @@
 /**
- * Vercel: POST /api/gemini/generate-image — Gemini image generation for Sanity Studio
- * (sanity-plugin-gemini-ai-images client + api/lib/gemini-generate-image.ts handler).
+ * Vercel: POST /api/fal/generate-image — Fal image generation for Sanity Studio.
  *
- * Env: GEMINI_API_KEY (required).
- * Optional: GEMINI_PLUGIN_API_KEY (require X-API-Key), GEMINI_IMAGE_MODEL (default gemini-3.1-flash-image).
- *
- * Local: `pnpm dev` (Vite port 3001) serves this route via `plugins/viteGeminiDevApi.ts`.
+ * Env: FAL_KEY (required). Local dev is served by plugins/viteFalDevApi.ts.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handler as geminiHandler } from "../lib/gemini-generate-image.js";
-import { enrichGeminiErrorResponse } from "../lib/gemini-error.js";
+import { handler as falHandler } from "../lib/fal-generate-image.js";
 
 const addCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -45,9 +40,9 @@ const toWebRequest = (req: VercelRequest): Request => {
         : JSON.stringify(req.body ?? {})
       : undefined;
   return new Request(path, {
-    method: req.method,
-    headers: new Headers(headerPairs),
     body,
+    headers: new Headers(headerPairs),
+    method: req.method,
   });
 };
 
@@ -66,7 +61,7 @@ const sendWebResponse = async (res: VercelResponse, webRes: Response) => {
   res.send(Buffer.from(await webRes.arrayBuffer()));
 };
 
-export default async function geminiGenerateImage(
+export default async function falGenerateImage(
   req: VercelRequest,
   res: VercelResponse,
 ) {
@@ -76,8 +71,5 @@ export default async function geminiGenerateImage(
     return;
   }
 
-  const webRes = await enrichGeminiErrorResponse(
-    await geminiHandler(toWebRequest(req)),
-  );
-  await sendWebResponse(res, webRes);
+  await sendWebResponse(res, await falHandler(toWebRequest(req)));
 }

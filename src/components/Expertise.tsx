@@ -58,7 +58,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
 
   const headerStyle: React.CSSProperties = {
     textAlign: "center",
-    marginBottom: "6rem",
+    marginBottom: "3rem",
   };
 
   const gridStyle: React.CSSProperties = {

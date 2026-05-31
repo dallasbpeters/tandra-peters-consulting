@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {defineGeminiImage} from './geminiImageField'
+import {defineGeneratedImage} from './generatedImageField'
 
 export const postType = defineType({
   name: 'post',
@@ -73,7 +73,7 @@ export const postType = defineType({
       type: 'string',
       initialValue: 'Tandra Peters',
     }),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'image',
       title: 'Cover image',
       description: 'Optional; used on listing cards and social previews when set.',

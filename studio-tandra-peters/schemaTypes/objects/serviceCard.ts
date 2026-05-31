@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {SERVICE_ICON_OPTIONS} from '../serviceIconMeta'
-import {defineGeminiImage} from '../geminiImageField'
+import {defineGeneratedImage} from '../generatedImageField'
 
 export const serviceCardType = defineType({
   name: 'serviceCard',
@@ -26,7 +26,7 @@ export const serviceCardType = defineType({
       initialValue: 'search',
       validation: (r) => r.required(),
     }),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'image',
       title: 'Image',
       description: 'Optional card image (upload or AI).',

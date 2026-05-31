@@ -7,6 +7,7 @@ import { ServicesProps } from "../types";
 import BirdcreekLogo from "./BirdCreekLogo";
 import { RichText } from "../portableText/RichText";
 import { usePostHog } from "@posthog/react";
+import { useIsMobile } from "../hooks/isMobile";
 
 export const Services: React.FC<ServicesProps> = ({
   tagline = "Roofing consulting services",
@@ -53,7 +54,7 @@ export const Services: React.FC<ServicesProps> = ({
   },
 }) => {
   const posthog = usePostHog();
-
+  const isMobile = useIsMobile();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -281,7 +282,7 @@ export const Services: React.FC<ServicesProps> = ({
                   <div
                     style={{
                       color: isMain
-                        ? theme.colors.evergladeMuted
+                        ? theme.colors.white
                         : mix(theme.colors.everglade, 60),
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
@@ -376,7 +377,7 @@ export const Services: React.FC<ServicesProps> = ({
             style={{
               backgroundColor: theme.colors.paperDark,
               borderRadius: "1rem",
-              padding: "3rem",
+              padding: isMobile ? "2rem" : "3rem",
               display: "flex",
               flexDirection: "column",
               alignItems: "start",

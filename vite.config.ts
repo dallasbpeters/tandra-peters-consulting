@@ -2,9 +2,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
+import { viteFalDevApi } from "./plugins/viteFalDevApi";
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
-import { viteGeminiDevApi } from "./plugins/viteGeminiDevApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => {
 
   const plugins: PluginOption[] = [
     viteAgentDevApi(env) as unknown as PluginOption,
-    viteGeminiDevApi(env) as unknown as PluginOption,
+    viteFalDevApi(env) as unknown as PluginOption,
     viteSanityImageApi() as unknown as PluginOption,
     viteUnsplashApi(env) as unknown as PluginOption,
     viteSitemapApi(env) as unknown as PluginOption,
@@ -103,9 +103,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins,
-    define: {
-      "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY),
-    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),

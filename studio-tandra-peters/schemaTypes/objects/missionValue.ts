@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {defineGeminiImage} from '../geminiImageField'
+import {defineGeneratedImage} from '../generatedImageField'
 
 export const missionValueType = defineType({
   name: 'missionValue',
@@ -14,7 +14,7 @@ export const missionValueType = defineType({
       type: 'blockContent',
       validation: (r) => r.required(),
     }),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'image',
       title: 'Background image',
       description: 'Optional card background (upload or AI).',

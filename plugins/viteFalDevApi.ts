@@ -1,18 +1,17 @@
 /**
- * Serves POST /api/gemini/generate-image during `vite` dev so Sanity Studio (separate origin)
- * can call Gemini without `vercel dev`. Requires GEMINI_API_KEY in repo-root `.env` / `.env.local`.
+ * Serves POST /api/fal/generate-image during Vite dev so Sanity Studio can call
+ * Fal without `vercel dev`. Requires FAL_KEY in repo-root .env.local.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { enrichGeminiErrorResponse } from "../api/lib/gemini-error.js";
 
-const GEMINI_PATH = "/api/gemini/generate-image";
+const FAL_PATH = "/api/fal/generate-image";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on("data", (c: Buffer | string) => {
-      chunks.push(typeof c === "string" ? Buffer.from(c) : c);
+    req.on("data", (chunk: Buffer | string) => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
     });
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
@@ -32,11 +31,11 @@ const sendOptions = (res: ServerResponse) => {
 const pathnameOnly = (url: string | undefined) =>
   (url ?? "").split("?")[0] ?? "";
 
-export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-gemini-dev-api",
+export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
+  name: "vite-fal-dev-api",
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
-      if (pathnameOnly(req.url) !== GEMINI_PATH) {
+      if (pathnameOnly(req.url) !== FAL_PATH) {
         next();
         return;
       }
@@ -48,62 +47,48 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
 
       if (req.method !== "POST") {
         res.statusCode = 405;
-        res.setHeader("Content-Type", "application/json");
         res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify({ error: "Method not allowed" }));
         return;
       }
 
-      const key = env.GEMINI_API_KEY?.trim();
-      if (key) {
-        process.env.GEMINI_API_KEY = key;
-      }
-      if (env.GEMINI_PLUGIN_API_KEY?.trim()) {
-        process.env.GEMINI_PLUGIN_API_KEY = env.GEMINI_PLUGIN_API_KEY.trim();
-      }
-      if (env.GEMINI_IMAGE_MODEL?.trim()) {
-        process.env.GEMINI_IMAGE_MODEL = env.GEMINI_IMAGE_MODEL.trim();
+      if (env.FAL_KEY?.trim()) {
+        process.env.FAL_KEY = env.FAL_KEY.trim();
       }
 
       try {
-        const { handler } = await import("../api/lib/gemini-generate-image.js");
+        const { handler } = await import("../api/lib/fal-generate-image.js");
         const host = req.headers.host ?? "localhost:3001";
-        const pathWithQuery = req.url ?? GEMINI_PATH;
+        const pathWithQuery = req.url ?? FAL_PATH;
         const bodyBuf = await readBody(req);
-        const bodyText =
-          bodyBuf.length > 0 ? bodyBuf.toString("utf8") : undefined;
-
         const headers = new Headers();
-        for (const [k, v] of Object.entries(req.headers)) {
-          if (v == null) {
+        for (const [key, value] of Object.entries(req.headers)) {
+          if (value == null) {
             continue;
           }
-          if (Array.isArray(v)) {
-            for (const x of v) {
-              headers.append(k, x);
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              headers.append(key, item);
             }
           } else {
-            headers.set(k, v);
+            headers.set(key, value);
           }
         }
 
         const webReq = new Request(`http://${host}${pathWithQuery}`, {
-          method: "POST",
+          body: bodyBuf.length > 0 ? bodyBuf.toString("utf8") : undefined,
           headers,
-          body: bodyText,
+          method: "POST",
         });
 
-        const webRes = await enrichGeminiErrorResponse(await handler(webReq));
+        const webRes = await handler(webReq);
         res.statusCode = webRes.status;
         webRes.headers.forEach((value, key) => {
           if (key.toLowerCase() === "content-encoding") {
             return;
           }
-          try {
-            res.setHeader(key, value);
-          } catch {
-            /* ignore invalid header names */
-          }
+          res.setHeader(key, value);
         });
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -111,13 +96,12 @@ export const viteGeminiDevApi = (env: Record<string, string>): Plugin => ({
           "Access-Control-Allow-Headers",
           "Content-Type, Authorization, X-API-Key",
         );
-        const out = Buffer.from(await webRes.arrayBuffer());
-        res.end(out);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
+        res.end(Buffer.from(await webRes.arrayBuffer()));
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : String(caught);
         res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
         res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify({ error: message }));
       }
     });

@@ -287,6 +287,7 @@ export const Nav: React.FC<NavProps> = ({
             alignItems: "center",
             gap: isMobile ? "0.5rem" : "1rem",
             flex: "0 0 auto",
+            justifyContent: "flex-end",
           }}
         >
           <motion.a

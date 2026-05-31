@@ -56,7 +56,6 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
         "VITE_SITE_URL",
         "VITE_PUBLIC_POSTHOG_HOST",
         "VITE_PUBLIC_POSTHOG_UI_HOST",
-        "GEMINI_API_KEY",
       ]) {
         if (env[key]?.trim()) {
           process.env[key] = env[key].trim();

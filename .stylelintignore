@@ -2,3 +2,4 @@ dist/
 node_modules/
 studio-tandra-peters/node_modules/
 skills/
+public/model-viewer.min.js

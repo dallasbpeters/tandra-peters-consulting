@@ -141,6 +141,12 @@ kbd {
   border-color: var(--border);
 }
 
+.number-field {
+   input {
+    color: oklch(0% 0 0);
+  }
+}
+
 button, input[type="button"], input[type="reset"], input[type="submit"], input[type="file"], a.wa-button {
     --wa-color-fill-loud: oklch(100% 0 0);
     --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
@@ -363,6 +369,28 @@ button, input[type="button"], input[type="reset"], input[type="submit"], input[t
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --wa-color-focus: oklch(76% 0.12 150deg);
+  --wa-color-brand: oklch(76% 0.12 150deg);
+  --wa-color-brand-fill-loud: oklch(76% 0.12 150deg);
+  --wa-color-brand-fill-normal: oklch(68% 0.11 150deg);
+  --wa-color-brand-fill-quiet: oklch(24% 0.04 150deg);
+  --wa-color-brand-border-loud: oklch(76% 0.12 150deg);
+  --wa-color-brand-border-normal: oklch(68% 0.11 150deg);
+  --wa-color-brand-on-loud: oklch(10% 0.02 150deg);
+  --wa-color-brand-on-normal: oklch(10% 0.02 150deg);
+  --wa-color-brand-on-quiet: oklch(92% 0.03 150deg);
+  --wa-color-neutral-fill-normal: oklch(28% 0.025 150deg);
+  --wa-color-neutral-fill-quiet: oklch(18% 0.02 150deg);
+  --wa-color-neutral-on-normal: oklch(95% 0.01 100deg);
+  --wa-color-neutral-on-quiet: oklch(78% 0.01 100deg);
+  --wa-color-surface-border: oklch(100% 0 0 / 18%);
+  --wa-color-surface-raised: oklch(18% 0.02 150deg);
+  --wa-color-text-normal: oklch(95% 0.01 100deg);
+  --wa-color-text-quiet: oklch(78% 0.01 100deg);
+  --wa-form-control-background-color: oklch(18% 0.02 150deg);
+  --wa-form-control-border-color: oklch(100% 0 0 / 18%);
+  --wa-form-control-placeholder-color: oklch(78% 0.01 100deg);
+  --wa-form-control-value-color: oklch(95% 0.01 100deg);
 }
 
 @layer base {

@@ -96,15 +96,16 @@
 
 .site-container.site-container--stats-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: space-between;
   gap: 3rem;
 }
 
-@media (width <= 480px) {
+@media (width <= 580px) {
   .site-container.site-container--stats-row {
+    flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
   }
 }
 

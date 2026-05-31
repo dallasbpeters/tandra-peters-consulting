@@ -153,6 +153,8 @@ const BRAND_SWATCHES = [
   { label: "Storm", value: "#46656B" },
   { label: "Granite", value: "#667A71" },
   { label: "Blue", value: "#335CFF" },
+  { label: "Green", value: "#12533A" },
+  { label: "Moss", value: "#217D57" },
 ] as const;
 
 const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((swatch) => swatch.value).join(
@@ -278,10 +280,23 @@ const AdColorPickerField = ({
 
   useEffect(() => {
     const picker = pickerRef.current;
+    if (!picker || picker.value === value) return;
+
+    picker.value = value;
+  }, [value]);
+
+  useEffect(() => {
+    const picker = pickerRef.current;
     if (!picker) return undefined;
 
-    const handleValueChange = () => {
-      onValueChange(picker.value ?? "");
+    const handleValueChange = (event: Event) => {
+      const nextValue =
+        (event.target as WaColorPickerElement | null)?.value ??
+        picker.value ??
+        "";
+      if (nextValue) {
+        onValueChange(nextValue);
+      }
     };
 
     picker.addEventListener("input", handleValueChange);
@@ -1026,28 +1041,6 @@ export const AdDashboardPage = () => {
                         updateCreative("cta", getInputValue(event))
                       }
                     />
-                    <WaInput
-                      className="ad-dashboard-field"
-                      label="Byline"
-                      value={creative.footnote}
-                      appearance="outlined"
-                      size="xs"
-                      withClear
-                      onInput={(event) =>
-                        updateCreative("footnote", getInputValue(event))
-                      }
-                    />
-                    <WaInput
-                      className="ad-dashboard-field"
-                      label="Brand"
-                      value={creative.footnote2}
-                      appearance="outlined"
-                      size="xs"
-                      withClear
-                      onInput={(event) =>
-                        updateCreative("footnote2", getInputValue(event))
-                      }
-                    />
                   </div>
                   <div className="ad-dashboard-user">
                     {auth.user?.picture ? (
@@ -1110,32 +1103,13 @@ export const AdDashboardPage = () => {
                         <span>{creative.body}</span>
                         <strong>{creative.cta}</strong>
                       </div>
-                      {creative.footnote2 ? (
-                        <footer>
-                          <span className="ad-creative-footer-copy">
-                            {creative.footnote} |{" "}
-                            <span className="ad-creative-footnote-2">
-                              {creative.footnote2}
-                            </span>
-                          </span>
-                          <img
-                            className="ad-creative-logo"
-                            src="/BC_Horizontal_Color.svg"
-                            alt="Birdcreek Roofing"
-                          />
-                        </footer>
-                      ) : (
-                        <footer>
-                          <span className="ad-creative-footer-copy">
-                            {creative.footnote}
-                          </span>
-                          <img
-                            className="ad-creative-logo"
-                            src="/BC_Horizontal_Color.svg"
-                            alt="Birdcreek Roofing"
-                          />
-                        </footer>
-                      )}
+                      <footer>
+                        <img
+                          className="ad-creative-logo"
+                          src="/BC_Horizontal_Color.svg"
+                          alt="Birdcreek Roofing"
+                        />
+                      </footer>
                     </article>
                   </div>
                 </section>
@@ -1183,7 +1157,7 @@ export const AdDashboardPage = () => {
                   <div className="ad-dashboard-color-grid">
                     {BRAND_SWATCHES.map((swatch) => (
                       <button
-                        key={swatch.value}
+                        key={`${swatch.label}-${swatch.value}`}
                         type="button"
                         style={{ backgroundColor: swatch.value }}
                         onClick={() =>

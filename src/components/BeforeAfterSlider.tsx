@@ -5,6 +5,7 @@ import { motion, AnimatePresence, Variants } from "motion/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { RichText } from "../portableText/RichText";
 import { theme } from "../theme";
+import { useIsMobile } from "../hooks/isMobile";
 
 interface ImagePair {
   id?: string;
@@ -31,7 +32,9 @@ const colors = {
   white: "#ffffff",
 };
 
+
 const styles: Record<string, CSSProperties> = {
+
   section: {
     padding: "4rem 1.5rem",
     display: "grid",
@@ -145,7 +148,6 @@ const styles: Record<string, CSSProperties> = {
   },
   thumbButtonBase: {
     position: "relative",
-    blockSize: "100px",
     aspectRatio: "4 / 3",
     overflow: "hidden",
     borderRadius: "0.5rem",
@@ -191,6 +193,7 @@ export function BeforeAfterSlider({
   title,
   description,
 }: BeforeAfterSliderProps) {
+  const isMobile = useIsMobile();
   const [selectedPair, setSelectedPair] = useState(imagePairs[0]);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -317,6 +320,7 @@ export function BeforeAfterSlider({
                   }}
                   style={{
                     ...styles.thumbButtonBase,
+                    blockSize: isMobile ? "75px" : "100px",
                     boxShadow: isSelected
                       ? `0 0 0 4px ${colors.primary}`
                       : "none",

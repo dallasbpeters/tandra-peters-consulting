@@ -2,11 +2,10 @@ import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {defineDocuments, defineLocations, presentationTool} from 'sanity/presentation'
 import {visionTool} from '@sanity/vision'
-import {geminiAIImages} from 'sanity-plugin-gemini-ai-images'
 import {agentContextPlugin} from '@sanity/agent-context/studio'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
-import {geminiStudioApiEndpoint} from './geminiStudioConfig'
+import {FalImageStudioTool} from './components/FalImageStudioTool'
 import {SanityImageManagerTool} from './components/SanityImageManagerTool'
 import {StarFilledIcon} from '@sanity/icons'
 import {
@@ -19,7 +18,9 @@ import {
   type AssistFieldActionProps,
 } from '@sanity/assist'
 import {useMemo} from 'react'
-import {useClient, type SchemaType} from 'sanity'
+import type {SanityClient} from '@sanity/client'
+import {type SchemaType} from 'sanity'
+import {useStudioClient} from './hooks/useStudioClient'
 
 // @sanity/client's TransformTargetDocument omits _type and initialValues from the
 // createIfNotExists variant in its TypeScript types, but the Sanity API accepts them.
@@ -143,7 +144,7 @@ Rules:
 - If the target includes multiple fields, rewrite only the text-bearing parts and leave structural data intact.
 `.trim()
 
-const loadBrandToneContext = async (client: ReturnType<typeof useClient>): Promise<string> => {
+const loadBrandToneContext = async (client: SanityClient): Promise<string> => {
   const data = await client.fetch<BrandToneContextPayload>(
     `{
       "assistContext": *[_id == $assistId][0]{
@@ -208,7 +209,7 @@ const createBrandVoiceAction = (
   title: string,
   goal: string,
   props: AssistFieldActionProps,
-  client: ReturnType<typeof useClient>,
+  client: SanityClient,
 ) =>
   defineAssistFieldAction({
     title,
@@ -240,7 +241,7 @@ const createDocumentBrandVoiceAction = (
   title: string,
   goal: string,
   props: AssistFieldActionProps,
-  client: ReturnType<typeof useClient>,
+  client: SanityClient,
 ) =>
   defineAssistFieldAction({
     title,
@@ -279,7 +280,7 @@ const brandVoiceFieldActions = {
       schemaId,
       schemaType,
     } = props
-    const client = useClient({apiVersion: 'vX'})
+    const client = useStudioClient({apiVersion: 'vX'})
     const getUserInput = useUserInput()
     const pathKey = JSON.stringify(path)
 
@@ -469,6 +470,11 @@ export default defineConfig({
       title: 'Image Manager',
       component: SanityImageManagerTool,
     },
+    {
+      name: 'fal-image-studio',
+      title: 'AI Image Studio',
+      component: FalImageStudioTool,
+    },
   ],
 
   // AI Assist: open any document → ✨ in the document header → “Manage instructions” → “Enable AI assistance”
@@ -477,10 +483,6 @@ export default defineConfig({
     agentContextPlugin(),
     assist({
       fieldActions: brandVoiceFieldActions,
-    }),
-    geminiAIImages({
-      apiEndpoint: geminiStudioApiEndpoint,
-      enableStandaloneTool: true,
     }),
     structureTool({structure}),
     presentationTool({

@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {defineGeminiImage} from './geminiImageField'
+import {defineGeneratedImage} from './generatedImageField'
 
 export const roofInspectionSectionType = defineType({
   name: 'roofInspectionSection',
@@ -43,7 +43,7 @@ export const roofInspectionSectionType = defineType({
       rows: 3,
       description: 'Short paragraph shown under the title.',
     }),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'diagramImage',
       title: 'Diagram image',
       description: 'Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.',
@@ -78,7 +78,7 @@ export const heroSectionType = defineType({
     defineField({name: 'ctaHref', type: 'string', initialValue: '#contact'}),
     defineField({name: 'secondaryCtaText', type: 'string', initialValue: 'Explore Services'}),
     defineField({name: 'secondaryCtaHref', type: 'string', initialValue: '#services'}),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'backgroundImage',
       title: 'Background image',
       description: 'Sanity image asset (upload, Media Library, or Generate with AI).',
@@ -142,7 +142,7 @@ export const aboutSectionType = defineType({
   fields: [
     defineField({name: 'badgeText', type: 'string'}),
     defineField({name: 'badgeSubtext', type: 'string'}),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'image',
       title: 'Portrait / main image',
       description: 'Sanity image asset (upload or AI).',

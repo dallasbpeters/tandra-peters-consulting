@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {defineGeminiImage} from '../geminiImageField'
+import {defineGeneratedImage} from '../generatedImageField'
 
 export const siteSettingsType = defineType({
   name: 'siteSettings',
@@ -12,7 +12,7 @@ export const siteSettingsType = defineType({
       title: 'Nav logo text',
     }),
     defineField({name: 'navLogoTagline', type: 'string', title: 'Nav logo tagline'}),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'navLogoImage',
       title: 'Nav logo image',
       description: 'Sanity image asset (upload or AI). Shown beside logo text in the nav.',

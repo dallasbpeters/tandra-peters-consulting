@@ -6,6 +6,7 @@ import { HeroProps } from "../types";
 import { usePostHog } from "@posthog/react";
 import { RichText } from "../portableText/RichText";
 import { GoogleAuthGate } from "./GoogleAuthGate";
+import { useIsMobile } from "../hooks/isMobile";
 
 const fallbackHeroImage = "/roof.jpeg";
 
@@ -52,7 +53,7 @@ export const Hero: React.FC<HeroProps> = ({
   backgroundImage = fallbackHeroImage,
 }) => {
   const posthog = usePostHog();
-
+  const isMobile = useIsMobile();
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -75,7 +76,7 @@ export const Hero: React.FC<HeroProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     position: "relative",
-    minHeight: "80vh",
+    minHeight: isMobile ? "60vh" : "80vh",
     display: "flex",
     alignItems: "center",
     paddingTop: "8rem",

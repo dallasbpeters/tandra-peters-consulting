@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {defineGeminiImage} from '../geminiImageField'
+import {defineGeneratedImage} from '../generatedImageField'
 
 export const expertiseItemType = defineType({
   name: 'expertiseItem',
@@ -14,7 +14,7 @@ export const expertiseItemType = defineType({
       type: 'blockContent',
       validation: (r) => r.required(),
     }),
-    defineGeminiImage({
+    defineGeneratedImage({
       name: 'image',
       title: 'Image',
       description: 'Sanity image asset (upload or AI).',
