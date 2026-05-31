@@ -15,6 +15,7 @@ import {
   MediaImage,
   Palette,
   Page,
+  Trash,
   Upload,
 } from "iconoir-react";
 import { AdImagePicker } from "../components/AdImagePicker";
@@ -62,6 +63,7 @@ type CreativeState = {
   fontPresetId: FontPresetId;
   headlineSize: number;
   eyebrowSize: number;
+  bodySize: number;
   ctaSize: number;
   eyebrow: string;
   headline: string;
@@ -348,7 +350,7 @@ const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => {
         min={PADDING_MIN}
         max={PADDING_MAX}
         step={PADDING_STEP}
-        size="s"
+        size="xs"
         withTooltip
       />
       <WaNumberInput
@@ -360,7 +362,7 @@ const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => {
         step={PADDING_STEP}
         inputmode="numeric"
         appearance="outlined"
-        size="s"
+        size="xs"
       />
     </div>
   );
@@ -420,7 +422,7 @@ const AdTypeSizeField = ({
         min={TYPE_SIZE_MIN}
         max={TYPE_SIZE_MAX}
         step={TYPE_SIZE_STEP}
-        size="s"
+        size="xs"
         withTooltip
       />
       <WaNumberInput
@@ -432,7 +434,7 @@ const AdTypeSizeField = ({
         step={TYPE_SIZE_STEP}
         inputmode="numeric"
         appearance="outlined"
-        size="s"
+        size="xs"
       />
     </div>
   );
@@ -477,6 +479,7 @@ const DEFAULT_CREATIVE: CreativeState = {
   fontPresetId: "brand-serif",
   headlineSize: 100,
   eyebrowSize: 100,
+  bodySize: 100,
   ctaSize: 100,
   eyebrow: "Austin roof help",
   headline: "Summer storms are coming, is your roof ready?",
@@ -688,6 +691,20 @@ export const AdDashboardPage = () => {
     [],
   );
 
+  const handleImageRemove = useCallback(() => {
+    setCreative((current) => {
+      revokeObjectUrl(current.imageUrl);
+
+      return {
+        ...current,
+        imageFile: null,
+        imageUrl: null,
+        imageName: null,
+      };
+    });
+    setExportError(null);
+  }, []);
+
   const handleSanityImageSelect = useCallback((image: SanityImageAsset) => {
     setCreative((current) => {
       revokeObjectUrl(current.imageUrl);
@@ -725,6 +742,7 @@ export const AdDashboardPage = () => {
         fontPreset: creative.fontPresetId,
         headlineSize: getSafeTypeSize(creative.headlineSize),
         eyebrowSize: getSafeTypeSize(creative.eyebrowSize),
+        bodySize: getSafeTypeSize(creative.bodySize),
         ctaSize: getSafeTypeSize(creative.ctaSize),
         headlineColor: getSafeColor(creative.headlineColor, creative.textColor),
       });
@@ -758,6 +776,9 @@ export const AdDashboardPage = () => {
     "--ad-eyebrow-size-scale": formatCssNumber(
       getSafeTypeSize(creative.eyebrowSize) / 100,
     ),
+    "--ad-body-size-scale": formatCssNumber(
+      getSafeTypeSize(creative.bodySize) / 100,
+    ),
     "--ad-cta-size-scale": formatCssNumber(
       getSafeTypeSize(creative.ctaSize) / 100,
     ),
@@ -790,7 +811,7 @@ export const AdDashboardPage = () => {
                         label="Platform"
                         value={creative.platformId}
                         appearance="outlined"
-                        size="s"
+                        size="xs"
                         onChange={(event) =>
                           updateCreative("platformId", getSelectValue(event))
                         }
@@ -814,7 +835,7 @@ export const AdDashboardPage = () => {
                         label="Layout"
                         value={creative.layout}
                         appearance="outlined"
-                        size="s"
+                        size="xs"
                         onChange={(event) =>
                           updateCreative(
                             "layout",
@@ -841,7 +862,7 @@ export const AdDashboardPage = () => {
                       label="Font"
                       value={creative.fontPresetId}
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       onChange={(event) =>
                         updateCreative(
                           "fontPresetId",
@@ -875,6 +896,13 @@ export const AdDashboardPage = () => {
                       }
                     />
                     <AdTypeSizeField
+                      label="Supporting copy"
+                      value={creative.bodySize}
+                      onValueChange={(value) =>
+                        updateCreative("bodySize", value)
+                      }
+                    />
+                    <AdTypeSizeField
                       label="CTA"
                       value={creative.ctaSize}
                       onValueChange={(value) =>
@@ -887,7 +915,7 @@ export const AdDashboardPage = () => {
                       label="Eyebrow"
                       value={creative.eyebrow}
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       withClear
                       onInput={(event) =>
                         updateCreative("eyebrow", getInputValue(event))
@@ -900,7 +928,7 @@ export const AdDashboardPage = () => {
                       rows={3}
                       resize="vertical"
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       onInput={(event) =>
                         updateCreative("headline", getInputValue(event))
                       }
@@ -912,7 +940,7 @@ export const AdDashboardPage = () => {
                       rows={4}
                       resize="vertical"
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       onInput={(event) =>
                         updateCreative("body", getInputValue(event))
                       }
@@ -922,7 +950,7 @@ export const AdDashboardPage = () => {
                       label="CTA"
                       value={creative.cta}
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       withClear
                       onInput={(event) =>
                         updateCreative("cta", getInputValue(event))
@@ -933,7 +961,7 @@ export const AdDashboardPage = () => {
                       label="Byline"
                       value={creative.footnote}
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       withClear
                       onInput={(event) =>
                         updateCreative("footnote", getInputValue(event))
@@ -944,7 +972,7 @@ export const AdDashboardPage = () => {
                       label="Brand"
                       value={creative.footnote2}
                       appearance="outlined"
-                      size="s"
+                      size="xs"
                       withClear
                       onInput={(event) =>
                         updateCreative("footnote2", getInputValue(event))
@@ -1064,6 +1092,16 @@ export const AdDashboardPage = () => {
                     onRefresh={imageLibrary.refresh}
                     onSelect={handleSanityImageSelect}
                   />
+                  {creative.imageUrl ? (
+                    <button
+                      type="button"
+                      className="ad-dashboard-remove-image"
+                      onClick={handleImageRemove}
+                    >
+                      <Trash width={16} height={16} />
+                      Remove current image
+                    </button>
+                  ) : null}
 
                   <div className="ad-dashboard-panel-header">
                     <Palette width={20} height={20} />

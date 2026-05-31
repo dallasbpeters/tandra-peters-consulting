@@ -109,9 +109,10 @@ footer {
 
 .ad-dashboard-inner {
   background: white;
-  overflow-y: auto;
+  overflow: hidden auto;
   display: grid;
   gap: 1rem;
+  padding-block-end: 5rem;
 
   /* eslint-disable-next-line css/use-baseline */
   scrollbar-width: none;
@@ -161,6 +162,7 @@ footer {
 
 .ad-dashboard-user button,
 .ad-dashboard-export,
+.ad-dashboard-remove-image,
 .ad-dashboard-color-grid button {
   cursor: pointer;
   font: inherit;
@@ -359,9 +361,10 @@ footer {
 
 .ad-creative-preview--photo-right {
   grid-template-columns: 1.05fr 0.9fr;
+  grid-template-rows: minmax(0, 1fr) auto;
 
   /* eslint-disable-next-line css/no-invalid-properties */
-  gap: var(--ad-preview-padding);
+  gap: clamp(0.75rem, 2cqw, 1.75rem) var(--ad-preview-padding);
   padding: var(--ad-preview-padding, clamp(1.2rem, 6cqw, 4.5rem));
 }
 
@@ -423,29 +426,15 @@ footer {
 }
 
 .ad-creative-preview--image-top {
-  grid-template-rows: 52% 48%;
+  --ad-image-top-text-inset: clamp(2rem, 6cqw, 5rem);
+
+  grid-template-rows: 52% minmax(0, 1fr) auto;
 }
 
 .ad-creative-preview--poster-cover {
-  grid-template-rows: 72% 28%;
-}
+  --ad-poster-cover-text-inset: clamp(2rem, 6cqw, 5rem);
 
-.ad-creative-preview--poster-cover::before {
-  position: absolute;
-  z-index: 2;
-  inset: auto 0 0;
-  height: 28%;
-  background: var(--ad-bg);
-  content: "";
-}
-
-.ad-creative-preview--poster-cover::after {
-  position: absolute;
-  z-index: 1;
-  inset: 0 0 auto;
-  height: 100%;
-  background: color-mix(in oklch, var(--ad-bg) 38%, transparent);
-  content: "";
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 
 .ad-creative-photo {
@@ -476,7 +465,7 @@ footer {
 }
 
 .ad-creative-preview--poster-cover .ad-creative-photo {
-  grid-row: 1 / -1;
+  grid-row: 1;
 }
 
 .ad-creative-preview--photo-fill .ad-creative-photo::after {
@@ -545,8 +534,7 @@ footer {
 
 .ad-creative-preview--headline-card .ad-creative-copy {
   width: var(--ad-headline-card-text-width);
-  min-height: 100%;
-  padding-bottom: var(--ad-headline-card-footer-space);
+  min-height: 0;
 }
 
 .ad-creative-preview--photo-fill.is-wide .ad-creative-copy {
@@ -580,23 +568,22 @@ footer {
 }
 
 .ad-creative-preview--image-top .ad-creative-copy {
-  --ad-image-top-text-inset: clamp(2rem, 6cqw, 5rem);
-
   grid-column: 1;
-  grid-row: 1 / -1;
+  grid-row: 1 / 3;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto auto minmax(4.5rem, 0.34fr);
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   justify-content: stretch;
   padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem))
-    var(--ad-image-top-text-inset) var(--ad-image-top-text-inset);
+    var(--ad-image-top-text-inset) clamp(1.25rem, 3cqw, 2.5rem);
 }
 
 .ad-creative-preview--poster-cover .ad-creative-copy {
   grid-column: 1;
-  grid-row: 1 / -1;
+  grid-row: 1;
   display: grid;
   justify-content: stretch;
-  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem));
+  padding: var(--ad-preview-padding, clamp(2.25rem, 6cqw, 5rem))
+    var(--ad-poster-cover-text-inset) clamp(1.25rem, 3cqw, 2.5rem);
 }
 
 .ad-creative-preview--photo-right.is-tall {
@@ -642,7 +629,7 @@ footer {
   );
   font-weight: var(--ad-headline-weight, 400);
   letter-spacing: 0;
-  line-height: 0.8;
+  line-height: 0.9;
 }
 
 .ad-creative-preview--image-top .ad-creative-copy h2,
@@ -682,7 +669,11 @@ footer {
 .ad-creative-preview--poster-cover .ad-creative-copy > span {
   max-width: 82%;
   margin-top: clamp(1.35rem, 3cqw, 2.6rem);
-  font-size: clamp(1rem, 3.8cqw, 2.55rem);
+  font-size: clamp(
+    calc(1rem * var(--ad-body-size-scale, 1)),
+    calc(3.8cqw * var(--ad-body-size-scale, 1)),
+    calc(2.55rem * var(--ad-body-size-scale, 1))
+  );
 }
 
 .ad-creative-preview--image-top .ad-creative-copy > span {
@@ -737,9 +728,9 @@ footer {
   .ad-creative-copy
   > span {
   font-size: clamp(
-    calc(1.55rem * var(--ad-headline-size-scale, 1)),
-    calc(4cqw * var(--ad-headline-size-scale, 1)),
-    calc(6rem * var(--ad-headline-size-scale, 1))
+    calc(1.55rem * var(--ad-body-size-scale, 1)),
+    calc(4cqw * var(--ad-body-size-scale, 1)),
+    calc(6rem * var(--ad-body-size-scale, 1))
   );
 }
 
@@ -781,7 +772,11 @@ footer {
 .ad-creative-preview.ad-creative-preview--photo-fill.is-square.has-image
   .ad-creative-copy
   span {
-  font-size: clamp(1.55rem, 4cqw, 10rem);
+  font-size: clamp(
+    calc(1.55rem * var(--ad-body-size-scale, 1)),
+    calc(4cqw * var(--ad-body-size-scale, 1)),
+    calc(10rem * var(--ad-body-size-scale, 1))
+  );
   font-weight: 400;
 }
 
@@ -806,7 +801,11 @@ footer {
 .ad-creative-copy > span {
   margin-top: clamp(0.8rem, 2vw, 1.2rem);
   color: color-mix(in oklch, var(--ad-ink) 84%, transparent);
-  font-size: clamp(0.76rem, 2.6cqw, 1.1rem);
+  font-size: clamp(
+    calc(0.76rem * var(--ad-body-size-scale, 1)),
+    calc(2.6cqw * var(--ad-body-size-scale, 1)),
+    calc(1.1rem * var(--ad-body-size-scale, 1))
+  );
   font-weight: 650;
   line-height: 1.45;
 }
@@ -829,19 +828,37 @@ footer {
 }
 
 .ad-creative-preview footer {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  right: var(--ad-preview-padding, 5.5%);
-  bottom: var(--ad-preview-padding, 5.5%);
-  left: var(--ad-preview-padding, 5.5%);
+  grid-column: 1 / -1;
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: clamp(1rem, 4cqw, 3rem);
+  margin-top: clamp(0.9rem, 2.5cqw, 1.75rem);
   color: color-mix(in oklch, var(--ad-ink) 74%, transparent);
   font-family: var(--ad-body-font, "Manrope", sans-serif);
   font-size: clamp(0.58rem, 1.5vw, 1rem);
   font-weight: 600;
+}
+
+.ad-creative-preview--photo-right footer {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.ad-creative-preview--image-top footer {
+  grid-row: 3;
+  margin-top: 0;
+  padding: 0 var(--ad-image-top-text-inset) var(--ad-image-top-text-inset);
+}
+
+.ad-creative-preview--poster-cover footer {
+  grid-row: 2;
+  margin-top: 0;
+  padding: clamp(1.25rem, 4cqw, 3rem) var(--ad-poster-cover-text-inset)
+    var(--ad-poster-cover-text-inset);
+  background: var(--ad-bg);
 }
 
 .ad-creative-footer-copy {
@@ -856,7 +873,7 @@ footer {
 }
 
 .ad-creative-logo {
-  width: clamp(4.4rem, 12cqw, 8.75rem);
+  width: clamp(8rem, 25cqw, 16rem);
   height: auto;
   flex: 0 0 auto;
   filter: brightness(0) invert(1);
@@ -880,7 +897,7 @@ footer {
 
 .ad-creative-preview--image-top .ad-creative-logo,
 .ad-creative-preview--poster-cover .ad-creative-logo {
-  width: clamp(6.5rem, 18cqw, 12rem);
+  width: clamp(10rem, 24cqw, 18rem);
 }
 
 .ad-dashboard-upload {
@@ -912,6 +929,20 @@ footer {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ad-dashboard-remove-image {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in oklch, #9f2d18 24%, transparent);
+  border-radius: 999px;
+  padding: 0.62rem 0.8rem;
+  background: color-mix(in oklch, #9f2d18 8%, #fff);
+  color: #9f2d18;
+  font-size: 0.82rem;
+  font-weight: 850;
 }
 
 .ad-image-picker {
