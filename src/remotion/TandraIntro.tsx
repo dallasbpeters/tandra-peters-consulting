@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { loadFont as loadInstrumentSerif } from "@remotion/google-fonts/InstrumentSerif";
-import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
 import {
   AbsoluteFill,
   Easing,
@@ -15,15 +13,6 @@ import {
 import type { TandraIntroContent, TandraIntroProps } from "./tandraIntroContent";
 
 import { theme } from "../theme";
-
-loadManrope("normal", {
-  weights: ["300", "400", "700", "800"],
-  subsets: ["latin"],
-});
-loadInstrumentSerif("normal", {
-  weights: ["400"],
-  subsets: ["latin"],
-});
 
 const colors = {
   everglade: "#092A1D",
