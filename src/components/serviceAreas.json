@@ -3,7 +3,12 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "id": "caldwell", "name": "Caldwell", "city": "Lockhart", "geoid": "48055" },
+      "properties": {
+        "id": "caldwell",
+        "name": "Caldwell",
+        "city": "Lockhart",
+        "geoid": "48055"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [
@@ -30,7 +35,12 @@
     },
     {
       "type": "Feature",
-      "properties": { "id": "lubbock", "name": "Lubbock", "city": "Lubbock", "geoid": "48303" },
+      "properties": {
+        "id": "lubbock",
+        "name": "Lubbock",
+        "city": "Lubbock",
+        "geoid": "48303"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [
@@ -48,7 +58,12 @@
     },
     {
       "type": "Feature",
-      "properties": { "id": "potter", "name": "Potter", "city": "Amarillo", "geoid": "48375" },
+      "properties": {
+        "id": "potter",
+        "name": "Potter",
+        "city": "Amarillo",
+        "geoid": "48375"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [
@@ -66,7 +81,12 @@
     },
     {
       "type": "Feature",
-      "properties": { "id": "hays", "name": "Hays", "city": "San Marcos", "geoid": "48209" },
+      "properties": {
+        "id": "hays",
+        "name": "Hays",
+        "city": "San Marcos",
+        "geoid": "48209"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [
@@ -95,7 +115,12 @@
     },
     {
       "type": "Feature",
-      "properties": { "id": "bastrop", "name": "Bastrop", "city": "Bastrop", "geoid": "48021" },
+      "properties": {
+        "id": "bastrop",
+        "name": "Bastrop",
+        "city": "Bastrop",
+        "geoid": "48021"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [
@@ -155,7 +180,12 @@
     },
     {
       "type": "Feature",
-      "properties": { "id": "travis", "name": "Travis", "city": "Austin", "geoid": "48453" },
+      "properties": {
+        "id": "travis",
+        "name": "Travis",
+        "city": "Austin",
+        "geoid": "48453"
+      },
       "geometry": {
         "type": "MultiPolygon",
         "coordinates": [

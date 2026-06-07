@@ -36,12 +36,12 @@ typography:
     lineHeight: 0.9
     letterSpacing: -0.02em
   h1:
-    fontFamily: Instrument Serif
+    fontFamily: IBM Plex Serif
     fontSize: 2.75rem
     fontWeight: 400
     lineHeight: 1.15
   h2:
-    fontFamily: Instrument Serif
+    fontFamily: IBM Plex Serif
     fontSize: 2.35rem
     fontWeight: 600
     lineHeight: 1.2
@@ -254,7 +254,7 @@ mountain laurel for the brand promise.
 ## Typography
 
 Two families do all the work. **Manrope** carries the brand's working
-voice — confident, modern, slightly geometric. **Instrument Serif**
+voice — confident, modern, slightly geometric. **IBM Plex Serif**
 appears on editorial moments (article titles, page-list intros, legal
 section headers) where the roofing-trade context gives way to a more
 considered, magazine-style register.
@@ -262,7 +262,7 @@ considered, magazine-style register.
 - `display` — Hero only. Uppercase, weight 800, tight tracking
   (`-0.02em`), line-height 0.9. The token pins the **maximum** size at
   6rem; `Hero.tsx` scales it fluidly via `clamp(3rem, 10vw, 6rem)`.
-- `h1` / `h2` — Instrument Serif at editorial weights. Reserved for
+- `h1` / `h2` — IBM Plex Serif at editorial weights. Reserved for
   article pages, listing pages, and legal documents. Code uses
   `clamp(1.75rem, 4–5vw, max)` for fluid scaling.
 - `body-lg` — Hero subtitle and section leads. Light weight (300) so
@@ -377,7 +377,7 @@ Five card variants, each tuned to a job:
 
 `avatar-round` is the only fully circular element. Used exclusively
 for the founder's portrait in the nav (2.2rem). Anonymous identities
-use `card-light` with initials in Instrument Serif — not a circle.
+use `card-light` with initials in IBM Plex Serif — not a circle.
 
 ## Do's and Don'ts
 
@@ -387,7 +387,7 @@ use `card-light` with initials in Instrument Serif — not a circle.
   `accent`.
 - Keep `hero-accent` on the hero band. It is a one-time-per-page
   color.
-- Use Instrument Serif when the moment is editorial (a long-form
+- Use IBM Plex Serif when the moment is editorial (a long-form
   article title, a legal page header, a listing intro).
 - Use `xl`-or-larger spacing between distinct content sections.
 - Round corners only on the four card variants tagged `rounded.lg`

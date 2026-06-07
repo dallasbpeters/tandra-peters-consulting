@@ -44,8 +44,11 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
   const posthog = usePostHog();
   const isMain = layout === "featured";
   const imgSrc =
-    postCoverImageSrc(post.image, { w: isMain ? 800 : 600, h: isMain ? 500 : 420, fit: "crop" }) ??
-    FALLBACK_ARTICLE_COVER;
+    postCoverImageSrc(post.image, {
+      w: isMain ? 800 : 600,
+      h: isMain ? 500 : 420,
+      fit: "crop",
+    }) ?? FALLBACK_ARTICLE_COVER;
   const indexLabel = String(cardIndex + 1).padStart(2, "0");
 
   return (

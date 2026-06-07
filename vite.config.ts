@@ -104,9 +104,15 @@ export default defineConfig(({ mode }) => {
       exclude: ["@awesome.me/webawesome"],
     },
     server: {
+      port: 3001,
+      strictPort: true,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== "true",
+      watch: {
+        // Sanity Studio runs its own Vite on :3333 — don't cross-trigger site reloads/HMR.
+        ignored: ["**/studio-tandra-peters/**"],
+      },
       ...(Object.keys(devProxy).length > 0 ? { proxy: devProxy } : {}),
     },
   };

@@ -11,6 +11,12 @@
       "sourceType": "github",
       "computedHash": "6457172cf80695a7563116847f68fa64d1bf48b77cac6a850b964e5dacdb5241"
     },
+    "magicpath": {
+      "source": "magicpathai/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/magicpath/SKILL.md",
+      "computedHash": "45c5c031fdce65a0e808d4ea13e7a25a2915714f769eee1fc55b3dd297ac5ec7"
+    },
     "shape-your-agent": {
       "source": "sanity-io/agent-context",
       "sourceType": "github",

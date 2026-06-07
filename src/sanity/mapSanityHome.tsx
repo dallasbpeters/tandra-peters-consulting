@@ -70,6 +70,9 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
   if (title) {
     out.title = title;
   }
+  // Raw strings so hero variants can apply their own heading styles
+  if (hero.titleLine1) out.titleLine1 = String(hero.titleLine1);
+  if (hero.titleLine2) out.titleLine2 = String(hero.titleLine2);
   const subtitle = asOptionalRichText(hero.subtitle);
   if (subtitle) {
     out.subtitle = subtitle;
@@ -88,6 +91,15 @@ export const mapHeroProps = (hero: SanityDoc): Partial<HeroProps> => {
   }
   if (hero.backgroundImage) {
     out.backgroundImage = toSanityImage(hero.backgroundImage);
+  }
+  if (hero.heroStyle) {
+    out.heroStyle = hero.heroStyle as HeroProps["heroStyle"];
+  }
+  if (hero.skyImage) {
+    out.skyImage = toSanityImage(hero.skyImage);
+  }
+  if (hero.foregroundImage) {
+    out.foregroundImage = toSanityImage(hero.foregroundImage);
   }
   return out;
 };

@@ -11,6 +11,7 @@ import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaSlider from "@awesome.me/webawesome/dist/react/slider/index.js";
+import WaSwitch from "@awesome.me/webawesome/dist/react/switch/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import { usePostHog } from "@posthog/react";
 import { toBlob } from "html-to-image";
@@ -21,6 +22,7 @@ import {
   MediaImage,
   Palette,
   Page,
+  TextSize,
   Trash,
   Upload,
 } from "iconoir-react";
@@ -39,8 +41,17 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityImageAssets, type SanityImageAsset } from "../hooks/useSanityImageAssets";
+import {
+  AD_TEMPLATES,
+  LAYOUT_OPTIONS,
+  applyAdTemplatePreset,
+  type CreativeLayout,
+  type FontPresetId,
+} from "../lib/adCreativeTemplates";
 import { layoutClass } from "../styles/layoutClasses";
 import "../styles/ad-dashboard.css";
+
+type AdUnit = "px" | "in";
 
 type PlatformPreset = {
   id: string;
@@ -50,11 +61,34 @@ type PlatformPreset = {
   height: number;
 };
 
-type CreativeLayout = "photo-right" | "photo-fill" | "headline-card" | "image-top" | "poster-cover";
-type FontPresetId = "brand-serif" | "clean-sans" | "condensed";
+type LogoVariant = "horizontal-white" | "vertical-white";
+
+const LOGO_VARIANTS: ReadonlyArray<{
+  id: LogoVariant;
+  label: string;
+  src: string;
+}> = [
+  {
+    id: "horizontal-white",
+    label: "Horizontal (white)",
+    src: "/BC_Horizontal_White.svg",
+  },
+  {
+    id: "vertical-white",
+    label: "Vertical (white)",
+    src: "/BC_Vertical_White.svg",
+  },
+] as const;
+
+const getLogoSrc = (variant: LogoVariant) =>
+  LOGO_VARIANTS.find((logo) => logo.id === variant)?.src ?? LOGO_VARIANTS[0].src;
 
 type CreativeState = {
+  templateId: string;
   platformId: string;
+  unit: AdUnit;
+  adWidth: number;
+  adHeight: number;
   layout: CreativeLayout;
   contentPadding: number;
   fontPresetId: FontPresetId;
@@ -71,7 +105,21 @@ type CreativeState = {
   backgroundColor: string;
   textColor: string;
   headlineColor: string;
+  headlineAccentColor: string;
   accentColor: string;
+  showLogo: boolean;
+  logoVariant: LogoVariant;
+  showBottomBorder: boolean;
+  eyebrowLineHeight: number;
+  headlineLineHeight: number;
+  bodyLineHeight: number;
+  ctaLineHeight: number;
+  footnoteLineHeight: number;
+  eyebrowOffset: number;
+  headlineOffset: number;
+  bodyOffset: number;
+  ctaOffset: number;
+  footnoteOffset: number;
   imageFile: File | null;
   imageUrl: string | null;
   imageName: string | null;
@@ -93,6 +141,9 @@ const getSelectValue = (event: unknown): string =>
 const getInputValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
 
+const getSwitchChecked = (event: unknown): boolean =>
+  Boolean((event as { target: { checked: boolean } }).target.checked);
+
 const PADDING_MIN = 24;
 const PADDING_MAX = 120;
 const PADDING_STEP = 5;
@@ -100,6 +151,70 @@ const DEFAULT_TYPE_SIZE = 100;
 const TYPE_SIZE_MIN = 50;
 const TYPE_SIZE_MAX = 160;
 const TYPE_SIZE_STEP = 5;
+const LINE_HEIGHT_DEFAULT = 100;
+const LINE_HEIGHT_MIN = 60;
+const LINE_HEIGHT_MAX = 180;
+const LINE_HEIGHT_STEP = 5;
+const TEXT_OFFSET_DEFAULT = 0;
+const TEXT_OFFSET_MIN = -50;
+const TEXT_OFFSET_MAX = 100;
+const TEXT_OFFSET_STEP = 2;
+const PRINT_DPI = 300;
+
+const DEFAULT_TEXT_RHYTHM = {
+  eyebrowLineHeight: LINE_HEIGHT_DEFAULT,
+  headlineLineHeight: LINE_HEIGHT_DEFAULT,
+  bodyLineHeight: LINE_HEIGHT_DEFAULT,
+  ctaLineHeight: LINE_HEIGHT_DEFAULT,
+  footnoteLineHeight: LINE_HEIGHT_DEFAULT,
+  eyebrowOffset: TEXT_OFFSET_DEFAULT,
+  headlineOffset: TEXT_OFFSET_DEFAULT,
+  bodyOffset: TEXT_OFFSET_DEFAULT,
+  ctaOffset: TEXT_OFFSET_DEFAULT,
+  footnoteOffset: TEXT_OFFSET_DEFAULT,
+} as const;
+
+const TEXT_RHYTHM_ROLES = [
+  {
+    id: "eyebrow",
+    label: "Eyebrow",
+    lineHeightKey: "eyebrowLineHeight",
+    offsetKey: "eyebrowOffset",
+  },
+  {
+    id: "headline",
+    label: "Headline",
+    lineHeightKey: "headlineLineHeight",
+    offsetKey: "headlineOffset",
+  },
+  {
+    id: "body",
+    label: "Supporting copy",
+    lineHeightKey: "bodyLineHeight",
+    offsetKey: "bodyOffset",
+  },
+  {
+    id: "cta",
+    label: "CTA",
+    lineHeightKey: "ctaLineHeight",
+    offsetKey: "ctaOffset",
+  },
+  {
+    id: "footnote",
+    label: "Footer",
+    lineHeightKey: "footnoteLineHeight",
+    offsetKey: "footnoteOffset",
+  },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  label: string;
+  lineHeightKey: keyof typeof DEFAULT_TEXT_RHYTHM;
+  offsetKey: keyof typeof DEFAULT_TEXT_RHYTHM;
+}>;
+const DIMENSION_MIN_PX = 100;
+const DIMENSION_MAX_PX = 4000;
+const DIMENSION_MIN_IN = 1;
+const DIMENSION_MAX_IN = 48;
 
 const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   {
@@ -158,8 +273,8 @@ const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((swatch) => swatch.value).join(
 const FONT_PRESETS: readonly FontPreset[] = [
   {
     id: "brand-serif",
-    label: "Instrument Serif",
-    headlineFamily: '"Instrument Serif", serif',
+    label: "IBM Plex Serif",
+    headlineFamily: '"IBM Plex Serif", serif',
     bodyFamily: "Manrope Variable, sans-serif",
     headlineWeight: 400,
   },
@@ -194,6 +309,70 @@ const clampTypeSize = (value: number) =>
 const getSafeTypeSize = (value: number) =>
   Number.isFinite(value) ? clampTypeSize(value) : DEFAULT_TYPE_SIZE;
 
+const clampLineHeight = (value: number) =>
+  Math.round(clampNumber(value, LINE_HEIGHT_MIN, LINE_HEIGHT_MAX) / LINE_HEIGHT_STEP) *
+  LINE_HEIGHT_STEP;
+
+const clampTextOffset = (value: number) =>
+  Math.round(clampNumber(value, TEXT_OFFSET_MIN, TEXT_OFFSET_MAX) / TEXT_OFFSET_STEP) *
+  TEXT_OFFSET_STEP;
+
+const getSafeLineHeight = (value: number) =>
+  Number.isFinite(value) ? clampLineHeight(value) : LINE_HEIGHT_DEFAULT;
+
+const getSafeTextOffset = (value: number) =>
+  Number.isFinite(value) ? clampTextOffset(value) : TEXT_OFFSET_DEFAULT;
+
+const getLineHeightScale = (value: number) => formatCssNumber(getSafeLineHeight(value) / 100);
+
+const getTextOffset = (value: number) => `${getSafeTextOffset(value)}cqw`;
+
+const clampDimension = (value: number, unit: AdUnit) => {
+  const min = unit === "px" ? DIMENSION_MIN_PX : DIMENSION_MIN_IN;
+  const max = unit === "px" ? DIMENSION_MAX_PX : DIMENSION_MAX_IN;
+  const step = unit === "px" ? 1 : 0.125;
+  const clamped = clampNumber(value, min, max);
+  return unit === "px" ? Math.round(clamped) : Math.round(clamped / step) * step;
+};
+
+const convertDimensionsForUnit = (
+  width: number,
+  height: number,
+  fromUnit: AdUnit,
+  toUnit: AdUnit,
+) => {
+  if (fromUnit === toUnit) {
+    return { width, height };
+  }
+
+  if (toUnit === "in") {
+    return {
+      width: clampDimension(width / PRINT_DPI, "in"),
+      height: clampDimension(height / PRINT_DPI, "in"),
+    };
+  }
+
+  return {
+    width: clampDimension(width * PRINT_DPI, "px"),
+    height: clampDimension(height * PRINT_DPI, "px"),
+  };
+};
+
+const getExportPixelSize = (width: number, height: number, unit: AdUnit) =>
+  unit === "px"
+    ? { width: Math.round(width), height: Math.round(height) }
+    : {
+        width: Math.round(width * PRINT_DPI),
+        height: Math.round(height * PRINT_DPI),
+      };
+
+const formatAdDimensions = (width: number, height: number, unit: AdUnit) => {
+  const suffix = unit === "px" ? "px" : "in";
+  const formattedWidth = unit === "px" ? String(Math.round(width)) : width.toFixed(2);
+  const formattedHeight = unit === "px" ? String(Math.round(height)) : height.toFixed(2);
+  return `${formattedWidth} x ${formattedHeight}${suffix}`;
+};
+
 const getSafeColor = (value: string | undefined, fallback: string) => value || fallback;
 
 const getPaddingScale = (creative: Pick<CreativeState, "contentPadding">) =>
@@ -210,7 +389,10 @@ const getPreviewPadding = (
   if (
     creative.layout === "headline-card" ||
     creative.layout === "image-top" ||
-    creative.layout === "poster-cover"
+    creative.layout === "poster-cover" ||
+    creative.layout === "canva-hero-footer" ||
+    creative.layout === "canva-storm-overlay" ||
+    creative.layout === "canva-gradient-panel"
   ) {
     if (shape === "wide") {
       return `clamp(2.5rem, ${formatCssNumber(5.8 * scale)}cqw, 5rem)`;
@@ -221,6 +403,10 @@ const getPreviewPadding = (
     }
 
     return `clamp(2.25rem, ${formatCssNumber(6.2 * scale)}cqw, 5rem)`;
+  }
+
+  if (creative.layout === "storm-split") {
+    return `clamp(1.5rem, ${formatCssNumber(5.5 * scale)}cqw, 3.5rem)`;
   }
 
   if (creative.layout === "photo-right") {
@@ -377,6 +563,88 @@ type AdTypeSizeFieldProps = {
   onValueChange: (value: number) => void;
 };
 
+type AdRangeFieldProps = {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix: string;
+  clampValue: (value: number) => number;
+  onValueChange: (value: number) => void;
+};
+
+const AdRangeField = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix,
+  clampValue,
+  onValueChange,
+}: AdRangeFieldProps) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+  const numberInputRef = useRef<WaNumberInputElement | null>(null);
+  const safeValue = clampValue(value);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    const numberInput = numberInputRef.current;
+
+    const updateFromSlider = () => {
+      if (!slider) return;
+      onValueChange(clampValue(slider.value));
+    };
+
+    const updateFromNumberInput = () => {
+      if (!numberInput) return;
+      const nextValue = Number(numberInput.value ?? safeValue);
+      if (Number.isFinite(nextValue)) {
+        onValueChange(clampValue(nextValue));
+      }
+    };
+
+    slider?.addEventListener("input", updateFromSlider);
+    slider?.addEventListener("change", updateFromSlider);
+    numberInput?.addEventListener("input", updateFromNumberInput);
+    numberInput?.addEventListener("change", updateFromNumberInput);
+
+    return () => {
+      slider?.removeEventListener("input", updateFromSlider);
+      slider?.removeEventListener("change", updateFromSlider);
+      numberInput?.removeEventListener("input", updateFromNumberInput);
+      numberInput?.removeEventListener("change", updateFromNumberInput);
+    };
+  }, [clampValue, onValueChange, safeValue]);
+
+  return (
+    <div className="ad-dashboard-range-field">
+      <WaSlider
+        ref={sliderRef}
+        label={label}
+        value={safeValue}
+        min={min}
+        max={max}
+        step={step}
+        size="xs"
+        withTooltip
+      />
+      <WaNumberInput
+        ref={numberInputRef}
+        label={suffix}
+        value={String(safeValue)}
+        min={min}
+        max={max}
+        step={step}
+        inputmode="numeric"
+        appearance="outlined"
+        size="xs"
+      />
+    </div>
+  );
+};
+
 const AdTypeSizeField = ({ label, value, onValueChange }: AdTypeSizeFieldProps) => {
   const sliderRef = useRef<WaSliderElement | null>(null);
   const numberInputRef = useRef<WaNumberInputElement | null>(null);
@@ -439,64 +707,197 @@ const AdTypeSizeField = ({ label, value, onValueChange }: AdTypeSizeFieldProps) 
   );
 };
 
-const LAYOUTS: ReadonlyArray<{
-  id: CreativeLayout;
-  label: string;
-  helper: string;
-}> = [
-  {
-    id: "photo-right",
-    label: "Photo side",
-    helper: "Copy block with a strong image panel.",
-  },
-  {
-    id: "photo-fill",
-    label: "Full bleed",
-    helper: "Photo-led creative with a grounded copy overlay.",
-  },
-  {
-    id: "headline-card",
-    label: "Text first",
-    helper: "Bold message, small image badge.",
-  },
-  {
-    id: "image-top",
-    label: "Image top",
-    helper: "Top photo with headline crossing the split.",
-  },
-  {
-    id: "poster-cover",
-    label: "Cover headline",
-    helper: "Photo poster with a brand band.",
-  },
-];
+type AdUnitFieldProps = {
+  unit: AdUnit;
+  width: number;
+  height: number;
+  onUnitChange: (unit: AdUnit) => void;
+  onWidthChange: (width: number) => void;
+  onHeightChange: (height: number) => void;
+};
+
+const AdUnitField = ({
+  unit,
+  width,
+  height,
+  onUnitChange,
+  onWidthChange,
+  onHeightChange,
+}: AdUnitFieldProps) => {
+  const widthInputRef = useRef<WaNumberInputElement | null>(null);
+  const heightInputRef = useRef<WaNumberInputElement | null>(null);
+  const safeWidth = clampDimension(width, unit);
+  const safeHeight = clampDimension(height, unit);
+  const min = unit === "px" ? DIMENSION_MIN_PX : DIMENSION_MIN_IN;
+  const max = unit === "px" ? DIMENSION_MAX_PX : DIMENSION_MAX_IN;
+  const step = unit === "px" ? 1 : 0.125;
+
+  useEffect(() => {
+    const widthInput = widthInputRef.current;
+    const heightInput = heightInputRef.current;
+
+    const updateWidth = () => {
+      if (!widthInput) return;
+      const nextValue = Number(widthInput.value ?? safeWidth);
+      if (Number.isFinite(nextValue)) {
+        onWidthChange(clampDimension(nextValue, unit));
+      }
+    };
+
+    const updateHeight = () => {
+      if (!heightInput) return;
+      const nextValue = Number(heightInput.value ?? safeHeight);
+      if (Number.isFinite(nextValue)) {
+        onHeightChange(clampDimension(nextValue, unit));
+      }
+    };
+
+    widthInput?.addEventListener("input", updateWidth);
+    widthInput?.addEventListener("change", updateWidth);
+    heightInput?.addEventListener("input", updateHeight);
+    heightInput?.addEventListener("change", updateHeight);
+
+    return () => {
+      widthInput?.removeEventListener("input", updateWidth);
+      widthInput?.removeEventListener("change", updateWidth);
+      heightInput?.removeEventListener("input", updateHeight);
+      heightInput?.removeEventListener("change", updateHeight);
+    };
+  }, [onHeightChange, onWidthChange, safeHeight, safeWidth, unit]);
+
+  return (
+    <div className="ad-dashboard-unit-field">
+      <div className="ad-dashboard-unit-toggle">
+        <span className={unit === "in" ? "is-active" : undefined}>in</span>
+        <WaSwitch
+          className="ad-dashboard-unit-switch"
+          checked={unit === "px"}
+          size="xs"
+          onChange={(event) => onUnitChange(getSwitchChecked(event) ? "px" : "in")}
+        >
+          px
+        </WaSwitch>
+      </div>
+      <div className="ad-dashboard-unit-dimensions">
+        <WaNumberInput
+          ref={widthInputRef}
+          label={`Width (${unit})`}
+          value={unit === "px" ? String(safeWidth) : safeWidth.toFixed(3)}
+          min={min}
+          max={max}
+          step={step}
+          inputmode="decimal"
+          appearance="outlined"
+          size="xs"
+        />
+        <WaNumberInput
+          ref={heightInputRef}
+          label={`Height (${unit})`}
+          value={unit === "px" ? String(safeHeight) : safeHeight.toFixed(3)}
+          min={min}
+          max={max}
+          step={step}
+          inputmode="decimal"
+          appearance="outlined"
+          size="xs"
+        />
+      </div>
+    </div>
+  );
+};
 
 const DEFAULT_CREATIVE: CreativeState = {
+  templateId: AD_TEMPLATES[0].id,
   platformId: "instagram-square",
-  layout: "photo-right",
-  contentPadding: 100,
-  fontPresetId: "brand-serif",
-  headlineSize: 100,
-  eyebrowSize: 100,
-  bodySize: 100,
-  ctaSize: 100,
-  eyebrow: "Austin roof help",
-  headline: "Summer storms are coming, is your roof ready?",
-  body: "I will inspect it, explain what I see, and help you understand the next right step.",
-  cta: "Call or Text 512-968-3982",
-  footnote: "Tandra Peters",
-  footnote2: "Birdcreek Roofing",
-  backgroundColor: "#092A1D",
-  textColor: "#F6F2EA",
-  headlineColor: "#F6F2EA",
-  accentColor: "#D5F6E9",
+  unit: "px",
+  adWidth: PLATFORM_PRESETS[0].width,
+  adHeight: PLATFORM_PRESETS[0].height,
+  layout: AD_TEMPLATES[0].preset.layout,
+  contentPadding: AD_TEMPLATES[0].preset.contentPadding,
+  fontPresetId: AD_TEMPLATES[0].preset.fontPresetId,
+  headlineSize: AD_TEMPLATES[0].preset.headlineSize,
+  eyebrowSize: AD_TEMPLATES[0].preset.eyebrowSize,
+  bodySize: AD_TEMPLATES[0].preset.bodySize,
+  ctaSize: AD_TEMPLATES[0].preset.ctaSize,
+  eyebrow: AD_TEMPLATES[0].preset.eyebrow,
+  headline: AD_TEMPLATES[0].preset.headline,
+  body: AD_TEMPLATES[0].preset.body,
+  cta: AD_TEMPLATES[0].preset.cta,
+  footnote: AD_TEMPLATES[0].preset.footnote,
+  footnote2: AD_TEMPLATES[0].preset.footnote2,
+  backgroundColor: AD_TEMPLATES[0].preset.backgroundColor,
+  textColor: AD_TEMPLATES[0].preset.textColor,
+  headlineColor: AD_TEMPLATES[0].preset.headlineColor,
+  headlineAccentColor: AD_TEMPLATES[0].preset.headlineAccentColor,
+  accentColor: AD_TEMPLATES[0].preset.accentColor,
+  showLogo: AD_TEMPLATES[0].preset.showLogo,
+  logoVariant: "horizontal-white",
+  showBottomBorder: true,
+  ...DEFAULT_TEXT_RHYTHM,
   imageFile: null,
-  imageUrl: null,
-  imageName: null,
+  imageUrl: AD_TEMPLATES[0].preset.defaultImageUrl ?? null,
+  imageName: AD_TEMPLATES[0].preset.defaultImageName ?? null,
 };
+
+const ACCENT_HEADLINE_LAYOUTS = new Set<CreativeLayout>(["storm-split", "canva-gradient-panel"]);
+
+type AdCreativeHeadlineProps = {
+  headline: string;
+  layout: CreativeLayout;
+  accentColor: string;
+};
+
+const AdCreativeHeadline = ({ headline, layout, accentColor }: AdCreativeHeadlineProps) => {
+  const lines = headline.split("\n").filter((line) => line.trim().length > 0);
+  if (lines.length <= 1) {
+    return <h2 className="ad-creative-headline">{headline}</h2>;
+  }
+
+  const usesAccentLines = ACCENT_HEADLINE_LAYOUTS.has(layout);
+
+  return (
+    <h2 className="ad-creative-headline ad-creative-headline-stacked">
+      {lines.map((line, index) => (
+        <span
+          key={`${line}-${index}`}
+          className={usesAccentLines && index > 0 ? "is-accent" : undefined}
+          style={usesAccentLines && index > 0 ? { color: accentColor } : undefined}
+        >
+          {line}
+        </span>
+      ))}
+    </h2>
+  );
+};
+
+const usesScriptBody = (layout: CreativeLayout, body: string) =>
+  body.length > 0 &&
+  body.length < 48 &&
+  (layout === "canva-hero-footer" || layout === "canva-storm-overlay" || layout === "storm-split");
+
+type AdCreativeLogoProps = {
+  variant: LogoVariant;
+  className: string;
+};
+
+const AdCreativeLogo = ({ variant, className }: AdCreativeLogoProps) => (
+  <img
+    className={`${className}${variant === "vertical-white" ? " is-vertical" : ""}`}
+    src={getLogoSrc(variant)}
+    alt="Birdcreek Roofing"
+  />
+);
 
 const getSelectedPlatform = (platformId: string) =>
   PLATFORM_PRESETS.find((platform) => platform.id === platformId) ?? PLATFORM_PRESETS[0];
+
+const getPlatformDimensions = (platform: PlatformPreset, unit: AdUnit) =>
+  unit === "px"
+    ? { width: platform.width, height: platform.height }
+    : {
+        width: Math.round((platform.width / PRINT_DPI) * 1000) / 1000,
+        height: Math.round((platform.height / PRINT_DPI) * 1000) / 1000,
+      };
 
 const toCanvasImageUrl = (url: string) => {
   try {
@@ -548,7 +949,8 @@ const downloadBlob = (blob: Blob, filename: string) => {
 
 const exportPreviewNode = async (
   node: HTMLElement,
-  platform: PlatformPreset,
+  exportWidth: number,
+  exportHeight: number,
   backgroundColor: string,
 ): Promise<Blob> => {
   if (document.fonts) {
@@ -575,13 +977,13 @@ const exportPreviewNode = async (
       throw new Error("The ad preview is not ready yet.");
     }
 
-    const pixelRatio = Math.min(platform.width / previewWidth, platform.height / previewHeight);
+    const pixelRatio = Math.min(exportWidth / previewWidth, exportHeight / previewHeight);
 
     const blob = await toBlob(node, {
       backgroundColor,
       cacheBust: true,
-      canvasWidth: platform.width,
-      canvasHeight: platform.height,
+      canvasWidth: exportWidth,
+      canvasHeight: exportHeight,
       height: previewHeight,
       includeQueryParams: true,
       pixelRatio,
@@ -639,7 +1041,19 @@ export const AdDashboardPage = () => {
     () => getSelectedPlatform(creative.platformId),
     [creative.platformId],
   );
-  const selectedPlatformShape = getPlatformShape(selectedPlatform);
+  const exportPixelSize = useMemo(
+    () => getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
+    [creative.adHeight, creative.adWidth, creative.unit],
+  );
+  const selectedPlatformShape = getPlatformShape({
+    ...selectedPlatform,
+    width: exportPixelSize.width,
+    height: exportPixelSize.height,
+  });
+  const selectedTemplate = useMemo(
+    () => AD_TEMPLATES.find((template) => template.id === creative.templateId) ?? AD_TEMPLATES[0],
+    [creative.templateId],
+  );
 
   usePageMetadata({
     title: "Ad Builder | Tandra Peters",
@@ -709,7 +1123,7 @@ export const AdDashboardPage = () => {
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
     };
-  }, [creative.layout, selectedPlatform.height, selectedPlatform.width]);
+  }, [creative.layout, exportPixelSize.height, exportPixelSize.width]);
 
   const updateCreative = useCallback(
     <K extends keyof CreativeState>(key: K, value: CreativeState[K]) => {
@@ -717,6 +1131,41 @@ export const AdDashboardPage = () => {
     },
     [],
   );
+
+  const handlePlatformChange = useCallback((platformId: string) => {
+    const platform = getSelectedPlatform(platformId);
+    setCreative((current) => {
+      const dimensions = getPlatformDimensions(platform, current.unit);
+      return {
+        ...current,
+        platformId,
+        adWidth: dimensions.width,
+        adHeight: dimensions.height,
+      };
+    });
+  }, []);
+
+  const handleUnitChange = useCallback((nextUnit: AdUnit) => {
+    setCreative((current) => {
+      if (current.unit === nextUnit) {
+        return current;
+      }
+
+      const dimensions = convertDimensionsForUnit(
+        current.adWidth,
+        current.adHeight,
+        current.unit,
+        nextUnit,
+      );
+
+      return {
+        ...current,
+        unit: nextUnit,
+        adWidth: dimensions.width,
+        adHeight: dimensions.height,
+      };
+    });
+  }, []);
 
   const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -750,6 +1199,12 @@ export const AdDashboardPage = () => {
     setExportError(null);
   }, []);
 
+  const handleTemplateChange = useCallback((templateId: string) => {
+    const template = AD_TEMPLATES.find((entry) => entry.id === templateId) ?? AD_TEMPLATES[0];
+    setCreative((current) => applyAdTemplatePreset(current, template));
+    setExportError(null);
+  }, []);
+
   const handleSanityImageSelect = useCallback((image: SanityImageAsset) => {
     setCreative((current) => {
       revokeObjectUrl(current.imageUrl);
@@ -774,7 +1229,12 @@ export const AdDashboardPage = () => {
     setExporting(true);
     setExportError(null);
     try {
-      const blob = await exportPreviewNode(previewNode, selectedPlatform, creative.backgroundColor);
+      const blob = await exportPreviewNode(
+        previewNode,
+        exportPixelSize.width,
+        exportPixelSize.height,
+        creative.backgroundColor,
+      );
       downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
       posthog?.capture("ad_creative_exported", {
         platform: selectedPlatform.id,
@@ -792,12 +1252,13 @@ export const AdDashboardPage = () => {
     } finally {
       setExporting(false);
     }
-  }, [creative, posthog, selectedPlatform]);
+  }, [creative, exportPixelSize.height, exportPixelSize.width, posthog, selectedPlatform.id]);
 
   const previewStyle = {
     "--ad-bg": creative.backgroundColor,
     "--ad-ink": creative.textColor,
     "--ad-headline-ink": getSafeColor(creative.headlineColor, creative.textColor),
+    "--ad-headline-accent-ink": getSafeColor(creative.headlineAccentColor, creative.accentColor),
     "--ad-accent": creative.accentColor,
     "--ad-preview-padding": getPreviewPadding(creative, selectedPlatformShape),
     "--ad-preview-base-width": getPreviewBaseWidth(selectedPlatformShape),
@@ -810,8 +1271,17 @@ export const AdDashboardPage = () => {
     "--ad-body-size-scale": formatCssNumber(getSafeTypeSize(creative.bodySize) / 100),
     "--ad-cta-size-scale": formatCssNumber(getSafeTypeSize(creative.ctaSize) / 100),
     "--ad-body-font": getSelectedFontPreset(creative.fontPresetId).bodyFamily,
-    aspectRatio: `${selectedPlatform.width} / ${selectedPlatform.height}`,
-    borderBlockEnd: `10px solid color-mix(in oklch, ${creative.accentColor} 82%, transparent)`,
+    "--ad-eyebrow-line-height-scale": getLineHeightScale(creative.eyebrowLineHeight),
+    "--ad-headline-line-height-scale": getLineHeightScale(creative.headlineLineHeight),
+    "--ad-body-line-height-scale": getLineHeightScale(creative.bodyLineHeight),
+    "--ad-cta-line-height-scale": getLineHeightScale(creative.ctaLineHeight),
+    "--ad-footnote-line-height-scale": getLineHeightScale(creative.footnoteLineHeight),
+    "--ad-eyebrow-margin-offset": getTextOffset(creative.eyebrowOffset),
+    "--ad-headline-margin-offset": getTextOffset(creative.headlineOffset),
+    "--ad-body-margin-offset": getTextOffset(creative.bodyOffset),
+    "--ad-cta-margin-offset": getTextOffset(creative.ctaOffset),
+    "--ad-footnote-margin-offset": getTextOffset(creative.footnoteOffset),
+    aspectRatio: `${exportPixelSize.width} / ${exportPixelSize.height}`,
   } as CSSProperties & Record<string, string>;
   const previewImageUrl = creative.imageUrl ? toCanvasImageUrl(creative.imageUrl) : null;
 
@@ -837,15 +1307,52 @@ export const AdDashboardPage = () => {
                         value={creative.platformId}
                         appearance="outlined"
                         size="xs"
-                        onChange={(event) => updateCreative("platformId", getSelectValue(event))}
+                        onChange={(event) => handlePlatformChange(getSelectValue(event))}
                       >
                         {PLATFORM_PRESETS.map((platform) => (
                           <WaOption key={platform.id} value={platform.id}>
-                            {platform.label} · {platform.width} x {platform.height} ·{" "}
+                            {platform.label} ·{" "}
+                            {formatAdDimensions(platform.width, platform.height, "px")} ·{" "}
                             {platform.helper}
                           </WaOption>
                         ))}
                       </WaSelect>
+                      <AdUnitField
+                        unit={creative.unit}
+                        width={creative.adWidth}
+                        height={creative.adHeight}
+                        onUnitChange={handleUnitChange}
+                        onWidthChange={(adWidth) => updateCreative("adWidth", adWidth)}
+                        onHeightChange={(adHeight) => updateCreative("adHeight", adHeight)}
+                      />
+                    </div>
+
+                    <div className="ad-dashboard-panel-header">
+                      <MediaImage width={20} height={20} />
+                      <h2>Templates</h2>
+                    </div>
+                    <div className="ad-dashboard-template-picker">
+                      <WaSelect
+                        name="template"
+                        label="Design"
+                        value={creative.templateId}
+                        appearance="outlined"
+                        size="xs"
+                        onChange={(event) => handleTemplateChange(getSelectValue(event))}
+                      >
+                        {AD_TEMPLATES.map((template) => (
+                          <WaOption key={template.id} value={template.id}>
+                            {template.label} · {template.helper}
+                          </WaOption>
+                        ))}
+                      </WaSelect>
+                      {selectedTemplate.thumbnail ? (
+                        <img
+                          className="ad-dashboard-template-preview"
+                          src={selectedTemplate.thumbnail}
+                          alt=""
+                        />
+                      ) : null}
                     </div>
 
                     <div className="ad-dashboard-panel-header">
@@ -863,7 +1370,7 @@ export const AdDashboardPage = () => {
                           updateCreative("layout", getSelectValue(event) as CreativeLayout)
                         }
                       >
-                        {LAYOUTS.map((layout) => (
+                        {LAYOUT_OPTIONS.map((layout) => (
                           <WaOption key={layout.id} value={layout.id}>
                             {layout.label} · {layout.helper}
                           </WaOption>
@@ -916,6 +1423,40 @@ export const AdDashboardPage = () => {
                       value={creative.ctaSize}
                       onValueChange={(value) => updateCreative("ctaSize", value)}
                     />
+
+                    <div className="ad-dashboard-panel-header">
+                      <TextSize width={20} height={20} />
+                      <h2>Type rhythm</h2>
+                    </div>
+                    <p className="ad-dashboard-rhythm-hint">
+                      Line height is a % of each layout&apos;s default leading. Spacing nudges
+                      vertical position in container-width units.
+                    </p>
+                    {TEXT_RHYTHM_ROLES.map((role) => (
+                      <div key={role.id} className="ad-dashboard-rhythm-row">
+                        <h3>{role.label}</h3>
+                        <AdRangeField
+                          label="Line height"
+                          value={creative[role.lineHeightKey]}
+                          min={LINE_HEIGHT_MIN}
+                          max={LINE_HEIGHT_MAX}
+                          step={LINE_HEIGHT_STEP}
+                          suffix="Line %"
+                          clampValue={clampLineHeight}
+                          onValueChange={(value) => updateCreative(role.lineHeightKey, value)}
+                        />
+                        <AdRangeField
+                          label="Spacing"
+                          value={creative[role.offsetKey]}
+                          min={TEXT_OFFSET_MIN}
+                          max={TEXT_OFFSET_MAX}
+                          step={TEXT_OFFSET_STEP}
+                          suffix="Spacing"
+                          clampValue={clampTextOffset}
+                          onValueChange={(value) => updateCreative(role.offsetKey, value)}
+                        />
+                      </div>
+                    ))}
 
                     <WaInput
                       className="ad-dashboard-field"
@@ -973,7 +1514,10 @@ export const AdDashboardPage = () => {
                     <div>
                       <strong>{selectedPlatform.label}</strong>
                       <span>
-                        {selectedPlatform.width} x {selectedPlatform.height}px
+                        {formatAdDimensions(creative.adWidth, creative.adHeight, creative.unit)}
+                        {creative.unit === "in"
+                          ? ` · ${exportPixelSize.width} x ${exportPixelSize.height}px export`
+                          : null}
                       </span>
                     </div>
                     <button
@@ -995,7 +1539,7 @@ export const AdDashboardPage = () => {
                       ref={previewRef}
                       className={`ad-creative-preview ad-creative-preview--${creative.layout} is-${selectedPlatformShape} ${
                         previewImageUrl ? "has-image" : "has-no-image"
-                      }`}
+                      }${creative.showBottomBorder ? " has-bottom-border" : ""}`}
                       style={previewStyle}
                     >
                       {previewImageUrl ? (
@@ -1004,18 +1548,70 @@ export const AdDashboardPage = () => {
                           style={{ backgroundImage: `url(${previewImageUrl})` }}
                         />
                       ) : null}
-                      <div className="ad-creative-copy">
-                        <p>{creative.eyebrow}</p>
-                        <h2>{creative.headline}</h2>
-                        <span>{creative.body}</span>
-                        <strong>{creative.cta}</strong>
-                      </div>
-                      <footer>
-                        <img
-                          className="ad-creative-logo"
-                          src="/BC_Horizontal_Color.svg"
-                          alt="Birdcreek Roofing"
+                      {creative.showLogo &&
+                      (creative.layout === "canva-hero-footer" ||
+                        creative.layout === "canva-storm-overlay") ? (
+                        <AdCreativeLogo
+                          variant={creative.logoVariant}
+                          className="ad-creative-logo ad-creative-logo--corner-tr"
                         />
+                      ) : null}
+                      {creative.showLogo && creative.layout === "canva-gradient-panel" ? (
+                        <AdCreativeLogo
+                          variant={creative.logoVariant}
+                          className="ad-creative-logo ad-creative-logo--corner-tl"
+                        />
+                      ) : null}
+                      <div className="ad-creative-copy">
+                        {creative.showLogo && creative.layout === "storm-split" ? (
+                          <AdCreativeLogo
+                            variant={creative.logoVariant}
+                            className="ad-creative-logo ad-creative-logo--inline"
+                          />
+                        ) : null}
+                        {creative.eyebrow ? (
+                          <p className="ad-creative-eyebrow">{creative.eyebrow}</p>
+                        ) : null}
+                        <AdCreativeHeadline
+                          headline={creative.headline}
+                          layout={creative.layout}
+                          accentColor={getSafeColor(
+                            creative.headlineAccentColor,
+                            creative.accentColor,
+                          )}
+                        />
+                        {creative.body ? (
+                          <span
+                            className={`ad-creative-body${
+                              usesScriptBody(creative.layout, creative.body)
+                                ? " ad-creative-script"
+                                : ""
+                            }`}
+                          >
+                            {creative.body}
+                          </span>
+                        ) : null}
+                        {creative.cta ? (
+                          <strong className="ad-creative-cta">{creative.cta}</strong>
+                        ) : null}
+                      </div>
+                      <footer className="ad-creative-footnote">
+                        <div className="ad-creative-footer-copy">
+                          {creative.footnote ? <span>{creative.footnote}</span> : null}
+                          {creative.footnote2 ? (
+                            <span className="ad-creative-footnote-2">{creative.footnote2}</span>
+                          ) : null}
+                        </div>
+                        {creative.showLogo &&
+                        creative.layout !== "canva-hero-footer" &&
+                        creative.layout !== "canva-storm-overlay" &&
+                        creative.layout !== "canva-gradient-panel" &&
+                        creative.layout !== "storm-split" ? (
+                          <AdCreativeLogo
+                            variant={creative.logoVariant}
+                            className="ad-creative-logo"
+                          />
+                        ) : null}
                       </footer>
                     </article>
                   </div>
@@ -1052,6 +1648,48 @@ export const AdDashboardPage = () => {
 
                   <div className="ad-dashboard-panel-header">
                     <Palette width={20} height={20} />
+                    <h2>Brand</h2>
+                  </div>
+                  <div className="ad-dashboard-brand-toggles">
+                    <WaSwitch
+                      checked={creative.showLogo}
+                      size="xs"
+                      onChange={(event) => updateCreative("showLogo", getSwitchChecked(event))}
+                    >
+                      Show Birdcreek logo
+                    </WaSwitch>
+                    {creative.showLogo ? (
+                      <WaSelect
+                        className="ad-dashboard-field"
+                        name="logoVariant"
+                        label="Logo lockup"
+                        value={creative.logoVariant}
+                        appearance="outlined"
+                        size="xs"
+                        onChange={(event) =>
+                          updateCreative("logoVariant", getSelectValue(event) as LogoVariant)
+                        }
+                      >
+                        {LOGO_VARIANTS.map((logo) => (
+                          <WaOption key={logo.id} value={logo.id}>
+                            {logo.label}
+                          </WaOption>
+                        ))}
+                      </WaSelect>
+                    ) : null}
+                    <WaSwitch
+                      checked={creative.showBottomBorder}
+                      size="xs"
+                      onChange={(event) =>
+                        updateCreative("showBottomBorder", getSwitchChecked(event))
+                      }
+                    >
+                      Bottom accent border
+                    </WaSwitch>
+                  </div>
+
+                  <div className="ad-dashboard-panel-header">
+                    <ColorWheel width={20} height={20} />
                     <h2>Brand colors</h2>
                   </div>
                   <div className="ad-dashboard-color-grid">
@@ -1097,6 +1735,11 @@ export const AdDashboardPage = () => {
                       label="Accent"
                       value={creative.accentColor}
                       onValueChange={(value) => updateCreative("accentColor", value)}
+                    />
+                    <AdColorPickerField
+                      label="Headline accent"
+                      value={getSafeColor(creative.headlineAccentColor, creative.accentColor)}
+                      onValueChange={(value) => updateCreative("headlineAccentColor", value)}
                     />
                   </div>
                 </aside>

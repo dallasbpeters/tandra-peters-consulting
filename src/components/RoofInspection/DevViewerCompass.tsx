@@ -26,9 +26,24 @@ type AxisDraw = {
 };
 
 const WORLD_AXES: Record<AxisKey, { world: Vec3; label: string; color: string; field: string }> = {
-  x: { world: { x: 1, y: 0, z: 0 }, label: "+X", color: "#ff5c5c", field: "pos3dX / norm3dX" },
-  y: { world: { x: 0, y: 1, z: 0 }, label: "+Y", color: "#6ee07a", field: "pos3dY / norm3dY" },
-  z: { world: { x: 0, y: 0, z: 1 }, label: "+Z", color: "#6eb5ff", field: "pos3dZ / norm3dZ" },
+  x: {
+    world: { x: 1, y: 0, z: 0 },
+    label: "+X",
+    color: "#ff5c5c",
+    field: "pos3dX / norm3dX",
+  },
+  y: {
+    world: { x: 0, y: 1, z: 0 },
+    label: "+Y",
+    color: "#6ee07a",
+    field: "pos3dY / norm3dY",
+  },
+  z: {
+    world: { x: 0, y: 0, z: 1 },
+    label: "+Z",
+    color: "#6eb5ff",
+    field: "pos3dZ / norm3dZ",
+  },
 };
 
 const buildAxisDraw = (

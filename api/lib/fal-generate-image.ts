@@ -3,6 +3,7 @@ import { createFalClient } from "@fal-ai/client";
 const falKey = process.env.FAL_KEY;
 
 const MODEL_OPTIONS = [
+  "fal-ai/birefnet",
   "fal-ai/flux/schnell",
   "fal-ai/flux/dev",
   "fal-ai/flux/krea",
@@ -125,6 +126,38 @@ const IMAGE_SIZE_OPTIONS = [
 ] as const;
 
 type FalImageSize = (typeof IMAGE_SIZE_OPTIONS)[number];
+
+/** Long edge for Fal `image_size` custom width/height objects (presets default to 1024px). */
+const FAL_IMAGE_LONG_EDGE_PX = 1800;
+
+const pixelsFromImageSize = (imageSize: FalImageSize): { height: number; width: number } => {
+  switch (imageSize) {
+    case "landscape_16_9":
+      return {
+        width: FAL_IMAGE_LONG_EDGE_PX,
+        height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
+      };
+    case "landscape_4_3":
+      return {
+        width: FAL_IMAGE_LONG_EDGE_PX,
+        height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
+      };
+    case "portrait_16_9":
+      return {
+        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
+        height: FAL_IMAGE_LONG_EDGE_PX,
+      };
+    case "portrait_4_3":
+      return {
+        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
+        height: FAL_IMAGE_LONG_EDGE_PX,
+      };
+    case "square_hd":
+    case "square":
+    default:
+      return { width: FAL_IMAGE_LONG_EDGE_PX, height: FAL_IMAGE_LONG_EDGE_PX };
+  }
+};
 
 type FalGenerateImageBody = {
   mode?: unknown;
@@ -271,7 +304,7 @@ const buildTextInput = ({
   if (config.inputKind === "aspectRatio" || config.inputKind === "seedream") {
     input.aspect_ratio = aspectRatioFromImageSize(imageSize);
   } else {
-    input.image_size = imageSize;
+    input.image_size = pixelsFromImageSize(imageSize);
   }
 
   if (config.safetyTolerance) {
@@ -337,36 +370,49 @@ const buildImageInput = ({
   if (config.inputKind === "aspectRatio" || config.inputKind === "seedream") {
     input.aspect_ratio = aspectRatioFromImageSize(imageSize);
   } else {
-    input.image_size = imageSize;
+    input.image_size = pixelsFromImageSize(imageSize);
   }
 
   return input;
 };
 
+const normalizeSeriesVariationLine = (line: string): string =>
+  line
+    .replace(/^\s*[-*•]\s+/, "")
+    .replace(/^\s*\d+[).|:\s-]+\s*/, "")
+    .trim();
+
 const parseSeriesVariations = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
+  const normalize = (lines: string[]) =>
+    lines
+      .map((line) => normalizeSeriesVariationLine(line))
+      .filter((line) => line.length > 0 && !line.startsWith("#"))
       .slice(0, 12);
+
+  if (Array.isArray(value)) {
+    return normalize(
+      value.filter((item): item is string => typeof item === "string").map((item) => item.trim()),
+    );
   }
   if (typeof value !== "string") {
     return [];
   }
-  return value
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 12);
+  return normalize(value.split(/\r?\n/).map((line) => line.trim()));
 };
+
+const buildSeriesPrompt = (basePrompt: string, variation: string) =>
+  `${basePrompt}
+
+Series variation — apply ONLY the direction below. Keep the same Central Texas roofing marketing brief, Austin-area suburban context, trustworthy editorial advertising photo style, natural light, and no text, logos, or watermarks in frame:
+
+${variation}`;
 
 const buildPromptJobs = (prompt: string, variations: string[]) => {
   if (variations.length === 0) {
     return [{ prompt }];
   }
   return variations.map((variation) => ({
-    prompt: `${prompt}\n\nVariation direction: ${variation}`,
+    prompt: buildSeriesPrompt(prompt, variation),
     variation,
   }));
 };
@@ -457,8 +503,78 @@ export const handler = async (request: Request): Promise<Response> => {
 
   try {
     const body = (await request.json()) as FalGenerateImageBody;
-    const jobs = normalizeJobs(body);
     const client = createFalClient({ credentials: falKey.trim() });
+
+    /* ── Background removal (BiRefNet) — separate path, no prompt required ── */
+    if (body.mode === "remove-bg") {
+      const imageUrl =
+        typeof body.referenceImageUrl === "string" ? body.referenceImageUrl.trim() : "";
+      if (!imageUrl) {
+        return jsonResponse(
+          { error: "referenceImageUrl is required for background removal." },
+          400,
+        );
+      }
+
+      const result = await client.subscribe("fal-ai/birefnet" as never, {
+        input: { image_url: imageUrl } as never,
+        logs: true,
+        mode: "polling",
+        pollInterval: 700,
+        startTimeout: 90,
+      });
+
+      // BiRefNet can return either `image` (object) or `images` (array)
+      const data = result.data as {
+        image?: {
+          url?: string;
+          content_type?: string;
+          file_name?: string;
+          file_size?: number;
+          width?: number;
+          height?: number;
+        };
+        images?: {
+          url?: string;
+          content_type?: string;
+          file_name?: string;
+          file_size?: number;
+          width?: number;
+          height?: number;
+        }[];
+      };
+      const img = data.image ?? data.images?.[0];
+      if (!img?.url) {
+        return jsonResponse(
+          {
+            error: `BiRefNet returned no image URL. Raw: ${JSON.stringify(data).slice(0, 200)}`,
+          },
+          502,
+        );
+      }
+
+      return jsonResponse(
+        {
+          ok: true,
+          images: [
+            {
+              contentType: img.content_type ?? "image/png",
+              fileName: img.file_name ?? `birefnet-${result.requestId}.png`,
+              fileSize: img.file_size,
+              height: img.height,
+              prompt: imageUrl,
+              requestId: result.requestId,
+              url: img.url,
+              width: img.width,
+            },
+          ],
+          jobs: [{ endpoint: "fal-ai/birefnet", requestId: result.requestId }],
+        },
+        200,
+      );
+    }
+
+    const jobs = normalizeJobs(body);
     const results = await Promise.all(
       jobs.map(async (job) => {
         const result = await client.subscribe(job.endpoint as never, {

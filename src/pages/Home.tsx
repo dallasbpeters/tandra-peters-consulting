@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
 
-import type { RoofInspectionHotspotData } from "../types";
+import type { HeroProps, RoofInspectionHotspotData } from "../types";
 
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
-import { Hero } from "../components/Hero";
+import { HeroVariant } from "../components/HeroVariant";
 import { CHAPTERS, type Chapter } from "../components/RoofInspection";
 import { parseHotspotCoords } from "../components/RoofInspection/hotspotCoords";
 // import { Faq } from "../components/Faq";
@@ -214,11 +214,13 @@ export const Home = () => {
 
   const activeChapters = sanityChapters ?? CHAPTERS;
 
+  const heroStyle = (hero?.heroStyle || undefined) as HeroProps["heroStyle"];
+
   return (
-    <SitePageChrome>
+    <SitePageChrome heroStyle={heroStyle}>
       <SeoStructuredData />
       <main>
-        {hero ? <Hero {...mapHeroProps(hero)} /> : null}
+        {hero ? <HeroVariant {...mapHeroProps(hero)} /> : null}
 
         <GoogleAuthGate>
           <Suspense fallback={null}>

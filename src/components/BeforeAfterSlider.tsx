@@ -277,8 +277,16 @@ export function BeforeAfterSlider({
           <div style={{ ...styles.handle, left: `${sliderPosition}%` }}>
             <motion.div
               style={styles.handleKnob}
-              initial={{ scale: 1, borderColor: theme.colors.evergladeMuted, x: "-50%" }}
-              animate={{ scale: 1, borderColor: theme.colors.evergladeMuted, x: "-50%" }}
+              initial={{
+                scale: 1,
+                borderColor: theme.colors.evergladeMuted,
+                x: "-50%",
+              }}
+              animate={{
+                scale: 1,
+                borderColor: theme.colors.evergladeMuted,
+                x: "-50%",
+              }}
               whileHover={{ scale: 1.05, borderColor: "#9f78e6" }}
             >
               <svg

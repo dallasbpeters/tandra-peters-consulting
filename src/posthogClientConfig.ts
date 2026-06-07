@@ -1,6 +1,37 @@
 const trimHost = (value: string | undefined): string => (value ?? "").trim().replace(/\/$/, "");
 
 const CLOUD_INGESTION_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
+const TOOLBAR_PARAMS_KEY = "_postHogToolbarParams";
+const US_CLOUD_INGEST = "https://us.i.posthog.com";
+const US_CLOUD_UI = "https://us.posthog.com";
+
+/** PostHog toolbar only appears after Launch toolbar — hash or persisted params. */
+export const hasToolbarLaunchIntent = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const hash = window.location.hash;
+  if (hash.includes("__posthog") || hash.includes("ph_authorize")) {
+    return true;
+  }
+
+  const projectToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
+  if (!projectToken) {
+    return false;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(TOOLBAR_PARAMS_KEY);
+    if (!stored) {
+      return false;
+    }
+    const parsed = JSON.parse(stored) as { token?: string };
+    return parsed.token === projectToken;
+  } catch {
+    return false;
+  }
+};
 
 export const isPosthogEnabled = (): boolean => {
   const hasToken = Boolean(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim());
@@ -23,24 +54,40 @@ export const resolvePosthogClientOptions = (): {
   disable_session_recording: boolean;
   disable_surveys: boolean;
 } => {
-  const configuredHost =
-    trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) || "https://us.i.posthog.com";
+  const devCaptureEnabled =
+    import.meta.env.DEV && import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true";
+  const toolbarLaunch = hasToolbarLaunchIntent();
+
+  const configuredHost = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) || US_CLOUD_INGEST;
   const isCloudIngestion = CLOUD_INGESTION_RE.test(configuredHost);
 
-  const useDevSameOrigin = import.meta.env.DEV && configuredHost && !isCloudIngestion;
+  // Dev + toolbar: talk to PostHog cloud directly so toolbar assets hit us-assets.posthog.com
+  // instead of the first-party proxy (custom region breaks asset routing).
+  const useDevCloudDirect = devCaptureEnabled || (import.meta.env.DEV && toolbarLaunch);
+  const useDevSameOrigin =
+    import.meta.env.DEV && configuredHost && !isCloudIngestion && !useDevCloudDirect;
 
-  const api_host = useDevSameOrigin ? window.location.origin : configuredHost;
+  const api_host = useDevCloudDirect
+    ? US_CLOUD_INGEST
+    : useDevSameOrigin
+      ? window.location.origin
+      : configuredHost;
 
   const uiFromEnv = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_UI_HOST);
   const ui_host =
-    uiFromEnv || (!isCloudIngestion && configuredHost ? "https://us.posthog.com" : undefined);
+    uiFromEnv ||
+    (useDevCloudDirect || (!isCloudIngestion && configuredHost) ? US_CLOUD_UI : undefined);
+
+  const allowToolbarAssets = devCaptureEnabled || toolbarLaunch;
 
   return {
     api_host,
     ...(ui_host ? { ui_host } : {}),
     autocapture: false,
-    capture_performance: false,
-    disable_external_dependency_loading: true,
+    capture_performance: true,
+    debug: devCaptureEnabled,
+    // Toolbar loads external scripts from ui_host — enable in dev or when launched from PostHog.
+    disable_external_dependency_loading: !allowToolbarAssets,
     disable_session_recording: true,
     disable_surveys: true,
   };

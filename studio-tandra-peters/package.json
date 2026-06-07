@@ -12,6 +12,7 @@
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
+    "dev:clean": "rm -rf node_modules/.sanity/vite .sanity && sanity dev",
     "start": "sanity start",
     "seed": "tsx scripts/seed.ts",
     "seed:articles-page": "tsx scripts/seedArticlesPage.ts",
@@ -24,11 +25,11 @@
     "@sanity/agent-context": "^0.6.0",
     "@sanity/assist": "^6.0.7",
     "@sanity/image-url": "^2.1.1",
-    "@sanity/vision": "^5.28.0",
+    "@sanity/vision": "^5.30.0",
     "posthog-js": "^1.376.5",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "sanity": "^5.28.0",
+    "sanity": "^5.30.0",
     "styled-components": "^6.4.2"
   },
   "devDependencies": {

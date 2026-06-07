@@ -68,7 +68,11 @@ export const Avatar = ({ review, size = 44 }: { review: Review; size?: number })
   if (!review.avatar || imageFailed) {
     return (
       <div
-        style={{ ...avatarStyles.avatarFallback, width: dimension, height: dimension }}
+        style={{
+          ...avatarStyles.avatarFallback,
+          width: dimension,
+          height: dimension,
+        }}
         aria-hidden="true"
       >
         {initial}

@@ -8,7 +8,9 @@ export const HOME_AND_SITE_QUERY = groq`{
     seoDescription,
     hero {
       ...,
-      "backgroundImage": backgroundImage.asset->url
+      "backgroundImage": backgroundImage.asset->url,
+      "skyImage": skyImage.asset->url,
+      "foregroundImage": foregroundImage.asset->url
     },
     "featuredVideo": select(
       featuredVideoSection._type == "videoSection" => {

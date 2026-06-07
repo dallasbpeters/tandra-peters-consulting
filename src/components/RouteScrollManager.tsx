@@ -15,6 +15,11 @@ export const RouteScrollManager = () => {
   const { pathname, hash } = useLocation();
 
   useLayoutEffect(() => {
+    // PostHog toolbar auth lives in location.hash — do not treat it as an in-page anchor.
+    if (hash.includes("__posthog") || hash.includes("ph_authorize")) {
+      return;
+    }
+
     const id = hash?.replace(/^#/, "").trim() ?? "";
 
     if (pathname === "/") {

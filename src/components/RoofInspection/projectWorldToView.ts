@@ -64,7 +64,11 @@ export const projectWorldAxisToCompass = (
   if (rightLen < 1e-6) {
     right = { x: 1, y: 0, z: 0 };
   } else {
-    right = { x: right.x / rightLen, y: right.y / rightLen, z: right.z / rightLen };
+    right = {
+      x: right.x / rightLen,
+      y: right.y / rightLen,
+      z: right.z / rightLen,
+    };
   }
   const up = normalize(cross(right, forward));
 

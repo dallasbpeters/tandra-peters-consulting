@@ -82,7 +82,44 @@ export const heroSectionType = defineType({
     defineGeneratedImage({
       name: "backgroundImage",
       title: "Background image",
-      description: "Sanity image asset (upload, Media Library, or Generate with AI).",
+      description:
+        "Sanity image asset used by all hero variants (upload, Media Library, or Generate with AI).",
+    }),
+    defineGeneratedImage({
+      name: "skyImage",
+      title: "Sky image — Pill Nav background (parallax 0.3×)",
+      description:
+        "Wide sky/exterior photo used as the receding background layer in the Dark Floating Pill Nav variant. Scrolls slower than the page to create depth.",
+    }),
+    defineGeneratedImage({
+      name: "foregroundImage",
+      title: "House cutout — Pill Nav foreground (parallax −0.5×)",
+      description:
+        "Roof/house PNG cutout layered in front of the sky with inverse parallax — rises toward the viewer as the user scrolls. Only used by the Dark Floating Pill Nav variant.",
+    }),
+    defineField({
+      name: "heroStyle",
+      title: "Hero style override",
+      type: "string",
+      description:
+        "Force a specific hero layout for CMS preview and QA. Leave blank to use the live PostHog A/B test (hero-banner-style flag).",
+      options: {
+        list: [
+          { title: "— Use PostHog experiment (default) —", value: "" },
+          { title: "Control — Original hero", value: "control" },
+          {
+            title: "Glass Overlay Nav — centered logo, transparent→glass nav",
+            value: "glass-overlay",
+          },
+          { title: "Dual CTA Rail — opaque sticky rail with two CTAs", value: "dual-cta-rail" },
+          {
+            title: "Dark Floating Pill Nav — pill nav, full-bleed photo",
+            value: "dark-floating-pill",
+          },
+        ],
+        layout: "radio",
+      },
+      initialValue: "",
     }),
   ],
 });

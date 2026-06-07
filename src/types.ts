@@ -42,6 +42,9 @@ export interface NavProps {
 
 export interface HeroProps {
   title?: React.ReactNode;
+  /** Raw CMS strings — used by hero variants that apply their own heading styles. */
+  titleLine1?: string;
+  titleLine2?: string;
   /** Hero badge / eyebrow (e.g. Birdcreek Roofing consultant · Austin, TX) */
   badgeText?: string;
   subtitle?: RichTextSource;
@@ -50,6 +53,12 @@ export interface HeroProps {
   secondaryCtaText?: string;
   secondaryCtaHref?: string;
   backgroundImage?: string;
+  /** Pill Nav variant — sky/background layer, parallax 0.3× (recedes as user scrolls). */
+  skyImage?: string;
+  /** Pill Nav variant — house/roof cutout PNG, parallax −0.5× (rises toward viewer). */
+  foregroundImage?: string;
+  /** CMS or direct override: force a specific hero variant instead of the PostHog A/B flag. */
+  heroStyle?: "control" | "glass-overlay" | "dual-cta-rail" | "dark-floating-pill";
 }
 
 export interface VideoProps {

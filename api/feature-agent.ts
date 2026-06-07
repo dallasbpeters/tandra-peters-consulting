@@ -61,7 +61,7 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 
 **Design system (never change these without explicit instruction):**
 - Colors: OKLCH-based palette. Primary = everglade (dark forest green). Accent = warm amber. All tokens live in \`src/theme.ts\`.
-- Typography: Manrope for headings/UI labels, Instrument Serif for body text. Do not swap these.
+- Typography: Manrope for headings/UI labels, IBM Plex Serif for body text. Do not swap these.
 - Icons: iconoir-react only — never suggest lucide-react.
 - Service area: Central Texas — Fort Worth and Tarrant County are explicitly excluded.
 - Responsive breakpoints belong in CSS files (\`site-layout.css\`), never inline.

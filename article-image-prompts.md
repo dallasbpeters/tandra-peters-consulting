@@ -13,7 +13,7 @@
 | Hero accent              | Soft purple | `#9C99FF` |
 | Danger/warm pop          | Coral       | `#C82F05` |
 
-**Fonts:** Plus Jakarta Sans (body), Instrument Serif (headline alt)
+**Fonts:** Plus Jakarta Sans (body), IBM Plex Serif (headline alt)
 
 ---
 

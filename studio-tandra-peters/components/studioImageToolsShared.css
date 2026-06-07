@@ -8,7 +8,7 @@
   --studio-tool-alert-text: #8e281e;
   --studio-tool-border: rgb(22 36 30 / 12%);
   --studio-tool-border-strong: rgb(22 36 30 / 18%);
-  --studio-tool-brand: #1a174b;
+  --studio-tool-brand: lch(40.09% 86.16 297.78);
   --studio-tool-brand-ring: rgb(23 75 53 / 18%);
   --studio-tool-bg: #fff;
   --studio-tool-checker: #c2c2c2;
@@ -45,7 +45,7 @@
   --wa-color-surface-raised: var(--studio-tool-panel);
   --wa-color-text-normal: var(--studio-tool-text);
   --wa-color-text-quiet: var(--studio-tool-muted);
-  --wa-color-brand-fill-loud: #0d0a33;
+  --wa-color-brand-fill-loud: lch(40.09% 86.16 297.78);
   --wa-color-brand-fill-normal: #7e33a6;
   --wa-color-brand-fill-quiet: #b08ae9;
   --wa-color-brand-border-loud: #1e0a33;
@@ -173,13 +173,16 @@
 .studio-tool wa-checkbox,
 .studio-tool wa-input,
 .studio-tool wa-number-input,
-.studio-tool wa-option,
 .studio-tool wa-select,
 .studio-tool wa-slider,
 .studio-tool wa-textarea {
   width: 100%;
   color: var(--studio-tool-text);
   letter-spacing: 0;
+}
+
+.studio-tool wa-option:host(:state(current)) {
+  color: var(--wa-color-brand-on-loud);
 }
 
 .studio-tool wa-input::part(base),
