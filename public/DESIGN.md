@@ -30,7 +30,7 @@ colors:
   legal-muted: "#3C5D4E"
 typography:
   display:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 6rem
     fontWeight: 800
     lineHeight: 0.9
@@ -47,33 +47,33 @@ typography:
     lineHeight: 1.2
     letterSpacing: 0.01em
   body-lg:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 1.25rem
     fontWeight: 300
     lineHeight: 1.6
   body-md:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 1rem
     fontWeight: 400
     lineHeight: 1.7
   body-sm:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 0.875rem
     fontWeight: 400
     lineHeight: 1.6
   label-caps:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 0.6875rem
     fontWeight: 800
     lineHeight: 1
     letterSpacing: 0.16em
   nav-link:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 0.8125rem
     fontWeight: 700
     letterSpacing: 0.1em
   button:
-    fontFamily: Manrope
+    fontFamily: Hanken Grotesk Variable
     fontSize: 1rem
     fontWeight: 900
     letterSpacing: 0.1em
@@ -253,7 +253,7 @@ mountain laurel for the brand promise.
 
 ## Typography
 
-Two families do all the work. **Manrope** carries the brand's working
+Two families do all the work. **Hanken Grotesk Variable** carries the brand's working
 voice — confident, modern, slightly geometric. **IBM Plex Serif**
 appears on editorial moments (article titles, page-list intros, legal
 section headers) where the roofing-trade context gives way to a more
@@ -309,7 +309,7 @@ design does not breathe wider on large screens — the content does.
 ### Buttons
 
 Six variants, all sharp-edged, all `typography.button` (uppercase
-Manrope with `0.1em` tracking):
+Hanken Grotesk Variable with `0.1em` tracking):
 
 - `button-primary` — Everglade fill, paper text. Default action on
   light surfaces.

@@ -115,10 +115,10 @@ const palette = {
 
 export const theme = {
   fonts: {
-    headline: '"Manrope Variable", sans-serif',
+    headline: '"Hanken Grotesk Variable", sans-serif',
     headlineAlt: '"IBM Plex Serif", serif',
     special: '"Bebas Neue", sans-serif',
-    body: '"Manrope Variable", sans-serif',
+    body: '"Hanken Grotesk Variable", sans-serif',
   },
   palette,
   colors: {

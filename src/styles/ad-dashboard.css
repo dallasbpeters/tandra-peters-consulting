@@ -371,7 +371,7 @@ footer {
 
 .ad-dashboard-rhythm-row h3 {
   margin: 0;
-  font-family: var(--font-headline, Manrope, sans-serif);
+  font-family: var(--font-headline, Hanken Grotesk Variable, sans-serif);
   font-size: 0.72rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -388,7 +388,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-headline, Manrope, sans-serif);
+  font-family: var(--font-headline, Hanken Grotesk Variable, sans-serif);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1127,7 +1127,7 @@ footer.ad-creative-footnote {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
+  font-family: var(--ad-body-font, "Hanken Grotesk Variable", sans-serif);
 }
 
 .ad-creative-preview--photo-fill .ad-creative-copy {
@@ -1342,7 +1342,7 @@ footer.ad-creative-footnote {
 
 .ad-creative-preview--poster-cover .ad-creative-copy > span {
   color: color-mix(in oklch, var(--ad-headline-ink, #fff) 92%, transparent);
-  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
+  font-family: var(--ad-body-font, "Hanken Grotesk Variable", sans-serif);
   font-weight: 850;
 }
 
@@ -1513,7 +1513,7 @@ footer.ad-creative-footnote {
   gap: clamp(1rem, 4cqw, 3rem);
   margin-top: clamp(0.9rem, 2.5cqw, 1.75rem);
   color: color-mix(in oklch, var(--ad-ink) 74%, transparent);
-  font-family: var(--ad-body-font, "Manrope Variable", sans-serif);
+  font-family: var(--ad-body-font, "Hanken Grotesk Variable", sans-serif);
   font-size: clamp(0.58rem, 1.5vw, 1rem);
   font-weight: 600;
 }
