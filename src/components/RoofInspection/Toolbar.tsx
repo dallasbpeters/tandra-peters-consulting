@@ -39,8 +39,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     display: "grid",
     gridTemplateColumns: isMobile ? "1fr" : "1.5fr 1fr",
     alignItems: "baseline",
-    gap: "2rem",
-    paddingBottom: "1.25rem",
+    gap: theme.spacing.xxxxl,
+    paddingBottom: theme.spacing.xl,
     borderBottom: `1px solid ${hairline}`,
     minWidth: 0,
   };
@@ -59,7 +59,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   const tabStyle: React.CSSProperties = {
-    padding: "0.5rem 0.875rem",
+    padding: `${theme.spacing.sm} ${theme.spacing.cozy}`,
     border: "1px solid transparent",
     cursor: "pointer",
     fontFamily: "inherit",

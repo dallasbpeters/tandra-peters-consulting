@@ -20,12 +20,12 @@ import { mix, theme } from "../theme";
 
 const shellStyle: CSSProperties = {
   display: "grid",
-  gap: "1.5rem",
+  gap: theme.spacing.xxl,
 };
 
 const heroCardStyle: CSSProperties = {
-  borderRadius: "1.5rem",
-  padding: "1.5rem",
+  borderRadius: theme.radius.xlarge,
+  padding: theme.spacing.xxl,
   background: `linear-gradient(135deg, ${theme.palette.everglade["900"]} 0%, ${theme.palette.everglade["700"]} 55%, ${theme.palette.accent["600"]} 100%)`,
   color: theme.colors.white,
   boxShadow: `0 22px 60px ${mix(theme.palette.everglade["900"], 25)}`,
@@ -33,8 +33,8 @@ const heroCardStyle: CSSProperties = {
 };
 
 const cardStyle: CSSProperties = {
-  borderRadius: "1.25rem",
-  padding: "1.25rem",
+  borderRadius: theme.radius.xlarge,
+  padding: theme.spacing.xl,
   backgroundColor: theme.colors.white,
   border: `1px solid ${mix(theme.colors.everglade, 10)}`,
   boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
@@ -43,19 +43,19 @@ const cardStyle: CSSProperties = {
 const metricGridStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "1rem",
+  gap: theme.spacing.lg,
 };
 
 const sectionGridStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1.4fr 1fr",
-  gap: "1rem",
+  gap: theme.spacing.lg,
 };
 
 const responsiveRowStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-  gap: "1rem",
+  gap: theme.spacing.lg,
 };
 
 const chipStyle = (tone: "good" | "warning" | "critical" | "neutral"): CSSProperties => {
@@ -81,9 +81,9 @@ const chipStyle = (tone: "good" | "warning" | "critical" | "neutral"): CSSProper
   return {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.35rem",
-    padding: "0.4rem 0.65rem",
-    borderRadius: "999px",
+    gap: theme.spacing.sm,
+    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+    borderRadius: theme.radius.pill,
     fontSize: "0.75rem",
     fontWeight: 700,
     letterSpacing: "0.08em",
@@ -145,14 +145,14 @@ const MiniBars = ({ points }: { points: SeoDashboardPayload["analytics"]["dailyP
   const max = Math.max(...points.map((point) => point.pageviews), 1);
 
   return (
-    <div style={{ display: "grid", gap: "0.55rem" }}>
+    <div style={{ display: "grid", gap: theme.spacing.sm }}>
       {points.map((point) => (
         <div
           key={point.date}
           style={{
             display: "grid",
             gridTemplateColumns: "4.5rem 1fr 3rem",
-            gap: "0.75rem",
+            gap: theme.spacing.md,
             alignItems: "center",
           }}
         >
@@ -167,7 +167,7 @@ const MiniBars = ({ points }: { points: SeoDashboardPayload["analytics"]["dailyP
           <div
             style={{
               height: "0.65rem",
-              borderRadius: "999px",
+              borderRadius: theme.radius.pill,
               backgroundColor: theme.palette.paper["200"],
               overflow: "hidden",
             }}
@@ -176,7 +176,7 @@ const MiniBars = ({ points }: { points: SeoDashboardPayload["analytics"]["dailyP
               style={{
                 width: `${(point.pageviews / max) * 100}%`,
                 height: "100%",
-                borderRadius: "999px",
+                borderRadius: theme.radius.pill,
                 background: `linear-gradient(90deg, ${theme.palette.everglade["700"]}, ${theme.palette.accent["500"]})`,
               }}
             />
@@ -212,7 +212,7 @@ const MetricCard = ({
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         color: mix(theme.colors.everglade, 60),
-        marginBottom: "0.75rem",
+        marginBottom: theme.spacing.md,
       }}
     >
       {label}
@@ -222,7 +222,7 @@ const MetricCard = ({
         fontSize: "2rem",
         fontWeight: 700,
         color: theme.colors.everglade,
-        marginBottom: "0.5rem",
+        marginBottom: theme.spacing.sm,
       }}
     >
       {value}
@@ -249,17 +249,17 @@ const opportunityChip = (type: "fix" | "refresh" | "new-content"): CSSProperties
 const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
   <div
     style={{
-      padding: "1rem 0",
+      padding: `${theme.spacing.lg} 0`,
       borderTop: `1px solid ${mix(theme.colors.everglade, 10)}`,
       display: "grid",
-      gap: "0.65rem",
+      gap: theme.spacing.md,
     }}
   >
     <div
       style={{
         display: "flex",
         justifyContent: "space-between",
-        gap: "1rem",
+        gap: theme.spacing.lg,
         alignItems: "center",
         flexWrap: "wrap",
       }}
@@ -279,7 +279,7 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.65rem",
+          gap: theme.spacing.md,
           flexWrap: "wrap",
         }}
       >
@@ -309,19 +309,19 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
 const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem }) => (
   <article
     style={{
-      padding: "1rem",
-      borderRadius: "1rem",
+      padding: theme.spacing.lg,
+      borderRadius: theme.radius.large,
       backgroundColor: theme.palette.paper["100"],
       border: `1px solid ${mix(theme.colors.everglade, 8)}`,
       display: "grid",
-      gap: "0.85rem",
+      gap: theme.spacing.md,
     }}
   >
     <div
       style={{
         display: "flex",
         justifyContent: "space-between",
-        gap: "1rem",
+        gap: theme.spacing.lg,
         flexWrap: "wrap",
         alignItems: "center",
       }}
@@ -340,7 +340,7 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
       <div
         style={{
           display: "flex",
-          gap: "0.5rem",
+          gap: theme.spacing.sm,
           alignItems: "center",
           flexWrap: "wrap",
         }}
@@ -354,7 +354,7 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(111px, 1fr))",
-        gap: "0.65rem",
+        gap: theme.spacing.md,
       }}
     >
       {[
@@ -368,8 +368,8 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
         <div
           key={`${analysis.path}-${metric.label}`}
           style={{
-            padding: "0.7rem 0.8rem",
-            borderRadius: "0.9rem",
+            padding: `${theme.spacing.md} ${theme.spacing.md}`,
+            borderRadius: theme.radius.large,
             backgroundColor: theme.colors.white,
             border: `1px solid ${mix(theme.colors.everglade, 8)}`,
           }}
@@ -380,7 +380,7 @@ const ContentAnalysisCard = ({ analysis }: { analysis: SeoContentAnalysisItem })
               textTransform: "uppercase",
               letterSpacing: "0.06em",
               color: mix(theme.colors.everglade, 58),
-              marginBottom: "0.35rem",
+              marginBottom: theme.spacing.sm,
             }}
           >
             {metric.label}
@@ -449,8 +449,8 @@ export const SeoDashboardPage = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.65rem",
-                  marginBottom: "0.75rem",
+                  gap: theme.spacing.md,
+                  marginBottom: theme.spacing.md,
                   color: theme.palette.coral["800"],
                 }}
               >
@@ -471,13 +471,13 @@ export const SeoDashboardPage = () => {
 
           {auth.clientId && !auth.token ? (
             <section style={cardStyle}>
-              <div style={{ display: "grid", gap: "1rem", justifyItems: "start" }}>
+              <div style={{ display: "grid", gap: theme.spacing.lg, justifyItems: "start" }}>
                 <div>
                   <h2
                     style={{
                       fontSize: "1.2rem",
                       color: theme.colors.everglade,
-                      marginBottom: "0.45rem",
+                      marginBottom: theme.spacing.sm,
                     }}
                   >
                     Sign in to the dashboard
@@ -517,7 +517,7 @@ export const SeoDashboardPage = () => {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  gap: "1rem",
+                  gap: theme.spacing.lg,
                   alignItems: "center",
                   flexWrap: "wrap",
                 }}
@@ -526,7 +526,7 @@ export const SeoDashboardPage = () => {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.85rem",
+                    gap: theme.spacing.md,
                   }}
                 >
                   {auth.user.picture ? (
@@ -536,7 +536,7 @@ export const SeoDashboardPage = () => {
                       style={{
                         width: "2.75rem",
                         height: "2.75rem",
-                        borderRadius: "999px",
+                        borderRadius: theme.radius.pill,
                         objectFit: "cover",
                       }}
                     />
@@ -560,8 +560,8 @@ export const SeoDashboardPage = () => {
                   onClick={() => auth.signOut()}
                   style={{
                     border: `1px solid ${mix(theme.colors.everglade, 16)}`,
-                    borderRadius: "999px",
-                    padding: "0.7rem 0.95rem",
+                    borderRadius: theme.radius.pill,
+                    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
                     backgroundColor: theme.colors.white,
                     color: theme.colors.everglade,
                     fontWeight: 700,
@@ -574,7 +574,7 @@ export const SeoDashboardPage = () => {
               {auth.authError ? (
                 <p
                   style={{
-                    marginTop: "0.8rem",
+                    marginTop: theme.spacing.md,
                     color: theme.palette.coral["800"],
                     lineHeight: 1.6,
                   }}
@@ -604,8 +604,8 @@ export const SeoDashboardPage = () => {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.65rem",
-                      marginBottom: "0.75rem",
+                      gap: theme.spacing.md,
+                      marginBottom: theme.spacing.md,
                       color: theme.palette.coral["800"],
                     }}
                   >
@@ -630,7 +630,7 @@ export const SeoDashboardPage = () => {
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        gap: "1rem",
+                        gap: theme.spacing.lg,
                         flexWrap: "wrap",
                         alignItems: "flex-start",
                       }}
@@ -641,8 +641,8 @@ export const SeoDashboardPage = () => {
                           style={{
                             ...typeStyles.pageListTitle,
                             color: theme.colors.white,
-                            marginTop: "1rem",
-                            marginBottom: "0.85rem",
+                            marginTop: theme.spacing.lg,
+                            marginBottom: theme.spacing.md,
                           }}
                         >
                           Search visibility, content hygiene, and traffic signals in one place.
@@ -666,11 +666,11 @@ export const SeoDashboardPage = () => {
                         disabled={loading}
                         style={{
                           border: "none",
-                          borderRadius: "999px",
-                          padding: "0.85rem 1rem",
+                          borderRadius: theme.radius.pill,
+                          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: "0.55rem",
+                          gap: theme.spacing.sm,
                           backgroundColor: mix(theme.colors.white, 14),
                           color: theme.colors.white,
                           fontWeight: 700,
@@ -714,18 +714,18 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         System status
                       </h2>
-                      <div style={{ display: "grid", gap: "0.8rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
                         {data.sourceStatus.notes.map((note) => (
                           <div
                             key={note}
                             style={{
-                              padding: "0.9rem 1rem",
-                              borderRadius: "1rem",
+                              padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
+                              borderRadius: theme.radius.large,
                               backgroundColor: theme.palette.paper["100"],
                               color: mix(theme.colors.everglade, 76),
                               lineHeight: 1.6,
@@ -742,17 +742,17 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Issue rollup
                       </h2>
-                      <div style={{ display: "grid", gap: "0.8rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
                         <div
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                             alignItems: "center",
                           }}
                         >
@@ -763,7 +763,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                             alignItems: "center",
                           }}
                         >
@@ -774,7 +774,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                             alignItems: "center",
                           }}
                         >
@@ -793,9 +793,9 @@ export const SeoDashboardPage = () => {
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          gap: "1rem",
+                          gap: theme.spacing.lg,
                           flexWrap: "wrap",
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         <div>
@@ -813,8 +813,8 @@ export const SeoDashboardPage = () => {
                             style={{
                               fontSize: "1.2rem",
                               color: theme.colors.everglade,
-                              marginTop: "0.8rem",
-                              marginBottom: "0.35rem",
+                              marginTop: theme.spacing.md,
+                              marginBottom: theme.spacing.sm,
                             }}
                           >
                             Traffic snapshot
@@ -823,7 +823,7 @@ export const SeoDashboardPage = () => {
                             style={{
                               fontSize: "0.82rem",
                               color: mix(theme.colors.everglade, 58),
-                              marginTop: "0.35rem",
+                              marginTop: theme.spacing.sm,
                             }}
                           >
                             {data.analytics.scopeLabel}
@@ -839,13 +839,13 @@ export const SeoDashboardPage = () => {
                         </div>
                       </div>
 
-                      <div style={{ ...metricGridStyle, marginBottom: "1rem" }}>
+                      <div style={{ ...metricGridStyle, marginBottom: theme.spacing.lg }}>
                         <div>
                           <div
                             style={{
                               fontSize: "0.82rem",
                               color: mix(theme.colors.everglade, 58),
-                              marginBottom: "0.35rem",
+                              marginBottom: theme.spacing.sm,
                             }}
                           >
                             Pageviews
@@ -868,7 +868,7 @@ export const SeoDashboardPage = () => {
                             style={{
                               fontSize: "0.82rem",
                               color: mix(theme.colors.everglade, 58),
-                              marginBottom: "0.35rem",
+                              marginBottom: theme.spacing.sm,
                             }}
                           >
                             Visitors
@@ -888,7 +888,7 @@ export const SeoDashboardPage = () => {
                             style={{
                               fontSize: "0.82rem",
                               color: mix(theme.colors.everglade, 58),
-                              marginBottom: "0.35rem",
+                              marginBottom: theme.spacing.sm,
                             }}
                           >
                             CTA clicks
@@ -908,7 +908,7 @@ export const SeoDashboardPage = () => {
                             style={{
                               fontSize: "0.82rem",
                               color: mix(theme.colors.everglade, 58),
-                              marginBottom: "0.35rem",
+                              marginBottom: theme.spacing.sm,
                             }}
                           >
                             Leads
@@ -940,8 +940,8 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.2rem",
                           color: theme.colors.everglade,
-                          marginTop: "0.8rem",
-                          marginBottom: "0.5rem",
+                          marginTop: theme.spacing.md,
+                          marginBottom: theme.spacing.sm,
                         }}
                       >
                         Executive summary
@@ -956,7 +956,7 @@ export const SeoDashboardPage = () => {
                       </p>
                       <div
                         style={{
-                          marginTop: "1rem",
+                          marginTop: theme.spacing.lg,
                           color: mix(theme.colors.everglade, 60),
                           fontSize: "0.88rem",
                           lineHeight: 1.6,
@@ -973,18 +973,18 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Opportunity briefs
                       </h2>
-                      <div style={{ display: "grid", gap: "0.9rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.lg }}>
                         {data.opportunities.map((opportunity) => (
                           <div
                             key={`${opportunity.type}-${opportunity.title}`}
                             style={{
-                              padding: "1rem",
-                              borderRadius: "1rem",
+                              padding: theme.spacing.lg,
+                              borderRadius: theme.radius.large,
                               backgroundColor: theme.palette.paper["100"],
                               border: `1px solid ${mix(theme.colors.everglade, 8)}`,
                             }}
@@ -993,9 +993,9 @@ export const SeoDashboardPage = () => {
                               style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                gap: "1rem",
+                                gap: theme.spacing.lg,
                                 flexWrap: "wrap",
-                                marginBottom: "0.65rem",
+                                marginBottom: theme.spacing.md,
                               }}
                             >
                               <strong style={{ color: theme.colors.everglade }}>
@@ -1009,7 +1009,7 @@ export const SeoDashboardPage = () => {
                               style={{
                                 color: mix(theme.colors.everglade, 75),
                                 lineHeight: 1.65,
-                                marginBottom: "0.75rem",
+                                marginBottom: theme.spacing.md,
                               }}
                             >
                               {opportunity.detail}
@@ -1018,7 +1018,7 @@ export const SeoDashboardPage = () => {
                               style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                gap: "1rem",
+                                gap: theme.spacing.lg,
                                 color: mix(theme.colors.everglade, 60),
                                 fontSize: "0.84rem",
                               }}
@@ -1040,17 +1040,17 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Content coverage
                       </h2>
-                      <div style={{ display: "grid", gap: "0.8rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
                         <div
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1062,7 +1062,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1074,7 +1074,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1086,7 +1086,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1098,7 +1098,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1110,7 +1110,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1122,7 +1122,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1134,7 +1134,7 @@ export const SeoDashboardPage = () => {
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: "1rem",
+                            gap: theme.spacing.lg,
                           }}
                         >
                           <span style={{ color: mix(theme.colors.everglade, 68) }}>
@@ -1150,12 +1150,12 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Category spread
                       </h2>
-                      <div style={{ display: "grid", gap: "0.75rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
                         {data.content.categories.length > 0 ? (
                           data.content.categories.map((category) => (
                             <div key={category.slug}>
@@ -1163,8 +1163,8 @@ export const SeoDashboardPage = () => {
                                 style={{
                                   display: "flex",
                                   justifyContent: "space-between",
-                                  gap: "1rem",
-                                  marginBottom: "0.35rem",
+                                  gap: theme.spacing.lg,
+                                  marginBottom: theme.spacing.sm,
                                 }}
                               >
                                 <span style={{ color: theme.colors.everglade }}>
@@ -1175,7 +1175,7 @@ export const SeoDashboardPage = () => {
                               <div
                                 style={{
                                   height: "0.5rem",
-                                  borderRadius: "999px",
+                                  borderRadius: theme.radius.pill,
                                   backgroundColor: theme.palette.paper["200"],
                                   overflow: "hidden",
                                 }}
@@ -1184,7 +1184,7 @@ export const SeoDashboardPage = () => {
                                   style={{
                                     height: "100%",
                                     width: `${(category.count / Math.max(data.content.categories[0]?.count ?? 1, 1)) * 100}%`,
-                                    borderRadius: "999px",
+                                    borderRadius: theme.radius.pill,
                                     background: `linear-gradient(90deg, ${theme.palette.everglade["700"]}, ${theme.palette.purple["300"]})`,
                                   }}
                                 />
@@ -1205,7 +1205,7 @@ export const SeoDashboardPage = () => {
                       style={{
                         fontSize: "1.15rem",
                         color: theme.colors.everglade,
-                        marginBottom: "0.25rem",
+                        marginBottom: theme.spacing.xs,
                       }}
                     >
                       Article content analysis
@@ -1213,14 +1213,14 @@ export const SeoDashboardPage = () => {
                     <p
                       style={{
                         color: mix(theme.colors.everglade, 65),
-                        marginBottom: "0.85rem",
+                        marginBottom: theme.spacing.md,
                         lineHeight: 1.6,
                       }}
                     >
                       These article checks are based on the actual Sanity body content: word count,
                       headings, lists, and internal versus external links.
                     </p>
-                    <div style={{ display: "grid", gap: "0.9rem" }}>
+                    <div style={{ display: "grid", gap: theme.spacing.lg }}>
                       {data.contentAnalyses.length > 0 ? (
                         data.contentAnalyses.map((analysis) => (
                           <ContentAnalysisCard key={analysis.path} analysis={analysis} />
@@ -1245,18 +1245,18 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Priority recommendations
                       </h2>
-                      <div style={{ display: "grid", gap: "0.9rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.lg }}>
                         {data.recommendations.map((recommendation) => (
                           <div
                             key={`${recommendation.source}-${recommendation.title}`}
                             style={{
-                              padding: "1rem",
-                              borderRadius: "1rem",
+                              padding: theme.spacing.lg,
+                              borderRadius: theme.radius.large,
                               backgroundColor: theme.palette.paper["100"],
                               border: `1px solid ${mix(theme.colors.everglade, 8)}`,
                             }}
@@ -1265,9 +1265,9 @@ export const SeoDashboardPage = () => {
                               style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                gap: "1rem",
+                                gap: theme.spacing.lg,
                                 flexWrap: "wrap",
-                                marginBottom: "0.65rem",
+                                marginBottom: theme.spacing.md,
                               }}
                             >
                               <strong style={{ color: theme.colors.everglade }}>
@@ -1295,12 +1295,12 @@ export const SeoDashboardPage = () => {
                         style={{
                           fontSize: "1.15rem",
                           color: theme.colors.everglade,
-                          marginBottom: "1rem",
+                          marginBottom: theme.spacing.lg,
                         }}
                       >
                         Top pages in PostHog
                       </h2>
-                      <div style={{ display: "grid", gap: "0.8rem" }}>
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
                         {data.analytics.topPages.length > 0 ? (
                           data.analytics.topPages.map((page) => (
                             <div
@@ -1308,7 +1308,7 @@ export const SeoDashboardPage = () => {
                               style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                gap: "1rem",
+                                gap: theme.spacing.lg,
                                 alignItems: "center",
                               }}
                             >
@@ -1336,7 +1336,7 @@ export const SeoDashboardPage = () => {
                       style={{
                         fontSize: "1.15rem",
                         color: theme.colors.everglade,
-                        marginBottom: "0.25rem",
+                        marginBottom: theme.spacing.xs,
                       }}
                     >
                       Audit queue
@@ -1344,7 +1344,7 @@ export const SeoDashboardPage = () => {
                     <p
                       style={{
                         color: mix(theme.colors.everglade, 65),
-                        marginBottom: "0.75rem",
+                        marginBottom: theme.spacing.md,
                         lineHeight: 1.6,
                       }}
                     >

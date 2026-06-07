@@ -78,8 +78,8 @@ type Props = {
 const CHAT_STORAGE_PREFIX = "agent-chat:v1";
 
 const cardStyle: CSSProperties = {
-  borderRadius: "1.25rem",
-  padding: "1.25rem",
+  borderRadius: theme.radius.xlarge,
+  padding: theme.spacing.xl,
   backgroundColor: theme.colors.white,
   border: `1px solid ${mix(theme.colors.everglade, 10)}`,
   boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
@@ -370,13 +370,13 @@ export const AgentChatPage = ({ config }: Props) => {
     <SitePageChrome>
       {auth.clientId && !auth.token ? (
         <section style={cardStyle}>
-          <div style={{ display: "grid", gap: "1rem", justifyItems: "start" }}>
+          <div style={{ display: "grid", gap: theme.spacing.lg, justifyItems: "start" }}>
             <div>
               <h2
                 style={{
                   fontSize: "1.2rem",
                   color: theme.colors.everglade,
-                  marginBottom: "0.45rem",
+                  marginBottom: theme.spacing.sm,
                 }}
               >
                 Sign in to the dashboard

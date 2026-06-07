@@ -119,7 +119,7 @@ export const Faq: React.FC<FaqProps> = ({
               letterSpacing: "0.2em",
               color: theme.palette.coral["300"],
               fontSize: "0.75rem",
-              marginBottom: "1rem",
+              marginBottom: theme.spacing.lg,
               display: "block",
             }}
           >
@@ -130,7 +130,7 @@ export const Faq: React.FC<FaqProps> = ({
             style={{
               fontSize: "clamp(2rem, 6vw, 3rem)",
               lineHeight: 1.1,
-              marginBottom: "1.25rem",
+              marginBottom: theme.spacing.xl,
               fontFamily: theme.fonts.headline,
               fontWeight: 800,
               textTransform: "uppercase",
@@ -141,7 +141,7 @@ export const Faq: React.FC<FaqProps> = ({
           </h2>
           <div
             style={{
-              marginBottom: "3rem",
+              marginBottom: theme.spacing.xxxxxxxxl,
               maxWidth: "42rem",
             }}
           >
@@ -159,7 +159,7 @@ export const Faq: React.FC<FaqProps> = ({
           .faq-details-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: var(--theme-spacing-sm);
           }
         `}</style>
 

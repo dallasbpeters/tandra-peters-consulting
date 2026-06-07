@@ -85,7 +85,6 @@ export const resolvePosthogClientOptions = (): {
     ...(ui_host ? { ui_host } : {}),
     autocapture: false,
     capture_performance: true,
-    debug: devCaptureEnabled,
     // Toolbar loads external scripts from ui_host — enable in dev or when launched from PostHog.
     disable_external_dependency_loading: !allowToolbarAssets,
     disable_session_recording: true,

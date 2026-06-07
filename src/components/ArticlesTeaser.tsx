@@ -41,21 +41,21 @@ export const ArticlesTeaser = ({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: "3rem",
+    marginBottom: theme.spacing.xxxxxxxxl,
     color: theme.colors.paper,
-    gap: "3rem",
+    gap: theme.spacing.xxxxxxxxl,
   };
 
   const gridStyle: CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
-    gap: "1rem",
+    gap: theme.spacing.lg,
   };
 
   const cardBaseStyle: CSSProperties = {
     backgroundColor: theme.colors.black,
-    borderRadius: "1rem",
-    padding: "2rem",
+    borderRadius: theme.radius.large,
+    padding: theme.spacing.xxxxl,
     position: "relative",
     overflow: "hidden",
     display: "flex",
@@ -90,7 +90,7 @@ export const ArticlesTeaser = ({
                 letterSpacing: "0.2em",
                 color: theme.palette.purple["300"],
                 fontSize: "0.75rem",
-                marginBottom: "1.5rem",
+                marginBottom: theme.spacing.xxl,
                 display: "block",
               }}
             >
@@ -119,7 +119,7 @@ export const ArticlesTeaser = ({
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-end",
-              gap: "1.25rem",
+              gap: theme.spacing.xl,
             }}
           >
             <div style={{ margin: 0, textAlign: "right", width: "100%" }}>
@@ -140,7 +140,7 @@ export const ArticlesTeaser = ({
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.35rem",
+                gap: theme.spacing.sm,
                 fontFamily: theme.fonts.headline,
                 fontWeight: 800,
                 fontSize: "0.6875rem",
@@ -149,7 +149,7 @@ export const ArticlesTeaser = ({
                 color: theme.colors.accent,
                 textDecoration: "none",
                 borderBottom: `2px solid ${theme.colors.accent}`,
-                paddingBottom: "0.15rem",
+                paddingBottom: theme.spacing.micro,
               }}
             >
               {viewAllLabel}
@@ -198,7 +198,7 @@ export const ArticlesTeaser = ({
                   fontWeight: 800,
                   fontSize: "1.35rem",
                   lineHeight: 1.25,
-                  margin: "0 0 1rem",
+                  margin: `0 0 ${theme.spacing.lg}`,
                   textTransform: "uppercase",
                 }}
               >
@@ -208,7 +208,7 @@ export const ArticlesTeaser = ({
                 style={{
                   color: mix(theme.colors.white, 85),
                   lineHeight: 1.65,
-                  margin: "0 0 1.25rem",
+                  margin: `0 0 ${theme.spacing.xl}`,
                   fontSize: "1rem",
                 }}
               >

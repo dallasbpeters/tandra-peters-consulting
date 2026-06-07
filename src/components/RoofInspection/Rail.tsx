@@ -42,13 +42,13 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
   const kickerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: "0.875rem",
+    gap: theme.spacing.cozy,
     fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.22em",
     textTransform: "uppercase",
     color: theme.palette.purple["600"],
-    marginBottom: "1.5rem",
+    marginBottom: theme.spacing.xxl,
   };
 
   const kickerRuleStyle: React.CSSProperties = {
@@ -65,7 +65,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
     fontSize: "clamp(2.25rem, 4vw, 3rem)",
     lineHeight: 0.95,
     letterSpacing: "-0.01em",
-    margin: "0 0 2rem",
+    margin: `0 0 ${theme.spacing.xxxxl}`,
     color: theme.colors.everglade,
   };
 
@@ -74,7 +74,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
     lineHeight: 1.6,
     color: theme.colors.evergladeLight,
     maxWidth: "24ch",
-    margin: "0 0 2.5rem",
+    margin: `0 0 ${theme.spacing.xxxxxxl}`,
   };
 
   const listStyle: React.CSSProperties = {
@@ -89,7 +89,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
     fontWeight: 700,
     letterSpacing: "0.18em",
     textTransform: "uppercase",
-    padding: "0.875rem .5rem",
+    padding: `${theme.spacing.cozy} ${theme.spacing.sm}`,
     borderBottom: `1px solid ${theme.palette.paper[100]}`,
     borderTop: 0,
     borderLeft: 0,

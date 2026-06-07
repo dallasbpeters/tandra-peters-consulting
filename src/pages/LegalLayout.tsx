@@ -49,7 +49,7 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
             }
             .legal-back-link:focus-visible {
               box-shadow: 0 0 0 2px ${theme.colors.paper}, 0 0 0 4px ${theme.colors.everglade};
-              border-radius: 4px;
+              border-radius: ${theme.radius.small};
             }
           `}</style>
           <TransitionLink

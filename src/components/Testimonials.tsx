@@ -41,8 +41,8 @@ export const Testimonials = ({ emptyStateNote }: TestimonialsProps) => {
       style={{
         width: "100%",
         minHeight: "min(36rem, 75vh)",
-        paddingBlock: "2.5rem",
-        paddingInline: "1.5rem",
+        paddingBlock: theme.spacing.xxxxxxl,
+        paddingInline: theme.spacing.xxl,
         backgroundColor: theme.colors.everglade,
         position: "relative",
       }}
@@ -54,7 +54,7 @@ export const Testimonials = ({ emptyStateNote }: TestimonialsProps) => {
             color: theme.colors.textOnBrand,
             textAlign: "center",
             maxWidth: "36rem",
-            margin: "3rem auto",
+            margin: `${theme.spacing.xxxxxxxxl} auto`,
             lineHeight: 1.6,
             fontSize: "0.95rem",
           }}
@@ -76,7 +76,7 @@ export const Testimonials = ({ emptyStateNote }: TestimonialsProps) => {
             color: theme.colors.textOnBrand,
             textAlign: "center",
             maxWidth: "36rem",
-            margin: "3rem auto",
+            margin: `${theme.spacing.xxxxxxxxl} auto`,
             lineHeight: 1.6,
             fontSize: "0.95rem",
           }}

@@ -11,7 +11,7 @@ export const typeStyles = {
     fontWeight: 400,
     fontSize: "clamp(2rem, 5vw, 2.75rem)",
     lineHeight: 1.15,
-    marginBottom: "0.75rem",
+    marginBottom: theme.spacing.md,
     color: theme.colors.everglade,
   } satisfies CSSProperties,
 
@@ -19,7 +19,7 @@ export const typeStyles = {
     fontSize: "1.05rem",
     lineHeight: 1.65,
     color: mix(theme.colors.everglade, 80),
-    marginBottom: "2.5rem",
+    marginBottom: theme.spacing.xxxxxxl,
     maxWidth: "42rem",
   } satisfies CSSProperties,
 
@@ -29,7 +29,7 @@ export const typeStyles = {
     fontSize: "clamp(1.75rem, 4vw, 2.35rem)",
     lineHeight: 1.2,
     letterSpacing: "0.01em",
-    marginBottom: "0.75rem",
+    marginBottom: theme.spacing.md,
     color: theme.colors.everglade,
   } satisfies CSSProperties,
 
@@ -38,7 +38,7 @@ export const typeStyles = {
     fontWeight: 600,
     fontSize: "clamp(1.75rem, 5vw, 2.5rem)",
     lineHeight: 1.15,
-    marginBottom: "2rem",
+    marginBottom: theme.spacing.xxxxl,
     letterSpacing: "0.01em",
     color: theme.colors.everglade,
   } satisfies CSSProperties,
@@ -53,16 +53,16 @@ export const typeStyles = {
   legalMuted: {
     fontSize: "0.875rem",
     color: theme.colors.everglade,
-    marginBottom: "2rem",
+    marginBottom: theme.spacing.xxxxl,
     lineHeight: 1.6,
   } satisfies CSSProperties,
 
   backLink: {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.5rem",
-    marginBottom: "1.75rem",
-    padding: "0.5rem 0",
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.xxxl,
+    padding: `${theme.spacing.sm} 0`,
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
     fontSize: "0.6875rem",

@@ -18,7 +18,7 @@ export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512)
   const buttonStyle: React.CSSProperties = {
     backgroundColor: theme.colors.everglade,
     color: theme.colors.everglade,
-    padding: ".75rem 1rem",
+    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
     fontFamily: theme.fonts.headline,
     fontWeight: 900,
     textTransform: "uppercase",
@@ -42,7 +42,7 @@ export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512)
     transform: "rotate(90deg)",
     transformOrigin: "right bottom",
     alignItems: "center",
-    gap: "0.5rem",
+    gap: theme.spacing.sm,
   };
   return (
     <motion.button

@@ -449,7 +449,7 @@ export const MapBox = ({
     <section
       id="service-area"
       style={{
-        scrollMarginTop: "4rem",
+        scrollMarginTop: theme.spacing.section,
         overflow: "hidden",
         backgroundColor: theme.palette.everglade["950"],
       }}
@@ -467,7 +467,7 @@ export const MapBox = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "1rem",
+            padding: theme.spacing.lg,
             borderRight: `1px solid ${mix(theme.colors.white, 8)}`,
             maxInlineSize: "80vw",
             position: "absolute",
@@ -481,7 +481,7 @@ export const MapBox = ({
           {eyebrow ? (
             <p
               style={{
-                marginBottom: "1rem",
+                marginBottom: theme.spacing.lg,
                 fontFamily: theme.fonts.headline,
                 fontSize: "0.6875rem",
                 fontWeight: 800,
@@ -496,7 +496,7 @@ export const MapBox = ({
           {title ? (
             <h2
               style={{
-                marginBottom: "1rem",
+                marginBottom: theme.spacing.lg,
                 fontFamily: theme.fonts.headlineAlt,
                 fontSize: "clamp(1.75rem, 3vw, 2.25rem)",
                 lineHeight: 1.1,
@@ -510,7 +510,7 @@ export const MapBox = ({
           {description ? (
             <p
               style={{
-                marginBottom: "2rem",
+                marginBottom: theme.spacing.xxxxl,
                 fontSize: "0.9375rem",
                 lineHeight: 1.6,
 
@@ -540,7 +540,7 @@ export const MapBox = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "1.5rem",
+                padding: theme.spacing.xxl,
                 textAlign: "center",
                 fontSize: "0.875rem",
                 color: mix(theme.colors.white, 55),

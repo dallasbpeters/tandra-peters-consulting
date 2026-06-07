@@ -112,7 +112,7 @@ export const GoogleAuthSignInModal = () => {
             fontFamily: theme.fonts.headline,
             fontSize: "1.25rem",
             fontWeight: 700,
-            marginBottom: "0.5rem",
+            marginBottom: theme.spacing.sm,
             color: theme.colors.black,
           }}
         >
@@ -120,7 +120,7 @@ export const GoogleAuthSignInModal = () => {
         </h2>
         <p
           style={{
-            marginBottom: "1.25rem",
+            marginBottom: theme.spacing.xl,
             color: theme.colors.legalMuted,
             fontSize: "0.9375rem",
             lineHeight: 1.5,
@@ -134,7 +134,7 @@ export const GoogleAuthSignInModal = () => {
         {!auth.ready ? (
           <p
             style={{
-              marginTop: "0.75rem",
+              marginTop: theme.spacing.md,
               color: theme.colors.legalMuted,
               fontSize: "0.875rem",
             }}
@@ -146,7 +146,7 @@ export const GoogleAuthSignInModal = () => {
           <p
             role="alert"
             style={{
-              marginTop: "0.75rem",
+              marginTop: theme.spacing.md,
               color: theme.colors.danger,
               fontSize: "0.875rem",
             }}

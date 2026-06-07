@@ -11,18 +11,18 @@ const styles = {
   card: {
     display: "flex",
     flexDirection: "column",
-    gap: "1rem",
+    gap: theme.spacing.lg,
     width: "20rem",
     flexShrink: 0,
-    borderRadius: "16px",
+    borderRadius: theme.radius.large,
     border: `1px solid ${theme.colors.paperDark}`,
     backgroundColor: theme.colors.white,
-    padding: "1.5rem",
+    padding: theme.spacing.xxl,
   },
   header: {
     display: "flex",
     alignItems: "center",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
   },
   meta: {
     minWidth: 0,
@@ -42,12 +42,12 @@ const styles = {
     fontFamily: theme.fonts.headline,
     fontSize: "0.75rem",
     color: theme.colors.legalMuted,
-    margin: "0.125rem 0 0",
+    margin: `${theme.spacing.hairline} 0 0`,
   },
   footer: {
     display: "flex",
     flexDirection: "column",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
     marginTop: "auto",
   },
 } satisfies Record<string, CSSProperties>;

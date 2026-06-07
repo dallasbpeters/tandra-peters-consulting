@@ -216,7 +216,7 @@ export const Diagram: React.FC<DiagramProps> = ({
     height: 0,
     paddingBottom: "85%", // 4:3
     background: theme.colors.paper,
-    borderRadius: "2px",
+    borderRadius: theme.radius.small,
     overflow: "visible",
   };
 

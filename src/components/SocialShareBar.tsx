@@ -78,14 +78,14 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     backgroundColor: theme.colors.paper,
     borderTop: `1px solid ${theme.colors.paperDim}`,
     borderBottom: `1px solid ${theme.colors.paperDim}`,
-    paddingTop: "1rem",
-    paddingBottom: "1rem",
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   };
 
   const innerFlexStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
-    gap: "1.25rem",
+    gap: theme.spacing.xl,
     alignItems: "flex-start",
   };
 
@@ -93,7 +93,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
   };
 
   const labelStyle: React.CSSProperties = {
@@ -103,13 +103,13 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     letterSpacing: "0.25em",
     textTransform: "uppercase",
     color: theme.colors.everglade,
-    marginRight: "0.5rem",
+    marginRight: theme.spacing.sm,
   };
 
   const iconButtonStyle: React.CSSProperties = {
     width: "2.75rem",
     height: "2.75rem",
-    borderRadius: "9999px",
+    borderRadius: theme.radius.pill,
     border: `1px solid ${theme.colors.paperDim}`,
     backgroundColor: theme.colors.white,
     color: theme.colors.everglade,
@@ -129,9 +129,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     letterSpacing: "0.08em",
     textTransform: "uppercase",
     width: "auto",
-    paddingLeft: "1rem",
-    paddingRight: "1rem",
-    gap: "0.35rem",
+    paddingLeft: theme.spacing.lg,
+    paddingRight: theme.spacing.lg,
+    gap: theme.spacing.sm,
   };
 
   const facebookAriaLabel = "Share this page on Facebook";

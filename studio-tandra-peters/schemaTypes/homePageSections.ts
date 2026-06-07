@@ -246,6 +246,43 @@ export const servicesSectionType = defineType({
       type: "birdcreekAdvantageCard",
       description: "Large branded card shown beneath the services grid.",
     }),
+    defineField({
+      name: "servicesStyle",
+      title: "Services layout override",
+      type: "string",
+      description:
+        "Force a specific services layout for CMS preview and QA. Leave blank to use the live PostHog A/B test (services-section-style flag).",
+      options: {
+        list: [
+          { title: "— Use PostHog experiment (default) —", value: "" },
+          { title: "Control — Services grid", value: "control" },
+          { title: "Typographic alt — full-bleed layout", value: "typographic-alt" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "",
+    }),
+    defineField({
+      name: "typographicArt",
+      title: "Typographic layout headline art",
+      type: "object",
+      description:
+        "Photos that fill the giant BIRDCREEK headline in the typographic-alt services layout. Base image shows through the full letterforms; overlay image appears in the circular patches.",
+      fields: [
+        defineGeneratedImage({
+          name: "baseMaskImage",
+          title: "Base mask image",
+          description:
+            "Full headline image fill (upload or AI). Defaults to /roof-2.jpg when empty.",
+        }),
+        defineGeneratedImage({
+          name: "overlayMaskImage",
+          title: "Overlay mask image",
+          description:
+            "Image revealed inside the circular patches on the headline. Defaults to /metal-roof.jpg when empty.",
+        }),
+      ],
+    }),
   ],
 });
 

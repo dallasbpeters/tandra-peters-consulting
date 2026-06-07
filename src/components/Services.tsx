@@ -92,7 +92,7 @@ export const Services: React.FC<ServicesProps> = ({
 
   const mainCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
-    borderRadius: "1rem",
+    borderRadius: theme.radius.large,
     padding: "2rem",
     position: "relative",
     overflow: "hidden",
@@ -105,7 +105,7 @@ export const Services: React.FC<ServicesProps> = ({
 
   const secondaryCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.white,
-    borderRadius: "1rem",
+    borderRadius: theme.radius.large,
     padding: "2rem",
     display: "flex",
     flexDirection: "column",
@@ -238,7 +238,7 @@ export const Services: React.FC<ServicesProps> = ({
                       width: isMain ? "4rem" : "3rem",
                       height: isMain ? "4rem" : "3rem",
                       backgroundColor: isMain ? theme.colors.accentLight : theme.colors.paperDim,
-                      borderRadius: "9999px",
+                      borderRadius: theme.radius.pill,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -328,7 +328,7 @@ export const Services: React.FC<ServicesProps> = ({
                       backgroundColor: isMain ? "rgba(255, 255, 255, 0.1)" : "transparent",
                       color: isMain ? theme.colors.white : "rgba(0, 26, 16, 0.4)",
                       padding: isMain ? "1.5rem" : "0",
-                      borderRadius: "9999px",
+                      borderRadius: theme.radius.pill,
                       border: "none",
                       cursor: "pointer",
                       transition: "all 0.3s",
@@ -357,7 +357,7 @@ export const Services: React.FC<ServicesProps> = ({
             variants={cardVariants}
             style={{
               backgroundColor: theme.colors.paperDark,
-              borderRadius: "1rem",
+              borderRadius: theme.radius.large,
               padding: isMobile ? "2rem" : "3rem",
               display: "flex",
               flexDirection: "column",
@@ -427,6 +427,7 @@ export const Services: React.FC<ServicesProps> = ({
                 posthog?.capture("birdcreek_link_clicked", {
                   cta_label: birdcreekAdvantage.ctaLabel,
                   cta_href: birdcreekAdvantage.ctaHref,
+                  services_variant: "control",
                 })
               }
               style={{
@@ -440,7 +441,7 @@ export const Services: React.FC<ServicesProps> = ({
                 fontSize: "0.75rem",
                 border: "none",
                 cursor: "pointer",
-                borderRadius: "1rem",
+                borderRadius: theme.radius.large,
                 transition: "all 0.3s",
                 textDecoration: "none",
                 display: "inline-block",

@@ -45,10 +45,11 @@ const BeforeAfterSlider = lazy(async () => {
   const module = await import("../components/BeforeAfterSlider");
   return { default: module.BeforeAfterSlider };
 });
-const Services = lazy(async () => {
-  const module = await import("../components/Services");
-  return { default: module.Services };
+const ServicesVariant = lazy(async () => {
+  const module = await import("../components/ServicesVariant");
+  return { default: module.ServicesVariant };
 });
+
 const Mission = lazy(async () => {
   const module = await import("../components/Mission");
   return { default: module.Mission };
@@ -64,6 +65,10 @@ const Testimonials = lazy(async () => {
 const FeaturedVideoSection = lazy(async () => {
   const module = await import("../components/FeaturedVideoSection");
   return { default: module.FeaturedVideoSection };
+});
+const Certifications = lazy(async () => {
+  const module = await import("../components/Certifications");
+  return { default: module.Certifications };
 });
 const Stats = lazy(async () => {
   const module = await import("../components/Stats");
@@ -144,6 +149,7 @@ export const Home = () => {
   const about = home?.about as Record<string, unknown> | undefined;
   const stats = home?.stats as Record<string, unknown> | undefined;
   const services = home?.services as Record<string, unknown> | undefined;
+
   const mission = home?.mission as Record<string, unknown> | undefined;
   const expertise = home?.expertise as Record<string, unknown> | undefined;
   const testimonials = home?.testimonials as Record<string, unknown> | undefined;
@@ -155,7 +161,6 @@ export const Home = () => {
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
   const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
   const roofInspectionData = home?.roofInspection as Record<string, unknown> | undefined;
-
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim() ? marquee.text : undefined;
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
@@ -234,7 +239,8 @@ export const Home = () => {
             ) : null}
             {about ? <About {...mapAboutProps(about)} /> : null}
             {stats ? <Stats {...mapStatsProps(stats)} /> : null}
-            {services ? <Services {...mapServicesProps(services)} /> : null}
+            {services ? <ServicesVariant {...mapServicesProps(services)} /> : null}
+            <Certifications />
             {serviceAreaMap ? (
               <DeferUntilVisible minHeight="28rem">
                 <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />

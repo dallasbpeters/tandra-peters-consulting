@@ -293,7 +293,7 @@ const ImagePip = ({
         opacity: reveal * opacity,
         overflow: "hidden",
         position: "absolute",
-        borderRadius: 999,
+        borderRadius: Number.parseInt(theme.radius.pill, 10),
         border: `2px solid ${colors.paperDark}`,
         [side]: 100,
         top: "40%",
@@ -320,7 +320,11 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
       <ImagePanel from={0} src="hail-storm.jpg" />
-      <div style={{ padding: "132px 128px 80px 128px" }}>
+      <div
+        style={{
+          padding: `${theme.spacing.sectionHero} ${theme.spacing.sectionHero} ${theme.spacing.sectionLoose} ${theme.spacing.sectionHero}`,
+        }}
+      >
         <Kicker color={colors.paperDark} delay={6} duration={180} from={0}>
           {content.kicker}
         </Kicker>
@@ -362,7 +366,7 @@ const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straig
           display: "grid",
           gridTemplateColumns: "1.05fr 0.95fr",
           height: "100%",
-          padding: "108px 128px",
+          padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}`,
         }}
       >
         <div>
@@ -412,7 +416,7 @@ const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"
           display: "grid",
           gridTemplateColumns: "1fr",
           height: "100%",
-          padding: "116px 128px",
+          padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}`,
         }}
       >
         <div />
@@ -464,7 +468,12 @@ const ManagedScene = ({ content }: { content: TandraIntroContent["managed"] }) =
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture dark={false} />
-      <div style={{ color: colors.everglade, padding: "104px 128px" }}>
+      <div
+        style={{
+          color: colors.everglade,
+          padding: `${theme.spacing.sectionInsetTop} ${theme.spacing.sectionHero}`,
+        }}
+      >
         <Kicker color={colors.everglade} delay={6} duration={210} from={450}>
           {content.kicker}
         </Kicker>
@@ -508,7 +517,7 @@ const ManagedScene = ({ content }: { content: TandraIntroContent["managed"] }) =
                   letterSpacing: "0.08em",
                   lineHeight: 1.18,
                   opacity: itemOpacity,
-                  padding: "28px 32px 0 0",
+                  padding: `${theme.spacing.xxxl} ${theme.spacing.xxxxl} 0 0`,
                   textTransform: "uppercase",
                   transform: `scaleX(${rule})`,
                   transformOrigin: "left",
@@ -530,7 +539,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
       <ImagePip from={630} src="tandra.png" opacity={1} />
-      <div style={{ padding: "116px 128px" }}>
+      <div style={{ padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}` }}>
         <Kicker delay={6} duration={150} from={630}>
           {content.kicker}
         </Kicker>
@@ -589,7 +598,7 @@ const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) =
           flexDirection: "column",
           height: "100%",
           justifyContent: "center",
-          padding: "96px 128px",
+          padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}`,
           textAlign: "center",
         }}
       >
@@ -614,7 +623,7 @@ const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) =
             letterSpacing: "0.1em",
             marginTop: 66,
             opacity: 0.82 + pulse * 0.18,
-            padding: "28px 42px",
+            padding: `${theme.spacing.xxxl} ${theme.spacing.xxxxxxl}`,
             textTransform: "uppercase",
           }}
         >

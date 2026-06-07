@@ -152,7 +152,7 @@ export const Contact = ({
   const infoItemStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: "1rem",
+    gap: theme.spacing.lg,
   };
 
   const iconWrapperStyle: React.CSSProperties = {
@@ -160,7 +160,7 @@ export const Contact = ({
     height: "3rem",
     backgroundColor: theme.colors.purple,
     color: theme.colors.black,
-    borderRadius: "9999px",
+    borderRadius: theme.radius.pill,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -173,7 +173,7 @@ export const Contact = ({
     lineHeight: 0.8,
     letterSpacing: "0.1em",
     color: mix(theme.colors.everglade, 40),
-    marginBottom: "0.25rem",
+    marginBottom: theme.spacing.xs,
   };
 
   const valueStyle: React.CSSProperties = {
@@ -185,8 +185,8 @@ export const Contact = ({
 
   const formCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.white,
-    padding: "2rem",
-    borderRadius: "1rem",
+    padding: theme.spacing.xxxxl,
+    borderRadius: theme.radius.large,
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   };
 
@@ -202,7 +202,7 @@ export const Contact = ({
   const consentRowStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "flex-start",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
     fontSize: "0.8125rem",
     lineHeight: 1.5,
     width: "100%",
@@ -210,7 +210,7 @@ export const Contact = ({
   };
 
   const checkboxStyle: React.CSSProperties = {
-    marginTop: "0.2rem",
+    marginTop: theme.spacing.nudge,
     width: "1.125rem",
     height: "1.125rem",
     flexShrink: 0,
@@ -248,8 +248,8 @@ export const Contact = ({
           .send-btn:hover .send-icon { transform: translate(8px, 0) !important; }
         `}</style>
         <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="lg-col-6"
@@ -261,7 +261,7 @@ export const Contact = ({
               color: theme.colors.accent,
               textTransform: "uppercase",
               fontSize: "0.75rem",
-              marginBottom: "1.5rem",
+              marginBottom: theme.spacing.xxl,
               display: "block",
             }}
           >
@@ -272,14 +272,14 @@ export const Contact = ({
             style={{
               fontSize: "clamp(2rem, 10vw, 4rem)",
               lineHeight: 1,
-              marginBottom: "3rem",
+              marginBottom: theme.spacing.xxxxxxxxl,
               fontFamily: theme.fonts.special,
               fontWeight: 400,
             }}
           >
             {title}
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
                 <Mail style={{ color: "inherit" }} />
@@ -315,8 +315,8 @@ export const Contact = ({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           style={formCardStyle}
@@ -336,7 +336,7 @@ export const Contact = ({
             </div>
           ) : (
             <form
-              style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xxxxl }}
               onSubmit={handleSubmit}
               onKeyDown={(e) => e.stopPropagation()}
               noValidate
@@ -365,7 +365,7 @@ export const Contact = ({
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr",
-                  gap: "2rem",
+                  gap: theme.spacing.xxxxl,
                 }}
                 className="md-grid-2"
               >
@@ -396,7 +396,7 @@ export const Contact = ({
                 >
                   <Mail
                     slot="start"
-                    style={{ marginInlineEnd: "0.5rem" }}
+                    style={{ marginInlineEnd: theme.spacing.sm }}
                     color="var(--wa-color-brand)"
                     height={16}
                     width={16}
@@ -418,7 +418,7 @@ export const Contact = ({
               >
                 <Phone
                   slot="start"
-                  style={{ marginInlineEnd: "0.5rem" }}
+                  style={{ marginInlineEnd: theme.spacing.sm }}
                   color="var(--wa-color-brand)"
                   height={16}
                   width={16}
@@ -490,7 +490,7 @@ export const Contact = ({
                     style={{
                       fontSize: "0.875rem",
                       lineHeight: 1.5,
-                      padding: "1rem",
+                      padding: theme.spacing.lg,
                       borderInlineStart: `4px solid ${theme.colors.danger}`,
                       backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
                       color: theme.colors.danger,
@@ -507,17 +507,17 @@ export const Contact = ({
                   backgroundColor: theme.colors.everglade,
                   color: theme.colors.white,
                   width: "100%",
-                  padding: "1.5rem",
+                  padding: theme.spacing.xxl,
                   fontFamily: theme.fonts.headline,
                   fontWeight: 900,
                   textTransform: "uppercase",
-                  borderRadius: "1rem",
+                  borderRadius: theme.radius.large,
                   letterSpacing: "0.1em",
                   fontSize: "0.875rem",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "1rem",
+                  gap: theme.spacing.lg,
                   border: "none",
                   cursor: submitStatus === "sending" ? "wait" : "pointer",
                   transition: "all 0.3s",

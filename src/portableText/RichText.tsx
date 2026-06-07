@@ -3,6 +3,7 @@ import type { PortableTextBlock } from "@portabletext/types";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { useMemo, type CSSProperties, type ReactNode } from "react";
 
+import { theme } from "../theme";
 import { coercePortableTextInput } from "./value";
 
 export type RichTextValue = PortableTextBlock[] | string | undefined | null;
@@ -42,28 +43,28 @@ export const RichText = ({
       block: {
         normal: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...paragraphStyle }}>{children}</div>
+            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...paragraphStyle }}>{children}</div>
           ) : (
-            <p style={{ margin: "0 0 1rem", ...paragraphStyle }}>{children}</p>
+            <p style={{ margin: `0 0 ${theme.spacing.lg}`, ...paragraphStyle }}>{children}</p>
           ),
         h2: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...heading2Style }}>{children}</div>
+            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading2Style }}>{children}</div>
           ) : (
-            <h2 style={{ margin: "0 0 0.75rem", ...heading2Style }}>{children}</h2>
+            <h2 style={{ margin: `0 0 ${theme.spacing.md}`, ...heading2Style }}>{children}</h2>
           ),
         h3: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: "0 0 0.5rem", ...heading3Style }}>{children}</div>
+            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}>{children}</div>
           ) : (
-            <h3 style={{ margin: "0 0 0.5rem", ...heading3Style }}>{children}</h3>
+            <h3 style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}>{children}</h3>
           ),
         blockquote: ({ children }) =>
           isHeadingFlow ? (
             <div
               style={{
-                margin: "0 0 0.75rem",
-                paddingLeft: "1rem",
+                margin: `0 0 ${theme.spacing.md}`,
+                paddingLeft: theme.spacing.lg,
                 borderLeft: "3px solid currentColor",
                 opacity: 0.9,
                 ...blockquoteStyle,
@@ -74,8 +75,8 @@ export const RichText = ({
           ) : (
             <blockquote
               style={{
-                margin: "0 0 1rem",
-                paddingLeft: "1rem",
+                margin: `0 0 ${theme.spacing.lg}`,
+                paddingLeft: theme.spacing.lg,
                 borderLeft: "3px solid currentColor",
                 opacity: 0.9,
                 ...blockquoteStyle,
@@ -89,8 +90,8 @@ export const RichText = ({
         bullet: ({ children }) => (
           <ul
             style={{
-              margin: "0 0 1rem",
-              paddingLeft: "1.25rem",
+              margin: `0 0 ${theme.spacing.lg}`,
+              paddingLeft: theme.spacing.xl,
               ...listStyle,
             }}
           >
@@ -100,8 +101,8 @@ export const RichText = ({
         number: ({ children }) => (
           <ol
             style={{
-              margin: "0 0 1rem",
-              paddingLeft: "1.25rem",
+              margin: `0 0 ${theme.spacing.lg}`,
+              paddingLeft: theme.spacing.xl,
               ...listStyle,
             }}
           >
@@ -110,8 +111,8 @@ export const RichText = ({
         ),
       },
       listItem: {
-        bullet: ({ children }) => <li style={{ marginBottom: "0.35rem" }}>{children}</li>,
-        number: ({ children }) => <li style={{ marginBottom: "0.35rem" }}>{children}</li>,
+        bullet: ({ children }) => <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>,
+        number: ({ children }) => <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>,
       },
       marks: {
         strong: ({ children }) => <strong>{children}</strong>,

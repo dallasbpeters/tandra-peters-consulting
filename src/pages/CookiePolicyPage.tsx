@@ -28,7 +28,7 @@ export const CookiePolicyPage = () => (
         "You can block or delete cookies through your browser settings. Blocking all cookies may affect how the site works.",
       ]),
     ]}
-    <p style={{ marginBottom: "1rem", lineHeight: 1.7 }}>
+    <p style={{ marginBottom: theme.spacing.lg, lineHeight: 1.7 }}>
       For how we handle personal data, see our{" "}
       <TransitionLink to="/privacy" style={linkStyle}>
         Privacy Policy
@@ -40,7 +40,7 @@ export const CookiePolicyPage = () => (
     ])}
     <p
       style={{
-        marginTop: "2rem",
+        marginTop: theme.spacing.xxxxl,
         fontSize: "0.875rem",
         color: theme.colors.legalMuted,
       }}

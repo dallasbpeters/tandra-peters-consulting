@@ -59,19 +59,19 @@ export const Expertise: React.FC<ExpertiseProps> = ({
 
   const headerStyle: React.CSSProperties = {
     textAlign: "center",
-    marginBottom: "3rem",
+    marginBottom: theme.spacing.xxxxxxxxl,
   };
 
   const gridStyle: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
-    gap: "2rem",
+    gap: theme.spacing.xxxxl,
   };
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
-    borderRadius: "1rem",
-    padding: "1.5rem",
+    borderRadius: theme.radius.large,
+    padding: theme.spacing.xxl,
     position: "relative",
     overflow: "hidden",
     minHeight: "400px",
@@ -102,7 +102,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
               letterSpacing: "0.2em",
               color: theme.palette.coral["300"],
               fontSize: "0.75rem",
-              marginBottom: "1.5rem",
+              marginBottom: theme.spacing.xxl,
               display: "block",
             }}
           >
@@ -184,7 +184,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                     color: theme.colors.white,
                     fontSize: "1.875rem",
                     lineHeight: 1.25,
-                    marginBottom: "1.5rem",
+                    marginBottom: theme.spacing.xxl,
                     fontFamily: theme.fonts.headline,
                     fontWeight: 800,
                     textTransform: "uppercase",

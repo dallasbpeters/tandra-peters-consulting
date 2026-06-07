@@ -15,8 +15,8 @@ import { TransitionLink } from "./TransitionLink";
 
 const cardBaseStyle: CSSProperties = {
   backgroundColor: theme.colors.black,
-  borderRadius: "1rem",
-  padding: "2rem",
+  borderRadius: theme.radius.large,
+  padding: theme.spacing.xxxxl,
   position: "relative",
   opacity: 1,
   overflow: "hidden",
@@ -114,7 +114,7 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: theme.colors.purple,
-              marginBottom: "0.75rem",
+              marginBottom: theme.spacing.md,
             }}
           >
             {postCategoryLabel(post.category)}
@@ -124,7 +124,7 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
               color: theme.colors.white,
               fontSize: isMain ? "2.25rem" : "1.85rem",
               lineHeight: 1.15,
-              margin: "0 0 1rem",
+              margin: `0 0 ${theme.spacing.lg}`,
               fontFamily: theme.fonts.headline,
               fontWeight: 800,
               textTransform: "uppercase",
@@ -157,8 +157,8 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-end",
-            gap: "1rem",
-            marginTop: "1.5rem",
+            gap: theme.spacing.lg,
+            marginTop: theme.spacing.xxl,
           }}
         >
           <time

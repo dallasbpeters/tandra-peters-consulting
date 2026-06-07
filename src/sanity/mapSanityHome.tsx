@@ -217,12 +217,34 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
       }
     : undefined;
 
+  const servicesStyle =
+    typeof svc.servicesStyle === "string" && svc.servicesStyle
+      ? (svc.servicesStyle as ServicesProps["servicesStyle"])
+      : undefined;
+
+  const rawTypographicArt = svc.typographicArt as Record<string, unknown> | null | undefined;
+  const typographicArt = rawTypographicArt
+    ? {
+        ...(rawTypographicArt.baseMaskImage
+          ? { baseMaskImage: toSanityImage(rawTypographicArt.baseMaskImage) }
+          : {}),
+        ...(rawTypographicArt.overlayMaskImage
+          ? { overlayMaskImage: toSanityImage(rawTypographicArt.overlayMaskImage) }
+          : {}),
+      }
+    : undefined;
+  const hasTypographicArt =
+    typographicArt &&
+    (typographicArt.baseMaskImage !== undefined || typographicArt.overlayMaskImage !== undefined);
+
   return {
     ...(svc.tagline ? { tagline: svc.tagline } : {}),
     ...(title ? { title } : {}),
     ...(sectionDescription ? { description: sectionDescription } : {}),
     ...(services && services.length > 0 ? { services } : {}),
     ...(birdcreekAdvantage ? { birdcreekAdvantage } : {}),
+    ...(servicesStyle ? { servicesStyle } : {}),
+    ...(hasTypographicArt ? { typographicArt } : {}),
   };
 };
 

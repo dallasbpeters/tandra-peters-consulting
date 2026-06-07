@@ -67,6 +67,16 @@ export interface VideoProps {
   posterUrl?: string;
 }
 
+export interface CertificationsProps {
+  title?: string;
+  certifications?: Certification[];
+}
+
+export interface Certification {
+  name: string;
+  image: string;
+}
+
 export interface Stat {
   /** Sanity array item `_key` when present (stable list keys). */
   rowKey?: string;
@@ -128,12 +138,25 @@ export interface MissionProps {
   services?: Mission[];
 }
 
+export type ServicesStyleVariant = "" | "control" | "typographic-alt";
+
+export interface ServicesTypographicArt {
+  /** Sanity CDN URL for the full headline image mask. */
+  baseMaskImage?: string;
+  /** Sanity CDN URL for the circular overlay patches on the headline. */
+  overlayMaskImage?: string;
+}
+
 export interface ServicesProps {
   tagline?: string;
   title?: React.ReactNode;
   description?: RichTextSource;
   services?: Service[];
   birdcreekAdvantage?: BirdcreekAdvantageCard;
+  /** Sanity override for PostHog `services-section-style` experiment. */
+  servicesStyle?: ServicesStyleVariant;
+  /** Headline image masks for the typographic-alt layout (`servicesSection.typographicArt`). */
+  typographicArt?: ServicesTypographicArt;
 }
 
 export interface ExpertiseItem {

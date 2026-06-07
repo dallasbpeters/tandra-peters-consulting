@@ -34,8 +34,8 @@ export const Stats: React.FC<StatsProps> = ({
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.evergladeLight,
     color: theme.colors.white,
-    paddingTop: "1rem",
-    paddingBottom: "1rem",
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
     borderBottom: `1px solid ${mix(theme.colors.paperDark, 20)}`,
   };
 
@@ -53,14 +53,14 @@ export const Stats: React.FC<StatsProps> = ({
     flexWrap: "wrap",
     justifyContent: "start",
     alignItems: "start",
-    gap: "2rem",
+    gap: theme.spacing.xxxxl,
     transition: "all 0.5s",
   };
 
   const statsItemStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
   };
   const statsStackStyle: React.CSSProperties = {
     display: "flex",

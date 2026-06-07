@@ -20,13 +20,13 @@ export const Canvas: React.FC<CanvasProps> = ({ hint, children }) => {
   const canvasStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
-    gap: "1.25rem",
+    gap: theme.spacing.xl,
   };
 
   const hintRowStyle: React.CSSProperties = {
     display: "flex",
     justifyContent: "flex-end",
-    paddingBottom: "1rem",
+    paddingBottom: theme.spacing.lg,
     borderBottom: `1px solid ${mix(theme.colors.everglade, 18)}`,
   };
 

@@ -51,8 +51,8 @@ export const Footer: React.FC<FooterProps> = ({
     color: theme.colors.white,
     /* Pull up 1px so footer paint covers the hairline below the last Band stripe (subpixel layout). */
     marginTop: "-1px",
-    paddingTop: "4rem",
-    paddingBottom: "3rem",
+    paddingTop: theme.spacing.section,
+    paddingBottom: theme.spacing.xxxxxxxxl,
     position: "relative",
   };
 
@@ -60,7 +60,7 @@ export const Footer: React.FC<FooterProps> = ({
     width: "2.5rem",
     height: "2.5rem",
     backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: "9999px",
+    borderRadius: theme.radius.pill,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -76,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({
     fontSize: "11px",
     letterSpacing: "0.3em",
     color: theme.colors.textOnBrand,
-    marginBottom: "2rem",
+    marginBottom: theme.spacing.xxxxl,
   };
 
   const linkListStyle: React.CSSProperties = {
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({
     margin: 0,
     display: "flex",
     flexDirection: "column",
-    gap: "1rem",
+    gap: theme.spacing.lg,
     fontSize: "0.875rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
@@ -133,7 +133,7 @@ export const Footer: React.FC<FooterProps> = ({
           .newsletter-btn:focus-visible {
             outline: 2px solid ${theme.colors.accentLight};
             outline-offset: 2px;
-            border-radius: 4px;
+            border-radius: ${theme.radius.small};
           }
           .newsletter-btn:hover { filter: brightness(1.1); }
         `}</style>
@@ -144,7 +144,7 @@ export const Footer: React.FC<FooterProps> = ({
               fontWeight: 900,
               letterSpacing: "-0.05em",
               fontFamily: theme.fonts.headline,
-              marginBottom: "2rem",
+              marginBottom: theme.spacing.xxxxl,
             }}
           >
             {logoText}
@@ -155,7 +155,7 @@ export const Footer: React.FC<FooterProps> = ({
               fontSize: "0.875rem",
               lineHeight: 1.6,
               maxWidth: "20rem",
-              marginBottom: "2.5rem",
+              marginBottom: theme.spacing.xxxxxxl,
               opacity: 0.6,
             }}
           >
@@ -171,7 +171,7 @@ export const Footer: React.FC<FooterProps> = ({
               linkStyle={{ color: theme.colors.accentLight }}
             />
           </div>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
+          <div style={{ display: "flex", gap: theme.spacing.xxl }}>
             {socialLinks.map((social, i) => (
               <a
                 key={i}

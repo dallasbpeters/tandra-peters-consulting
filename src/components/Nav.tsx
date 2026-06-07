@@ -73,7 +73,7 @@ export const Nav: React.FC<NavProps> = ({
     button: {
       backgroundColor: theme.colors.evergladeLight,
       color: theme.colors.white,
-      padding: "0.75rem 1.5rem",
+      padding: `${theme.spacing.md} ${theme.spacing.xxl}`,
       fontFamily: theme.fonts.headline,
       fontWeight: 700,
       textTransform: "uppercase",
@@ -88,8 +88,8 @@ export const Nav: React.FC<NavProps> = ({
       right: 0,
       zIndex: 50,
       transition: "all 0.5s",
-      paddingTop: isScrolled ? "1rem" : "1.5rem",
-      paddingBottom: isScrolled ? "1rem" : "1.5rem",
+      paddingTop: isScrolled ? theme.spacing.lg : theme.spacing.xxl,
+      paddingBottom: isScrolled ? theme.spacing.lg : theme.spacing.xxl,
       backgroundColor: isScrolled
         ? "rgba(255, 255, 255, 0.8)"
         : isMobile
@@ -105,7 +105,7 @@ export const Nav: React.FC<NavProps> = ({
       gridTemplateColumns: "auto minmax(0, 1fr)",
       gridTemplateAreas: isMobile ? `"image text"` : `"image text" "image tagline"`,
       alignItems: "center",
-      gap: "0 0.5rem",
+      gap: `0 ${theme.spacing.sm}`,
       minWidth: 0,
     },
     image: {
@@ -114,7 +114,7 @@ export const Nav: React.FC<NavProps> = ({
       maxInlineSize: isMobile ? "2rem" : "3rem",
       maxBlockSize: isMobile ? "2rem" : "3rem",
       objectFit: "cover",
-      borderRadius: "9999px",
+      borderRadius: theme.radius.pill,
       gridArea: "image",
       overflow: "hidden",
     },
@@ -156,7 +156,7 @@ export const Nav: React.FC<NavProps> = ({
     desktopNav: {
       display: "none",
       alignItems: "center",
-      gap: "1.5rem",
+      gap: theme.spacing.xxl,
       justifyContent: "center",
     },
 
@@ -180,8 +180,8 @@ export const Nav: React.FC<NavProps> = ({
           width: "100%",
           maxWidth: 1300,
           boxSizing: "border-box",
-          paddingInline: isMobile ? "1rem" : "1.5rem",
-          gap: isMobile ? "0.5rem" : "0.75rem",
+          paddingInline: isMobile ? theme.spacing.lg : theme.spacing.xxl,
+          gap: isMobile ? theme.spacing.sm : theme.spacing.md,
           overflowX: "clip",
           placeItems: "stretch",
         }}
@@ -194,7 +194,7 @@ export const Nav: React.FC<NavProps> = ({
             textDecoration: "none",
             flex: "1 1 auto",
             minWidth: 0,
-            marginRight: isMobile ? "0.25rem" : "0.5rem",
+            marginRight: isMobile ? theme.spacing.xs : theme.spacing.sm,
           }}
         >
           <motion.div
@@ -213,7 +213,7 @@ export const Nav: React.FC<NavProps> = ({
             .nav-focusable:focus-visible {
               outline: 2px solid ${theme.colors.everglade} !important;
               outline-offset: 3px;
-              border-radius: 0.25rem;
+              border-radius: ${theme.radius.small};
             }
             @media (max-width: 1000px) {
               .md-flex { display: none !important; }
@@ -275,7 +275,7 @@ export const Nav: React.FC<NavProps> = ({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: isMobile ? "0.5rem" : "1rem",
+            gap: isMobile ? theme.spacing.sm : theme.spacing.lg,
             flex: "0 0 auto",
             justifyContent: "flex-end",
           }}
@@ -303,7 +303,7 @@ export const Nav: React.FC<NavProps> = ({
             aria-controls="site-mobile-nav"
             style={{
               display: "none",
-              padding: "0.5rem",
+              padding: theme.spacing.sm,
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -346,10 +346,10 @@ export const Nav: React.FC<NavProps> = ({
           >
             <div
               style={{
-                padding: "1.5rem",
+                padding: theme.spacing.xxl,
                 display: "flex",
                 flexDirection: "column",
-                gap: "1rem",
+                gap: theme.spacing.lg,
               }}
             >
               {navItems.map((item, i) =>

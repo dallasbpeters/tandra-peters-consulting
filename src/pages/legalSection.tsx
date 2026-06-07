@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { theme } from "../theme";
 
 const pStyle: CSSProperties = {
-  marginBottom: "1rem",
+  marginBottom: theme.spacing.lg,
 };
 
 const h2Style: CSSProperties = {
@@ -12,8 +12,8 @@ const h2Style: CSSProperties = {
   fontSize: "0.75rem",
   letterSpacing: "0.2em",
   textTransform: "uppercase",
-  marginTop: "2rem",
-  marginBottom: "0.75rem",
+  marginTop: theme.spacing.xxxxl,
+  marginBottom: theme.spacing.md,
   color: theme.colors.evergladeMuted,
 };
 

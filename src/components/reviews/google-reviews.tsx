@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 
+import { useIsMobile } from "../../hooks/isMobile";
 import { layoutClass } from "../../styles/layoutClasses";
 import { theme } from "../../theme";
 import { GoogleLogo } from "./google-logo";
@@ -9,13 +10,12 @@ import { reviews } from "./reviews-data";
 const styles = {
   section: {
     width: "100%",
-    paddingBlock: "6rem",
-    paddingInline: "1.5rem",
+    paddingBlock: theme.spacing.sectionWide,
     backgroundColor: theme.colors.paper,
   },
   header: {
     maxWidth: "48rem",
-    margin: "0 auto 3.5rem",
+    margin: `0 auto ${theme.spacing.xxxxxxxxxxl}`,
     textAlign: "center",
   },
   kicker: {
@@ -28,24 +28,24 @@ const styles = {
     margin: 0,
   },
   title: {
-    margin: "1rem 0 0",
+    margin: `${theme.spacing.lg} 0 0`,
     fontFamily: theme.fonts.headlineAlt,
     fontSize: "clamp(2rem, 4vw, 3rem)",
     lineHeight: 1.15,
     color: theme.colors.everglade,
   },
   ratingRow: {
-    marginTop: "1.5rem",
+    marginTop: theme.spacing.xxl,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
   },
   ratingMeta: {
     display: "flex",
     alignItems: "center",
-    gap: "0.5rem",
+    gap: theme.spacing.sm,
   },
   ratingValue: {
     fontFamily: theme.fonts.headline,
@@ -61,7 +61,7 @@ const styles = {
   stars: {
     display: "flex",
     alignItems: "center",
-    gap: "0.125rem",
+    gap: theme.spacing.hairline,
   },
   star: {
     width: "1.25rem",
@@ -70,7 +70,7 @@ const styles = {
   rows: {
     display: "flex",
     flexDirection: "column",
-    gap: "1.25rem",
+    gap: theme.spacing.xl,
   },
 } satisfies Record<string, CSSProperties>;
 
@@ -87,11 +87,18 @@ const RatingStars = () => (
 const MARQUEE_ROW_SIZE = 12;
 
 export const GoogleReviews = () => {
+  const isMobile = useIsMobile();
   const firstRow = reviews.slice(0, MARQUEE_ROW_SIZE);
   const secondRow = reviews.slice(MARQUEE_ROW_SIZE, MARQUEE_ROW_SIZE * 2);
 
   return (
-    <section style={styles.section} aria-labelledby="reviews-heading">
+    <section
+      style={{
+        ...styles.section,
+        paddingInline: isMobile ? 0 : theme.spacing.xxl,
+      }}
+      aria-labelledby="reviews-heading"
+    >
       <div className={layoutClass.containerWide}>
         <div style={styles.header}>
           <p style={styles.kicker}>Trusted across Austin</p>

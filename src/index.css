@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/theme-variables.css";
 
 :root {
   --webawesome-font-family: "Plus Jakarta Sans", sans-serif;
@@ -84,7 +85,7 @@ wa-checkbox {
 /* Fixed nav clears anchor targets */
 main section[id],
 #testimonials {
-  scroll-margin-top: 6rem;
+  scroll-margin-top: var(--theme-spacing-section-wide);
   position: relative;
 }
 
@@ -110,11 +111,11 @@ h6 {
 }
 
 p:not(.whitespace-pre-wrap) {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--theme-spacing-md);
 }
 
 pre {
-  padding: 1rem;
+  padding: var(--theme-spacing-lg);
 }
 
 a {
@@ -129,8 +130,8 @@ button {
 kbd {
   background-color: oklch(70.97% 0.004 106.47deg);
   border: 1px solid oklch(80.97% 0.004 106.47deg);
-  border-radius: 0.25rem;
-  padding: 0.125rem 0.25rem;
+  border-radius: var(--theme-radius-small);
+  padding: var(--theme-spacing-hairline) var(--theme-spacing-xs);
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 0.675rem;
   font-weight: 500;
@@ -415,6 +416,6 @@ a.wa-button {
 
   ul li,
   ol li {
-    margin-inline-start: 1.25rem;
+    margin-inline-start: var(--theme-spacing-xl);
   }
 }

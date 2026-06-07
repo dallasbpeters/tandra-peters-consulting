@@ -84,6 +84,16 @@ async function main() {
     s0.image = await uploadImageFromFile(client, pub("roof-2.jpg"), "roof-2.jpg");
   }
 
+  homePayload.services.typographicArt = {
+    _type: "object",
+    baseMaskImage: await uploadImageFromFile(client, pub("roof-2.jpg"), "roof-2-mask-base.jpg"),
+    overlayMaskImage: await uploadImageFromFile(
+      client,
+      pub("metal-roof.jpg"),
+      "metal-roof-mask-overlay.jpg",
+    ),
+  };
+
   const missionFiles = [
     "Image-1774131541900.jpg",
     "Image-1774131578178.jpg",

@@ -84,7 +84,7 @@ export const ArticlePage = () => {
               style={{
                 fontFamily: theme.fonts.headline,
                 fontSize: "1.5rem",
-                marginBottom: "1rem",
+                marginBottom: theme.spacing.lg,
                 letterSpacing: "0.01em",
               }}
             >
@@ -92,7 +92,7 @@ export const ArticlePage = () => {
             </h1>
             <p
               style={{
-                marginBottom: "1.5rem",
+                marginBottom: theme.spacing.xxl,
                 color: theme.colors.evergladeMuted,
               }}
             >
@@ -126,8 +126,8 @@ export const ArticlePage = () => {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.35rem",
-              marginBottom: "1.75rem",
+              gap: theme.spacing.sm,
+              marginBottom: theme.spacing.xxxl,
               fontFamily: theme.fonts.headline,
               fontWeight: 700,
               fontSize: "0.65rem",
@@ -140,7 +140,7 @@ export const ArticlePage = () => {
             <NavArrowLeft width={16} height={16} strokeWidth={2} aria-hidden />
             All articles
           </TransitionLink>
-          <div style={{ marginBottom: "0.5rem" }}>
+          <div style={{ marginBottom: theme.spacing.sm }}>
             <span
               style={{
                 fontSize: "0.65rem",
@@ -148,9 +148,9 @@ export const ArticlePage = () => {
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 color: theme.palette.purple["300"],
-                padding: ".2rem .4rem",
+                padding: `${theme.spacing.nudge} ${theme.spacing.sm}`,
                 boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
-                borderRadius: "1rem",
+                borderRadius: theme.radius.large,
               }}
             >
               {postCategoryLabel(post.category)}
@@ -163,7 +163,7 @@ export const ArticlePage = () => {
             style={{
               fontSize: "0.9rem",
               color: theme.palette.paper["700"],
-              marginBottom: "2rem",
+              marginBottom: theme.spacing.xxxxl,
             }}
           >
             <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
@@ -178,8 +178,8 @@ export const ArticlePage = () => {
           {post.image ? (
             <div
               style={{
-                marginBottom: "2rem",
-                borderRadius: "0.5rem",
+                marginBottom: theme.spacing.xxxxl,
+                borderRadius: theme.radius.medium,
                 overflow: "hidden",
                 backgroundColor: theme.colors.paperDark,
               }}
@@ -209,7 +209,7 @@ export const ArticlePage = () => {
               className="article-rich-text"
               value={post.body}
               paragraphStyle={{
-                marginBottom: "1.1rem",
+                marginBottom: theme.spacing.xl,
                 color: "inherit",
                 lineHeight: "inherit",
                 fontSize: "inherit",
@@ -217,14 +217,14 @@ export const ArticlePage = () => {
               heading2Style={{
                 fontFamily: theme.fonts.headline,
                 fontSize: "1.25rem",
-                marginTop: "2rem",
-                marginBottom: "0.75rem",
+                marginTop: theme.spacing.xxxxl,
+                marginBottom: theme.spacing.md,
                 color: theme.colors.everglade,
               }}
               heading3Style={{
                 fontFamily: theme.fonts.headline,
                 fontSize: "1.05rem",
-                marginTop: "1.5rem",
+                marginTop: theme.spacing.xxl,
                 color: theme.colors.everglade,
               }}
               linkStyle={{

@@ -73,8 +73,8 @@ export const Hero: React.FC<HeroProps> = ({
     minHeight: isMobile ? "60vh" : "80vh",
     display: "flex",
     alignItems: "center",
-    paddingTop: "8rem",
-    paddingBottom: "5rem",
+    paddingTop: theme.spacing.sectionHero,
+    paddingBottom: theme.spacing.sectionLoose,
     background: `linear-gradient(135deg, ${theme.colors.black} 0%, ${theme.colors.black} 100%)`,
     overflow: "hidden",
   };
@@ -93,10 +93,10 @@ export const Hero: React.FC<HeroProps> = ({
   const badgeStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.5rem",
+    gap: theme.spacing.sm,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    padding: "0.25rem 0.75rem",
-    marginBottom: "1.5rem",
+    padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+    marginBottom: theme.spacing.xxl,
     color: theme.colors.purple,
   };
 
@@ -104,7 +104,7 @@ export const Hero: React.FC<HeroProps> = ({
     fontSize: "clamp(3rem, 10vw, 6rem)",
     color: theme.colors.white,
     lineHeight: 0.9,
-    marginBottom: "2rem",
+    marginBottom: theme.spacing.xxxxl,
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
     textTransform: "uppercase",
@@ -115,7 +115,7 @@ export const Hero: React.FC<HeroProps> = ({
     fontSize: "clamp(1rem, 2vw, 1.25rem)",
     color: theme.colors.white,
     maxWidth: "45rem",
-    marginBottom: "3rem",
+    marginBottom: theme.spacing.xxxxxxxxl,
     lineHeight: 1.6,
     fontWeight: 500,
   };
@@ -123,7 +123,7 @@ export const Hero: React.FC<HeroProps> = ({
   const buttonPrimaryStyle: React.CSSProperties = {
     backgroundColor: theme.colors.accentLight,
     color: theme.colors.everglade,
-    padding: "1rem 2rem",
+    padding: `${theme.spacing.lg} ${theme.spacing.xxxxl}`,
     fontFamily: theme.fonts.headline,
     fontWeight: 900,
     textTransform: "uppercase",
@@ -141,7 +141,7 @@ export const Hero: React.FC<HeroProps> = ({
     border: "1px solid rgba(255, 255, 255, 1)",
     color: theme.colors.white,
     backgroundColor: "transparent",
-    padding: "1rem 2rem",
+    padding: `${theme.spacing.lg} ${theme.spacing.xxxxl}`,
     fontFamily: theme.fonts.headline,
     fontWeight: 900,
     textTransform: "uppercase",
@@ -205,7 +205,7 @@ export const Hero: React.FC<HeroProps> = ({
           <GoogleAuthGate>
             <motion.div
               variants={itemVariants}
-              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}
               className="sm-row"
             >
               <style>{`

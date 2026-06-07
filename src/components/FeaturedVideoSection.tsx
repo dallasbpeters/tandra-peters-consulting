@@ -7,6 +7,7 @@ import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
 import { generateVttFromContent } from "../remotion/tandraIntroContent";
+import { theme } from "../theme";
 import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
 
@@ -20,7 +21,7 @@ interface Props {
 const containerStyle: React.CSSProperties = {
   position: "relative",
   overflow: "hidden",
-  padding: "2rem 1rem",
+  padding: `${theme.spacing.xxxxl} ${theme.spacing.lg}`,
   display: "grid",
   placeContent: "center",
   placeItems: "center",

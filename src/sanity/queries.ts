@@ -47,6 +47,10 @@ export const HOME_AND_SITE_QUERY = groq`{
       services[] {
         ...,
         "image": image.asset->url
+      },
+      typographicArt {
+        "baseMaskImage": baseMaskImage.asset->url,
+        "overlayMaskImage": overlayMaskImage.asset->url
       }
     },
     mission {

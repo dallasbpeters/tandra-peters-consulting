@@ -58,21 +58,21 @@ export const Mission: React.FC<MissionProps> = ({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: "3rem",
+    marginBottom: theme.spacing.xxxxxxxxl,
     color: theme.colors.paper,
-    gap: "3rem",
+    gap: theme.spacing.xxxxxxxxl,
   };
 
   const gridStyle: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
-    gap: "1rem",
+    gap: theme.spacing.lg,
   };
 
   const cardBaseStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
-    borderRadius: "1rem",
-    padding: "2rem",
+    borderRadius: theme.radius.large,
+    padding: theme.spacing.xxxxl,
     position: "relative",
     overflow: "hidden",
     display: "flex",
@@ -123,7 +123,7 @@ export const Mission: React.FC<MissionProps> = ({
                 letterSpacing: "0.2em",
                 color: theme.colors.purple,
                 fontSize: "0.75rem",
-                marginBottom: "1.5rem",
+                marginBottom: theme.spacing.xxl,
                 display: "block",
               }}
             >
@@ -237,7 +237,7 @@ export const Mission: React.FC<MissionProps> = ({
                       color: theme.colors.white,
                       fontSize: "2.475rem",
                       lineHeight: isMain ? 1 : 1.25,
-                      marginBottom: "1.5rem",
+                      marginBottom: theme.spacing.xxl,
                       fontFamily: theme.fonts.headline,
                       fontWeight: 800,
                       textTransform: "uppercase",

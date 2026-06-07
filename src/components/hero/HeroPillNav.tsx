@@ -119,11 +119,13 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     /* Section is flex-column on mobile so content stacks in flow */
     section: {
       position: "relative",
-      minHeight: isMobile ? "80vh" : "96vh",
+      minHeight: isMobile ? "auto" : "96vh",
       overflow: "hidden",
       background: theme.colors.black,
-      margin: isMobile ? "0" : "1rem",
-      borderRadius: isMobile ? "0" : "1rem",
+      boxSizing: "border-box",
+      width: isMobile ? "100%" : `calc(100% - 2 * ${theme.spacing.lg})`,
+      margin: isMobile ? 0 : theme.spacing.lg,
+      borderRadius: isMobile ? "0" : theme.radius.large,
       display: isMobile ? "flex" : "block",
       flexDirection: isMobile ? "column" : undefined,
     },
@@ -151,7 +153,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       height: "auto",
       zIndex: 10,
       willChange: "transform",
-      minWidth: 1300,
+      minWidth: 1500,
       display: "block",
       pointerEvents: "none",
       filter: "contrast(1.2) brightness(0.8)",
@@ -160,14 +162,14 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     /* ── DESKTOP: absolute content layers ── */
     headlineLayerDesktop: {
       position: "absolute",
-      inset: 0,
+      inset: 200,
       zIndex: 5,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       textAlign: "center",
-      gap: "1rem",
-      padding: "clamp(3rem, 14vh, 7rem) 2rem 0",
+      gap: theme.spacing.lg,
+      padding: `clamp(${theme.spacing.xxxxxxxxl}, 14vh, ${theme.spacing.navClearance}) ${theme.spacing.xxxxl} 0`,
       pointerEvents: "none",
     },
     copyLayerDesktop: {
@@ -178,7 +180,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       zIndex: 15,
       display: "flex",
       justifyContent: "center",
-      padding: "2rem",
+      padding: theme.spacing.xxxxl,
       pointerEvents: "none",
     },
     statBarDesktop: {
@@ -190,11 +192,11 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       display: "flex",
       justifyContent: "center",
       flexWrap: "wrap",
-      gap: "2rem 4rem",
+      gap: `${theme.spacing.xxxxl} ${theme.spacing.section}`,
       background: `${theme.colors.everglade}e0`,
       backdropFilter: "blur(12px)",
       borderTop: "1px solid oklch(100% 0 0 / 0.09)",
-      padding: "1.25rem 2rem",
+      padding: `${theme.spacing.xl} ${theme.spacing.xxxxl}`,
     },
 
     /* ── MOBILE: flex-column in-flow content ── */
@@ -206,46 +208,43 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       flexDirection: "column",
       alignItems: "center",
       textAlign: "center",
-      padding: "7.5rem 1.5rem 2rem", // top clears the mobile nav bar
-      gap: "1.5rem",
+      padding: `${theme.spacing.navClearance} ${theme.spacing.xxl} ${theme.spacing.xxxxl}`, // top clears the mobile nav bar
+      gap: theme.spacing.xxl,
     },
     statBarMobile: {
       position: "relative",
       zIndex: 25,
-      display: "flex",
-      justifyContent: "center",
-      flexWrap: "wrap",
-      gap: "1rem 2rem",
-      background: `${theme.colors.everglade}`,
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: `${theme.spacing.lg} ${theme.spacing.xxxxl}`,
+      background: `${theme.colors.everglade}e0`,
       backdropFilter: "blur(12px)",
-      borderTop: "1px solid oklch(100% 0 0 / 0.08)",
-      padding: "1rem 1rem",
+      borderBlock: "1px solid oklch(100% 0 0 / 0.08)",
+      padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
       marginTop: "auto",
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: isMobile ? "clamp(3rem, 12vw, 5rem)" : "clamp(4rem, 10vw, 8rem)",
+      fontSize: isMobile ? "clamp(3rem, 12vw, 5rem)" : "clamp(4rem, 10vw, 12rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
       textTransform: "uppercase",
       color: "oklch(100% 0 0)",
-      margin: "0 0 0.5rem",
+      margin: `0 0 ${theme.spacing.sm}`,
       maxWidth: "14ch",
     },
     h1Accent: {
       fontFamily: theme.fonts.headline,
-      fontWeight: 800,
-      textTransform: "none",
-      display: "block",
       color: theme.colors.heroAccent,
+      marginInlineStart: theme.spacing.lg,
       letterSpacing: "-0.025em",
-      fontSize: "1.2em",
+      fontSize: "1em",
       mixBlendMode: "multiply",
     },
     copyText: {
       color: "rgba(244,244,241,0.82)",
-      fontSize: "clamp(0.9375rem, 2.3vw, 1.325rem)",
+      fontSize: "clamp(1.375rem, 2.3vw, 1.625rem)",
       lineHeight: 1.35,
       maxWidth: "56rem",
       textAlign: "center",
@@ -265,7 +264,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       fontWeight: 700,
       letterSpacing: "0.12em",
       textTransform: "uppercase",
-      marginTop: "0.25rem",
+      marginTop: theme.spacing.xs,
     },
   };
 
@@ -296,7 +295,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
   );
 
   const statsEl = STATS.map(({ value, label }) => (
-    <div key={label} style={{ textAlign: "center" }}>
+    <div key={label} style={{ textAlign: isMobile ? "left" : "center" }}>
       <div style={styles.statValue}>{value}</div>
       <div style={styles.statLabel}>{label}</div>
     </div>

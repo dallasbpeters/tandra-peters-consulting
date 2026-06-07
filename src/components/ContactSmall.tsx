@@ -139,16 +139,16 @@ export const ContactSmall = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    paddingTop: "2rem",
-    paddingBottom: "2rem",
+    paddingTop: theme.spacing.xxxxl,
+    paddingBottom: theme.spacing.xxxxl,
     backgroundColor: theme.colors.evergladeLight,
     position: "relative",
   };
 
   const formCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.white,
-    padding: "2rem",
-    borderRadius: "1rem",
+    padding: theme.spacing.xxxxl,
+    borderRadius: theme.radius.large,
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
     position: "relative",
     zIndex: 1,
@@ -164,7 +164,7 @@ export const ContactSmall = ({
   const headingStyle: React.CSSProperties = {
     fontSize: "clamp(1rem, 8vw, 3rem)",
     lineHeight: 1,
-    marginBottom: "1rem",
+    marginBottom: theme.spacing.lg,
     fontFamily: theme.fonts.special,
     fontWeight: 400,
   };
@@ -172,14 +172,14 @@ export const ContactSmall = ({
   const consentRowStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "flex-start",
-    gap: "0.75rem",
+    gap: theme.spacing.md,
     fontSize: "0.8125rem",
     lineHeight: 1.5,
     color: theme.colors.everglade,
   };
 
   const checkboxStyle: React.CSSProperties = {
-    marginTop: "0.2rem",
+    marginTop: theme.spacing.nudge,
     width: "1.125rem",
     height: "1.125rem",
     flexShrink: 0,
@@ -243,7 +243,7 @@ export const ContactSmall = ({
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "1.5rem",
+                gap: theme.spacing.xxl,
               }}
               onSubmit={handleSubmit}
               onKeyDown={(e) => e.stopPropagation()}
@@ -297,7 +297,7 @@ export const ContactSmall = ({
               >
                 <Mail
                   slot="start"
-                  style={{ marginInlineEnd: "0.5rem" }}
+                  style={{ marginInlineEnd: theme.spacing.sm }}
                   color="var(--wa-color-brand)"
                   height={16}
                   width={16}
@@ -319,7 +319,7 @@ export const ContactSmall = ({
               >
                 <Phone
                   slot="start"
-                  style={{ marginInlineEnd: "0.5rem" }}
+                  style={{ marginInlineEnd: theme.spacing.sm }}
                   color="var(--wa-color-brand)"
                   height={16}
                   width={16}
@@ -361,7 +361,7 @@ export const ContactSmall = ({
                     style={{
                       fontSize: "0.875rem",
                       lineHeight: 1.5,
-                      padding: "1rem",
+                      padding: theme.spacing.lg,
                       borderInlineStart: `4px solid ${theme.colors.danger}`,
                       backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
                       color: theme.colors.danger,
@@ -379,17 +379,17 @@ export const ContactSmall = ({
                   backgroundColor: theme.colors.everglade,
                   color: theme.colors.white,
                   width: "100%",
-                  padding: "1.5rem",
+                  padding: theme.spacing.xxl,
                   fontFamily: theme.fonts.headline,
                   fontWeight: 900,
                   textTransform: "uppercase",
-                  borderRadius: "1rem",
+                  borderRadius: theme.radius.large,
                   letterSpacing: "0.1em",
                   fontSize: "0.875rem",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "1rem",
+                  gap: theme.spacing.lg,
                   border: "none",
                   cursor: submitStatus === "sending" ? "wait" : "pointer",
                   transition: "all 0.3s",

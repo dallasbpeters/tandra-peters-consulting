@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 import type { Review } from "./reviews-data";
 
+import { theme } from "../../theme";
 import { ReviewCard } from "./review-card";
 
 const styles = {
@@ -12,8 +13,8 @@ const styles = {
   track: {
     display: "flex",
     flexShrink: 0,
-    gap: "1.25rem",
-    paddingRight: "1.25rem",
+    gap: theme.spacing.xl,
+    paddingRight: theme.spacing.xl,
   },
 } satisfies Record<string, CSSProperties>;
 

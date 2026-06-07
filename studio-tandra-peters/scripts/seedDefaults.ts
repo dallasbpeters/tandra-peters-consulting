@@ -192,6 +192,9 @@ export const homePageSeed = {
       ctaLabel: "Learn More",
       ctaHref: "https://birdcreekroofing.com",
     },
+    typographicArt: {
+      _type: "object",
+    },
   },
   mission: {
     _type: "missionSection" as const,

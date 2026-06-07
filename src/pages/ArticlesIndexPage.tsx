@@ -18,8 +18,8 @@ const FALLBACK_INTRO =
 const gridStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1fr",
-  gap: "1rem",
-  marginTop: "0.5rem",
+  gap: theme.spacing.lg,
+  marginTop: theme.spacing.sm,
 };
 
 export const ArticlesIndexPage = () => {

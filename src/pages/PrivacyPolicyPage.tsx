@@ -46,7 +46,7 @@ export const PrivacyPolicyPage = () => (
     ]}
     <p
       style={{
-        marginTop: "2rem",
+        marginTop: theme.spacing.xxxxl,
         fontSize: "0.875rem",
         color: theme.colors.legalMuted,
       }}

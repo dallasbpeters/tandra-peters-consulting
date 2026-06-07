@@ -13,7 +13,7 @@ export const ArticleRichTextLinkStyles = () => (
     .article-rich-text a:focus-visible {
       outline: 2px solid ${theme.palette.blue["600"]};
       outline-offset: 2px;
-      border-radius: 2px;
+      border-radius: ${theme.radius.small};
     }
   `}</style>
 );

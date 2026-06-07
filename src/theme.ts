@@ -113,6 +113,71 @@ const palette = {
   },
 } as const;
 
+/** CSS mirrors: `pnpm generate:theme-css` → `src/styles/theme-variables.css` */
+const radius = {
+  small: "0.25rem",
+  medium: "0.5rem",
+  large: "1rem",
+  xlarge: "1.5rem",
+  xxlarge: "2rem",
+  xxxlarge: "2.5rem",
+  xxxxlarge: "3rem",
+  xxxxxlarge: "3.5rem",
+  xxxxxxxlarge: "4rem",
+  pill: "9999px",
+} as const;
+
+const typography = {
+  size80: "0.694rem",
+  size90: "0.833rem",
+  size100: "1rem",
+  size200: "1.2rem",
+  size300: "1.44rem",
+  size400: "1.728rem",
+  size500: "2.074rem",
+  size600: "2.488rem",
+  size700: "2.986rem",
+} as const;
+
+const spacing = {
+  xs: "0.25rem",
+  sm: "0.5rem",
+  md: "0.75rem",
+  lg: "1rem",
+  xl: "1.25rem",
+  xxl: "1.5rem",
+  xxxl: "1.75rem",
+  xxxxl: "2rem",
+  xxxxxl: "2.25rem",
+  xxxxxxl: "2.5rem",
+  xxxxxxxl: "2.75rem",
+  xxxxxxxxl: "3rem",
+  xxxxxxxxxl: "3.25rem",
+  xxxxxxxxxxl: "3.5rem",
+  /** Section padding / vertical rhythm */
+  section: "4rem",
+  sectionLoose: "5rem",
+  sectionWide: "6rem",
+  /** Mobile hero top inset — clears fixed nav */
+  navClearance: "7.5rem",
+  sectionHero: "8rem",
+  /** Between sm and md */
+  tight: "0.375rem",
+  /** Between sm and md (10px) */
+  compact: "0.625rem",
+  /** Between md and lg (14px) */
+  cozy: "0.875rem",
+  hairline: "0.125rem",
+  micro: "0.15rem",
+  nudge: "0.2rem",
+  /** Nav pill / glass horizontal inset */
+  insetXl: "1.375rem",
+  buttonPadY: "0.5625rem",
+  buttonPadYLg: "0.9375rem",
+  stackPad: "1.125rem",
+  sectionInsetTop: "6.5rem",
+} as const;
+
 export const theme = {
   fonts: {
     headline: '"Hanken Grotesk Variable", sans-serif',
@@ -121,6 +186,9 @@ export const theme = {
     body: '"Hanken Grotesk Variable", sans-serif',
   },
   palette,
+  radius,
+  typography,
+  spacing,
   colors: {
     white: "oklch(100% 0 0)",
     black: palette.paper["950"],

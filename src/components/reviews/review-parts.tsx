@@ -11,7 +11,7 @@ const starStyles = {
   stars: {
     display: "flex",
     alignItems: "center",
-    gap: "2px",
+    gap: theme.spacing.hairline,
   },
   star: {
     width: "16px",
@@ -39,7 +39,7 @@ const avatarStyles = {
   avatar: {
     width: "44px",
     height: "44px",
-    borderRadius: "9999px",
+    borderRadius: theme.radius.pill,
     objectFit: "cover",
     flexShrink: 0,
     backgroundColor: theme.colors.paperDim,
@@ -50,7 +50,7 @@ const avatarStyles = {
     justifyContent: "center",
     width: "44px",
     height: "44px",
-    borderRadius: "9999px",
+    borderRadius: theme.radius.pill,
     flexShrink: 0,
     backgroundColor: theme.palette.everglade["100"],
     color: theme.colors.everglade,

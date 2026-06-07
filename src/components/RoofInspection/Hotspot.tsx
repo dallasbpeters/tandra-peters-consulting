@@ -227,7 +227,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const dotStyle: React.CSSProperties = {
     position: "absolute",
     inset: "0.75rem",
-    borderRadius: "50%",
+    borderRadius: theme.radius.pill,
     background: theme.colors.heroAccent,
     boxShadow: `0 0 0 5px ${mix(theme.colors.heroAccent, 25)}`,
     transform: isOpen ? "scale(1.25)" : "scale(1)",
@@ -255,7 +255,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     width: `${CALLOUT_W_PX}px`,
     background: theme.colors.black,
     color: theme.colors.paper,
-    padding: "1.125rem 1.375rem 1.375rem",
+    padding: `${theme.spacing.stackPad} ${theme.spacing.insetXl} ${theme.spacing.insetXl}`,
     zIndex: 9999,
     // Hide until we have a measured position so there's no flash at -9999
     visibility: cardPos ? "visible" : "hidden",
@@ -266,7 +266,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     fontStyle: "italic",
     fontSize: "0.85rem",
     color: theme.colors.heroAccent,
-    margin: "0 0 0.375rem",
+    margin: `0 0 ${theme.spacing.tight}`,
   };
 
   const cardTitleStyle: React.CSSProperties = {
@@ -274,7 +274,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     fontWeight: 400,
     fontSize: "1.375rem",
     lineHeight: 1.1,
-    margin: "0 0 0.625rem",
+    margin: `0 0 ${theme.spacing.compact}`,
     color: theme.colors.paper,
   };
 
@@ -282,7 +282,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     fontSize: "0.8125rem",
     lineHeight: 1.6,
     color: mix(theme.colors.paper, 80),
-    margin: "0 0 0.75rem",
+    margin: `0 0 ${theme.spacing.md}`,
   };
 
   const cardWatchLabelStyle: React.CSSProperties = {
@@ -291,7 +291,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     letterSpacing: "0.22em",
     textTransform: "uppercase",
     color: theme.colors.heroAccent,
-    margin: "0.875rem 0 0.3rem",
+    margin: `${theme.spacing.cozy} 0 ${theme.spacing.nudge}`,
     display: "block",
   };
 

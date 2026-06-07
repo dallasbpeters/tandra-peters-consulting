@@ -37,7 +37,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
 
   const styles: Record<string, CSSProperties> = {
     wrapper: {
-      paddingTop: "5rem",
+      paddingTop: theme.spacing.sectionLoose,
     },
     section: {
       position: "relative",
@@ -79,7 +79,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       display: "flex",
       alignItems: "flex-end",
       justifyContent: "space-between",
-      gap: "2rem",
+      gap: theme.spacing.xxxxl,
     },
     copyBlock: {
       maxWidth: "40rem",
@@ -88,8 +88,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     badge: {
       display: "flex",
       alignItems: "center",
-      gap: "0.75rem",
-      marginBottom: "1.5rem",
+      gap: theme.spacing.md,
+      marginBottom: theme.spacing.xxl,
     },
     badgeLine: {
       height: "1.5px",
@@ -111,7 +111,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       letterSpacing: "-0.04em",
       textTransform: "uppercase",
       color: "oklch(100% 0 0)",
-      margin: "0 0 1.5rem",
+      margin: `0 0 ${theme.spacing.xxl}`,
     },
     h1Accent: {
       fontFamily: theme.fonts.headlineAlt,
@@ -125,17 +125,17 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       color: "oklch(80% 0.01 107)",
       fontSize: "1rem",
       lineHeight: 1.7,
-      marginBottom: "2.5rem",
+      marginBottom: theme.spacing.xxxxxxl,
     },
     ctaRow: {
       display: "flex",
-      gap: "1rem",
+      gap: theme.spacing.lg,
       flexWrap: "wrap",
     },
     ctaPrimary: {
       background: hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
       color: theme.colors.everglade,
-      padding: "0.9375rem 2.25rem",
+      padding: `${theme.spacing.buttonPadYLg} ${theme.spacing.xxxxxl}`,
       fontWeight: 900,
       fontSize: "0.8125rem",
       letterSpacing: "0.12em",
@@ -147,7 +147,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       border: `1px solid ${hovBtn === "secondary" ? "oklch(100% 0 0 / 0.65)" : "oklch(100% 0 0 / 0.35)"}`,
       color: "oklch(100% 0 0)",
       background: hovBtn === "secondary" ? "oklch(100% 0 0 / 0.08)" : "transparent",
-      padding: "0.9375rem 2.25rem",
+      padding: `${theme.spacing.buttonPadYLg} ${theme.spacing.xxxxxl}`,
       fontWeight: 700,
       fontSize: "0.8125rem",
       letterSpacing: "0.12em",
@@ -157,16 +157,17 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     },
     statCard: {
       background: theme.colors.paper,
-      padding: "1.5rem 2rem",
+      padding: `${theme.spacing.xxl} ${theme.spacing.xxxxl}`,
       borderTop: `3px solid ${theme.colors.accentLight}`,
       flexShrink: 0,
       alignSelf: "flex-end",
+      borderRadius: theme.radius.medium,
     },
     statValue: {
       fontFamily: theme.fonts.headline,
       fontWeight: 800,
       fontSize: "2.5rem",
-      color: theme.colors.everglade,
+      color: theme.colors.heroAccent,
       letterSpacing: "-0.04em",
       lineHeight: 1,
     },
@@ -176,7 +177,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       letterSpacing: "0.1em",
       textTransform: "uppercase",
       color: theme.colors.accent,
-      marginTop: "0.375rem",
+      marginTop: theme.spacing.tight,
     },
   };
 
