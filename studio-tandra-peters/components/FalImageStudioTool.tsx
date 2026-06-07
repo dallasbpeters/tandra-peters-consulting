@@ -19,7 +19,7 @@ import "./falImageStudioTool.css";
 
 type GenerateMode = "text" | "image" | "series" | "remove-bg";
 type FalModelId =
-  | "fal-ai/birefnet"
+  | "fal-ai/ideogram/remove-background"
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/dev"
   | "fal-ai/flux/krea"
@@ -110,9 +110,9 @@ const MODEL_OPTIONS: {
   removeBgOnly?: boolean;
 }[] = [
   {
-    id: "fal-ai/birefnet",
-    family: "BiRefNet",
-    label: "BiRefNet | Background Removal",
+    id: "fal-ai/ideogram/remove-background",
+    family: "Ideogram",
+    label: "Ideogram | Background Removal",
     description:
       "Remove image background — outputs transparent PNG. Select a Sanity image as the source.",
     imageReference: true,
