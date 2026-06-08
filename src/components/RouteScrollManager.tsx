@@ -1,5 +1,5 @@
-import { useLayoutEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useContext, useLayoutEffect } from "react";
+import { UNSAFE_ViewTransitionContext as ViewTransitionContext, useLocation } from "react-router";
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -13,8 +13,13 @@ const prefersReducedMotion = () =>
  */
 export const RouteScrollManager = () => {
   const { pathname, hash } = useLocation();
+  const vtContext = useContext(ViewTransitionContext);
 
   useLayoutEffect(() => {
+    if (vtContext?.isTransitioning) {
+      return;
+    }
+
     // PostHog toolbar auth lives in location.hash — do not treat it as an in-page anchor.
     if (hash.includes("__posthog") || hash.includes("ph_authorize")) {
       return;
@@ -22,9 +27,9 @@ export const RouteScrollManager = () => {
 
     const id = hash?.replace(/^#/, "").trim() ?? "";
 
-    if (pathname === "/") {
-      if (id) {
-        const run = () => {
+    const runScroll = () => {
+      if (pathname === "/") {
+        if (id) {
           const el = document.getElementById(id);
           if (el) {
             el.scrollIntoView({
@@ -34,18 +39,18 @@ export const RouteScrollManager = () => {
           } else {
             window.scrollTo(0, 0);
           }
-        };
-        requestAnimationFrame(() => {
-          requestAnimationFrame(run);
-        });
-      } else {
-        window.scrollTo(0, 0);
-      }
-      return;
-    }
+          return;
+        }
 
-    window.scrollTo(0, 0);
-  }, [pathname, hash]);
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      window.scrollTo(0, 0);
+    };
+
+    runScroll();
+  }, [pathname, hash, vtContext?.isTransitioning]);
 
   return null;
 };

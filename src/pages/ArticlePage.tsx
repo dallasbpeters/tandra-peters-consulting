@@ -51,14 +51,12 @@ export const ArticlePage = () => {
   if (!slug) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
-          <div className={layoutClass.containerArticle}>
-            <p>Missing article link.</p>
-            <TransitionLink to="/articles" viewTransition>
-              Back to articles
-            </TransitionLink>
-          </div>
-        </main>
+        <div className={layoutClass.containerArticle}>
+          <p>Missing article link.</p>
+          <TransitionLink to="/articles" viewTransition>
+            Back to articles
+          </TransitionLink>
+        </div>
       </SitePageChrome>
     );
   }
@@ -66,11 +64,9 @@ export const ArticlePage = () => {
   if (loading) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
-          <div className={layoutClass.containerArticle}>
-            <p style={{ color: theme.colors.evergladeMuted }}>Loading…</p>
-          </div>
-        </main>
+        <div className={layoutClass.containerArticle}>
+          <p style={{ color: theme.colors.evergladeMuted }}>Loading…</p>
+        </div>
       </SitePageChrome>
     );
   }
@@ -78,35 +74,33 @@ export const ArticlePage = () => {
   if (error || !post) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
-          <div className={layoutClass.containerArticle}>
-            <h1
-              style={{
-                fontFamily: theme.fonts.headline,
-                fontSize: "1.5rem",
-                marginBottom: theme.spacing.lg,
-                letterSpacing: "0.01em",
-              }}
-            >
-              Article not found
-            </h1>
-            <p
-              style={{
-                marginBottom: theme.spacing.xxl,
-                color: theme.colors.evergladeMuted,
-              }}
-            >
-              This article may have moved or is not published yet.
-            </p>
-            <TransitionLink
-              to="/articles"
-              viewTransition
-              style={{ color: theme.colors.everglade, fontWeight: 800 }}
-            >
-              ← All articles
-            </TransitionLink>
-          </div>
-        </main>
+        <div className={layoutClass.containerArticle}>
+          <h1
+            style={{
+              fontFamily: theme.fonts.headline,
+              fontSize: "1.5rem",
+              marginBottom: theme.spacing.lg,
+              letterSpacing: "0.01em",
+            }}
+          >
+            Article not found
+          </h1>
+          <p
+            style={{
+              marginBottom: theme.spacing.xxl,
+              color: theme.colors.evergladeMuted,
+            }}
+          >
+            This article may have moved or is not published yet.
+          </p>
+          <TransitionLink
+            to="/articles"
+            viewTransition
+            style={{ color: theme.colors.everglade, fontWeight: 800 }}
+          >
+            ← All articles
+          </TransitionLink>
+        </div>
       </SitePageChrome>
     );
   }
@@ -118,126 +112,124 @@ export const ArticlePage = () => {
     <SitePageChrome>
       <ArticleRichTextLinkStyles />
       <ArticleJsonLd post={post} path={path} />
-      <main className={`${layoutClass.pageMainArticle} site-main-route`}>
-        <article className={layoutClass.containerArticle}>
-          <TransitionLink
-            to="/articles"
-            viewTransition
+      <article className={layoutClass.containerArticle}>
+        <TransitionLink
+          to="/articles"
+          viewTransition
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.xxxl,
+            fontFamily: theme.fonts.headline,
+            fontWeight: 700,
+            fontSize: "0.65rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: theme.colors.everglade,
+            textDecoration: "none",
+          }}
+        >
+          <NavArrowLeft width={16} height={16} strokeWidth={2} aria-hidden />
+          All articles
+        </TransitionLink>
+        <div style={{ marginBottom: theme.spacing.sm }}>
+          <span
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-              marginBottom: theme.spacing.xxxl,
-              fontFamily: theme.fonts.headline,
-              fontWeight: 700,
               fontSize: "0.65rem",
-              letterSpacing: "0.14em",
+              fontWeight: 700,
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: theme.colors.everglade,
-              textDecoration: "none",
+              color: theme.palette.purple["300"],
+              padding: `${theme.spacing.nudge} ${theme.spacing.sm}`,
+              boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
+              borderRadius: theme.radius.large,
             }}
           >
-            <NavArrowLeft width={16} height={16} strokeWidth={2} aria-hidden />
-            All articles
-          </TransitionLink>
-          <div style={{ marginBottom: theme.spacing.sm }}>
-            <span
-              style={{
-                fontSize: "0.65rem",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: theme.palette.purple["300"],
-                padding: `${theme.spacing.nudge} ${theme.spacing.sm}`,
-                boxShadow: `0 0 0 1px ${theme.palette.purple[300]}`,
-                borderRadius: theme.radius.large,
-              }}
-            >
-              {postCategoryLabel(post.category)}
-            </span>
-          </div>
+            {postCategoryLabel(post.category)}
+          </span>
+        </div>
 
-          <h1 style={typeStyles.articleDetailTitle}>{post.title}</h1>
+        <h1 style={typeStyles.articleDetailTitle}>{post.title}</h1>
 
-          <p
-            style={{
-              fontSize: "0.9rem",
-              color: theme.palette.paper["700"],
-              marginBottom: theme.spacing.xxxxl,
-            }}
-          >
-            <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-            {post.authorName ? (
-              <>
-                {" · "}
-                {post.authorName}
-              </>
-            ) : null}
-          </p>
-
-          {post.image ? (
-            <div
-              style={{
-                marginBottom: theme.spacing.xxxxl,
-                borderRadius: theme.radius.medium,
-                overflow: "hidden",
-                backgroundColor: theme.colors.paperDark,
-              }}
-            >
-              <img
-                src={postCoverImageSrc(post.image, { w: 1200, fit: "max" })}
-                alt=""
-                style={{
-                  width: "100%",
-                  aspectRatio: "5/3",
-                  objectFit: "cover",
-                  height: "auto",
-                  display: "block",
-                }}
-              />
-            </div>
+        <p
+          style={{
+            fontSize: "0.9rem",
+            color: theme.palette.paper["700"],
+            marginBottom: theme.spacing.xxxxl,
+          }}
+        >
+          <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+          {post.authorName ? (
+            <>
+              {" · "}
+              {post.authorName}
+            </>
           ) : null}
+        </p>
 
+        {post.image ? (
           <div
             style={{
-              fontSize: "1.05rem",
-              lineHeight: 1.75,
-              color: theme.colors.everglade,
+              marginBottom: theme.spacing.xxxxl,
+              borderRadius: theme.radius.medium,
+              overflow: "hidden",
+              backgroundColor: theme.colors.paperDark,
             }}
           >
-            <RichText
-              className="article-rich-text"
-              value={post.body}
-              paragraphStyle={{
-                marginBottom: theme.spacing.xl,
-                color: "inherit",
-                lineHeight: "inherit",
-                fontSize: "inherit",
-              }}
-              heading2Style={{
-                fontFamily: theme.fonts.headline,
-                fontSize: "1.25rem",
-                marginTop: theme.spacing.xxxxl,
-                marginBottom: theme.spacing.md,
-                color: theme.colors.everglade,
-              }}
-              heading3Style={{
-                fontFamily: theme.fonts.headline,
-                fontSize: "1.05rem",
-                marginTop: theme.spacing.xxl,
-                color: theme.colors.everglade,
-              }}
-              linkStyle={{
-                color: theme.palette.blue["600"],
-                textDecorationThickness: ".15em",
-                textDecorationSkipInk: "all",
-                paddingInline: ".25em",
-                backgroundColor: theme.palette.blue[100],
+            <img
+              src={postCoverImageSrc(post.image, { w: 1200, fit: "max" })}
+              alt=""
+              style={{
+                width: "100%",
+                aspectRatio: "5/3",
+                objectFit: "cover",
+                height: "auto",
+                display: "block",
               }}
             />
           </div>
-        </article>
-      </main>
+        ) : null}
+
+        <div
+          style={{
+            fontSize: "1.05rem",
+            lineHeight: 1.75,
+            color: theme.colors.everglade,
+          }}
+        >
+          <RichText
+            className="article-rich-text"
+            value={post.body}
+            paragraphStyle={{
+              marginBottom: theme.spacing.xl,
+              color: "inherit",
+              lineHeight: "inherit",
+              fontSize: "inherit",
+            }}
+            heading2Style={{
+              fontFamily: theme.fonts.headline,
+              fontSize: "1.25rem",
+              marginTop: theme.spacing.xxxxl,
+              marginBottom: theme.spacing.md,
+              color: theme.colors.everglade,
+            }}
+            heading3Style={{
+              fontFamily: theme.fonts.headline,
+              fontSize: "1.05rem",
+              marginTop: theme.spacing.xxl,
+              color: theme.colors.everglade,
+            }}
+            linkStyle={{
+              color: theme.palette.blue["600"],
+              textDecorationThickness: ".15em",
+              textDecorationSkipInk: "all",
+              paddingInline: ".25em",
+              backgroundColor: theme.palette.blue[100],
+            }}
+          />
+        </div>
+      </article>
       <Faq {...articleFaqProps} paddingTop="0" />
       <SocialShareBar
         heading="Know someone who could benefit from this article?"

@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 
-import { useSiteNav } from "../../hooks/useSiteNav";
+import { isInPageHashHref, useSiteNav } from "../../hooks/useSiteNav";
 import { TransitionLink } from "../TransitionLink";
 
 type SiteNavLinkProps = {
@@ -27,7 +27,7 @@ export const SiteNavLink = ({
 }: SiteNavLinkProps) => {
   const { isHome, resolveNavTo, handleSectionNavClick } = useSiteNav();
 
-  if (isHome) {
+  if (isHome && isInPageHashHref(href)) {
     return (
       <a
         href={href}
@@ -42,7 +42,7 @@ export const SiteNavLink = ({
     );
   }
 
-  if (href.startsWith("#") || href.startsWith("/")) {
+  if (isInPageHashHref(href) || href.startsWith("/")) {
     return (
       <TransitionLink
         to={resolveNavTo(href)}

@@ -26,11 +26,9 @@ if (posthogToken && isPosthogEnabled()) {
   posthog.init(posthogToken, {
     ...posthogOptions,
     defaults: "2026-01-30",
-    // Pre-seed an empty flags map so the SDK treats flags as "loaded" immediately.
-    // This silences "getFeatureFlag failed — flags didn't load in time" warnings for
-    // PostHog's own internal flags (e.g. christmas-override). Our hero-banner-style
-    // flag still resolves from /decide as normal.
-    bootstrap: { featureFlags: {} },
+    // Do not pass `bootstrap.featureFlags: {}` — an empty object makes
+    // useFeatureFlagVariantKey return undefined before /flags loads, which
+    // flashes the control nav on off-home routes.
     loaded: (client) => {
       if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true") {
         const toolbarReady = client.toolbar?.maybeLoadToolbar?.() ?? false;

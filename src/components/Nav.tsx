@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useIsMobile } from "../hooks/isMobile";
+import { isInPageHashHref } from "../hooks/useSiteNav";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { NavProps } from "../types";
@@ -221,7 +222,7 @@ export const Nav: React.FC<NavProps> = ({
             }
           `}</style>
           {navItems.map((item, i) =>
-            isHome ? (
+            isHome && isInPageHashHref(item.href) ? (
               <motion.a
                 key={i}
                 href={item.href}
@@ -249,7 +250,11 @@ export const Nav: React.FC<NavProps> = ({
                 key={i}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{
+                  delay: isHome ? i * 0.05 : i * 0.1,
+                  duration: 0.2,
+                  ease: "easeInOut",
+                }}
                 style={{ display: "inline-block" }}
               >
                 <TransitionLink
@@ -353,7 +358,7 @@ export const Nav: React.FC<NavProps> = ({
               }}
             >
               {navItems.map((item, i) =>
-                isHome ? (
+                isHome && isInPageHashHref(item.href) ? (
                   <a
                     key={i}
                     href={item.href}

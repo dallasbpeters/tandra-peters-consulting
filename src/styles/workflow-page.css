@@ -1,8 +1,4 @@
 /* Block: workflow-page — insurance claim process diagram */
-.workflow-page {
-  min-height: 100vh;
-}
-
 .workflow-page__intro {
   max-width: 48rem;
   margin: var(--theme-spacing-lg) auto 0 auto;
@@ -31,9 +27,8 @@
   --workflow-grid: color-mix(in oklch, #505050 14%, transparent);
 
   width: calc(100% - var(--theme-spacing-section-loose) * 2);
-  height: min(920px, 78vh);
   min-height: 680px;
-  margin: 0 var(--theme-spacing-section-loose);
+  margin: 0 var(--theme-spacing-section-loose) var(--theme-spacing-xl);
   border: 1px solid color-mix(in oklch, #000 18%, transparent);
   border-radius: var(--theme-radius-large);
   overflow: hidden;
@@ -70,6 +65,26 @@
 
 .workflow-node--wide {
   max-width: 34rem;
+}
+
+.workflow-page__canvas .workflow-node__handle {
+  border: none;
+}
+
+.workflow-page__canvas .workflow-node__handle--target {
+  width: 0.5rem;
+  height: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.workflow-page__canvas .workflow-node__handle--source {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background-color: var(--workflow-edge);
+  opacity: 1;
 }
 
 .workflow-node__title {
@@ -142,8 +157,7 @@
 @media (width <= 768px) {
   .workflow-page__canvas {
     width: calc(100% - var(--theme-spacing-lg) * 2);
-    margin: 0 var(--theme-spacing-lg);
-    height: min(720px, 70vh);
     min-height: 520px;
+    margin: 0 var(--theme-spacing-lg) var(--theme-spacing-lg);
   }
 }

@@ -1,8 +1,8 @@
-import { useFeatureFlagVariantKey } from "@posthog/react";
 import React from "react";
 
 import type { HeroProps } from "../types";
 
+import { useHeroBannerVariant } from "../hooks/useHeroBannerVariant";
 import { Hero } from "./Hero";
 import { HeroDualCTARail } from "./hero/HeroDualCTARail";
 import { HeroGlassOverlay } from "./hero/HeroGlassOverlay";
@@ -23,8 +23,7 @@ import { HeroPillNav } from "./hero/HeroPillNav";
  * the cached value at mount time.
  */
 export const HeroVariant: React.FC<HeroProps> = ({ heroStyle, ...props }) => {
-  const flagVariant = useFeatureFlagVariantKey("hero-banner-style");
-  const variant = heroStyle ?? flagVariant;
+  const { variant } = useHeroBannerVariant(heroStyle);
 
   if (variant === "glass-overlay") return <HeroGlassOverlay {...props} />;
   if (variant === "dual-cta-rail") return <HeroDualCTARail {...props} />;

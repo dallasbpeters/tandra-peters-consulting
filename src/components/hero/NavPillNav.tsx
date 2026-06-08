@@ -200,7 +200,11 @@ export const NavPillNav: React.FC<NavProps> = ({
   return (
     <>
       {/* Desktop floating pill */}
-      <nav aria-label="Site navigation" style={styles.pill}>
+      <nav
+        aria-label="Site navigation"
+        className={isMobile ? undefined : "site-nav-vt"}
+        style={styles.pill}
+      >
         <TransitionLink to="/" style={styles.pillLogo}>
           {logoText}
         </TransitionLink>
@@ -234,7 +238,11 @@ export const NavPillNav: React.FC<NavProps> = ({
       </nav>
 
       {/* Mobile fixed bar */}
-      <nav aria-label="Site navigation" className="site-nav-vt" style={styles.mobileBar}>
+      <nav
+        aria-label="Site navigation"
+        className={isMobile ? "site-nav-vt" : undefined}
+        style={styles.mobileBar}
+      >
         <span style={styles.mobileBarLogo}>{logoText}</span>
         <SiteNavLink
           href={ctaHref}

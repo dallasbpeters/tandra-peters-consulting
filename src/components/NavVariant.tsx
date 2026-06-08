@@ -1,8 +1,8 @@
-import { useFeatureFlagVariantKey } from "@posthog/react";
 import React from "react";
 
 import type { HeroProps, NavProps } from "../types";
 
+import { useHeroBannerVariant } from "../hooks/useHeroBannerVariant";
 import { NavDualCTARail } from "./hero/NavDualCTARail";
 import { NavGlassOverlay } from "./hero/NavGlassOverlay";
 import { NavPillNav } from "./hero/NavPillNav";
@@ -20,13 +20,25 @@ type NavVariantProps = NavProps & {
  * Drop-in replacement for <Nav> inside SitePageChrome.
  */
 export const NavVariant: React.FC<NavVariantProps> = ({ heroStyle, ...navProps }) => {
-  const flagVariant = useFeatureFlagVariantKey("hero-banner-style");
-  const variant = heroStyle ?? flagVariant;
+  const { variant, isResolved } = useHeroBannerVariant(heroStyle);
+
+  if (!variant) {
+    if (!isResolved) {
+      return (
+        <div
+          className="site-nav-vt"
+          style={{ minHeight: "4.5rem", visibility: "hidden" }}
+          aria-hidden
+        />
+      );
+    }
+
+    return <Nav {...navProps} />;
+  }
 
   if (variant === "glass-overlay") return <NavGlassOverlay {...navProps} />;
   if (variant === "dual-cta-rail") return <NavDualCTARail {...navProps} />;
   if (variant === "dark-floating-pill") return <NavPillNav {...navProps} />;
 
-  // control or flag not yet evaluated → existing Nav
   return <Nav {...navProps} />;
 };

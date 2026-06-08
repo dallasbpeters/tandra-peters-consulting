@@ -1,23 +1,16 @@
 import { Analytics } from "@vercel/analytics/react";
-import { Suspense, lazy } from "react";
-import { Outlet, createBrowserRouter, RouterProvider } from "react-router-dom";
+import { lazy } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { GoogleAuthGateProvider } from "./components/GoogleAuthGate";
 import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
+import { SiteShell } from "./components/SiteShell";
 import { SanityContentProvider } from "./context/SanitySiteContext";
+import { ArticlePage } from "./pages/ArticlePage";
+import { ArticlesIndexPage } from "./pages/ArticlesIndexPage";
 import { Home } from "./pages/Home";
 import { WorkflowPage } from "./pages/WorkflowPage";
-
-const ArticlesIndexPage = lazy(async () => {
-  const module = await import("./pages/ArticlesIndexPage");
-  return { default: module.ArticlesIndexPage };
-});
-
-const ArticlePage = lazy(async () => {
-  const module = await import("./pages/ArticlePage");
-  return { default: module.ArticlePage };
-});
 
 const PrivacyPolicyPage = lazy(async () => {
   const module = await import("./pages/PrivacyPolicyPage");
@@ -60,7 +53,7 @@ const RootLayout = () => (
     <GoogleAuthGateProvider>
       <SanityContentProvider>
         <SanityVisualEditing />
-        <Outlet />
+        <SiteShell />
         <Analytics />
       </SanityContentProvider>
     </GoogleAuthGateProvider>
@@ -72,87 +65,17 @@ const appRouter = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
-      {
-        path: "articles",
-        element: (
-          <Suspense fallback={null}>
-            <ArticlesIndexPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "articles/:slug",
-        element: (
-          <Suspense fallback={null}>
-            <ArticlePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "seo",
-        element: (
-          <Suspense fallback={null}>
-            <SeoDashboardPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "privacy",
-        element: (
-          <Suspense fallback={null}>
-            <PrivacyPolicyPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "terms",
-        element: (
-          <Suspense fallback={null}>
-            <TermsOfServicePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "cookies",
-        element: (
-          <Suspense fallback={null}>
-            <CookiePolicyPage />
-          </Suspense>
-        ),
-      },
+      { path: "articles", element: <ArticlesIndexPage /> },
+      { path: "articles/:slug", element: <ArticlePage /> },
+      { path: "seo", element: <SeoDashboardPage /> },
+      { path: "privacy", element: <PrivacyPolicyPage /> },
+      { path: "terms", element: <TermsOfServicePage /> },
+      { path: "cookies", element: <CookiePolicyPage /> },
       { path: "workflow", element: <WorkflowPage /> },
-      {
-        path: "agent",
-        element: (
-          <Suspense fallback={null}>
-            <FeatureBuilderPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "marketing",
-        element: (
-          <Suspense fallback={null}>
-            <MarketingAgentPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "ads",
-        element: (
-          <Suspense fallback={null}>
-            <AdDashboardPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "advertising",
-        element: (
-          <Suspense fallback={null}>
-            <AdDashboardPage />
-          </Suspense>
-        ),
-      },
+      { path: "agent", element: <FeatureBuilderPage /> },
+      { path: "marketing", element: <MarketingAgentPage /> },
+      { path: "ads", element: <AdDashboardPage /> },
+      { path: "advertising", element: <AdDashboardPage /> },
     ],
   },
 ]);

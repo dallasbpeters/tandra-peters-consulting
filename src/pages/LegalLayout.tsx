@@ -1,12 +1,8 @@
 import { NavArrowLeft } from "iconoir-react";
 import { type ReactNode } from "react";
 
-import { Footer } from "../components/Footer";
-import { NavVariant } from "../components/NavVariant";
 import { TransitionLink } from "../components/TransitionLink";
-import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
-import { mapFooterProps, mapNavProps } from "../sanity/mapSanityHome";
 import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
 import { theme } from "../theme";
@@ -17,13 +13,11 @@ type LegalLayoutProps = {
 };
 
 export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
-  const { data } = useSanitySite();
   usePageMetadata({
     title: `${title} | Tandra Peters`,
     description:
       "Policies and legal information for Tandra Peters and Birdcreek Roofing consultation services in Texas.",
   });
-  const site = data?.site as Record<string, unknown> | null | undefined;
 
   return (
     <div
@@ -34,12 +28,8 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
         fontFamily: theme.fonts.body,
       }}
     >
-      <NavVariant heroStyle="control" {...mapNavProps(site)} />
-      <main>
-        <article
-          className={`${layoutClass.pageMain} ${layoutClass.pageMainLegal} ${layoutClass.containerLegal}`}
-        >
-          <style>{`
+      <article className={layoutClass.containerLegal}>
+        <style>{`
             .legal-back-link:hover,
             .legal-back-link:focus-visible {
               color: ${theme.colors.everglade} !important;
@@ -52,30 +42,28 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
               border-radius: ${theme.radius.small};
             }
           `}</style>
-          <TransitionLink
-            to="/"
-            className="legal-back-link"
-            style={typeStyles.backLink}
-            aria-label="Back to home page"
-          >
-            <NavArrowLeft
-              width={18}
-              height={18}
-              strokeWidth={2}
-              aria-hidden
-              style={{ flexShrink: 0, opacity: 0.85 }}
-            />
-            Back
-          </TransitionLink>
-          <h1 style={typeStyles.legalPageTitle}>{title}</h1>
-          <p style={typeStyles.legalMuted}>
-            This page is provided for transparency. It is not legal advice. For questions about your
-            rights or obligations, consult a qualified attorney.
-          </p>
-          <div style={typeStyles.legalBody}>{children}</div>
-        </article>
-      </main>
-      <Footer {...mapFooterProps(site)} />
+        <TransitionLink
+          to="/"
+          className="legal-back-link"
+          style={typeStyles.backLink}
+          aria-label="Back to home page"
+        >
+          <NavArrowLeft
+            width={18}
+            height={18}
+            strokeWidth={2}
+            aria-hidden
+            style={{ flexShrink: 0, opacity: 0.85 }}
+          />
+          Back
+        </TransitionLink>
+        <h1 style={typeStyles.legalPageTitle}>{title}</h1>
+        <p style={typeStyles.legalMuted}>
+          This page is provided for transparency. It is not legal advice. For questions about your
+          rights or obligations, consult a qualified attorney.
+        </p>
+        <div style={typeStyles.legalBody}>{children}</div>
+      </article>
     </div>
   );
 };

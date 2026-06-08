@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 
-import type { HeroProps, RoofInspectionHotspotData } from "../types";
+import type { RoofInspectionHotspotData } from "../types";
 
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
@@ -217,10 +217,8 @@ export const Home = () => {
 
   const activeChapters = sanityChapters ?? CHAPTERS;
 
-  const heroStyle = (hero?.heroStyle || undefined) as HeroProps["heroStyle"];
-
   return (
-    <SitePageChrome heroStyle={heroStyle}>
+    <SitePageChrome>
       <SeoStructuredData />
       <main>
         {hero ? <HeroVariant {...mapHeroProps(hero)} /> : null}

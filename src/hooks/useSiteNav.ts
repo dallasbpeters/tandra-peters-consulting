@@ -1,6 +1,9 @@
 import { useCallback, type MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 
+/** In-page section anchor on the homepage (smooth-scroll), not a routed path. */
+export const isInPageHashHref = (href: string) => href.startsWith("#");
+
 /** Hash and in-page nav behavior shared across all nav variants. */
 export const useSiteNav = () => {
   const location = useLocation();

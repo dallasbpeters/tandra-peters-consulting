@@ -187,7 +187,6 @@ a.wa-button {
 .site-main-route {
   /* eslint-disable-next-line css/use-baseline */
   view-transition-name: site-main-route;
-  contain: layout;
 }
 
 @media (prefers-reduced-motion: no-preference) {

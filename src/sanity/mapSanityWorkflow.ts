@@ -330,6 +330,7 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
   const viewportAnchorX = asNumber(doc?.viewportAnchorX, 60);
   const viewportAnchorY = asNumber(doc?.viewportAnchorY, 60);
   const originX = layout.originX;
+  const originY = layout.originY;
 
   return {
     nodes,
@@ -338,6 +339,7 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
     viewportAnchorX,
     viewportAnchorY,
     originX,
+    originY,
     remountKey: [
       layout.originX,
       layout.originY,

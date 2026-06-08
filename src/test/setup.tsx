@@ -58,6 +58,8 @@ vi.mock("@posthog/react", () => ({
     capture: mockCapture,
     identify: mockIdentify,
     captureException: mockCaptureException,
+    getFeatureFlag: () => undefined,
+    featureFlags: { hasLoadedFlags: true, getFlags: () => [] },
   }),
   useFeatureFlagVariantKey: () => undefined,
 }));
