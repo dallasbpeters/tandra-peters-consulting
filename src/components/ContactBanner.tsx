@@ -33,8 +33,8 @@ const styles = {
   banner: (isMobile: boolean): CSSProperties => ({
     position: "relative",
     overflow: "hidden",
-    height: 130,
-    padding: `0 ${isMobile ? theme.spacing.md : theme.spacing.xl}`,
+    height: isMobile ? "auto" : 130,
+    padding: `${theme.spacing.md} ${isMobile ? theme.spacing.md : theme.spacing.xl}`,
     borderRadius: `calc(${theme.radius.large} - ${theme.spacing.sm})`,
     color: ink,
   }),
