@@ -18,8 +18,7 @@ import { type SchemaType } from "sanity";
 import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 
-import { FalImageStudioTool } from "./components/FalImageStudioTool";
-import { SanityImageManagerTool } from "./components/SanityImageManagerTool";
+import { LazyFalImageStudioTool, LazyImageManagerTool } from "./components/lazyStudioTools";
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
@@ -470,12 +469,12 @@ export default defineConfig({
     {
       name: "image-manager",
       title: "Image Manager",
-      component: SanityImageManagerTool,
+      component: LazyImageManagerTool,
     },
     {
       name: "fal-image-studio",
       title: "AI Image Studio",
-      component: FalImageStudioTool,
+      component: LazyFalImageStudioTool,
     },
   ],
 

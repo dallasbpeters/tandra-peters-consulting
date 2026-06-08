@@ -50,18 +50,18 @@ const COUNTY_GEOJSON: GeoJSON.FeatureCollection = {
   }),
 };
 
-const MAP_STYLE = "mapbox://styles/dallasbpeters/cmpp2gz72003a01sfea418ld8";
+const MAP_STYLE = "mapbox://styles/dallasbpeters/cmpp12ft3003f01s8fw2fdari";
 
 const TEXAS_STATE_GEOJSON = texasStateOutline as GeoJSON.FeatureCollection;
 
 /** Mapbox paint props must be sRGB hex. High opacity — Standard night basemap is dark underneath. */
 const MAP_COLORS = {
-  fill: "#945bea",
+  fill: "#945bea78",
   fillOpacity: 0.78,
-  stroke: "#6d13cd",
+  stroke: "#9a55e4",
   strokeWidth: 1.5,
   boundary: "rgba(255, 255, 255, 0.65)",
-  stateOutline: "#39eb65",
+  stateOutline: "#248e3f",
   stateOutlineWidth: 2.25,
   adminBoundary: "rgba(189, 188, 190, 0.88)",
   label: "#ffffff",

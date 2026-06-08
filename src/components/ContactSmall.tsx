@@ -408,34 +408,34 @@ export const ContactSmall = ({
             </form>
           )}
         </motion.div>
-        <Shader style={shaderStyle}>
-          <LinearGradient
-            colorA="#6c66de"
-            colorB="#298f07"
-            colorSpace="oklab"
-            end={{
-              x: 0.92,
-
-              y: 0.81,
-            }}
-            start={{
-              x: 0.18,
-
-              y: 0.23,
-            }}
-          />
-
-          <WaveDistortion
-            angle={81}
-            frequency={0.9}
-            speed={0.7}
-            strength={0.75}
-            transform={{ scale: 1.84 }}
-          />
-
-          <Dither blendMode="colorDodge" colorMode="source" pattern="bayer8" />
-        </Shader>
       </div>
+      <Shader style={shaderStyle}>
+        <LinearGradient
+          colorA="#6c66de"
+          colorB="#298f07"
+          colorSpace="oklab"
+          end={{
+            x: 0.92,
+
+            y: 0.81,
+          }}
+          start={{
+            x: 0.18,
+
+            y: 0.23,
+          }}
+        />
+
+        <WaveDistortion
+          angle={81}
+          frequency={0.9}
+          speed={0.7}
+          strength={0.75}
+          transform={{ scale: 1.84 }}
+        />
+
+        <Dither blendMode="colorDodge" colorMode="source" pattern="bayer8" />
+      </Shader>
     </section>
   );
 };

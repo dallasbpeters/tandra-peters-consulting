@@ -89,6 +89,13 @@
   gap: var(--studio-tool-space-xs);
 }
 
+.fis__control-hint {
+  color: var(--card-muted-fg-color, #6b7280);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .fis__control-group > label {
   color: var(--studio-tool-text);
   font-size: 0.78rem;

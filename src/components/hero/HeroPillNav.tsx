@@ -17,7 +17,7 @@ const STATS = [
   { value: "7×", label: "Best Roofer Award" },
   { value: "★ 4.9", label: "Google Rating" },
   { value: "500+", label: "Projects Completed" },
-  { value: "27yr", label: "Serving Austin" },
+  { value: "12yrs", label: "Serving Austin" },
 ];
 
 const optimized = (url: string, w: number) =>
@@ -99,8 +99,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
 
       if (skyWrapRef.current) {
         gsap.to(skyWrapRef.current, {
-          yPercent: 35,
-          ease: "none",
+          yPercent: -35,
           scrollTrigger: trigger,
         });
       }

@@ -214,7 +214,7 @@ const BirdcreekAdvantageItem = ({
 
   const metaStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,
-    fontSize: "0.65rem",
+    fontSize: theme.typography.size100,
     color: theme.colors.paper,
     marginBottom: "0.25rem",
     letterSpacing: "0.1em",
@@ -340,7 +340,7 @@ export const ServicesAlt: React.FC<ServicesProps> = ({
       {!isMobile && <ArtContainer baseImage={baseMaskImage} overlayImage={overlayMaskImage} />}
       <div style={uiLayerStyle}>
         <BrandBadge isMobile={isMobile} />
-        <main style={clusterStyle}>
+        <div style={clusterStyle}>
           {displayItems.map((service) => (
             <ServiceItem
               key={service.key}
@@ -355,7 +355,7 @@ export const ServicesAlt: React.FC<ServicesProps> = ({
             isMobile={isMobile}
             onCtaClick={handleBirdcreekClick}
           />
-        </main>
+        </div>
       </div>
     </section>
   );

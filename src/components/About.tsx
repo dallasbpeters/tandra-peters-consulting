@@ -23,16 +23,16 @@ function ShaderEffect({ style }: { style: React.CSSProperties }) {
   return (
     <Shader style={style}>
       <MultiPointGradient
-        colorA="#f8f4b1"
+        colorA="#f5f6e9"
         colorB="#f9f8e7"
         colorC="#fbf8ea"
-        colorD="#eef3ac"
-        colorE="#eef3ac"
+        colorD="#fdfcf2"
+        colorE="#fafbee"
         positionA={{ x: 0.24, y: 0.08 }}
         positionB={{ x: 0.81, y: 0.19 }}
         positionC={{ x: 0.68, y: 0.64 }}
         positionD={{ x: 0.35, y: 1 }}
-        positionE={{ x: 0.09, y: 0.22 }}
+        positionE={{ x: 0.29, y: 0.22 }}
         smoothness={2.1}
       />
     </Shader>
@@ -45,8 +45,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const richBody = useMemo(() => asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS), [body]);
 
-  /* Scroll-scrub: words fade in document order; each line's gradient sweep is
-     scheduled to start with that line's first word and last through its words. */
+  /* Scroll-scrub: per-line word fade + gradient clip stay paired so scrub reverses cleanly. */
   useGSAP(
     () => {
       const trigger = sectionRef.current?.querySelector(".about-body-text");
@@ -56,20 +55,21 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         type: "lines,words",
         linesClass: "about-split-line",
         wordsClass: "about-split-word",
+        // SplitText defaults add aria-label on <p>, which axe flags as prohibited.
+        aria: "none",
       });
 
       const wordStagger = 0.04;
 
       // Warm wash — matches ShaderEffect palette so the sweep reads on scroll
-      const lineGradient = "linear-gradient(to right, #f8f4b1 0%, rgba(248, 244, 177, 0) 88%)";
 
+      gsap.set(split.words, { opacity: 0 });
       gsap.set(split.lines, {
-        backgroundImage: lineGradient,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "0% 50%",
+        clipPath: "inset(0 100% 0 0)",
       });
 
       const tl = gsap.timeline({
+        defaults: { ease: "none", immediateRender: false },
         scrollTrigger: {
           trigger,
           start: "top 75%",
@@ -79,22 +79,8 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         },
       });
 
-      // fromTo keeps start/end values on the tween so scrub reverses cleanly
-      tl.fromTo(
-        split.words,
-        { opacity: 0 },
-        {
-          opacity: 1,
-          ease: "none",
-          duration: wordStagger,
-          stagger: { each: wordStagger, from: "start" },
-          immediateRender: false,
-        },
-        0,
-      );
-
-      // Anchor each line's gradient to its own words — not a global line index —
-      // so paragraph 2's wash cannot run ahead of paragraph 2's word reveal.
+      // Pair each line's words + clip-path at the same timeline slot so reverse
+      // scroll cannot leave a visible gradient strip after words fade out.
       split.lines.forEach((line) => {
         const wordsInLine = [...line.querySelectorAll<HTMLElement>(".about-split-word")];
         if (!wordsInLine.length) return;
@@ -106,21 +92,42 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         const lineDuration = wordsInLine.length * wordStagger;
 
         tl.fromTo(
-          line,
-          { backgroundSize: "0% 100%" },
+          wordsInLine,
+          { opacity: 0 },
           {
-            backgroundSize: "100% 100%",
-            ease: "none",
+            opacity: 1,
+            duration: wordStagger,
+            stagger: { each: wordStagger, from: "start" },
+          },
+          lineStart,
+        );
+
+        tl.fromTo(
+          line,
+          { clipPath: "inset(0 100% 0 0)" },
+          {
+            clipPath: "inset(0 0% 0 0)",
             duration: lineDuration,
-            immediateRender: false,
           },
           lineStart,
         );
       });
 
-      ScrollTrigger.refresh();
+      const refreshAfterFonts = () => {
+        ScrollTrigger.refresh();
+      };
 
-      return () => split.revert();
+      if (document.fonts?.ready) {
+        void document.fonts.ready.then(refreshAfterFonts);
+      } else {
+        refreshAfterFonts();
+      }
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+        split.revert();
+      };
     },
     { scope: sectionRef, dependencies: [body] },
   );
@@ -145,7 +152,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
   const tandraImgStyle: React.CSSProperties = {
     position: "absolute",
     bottom: 0,
-    left: -100,
+    left: "2vw",
     width: 600,
     zIndex: 3,
     display: isTablet ? "none" : "block",
@@ -156,10 +163,9 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     lineHeight: 1.6,
     fontSize: "clamp(1.3rem, 4vw, 1.7rem)",
     fontWeight: 500,
-    paddingInlineStart: theme.spacing.md,
+    paddingInlineStart: isTablet ? 0 : `calc(${theme.spacing.xxxxxxxxxl} * 2)`,
     marginBottom: theme.spacing.xxxxl,
-    zIndex: 10,
-    mixBlendMode: "exclusion",
+    zIndex: 12,
   };
 
   return (
@@ -179,11 +185,6 @@ export const About: React.FC<AboutProps> = ({ body }) => {
           .lg-grid { grid-template-columns: 1fr !important; }
           .lg-col  { grid-column: 1 !important; z-index: 10; }
           .md-block { display: block !important; }
-          .about-split-line {
-            display: block;
-            width: fit-content;
-            max-width: 100%;
-          }
         `}</style>
 
         <div className="lg-col">

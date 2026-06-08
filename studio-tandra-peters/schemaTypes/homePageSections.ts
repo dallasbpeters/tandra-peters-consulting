@@ -270,12 +270,6 @@ export const servicesSectionType = defineType({
         "Photos that fill the giant BIRDCREEK headline in the typographic-alt services layout. Base image shows through the full letterforms; overlay image appears in the circular patches.",
       fields: [
         defineGeneratedImage({
-          name: "baseMaskImage",
-          title: "Base mask image",
-          description:
-            "Full headline image fill (upload or AI). Defaults to /roof-2.jpg when empty.",
-        }),
-        defineGeneratedImage({
           name: "overlayMaskImage",
           title: "Overlay mask image",
           description:

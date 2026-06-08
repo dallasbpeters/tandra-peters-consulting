@@ -36,7 +36,7 @@ type SanityImageAsset = {
   }[];
 };
 
-const imageAssetQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order(_createdAt desc)[0...200] {
+const imageAssetListQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order(_createdAt desc)[0...200] {
   _id,
   _createdAt,
   altText,
@@ -54,7 +54,10 @@ const imageAssetQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order
       width
     },
     lqip
-  },
+  }
+}`;
+
+const imageAssetReferenceQuery = `*[_id == $id][0]{
   "usedBy": count(*[references(^._id) && !(_id in path("_.**"))]),
   "references": *[references(^._id) && !(_id in path("_.**"))][0...8] {
     _id,
@@ -129,13 +132,18 @@ export function SanityImageManagerTool() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftAltText, setDraftAltText] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
+  const [referenceLoading, setReferenceLoading] = useState(false);
+  const [selectedReferences, setSelectedReferences] = useState<{
+    usedBy?: number;
+    references?: SanityImageAsset["references"];
+  } | null>(null);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetQuery);
+      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetListQuery);
       setAssets(nextAssets);
       setSelectedAssetId((current) => current ?? nextAssets[0]?._id ?? null);
     } catch (caught) {
@@ -148,6 +156,41 @@ export function SanityImageManagerTool() {
   useEffect(() => {
     void loadAssets();
   }, [loadAssets]);
+
+  useEffect(() => {
+    if (!selectedAssetId) {
+      setSelectedReferences(null);
+      return;
+    }
+
+    let cancelled = false;
+    setReferenceLoading(true);
+
+    void client
+      .fetch<{
+        usedBy?: number;
+        references?: SanityImageAsset["references"];
+      }>(imageAssetReferenceQuery, { id: selectedAssetId })
+      .then((result) => {
+        if (!cancelled) {
+          setSelectedReferences(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSelectedReferences({ usedBy: 0, references: [] });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setReferenceLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [client, selectedAssetId]);
 
   const filteredAssets = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -162,10 +205,18 @@ export function SanityImageManagerTool() {
     );
   }, [assets, search]);
 
-  const selectedAsset = useMemo(
-    () => assets.find((asset) => asset._id === selectedAssetId) ?? filteredAssets[0] ?? null,
-    [assets, filteredAssets, selectedAssetId],
-  );
+  const selectedAsset = useMemo(() => {
+    const asset = assets.find((item) => item._id === selectedAssetId) ?? filteredAssets[0] ?? null;
+    if (!asset) {
+      return null;
+    }
+
+    return {
+      ...asset,
+      usedBy: selectedReferences?.usedBy,
+      references: selectedReferences?.references,
+    };
+  }, [assets, filteredAssets, selectedAssetId, selectedReferences]);
 
   useEffect(() => {
     setDraftTitle(selectedAsset?.title ?? "");
@@ -413,7 +464,11 @@ export function SanityImageManagerTool() {
                   </div>
                   <div>
                     <dt>Used by</dt>
-                    <dd>{selectedAsset.usedBy ?? 0} documents</dd>
+                    <dd>
+                      {referenceLoading
+                        ? "Checking references..."
+                        : `${selectedAsset.usedBy ?? 0} documents`}
+                    </dd>
                   </div>
                 </dl>
 
@@ -443,7 +498,9 @@ export function SanityImageManagerTool() {
 
                 <div className="sim__references">
                   <strong>References</strong>
-                  {selectedAsset.references?.length ? (
+                  {referenceLoading ? (
+                    <p>Loading references...</p>
+                  ) : selectedAsset.references?.length ? (
                     <ul>
                       {selectedAsset.references.map((reference) => (
                         <li key={reference._id}>
@@ -468,7 +525,7 @@ export function SanityImageManagerTool() {
                   </WaButton>
                   <WaButton
                     className="sim__danger"
-                    disabled={saving || Boolean(selectedAsset.usedBy)}
+                    disabled={saving || referenceLoading || Boolean(selectedAsset.usedBy)}
                     onClick={() => void handleDelete()}
                     size="xs"
                     title={

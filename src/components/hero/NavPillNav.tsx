@@ -199,7 +199,9 @@ export const NavPillNav: React.FC<NavProps> = ({
     <>
       {/* Desktop floating pill */}
       <nav aria-label="Site navigation" style={styles.pill}>
-        <span style={styles.pillLogo}>{logoText}</span>
+        <a href="/" style={styles.pillLogo}>
+          {logoText}
+        </a>
         <div style={styles.pillDivider} />
         {navItems.map((item) => (
           <a

@@ -194,7 +194,9 @@ export default function ScrollVelocity(props) {
   const directionMultiplier = direction === "left" ? 1 : -1;
 
   return (
-    <div
+    <section
+      role="marquee"
+      aria-label="Service Areas"
       style={{
         width: "100%",
         height: 80,
@@ -231,6 +233,6 @@ export default function ScrollVelocity(props) {
           </VelocityText>
         );
       })}
-    </div>
+    </section>
   );
 }

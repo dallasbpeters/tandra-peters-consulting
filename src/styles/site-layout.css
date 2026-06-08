@@ -179,6 +179,8 @@ main {
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
+
+  /* eslint-disable-next-line css/use-baseline -- hide scrollbar in Firefox; WebKit uses rule below */
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -217,6 +219,8 @@ main {
   inset: -10px;
   z-index: 0;
   pointer-events: none;
+
+  /* eslint-disable-next-line css/use-baseline -- user-select is not a widely available baseline feature */
   user-select: none;
   overflow: hidden;
 }
@@ -241,7 +245,7 @@ main {
 .services-alt-massive-type {
   font-family: "Hanken Grotesk Variable", sans-serif;
   font-weight: 900;
-  font-size: 20vw;
+  font-size: 25vw;
   line-height: 0.72;
   letter-spacing: -0.06em;
   text-transform: uppercase;
@@ -256,6 +260,8 @@ main {
   background-repeat: no-repeat;
   color: transparent;
   -webkit-text-fill-color: transparent;
+
+  /* eslint-disable-next-line css/use-baseline -- Safari text background clip */
   background-clip: text;
   /* stylelint-disable-next-line property-no-vendor-prefix -- Safari text background clip */
   -webkit-background-clip: text;
@@ -269,7 +275,7 @@ main {
   --services-alt-mask-image: var(--services-alt-mask-image-overlay);
 }
 
-@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+@supports not (background-clip: text) {
   .services-alt-massive-type--masked {
     color: var(--services-alt-mask-fallback-color, currentcolor);
     -webkit-text-fill-color: currentcolor;
@@ -717,4 +723,16 @@ main {
   font-family: var(--font-headline, Hanken Grotesk Variable, sans-serif);
   font-size: 0.75rem;
   color: oklch(44.75% 0.03 107.54);
+}
+
+/* About — SplitText line/word reveal (GSAP scroll-scrub) */
+#about-tandra .about-split-line {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#about-tandra .about-split-word {
+  mix-blend-mode: exclusion;
 }

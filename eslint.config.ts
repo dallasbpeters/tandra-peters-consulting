@@ -75,5 +75,9 @@ export default defineConfig([
     plugins: { css },
     language: "css/css",
     extends: ["css/recommended"],
+    rules: {
+      // Theme tokens live in theme-variables.css (imported at build time, not inlined per file).
+      "css/no-invalid-properties": ["error", { allowUnknownVariables: true }],
+    },
   },
 ]);

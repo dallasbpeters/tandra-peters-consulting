@@ -1294,7 +1294,7 @@ export const AdDashboardPage = () => {
           {auth.token ? (
             <>
               <section className="ad-dashboard-grid">
-                <aside className="ad-dashboard-panel ad-dashboard-controls">
+                <div className="ad-dashboard-panel ad-dashboard-controls">
                   <div className="ad-dashboard-inner">
                     <div className="ad-dashboard-panel-header">
                       <Page width={20} height={20} />
@@ -1507,7 +1507,7 @@ export const AdDashboardPage = () => {
                       Sign out
                     </button>
                   </div>
-                </aside>
+                </div>
 
                 <section className="ad-dashboard-stage">
                   <div className="ad-dashboard-toolbar">
@@ -1617,7 +1617,7 @@ export const AdDashboardPage = () => {
                   </div>
                 </section>
 
-                <aside className="ad-dashboard-panel ad-dashboard-brand">
+                <div className="ad-dashboard-panel ad-dashboard-brand">
                   <div className="ad-dashboard-panel-header">
                     <Upload width={20} height={20} />
                     <h2>Image</h2>
@@ -1742,7 +1742,7 @@ export const AdDashboardPage = () => {
                       onValueChange={(value) => updateCreative("headlineAccentColor", value)}
                     />
                   </div>
-                </aside>
+                </div>
               </section>
             </>
           ) : null}

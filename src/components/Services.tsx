@@ -72,7 +72,7 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   const sectionStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.paperDim,
+    backgroundColor: theme.colors.black,
   };
 
   const headerStyle: React.CSSProperties = {
@@ -92,7 +92,7 @@ export const Services: React.FC<ServicesProps> = ({
 
   const mainCardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
-    borderRadius: theme.radius.large,
+    borderRadius: theme.radius.medium,
     padding: "2rem",
     position: "relative",
     overflow: "hidden",
@@ -104,8 +104,8 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   const secondaryCardStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.radius.large,
+    backgroundColor: mix(theme.colors.everglade, 60),
+    borderRadius: theme.radius.medium,
     padding: "2rem",
     display: "flex",
     flexDirection: "column",
@@ -148,7 +148,7 @@ export const Services: React.FC<ServicesProps> = ({
                 fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
-                color: theme.colors.accent,
+                color: theme.colors.white,
                 fontSize: "0.75rem",
                 marginBottom: "1.5rem",
                 display: "block",
@@ -163,7 +163,7 @@ export const Services: React.FC<ServicesProps> = ({
                 lineHeight: 1,
                 fontFamily: theme.fonts.headline,
                 fontWeight: 800,
-                textTransform: "uppercase",
+                color: theme.colors.white,
               }}
             >
               {title}
@@ -172,7 +172,7 @@ export const Services: React.FC<ServicesProps> = ({
           <div
             style={{
               maxWidth: "24rem",
-              color: mix(theme.colors.everglade, 60),
+              color: mix(theme.colors.white, 60),
               lineHeight: 1.6,
               fontSize: "1.1rem",
             }}
@@ -237,7 +237,9 @@ export const Services: React.FC<ServicesProps> = ({
                     style={{
                       width: isMain ? "4rem" : "3rem",
                       height: isMain ? "4rem" : "3rem",
-                      backgroundColor: isMain ? theme.colors.accentLight : theme.colors.paperDim,
+                      backgroundColor: isMain
+                        ? theme.colors.accentLight
+                        : theme.palette.coral["400"],
                       borderRadius: theme.radius.pill,
                       display: "flex",
                       alignItems: "center",
@@ -256,12 +258,12 @@ export const Services: React.FC<ServicesProps> = ({
                     <service.icon
                       width={isMain ? 36 : 28}
                       height={isMain ? 36 : 28}
-                      style={{ color: theme.colors.everglade }}
+                      style={{ color: theme.colors.white }}
                     />
                   </div>
                   <h3
                     style={{
-                      color: isMain ? theme.colors.white : theme.colors.everglade,
+                      color: theme.colors.white,
                       fontSize: isMain ? "clamp(2rem, 5vw, 3.75rem)" : "1.875rem",
                       lineHeight: isMain ? 1 : 1.25,
                       marginBottom: "1.5rem",
@@ -274,7 +276,7 @@ export const Services: React.FC<ServicesProps> = ({
                   </h3>
                   <div
                     style={{
-                      color: isMain ? theme.colors.white : mix(theme.colors.everglade, 60),
+                      color: theme.colors.white,
                       maxWidth: isMain ? "28rem" : "none",
                       lineHeight: 1.6,
                       fontSize: isMain ? "1rem" : "1.1rem",
@@ -305,7 +307,7 @@ export const Services: React.FC<ServicesProps> = ({
                 >
                   <span
                     style={{
-                      color: isMain ? "rgba(255, 255, 255, 0.2)" : theme.colors.paperDark,
+                      color: mix(theme.colors.white, 20),
                       fontFamily: theme.fonts.headline,
                       fontWeight: 900,
                       fontSize: isMain ? "6rem" : "3.75rem",
@@ -356,8 +358,8 @@ export const Services: React.FC<ServicesProps> = ({
           <motion.div
             variants={cardVariants}
             style={{
-              backgroundColor: theme.colors.paperDark,
-              borderRadius: theme.radius.large,
+              backgroundColor: theme.palette.gold["700"],
+              borderRadius: theme.radius.medium,
               padding: isMobile ? "2rem" : "3rem",
               display: "flex",
               flexDirection: "column",
@@ -441,7 +443,7 @@ export const Services: React.FC<ServicesProps> = ({
                 fontSize: "0.75rem",
                 border: "none",
                 cursor: "pointer",
-                borderRadius: theme.radius.large,
+                borderRadius: theme.radius.medium,
                 transition: "all 0.3s",
                 textDecoration: "none",
                 display: "inline-block",

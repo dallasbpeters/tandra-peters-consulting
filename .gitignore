@@ -15,3 +15,5 @@ coverage/
 .agents/skills/.skillshare-manifest.json
 .skillshare/config.yaml
 .playwright-cli/*
+training/output/
+training/txshingle-lora.json

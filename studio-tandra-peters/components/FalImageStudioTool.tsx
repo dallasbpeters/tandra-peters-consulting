@@ -17,11 +17,13 @@ import { falStudioApiEndpoint } from "../falStudioConfig";
 import { useStudioClient } from "../hooks/useStudioClient";
 import "./falImageStudioTool.css";
 
-type GenerateMode = "text" | "image" | "series" | "remove-bg";
+type BackgroundRemovalModel = "birefnet-heavy" | "bria" | "ideogram";
+type GenerateMode = "text" | "image" | "series" | "remove-bg" | "remove-sky";
 type FalModelId =
   | "fal-ai/ideogram/remove-background"
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/dev"
+  | "fal-ai/flux-lora"
   | "fal-ai/flux/krea"
   | "fal-ai/flux-pro/v1.1"
   | "fal-ai/flux-pro/v1.1-ultra"
@@ -75,7 +77,11 @@ type FalGenerateResponse =
       ok: true;
       images: FalGeneratedImage[];
       jobs: {
+        appliedLoraScale?: number;
+        appliedReferenceAdherence?: number;
+        appliedStrength?: number;
         endpoint: string;
+        loraUrl?: string;
         requestId: string;
         variation?: string;
       }[];
@@ -132,6 +138,13 @@ const MODEL_OPTIONS: {
     label: "Flux | Dev",
     description: "Higher-quality campaign images",
     imageReference: true,
+  },
+  {
+    id: "fal-ai/flux-lora",
+    family: "Flux",
+    label: "Flux | txshingle LoRA",
+    description:
+      "Birdcreek-trained asphalt shingle texture — text-to-image only. Prompts auto-include the txshingle trigger.",
   },
   {
     id: "fal-ai/flux/krea",
@@ -263,24 +276,24 @@ const SIZE_OPTIONS: { id: FalImageSize; label: string }[] = [
   { id: "portrait_16_9", label: formatFalSizeLabel("portrait_16_9", "Portrait 16:9") },
 ];
 
-const DEFAULT_PROMPT = `Wide-angle architectural photograph of a charming single-story suburban bungalow in Austin, Texas, with primary focus on a pristine, well-maintained roof showcasing clean shingle detail and crisp ridgelines. Shot during golden hour with warm, soft natural light highlighting the roof's texture and quality craftsmanship. The home features a welcoming front porch, neutral exterior siding, manicured front lawn, and mature shade trees framing the composition. Clear blue Texas sky with subtle clouds in the background. Professional real estate photography style, sharp focus, high detail, balanced exposure, inviting and trustworthy atmosphere. Ideal for a homepage hero banner with clean negative space in the upper portion for text overlay. 16:9 wide aspect ratio.`;
+const DEFAULT_PROMPT = `Casual smartphone photo of a real one-story house on a Central Texas suburban street, asphalt shingle roof and gutters taking up most of the frame, shot from the sidewalk at a slight angle — not centered, not symmetrical. Flat midday light or thin overcast, normal exposure with no HDR glow. Lived-in details: uneven grass, a parked SUV partly in frame, mailbox, oak tree branches cutting into the sky, neighbor roofline at the edge. Looks like a homeowner snapped it before calling a roofer — documentary, unstaged, imperfect framing. Not real estate listing photography, not magazine, not golden hour, not aerial, no text or logos.`;
 
 const SERIES_DIRECTION_PLACEHOLDER = `One full creative direction per line — scene, angle, subject, and mood (not just a headline).
 
 Example:
-Wide golden-hour shot: Austin suburban street after a storm clears, one roof in sharp focus with visible shingle texture, calm trustworthy mood`;
+Sidewalk snapshot: brick ranch slightly off-center, roof fills upper two-thirds, overcast Austin afternoon, hose coiled by the garage, feels like a phone photo not an ad shoot`;
 
-const DEFAULT_SERIES = `Wide golden-hour neighborhood: Central Texas suburban street minutes after a storm passes, one brick home's roof in sharp focus with readable shingle texture and gutters, softer neighbor roofs behind it, clearing sky with warm light breaking on the right third, calm trustworthy mood, editorial ad photo
+const DEFAULT_SERIES = `Sidewalk snapshot: one-story brick ranch in Round Rock slightly off-center, roof and gutters fill the upper two-thirds, flat overcast afternoon, pickup truck mirror intruding at the left edge, documentary phone-photo feel
 
-Low driveway angle: homeowner's view looking up at a two-story Austin home, lifted ridge cap and subtle hail bruising on south-facing slopes, tidy yard and oak tree framing, empathetic "something's not right" feeling without fear tactics, natural late-afternoon light
+Driveway look-up: standing in a narrow Georgetown driveway shooting upward at a two-story home, mild barrel distortion, lifted ridge cap and subtle hail marks on south slopes, utility line and tree branch in frame, not a hero shot
 
-Inspection close-up: contractor gloved hand gently lifting a curled asphalt shingle on a Texas roof, granule loss and small hail marks visible, shallow depth of field, expert practical framing, background fades to soft suburban blur, no faces
+Street-parked view: photo taken from inside a car window on a Cedar Park cul-de-sac, house at a three-quarter angle, windshield glare at the corner, roof readable but framing is casual and imperfect
 
-Before-and-after in one frame: same house roofline split visually — left shows missing shingles and exposed underlayment after hail; right shows clean repaired section with matching shingle color and neat ridge, consistent architecture throughout, documentary not dramatic
+Yard-level walk-by: eye-level photo walking past a Lubbock stucco home, partial fence post foreground, roofline slightly tilted, harsh noon sun with blown-out sky, real suburban clutter not styled
 
-Insurance paperwork moment: patio table flat-lay beside the house with cream folder, smartphone, binoculars, inspection notes, and a few fallen oak leaves, organized professional planning mood, overhead or 45-degree angle, soft natural shadows, no readable text on props
+Backyard neighbor angle: over a wooden fence into a Westlake backyard, roof peaks above a grill and patio chairs, telephoto compression like a concerned neighbor took it, unstaged and ordinary
 
-Welcoming inspection hook: front porch and walkway of a Texas home at late afternoon, full roof and gutters clearly visible above the entry, open path leading in, Hill Country trees and neighbor context, approachable neighborly mood with negative space along the top for later ad copy`;
+Post-storm porch step: standing on a wet Waco front porch looking out at the roof, raindrops on lens edge, gutters and downspout visible, gray sky, no dramatic storm lighting`;
 
 const getSelectValue = (event: unknown): string =>
   (event as { target: { value: string } }).target.value;
@@ -290,11 +303,6 @@ const getInputValue = (event: unknown): string =>
 
 const getNumberInputValue = (event: unknown): number => {
   const value = (event as { target: WaNumberInputElement }).target.value;
-  return Number(value);
-};
-
-const getSliderValue = (event: unknown): number => {
-  const value = (event as { target: WaSliderElement }).target.value;
   return Number(value);
 };
 
@@ -792,6 +800,84 @@ function CropModal({
   );
 }
 
+type ReferenceAdherenceSliderProps = {
+  onValueChange: (value: number) => void;
+  value: number;
+};
+
+const ReferenceAdherenceSlider = ({ onValueChange, value }: ReferenceAdherenceSliderProps) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) {
+      return;
+    }
+
+    const handleUpdate = () => {
+      const next = Number(slider.value);
+      if (Number.isFinite(next)) {
+        onValueChange(Math.min(1, Math.max(0.05, next)));
+      }
+    };
+
+    slider.addEventListener("input", handleUpdate);
+    slider.addEventListener("change", handleUpdate);
+    return () => {
+      slider.removeEventListener("input", handleUpdate);
+      slider.removeEventListener("change", handleUpdate);
+    };
+  }, [onValueChange]);
+
+  return (
+    <div className="fis__control-group">
+      <label>Reference adherence</label>
+      <p className="fis__control-hint">
+        Higher keeps more of the reference photo. Lower lets the prompt reshape the scene.
+      </p>
+      <WaSlider max={1} min={0.05} ref={sliderRef} size="xs" step={0.01} value={value} />
+      <span>{value.toFixed(2)}</span>
+    </div>
+  );
+};
+
+const LoraScaleSlider = ({
+  onValueChange,
+  value,
+}: {
+  onValueChange: (value: number) => void;
+  value: number;
+}) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) {
+      return;
+    }
+
+    const handleInput = () => onValueChange(Number(slider.value));
+    slider.addEventListener("input", handleInput);
+    slider.addEventListener("change", handleInput);
+    return () => {
+      slider.removeEventListener("input", handleInput);
+      slider.removeEventListener("change", handleInput);
+    };
+  }, [onValueChange]);
+
+  return (
+    <div className="fis__control-group">
+      <label>LoRA strength</label>
+      <p className="fis__control-hint">
+        How strongly the txshingle granule texture applies. Lower for subtle blends; higher for
+        obvious shingle detail.
+      </p>
+      <WaSlider max={1.5} min={0.25} ref={sliderRef} size="xs" step={0.05} value={value} />
+      <span>{value.toFixed(2)}</span>
+    </div>
+  );
+};
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function FalImageStudioTool() {
@@ -805,7 +891,10 @@ export function FalImageStudioTool() {
   const [outputFormat, setOutputFormat] = useState<"jpeg" | "png" | "webp">("png");
   const [enhancePrompt, setEnhancePrompt] = useState(true);
   const [seed, setSeed] = useState("");
-  const [strength, setStrength] = useState(0.72);
+  const [referenceAdherence, setReferenceAdherence] = useState(0.35);
+  const [loraScale, setLoraScale] = useState(0.9);
+  const [backgroundRemovalModel, setBackgroundRemovalModel] =
+    useState<BackgroundRemovalModel>("ideogram");
   const [seriesVariations, setSeriesVariations] = useState(DEFAULT_SERIES);
   const [assets, setAssets] = useState<SanityImageAsset[]>([]);
   const [assetSearch, setAssetSearch] = useState("");
@@ -864,9 +953,29 @@ export function FalImageStudioTool() {
     () => assets.find((asset) => asset._id === selectedAssetId) ?? null,
     [assets, selectedAssetId],
   );
+  const isTxshingleLoraModel = model === "fal-ai/flux-lora";
   const usesReferenceImage = Boolean(
-    selectedAsset && (mode === "image" || mode === "series" || mode === "remove-bg"),
+    !isTxshingleLoraModel &&
+    selectedAsset &&
+    (mode === "image" || mode === "series" || mode === "remove-bg" || mode === "remove-sky"),
   );
+  const isBackgroundRemovalMode = mode === "remove-bg" || mode === "remove-sky";
+  const supportsReferenceStrength = Boolean(
+    usesReferenceImage && !isBackgroundRemovalMode && selectedModel.id !== "fal-ai/flux-2-pro",
+  );
+
+  const referenceModelNote = useMemo(() => {
+    if (!usesReferenceImage || isBackgroundRemovalMode) {
+      return selectedModel.description;
+    }
+    if (selectedModel.id === "fal-ai/flux-2-pro") {
+      return "Edits your reference in place — prompt-driven, no adherence slider.";
+    }
+    if (selectedModel.imageReference) {
+      return `${selectedModel.label} with reference adherence control.`;
+    }
+    return `${selectedModel.label} uses Flux Dev image-to-image — your Sanity reference is cropped to the selected size first (adherence slider applies).`;
+  }, [isBackgroundRemovalMode, selectedModel, usesReferenceImage]);
 
   const clearNotice = () => {
     window.setTimeout(() => setNotice(null), 2800);
@@ -878,28 +987,32 @@ export function FalImageStudioTool() {
     setNotice(null);
 
     try {
-      if ((mode === "image" || mode === "remove-bg") && !selectedAsset) {
+      if ((mode === "image" || isBackgroundRemovalMode) && !selectedAsset) {
         throw new Error(
-          mode === "remove-bg"
-            ? "Select a Sanity image to remove its background."
-            : "Select a Sanity image to use as the reference.",
+          mode === "remove-sky"
+            ? "Select a Sanity image to remove the sky."
+            : mode === "remove-bg"
+              ? "Select a Sanity image to remove its background."
+              : "Select a Sanity image to use as the reference.",
         );
       }
 
       const response = await fetch(falStudioApiEndpoint, {
         body: JSON.stringify({
+          backgroundRemovalModel: mode === "remove-bg" ? backgroundRemovalModel : undefined,
           enhancePrompt,
           imageSize,
           mode,
-          model: mode === "remove-bg" ? "fal-ai/birefnet" : model,
-          numImages: mode === "remove-bg" ? 1 : numImages,
-          outputFormat: mode === "remove-bg" ? "png" : outputFormat,
+          model,
+          numImages: isBackgroundRemovalMode ? 1 : numImages,
+          outputFormat: isBackgroundRemovalMode ? "png" : outputFormat,
           prompt,
           referenceImageUrl:
-            mode === "remove-bg" || usesReferenceImage ? selectedAsset?.url : undefined,
+            isBackgroundRemovalMode || usesReferenceImage ? selectedAsset?.url : undefined,
           seed: seed.trim(),
+          loraScale: isTxshingleLoraModel ? loraScale : undefined,
+          referenceAdherence: supportsReferenceStrength ? referenceAdherence : undefined,
           seriesVariations,
-          strength,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
@@ -1007,20 +1120,24 @@ export function FalImageStudioTool() {
           appearance="filled"
           disabled={
             generating ||
-            (mode !== "remove-bg" && !prompt.trim()) ||
-            (mode === "remove-bg" && !selectedAsset)
+            (!isBackgroundRemovalMode && !prompt.trim()) ||
+            (isBackgroundRemovalMode && !selectedAsset)
           }
           onClick={() => void handleGenerate()}
           size="xs"
           variant="brand"
         >
           {generating
-            ? mode === "remove-bg"
-              ? "Removing background..."
-              : "Generating..."
-            : mode === "remove-bg"
-              ? "Remove background"
-              : "Generate images"}
+            ? mode === "remove-sky"
+              ? "Removing sky..."
+              : mode === "remove-bg"
+                ? "Removing background..."
+                : "Generating..."
+            : mode === "remove-sky"
+              ? "Remove sky"
+              : mode === "remove-bg"
+                ? "Remove background"
+                : "Generate images"}
         </WaButton>
       </header>
 
@@ -1040,19 +1157,45 @@ export function FalImageStudioTool() {
               <WaOption value="text">Text to image</WaOption>
               <WaOption value="image">Image to image</WaOption>
               <WaOption value="series">Prompt series</WaOption>
+              <WaOption value="remove-sky">Remove sky</WaOption>
               <WaOption value="remove-bg">Remove background</WaOption>
             </WaSelect>
           </div>
 
-          {mode === "remove-bg" ? (
+          {mode === "remove-sky" ? (
             <div className="fis__control-group">
-              <p style={{ margin: 0, fontSize: "0.8125rem", lineHeight: 1.5, opacity: 0.75 }}>
-                <strong>BiRefNet</strong> removes the background from the selected Sanity image and
-                saves a transparent PNG back to your asset library. Select an image from the panel
-                on the right, then click <em>Generate images</em>.
+              <p className="fis__control-hint">
+                <strong>EVF-SAM2</strong> segments only the sky and clouds, then composites a
+                transparent PNG while keeping the house, roof, trees, and yard intact. Best for
+                exterior roofing photos where BiRefNet eats into the structure.
               </p>
             </div>
-          ) : (
+          ) : null}
+
+          {mode === "remove-bg" ? (
+            <div className="fis__control-group">
+              <WaSelect
+                label="Background removal model"
+                name="backgroundRemovalModel"
+                onInput={(event) =>
+                  setBackgroundRemovalModel(getSelectValue(event) as BackgroundRemovalModel)
+                }
+                size="xs"
+                value={backgroundRemovalModel}
+                withClear={false}
+              >
+                <WaOption value="ideogram">Ideogram — clean edges (recommended)</WaOption>
+                <WaOption value="bria">Bria RMBG 2.0 — commercial-safe matting</WaOption>
+                <WaOption value="birefnet-heavy">BiRefNet Heavy — legacy fallback</WaOption>
+              </WaSelect>
+              <p className="fis__control-hint">
+                Removes everything behind the main subject. For house photos where you only want the
+                sky gone, use <strong>Remove sky</strong> instead.
+              </p>
+            </div>
+          ) : null}
+
+          {!isBackgroundRemovalMode ? (
             <div className="fis__control-group">
               <WaTextarea
                 label="Prompt"
@@ -1063,7 +1206,7 @@ export function FalImageStudioTool() {
                 value={prompt}
               />
             </div>
-          )}
+          ) : null}
 
           {mode === "series" ? (
             <div className="fis__control-group">
@@ -1084,7 +1227,7 @@ export function FalImageStudioTool() {
             </div>
           ) : null}
 
-          {mode !== "remove-bg" && (
+          {!isBackgroundRemovalMode && (
             <div className="fis__grid-controls">
               <div className="fis__control-group">
                 <WaSelect
@@ -1101,13 +1244,7 @@ export function FalImageStudioTool() {
                     </WaOption>
                   ))}
                 </WaSelect>
-                <span>
-                  {usesReferenceImage
-                    ? selectedModel.imageReference
-                      ? `${selectedModel.family} supports the selected reference image.`
-                      : `${selectedModel.family} text models use Flux Dev for the reference image step.`
-                    : selectedModel.description}
-                </span>
+                <span>{referenceModelNote}</span>
               </div>
 
               <div className="fis__control-group">
@@ -1174,25 +1311,30 @@ export function FalImageStudioTool() {
             </div>
           )}
 
-          {usesReferenceImage && mode !== "remove-bg" ? (
-            <div className="fis__control-group">
-              <label>Reference strength</label>
-              <WaSlider
-                max={1}
-                min={0.05}
-                onInput={(event) => setStrength(getSliderValue(event))}
-                size="xs"
-                step={0.01}
-                value={strength}
-              />
-              <span>{strength.toFixed(2)}</span>
-            </div>
+          {isTxshingleLoraModel && !isBackgroundRemovalMode ? (
+            <LoraScaleSlider onValueChange={setLoraScale} value={loraScale} />
           ) : null}
 
-          {mode !== "remove-bg" && (
+          {usesReferenceImage && !isBackgroundRemovalMode && supportsReferenceStrength ? (
+            <ReferenceAdherenceSlider
+              onValueChange={setReferenceAdherence}
+              value={referenceAdherence}
+            />
+          ) : null}
+
+          {usesReferenceImage &&
+          !isBackgroundRemovalMode &&
+          selectedModel.id === "fal-ai/flux-2-pro" ? (
+            <p className="fis__control-hint">
+              Flux 2 Pro Edit follows your prompt but does not expose a reference-strength control.
+              Use Flux Dev or Qwen for adjustable blending.
+            </p>
+          ) : null}
+
+          {!isBackgroundRemovalMode && (
             <WaCheckbox
               checked={enhancePrompt}
-              disabled={usesReferenceImage}
+              disabled={usesReferenceImage || isTxshingleLoraModel}
               onInput={(event) => setEnhancePrompt(getCheckboxValue(event))}
               size="xs"
             >
@@ -1284,6 +1426,9 @@ export function FalImageStudioTool() {
                   <strong>{result.images.length} generated images</strong>
                   <span>
                     {result.jobs.length} Fal job{result.jobs.length === 1 ? "" : "s"}
+                    {result.jobs[0]?.appliedStrength != null
+                      ? ` · transform ${result.jobs[0].appliedStrength.toFixed(2)} (adherence ${result.jobs[0].appliedReferenceAdherence?.toFixed(2) ?? "—"})`
+                      : ""}
                   </span>
                 </div>
               </div>

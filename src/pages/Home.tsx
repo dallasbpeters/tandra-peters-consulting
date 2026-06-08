@@ -2,12 +2,13 @@ import { Suspense, lazy } from "react";
 
 import type { HeroProps, RoofInspectionHotspotData } from "../types";
 
+import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
+import { Faq } from "../components/Faq";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
 import { HeroVariant } from "../components/HeroVariant";
 import { CHAPTERS, type Chapter } from "../components/RoofInspection";
 import { parseHotspotCoords } from "../components/RoofInspection/hotspotCoords";
-// import { Faq } from "../components/Faq";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
@@ -18,10 +19,10 @@ import { isSanityPresentationPreviewActive } from "../sanity/client";
 import { sanityImageUrl } from "../sanity/imageUrl";
 import {
   mapAboutProps,
-  // mapArticlesTeaserEditorialProps,
+  mapArticlesTeaserEditorialProps,
   mapContactProps,
   mapExpertiseProps,
-  //  mapFaqProps,
+  mapFaqProps,
   mapHeroProps,
   mapVideoProps,
   mapStatsProps,
@@ -32,7 +33,6 @@ import {
   mapTestimonialsProps,
   mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
-// import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { theme } from "../theme";
 
 const HomeRoofInspection = lazy(() => import("../components/HomeRoofInspection"));
@@ -153,10 +153,8 @@ export const Home = () => {
   const mission = home?.mission as Record<string, unknown> | undefined;
   const expertise = home?.expertise as Record<string, unknown> | undefined;
   const testimonials = home?.testimonials as Record<string, unknown> | undefined;
-  //  const faq = home?.faq as Record<string, unknown> | undefined;
-  //  const articlesTeaser = home?.articlesTeaser as
-  //    | Record<string, unknown>
-  //    | undefined;
+  const faq = home?.faq as Record<string, unknown> | undefined;
+  const articlesTeaser = home?.articlesTeaser as Record<string, unknown> | undefined;
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
   const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
@@ -271,11 +269,11 @@ export const Home = () => {
               />
             ) : null}
             {testimonials ? <Testimonials {...mapTestimonialsProps(testimonials)} /> : null}
-            {/* <Faq {...mapFaqProps(faq)} />
-          <ArticlesTeaser
-            posts={data?.latestPosts ?? []}
-            {...mapArticlesTeaserEditorialProps(articlesTeaser)}
-          />  */}
+            <Faq {...mapFaqProps(faq)} />
+            <ArticlesTeaser
+              posts={data?.latestPosts ?? []}
+              {...mapArticlesTeaserEditorialProps(articlesTeaser)}
+            />
             <Band
               minHeight={8}
               maxHeight={16}

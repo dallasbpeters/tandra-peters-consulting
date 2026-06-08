@@ -7,7 +7,7 @@ import { useState, useRef, useCallback, type CSSProperties } from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
-import { theme } from "../theme";
+import { mix, theme } from "../theme";
 
 interface ImagePair {
   id?: string;
@@ -24,21 +24,12 @@ interface BeforeAfterSliderProps {
   description?: PortableTextBlock[] | string;
 }
 
-const colors = {
-  background: "#0b0d14",
-  foreground: "#fafafa",
-  muted: "#1c1f29",
-  mutedForeground: "#a3a3a3",
-  border: "#363a45",
-  primary: "oklch(0.7281 0.146 283.49)",
-  white: "#ffffff",
-};
-
 const styles: Record<string, CSSProperties> = {
   section: {
     padding: `${theme.spacing.section} ${theme.spacing.xxl}`,
     display: "grid",
     placeContent: "stretch",
+    backgroundColor: mix(theme.colors.black, 96),
   },
   header: {
     maxWidth: "1000px",
@@ -60,13 +51,13 @@ const styles: Record<string, CSSProperties> = {
     fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
     fontWeight: 400,
     lineHeight: 1.15,
-    color: theme.colors.everglade,
+    color: theme.colors.white,
     margin: 0,
   },
   description: {
     fontSize: "1rem",
     lineHeight: 1.65,
-    color: theme.colors.everglade,
+    color: theme.colors.white,
     opacity: 0.8,
     margin: 0,
   },
@@ -75,7 +66,7 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     width: "100%",
     marginInline: "auto",
-    maxWidth: "1000px",
+    maxWidth: "1300px",
     position: "relative",
     gap: theme.spacing.lg,
   },
@@ -87,7 +78,7 @@ const styles: Record<string, CSSProperties> = {
     overflow: "hidden",
     borderRadius: theme.radius.large,
     cornerShape: "super-ellipse(50%)",
-    backgroundColor: colors.muted,
+    backgroundColor: theme.colors.paperDark,
     userSelect: "none",
   },
   imageLayer: {
@@ -103,14 +94,14 @@ const styles: Record<string, CSSProperties> = {
   },
   labelBase: {
     position: "absolute",
-    top: "1rem",
+    bottom: "1rem",
     borderRadius: theme.radius.medium,
     backgroundColor: "rgba(11, 13, 20, 0.85)",
     backdropFilter: "blur(4px)",
     padding: `${theme.spacing.tight} ${theme.spacing.md}`,
     fontSize: "0.875rem",
     fontWeight: 500,
-    color: colors.foreground,
+    color: theme.colors.paper,
   },
   handle: {
     position: "absolute",
@@ -118,7 +109,7 @@ const styles: Record<string, CSSProperties> = {
     bottom: 0,
     zIndex: 10,
     width: "2px",
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.paper,
     boxShadow: "0 0 8px rgba(0,0,0,0.4)",
   },
   handleKnob: {
@@ -145,6 +136,11 @@ const styles: Record<string, CSSProperties> = {
     placeContent: "center",
     width: "100%",
     gap: theme.spacing.lg,
+    position: "absolute",
+    bottom: 20,
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 10,
   },
   thumbButtonBase: {
     position: "relative",
@@ -175,8 +171,32 @@ const styles: Record<string, CSSProperties> = {
     textAlign: "left",
     fontSize: "0.875rem",
     fontWeight: 500,
-    color: colors.foreground,
+    color: theme.colors.paper,
     zIndex: 2,
+  },
+  cardHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 15,
+    backgroundColor: theme.colors.black,
+    border: `1px solid ${mix(theme.colors.paper, 10)}`,
+    borderTopLeftRadius: theme.radius.medium,
+    borderTopRightRadius: theme.radius.medium,
+  },
+  windowControls: {
+    display: "flex",
+    justifyContent: "start",
+    alignItems: "center",
+    gap: theme.spacing.md,
+    padding: theme.spacing.md,
+  },
+  windowControl: {
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    backgroundColor: theme.colors.paper,
   },
 };
 
@@ -235,6 +255,13 @@ export function BeforeAfterSlider({
         </motion.header>
       ) : null}
       <div style={styles.wrapper}>
+        <div style={styles.cardHeader}>
+          <div style={styles.windowControls}>
+            <span style={styles.windowControl} />
+            <span style={styles.windowControl} />
+            <span style={styles.windowControl} />
+          </div>
+        </div>
         <div
           ref={containerRef}
           style={styles.sliderContainer}
@@ -294,7 +321,7 @@ export function BeforeAfterSlider({
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke={colors.foreground}
+                stroke={theme.colors.paper}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -327,7 +354,7 @@ export function BeforeAfterSlider({
                   style={{
                     ...styles.thumbButtonBase,
                     blockSize: isMobile ? "75px" : "100px",
-                    boxShadow: isSelected ? `0 0 0 4px ${colors.primary}` : "none",
+                    boxShadow: isSelected ? `0 0 0 4px ${theme.colors.accent}` : "none",
                   }}
                 >
                   <img

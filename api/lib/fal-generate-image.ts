@@ -1,11 +1,32 @@
 import { createFalClient } from "@fal-ai/client";
 
+import {
+  type BackgroundRemovalModel,
+  removeBackground,
+  removeSky,
+  toStudioImage,
+} from "./fal-background-removal.js";
+import {
+  aspectRatioFromImageSize,
+  type FalImageSize,
+  isFalImageSize,
+  pixelsFromImageSize,
+} from "./fal-image-size.js";
+import { prepareReferenceImageUrl } from "./fal-reference-image.js";
+import {
+  buildTxshingleLoraInput,
+  DEFAULT_TXSHINGLE_LORA_SCALE,
+  resolveTxshingleLoraUrl,
+  TXSHINGLE_LORA_ENDPOINT,
+} from "./fal-txshingle-lora.js";
+
 const falKey = process.env.FAL_KEY;
 
 const MODEL_OPTIONS = [
   "fal-ai/birefnet",
   "fal-ai/flux/schnell",
   "fal-ai/flux/dev",
+  "fal-ai/flux-lora",
   "fal-ai/flux/krea",
   "fal-ai/flux-pro/v1.1",
   "fal-ai/flux-pro/v1.1-ultra",
@@ -28,8 +49,13 @@ const LEGACY_MODEL_ALIASES = {
 
 type FalModel = (typeof MODEL_OPTIONS)[number];
 
+type ImageToImageEndpoint =
+  | "fal-ai/flux/dev/image-to-image"
+  | "fal-ai/flux-2-pro/edit"
+  | "fal-ai/qwen-image/image-to-image";
+
 type ImageModelConfig = {
-  imageEndpoint?: string;
+  imageEndpoint?: ImageToImageEndpoint;
   imageInputKind?: "imageUrl" | "imageUrls";
   inputKind: "aspectRatio" | "imageSize" | "seedream";
   promptEnhancementKey:
@@ -40,20 +66,44 @@ type ImageModelConfig = {
     | "none";
   safetyTolerance?: string;
   supportsImageReference?: boolean;
+  supportsReferenceStrength?: boolean;
   supportsWebp?: boolean;
 };
 
+const IMAGE_TO_IMAGE_ENDPOINTS_WITH_STRENGTH = new Set<ImageToImageEndpoint>([
+  "fal-ai/flux/dev/image-to-image",
+  "fal-ai/qwen-image/image-to-image",
+]);
+
+const DEFAULT_IMG2IMG_STRENGTH: Record<
+  "fal-ai/flux/dev/image-to-image" | "fal-ai/qwen-image/image-to-image",
+  number
+> = {
+  "fal-ai/flux/dev/image-to-image": 0.85,
+  "fal-ai/qwen-image/image-to-image": 0.6,
+};
+
 const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
+  "fal-ai/birefnet": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
+  },
   "fal-ai/flux/schnell": {
     inputKind: "imageSize",
     promptEnhancementKey: "enhance_prompt",
     supportsImageReference: true,
+    supportsReferenceStrength: true,
   },
   "fal-ai/flux/dev": {
     imageEndpoint: "fal-ai/flux/dev/image-to-image",
     inputKind: "imageSize",
     promptEnhancementKey: "enhance_prompt",
     supportsImageReference: true,
+    supportsReferenceStrength: true,
+  },
+  "fal-ai/flux-lora": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
   },
   "fal-ai/flux/krea": {
     inputKind: "imageSize",
@@ -90,11 +140,15 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
     inputKind: "imageSize",
     promptEnhancementKey: "none",
     safetyTolerance: "2",
+    supportsImageReference: true,
+    supportsReferenceStrength: false,
   },
   "fal-ai/qwen-image": {
     imageEndpoint: "fal-ai/qwen-image/image-to-image",
     inputKind: "imageSize",
     promptEnhancementKey: "none",
+    supportsImageReference: true,
+    supportsReferenceStrength: true,
   },
   "fal-ai/ideogram/v3": {
     inputKind: "imageSize",
@@ -116,50 +170,11 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
   },
 };
 
-const IMAGE_SIZE_OPTIONS = [
-  "square_hd",
-  "square",
-  "portrait_4_3",
-  "portrait_16_9",
-  "landscape_4_3",
-  "landscape_16_9",
-] as const;
-
-type FalImageSize = (typeof IMAGE_SIZE_OPTIONS)[number];
-
-/** Long edge for Fal `image_size` custom width/height objects (presets default to 1024px). */
-const FAL_IMAGE_LONG_EDGE_PX = 1800;
-
-const pixelsFromImageSize = (imageSize: FalImageSize): { height: number; width: number } => {
-  switch (imageSize) {
-    case "landscape_16_9":
-      return {
-        width: FAL_IMAGE_LONG_EDGE_PX,
-        height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
-      };
-    case "landscape_4_3":
-      return {
-        width: FAL_IMAGE_LONG_EDGE_PX,
-        height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
-      };
-    case "portrait_16_9":
-      return {
-        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
-        height: FAL_IMAGE_LONG_EDGE_PX,
-      };
-    case "portrait_4_3":
-      return {
-        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
-        height: FAL_IMAGE_LONG_EDGE_PX,
-      };
-    case "square_hd":
-    case "square":
-    default:
-      return { width: FAL_IMAGE_LONG_EDGE_PX, height: FAL_IMAGE_LONG_EDGE_PX };
-  }
-};
+const isBackgroundRemovalModel = (value: unknown): value is BackgroundRemovalModel =>
+  value === "ideogram" || value === "bria" || value === "birefnet-heavy";
 
 type FalGenerateImageBody = {
+  backgroundRemovalModel?: unknown;
   mode?: unknown;
   model?: unknown;
   imageSize?: unknown;
@@ -167,10 +182,12 @@ type FalGenerateImageBody = {
   outputFormat?: unknown;
   prompt?: unknown;
   referenceImageUrl?: unknown;
+  referenceAdherence?: unknown;
   seriesVariations?: unknown;
   seed?: unknown;
   enhancePrompt?: unknown;
   strength?: unknown;
+  loraScale?: unknown;
 };
 
 type FalImage = {
@@ -191,8 +208,12 @@ type FalImageOutput = {
 };
 
 type NormalizedJob = {
+  appliedLoraScale?: number;
+  appliedReferenceAdherence?: number;
+  appliedStrength?: number;
   endpoint: string;
   input: Record<string, unknown>;
+  loraUrl?: string;
   prompt: string;
   variation?: string;
 };
@@ -218,9 +239,6 @@ const normalizeModel = (value: unknown): FalModel => {
   }
   return "fal-ai/flux/schnell";
 };
-
-const isFalImageSize = (value: unknown): value is FalImageSize =>
-  typeof value === "string" && IMAGE_SIZE_OPTIONS.includes(value as FalImageSize);
 
 const clampInteger = (value: unknown, fallback: number, min: number, max: number) => {
   const numeric =
@@ -257,23 +275,6 @@ const normalizeOutputFormat = (value: unknown, model: FalModel) => {
     return value;
   }
   return "png";
-};
-
-const aspectRatioFromImageSize = (imageSize: FalImageSize) => {
-  switch (imageSize) {
-    case "landscape_16_9":
-      return "16:9";
-    case "landscape_4_3":
-      return "4:3";
-    case "portrait_16_9":
-      return "9:16";
-    case "portrait_4_3":
-      return "3:4";
-    case "square":
-    case "square_hd":
-    default:
-      return "1:1";
-  }
 };
 
 const buildTextInput = ({
@@ -334,46 +335,95 @@ const buildTextInput = ({
   return input;
 };
 
+const resolveReferenceStrength = ({
+  body,
+  endpoint,
+}: {
+  body: FalGenerateImageBody;
+  endpoint: ImageToImageEndpoint;
+}): { appliedReferenceAdherence?: number; appliedStrength?: number } => {
+  if (!IMAGE_TO_IMAGE_ENDPOINTS_WITH_STRENGTH.has(endpoint)) {
+    return {};
+  }
+
+  const strengthEndpoint = endpoint as keyof typeof DEFAULT_IMG2IMG_STRENGTH;
+  const defaultStrength = DEFAULT_IMG2IMG_STRENGTH[strengthEndpoint];
+
+  if (body.referenceAdherence != null) {
+    const appliedReferenceAdherence = clampNumber(body.referenceAdherence, 0.35, 0.05, 1);
+    return {
+      appliedReferenceAdherence,
+      appliedStrength: clampNumber(1 - appliedReferenceAdherence, defaultStrength, 0.01, 1),
+    };
+  }
+
+  const appliedStrength = clampNumber(body.strength, defaultStrength, 0.01, 1);
+  return {
+    appliedReferenceAdherence: clampNumber(1 - appliedStrength, 0.35, 0.05, 1),
+    appliedStrength,
+  };
+};
+
 const buildImageInput = ({
+  endpoint,
   imageSize,
-  model,
   numImages,
+  outputFormat,
   prompt,
   referenceImageUrl,
   seed,
   strength,
 }: {
+  endpoint: ImageToImageEndpoint;
   imageSize: FalImageSize;
-  model: FalModel;
   numImages: number;
+  outputFormat: "jpeg" | "png" | "webp";
   prompt: string;
   referenceImageUrl: string;
   seed?: number;
-  strength: number;
+  strength?: number;
 }) => {
-  const config = IMAGE_MODEL_CONFIGS[model];
-  const input: Record<string, unknown> = {
-    guidance_scale: 3.5,
+  const format = outputFormat === "webp" ? "png" : outputFormat;
+  const pixelSize = pixelsFromImageSize(imageSize);
+  const base: Record<string, unknown> = {
     num_images: numImages,
-    num_inference_steps: 28,
     prompt,
-    strength,
     ...(seed == null ? {} : { seed }),
   };
 
-  if (config.imageInputKind === "imageUrls") {
-    input.image_urls = [referenceImageUrl];
-  } else {
-    input.image_url = referenceImageUrl;
+  if (endpoint === "fal-ai/flux-2-pro/edit") {
+    return {
+      ...base,
+      enable_safety_checker: true,
+      image_size: pixelSize,
+      image_urls: [referenceImageUrl],
+      output_format: format,
+      safety_tolerance: "2",
+    };
   }
 
-  if (config.inputKind === "aspectRatio" || config.inputKind === "seedream") {
-    input.aspect_ratio = aspectRatioFromImageSize(imageSize);
-  } else {
-    input.image_size = pixelsFromImageSize(imageSize);
+  if (endpoint === "fal-ai/qwen-image/image-to-image") {
+    return {
+      ...base,
+      enable_safety_checker: true,
+      guidance_scale: 2.5,
+      image_size: pixelSize,
+      image_url: referenceImageUrl,
+      num_inference_steps: 30,
+      output_format: format,
+      strength: strength ?? DEFAULT_IMG2IMG_STRENGTH["fal-ai/qwen-image/image-to-image"],
+    };
   }
 
-  return input;
+  return {
+    ...base,
+    enable_safety_checker: true,
+    guidance_scale: 3.5,
+    image_url: referenceImageUrl,
+    num_inference_steps: 40,
+    output_format: format,
+    strength: strength ?? DEFAULT_IMG2IMG_STRENGTH["fal-ai/flux/dev/image-to-image"],
+  };
 };
 
 const normalizeSeriesVariationLine = (line: string): string =>
@@ -403,7 +453,7 @@ const parseSeriesVariations = (value: unknown): string[] => {
 const buildSeriesPrompt = (basePrompt: string, variation: string) =>
   `${basePrompt}
 
-Series variation — apply ONLY the direction below. Keep the same Central Texas roofing marketing brief, Austin-area suburban context, trustworthy editorial advertising photo style, natural light, and no text, logos, or watermarks in frame:
+Series variation — apply ONLY the direction below. Keep the same Central Texas roofing marketing brief, Austin-area suburban context, casual smartphone or documentary photo style (imperfect framing, unstaged, not magazine or real estate listing photography), natural unprocessed light, and no text, logos, or watermarks in frame:
 
 ${variation}`;
 
@@ -433,24 +483,63 @@ const normalizeJobs = (body: FalGenerateImageBody): NormalizedJob[] => {
   const seed =
     body.seed === "" || body.seed == null ? undefined : clampInteger(body.seed, 0, 0, 2147483647);
   const enhancePrompt = body.enhancePrompt !== false;
-  const strength = clampNumber(body.strength, 0.72, 0.05, 1);
   const variations = body.mode === "series" ? parseSeriesVariations(body.seriesVariations) : [];
   const promptJobs = buildPromptJobs(prompt, variations);
 
+  if (model === TXSHINGLE_LORA_ENDPOINT) {
+    if (referenceImageUrl) {
+      throw new Error(
+        "txshingle LoRA is text-to-image only. Clear the Sanity reference image or choose another model.",
+      );
+    }
+
+    const loraUrl = resolveTxshingleLoraUrl();
+    const loraScale = clampNumber(body.loraScale, DEFAULT_TXSHINGLE_LORA_SCALE, 0.25, 1.5);
+
+    return promptJobs.map((job) => ({
+      appliedLoraScale: loraScale,
+      endpoint: TXSHINGLE_LORA_ENDPOINT,
+      input: buildTxshingleLoraInput({
+        imageSize,
+        loraScale,
+        loraUrl,
+        numImages,
+        outputFormat,
+        prompt: job.prompt,
+        seed,
+      }),
+      loraUrl,
+      prompt: job.prompt,
+      variation: job.variation,
+    }));
+  }
+
   return promptJobs.map((job) => {
     if (referenceImageUrl) {
-      const endpoint = modelConfig.imageEndpoint ?? "fal-ai/flux/dev/image-to-image";
-      const imageModel = modelConfig.imageEndpoint ? model : "fal-ai/flux/dev";
+      const endpoint: ImageToImageEndpoint =
+        modelConfig.imageEndpoint ?? "fal-ai/flux/dev/image-to-image";
+      const { appliedReferenceAdherence, appliedStrength } = resolveReferenceStrength({
+        body,
+        endpoint,
+      });
+      const preparedReferenceUrl = prepareReferenceImageUrl(
+        referenceImageUrl,
+        endpoint,
+        pixelsFromImageSize(imageSize),
+      );
       return {
+        appliedReferenceAdherence,
+        appliedStrength,
         endpoint,
         input: buildImageInput({
+          endpoint,
           imageSize,
-          model: imageModel,
           numImages,
+          outputFormat,
           prompt: job.prompt,
-          referenceImageUrl,
+          referenceImageUrl: preparedReferenceUrl,
           seed,
-          strength,
+          strength: appliedStrength,
         }),
         prompt: job.prompt,
         variation: job.variation,
@@ -505,70 +594,43 @@ export const handler = async (request: Request): Promise<Response> => {
     const body = (await request.json()) as FalGenerateImageBody;
     const client = createFalClient({ credentials: falKey.trim() });
 
-    /* ── Background removal (BiRefNet) — separate path, no prompt required ── */
-    if (body.mode === "remove-bg") {
+    if (body.mode === "remove-bg" || body.mode === "remove-sky") {
       const imageUrl =
         typeof body.referenceImageUrl === "string" ? body.referenceImageUrl.trim() : "";
       if (!imageUrl) {
         return jsonResponse(
-          { error: "referenceImageUrl is required for background removal." },
+          {
+            error:
+              body.mode === "remove-sky"
+                ? "referenceImageUrl is required for sky removal."
+                : "referenceImageUrl is required for background removal.",
+          },
           400,
         );
       }
 
-      const result = await client.subscribe("fal-ai/birefnet" as never, {
-        input: { image_url: imageUrl } as never,
-        logs: true,
-        mode: "polling",
-        pollInterval: 700,
-        startTimeout: 90,
-      });
+      const removalModel = isBackgroundRemovalModel(body.backgroundRemovalModel)
+        ? body.backgroundRemovalModel
+        : "ideogram";
 
-      // BiRefNet can return either `image` (object) or `images` (array)
-      const data = result.data as {
-        image?: {
-          url?: string;
-          content_type?: string;
-          file_name?: string;
-          file_size?: number;
-          width?: number;
-          height?: number;
-        };
-        images?: {
-          url?: string;
-          content_type?: string;
-          file_name?: string;
-          file_size?: number;
-          width?: number;
-          height?: number;
-        }[];
-      };
-      const img = data.image ?? data.images?.[0];
-      if (!img?.url) {
-        return jsonResponse(
-          {
-            error: `BiRefNet returned no image URL. Raw: ${JSON.stringify(data).slice(0, 200)}`,
-          },
-          502,
-        );
-      }
+      const removalResult =
+        body.mode === "remove-sky"
+          ? await removeSky({ client, imageUrl })
+          : await removeBackground({ client, imageUrl, model: removalModel });
+
+      const studioImage = toStudioImage(removalResult, imageUrl);
 
       return jsonResponse(
         {
           ok: true,
-          images: [
+          images: [studioImage],
+          jobs: [
             {
-              contentType: img.content_type ?? "image/png",
-              fileName: img.file_name ?? `birefnet-${result.requestId}.png`,
-              fileSize: img.file_size,
-              height: img.height,
-              prompt: imageUrl,
-              requestId: result.requestId,
-              url: img.url,
-              width: img.width,
+              backgroundRemovalModel: body.mode === "remove-bg" ? removalModel : undefined,
+              endpoint: removalResult.endpoint,
+              requestId: removalResult.requestId,
             },
           ],
-          jobs: [{ endpoint: "fal-ai/birefnet", requestId: result.requestId }],
         },
         200,
       );
@@ -617,7 +679,11 @@ export const handler = async (request: Request): Promise<Response> => {
         ok: true,
         images,
         jobs: results.map(({ job, result }) => ({
+          appliedLoraScale: job.appliedLoraScale,
+          appliedReferenceAdherence: job.appliedReferenceAdherence,
+          appliedStrength: job.appliedStrength,
           endpoint: job.endpoint,
+          loraUrl: job.loraUrl,
           requestId: result.requestId,
           variation: job.variation,
         })),
