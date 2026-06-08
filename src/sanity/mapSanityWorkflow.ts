@@ -340,6 +340,7 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
     viewportAnchorY,
     originX,
     originY,
+    estimatedNodeHeight: layout.nodeHeight,
     remountKey: [
       layout.originX,
       layout.originY,

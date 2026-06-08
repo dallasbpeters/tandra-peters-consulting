@@ -174,6 +174,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div style={{ display: "flex", gap: theme.spacing.xxl }}>
             {socialLinks.map((social, i) => (
               <a
+                tabIndex={1}
                 key={i}
                 href={social.href}
                 style={socialLinkStyle}
@@ -193,6 +194,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <li key={i}>
                   {link.href.startsWith("#") ? (
                     <TransitionLink
+                      tabIndex={1}
                       to={{ pathname: "/", hash: link.href }}
                       style={linkStyle}
                       className="footer-link"
@@ -201,6 +203,7 @@ export const Footer: React.FC<FooterProps> = ({
                     </TransitionLink>
                   ) : (
                     <TransitionLink
+                      tabIndex={1}
                       to={link.href}
                       viewTransition
                       style={linkStyle}
@@ -219,7 +222,12 @@ export const Footer: React.FC<FooterProps> = ({
             <ul style={linkListStyle}>
               {legalLinks.map((link, i) => (
                 <li key={i}>
-                  <TransitionLink to={link.href} style={linkStyle} className="footer-link">
+                  <TransitionLink
+                    tabIndex={1}
+                    to={link.href}
+                    style={linkStyle}
+                    className="footer-link"
+                  >
                     {link.name}
                   </TransitionLink>
                 </li>

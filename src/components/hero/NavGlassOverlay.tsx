@@ -79,7 +79,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       fontWeight: 600,
       letterSpacing: "0.06em",
       textTransform: "uppercase",
-      color: "oklch(100% 0 0)",
+      color: glassed ? theme.colors.white : theme.colors.everglade,
       transition: "color 0.15s",
       textDecoration: "none",
     },
@@ -102,7 +102,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       flex: isMobile ? "1 1 auto" : "none",
     },
     logoText: {
-      color: "oklch(100% 0 0)",
+      color: glassed ? theme.colors.white : theme.colors.everglade,
       fontWeight: 800,
       fontSize: isMobile ? "1.2rem" : "1.25rem",
       letterSpacing: "-0.03em",
@@ -144,7 +144,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       background: "none",
       border: "none",
       cursor: "pointer",
-      color: "oklch(100% 0 0)",
+      color: glassed ? theme.colors.white : theme.colors.everglade,
       flexShrink: 0,
     },
     mobileMenu: {

@@ -14,39 +14,43 @@ import {
   type Edge,
   type Node,
   type NodeProps,
-  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import "../styles/workflow-page.css";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ContactBanner } from "../components/ContactBanner";
 import { SitePageChrome } from "../components/SitePageChrome";
+import { useIsMobile } from "../hooks/isMobile";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityWorkflowPage } from "../hooks/useSanityWorkflowPage";
+import {
+  estimateMobileStackedNodes,
+  measureMobileStackedNodes,
+  mobileStackPositionsChanged,
+  remapWorkflowEdgesForVerticalStack,
+  WORKFLOW_MOBILE_HORIZONTAL_PAD,
+} from "../lib/workflowMobileLayout";
 import {
   mapWorkflowDiagram,
   mapWorkflowPageCopy,
   type WorkflowNodeData,
 } from "../sanity/mapSanityWorkflow";
 
-const WORKFLOW_CANVAS_BOTTOM_PAD = 48;
+const WORKFLOW_CANVAS_BOTTOM_PAD = 64;
+const WORKFLOW_MOBILE_ZOOM = 1;
 
 const measureCanvasHeight = (
-  nodeList: Node<WorkflowNodeData>[],
+  bounds: ReturnType<typeof getNodesBounds>,
   viewportZoom: number,
   viewportAnchorY: number,
   anchorY: number,
-) => {
-  const bounds = getNodesBounds(nodeList);
-  return (
-    viewportAnchorY +
-    (bounds.y + bounds.height - anchorY) * viewportZoom +
-    WORKFLOW_CANVAS_BOTTOM_PAD
-  );
-};
+) =>
+  viewportAnchorY +
+  (bounds.y + bounds.height - anchorY) * viewportZoom +
+  WORKFLOW_CANVAS_BOTTOM_PAD;
 
 type WorkflowHandleId = "top" | "bottom" | "left" | "right";
 
@@ -121,49 +125,86 @@ type InsuranceWorkflowDiagramProps = {
   viewportAnchorY: number;
   originX: number;
   originY: number;
+  estimatedNodeHeight: number;
   remountKey: string;
 };
 
 type DiagramLayoutProps = {
+  isMobile: boolean;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
   viewportZoom: number;
   viewportAnchorX: number;
   viewportAnchorY: number;
   originX: number;
   originY: number;
+  estimatedNodeHeight: number;
   onCanvasHeight: (height: number) => void;
 };
 
 /** Runs inside ReactFlowProvider — syncs viewport + canvas height after nodes measure. */
 const WorkflowDiagramLayout = ({
+  isMobile,
+  canvasRef,
   viewportZoom,
   viewportAnchorX,
   viewportAnchorY,
   originX,
   originY,
+  estimatedNodeHeight,
   onCanvasHeight,
 }: DiagramLayoutProps) => {
-  const { getNodes, setViewport } = useReactFlow<Node<WorkflowNodeData>, Edge>();
+  const {
+    getNodes,
+    getNodesBounds: getMeasuredNodesBounds,
+    setNodes,
+    setViewport,
+  } = useReactFlow<Node<WorkflowNodeData>, Edge>();
   const nodesInitialized = useNodesInitialized();
 
   const syncLayout = useCallback(() => {
     const nodeList = getNodes();
     if (!nodeList.length) return;
 
-    const anchor = nodeList.find((node) => node.id === "1");
-    const anchorY = anchor?.position.y ?? originY;
+    const canvasWidth = canvasRef.current?.clientWidth ?? 0;
+    const zoom = isMobile ? WORKFLOW_MOBILE_ZOOM : viewportZoom;
 
-    onCanvasHeight(measureCanvasHeight(nodeList, viewportZoom, viewportAnchorY, anchorY));
+    let layoutNodes = nodeList;
+    if (isMobile && canvasWidth > 0) {
+      const stacked = measureMobileStackedNodes(
+        nodeList,
+        canvasWidth,
+        originY,
+        estimatedNodeHeight,
+      );
+      if (mobileStackPositionsChanged(nodeList, stacked)) {
+        setNodes(stacked);
+      }
+      layoutNodes = stacked;
+    }
+
+    const anchor = layoutNodes.find((node) => node.id === "1");
+    const anchorY = anchor?.position.y ?? originY;
+    const bounds = getMeasuredNodesBounds(layoutNodes);
+
+    onCanvasHeight(measureCanvasHeight(bounds, zoom, viewportAnchorY, anchorY));
 
     setViewport({
-      x: viewportAnchorX - originX * viewportZoom,
-      y: viewportAnchorY - anchorY * viewportZoom,
-      zoom: viewportZoom,
+      x: isMobile
+        ? WORKFLOW_MOBILE_HORIZONTAL_PAD - bounds.x * zoom
+        : viewportAnchorX - originX * zoom,
+      y: viewportAnchorY - anchorY * zoom,
+      zoom,
     });
   }, [
+    canvasRef,
+    estimatedNodeHeight,
+    getMeasuredNodesBounds,
     getNodes,
+    isMobile,
     onCanvasHeight,
     originX,
     originY,
+    setNodes,
     setViewport,
     viewportAnchorX,
     viewportAnchorY,
@@ -186,47 +227,47 @@ const WorkflowDiagramLayout = ({
 };
 
 const InsuranceWorkflowDiagramInner = ({
-  nodes: initialNodes,
-  edges: initialEdges,
+  nodes: desktopNodes,
+  edges: desktopEdges,
   viewportZoom,
   viewportAnchorX,
   viewportAnchorY,
   originX,
   originY,
+  estimatedNodeHeight,
 }: InsuranceWorkflowDiagramProps) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const isMobile = useIsMobile(768);
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  const layoutNodes = useMemo(
+    () =>
+      isMobile
+        ? estimateMobileStackedNodes(desktopNodes, originY, estimatedNodeHeight)
+        : desktopNodes,
+    [desktopNodes, estimatedNodeHeight, isMobile, originY],
+  );
+
+  const layoutEdges = useMemo(
+    () => (isMobile ? remapWorkflowEdgesForVerticalStack(desktopEdges) : desktopEdges),
+    [desktopEdges, isMobile],
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutEdges);
+  const activeZoom = isMobile ? WORKFLOW_MOBILE_ZOOM : viewportZoom;
+
   const [canvasHeight, setCanvasHeight] = useState(() =>
-    measureCanvasHeight(initialNodes, viewportZoom, viewportAnchorY, originY),
+    measureCanvasHeight(getNodesBounds(layoutNodes), activeZoom, viewportAnchorY, originY),
   );
 
   useEffect(() => {
-    setNodes(initialNodes);
-  }, [initialNodes, setNodes]);
-
-  useEffect(() => {
-    setEdges(initialEdges);
-  }, [initialEdges, setEdges]);
-
-  const handleInit = useCallback(
-    (instance: ReactFlowInstance<Node<WorkflowNodeData>, Edge>) => {
-      requestAnimationFrame(() => {
-        const nodeList = instance.getNodes();
-        const anchor = nodeList.find((node) => node.id === "1");
-        const anchorY = anchor?.position.y ?? originY;
-        setCanvasHeight(measureCanvasHeight(nodeList, viewportZoom, viewportAnchorY, anchorY));
-        instance.setViewport({
-          x: viewportAnchorX - originX * viewportZoom,
-          y: viewportAnchorY - anchorY * viewportZoom,
-          zoom: viewportZoom,
-        });
-      });
-    },
-    [originX, originY, viewportAnchorX, viewportAnchorY, viewportZoom],
-  );
+    setNodes(layoutNodes);
+    setEdges(layoutEdges);
+  }, [layoutEdges, layoutNodes, setEdges, setNodes]);
 
   return (
     <div
+      ref={canvasRef}
       className="workflow-page__canvas"
       style={{ height: canvasHeight }}
       aria-label="Insurance claim workflow diagram"
@@ -237,25 +278,30 @@ const InsuranceWorkflowDiagramInner = ({
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onInit={handleInit}
-        minZoom={viewportZoom}
-        maxZoom={1.1}
+        minZoom={activeZoom}
+        maxZoom={isMobile ? WORKFLOW_MOBILE_ZOOM : 1.1}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
+        selectionOnDrag={false}
         panOnDrag={false}
         panOnScroll={false}
         zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
         preventScrolling={false}
         proOptions={{ hideAttribution: true }}
       >
         <Background gap={24} size={1} color="#c8c8c4" variant={BackgroundVariant.Lines} />
         <WorkflowDiagramLayout
+          isMobile={isMobile}
+          canvasRef={canvasRef}
           viewportZoom={viewportZoom}
           viewportAnchorX={viewportAnchorX}
           viewportAnchorY={viewportAnchorY}
           originX={originX}
           originY={originY}
+          estimatedNodeHeight={estimatedNodeHeight}
           onCanvasHeight={setCanvasHeight}
         />
       </ReactFlow>
@@ -263,11 +309,15 @@ const InsuranceWorkflowDiagramInner = ({
   );
 };
 
-const InsuranceWorkflowDiagram = (props: InsuranceWorkflowDiagramProps) => (
-  <ReactFlowProvider key={props.remountKey}>
-    <InsuranceWorkflowDiagramInner {...props} />
-  </ReactFlowProvider>
-);
+const InsuranceWorkflowDiagram = (props: InsuranceWorkflowDiagramProps) => {
+  const isMobile = useIsMobile(768);
+
+  return (
+    <ReactFlowProvider key={`${props.remountKey}-${isMobile ? "stack" : "grid"}`}>
+      <InsuranceWorkflowDiagramInner {...props} />
+    </ReactFlowProvider>
+  );
+};
 
 export const WorkflowPage = () => {
   const { page, loading } = useSanityWorkflowPage();

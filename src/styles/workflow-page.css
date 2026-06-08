@@ -41,16 +41,6 @@
   background-color: #f4f4f1;
 }
 
-.workflow-page__canvas .react-flow__background {
-  background-color: #f4f4f1;
-}
-
-.workflow-page__canvas .react-flow__background-pattern.lines {
-  stroke: var(--workflow-grid);
-  stroke-width: 1;
-  fill: none;
-}
-
 .workflow-node {
   box-sizing: border-box;
   width: 100%;
@@ -65,26 +55,6 @@
 
 .workflow-node--wide {
   max-width: 34rem;
-}
-
-.workflow-page__canvas .workflow-node__handle {
-  border: none;
-}
-
-.workflow-page__canvas .workflow-node__handle--target {
-  width: 0.5rem;
-  height: 0.5rem;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.workflow-page__canvas .workflow-node__handle--source {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background-color: var(--workflow-edge);
-  opacity: 1;
 }
 
 .workflow-node__title {
@@ -106,6 +76,44 @@
   font-weight: 700;
   line-height: 1.35;
   text-decoration: underline;
+}
+
+/* React Flow sets touch-action:none on the pane — that locks vertical page scroll on mobile */
+.workflow-page__canvas .react-flow__renderer,
+.workflow-page__canvas .react-flow__pane,
+.workflow-page__canvas .react-flow__node,
+.workflow-page__canvas .workflow-node {
+  touch-action: pan-y;
+}
+
+.workflow-page__canvas .react-flow__background {
+  background-color: #f4f4f1;
+}
+
+.workflow-page__canvas .react-flow__background-pattern.lines {
+  stroke: var(--workflow-grid);
+  stroke-width: 1;
+  fill: none;
+}
+
+.workflow-page__canvas .workflow-node__handle {
+  border: none;
+}
+
+.workflow-page__canvas .workflow-node__handle--target {
+  width: 0.5rem;
+  height: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.workflow-page__canvas .workflow-node__handle--source {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background-color: var(--workflow-edge);
+  opacity: 1;
 }
 
 /* Edge SVGs ship without dimensions — paths never paint without this */
@@ -159,5 +167,11 @@
     width: calc(100% - var(--theme-spacing-lg) * 2);
     min-height: 520px;
     margin: 0 var(--theme-spacing-lg) var(--theme-spacing-lg);
+  }
+
+  .workflow-page__canvas .workflow-node,
+  .workflow-page__canvas .workflow-node--wide {
+    width: min(calc(100% - 3rem), 20.5rem);
+    max-width: min(calc(100% - 3rem), 20.5rem);
   }
 }
