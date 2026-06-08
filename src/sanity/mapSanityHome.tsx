@@ -424,6 +424,8 @@ export const mapNavProps = (site: SanityDoc): Partial<NavProps> => {
     ...(navItemsRaw?.length ? { navItems: navItemsRaw } : {}),
     ...(site.navCtaText ? { ctaText: site.navCtaText } : {}),
     ...(site.navCtaHref ? { ctaHref: site.navCtaHref } : {}),
+    ...(site.navSecondaryCtaText ? { secondaryCtaText: site.navSecondaryCtaText } : {}),
+    ...(site.navSecondaryCtaHref ? { secondaryCtaHref: site.navSecondaryCtaHref } : {}),
   };
 };
 

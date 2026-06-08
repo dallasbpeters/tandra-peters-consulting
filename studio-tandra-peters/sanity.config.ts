@@ -503,6 +503,7 @@ export default defineConfig({
               mainDocuments: defineDocuments([
                 { route: "/", filter: `_type == "homePage"` },
                 { route: "/articles", filter: `_id == "articlesPage"` },
+                { route: "/workflow", filter: `_id == "workflowPage"` },
                 {
                   route: "/articles/:slug",
                   resolve: ({ params }) => {
@@ -542,6 +543,12 @@ export default defineConfig({
                   select: { id: "_id" },
                   resolve: () => ({
                     locations: [{ title: "Articles", href: "/articles" }],
+                  }),
+                }),
+                workflowPage: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [{ title: "Insurance workflow", href: "/workflow" }],
                   }),
                 }),
                 post: defineLocations({

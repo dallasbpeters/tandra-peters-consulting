@@ -27,7 +27,7 @@ function ShaderEffect({ style }: { style: React.CSSProperties }) {
         colorB="#f9f8e7"
         colorC="#fbf8ea"
         colorD="#fdfcf2"
-        colorE="#fafbee"
+        colorE="#eefbef"
         positionA={{ x: 0.24, y: 0.08 }}
         positionB={{ x: 0.81, y: 0.19 }}
         positionC={{ x: 0.68, y: 0.64 }}

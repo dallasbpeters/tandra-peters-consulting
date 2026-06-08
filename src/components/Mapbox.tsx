@@ -471,7 +471,7 @@ export const MapBox = ({
             borderRight: `1px solid ${mix(theme.colors.white, 8)}`,
             maxInlineSize: "40vw",
             position: "absolute",
-            top: isMobile ? "10%" : "5%",
+            top: isMobile ? "10%" : "15%",
             left: isMobile ? "5%" : "30%",
             zIndex: 10,
             backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "transparent",

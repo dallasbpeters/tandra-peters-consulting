@@ -9,6 +9,8 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import { SiteNavLink } from "../nav/SiteNavLink";
+import { TransitionLink } from "../TransitionLink";
 
 /** Floating pill nav on desktop; compact fixed bar with hamburger on mobile. */
 export const NavPillNav: React.FC<NavProps> = ({
@@ -199,12 +201,12 @@ export const NavPillNav: React.FC<NavProps> = ({
     <>
       {/* Desktop floating pill */}
       <nav aria-label="Site navigation" style={styles.pill}>
-        <a href="/" style={styles.pillLogo}>
+        <TransitionLink to="/" style={styles.pillLogo}>
           {logoText}
-        </a>
+        </TransitionLink>
         <div style={styles.pillDivider} />
         {navItems.map((item) => (
-          <a
+          <SiteNavLink
             key={item.name}
             href={item.href}
             style={hovLink === item.name ? styles.pillLinkHover : styles.pillLink}
@@ -212,9 +214,9 @@ export const NavPillNav: React.FC<NavProps> = ({
             onMouseLeave={() => setHovLink(null)}
           >
             {item.name}
-          </a>
+          </SiteNavLink>
         ))}
-        <a
+        <SiteNavLink
           className="pill-cta"
           href={ctaHref}
           style={styles.pillCta}
@@ -228,13 +230,13 @@ export const NavPillNav: React.FC<NavProps> = ({
           }
         >
           {ctaText}
-        </a>
+        </SiteNavLink>
       </nav>
 
       {/* Mobile fixed bar */}
       <nav aria-label="Site navigation" className="site-nav-vt" style={styles.mobileBar}>
         <span style={styles.mobileBarLogo}>{logoText}</span>
-        <a
+        <SiteNavLink
           href={ctaHref}
           style={styles.mobileCta}
           onClick={() =>
@@ -246,7 +248,7 @@ export const NavPillNav: React.FC<NavProps> = ({
           }
         >
           {ctaText}
-        </a>
+        </SiteNavLink>
         <button
           type="button"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -274,16 +276,16 @@ export const NavPillNav: React.FC<NavProps> = ({
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
-                <a
+                <SiteNavLink
                   key={item.name}
                   href={item.href}
                   style={styles.mobileLink}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </SiteNavLink>
               ))}
-              <a
+              <SiteNavLink
                 href={ctaHref}
                 style={styles.mobileCtaFull}
                 onClick={() => {
@@ -296,7 +298,7 @@ export const NavPillNav: React.FC<NavProps> = ({
                 }}
               >
                 {ctaText}
-              </a>
+              </SiteNavLink>
             </div>
           </motion.div>
         )}

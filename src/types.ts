@@ -37,6 +37,8 @@ export interface NavProps {
   navItems?: NavItem[];
   ctaText?: string;
   ctaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
   imageSrc?: string;
 }
 

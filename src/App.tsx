@@ -7,6 +7,7 @@ import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
 import { SanityContentProvider } from "./context/SanitySiteContext";
 import { Home } from "./pages/Home";
+import { WorkflowPage } from "./pages/WorkflowPage";
 
 const ArticlesIndexPage = lazy(async () => {
   const module = await import("./pages/ArticlesIndexPage");
@@ -119,6 +120,7 @@ const appRouter = createBrowserRouter([
           </Suspense>
         ),
       },
+      { path: "workflow", element: <WorkflowPage /> },
       {
         path: "agent",
         element: (

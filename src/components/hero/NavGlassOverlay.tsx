@@ -11,6 +11,8 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import { SiteNavLink } from "../nav/SiteNavLink";
+import { TransitionLink } from "../TransitionLink";
 
 /** Glass-overlay nav: centered logo, split links left/right, pill CTA. Transparent → dark glass on scroll. */
 export const NavGlassOverlay: React.FC<NavProps> = ({
@@ -98,7 +100,6 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       flexShrink: 0,
       userSelect: "none",
       flex: isMobile ? "1 1 auto" : "none",
-      pointerEvents: "none",
     },
     logoText: {
       color: "oklch(100% 0 0)",
@@ -186,13 +187,13 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
         {/* Left links — hidden on mobile */}
 
         {/* Centered logo */}
-        <div className="logo" style={styles.logo}>
+        <TransitionLink to="/" className="logo" style={{ ...styles.logo, textDecoration: "none" }}>
           <span style={styles.logoText}>{logoText}</span>
           <span style={styles.logoTagline}>{logoTagline}</span>
-        </div>
+        </TransitionLink>
         <div style={styles.linkGroupLeft}>
           {leftLinks.map((item) => (
-            <a
+            <SiteNavLink
               key={item.name}
               href={item.href}
               style={hovLink === item.name ? styles.linkHover : styles.link}
@@ -200,10 +201,10 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
               onMouseLeave={() => setHovLink(null)}
             >
               {item.name}
-            </a>
+            </SiteNavLink>
           ))}
           {rightLinks.map((item) => (
-            <a
+            <SiteNavLink
               key={item.name}
               href={item.href}
               style={hovLink === item.name ? styles.linkHover : styles.link}
@@ -211,13 +212,13 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
               onMouseLeave={() => setHovLink(null)}
             >
               {item.name}
-            </a>
+            </SiteNavLink>
           ))}
         </div>
 
         {/* Right links + CTA — logo is absolute-centered so this group doesn't skew it */}
         <div style={styles.linkGroupRight}>
-          <a
+          <SiteNavLink
             href={ctaHref}
             style={styles.cta}
             onMouseEnter={() => setHovBtn(true)}
@@ -230,7 +231,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
             }
           >
             {ctaText}
-          </a>
+          </SiteNavLink>
         </div>
 
         {/* Hamburger — mobile only */}
@@ -266,16 +267,16 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
-                <a
+                <SiteNavLink
                   key={item.name}
                   href={item.href}
                   style={styles.mobileLink}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </SiteNavLink>
               ))}
-              <a
+              <SiteNavLink
                 href={ctaHref}
                 style={styles.mobileCta}
                 onClick={() => {
@@ -288,7 +289,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
                 }}
               >
                 {ctaText}
-              </a>
+              </SiteNavLink>
             </div>
           </motion.div>
         )}

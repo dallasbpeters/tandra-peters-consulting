@@ -51,7 +51,7 @@ export const ArticlePage = () => {
   if (!slug) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
+        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
           <div className={layoutClass.containerArticle}>
             <p>Missing article link.</p>
             <TransitionLink to="/articles" viewTransition>
@@ -66,7 +66,7 @@ export const ArticlePage = () => {
   if (loading) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
+        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
           <div className={layoutClass.containerArticle}>
             <p style={{ color: theme.colors.evergladeMuted }}>Loading…</p>
           </div>
@@ -78,7 +78,7 @@ export const ArticlePage = () => {
   if (error || !post) {
     return (
       <SitePageChrome>
-        <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
+        <main className={`${layoutClass.pageMainArticle} site-main-route`}>
           <div className={layoutClass.containerArticle}>
             <h1
               style={{
@@ -118,7 +118,7 @@ export const ArticlePage = () => {
     <SitePageChrome>
       <ArticleRichTextLinkStyles />
       <ArticleJsonLd post={post} path={path} />
-      <main className={`${layoutClass.pageMainArticle} site-articles-route`}>
+      <main className={`${layoutClass.pageMainArticle} site-main-route`}>
         <article className={layoutClass.containerArticle}>
           <TransitionLink
             to="/articles"

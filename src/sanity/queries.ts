@@ -152,6 +152,44 @@ export const HOME_AND_SITE_QUERY = groq`{
   }
 }`;
 
+/** /workflow: insurance claim diagram singleton. */
+export const WORKFLOW_PAGE_QUERY = groq`*[_id == "workflowPage"][0]{
+  pageTitle,
+  pageLede,
+  seoTitle,
+  seoDescription,
+  viewportZoom,
+  viewportAnchorX,
+  viewportAnchorY,
+  layoutOriginX,
+  layoutOriginY,
+  layoutNodeWidth,
+  layoutNodeHeight,
+  layoutColGap,
+  layoutRowGap,
+  layoutFinalRowExtraOffset,
+  nodes[]{
+    _key,
+    stepId,
+    title,
+    body,
+    wide,
+    subsections[]{
+      title,
+      body
+    }
+  },
+  edges[]{
+    _key,
+    edgeId,
+    sourceStep,
+    targetStep,
+    sourceHandle,
+    targetHandle,
+    label
+  }
+}`;
+
 /** /articles: singleton page copy + all posts (newest first). */
 export const ARTICLES_INDEX_QUERY = groq`{
   "page": *[_id == "articlesPage"][0]{

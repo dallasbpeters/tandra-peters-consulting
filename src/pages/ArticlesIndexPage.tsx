@@ -36,7 +36,7 @@ export const ArticlesIndexPage = () => {
   return (
     <SitePageChrome>
       <ArticleCardSharedStyles />
-      <main className={`${layoutClass.pageMain} site-articles-route`}>
+      <main className={`${layoutClass.pageMain} site-main-route`}>
         <div className={layoutClass.containerWide}>
           <h1 style={typeStyles.pageListTitle}>{heading}</h1>
           <div style={typeStyles.pageListIntro}>

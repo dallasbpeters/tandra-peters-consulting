@@ -179,10 +179,14 @@ a.wa-button {
   }
 }
 
-/* Article index + article detail: isolate main column from full-document root transition */
-.site-articles-route {
+/*
+ * Routed sub-pages (articles, workflow, etc.) share one named transition so
+ * list ↔ detail ↔ workflow morph the main column instead of competing names.
+ * Home keeps unnamed <main> so it still rides the root blur/zoom transition.
+ */
+.site-main-route {
   /* eslint-disable-next-line css/use-baseline */
-  view-transition-name: site-articles-route;
+  view-transition-name: site-main-route;
   contain: layout;
 }
 
@@ -200,19 +204,19 @@ a.wa-button {
   }
 
   /* eslint-disable-next-line css/use-baseline */
-  ::view-transition-group(site-articles-route) {
+  ::view-transition-group(site-main-route) {
     animation-duration: 0.55s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* eslint-disable-next-line css/use-baseline */
-  ::view-transition-old(site-articles-route) {
-    animation: vt-articles-out 0.5s cubic-bezier(0.45, 0, 0.55, 1) both;
+  ::view-transition-old(site-main-route) {
+    animation: vt-main-route-out 0.5s cubic-bezier(0.45, 0, 0.55, 1) both;
   }
 
   /* eslint-disable-next-line css/use-baseline */
-  ::view-transition-new(site-articles-route) {
-    animation: vt-articles-in 0.58s cubic-bezier(0.16, 1, 0.3, 1) both;
+  ::view-transition-new(site-main-route) {
+    animation: vt-main-route-in 0.58s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* eslint-disable-next-line css/use-baseline */
@@ -233,7 +237,7 @@ a.wa-button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-articles-route {
+  .site-main-route {
     /* eslint-disable-next-line css/use-baseline */
     view-transition-name: none;
   }
@@ -269,8 +273,8 @@ a.wa-button {
   }
 }
 
-/* Articles list ↔ article: horizontal slide + light blur (pairs with site-articles-route) */
-@keyframes vt-articles-out {
+/* Sub-page main column: horizontal slide + light blur (pairs with site-main-route) */
+@keyframes vt-main-route-out {
   from {
     opacity: 1;
     filter: blur(0);
@@ -284,7 +288,7 @@ a.wa-button {
   }
 }
 
-@keyframes vt-articles-in {
+@keyframes vt-main-route-in {
   from {
     opacity: 0;
     filter: blur(8px);

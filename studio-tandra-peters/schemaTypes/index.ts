@@ -4,6 +4,7 @@ import beforeAfterGalleryType from "./documents/beforeAfterGallery";
 import { homePageType } from "./documents/homePage";
 import { seoDashboardInsightsType } from "./documents/seoDashboardInsights";
 import { siteSettingsType } from "./documents/siteSettings";
+import { workflowPageType } from "./documents/workflowPage";
 import {
   heroSectionType,
   marqueeSectionType,
@@ -35,11 +36,17 @@ import { serviceCardType } from "./objects/serviceCard";
 import { socialLinkType } from "./objects/socialLink";
 import { statRowType } from "./objects/statRow";
 import { tandraIntroVideoType } from "./objects/tandraIntroVideo";
+import { workflowDiagramEdgeType } from "./objects/workflowDiagramEdge";
+import { workflowDiagramNodeType } from "./objects/workflowDiagramNode";
+import { workflowDiagramNodeSubsectionType } from "./objects/workflowDiagramNodeSubsection";
 import { postType } from "./postType";
 import { serviceAreaMapType } from "./serviceAreaMap";
 export const schemaTypes = [
   blockContentType,
   navLinkType,
+  workflowDiagramNodeSubsectionType,
+  workflowDiagramNodeType,
+  workflowDiagramEdgeType,
   beforeAfterGalleryType,
   socialLinkType,
   serviceCardType,
@@ -71,6 +78,7 @@ export const schemaTypes = [
   siteSettingsType,
   homePageType,
   articlesPageType,
+  workflowPageType,
   tandraIntroVideoType,
   aiContextType,
   seoDashboardInsightsType,

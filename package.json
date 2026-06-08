@@ -72,6 +72,7 @@
     "@vercel/node": "^5.8.6",
     "@vercel/sandbox": "^2.0.1",
     "@vitejs/plugin-react": "^5.2.0",
+    "@xyflow/react": "^12.11.0",
     "agentation-mcp": "^1.2.0",
     "ai": "6.0.138",
     "class-variance-authority": "^0.7.1",

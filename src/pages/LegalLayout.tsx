@@ -2,7 +2,7 @@ import { NavArrowLeft } from "iconoir-react";
 import { type ReactNode } from "react";
 
 import { Footer } from "../components/Footer";
-import { Nav } from "../components/Nav";
+import { NavVariant } from "../components/NavVariant";
 import { TransitionLink } from "../components/TransitionLink";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -34,7 +34,7 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
         fontFamily: theme.fonts.body,
       }}
     >
-      <Nav {...mapNavProps(site)} />
+      <NavVariant heroStyle="control" {...mapNavProps(site)} />
       <main>
         <article
           className={`${layoutClass.pageMain} ${layoutClass.pageMainLegal} ${layoutClass.containerLegal}`}

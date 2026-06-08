@@ -23,8 +23,25 @@ export const siteSettingsType = defineType({
       type: "array",
       of: [{ type: "navLink" }],
     }),
-    defineField({ name: "navCtaText", type: "string" }),
-    defineField({ name: "navCtaHref", type: "string", initialValue: "#contact" }),
+    defineField({ name: "navCtaText", type: "string", title: "Nav primary CTA text" }),
+    defineField({
+      name: "navCtaHref",
+      type: "string",
+      title: "Nav primary CTA link",
+      initialValue: "#contact",
+    }),
+    defineField({
+      name: "navSecondaryCtaText",
+      type: "string",
+      title: "Nav secondary CTA text",
+      description: "Used by the dual-CTA rail nav variant (e.g. Explore Services).",
+    }),
+    defineField({
+      name: "navSecondaryCtaHref",
+      type: "string",
+      title: "Nav secondary CTA link",
+      initialValue: "#services",
+    }),
     defineField({ name: "footerLogoText", type: "string" }),
     defineField({
       name: "footerDescription",

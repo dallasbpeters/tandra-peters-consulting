@@ -11,16 +11,13 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
-
-type DualCTANavProps = NavProps & {
-  secondaryCtaText?: string;
-  secondaryCtaHref?: string;
-};
+import { SiteNavLink } from "../nav/SiteNavLink";
+import { TransitionLink } from "../TransitionLink";
 
 /** Dual-CTA rail nav: always opaque cream, left logo+tagline, center links, two CTA buttons on right. Compacts on scroll. */
-export const NavDualCTARail: React.FC<DualCTANavProps> = ({
+export const NavDualCTARail: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
-  logoTagline = "Roofing Consultant · Austin, TX",
+  logoTagline = "Roofing Consultant",
   imageSrc = "/tandra.png",
   navItems = [
     { name: "Services", href: "#services" },
@@ -28,7 +25,7 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
     { name: "Reviews", href: "#testimonials" },
     { name: "Contact", href: "#contact" },
   ],
-  ctaText = "Free Consultation",
+  ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",
   secondaryCtaHref = "#services",
@@ -221,18 +218,18 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
     <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
       <div style={styles.navInner} className={layoutClass.containerWideRow}>
         {/* Logo */}
-        <div style={styles.logoGroup}>
+        <TransitionLink to="/" style={{ ...styles.logoGroup, textDecoration: "none" }}>
           <img src={imageSrc} alt="" style={styles.logoImage} />
           <div>
             <div style={styles.logoText}>{logoText}</div>
             <div style={styles.logoTagline}>{logoTagline}</div>
           </div>
-        </div>
+        </TransitionLink>
 
         {/* Desktop links */}
         <div style={styles.linkGroup}>
           {navItems.map((item) => (
-            <a
+            <SiteNavLink
               key={item.name}
               href={item.href}
               style={hovLink === item.name ? styles.linkHover : styles.link}
@@ -240,13 +237,13 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
               onMouseLeave={() => setHovLink(null)}
             >
               {item.name}
-            </a>
+            </SiteNavLink>
           ))}
         </div>
 
         {/* Desktop dual CTAs */}
         <div style={styles.ctaGroup}>
-          <a
+          <SiteNavLink
             href={secondaryCtaHref}
             style={styles.ctaSecondary}
             onMouseEnter={() => setHovSecondary(true)}
@@ -260,8 +257,8 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
             }
           >
             {secondaryCtaText}
-          </a>
-          <a
+          </SiteNavLink>
+          <SiteNavLink
             href={ctaHref}
             style={styles.ctaPrimary}
             onMouseEnter={() => setHovPrimary(true)}
@@ -275,7 +272,7 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
             }
           >
             {ctaText} <span style={styles.ctaArrow}>→</span>
-          </a>
+          </SiteNavLink>
         </div>
 
         {/* Hamburger */}
@@ -311,16 +308,16 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
-                <a
+                <SiteNavLink
                   key={item.name}
                   href={item.href}
                   style={styles.mobileLink}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </SiteNavLink>
               ))}
-              <a
+              <SiteNavLink
                 href={ctaHref}
                 style={styles.mobileCta}
                 onClick={() => {
@@ -333,7 +330,7 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
                 }}
               >
                 {ctaText}
-              </a>
+              </SiteNavLink>
             </div>
           </motion.div>
         )}

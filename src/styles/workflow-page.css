@@ -1,0 +1,149 @@
+/* Block: workflow-page — insurance claim process diagram */
+.workflow-page {
+  min-height: 100vh;
+}
+
+.workflow-page__intro {
+  max-width: 48rem;
+  margin: var(--theme-spacing-lg) auto 0 auto;
+  padding: var(--theme-spacing-lg) var(--theme-spacing-lg) var(--theme-spacing-xl);
+  text-align: center;
+}
+
+.workflow-page__title {
+  margin: 0 0 var(--theme-spacing-md);
+  font-family: "IBM Plex Serif", serif;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.workflow-page__lede {
+  margin: 0;
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: color-mix(in oklch, #000 82%, transparent);
+}
+
+.workflow-page__canvas {
+  --workflow-edge: #8156f6;
+  --workflow-grid: color-mix(in oklch, #505050 14%, transparent);
+
+  width: calc(100% - var(--theme-spacing-section-loose) * 2);
+  height: min(920px, 78vh);
+  min-height: 680px;
+  margin: 0 var(--theme-spacing-section-loose);
+  border: 1px solid color-mix(in oklch, #000 18%, transparent);
+  border-radius: var(--theme-radius-large);
+  overflow: hidden;
+}
+
+.workflow-page__canvas .react-flow {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background-color: #f4f4f1;
+}
+
+.workflow-page__canvas .react-flow__background {
+  background-color: #f4f4f1;
+}
+
+.workflow-page__canvas .react-flow__background-pattern.lines {
+  stroke: var(--workflow-grid);
+  stroke-width: 1;
+  fill: none;
+}
+
+.workflow-node {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 18.5rem;
+  padding: var(--theme-spacing-lg);
+  border-radius: var(--theme-radius-large);
+  background: #fff;
+  color: #000;
+  border: 1px solid #9f9f9f;
+  font-family: "Hanken Grotesk Variable", sans-serif;
+}
+
+.workflow-node--wide {
+  max-width: 34rem;
+}
+
+.workflow-node__title {
+  margin: 0 0 var(--theme-spacing-sm);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.workflow-node__body {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.55;
+}
+
+.workflow-node__subtitle {
+  margin: var(--theme-spacing-md) 0 var(--theme-spacing-sm);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: underline;
+}
+
+/* Edge SVGs ship without dimensions — paths never paint without this */
+.workflow-page__canvas .react-flow__edges {
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.workflow-page__canvas .react-flow__edges svg:not(.react-flow__marker) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+}
+
+.workflow-page__canvas .react-flow__edge-path {
+  stroke: var(--workflow-edge);
+  stroke-width: 3;
+  fill: none;
+}
+
+.workflow-page__canvas .react-flow__arrowhead polyline {
+  stroke: var(--workflow-edge);
+  fill: var(--workflow-edge);
+}
+
+.workflow-page__canvas .react-flow__edge-text {
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  fill: #092a1d;
+}
+
+.workflow-page__canvas .react-flow__edge-textbg {
+  fill: #fff;
+  stroke: var(--workflow-edge);
+  stroke-width: 1.5;
+}
+
+.workflow-page__canvas .react-flow__nodes {
+  z-index: 4;
+}
+
+@media (width <= 768px) {
+  .workflow-page__canvas {
+    width: calc(100% - var(--theme-spacing-lg) * 2);
+    margin: 0 var(--theme-spacing-lg);
+    height: min(720px, 70vh);
+    min-height: 520px;
+  }
+}

@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { patchHomePageArticleRefs } from "./articlePostsSeed";
 import {
   articlesPageSeed,
+  workflowPageSeed,
   homePageSeed,
   siteSettingsNavLogoImageUrl,
   siteSettingsSeed,
@@ -126,8 +127,9 @@ async function main() {
     .createOrReplace(sitePayload)
     .createOrReplace(homePayload)
     .createOrReplace(articlesPageSeed)
+    .createOrReplace(workflowPageSeed)
     .commit();
-  console.log("Seeded siteSettings + homePage + articlesPage (with image assets)");
+  console.log("Seeded siteSettings + homePage + articlesPage + workflowPage (with image assets)");
   await patchHomePageArticleRefs(client);
 }
 
