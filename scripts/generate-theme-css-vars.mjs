@@ -13,13 +13,18 @@ const outPath = path.join(__dirname, "../src/styles/theme-variables.css");
 
 const toKebab = (key) => key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 
+const normalizeCSSValue = (value) => String(value).replace(/\s+/g, " ").trim().replace(/;$/u, "");
+
 const tokenLines = (prefix, tokens) =>
-  Object.entries(tokens).map(([key, value]) => `  --theme-${prefix}-${toKebab(key)}: ${value};`);
+  Object.entries(tokens).map(
+    ([key, value]) => `  --theme-${prefix}-${toKebab(key)}: ${normalizeCSSValue(value)};`,
+  );
 
 const css = `/* Generated from src/theme.ts — do not edit; run pnpm generate:theme-css */
 :root {
 ${tokenLines("radius", theme.radius).join("\n")}
 ${tokenLines("spacing", theme.spacing).join("\n")}
+${tokenLines("shadow", theme.shadow).join("\n")}
 }
 `;
 

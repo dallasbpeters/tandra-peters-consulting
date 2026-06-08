@@ -5,6 +5,8 @@ import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useEffect, useState } from "react";
 
+import { layoutClass } from "@/src/styles/layoutClasses";
+
 import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
@@ -217,7 +219,7 @@ export const NavDualCTARail: React.FC<DualCTANavProps> = ({
 
   return (
     <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
-      <div style={styles.navInner}>
+      <div style={styles.navInner} className={layoutClass.containerWideRow}>
         {/* Logo */}
         <div style={styles.logoGroup}>
           <img src={imageSrc} alt="" style={styles.logoImage} />

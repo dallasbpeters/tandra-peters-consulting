@@ -15,7 +15,7 @@ import { GoogleAuthGate } from "../GoogleAuthGate";
 
 const TRUST = [
   { value: "7×", label: "Best Roofer" },
-  { value: "★ 4.9", label: "Google Rating" },
+  { value: "★ 4.7", label: "Google Rating" },
   { value: "500+", label: "Projects" },
 ];
 

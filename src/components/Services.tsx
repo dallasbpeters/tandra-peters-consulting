@@ -148,7 +148,7 @@ export const Services: React.FC<ServicesProps> = ({
                 fontWeight: 800,
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
-                color: theme.colors.white,
+                color: `contrast-color(${theme.colors.black})`,
                 fontSize: "0.75rem",
                 marginBottom: "1.5rem",
                 display: "block",
@@ -163,7 +163,7 @@ export const Services: React.FC<ServicesProps> = ({
                 lineHeight: 1,
                 fontFamily: theme.fonts.headline,
                 fontWeight: 800,
-                color: theme.colors.white,
+                color: `contrast-color(${theme.colors.black})`,
               }}
             >
               {title}
@@ -172,7 +172,7 @@ export const Services: React.FC<ServicesProps> = ({
           <div
             style={{
               maxWidth: "24rem",
-              color: mix(theme.colors.white, 60),
+              color: `contrast-color(${theme.colors.black})`,
               lineHeight: 1.6,
               fontSize: "1.1rem",
             }}
@@ -307,7 +307,7 @@ export const Services: React.FC<ServicesProps> = ({
                 >
                   <span
                     style={{
-                      color: mix(theme.colors.white, 20),
+                      color: `contrast-color(${theme.colors.black})`,
                       fontFamily: theme.fonts.headline,
                       fontWeight: 900,
                       fontSize: isMain ? "6rem" : "3.75rem",
@@ -358,7 +358,7 @@ export const Services: React.FC<ServicesProps> = ({
           <motion.div
             variants={cardVariants}
             style={{
-              backgroundColor: theme.palette.gold["700"],
+              backgroundColor: theme.palette.gold["100"],
               borderRadius: theme.radius.medium,
               padding: isMobile ? "2rem" : "3rem",
               display: "flex",

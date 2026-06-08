@@ -5,7 +5,7 @@ import { execFile } from "node:child_process";
  * Writes matching .txt captions (trigger: txshingle) and outputs training/txshingle-training.zip
  */
 import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
-import { basename, dirname, extname, join } from "node:path";
+import { basename, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 

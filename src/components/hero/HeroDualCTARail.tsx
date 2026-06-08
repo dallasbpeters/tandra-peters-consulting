@@ -41,7 +41,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     },
     section: {
       position: "relative",
-      height: "calc(100vh - 5rem)",
+      height: "calc(100vh - 20rem)",
       minHeight: 600,
       overflow: "hidden",
       background: theme.colors.black,
@@ -57,8 +57,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     gradient: {
       position: "absolute",
       inset: 0,
-      background:
-        "linear-gradient(180deg, transparent 40%, oklch(18.97% 0.008 107.13 / 0.85) 100%)",
+      background: "linear-gradient(180deg, transparent 20%, oklch(8.97% 0.008 107.13 / 0.85) 100%)",
     },
     accentBar: {
       position: "absolute",
@@ -70,7 +69,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     },
     copyOuter: {
       position: "absolute",
-      bottom: "4.5rem",
+      top: "50%",
+      transform: "translateY(-50%)",
       left: 0,
       right: 0,
       zIndex: 10,
@@ -268,7 +268,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
 
               {/* Stat card — flex sibling inside the container so it respects the 80rem boundary */}
               <div style={styles.statCard}>
-                <div style={styles.statValue}>★ 4.9</div>
+                <div style={styles.statValue}>★ 4.7</div>
                 <div style={styles.statLabel}>Google · 200+ Reviews</div>
               </div>
             </div>

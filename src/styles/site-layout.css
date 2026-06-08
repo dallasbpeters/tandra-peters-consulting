@@ -423,6 +423,7 @@ main {
   width: 100%;
   border-radius: var(--theme-radius-large);
   overflow: hidden;
+  aspect-ratio: 16 / 9;
 }
 
 .featured-video__video {

@@ -1,6 +1,8 @@
 import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
 
 import "@fontsource/bebas-neue/latin-400.css";
+import "@fontsource/ibm-plex-serif/400.css";
+import "@fontsource/ibm-plex-serif/400-italic.css";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
 
@@ -491,71 +493,172 @@ const AdColorPickerField = ({ label, value, onValueChange }: AdColorPickerFieldP
   );
 };
 
-type AdPaddingFieldProps = {
-  value: number;
-  onValueChange: (value: number) => void;
-};
+const formatIntegerDisplay = (value: number) => String(Math.round(value));
 
-const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => {
-  const sliderRef = useRef<WaSliderElement | null>(null);
-  const numberInputRef = useRef<WaNumberInputElement | null>(null);
+const formatDimensionDisplay = (value: number, unit: AdUnit) =>
+  unit === "px" ? formatIntegerDisplay(value) : formatCssNumber(value);
+
+const useDraftNumberInput = (
+  safeValue: number,
+  formatDisplay: (value: number) => string,
+  clampValue: (value: number) => number,
+  onValueChange: (value: number) => void,
+) => {
+  const inputRef = useRef<WaNumberInputElement | null>(null);
+  const isFocusedRef = useRef(false);
+  const [draftValue, setDraftValue] = useState(() => formatDisplay(safeValue));
 
   useEffect(() => {
-    const slider = sliderRef.current;
-    const numberInput = numberInputRef.current;
+    if (!isFocusedRef.current) {
+      setDraftValue(formatDisplay(safeValue));
+    }
+  }, [formatDisplay, safeValue]);
 
-    const updateFromSlider = () => {
-      if (!slider) return;
-      onValueChange(clampPadding(slider.value));
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const handleFocus = () => {
+      isFocusedRef.current = true;
     };
 
-    const updateFromNumberInput = () => {
-      if (!numberInput) return;
-      const nextValue = Number(numberInput.value ?? value);
-      if (Number.isFinite(nextValue)) {
-        onValueChange(clampPadding(nextValue));
+    const handleInput = () => {
+      const raw = input.value ?? "";
+      setDraftValue(raw);
+      const parsed = Number(raw);
+      if (Number.isFinite(parsed)) {
+        onValueChange(clampValue(parsed));
       }
     };
 
-    slider?.addEventListener("input", updateFromSlider);
-    slider?.addEventListener("change", updateFromSlider);
-    numberInput?.addEventListener("input", updateFromNumberInput);
-    numberInput?.addEventListener("change", updateFromNumberInput);
+    const handleBlur = () => {
+      isFocusedRef.current = false;
+      const parsed = Number(input.value ?? "");
+      if (Number.isFinite(parsed)) {
+        const nextValue = clampValue(parsed);
+        onValueChange(nextValue);
+        setDraftValue(formatDisplay(nextValue));
+        return;
+      }
+
+      setDraftValue(formatDisplay(safeValue));
+    };
+
+    input.addEventListener("focus", handleFocus);
+    input.addEventListener("input", handleInput);
+    input.addEventListener("change", handleInput);
+    input.addEventListener("blur", handleBlur);
 
     return () => {
-      slider?.removeEventListener("input", updateFromSlider);
-      slider?.removeEventListener("change", updateFromSlider);
-      numberInput?.removeEventListener("input", updateFromNumberInput);
-      numberInput?.removeEventListener("change", updateFromNumberInput);
+      input.removeEventListener("focus", handleFocus);
+      input.removeEventListener("input", handleInput);
+      input.removeEventListener("change", handleInput);
+      input.removeEventListener("blur", handleBlur);
     };
-  }, [onValueChange, value]);
+  }, [clampValue, formatDisplay, onValueChange, safeValue]);
+
+  return { inputRef, draftValue };
+};
+
+type AdSliderNumberFieldProps = {
+  className: string;
+  sliderLabel: string;
+  numberAriaLabel: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number | "any";
+  inputMode?: "numeric" | "decimal";
+  clampValue: (value: number) => number;
+  formatDisplay?: (value: number) => string;
+  onValueChange: (value: number) => void;
+};
+
+const AdSliderNumberField = ({
+  className,
+  sliderLabel,
+  numberAriaLabel,
+  value,
+  min,
+  max,
+  step,
+  inputMode = "numeric",
+  clampValue,
+  formatDisplay = formatIntegerDisplay,
+  onValueChange,
+}: AdSliderNumberFieldProps) => {
+  const sliderRef = useRef<WaSliderElement | null>(null);
+  const safeValue = clampValue(value);
+  const { inputRef: numberInputRef, draftValue } = useDraftNumberInput(
+    safeValue,
+    formatDisplay,
+    clampValue,
+    onValueChange,
+  );
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const updateFromSlider = () => {
+      onValueChange(clampValue(slider.value));
+    };
+
+    slider.addEventListener("input", updateFromSlider);
+    slider.addEventListener("change", updateFromSlider);
+
+    return () => {
+      slider.removeEventListener("input", updateFromSlider);
+      slider.removeEventListener("change", updateFromSlider);
+    };
+  }, [clampValue, onValueChange]);
 
   return (
-    <div className="ad-dashboard-padding-field">
+    <div className={className}>
       <WaSlider
         ref={sliderRef}
-        label="Padding"
-        value={value}
-        min={PADDING_MIN}
-        max={PADDING_MAX}
-        step={PADDING_STEP}
+        label={sliderLabel}
+        value={safeValue}
+        min={min}
+        max={max}
+        step={step === "any" ? 1 : step}
         size="xs"
         withTooltip
       />
       <WaNumberInput
         ref={numberInputRef}
-        label="Padding %"
-        value={String(value)}
-        min={PADDING_MIN}
-        max={PADDING_MAX}
-        step={PADDING_STEP}
-        inputmode="numeric"
+        className="ad-dashboard-number-compact"
+        label={numberAriaLabel}
+        value={draftValue}
+        min={min}
+        max={max}
+        step={step}
+        inputmode={inputMode}
         appearance="outlined"
         size="xs"
       />
     </div>
   );
 };
+
+type AdPaddingFieldProps = {
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+const AdPaddingField = ({ value, onValueChange }: AdPaddingFieldProps) => (
+  <AdSliderNumberField
+    className="ad-dashboard-padding-field"
+    sliderLabel="Padding"
+    numberAriaLabel="Padding percent"
+    value={value}
+    min={PADDING_MIN}
+    max={PADDING_MAX}
+    step={PADDING_STEP}
+    clampValue={clampPadding}
+    onValueChange={onValueChange}
+  />
+);
 
 type AdTypeSizeFieldProps = {
   label: string;
@@ -583,129 +686,33 @@ const AdRangeField = ({
   suffix,
   clampValue,
   onValueChange,
-}: AdRangeFieldProps) => {
-  const sliderRef = useRef<WaSliderElement | null>(null);
-  const numberInputRef = useRef<WaNumberInputElement | null>(null);
-  const safeValue = clampValue(value);
+}: AdRangeFieldProps) => (
+  <AdSliderNumberField
+    className="ad-dashboard-range-field"
+    sliderLabel={label}
+    numberAriaLabel={suffix}
+    value={value}
+    min={min}
+    max={max}
+    step={step}
+    clampValue={clampValue}
+    onValueChange={onValueChange}
+  />
+);
 
-  useEffect(() => {
-    const slider = sliderRef.current;
-    const numberInput = numberInputRef.current;
-
-    const updateFromSlider = () => {
-      if (!slider) return;
-      onValueChange(clampValue(slider.value));
-    };
-
-    const updateFromNumberInput = () => {
-      if (!numberInput) return;
-      const nextValue = Number(numberInput.value ?? safeValue);
-      if (Number.isFinite(nextValue)) {
-        onValueChange(clampValue(nextValue));
-      }
-    };
-
-    slider?.addEventListener("input", updateFromSlider);
-    slider?.addEventListener("change", updateFromSlider);
-    numberInput?.addEventListener("input", updateFromNumberInput);
-    numberInput?.addEventListener("change", updateFromNumberInput);
-
-    return () => {
-      slider?.removeEventListener("input", updateFromSlider);
-      slider?.removeEventListener("change", updateFromSlider);
-      numberInput?.removeEventListener("input", updateFromNumberInput);
-      numberInput?.removeEventListener("change", updateFromNumberInput);
-    };
-  }, [clampValue, onValueChange, safeValue]);
-
-  return (
-    <div className="ad-dashboard-range-field">
-      <WaSlider
-        ref={sliderRef}
-        label={label}
-        value={safeValue}
-        min={min}
-        max={max}
-        step={step}
-        size="xs"
-        withTooltip
-      />
-      <WaNumberInput
-        ref={numberInputRef}
-        label={suffix}
-        value={String(safeValue)}
-        min={min}
-        max={max}
-        step={step}
-        inputmode="numeric"
-        appearance="outlined"
-        size="xs"
-      />
-    </div>
-  );
-};
-
-const AdTypeSizeField = ({ label, value, onValueChange }: AdTypeSizeFieldProps) => {
-  const sliderRef = useRef<WaSliderElement | null>(null);
-  const numberInputRef = useRef<WaNumberInputElement | null>(null);
-  const safeValue = getSafeTypeSize(value);
-
-  useEffect(() => {
-    const slider = sliderRef.current;
-    const numberInput = numberInputRef.current;
-
-    const updateFromSlider = () => {
-      if (!slider) return;
-      onValueChange(clampTypeSize(slider.value));
-    };
-
-    const updateFromNumberInput = () => {
-      if (!numberInput) return;
-      const nextValue = Number(numberInput.value ?? safeValue);
-      if (Number.isFinite(nextValue)) {
-        onValueChange(clampTypeSize(nextValue));
-      }
-    };
-
-    slider?.addEventListener("input", updateFromSlider);
-    slider?.addEventListener("change", updateFromSlider);
-    numberInput?.addEventListener("input", updateFromNumberInput);
-    numberInput?.addEventListener("change", updateFromNumberInput);
-
-    return () => {
-      slider?.removeEventListener("input", updateFromSlider);
-      slider?.removeEventListener("change", updateFromSlider);
-      numberInput?.removeEventListener("input", updateFromNumberInput);
-      numberInput?.removeEventListener("change", updateFromNumberInput);
-    };
-  }, [label, onValueChange, safeValue]);
-
-  return (
-    <div className="ad-dashboard-size-field">
-      <WaSlider
-        ref={sliderRef}
-        label={label}
-        value={safeValue}
-        min={TYPE_SIZE_MIN}
-        max={TYPE_SIZE_MAX}
-        step={TYPE_SIZE_STEP}
-        size="xs"
-        withTooltip
-      />
-      <WaNumberInput
-        ref={numberInputRef}
-        label={`${label} %`}
-        value={String(safeValue)}
-        min={TYPE_SIZE_MIN}
-        max={TYPE_SIZE_MAX}
-        step={TYPE_SIZE_STEP}
-        inputmode="numeric"
-        appearance="outlined"
-        size="xs"
-      />
-    </div>
-  );
-};
+const AdTypeSizeField = ({ label, value, onValueChange }: AdTypeSizeFieldProps) => (
+  <AdSliderNumberField
+    className="ad-dashboard-size-field"
+    sliderLabel={label}
+    numberAriaLabel={`${label} percent`}
+    value={getSafeTypeSize(value)}
+    min={TYPE_SIZE_MIN}
+    max={TYPE_SIZE_MAX}
+    step={TYPE_SIZE_STEP}
+    clampValue={clampTypeSize}
+    onValueChange={onValueChange}
+  />
+);
 
 type AdUnitFieldProps = {
   unit: AdUnit;
@@ -716,6 +723,50 @@ type AdUnitFieldProps = {
   onHeightChange: (height: number) => void;
 };
 
+type AdDimensionNumberFieldProps = {
+  label: string;
+  value: number;
+  unit: AdUnit;
+  onValueChange: (value: number) => void;
+};
+
+const AdDimensionNumberField = ({
+  label,
+  value,
+  unit,
+  onValueChange,
+}: AdDimensionNumberFieldProps) => {
+  const safeValue = clampDimension(value, unit);
+  const min = unit === "px" ? DIMENSION_MIN_PX : DIMENSION_MIN_IN;
+  const max = unit === "px" ? DIMENSION_MAX_PX : DIMENSION_MAX_IN;
+  const step = unit === "px" ? 1 : 0.125;
+  const formatDisplay = useCallback(
+    (nextValue: number) => formatDimensionDisplay(nextValue, unit),
+    [unit],
+  );
+  const clampValue = useCallback((nextValue: number) => clampDimension(nextValue, unit), [unit]);
+  const { inputRef, draftValue } = useDraftNumberInput(
+    safeValue,
+    formatDisplay,
+    clampValue,
+    onValueChange,
+  );
+
+  return (
+    <WaNumberInput
+      ref={inputRef}
+      label={label}
+      value={draftValue}
+      min={min}
+      max={max}
+      step={step}
+      inputmode={unit === "px" ? "numeric" : "decimal"}
+      appearance="outlined"
+      size="xs"
+    />
+  );
+};
+
 const AdUnitField = ({
   unit,
   width,
@@ -723,88 +774,35 @@ const AdUnitField = ({
   onUnitChange,
   onWidthChange,
   onHeightChange,
-}: AdUnitFieldProps) => {
-  const widthInputRef = useRef<WaNumberInputElement | null>(null);
-  const heightInputRef = useRef<WaNumberInputElement | null>(null);
-  const safeWidth = clampDimension(width, unit);
-  const safeHeight = clampDimension(height, unit);
-  const min = unit === "px" ? DIMENSION_MIN_PX : DIMENSION_MIN_IN;
-  const max = unit === "px" ? DIMENSION_MAX_PX : DIMENSION_MAX_IN;
-  const step = unit === "px" ? 1 : 0.125;
-
-  useEffect(() => {
-    const widthInput = widthInputRef.current;
-    const heightInput = heightInputRef.current;
-
-    const updateWidth = () => {
-      if (!widthInput) return;
-      const nextValue = Number(widthInput.value ?? safeWidth);
-      if (Number.isFinite(nextValue)) {
-        onWidthChange(clampDimension(nextValue, unit));
-      }
-    };
-
-    const updateHeight = () => {
-      if (!heightInput) return;
-      const nextValue = Number(heightInput.value ?? safeHeight);
-      if (Number.isFinite(nextValue)) {
-        onHeightChange(clampDimension(nextValue, unit));
-      }
-    };
-
-    widthInput?.addEventListener("input", updateWidth);
-    widthInput?.addEventListener("change", updateWidth);
-    heightInput?.addEventListener("input", updateHeight);
-    heightInput?.addEventListener("change", updateHeight);
-
-    return () => {
-      widthInput?.removeEventListener("input", updateWidth);
-      widthInput?.removeEventListener("change", updateWidth);
-      heightInput?.removeEventListener("input", updateHeight);
-      heightInput?.removeEventListener("change", updateHeight);
-    };
-  }, [onHeightChange, onWidthChange, safeHeight, safeWidth, unit]);
-
-  return (
-    <div className="ad-dashboard-unit-field">
-      <div className="ad-dashboard-unit-toggle">
-        <span className={unit === "in" ? "is-active" : undefined}>in</span>
-        <WaSwitch
-          className="ad-dashboard-unit-switch"
-          checked={unit === "px"}
-          size="xs"
-          onChange={(event) => onUnitChange(getSwitchChecked(event) ? "px" : "in")}
-        >
-          px
-        </WaSwitch>
-      </div>
-      <div className="ad-dashboard-unit-dimensions">
-        <WaNumberInput
-          ref={widthInputRef}
-          label={`Width (${unit})`}
-          value={unit === "px" ? String(safeWidth) : safeWidth.toFixed(3)}
-          min={min}
-          max={max}
-          step={step}
-          inputmode="decimal"
-          appearance="outlined"
-          size="xs"
-        />
-        <WaNumberInput
-          ref={heightInputRef}
-          label={`Height (${unit})`}
-          value={unit === "px" ? String(safeHeight) : safeHeight.toFixed(3)}
-          min={min}
-          max={max}
-          step={step}
-          inputmode="decimal"
-          appearance="outlined"
-          size="xs"
-        />
-      </div>
+}: AdUnitFieldProps) => (
+  <div className="ad-dashboard-unit-field">
+    <div className="ad-dashboard-unit-toggle">
+      <span className={unit === "in" ? "is-active" : undefined}>in</span>
+      <WaSwitch
+        className="ad-dashboard-unit-switch"
+        checked={unit === "px"}
+        size="xs"
+        onChange={(event) => onUnitChange(getSwitchChecked(event) ? "px" : "in")}
+      >
+        px
+      </WaSwitch>
     </div>
-  );
-};
+    <div className="ad-dashboard-unit-dimensions">
+      <AdDimensionNumberField
+        label={`Width (${unit})`}
+        value={width}
+        unit={unit}
+        onValueChange={onWidthChange}
+      />
+      <AdDimensionNumberField
+        label={`Height (${unit})`}
+        value={height}
+        unit={unit}
+        onValueChange={onHeightChange}
+      />
+    </div>
+  </div>
+);
 
 const DEFAULT_CREATIVE: CreativeState = {
   templateId: AD_TEMPLATES[0].id,
@@ -1398,6 +1396,12 @@ export const AdDashboardPage = () => {
                         </WaOption>
                       ))}
                     </WaSelect>
+                    <p className="ad-dashboard-rhythm-hint">
+                      Applies to headlines, body copy, and contact lines on every layout.
+                      Canva-style layouts keep their preset sizes and all-caps styling — adjust Type
+                      sizes if a font feels too large or tight. Picking a new Design resets the font
+                      to that that template&apos;s default.
+                    </p>
 
                     <div className="ad-dashboard-panel-header">
                       <ColorWheel width={20} height={20} />
@@ -1598,9 +1602,6 @@ export const AdDashboardPage = () => {
                       <footer className="ad-creative-footnote">
                         <div className="ad-creative-footer-copy">
                           {creative.footnote ? <span>{creative.footnote}</span> : null}
-                          {creative.footnote2 ? (
-                            <span className="ad-creative-footnote-2">{creative.footnote2}</span>
-                          ) : null}
                         </div>
                         {creative.showLogo &&
                         creative.layout !== "canva-hero-footer" &&

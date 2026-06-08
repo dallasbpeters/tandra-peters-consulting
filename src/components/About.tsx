@@ -2,7 +2,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitText from "gsap/SplitText";
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Shader, MultiPointGradient } from "shaders/react";
 
 import { useIsMobile } from "../hooks/isMobile";
@@ -39,12 +39,14 @@ function ShaderEffect({ style }: { style: React.CSSProperties }) {
   );
 }
 
+const ABOUT_MOBILE_BREAKPOINT = 800;
+const ABOUT_STACKED_BREAKPOINT = 1224;
+
 export const About: React.FC<AboutProps> = ({ body }) => {
-  const isMobile = useIsMobile();
-  const isTablet = useIsMobile(1724);
+  const isMobile = useIsMobile(ABOUT_MOBILE_BREAKPOINT);
+  const isStacked = useIsMobile(ABOUT_STACKED_BREAKPOINT);
   const sectionRef = useRef<HTMLElement>(null);
   const richBody = useMemo(() => asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS), [body]);
-
   /* Scroll-scrub: per-line word fade + gradient clip stay paired so scrub reverses cleanly. */
   useGSAP(
     () => {
@@ -132,11 +134,15 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     { scope: sectionRef, dependencies: [body] },
   );
 
+  useEffect(() => {
+    ScrollTrigger.refresh();
+  }, [isMobile, isStacked]);
+
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
     overflow: "hidden",
     position: "relative",
-    padding: isMobile ? `0` : `${theme.spacing.sectionHero} ${theme.spacing.lg}`,
+    padding: isMobile ? 0 : `${theme.spacing.sectionHero} ${theme.spacing.lg}`,
   };
 
   const shaderStyle: React.CSSProperties = {
@@ -147,15 +153,40 @@ export const About: React.FC<AboutProps> = ({ body }) => {
   };
 
   const paragraphWrapperStyle: React.CSSProperties = {
-    padding: theme.spacing.xxxxl,
+    padding: isMobile ? theme.spacing.lg : theme.spacing.xxxxl,
   };
-  const tandraImgStyle: React.CSSProperties = {
-    position: "absolute",
-    bottom: 0,
-    left: "2vw",
-    width: 600,
-    zIndex: 3,
-    display: isTablet ? "none" : "block",
+
+  const tandraPhoto = "url(/tandra.webp)";
+  const stackedPhotoBackdrop = `linear-gradient(45deg, ${theme.colors.black}, ${theme.colors.paper})`;
+
+  const imagewrapperStyle: React.CSSProperties = {
+    position: "relative",
+    overflow: "clip",
+    height: isStacked ? 200 : "100%",
+    width: isStacked ? 200 : 400,
+    borderRadius: isStacked ? theme.radius.pill : 0,
+    zIndex: 10,
+    backgroundImage: isStacked ? `${tandraPhoto}, ${stackedPhotoBackdrop}` : tandraPhoto,
+    // First layer = photo (top); second = gradient fill behind it in the pill.
+    backgroundSize: isStacked ? "contain, cover" : isMobile ? "contain" : "cover",
+    backgroundPosition: isStacked ? "60% 0, center" : "60% 0",
+    backgroundRepeat: "no-repeat",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: isStacked ? "1fr" : ".5fr 1fr",
+    gridTemplateRows: isStacked ? "1fr auto" : "1fr",
+    backgroundColor: theme.colors.paper,
+    padding: isStacked ? theme.spacing.xxxxl : 0,
+    borderRadius: theme.radius.large,
+    boxShadow: theme.shadow.md,
+    gap: isStacked ? theme.spacing.lg : 0,
+    contain: "paint",
+  };
+
+  const bodyTextStyle: React.CSSProperties = {
+    padding: isStacked ? 0 : theme.spacing.xxxxl,
   };
 
   const pStyle: React.CSSProperties = {
@@ -163,8 +194,6 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     lineHeight: 1.6,
     fontSize: "clamp(1.3rem, 4vw, 1.7rem)",
     fontWeight: 500,
-    paddingInlineStart: isTablet ? 0 : `calc(${theme.spacing.xxxxxxxxxl} * 2)`,
-    marginBottom: theme.spacing.xxxxl,
     zIndex: 12,
   };
 
@@ -172,24 +201,18 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     <section
       ref={sectionRef}
       id="about-tandra"
-      className={layoutClass.sectionPadded}
+      className={isMobile ? "content-section" : layoutClass.sectionPadded}
       style={sectionStyle}
       aria-labelledby="about-heading"
     >
-      <img style={tandraImgStyle} id="about-tandra-img" src="./tandra.webp" alt="Tandra Peters" />
       <div
         className={`${layoutClass.containerWideAboutGrid} lg-grid`}
         style={paragraphWrapperStyle}
       >
-        <style>{`
-          .lg-grid { grid-template-columns: 1fr !important; }
-          .lg-col  { grid-column: 1 !important; z-index: 10; }
-          .md-block { display: block !important; }
-        `}</style>
-
-        <div className="lg-col">
+        <div className="about-card" style={cardStyle}>
+          <div style={imagewrapperStyle} />
           {/* Text body — GSAP targets every <p> inside .about-body-text */}
-          <div className="about-body-text">
+          <div className="about-body-text" style={bodyTextStyle}>
             <p style={{ ...pStyle, fontWeight: 700 }}>Hi, I&apos;m Tandra.</p>
             <RichText value={richBody} paragraphStyle={pStyle} />
           </div>

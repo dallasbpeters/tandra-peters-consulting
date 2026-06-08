@@ -141,7 +141,7 @@ export const HOME_AND_SITE_QUERY = groq`{
     ...,
     "navLogoImage": navLogoImage.asset->url
   },
-  "latestPosts": *[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...100] {
+  "latestPosts": *[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...20] {
     _id,
     title,
     "slug": slug.current,

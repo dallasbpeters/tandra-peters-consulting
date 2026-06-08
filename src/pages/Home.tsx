@@ -238,7 +238,7 @@ export const Home = () => {
             {about ? <About {...mapAboutProps(about)} /> : null}
             {stats ? <Stats {...mapStatsProps(stats)} /> : null}
             {services ? <ServicesVariant {...mapServicesProps(services)} /> : null}
-            <Certifications />
+
             {serviceAreaMap ? (
               <DeferUntilVisible minHeight="28rem">
                 <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
@@ -274,6 +274,7 @@ export const Home = () => {
               posts={data?.latestPosts ?? []}
               {...mapArticlesTeaserEditorialProps(articlesTeaser)}
             />
+            <Certifications />
             <Band
               minHeight={8}
               maxHeight={16}

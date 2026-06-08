@@ -1,11 +1,11 @@
 import { stegaClean } from "@sanity/client/stega";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PostListItem } from "../types/article";
 
 import {
   getSanityClient,
-  isSanityDraftPreviewActive,
+  isSanityPresentationPreviewActive,
   isSanityStegaUiActive,
 } from "../sanity/client";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
@@ -65,6 +65,34 @@ export type HomeDocuments = {
   latestPosts: PostListItem[];
 };
 
+const PRESENTATION_REFETCH_MS = 450;
+
+const debounce = <Args extends unknown[]>(
+  fn: (...args: Args) => void,
+  waitMs: number,
+): ((...args: Args) => void) & { cancel: () => void } => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const debounced = (...args: Args) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = undefined;
+      fn(...args);
+    }, waitMs);
+  };
+
+  debounced.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = undefined;
+    }
+  };
+
+  return debounced;
+};
+
 const normalizeHomeDocuments = (raw: HomeDocuments): HomeDocuments => {
   if (isSanityStegaUiActive()) {
     return {
@@ -85,7 +113,7 @@ export const useSanityHomeContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const refetch = useCallback(async () => {
+  const refetchNow = useCallback(async () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
@@ -97,6 +125,28 @@ export const useSanityHomeContent = () => {
       setLoading(false);
     }
   }, []);
+
+  const refetchNowRef = useRef(refetchNow);
+  refetchNowRef.current = refetchNow;
+
+  const scheduleRefetch = useMemo(
+    () =>
+      debounce(() => {
+        void refetchNowRef.current();
+      }, PRESENTATION_REFETCH_MS),
+    [],
+  );
+
+  const refetch = useCallback(async () => {
+    scheduleRefetch();
+  }, [scheduleRefetch]);
+
+  useEffect(
+    () => () => {
+      scheduleRefetch.cancel();
+    },
+    [scheduleRefetch],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -127,18 +177,18 @@ export const useSanityHomeContent = () => {
 
   useEffect(() => {
     const handleRefresh = () => {
-      void refetch();
+      scheduleRefetch();
     };
     window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     return () => {
       window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     };
-  }, [refetch]);
+  }, [scheduleRefetch]);
 
-  // Presentation / draft preview: listen for homePage mutations so nested
-  // fields update while typing — Visual Editing refresh alone can lag.
+  // Presentation iframe only — debounced refetch avoids hammering the full home
+  // GROQ query (and 20-post join) on every keystroke while editing in Studio.
   useEffect(() => {
-    if (!isSanityDraftPreviewActive()) {
+    if (!isSanityPresentationPreviewActive()) {
       return;
     }
 
@@ -146,13 +196,13 @@ export const useSanityHomeContent = () => {
     const subscription = client
       .listen('*[_id in ["homePage", "drafts.homePage"]]', {}, { includeResult: false })
       .subscribe(() => {
-        void refetch();
+        scheduleRefetch();
       });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [refetch]);
+  }, [scheduleRefetch]);
 
   return { data, loading, error, refetch };
 };

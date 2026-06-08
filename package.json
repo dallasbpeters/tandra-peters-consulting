@@ -8,6 +8,7 @@
     "generate:theme-css": "tsx scripts/generate-theme-css-vars.mjs",
     "dev": "node scripts/copy-model-viewer.mjs && tsx scripts/generate-theme-css-vars.mjs && vite --port=3001 --host=0.0.0.0",
     "dev:all": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
+    "dev:studio": "pnpm --dir studio-tandra-peters dev",
     "build": "node scripts/copy-model-viewer.mjs && tsx scripts/generate-theme-css-vars.mjs && vite build",
     "build:vercel": "node scripts/build-vercel.mjs",
     "video:studio": "tsx scripts/render-tandra-intro.mjs studio",

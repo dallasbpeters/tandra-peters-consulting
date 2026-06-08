@@ -1,7 +1,5 @@
 import React from "react";
 
-import { Separator } from "@/components/ui/separator";
-
 import type { CertificationsProps } from "../types";
 
 import { layoutClass } from "../styles/layoutClasses";
@@ -19,7 +17,6 @@ const defaultCertifications: CertificationsProps["certifications"] = [
 ];
 
 export const Certifications: React.FC<CertificationsProps> = ({
-  title = "Certifications",
   certifications = defaultCertifications,
 }) => {
   const sectionStyle: React.CSSProperties = {
@@ -34,12 +31,6 @@ export const Certifications: React.FC<CertificationsProps> = ({
       style={sectionStyle}
       aria-labelledby="certifications-heading"
     >
-      <div className="certifications__header">
-        <h2 id="certifications-heading" className="certifications__heading">
-          {title}
-        </h2>
-        <Separator orientation="vertical" />
-      </div>
       <div className="certifications__logos">
         {certifications.map((certification) => (
           <img
@@ -48,7 +39,7 @@ export const Certifications: React.FC<CertificationsProps> = ({
             src={certification.image}
             alt={certification.name}
             width={160}
-            height={48}
+            height={68}
             loading="lazy"
             decoding="async"
           />

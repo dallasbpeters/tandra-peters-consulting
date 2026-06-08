@@ -22,6 +22,7 @@ import { LazyFalImageStudioTool, LazyImageManagerTool } from "./components/lazyS
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
+import { studioFlags } from "./studioFlags";
 
 // @sanity/client's TransformTargetDocument omits _type and initialValues from the
 // createIfNotExists variant in its TypeScript types, but the Sanity API accepts them.
@@ -486,79 +487,85 @@ export default defineConfig({
       fieldActions: brandVoiceFieldActions,
     }),
     structureTool({ structure }),
-    presentationTool({
-      previewUrl: {
-        initial: previewOrigin,
-      },
-      allowOrigins: [
-        "http://localhost:*",
-        "http://127.0.0.1:*",
-        "https://www.tandra.me",
-        "https://tandra.me",
-      ],
-      resolve: {
-        mainDocuments: defineDocuments([
-          { route: "/", filter: `_type == "homePage"` },
-          { route: "/articles", filter: `_id == "articlesPage"` },
-          {
-            route: "/articles/:slug",
-            resolve: ({ params }) => {
-              const slug = params.slug?.trim();
-              if (!slug) {
-                return undefined;
-              }
-              return {
-                filter: `_type == "post" && slug.current == $slug`,
-                params: { slug },
-              };
+    ...(studioFlags.presentation
+      ? [
+          presentationTool({
+            previewUrl: {
+              initial: previewOrigin,
             },
-          },
-          { route: "/privacy", filter: `_type == "siteSettings"` },
-          { route: "/terms", filter: `_type == "siteSettings"` },
-          { route: "/cookies", filter: `_type == "siteSettings"` },
-        ]),
-        locations: {
-          homePage: defineLocations({
-            select: { id: "_id" },
-            resolve: () => ({
-              locations: [{ title: "Home", href: "/" }],
-            }),
-          }),
-          siteSettings: defineLocations({
-            select: { id: "_id" },
-            resolve: () => ({
-              locations: [
-                { title: "Home", href: "/" },
-                { title: "Privacy", href: "/privacy" },
-                { title: "Terms", href: "/terms" },
-                { title: "Cookies", href: "/cookies" },
-              ],
-            }),
-          }),
-          articlesPage: defineLocations({
-            select: { id: "_id" },
-            resolve: () => ({
-              locations: [{ title: "Articles", href: "/articles" }],
-            }),
-          }),
-          post: defineLocations({
-            select: { title: "title", slug: "slug.current" },
-            resolve: (doc) => {
-              const slug = typeof doc?.slug === "string" ? doc.slug.trim() : "";
-              const title =
-                typeof doc?.title === "string" && doc.title.trim() ? doc.title.trim() : "Article";
-              if (!slug) {
-                return { locations: [{ title, href: "/articles" }] };
-              }
-              return {
-                locations: [{ title, href: `/articles/${slug}` }],
-              };
+            allowOrigins: [
+              "http://localhost:*",
+              "http://127.0.0.1:*",
+              "https://www.tandra.me",
+              "https://tandra.me",
+            ],
+            resolve: {
+              mainDocuments: defineDocuments([
+                { route: "/", filter: `_type == "homePage"` },
+                { route: "/articles", filter: `_id == "articlesPage"` },
+                {
+                  route: "/articles/:slug",
+                  resolve: ({ params }) => {
+                    const slug = params.slug?.trim();
+                    if (!slug) {
+                      return undefined;
+                    }
+                    return {
+                      filter: `_type == "post" && slug.current == $slug`,
+                      params: { slug },
+                    };
+                  },
+                },
+                { route: "/privacy", filter: `_type == "siteSettings"` },
+                { route: "/terms", filter: `_type == "siteSettings"` },
+                { route: "/cookies", filter: `_type == "siteSettings"` },
+              ]),
+              locations: {
+                homePage: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [{ title: "Home", href: "/" }],
+                  }),
+                }),
+                siteSettings: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [
+                      { title: "Home", href: "/" },
+                      { title: "Privacy", href: "/privacy" },
+                      { title: "Terms", href: "/terms" },
+                      { title: "Cookies", href: "/cookies" },
+                    ],
+                  }),
+                }),
+                articlesPage: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [{ title: "Articles", href: "/articles" }],
+                  }),
+                }),
+                post: defineLocations({
+                  select: { title: "title", slug: "slug.current" },
+                  resolve: (doc) => {
+                    const slug = typeof doc?.slug === "string" ? doc.slug.trim() : "";
+                    const title =
+                      typeof doc?.title === "string" && doc.title.trim()
+                        ? doc.title.trim()
+                        : "Article";
+                    if (!slug) {
+                      return { locations: [{ title, href: "/articles" }] };
+                    }
+                    return {
+                      locations: [{ title, href: `/articles/${slug}` }],
+                    };
+                  },
+                }),
+              },
             },
           }),
-        },
-      },
-    }),
-    visionTool(),
+        ]
+      : []),
+    ...(studioFlags.vision ? [visionTool()] : []),
   ],
 
   schema: {
