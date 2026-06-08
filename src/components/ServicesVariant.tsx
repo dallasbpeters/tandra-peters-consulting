@@ -18,10 +18,8 @@ export { SERVICES_SECTION_STYLE_FLAG };
  *   control         → original Services grid
  *   typographic-alt → full-bleed typographic ServicesAlt layout
  *
- * Sanity `servicesStyle` overrides everything for CMS preview and QA.
- *
- * PostHog is only consulted when VITE_SERVICES_STYLE_EXPERIMENT=true.
- * Until then, production defaults to the control grid (Sanity blank + env unset).
+ * Sanity `servicesStyle` overrides the flag for CMS preview and QA.
+ * When Sanity is blank, PostHog variant rollout decides (sticky per user).
  */
 export const ServicesVariant: React.FC<ServicesProps> = ({ servicesStyle, ...props }) => {
   const { variant } = useServicesSectionVariant(servicesStyle);
