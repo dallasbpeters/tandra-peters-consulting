@@ -10,7 +10,7 @@ import { layoutClass } from "@/src/styles/layoutClasses";
 import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
-import { theme } from "../../theme";
+import { mix, theme } from "../../theme";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
 
@@ -52,7 +52,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       left: 0,
       right: 0,
       zIndex: 50,
-      background: glassed || menuOpen ? theme.colors.everglade : "transparent",
+      background: glassed || menuOpen ? theme.colors.everglade : mix(theme.colors.white, 50),
       backdropFilter: glassed || menuOpen ? "blur(20px) saturate(1.3)" : "none",
       borderBottom: glassed ? "1px solid oklch(100% 0 0 / 0.08)" : "1px solid transparent",
       transition: "background 0.35s, backdrop-filter 0.35s, border-color 0.35s",

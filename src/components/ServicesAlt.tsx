@@ -1,5 +1,6 @@
 import { usePostHog } from "@posthog/react";
 import { Page, Search, ShieldCheck } from "iconoir-react";
+import { motion } from "motion/react";
 import React from "react";
 
 import type { BirdcreekAdvantageCard, RichTextSource, ServicesProps } from "../types";
@@ -271,9 +272,18 @@ const BirdcreekAdvantageItem = ({
       <div style={descStyle}>
         <RichText value={birdcreekAdvantage.description} paragraphStyle={richParagraphStyle} />
       </div>
-      <a href={birdcreekAdvantage.ctaHref} onClick={onCtaClick} style={ctaStyle}>
+      <motion.a
+        tabIndex={1}
+        href={birdcreekAdvantage.ctaHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        onTap={onCtaClick}
+        style={ctaStyle}
+        whileHover={{ scale: 1.05, backgroundColor: theme.colors.accent }}
+        whileTap={{ scale: 0.95 }}
+      >
         {birdcreekAdvantage.ctaLabel}
-      </a>
+      </motion.a>
     </article>
   );
 };
