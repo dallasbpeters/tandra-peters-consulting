@@ -161,7 +161,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     /* ── DESKTOP: absolute content layers ── */
     headlineLayerDesktop: {
       position: "absolute",
-      inset: 200,
+      inset: 50,
       zIndex: 5,
       display: "flex",
       flexDirection: "column",
@@ -173,7 +173,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     },
     copyLayerDesktop: {
       position: "absolute",
-      bottom: "clamp(30%, 10vw, 45%)",
+      bottom: "clamp(15%, 10vw, 35%)",
       left: "10vw",
       right: "10vw",
       zIndex: 15,
