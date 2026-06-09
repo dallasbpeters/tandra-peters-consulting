@@ -239,7 +239,7 @@ const edgeDefaults = {
   type: "smoothstep" as const,
   markerEnd: { type: MarkerType.ArrowClosed, color: WORKFLOW_EDGE_COLOR, width: 16, height: 16 },
   ...edgeLabelDefaults,
-  animated: true,
+  animated: false,
 };
 
 const buildFallbackNodes = (layout: WorkflowLayout): Node<WorkflowNodeData>[] =>
