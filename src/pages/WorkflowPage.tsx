@@ -629,7 +629,9 @@ const InsuranceWorkflowDiagramInner = ({
   }, [hasUnsavedChanges, isEditMode, layoutEdges, layoutNodes, saveStatus, setEdges, setNodes]);
 
   useEffect(() => {
-    setIsEditMode(canEditWorkflow);
+    if (!canEditWorkflow) {
+      setIsEditMode(false);
+    }
   }, [canEditWorkflow]);
 
   useEffect(() => {

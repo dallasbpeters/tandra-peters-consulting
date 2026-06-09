@@ -58,6 +58,9 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
     navInner: {
       position: "relative",
       height: "5rem",
+      display: "grid",
+      gridTemplateColumns: "1fr auto 1fr",
+      padding: `0 ${theme.spacing.xxxxl}`,
       placeItems: "center stretch",
     },
     linkGroupLeft: {
@@ -86,7 +89,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       fontWeight: 600,
       letterSpacing: "0.06em",
       textTransform: "uppercase",
-      color: "oklch(78% 0 0)",
+      color: glassed ? theme.colors.heroAccent : theme.colors.evergladeMuted,
       transition: "color 0.15s",
       textDecoration: "none",
     },
