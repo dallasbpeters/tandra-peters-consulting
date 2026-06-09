@@ -9,11 +9,13 @@ type RoofInspectionsPageDoc = {
   seoTitle?: string;
   seoDescription?: string;
   roofInspection?: Record<string, unknown>;
+  socialShare?: Record<string, unknown>;
 };
 
 type RoofInspectionsQueryResult = {
   page?: RoofInspectionsPageDoc | null;
   homeRoofInspection?: Record<string, unknown>;
+  homeSocialShare?: Record<string, unknown>;
 };
 
 export const useSanityRoofInspectionsPage = () => {
@@ -21,6 +23,7 @@ export const useSanityRoofInspectionsPage = () => {
   const [homeRoofInspection, setHomeRoofInspection] = useState<Record<string, unknown> | null>(
     null,
   );
+  const [homeSocialShare, setHomeSocialShare] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -36,6 +39,7 @@ export const useSanityRoofInspectionsPage = () => {
           : raw;
       setPage(cleaned?.page ?? null);
       setHomeRoofInspection(cleaned?.homeRoofInspection ?? null);
+      setHomeSocialShare(cleaned?.homeSocialShare ?? null);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
@@ -57,5 +61,5 @@ export const useSanityRoofInspectionsPage = () => {
       window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
   }, [refetch]);
 
-  return { page, homeRoofInspection, loading, error, refetch };
+  return { page, homeRoofInspection, homeSocialShare, loading, error, refetch };
 };

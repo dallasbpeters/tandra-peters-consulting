@@ -19,8 +19,8 @@
     "editor.defaultFormatter": null,
     "editor.formatOnSave": false
   },
+  "stylelint.packageManager": "pnpm",
   "stylelint.validate": ["css"],
-  "stylelint.stylelintPath": "${workspaceFolder}/node_modules/stylelint",
   "editor.codeActionsOnSave": {
     "source.fixAll.stylelint": "always"
   }

@@ -160,7 +160,11 @@ export const ROOF_INSPECTIONS_PAGE_QUERY = groq`{
     seoDescription,
     roofInspection ${roofInspectionSectionProjection}
   },
-  "homeRoofInspection": *[_id == "homePage"][0].roofInspection ${roofInspectionSectionProjection}
+  "homeRoofInspection": *[_id == "homePage"][0].roofInspection ${roofInspectionSectionProjection},
+  "homeSocialShare": *[_id == "homePage"][0].socialShare {
+    heading,
+    shareText
+  }
 }`;
 
 /** /workflow: insurance claim diagram singleton. */
