@@ -114,28 +114,6 @@ export const HOME_AND_SITE_QUERY = groq`{
         clientCount
       }
     },
-    roofInspection {
-      kicker,
-      titleLine1,
-      titleLine2,
-      subtitle,
-      lede,
-      "diagramImage": diagramImage { asset->{ url } },
-      hotspots[] {
-        _key,
-        label,
-        direction,
-        calloutTitle,
-        calloutBody,
-        watchFor,
-        pos3dX,
-        pos3dY,
-        pos3dZ,
-        norm3dX,
-        norm3dY,
-        norm3dZ
-      }
-    }
   },
   "site": *[_id == "siteSettings"][0]{
     ...,
@@ -150,6 +128,39 @@ export const HOME_AND_SITE_QUERY = groq`{
     category,
     "image": image.asset->url
   }
+}`;
+
+const roofInspectionSectionProjection = groq`{
+  kicker,
+  titleLine1,
+  titleLine2,
+  subtitle,
+  lede,
+  "diagramImage": diagramImage { asset->{ url } },
+  hotspots[] {
+    _key,
+    label,
+    direction,
+    calloutTitle,
+    calloutBody,
+    watchFor,
+    pos3dX,
+    pos3dY,
+    pos3dZ,
+    norm3dX,
+    norm3dY,
+    norm3dZ
+  }
+}`;
+
+/** /roof-inspections: dedicated diagram singleton; falls back to homePage.roofInspection in the app. */
+export const ROOF_INSPECTIONS_PAGE_QUERY = groq`{
+  "page": *[_id == "roofInspectionsPage"][0]{
+    seoTitle,
+    seoDescription,
+    roofInspection ${roofInspectionSectionProjection}
+  },
+  "homeRoofInspection": *[_id == "homePage"][0].roofInspection ${roofInspectionSectionProjection}
 }`;
 
 /** /workflow: insurance claim diagram singleton. */
@@ -174,6 +185,8 @@ export const WORKFLOW_PAGE_QUERY = groq`*[_id == "workflowPage"][0]{
     title,
     body,
     wide,
+    posX,
+    posY,
     subsections[]{
       title,
       body

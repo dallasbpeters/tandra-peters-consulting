@@ -17,6 +17,7 @@ const CALLOUT_W_PX = 272; // 17rem @ 16px base
 const GAP = 12; // px gap between dot edge and card edge
 const MARGIN = 12; // minimum distance from viewport edge
 const CLOSE_DELAY = 180; // ms grace period so mouse can travel dot → card
+const MIN_CALLOUT_H_PX = 120;
 
 /**
  * Module-level close timer shared across **all** `Hotspot` instances.
@@ -37,6 +38,16 @@ const clearSharedClose = () => {
 };
 
 type ScreenRect = { top: number; left: number; width: number; height: number };
+type CardPos = { top: number; left: number; width: number; maxHeight: number };
+
+const getTopSafeInset = () => {
+  const nav = document.querySelector(".site-nav-vt");
+  if (!(nav instanceof HTMLElement)) {
+    return MARGIN;
+  }
+  const navBottom = nav.getBoundingClientRect().bottom;
+  return Math.max(MARGIN, Math.ceil(navBottom) + MARGIN);
+};
 
 /**
  * Computes `position: fixed` `top`/`left` coordinates for the callout card
@@ -50,40 +61,50 @@ type ScreenRect = { top: number; left: number; width: number; height: number };
  * @returns Viewport-relative `top` / `left` values clamped to `MARGIN` px
  *   inset from every viewport edge.
  */
-const getCardPos = (
-  dot: ScreenRect,
-  direction: Direction,
-  cardH: number,
-): { top: number; left: number } => {
+const getCardPos = (dot: ScreenRect, direction: Direction, cardH: number): CardPos => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const topInset = getTopSafeInset();
+  const width = Math.min(CALLOUT_W_PX, Math.max(220, vw - MARGIN * 2));
   const estH = cardH || 240;
+  const maxViewportHeight = Math.max(MIN_CALLOUT_H_PX, vh - topInset - MARGIN);
+  const topAvailable = dot.top - GAP - topInset;
+  const resolvedDirection: Direction =
+    direction === "top" && topAvailable < 220 ? "bottom" : direction;
+  let maxHeight = maxViewportHeight;
+  let renderH = Math.min(estH, maxHeight);
   let top = 0;
   let left = 0;
 
-  switch (direction) {
+  switch (resolvedDirection) {
     case "top":
-      top = dot.top - GAP - estH;
-      left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
+      maxHeight = Math.max(MIN_CALLOUT_H_PX, dot.top - GAP - topInset);
+      maxHeight = Math.min(maxHeight, maxViewportHeight);
+      renderH = Math.min(estH, maxHeight);
+      top = dot.top - GAP - renderH;
+      left = dot.left + dot.width / 2 - width / 2;
       break;
     case "bottom":
+      maxHeight = Math.max(MIN_CALLOUT_H_PX, vh - (dot.top + dot.height + GAP) - MARGIN);
+      maxHeight = Math.min(maxHeight, maxViewportHeight);
+      renderH = Math.min(estH, maxHeight);
       top = dot.top + dot.height + GAP;
-      left = dot.left + dot.width / 2 - CALLOUT_W_PX / 2;
+      left = dot.left + dot.width / 2 - width / 2;
       break;
     case "right":
-      top = dot.top + dot.height / 2 - estH / 2;
+      top = dot.top + dot.height / 2 - renderH / 2;
       left = dot.left + dot.width + GAP;
       break;
     case "left":
-      top = dot.top + dot.height / 2 - estH / 2;
-      left = dot.left - GAP - CALLOUT_W_PX;
+      top = dot.top + dot.height / 2 - renderH / 2;
+      left = dot.left - GAP - width;
       break;
   }
 
-  left = Math.max(MARGIN, Math.min(left, vw - CALLOUT_W_PX - MARGIN));
-  top = Math.max(MARGIN, Math.min(top, vh - estH - MARGIN));
+  left = Math.max(MARGIN, Math.min(left, vw - width - MARGIN));
+  top = Math.max(topInset, Math.min(top, vh - renderH - MARGIN));
 
-  return { top, left };
+  return { top, left, width, maxHeight };
 };
 
 /**
@@ -114,13 +135,13 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const { activeChapterId, setActiveChapterId } = useRoofInspection();
   const isOpen = activeChapterId === chapter.id;
   const isMobile = useIsMobile(700);
-  const effectiveDirection: Direction = isMobile ? "bottom" : chapter.direction;
+  const effectiveDirection: Direction = isMobile ? "top" : chapter.direction;
 
   // Ref to the slotted wrapper div — what model-viewer actually positions
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Ref to the rendered callout aside so we can measure its real height
   const cardRef = useRef<HTMLElement>(null);
-  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
+  const [cardPos, setCardPos] = useState<CardPos | null>(null);
 
   const scheduleClose = () => {
     clearSharedClose();
@@ -252,11 +273,13 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     position: "fixed",
     top: cardPos?.top ?? -9999,
     left: cardPos?.left ?? -9999,
-    width: `${CALLOUT_W_PX}px`,
+    width: `${cardPos?.width ?? CALLOUT_W_PX}px`,
+    maxHeight: `${cardPos?.maxHeight ?? window.innerHeight - MARGIN * 2}px`,
     background: theme.colors.black,
     color: theme.colors.paper,
     padding: `${theme.spacing.stackPad} ${theme.spacing.insetXl} ${theme.spacing.insetXl}`,
     zIndex: 9999,
+    overflowY: "auto",
     // Hide until we have a measured position so there's no flash at -9999
     visibility: cardPos ? "visible" : "hidden",
   };

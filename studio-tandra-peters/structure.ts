@@ -3,6 +3,7 @@ import type { StructureResolver } from "sanity/structure";
 const SINGLETONS = new Set([
   "homePage",
   "siteSettings",
+  "roofInspectionsPage",
   "articlesPage",
   "workflowPage",
   "aiContext",
@@ -20,6 +21,14 @@ export const structure: StructureResolver = (S) =>
         .title("Site settings")
         .child(
           S.document().schemaType("siteSettings").documentId("siteSettings").title("Site settings"),
+        ),
+      S.listItem()
+        .title("Roof inspections page")
+        .child(
+          S.document()
+            .schemaType("roofInspectionsPage")
+            .documentId("roofInspectionsPage")
+            .title("Roof inspections page"),
         ),
       S.listItem()
         .title("AI context")

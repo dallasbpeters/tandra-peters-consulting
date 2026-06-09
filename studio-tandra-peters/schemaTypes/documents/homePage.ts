@@ -21,7 +21,6 @@ export const homePageType = defineType({
     { name: "contact", title: "Contact" },
     { name: "social", title: "Social share" },
     { name: "serviceAreaMap", title: "Service Area Map" },
-    { name: "roofInspection", title: "Roof Inspection" },
   ],
   fields: [
     defineField({
@@ -136,12 +135,6 @@ export const homePageType = defineType({
       title: "Service Area Map",
       type: "serviceAreaMap",
       group: "serviceAreaMap",
-    }),
-    defineField({
-      name: "roofInspection",
-      title: "Roof Inspection",
-      type: "roofInspectionSection",
-      group: "roofInspection",
     }),
   ],
   preview: {

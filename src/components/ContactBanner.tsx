@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { ChatLines, Phone, ShieldCheck } from "iconoir-react";
+import { Phone } from "iconoir-react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { mix, theme } from "../theme";
@@ -18,16 +18,15 @@ type ContactBannerProps = {
 const brandGreen = theme.palette.everglade["700"];
 const brandGreenLight = theme.palette.everglade["500"];
 const ink = theme.colors.white;
-const muted = theme.palette.granite["600"];
 const accentGlow = theme.palette.accent["300"];
 
 const styles = {
   card: (isMobile: boolean): CSSProperties => ({
-    margin: isMobile ? theme.spacing.lg : theme.spacing.sectionLoose,
+    margin: isMobile ? theme.spacing.lg : theme.spacing.section,
     marginTop: theme.spacing.xl,
-    padding: isMobile ? theme.spacing.sm : theme.spacing.md,
+    padding: isMobile ? theme.spacing.sm : theme.spacing.sm,
     borderRadius: theme.radius.large,
-    backgroundColor: "#000",
+    backgroundColor: theme.colors.black,
     boxShadow: theme.shadow.md,
   }),
   banner: (isMobile: boolean): CSSProperties => ({
@@ -42,19 +41,22 @@ const styles = {
     position: "relative",
     zIndex: 1,
     display: "flex",
+    width: "100%",
     height: "100%",
     alignItems: "center",
-    justifyContent: isMobile ? "center" : "space-between",
+    justifyContent: isMobile ? "flex-start" : "space-between",
     flexDirection: isMobile ? "column" : "row",
     gap: isMobile ? theme.spacing.md : theme.spacing.lg,
   }),
-  brandCluster: {
+  brandCluster: (isMobile: boolean): CSSProperties => ({
     position: "relative",
     zIndex: 1,
     display: "flex",
     alignItems: "center",
+    width: isMobile ? "100%" : undefined,
+    minWidth: 0,
     gap: theme.spacing.xl,
-  } satisfies CSSProperties,
+  }),
   iconTile: {
     position: "relative",
     overflow: "hidden",
@@ -110,7 +112,7 @@ const styles = {
     borderRadius: theme.radius.pill,
     padding: isMobile
       ? `${theme.spacing.sm} ${theme.spacing.md}`
-      : `${theme.spacing.md} ${theme.spacing.xl} ${theme.spacing.md} ${theme.spacing.md}`,
+      : `${theme.spacing.md} ${theme.spacing.xxxxl} ${theme.spacing.md} ${theme.spacing.md}`,
     background: mix(theme.colors.everglade, 40),
     backdropFilter: "blur(16px)",
     border: `1px solid ${mix(ink, 10)}`,
@@ -138,14 +140,14 @@ const styles = {
     marginBottom: theme.spacing.micro,
   } satisfies CSSProperties,
   phoneLabel: {
-    color: muted,
+    color: theme.colors.white,
     fontFamily: theme.fonts.body,
     fontWeight: 500,
     fontSize: "0.9375rem",
   } satisfies CSSProperties,
   phoneNumber: {
     fontFamily: theme.fonts.headline,
-    fontWeight: 700,
+    fontWeight: 800,
     color: ink,
     letterSpacing: "0.04em",
     fontSize: "clamp(1.125rem, 2.5vw, 1.65rem)",
@@ -160,7 +162,6 @@ export const ContactBanner = ({
   phoneTel = DEFAULT_PHONE_TEL,
 }: ContactBannerProps) => {
   const isMobile = useIsMobile(768);
-  const iconSize = isMobile ? 56 : 72;
   const phoneCircleSize = isMobile ? 48 : 60;
 
   return (
@@ -228,24 +229,7 @@ export const ContactBanner = ({
 
       <div className="contact-banner-grid" style={styles.banner(isMobile)}>
         <div style={styles.inner(isMobile)}>
-          <div style={styles.brandCluster}>
-            <div
-              className="contact-banner-icon-shine"
-              style={{
-                ...styles.iconTile,
-                width: iconSize,
-                height: iconSize,
-              }}
-              aria-hidden
-            >
-              <ShieldCheck
-                width={isMobile ? 28 : 36}
-                height={isMobile ? 28 : 36}
-                strokeWidth={1.75}
-                color={theme.colors.white}
-              />
-            </div>
-
+          <div style={styles.brandCluster(isMobile)}>
             <div style={styles.copyStack}>
               <div style={styles.eyebrowRow}>
                 <span className="contact-banner-pulse" aria-hidden />
@@ -282,13 +266,6 @@ export const ContactBanner = ({
             <span style={styles.phoneCopyStack}>
               <span style={styles.phoneLabelRow}>
                 <span style={styles.phoneLabel}>Call or text</span>
-                <ChatLines
-                  width={18}
-                  height={18}
-                  strokeWidth={1.75}
-                  color={brandGreenLight}
-                  aria-hidden
-                />
               </span>
               <span style={styles.phoneNumber}>{phoneDisplay}</span>
             </span>

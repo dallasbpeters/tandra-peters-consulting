@@ -581,6 +581,22 @@ export const mapRoofInspectionProps = (data: SanityDoc): Partial<RoofInspectionS
   return out;
 };
 
+/** Merge dedicated /roof-inspections CMS data with homePage.roofInspection fallback. */
+export const resolveRoofInspectionProps = (
+  pageSection?: SanityDoc,
+  homeSection?: SanityDoc,
+): Partial<RoofInspectionSectionProps> => {
+  const pageProps = mapRoofInspectionProps(pageSection ?? {});
+  const homeProps = mapRoofInspectionProps(homeSection ?? {});
+  const hotspots = pageProps.hotspots?.length ? pageProps.hotspots : homeProps.hotspots;
+
+  return {
+    ...homeProps,
+    ...pageProps,
+    ...(hotspots ? { hotspots } : {}),
+  };
+};
+
 export const mapServiceAreaMapProps = (data: SanityDoc): Partial<ServiceAreaMapProps> => {
   if (!data) return {};
 

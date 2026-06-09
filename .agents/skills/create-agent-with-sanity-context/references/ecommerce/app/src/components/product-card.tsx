@@ -1,6 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
-
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { urlFor } from "@/sanity/lib/image";
@@ -18,17 +15,15 @@ export function ProductCard({ product }: ProductCardProps) {
   const hasDiscount = price?.compareAtPrice && price.compareAtPrice > (price.amount ?? 0);
 
   return (
-    <Link href={`/products/${slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-neutral-100">
+    <a href={`/products/${slug}`} className="group block">
+      <div className="relative aspect-3/4 overflow-hidden rounded-lg bg-neutral-100">
         {image?.asset?.url ? (
-          <Image
+          <img
             src={urlFor(image).width(600).height(800).url()}
             alt={image.alt || title || "Product image"}
-            fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            placeholder={image.asset.metadata?.lqip ? "blur" : "empty"}
-            blurDataURL={image.asset.metadata?.lqip || undefined}
+            loading="lazy"
+            style={{ width: "100%", height: "100%" }}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-neutral-400">No image</div>
@@ -64,6 +59,6 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </div>
-    </Link>
+    </a>
   );
 }

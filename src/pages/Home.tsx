@@ -1,14 +1,10 @@
 import { Suspense, lazy } from "react";
 
-import type { RoofInspectionHotspotData } from "../types";
-
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
 import { Faq } from "../components/Faq";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
 import { HeroVariant } from "../components/HeroVariant";
-import { CHAPTERS, type Chapter } from "../components/RoofInspection";
-import { parseHotspotCoords } from "../components/RoofInspection/hotspotCoords";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
@@ -31,11 +27,9 @@ import {
   mapServiceAreaMapProps,
   mapSocialShareProps,
   mapTestimonialsProps,
-  mapRoofInspectionProps,
 } from "../sanity/mapSanityHome";
 import { theme } from "../theme";
 
-const HomeRoofInspection = lazy(() => import("../components/HomeRoofInspection"));
 const ScrollVelocity = lazy(async () => import("../components/ScrollText"));
 const About = lazy(async () => {
   const module = await import("../components/About");
@@ -49,7 +43,6 @@ const ServicesVariant = lazy(async () => {
   const module = await import("../components/ServicesVariant");
   return { default: module.ServicesVariant };
 });
-
 const Mission = lazy(async () => {
   const module = await import("../components/Mission");
   return { default: module.Mission };
@@ -158,13 +151,11 @@ export const Home = () => {
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
   const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
-  const roofInspectionData = home?.roofInspection as Record<string, unknown> | undefined;
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim() ? marquee.text : undefined;
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
   const marqueeVelocity = typeof marquee?.velocity === "number" ? marquee.velocity : 80;
 
-  const roofInspection = mapRoofInspectionProps(roofInspectionData);
   const beforeAfter = home?.beforeAfter as Record<string, unknown> | undefined;
   const asString = (v: unknown): string | undefined =>
     typeof v === "string" && v.trim() ? v : undefined;
@@ -186,36 +177,6 @@ export const Home = () => {
   const beforeAfterEyebrow = asString(beforeAfter?.eyebrow);
   const beforeAfterTitle = asString(beforeAfter?.title);
   const beforeAfterIntro = asOptionalRichText(beforeAfter?.intro);
-
-  /**
-   * Convert CMS hotspot data to the Chapter shape expected by RoofInspection.
-   * Roman numeral is derived from array position so editors never have to
-   * manage it manually.
-   */
-  const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
-  const sanityChapters: Chapter[] | null =
-    roofInspection.hotspots && roofInspection.hotspots.length > 0
-      ? roofInspection.hotspots.map((h: RoofInspectionHotspotData, i: number): Chapter => {
-          const { position3d, normal3d } = parseHotspotCoords(h);
-          return {
-            id: String(i + 1),
-            num: ROMAN[i] ?? String(i + 1),
-            label: h.label,
-            position: { top: "0%", left: "0%" },
-            direction: h.direction,
-            callout: {
-              title: h.calloutTitle,
-              body: h.calloutBody,
-              watchFor: h.watchFor,
-            },
-            position3d,
-            normal3d,
-            sanityKey: h._key,
-          };
-        })
-      : null;
-
-  const activeChapters = sanityChapters ?? CHAPTERS;
 
   return (
     <SitePageChrome>
@@ -243,11 +204,6 @@ export const Home = () => {
               </DeferUntilVisible>
             ) : null}
 
-            {roofInspectionData ? (
-              <DeferUntilVisible minHeight="36rem" rootMargin="600px 0px">
-                <HomeRoofInspection chapters={activeChapters} roofInspection={roofInspection} />
-              </DeferUntilVisible>
-            ) : null}
             {mission ? <Mission {...mapMissionProps(mission)} /> : null}
             {beforeAfterItems && beforeAfterItems.length > 0 ? (
               <BeforeAfterSlider

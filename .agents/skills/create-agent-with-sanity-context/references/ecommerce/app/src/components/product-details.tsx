@@ -89,7 +89,7 @@ export function ProductDetails({
   return (
     <div className="grid gap-8 md:grid-cols-2 md:gap-12">
       {/* Image */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-neutral-100">
+      <div className="relative aspect-3/4 overflow-hidden rounded-lg bg-neutral-100">
         {currentImage?.asset?.url ? (
           <Image
             src={urlFor(currentImage).width(800).height(1067).url()}

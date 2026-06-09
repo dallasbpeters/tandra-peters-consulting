@@ -22,25 +22,6 @@
   color: color-mix(in oklch, #000 82%, transparent);
 }
 
-.workflow-page__canvas {
-  --workflow-edge: #8156f6;
-  --workflow-grid: color-mix(in oklch, #505050 14%, transparent);
-
-  width: calc(100% - var(--theme-spacing-section-loose) * 2);
-  min-height: 680px;
-  margin: 0 var(--theme-spacing-section-loose) var(--theme-spacing-xl);
-  border: 1px solid color-mix(in oklch, #000 18%, transparent);
-  border-radius: var(--theme-radius-large);
-  overflow: hidden;
-}
-
-.workflow-page__canvas .react-flow {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background-color: #f4f4f1;
-}
-
 .workflow-node {
   box-sizing: border-box;
   width: 100%;
@@ -49,8 +30,256 @@
   border-radius: var(--theme-radius-large);
   background: #fff;
   color: #000;
-  border: 1px solid #9f9f9f;
+  border: 1px solid #d3d3d3;
   font-family: "Hanken Grotesk Variable", sans-serif;
+  box-shadow: var(--theme-shadow-md);
+}
+
+.workflow-page__canvas {
+  --workflow-edge: #8156f6;
+  --workflow-grid: color-mix(in oklch, #505050 14%, transparent);
+
+  position: relative;
+  width: calc(100% - var(--theme-spacing-section-loose) * 2);
+  min-height: 680px;
+  margin: 0 var(--theme-spacing-section-loose) var(--theme-spacing-xl);
+  border: 1px solid color-mix(in oklch, #000 18%, transparent);
+  border-radius: var(--theme-radius-large);
+  overflow: hidden;
+}
+
+.workflow-page__edit-controls {
+  position: absolute;
+  top: var(--theme-spacing-md);
+  left: var(--theme-spacing-md);
+  z-index: 7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  max-width: min(100% - var(--theme-spacing-md) * 2, 52rem);
+}
+
+.workflow-page__pan-hint {
+  position: absolute;
+  top: calc(var(--theme-spacing-md) + 0.5rem);
+  right: var(--theme-spacing-md);
+  z-index: 6;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid color-mix(in oklch, #000 12%, transparent);
+  border-radius: var(--theme-radius-medium);
+  background: color-mix(in oklch, #fff 86%, transparent);
+  color: color-mix(in oklch, #000 82%, transparent);
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+.workflow-page__edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid color-mix(in oklch, #000 16%, transparent);
+  border-radius: 999px;
+  background: #fff;
+  color: color-mix(in oklch, #000 80%, transparent);
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in oklch, #000 14%, transparent);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.workflow-page__edit-toggle[aria-pressed="true"] {
+  border-color: color-mix(in oklch, #8156f6 58%, #000 8%);
+  background: color-mix(in oklch, #8156f6 14%, #fff 86%);
+  color: color-mix(in oklch, #2b1870 78%, #000 8%);
+}
+
+.workflow-page__remove-node {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid color-mix(in oklch, #000 16%, transparent);
+  border-radius: 999px;
+  background: #fff;
+  color: color-mix(in oklch, #000 80%, transparent);
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in oklch, #000 12%, transparent);
+}
+
+.workflow-page__save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.72rem;
+  border: 1px solid color-mix(in oklch, #8156f6 62%, #000 8%);
+  border-radius: 999px;
+  background: color-mix(in oklch, #8156f6 16%, #fff 84%);
+  color: #24125e;
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in oklch, #000 12%, transparent);
+}
+
+.workflow-page__save:disabled,
+.workflow-page__remove-node:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.workflow-page__save-status {
+  position: absolute;
+  left: var(--theme-spacing-md);
+  top: calc(var(--theme-spacing-md) + 3rem);
+  z-index: 7;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--theme-radius-medium);
+  font-family: "Hanken Grotesk Variable", sans-serif;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.workflow-page__save-status--saved {
+  border: 1px solid color-mix(in oklch, #10683e 30%, transparent);
+  background: color-mix(in oklch, #10683e 10%, #fff 90%);
+  color: #0d4e2f;
+}
+
+.workflow-page__save-status--error {
+  border: 1px solid color-mix(in oklch, #a31d1d 30%, transparent);
+  background: color-mix(in oklch, #a31d1d 8%, #fff 92%);
+  color: #761313;
+}
+
+.workflow-page__editor-popover {
+  position: absolute;
+  top: calc(var(--theme-spacing-md) + 3rem);
+  right: var(--theme-spacing-md);
+  z-index: 8;
+  width: min(24rem, calc(100% - var(--theme-spacing-md) * 2));
+  padding: 0.75rem;
+  border: 1px solid color-mix(in oklch, #000 14%, transparent);
+  border-radius: var(--theme-radius-large);
+  background: #fff;
+  box-shadow: 0 10px 34px color-mix(in oklch, #000 20%, transparent);
+  font-family: "Hanken Grotesk Variable", sans-serif;
+}
+
+.workflow-page__editor-title {
+  margin: 0 0 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: color-mix(in oklch, #000 86%, transparent);
+}
+
+.workflow-page__editor-field {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: color-mix(in oklch, #000 72%, transparent);
+}
+
+.workflow-page__editor-input,
+.workflow-page__editor-textarea {
+  width: 100%;
+  border: 1px solid color-mix(in oklch, #000 16%, transparent);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: color-mix(in oklch, #000 86%, transparent);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.workflow-page__editor-input {
+  min-height: 2.1rem;
+  padding: 0.42rem 0.55rem;
+}
+
+.workflow-page__editor-textarea {
+  min-height: 6.4rem;
+  padding: 0.5rem 0.58rem;
+}
+
+.workflow-page__editor-actions {
+  display: inline-flex;
+  gap: 0.42rem;
+}
+
+.workflow-page__editor-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.68rem;
+  border: 1px solid color-mix(in oklch, #8156f6 58%, #000 8%);
+  border-radius: 999px;
+  background: color-mix(in oklch, #8156f6 14%, #fff 86%);
+  color: #24125e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.workflow-page__editor-button--ghost {
+  border-color: color-mix(in oklch, #000 14%, transparent);
+  background: #fff;
+  color: color-mix(in oklch, #000 80%, transparent);
+}
+
+.workflow-page__canvas--edit .workflow-node {
+  cursor: grab;
+}
+
+.workflow-page__pan-hint kbd {
+  display: inline-block;
+  min-width: 1.4rem;
+  padding: 0.05rem 0.3rem;
+  margin-inline: 0.12rem;
+  border: 1px solid color-mix(in oklch, #000 16%, transparent);
+  border-bottom-width: 2px;
+  border-radius: 0.33rem;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+}
+
+.workflow-page__canvas .react-flow {
+  --xy-edge-stroke: var(--workflow-edge);
+  --xy-edge-stroke-default: var(--workflow-edge);
+
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background-color: #f4f4f1;
 }
 
 .workflow-node--wide {
@@ -116,6 +345,21 @@
   opacity: 1;
 }
 
+.workflow-page__canvas--edit .workflow-node__handle--source {
+  opacity: 1;
+  box-shadow: 0 0 0 2px color-mix(in oklch, #fff 72%, transparent);
+}
+
+.workflow-page__canvas--edit .workflow-node__handle--target {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--workflow-edge);
+  border-radius: 50%;
+  background-color: #fff;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Edge SVGs ship without dimensions — paths never paint without this */
 .workflow-page__canvas .react-flow__edges {
   inset: 0;
@@ -135,12 +379,21 @@
 }
 
 .workflow-page__canvas .react-flow__edge-path {
+  --xy-edge-stroke-default: var(--workflow-edge);
+
   stroke: var(--workflow-edge);
-  stroke-width: 3;
+  stroke-width: 2;
   fill: none;
 }
 
-.workflow-page__canvas .react-flow__arrowhead polyline {
+.workflow-page__canvas .react-flow__marker {
+  color: var(--workflow-edge);
+}
+
+.workflow-page__canvas .react-flow__arrowhead polyline,
+.workflow-page__canvas .react-flow__arrowhead path,
+.workflow-page__canvas .react-flow__marker polyline,
+.workflow-page__canvas .react-flow__marker path {
   stroke: var(--workflow-edge);
   fill: var(--workflow-edge);
 }
@@ -155,7 +408,7 @@
 .workflow-page__canvas .react-flow__edge-textbg {
   fill: #fff;
   stroke: var(--workflow-edge);
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 .workflow-page__canvas .react-flow__nodes {

@@ -11,6 +11,7 @@
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
 
     <link rel="canonical" href="%SITE_URL%/" />
 
@@ -56,9 +57,8 @@
       data-key="53/ah/Ec4dKHAEtBQCBQ+w"
       async
     ></script>
-    <!-- model-viewer loads outside Vite so WASM decoders and workers resolve correctly. -->
-    <script type="module" src="/model-viewer.min.js"></script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

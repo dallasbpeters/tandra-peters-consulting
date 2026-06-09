@@ -22,7 +22,6 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
   return (
     <div
       style={{
-        minHeight: "100vh",
         backgroundColor: theme.colors.paper,
         color: theme.colors.everglade,
         fontFamily: theme.fonts.body,

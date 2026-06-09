@@ -597,3 +597,124 @@ export const homePageSeed = {
     ),
   },
 };
+
+/** /roof-inspections singleton — mirrors homePage.roofInspection hotspot coords. */
+export const roofInspectionsPageSeed = {
+  _id: "roofInspectionsPage",
+  _type: "roofInspectionsPage" as const,
+  seoTitle: "Roof Inspection | Tandra Peters",
+  seoDescription:
+    "Walk through the seven places I check on every residential roof — ridge, field shingles, underlayment, sheathing, drip edge, and soffit & fascia.",
+  roofInspection: {
+    _type: "roofInspectionSection" as const,
+    kicker: "Roof Basics",
+    titleLine1: "The",
+    titleLine2: "Inspection.",
+    subtitle: "Seven things I check on every roof.",
+    lede: "You don't need to be a roofer to know what you're looking at — just someone who'll point out the seven places that matter. Hover any number on the photo.",
+    hotspots: [
+      {
+        _key: "ri-ridge",
+        _type: "roofInspectionHotspot" as const,
+        label: "Ridge & ridge vent",
+        direction: "right",
+        calloutTitle: "Ridge cap & vent",
+        calloutBody:
+          "The peak. Caps are heavier than field shingles — wind hits hardest here and the ridge is the last line of defence. The slot underneath is the ridge vent: that's how your attic breathes out in summer.",
+        watchFor:
+          "Lifted or buckling caps after a windstorm. A vent that was painted shut during the last re-roof.",
+        pos3dX: 5.211335,
+        pos3dY: 4.013102,
+        pos3dZ: -3.949578,
+        norm3dX: -0.316228,
+        norm3dY: 0,
+        norm3dZ: 0.948683,
+      },
+      {
+        _key: "ri-field",
+        _type: "roofInspectionHotspot" as const,
+        label: "Field shingles",
+        direction: "left",
+        calloutTitle: "Field shingles",
+        calloutBody:
+          "The main course. Most Texas roofs are architectural asphalt — heavier than three-tab, rated 110+ mph when nailed correctly. What you're looking at is the granular surface that takes the UV hit every summer.",
+        watchFor:
+          "Bare patches where granules washed into the gutters. Sun age, not always storm damage.",
+        pos3dX: 4.136282,
+        pos3dY: 3.654751,
+        pos3dZ: -3.125723,
+        norm3dX: -0.316228,
+        norm3dY: 0,
+        norm3dZ: 0.948683,
+      },
+      {
+        _key: "ri-underlayment",
+        _type: "roofInspectionHotspot" as const,
+        label: "Underlayment",
+        direction: "right",
+        calloutTitle: "Underlayment",
+        calloutBody:
+          "The layer between shingles and decking — only visible at the cut face or during a tear-off. Synthetic beats old #15 felt: tougher, lighter, won't shred if wind catches it mid-install.",
+        watchFor:
+          "Whether your installer is using the manufacturer's matched underlayment system. Mix brands and the warranty thins fast.",
+        pos3dX: 4.002597,
+        pos3dY: 3.622813,
+        pos3dZ: -4.374255,
+        norm3dX: 0,
+        norm3dY: 1,
+        norm3dZ: 0,
+      },
+      {
+        _key: "ri-sheathing",
+        _type: "roofInspectionHotspot" as const,
+        label: "Sheathing",
+        direction: "left",
+        calloutTitle: "Sheathing",
+        calloutBody:
+          "Plywood or OSB nailed to the rafters. You only see it during a tear-off — and that's the moment to check for soft boards. A soft board telegraphs right through the new roof within a year.",
+        watchFor:
+          'A contract that includes decking replacement at cost per sheet, not a vague "as needed" line that turns into a surprise.',
+        pos3dX: 4.215053,
+        pos3dY: 3.735961,
+        pos3dZ: -2.873327,
+        norm3dX: -0.416228,
+        norm3dY: 0,
+        norm3dZ: 0.948683,
+      },
+      {
+        _key: "ri-drip",
+        _type: "roofInspectionHotspot" as const,
+        label: "Drip edge",
+        direction: "top",
+        calloutTitle: "Drip edge",
+        calloutBody:
+          "The metal that runs along the eave and rakes, kicking water away from the fascia into the gutter. Code in Texas. Skipped on more cheap re-roofs than I'd like to count.",
+        watchFor:
+          "Stain lines on the fascia board below — water's been running where it shouldn't.",
+        pos3dX: 2.676776,
+        pos3dY: 3.153818,
+        pos3dZ: -3.459617,
+        norm3dX: -0.936229,
+        norm3dY: 0,
+        norm3dZ: -0.35139,
+      },
+      {
+        _key: "ri-soffit",
+        _type: "roofInspectionHotspot" as const,
+        label: "Soffit & fascia",
+        direction: "left",
+        calloutTitle: "Soffit & fascia",
+        calloutBody:
+          "The boards you see from the driveway — fascia in front, soffit underneath. Soffit vents are how cool air enters the attic; without them the ridge vent has nothing to pull through.",
+        watchFor:
+          "Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.",
+        pos3dX: 2.786666,
+        pos3dY: 3.137488,
+        pos3dZ: -4.41213,
+        norm3dX: -1,
+        norm3dY: 0,
+        norm3dZ: 0,
+      },
+    ],
+  },
+};

@@ -1,0 +1,27 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "oxc.fmt.configPath": ".oxfmtrc.json",
+  "oxc.path.oxfmt": "${workspaceFolder}/node_modules/.bin/oxfmt",
+  "[javascript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false
+  },
+  "stylelint.validate": ["css"],
+  "stylelint.stylelintPath": "${workspaceFolder}/node_modules/stylelint",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.stylelint": "always"
+  }
+}

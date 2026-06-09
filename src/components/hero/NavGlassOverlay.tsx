@@ -5,8 +5,6 @@ import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useEffect, useState } from "react";
 
-import { layoutClass } from "@/src/styles/layoutClasses";
-
 import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
@@ -28,7 +26,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   ctaHref = "#contact",
 }) => {
   const posthog = usePostHog();
-  const isMobile = useIsMobile(1024);
+  const isMobile = useIsMobile(1400);
   const [scrollY, setScrollY] = useState(0);
   const [hovLink, setHovLink] = useState<string | null>(null);
   const [hovBtn, setHovBtn] = useState(false);
@@ -64,13 +62,13 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
     },
     linkGroupLeft: {
       display: isMobile ? "none" : "flex",
-      gap: theme.spacing.xxxxxxl,
+      gap: theme.spacing.xxxl,
       alignItems: "center",
       justifyContent: isMobile ? "start" : "center",
     },
     linkGroupRight: {
       display: isMobile ? "none" : "flex",
-      gap: theme.spacing.xxxxxxl,
+      gap: theme.spacing.xxxl,
       alignItems: "center",
       marginLeft: "auto",
     },
@@ -184,9 +182,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
 
   return (
     <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
-      <div style={styles.navInner} className={layoutClass.containerWideRow}>
-        {/* Left links — hidden on mobile */}
-
+      <div style={styles.navInner}>
         {/* Centered logo */}
         <TransitionLink to="/" className="logo" style={{ ...styles.logo, textDecoration: "none" }}>
           <span style={styles.logoText}>{logoText}</span>

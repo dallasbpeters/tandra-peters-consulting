@@ -7,10 +7,26 @@ import { RouteScrollManager } from "./components/RouteScrollManager";
 import { SanityVisualEditing } from "./components/SanityVisualEditing";
 import { SiteShell } from "./components/SiteShell";
 import { SanityContentProvider } from "./context/SanitySiteContext";
-import { ArticlePage } from "./pages/ArticlePage";
-import { ArticlesIndexPage } from "./pages/ArticlesIndexPage";
 import { Home } from "./pages/Home";
-import { WorkflowPage } from "./pages/WorkflowPage";
+
+const ArticlePage = lazy(async () => {
+  const module = await import("./pages/ArticlePage");
+  return { default: module.ArticlePage };
+});
+
+const ArticlesIndexPage = lazy(async () => {
+  const module = await import("./pages/ArticlesIndexPage");
+  return { default: module.ArticlesIndexPage };
+});
+
+const WorkflowPage = lazy(async () => {
+  const module = await import("./pages/WorkflowPage");
+  return { default: module.WorkflowPage };
+});
+const RoofInspections = lazy(async () => {
+  const module = await import("./pages/RoofInspections");
+  return { default: module.RoofInspections };
+});
 
 const PrivacyPolicyPage = lazy(async () => {
   const module = await import("./pages/PrivacyPolicyPage");
@@ -72,6 +88,8 @@ const appRouter = createBrowserRouter([
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "cookies", element: <CookiePolicyPage /> },
       { path: "workflow", element: <WorkflowPage /> },
+      { path: "roof-inspection", element: <RoofInspections /> },
+      { path: "roof-inspections", element: <RoofInspections /> },
       { path: "agent", element: <FeatureBuilderPage /> },
       { path: "marketing", element: <MarketingAgentPage /> },
       { path: "ads", element: <AdDashboardPage /> },

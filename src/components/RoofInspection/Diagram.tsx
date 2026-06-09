@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { theme } from "../../theme";
 import { useCameraContext } from "./context";
-import { DevViewerCompass } from "./DevViewerCompass";
 
 type DiagramProps = {
   /** Absolute or root-relative path to the GLB model, e.g. `"/roof.glb"`. */
@@ -20,26 +19,81 @@ type DiagramProps = {
 const isModelViewerDefined = () =>
   typeof customElements !== "undefined" && !!customElements.get("model-viewer");
 
-/** Waits for `/model-viewer.min.js` (index.html) to register the custom element. */
+const MODEL_VIEWER_SCRIPT_ID = "model-viewer-script";
+
+const ensureModelViewerScript = async () => {
+  if (isModelViewerDefined()) {
+    return true;
+  }
+
+  const existing = document.getElementById(MODEL_VIEWER_SCRIPT_ID) as HTMLScriptElement | null;
+  if (existing) {
+    if (existing.dataset.loaded === "true") {
+      return isModelViewerDefined();
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("model-viewer script failed to load")),
+        {
+          once: true,
+        },
+      );
+    });
+
+    return isModelViewerDefined();
+  }
+
+  const script = document.createElement("script");
+  script.id = MODEL_VIEWER_SCRIPT_ID;
+  script.type = "module";
+  script.src = "/model-viewer.min.js";
+
+  await new Promise<void>((resolve, reject) => {
+    script.addEventListener("load", () => {
+      script.dataset.loaded = "true";
+      resolve();
+    });
+    script.addEventListener("error", () => reject(new Error("model-viewer script failed to load")));
+    document.head.appendChild(script);
+  });
+
+  return isModelViewerDefined();
+};
+
+/** Loads `/model-viewer.min.js` and waits for the custom element to register. */
 const useModelViewerReady = () => {
   const [ready, setReady] = useState(isModelViewerDefined);
 
   useEffect(() => {
-    if (ready) {
-      return;
-    }
-
     let cancelled = false;
-    void customElements.whenDefined("model-viewer").then(() => {
-      if (!cancelled) {
-        setReady(true);
+
+    const load = async () => {
+      if (isModelViewerDefined()) {
+        if (!cancelled) {
+          setReady(true);
+        }
+        return;
       }
-    });
+
+      try {
+        const loaded = await ensureModelViewerScript();
+        if (!cancelled) {
+          setReady(loaded);
+        }
+      } catch (error) {
+        console.error("Failed to load /model-viewer.min.js", error);
+      }
+    };
+
+    void load();
 
     return () => {
       cancelled = true;
     };
-  }, [ready]);
+  }, []);
 
   return ready;
 };
@@ -81,6 +135,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   // RoofInspectionContext) never cause Diagram to re-render or touch model-viewer.
   const { views, activeViewId, chapters, focusChapterId } = useCameraContext();
   const modelViewerReady = useModelViewerReady();
+  const [showRenderFallback, setShowRenderFallback] = useState(false);
 
   // Keep a stable ref so the camera-focus effect can read chapters without
   // adding them as a dependency — chapters is a new array reference on every
@@ -171,9 +226,57 @@ export const Diagram: React.FC<DiagramProps> = ({
     };
   }, [src, children, modelViewerReady]);
 
+  // Guard against "loaded but invisible" model-viewer states.
+  // In some route/browser combinations, the GLB loads successfully yet the
+  // renderer never presents a visible canvas (`modelIsVisible === false`).
+  // If that persists for a short window after load, we switch to a static fallback.
+  useEffect(() => {
+    if (!modelViewerReady) {
+      setShowRenderFallback(false);
+      return;
+    }
+
+    let cancelled = false;
+    let timer = 0;
+    let attempts = 0;
+
+    const tick = () => {
+      if (cancelled) return;
+
+      const mv = mvRef.current as
+        | (HTMLElement & { loaded?: boolean; modelIsVisible?: boolean })
+        | null;
+
+      const loaded = mv?.loaded === true;
+      const visible = mv?.modelIsVisible === true;
+
+      if (visible) {
+        setShowRenderFallback(false);
+        return;
+      }
+
+      // ~3.15s total (9 * 350ms) before considering the viewer stuck.
+      if (loaded && attempts >= 9) {
+        setShowRenderFallback(true);
+        return;
+      }
+
+      attempts += 1;
+      timer = window.setTimeout(tick, 350);
+    };
+
+    timer = window.setTimeout(tick, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [modelViewerReady, src, activeViewId, focusChapterId]);
+
   // Boost metallic/roughness on the roofing material after the model loads.
   const handleLoad = () => {
     const mv = mvRef.current as unknown as {
+      modelIsVisible?: boolean;
       model: {
         materials: Array<{
           name: string;
@@ -185,6 +288,7 @@ export const Diagram: React.FC<DiagramProps> = ({
       };
     };
     if (!mv?.model?.materials) return;
+    setShowRenderFallback(false);
     for (const mat of mv.model.materials) {
       mat.pbrMetallicRoughness.setMetallicFactor(0.75);
       mat.pbrMetallicRoughness.setRoughnessFactor(0.25);
@@ -266,7 +370,25 @@ export const Diagram: React.FC<DiagramProps> = ({
           {children}
         </model-viewer>
       ) : null}
-      {import.meta.env.DEV && modelViewerReady ? <DevViewerCompass /> : null}
+      {showRenderFallback ? (
+        <div
+          aria-live="polite"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            borderRadius: theme.radius.small,
+            overflow: "hidden",
+            background: theme.colors.paper,
+          }}
+        >
+          <img
+            src="/roof.jpeg"
+            alt="Roof inspection diagram fallback"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };

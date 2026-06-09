@@ -5,8 +5,6 @@ import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useEffect, useState } from "react";
 
-import { layoutClass } from "@/src/styles/layoutClasses";
-
 import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
@@ -31,7 +29,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
   secondaryCtaHref = "#services",
 }) => {
   const posthog = usePostHog();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1300);
   const [scrollY, setScrollY] = useState(0);
   const [hovLink, setHovLink] = useState<string | null>(null);
   const [hovPrimary, setHovPrimary] = useState(false);
@@ -63,7 +61,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
       alignItems: "center",
       justifyContent: "space-between",
       padding: isMobile ? `0 ${theme.spacing.xl}` : `0 ${theme.spacing.xxxxxxxxl}`,
-      height: compact ? "3.75rem" : "5rem",
+      height: compact ? "4.5rem" : "5rem",
       transition: "height 0.25s",
     },
     logoGroup: {
@@ -118,7 +116,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
     },
     linkGroup: {
       display: isMobile ? "none" : "flex",
-      gap: theme.spacing.xxxxxxl,
+      gap: theme.spacing.xl,
     },
     link: {
       fontSize: "0.875rem",
@@ -216,10 +214,10 @@ export const NavDualCTARail: React.FC<NavProps> = ({
 
   return (
     <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
-      <div style={styles.navInner} className={layoutClass.containerWideRow}>
+      <div style={styles.navInner}>
         {/* Logo */}
         <TransitionLink to="/" style={{ ...styles.logoGroup, textDecoration: "none" }}>
-          <img src={imageSrc} alt="" style={styles.logoImage} />
+          <img src={imageSrc} alt="Tandra Peters" style={styles.logoImage} />
           <div>
             <div style={styles.logoText}>{logoText}</div>
             <div style={styles.logoTagline}>{logoTagline}</div>

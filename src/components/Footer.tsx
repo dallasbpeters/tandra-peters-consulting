@@ -64,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: theme.colors.white,
+    color: theme.colors.heroAccent,
     transition: "all 0.3s",
     textDecoration: "none",
   };
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({
     margin: 0,
     display: "flex",
     flexDirection: "column",
-    gap: theme.spacing.lg,
+    gap: theme.spacing.sm,
     fontSize: "0.875rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
@@ -94,9 +94,11 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   const linkStyle: React.CSSProperties = {
-    color: theme.colors.white,
     textDecoration: "none",
     transition: "color 0.2s",
+  };
+  const linklistItemStyle: React.CSSProperties = {
+    marginInlineStart: 0,
   };
 
   const bottomBarColorStyle: React.CSSProperties = {
@@ -122,20 +124,11 @@ export const Footer: React.FC<FooterProps> = ({
             .md-col-4 { grid-column: 1 / span 6 !important; }
             .md-col-3 { grid-column: span 3 / span 2 !important; }
             .md-row { flex-direction: row !important; }
+
           }
           .social-link:hover { background-color: ${theme.colors.accentLight} !important; color: ${theme.colors.everglade};}
           .footer-link { color: ${theme.colors.white} }
           .footer-link:hover { color: ${theme.colors.accentLight}; }
-          .newsletter-input:focus { border-color: ${theme.colors.accentLight} !important; outline: 2px solid ${theme.colors.accentLight};
-            outline-offset: 2px; }
-          .social-link:focus-visible,
-          .footer-link:focus-visible,
-          .newsletter-btn:focus-visible {
-            outline: 2px solid ${theme.colors.accentLight};
-            outline-offset: 2px;
-            border-radius: ${theme.radius.small};
-          }
-          .newsletter-btn:hover { filter: brightness(1.1); }
         `}</style>
         <div className="md-col-4">
           <div
@@ -191,7 +184,7 @@ export const Footer: React.FC<FooterProps> = ({
             <h2 style={headingStyle}>Quick Links</h2>
             <ul style={linkListStyle}>
               {quickLinks.map((link, i) => (
-                <li key={i}>
+                <li style={linklistItemStyle} key={i}>
                   {link.href.startsWith("#") ? (
                     <TransitionLink
                       tabIndex={1}
@@ -221,7 +214,7 @@ export const Footer: React.FC<FooterProps> = ({
             <h2 style={headingStyle}>Legal</h2>
             <ul style={linkListStyle}>
               {legalLinks.map((link, i) => (
-                <li key={i}>
+                <li style={linklistItemStyle} key={i}>
                   <TransitionLink
                     tabIndex={1}
                     to={link.href}

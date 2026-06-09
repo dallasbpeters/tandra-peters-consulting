@@ -86,6 +86,7 @@
     "gsap": "^3.15.0",
     "html-to-image": "^1.11.13",
     "iconoir-react": "^7.11.0",
+    "lighthouse": "^13.3.0",
     "lit-element": "^4.2.2",
     "lit-html": "^3.3.3",
     "lucide-react": "^1.16.0",

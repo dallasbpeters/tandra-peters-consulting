@@ -34,6 +34,18 @@ export const workflowDiagramNodeType = defineType({
       initialValue: false,
     }),
     defineField({
+      name: "posX",
+      title: "Canvas position X",
+      type: "number",
+      description: "Optional manual X position (pixels) used by the on-page editor.",
+    }),
+    defineField({
+      name: "posY",
+      title: "Canvas position Y",
+      type: "number",
+      description: "Optional manual Y position (pixels) used by the on-page editor.",
+    }),
+    defineField({
       name: "subsections",
       title: "Subsections",
       type: "array",

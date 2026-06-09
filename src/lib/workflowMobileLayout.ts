@@ -11,11 +11,17 @@ const sortByStep = <T extends { id: string }>(items: T[]) =>
   [...items].sort((a, b) => stepOrder(a.id) - stepOrder(b.id));
 
 export const remapWorkflowEdgesForVerticalStack = (edges: Edge[]): Edge[] =>
-  edges.map((edge) => ({
-    ...edge,
-    sourceHandle: "bottom",
-    targetHandle: "top",
-  }));
+  edges.map((edge) => {
+    const sourceOrder = stepOrder(edge.source);
+    const targetOrder = stepOrder(edge.target);
+    const flowsDown = sourceOrder <= targetOrder;
+
+    return {
+      ...edge,
+      sourceHandle: flowsDown ? "bottom" : "top",
+      targetHandle: flowsDown ? "top" : "bottom",
+    };
+  });
 
 const estimatedNodeHeight = (node: Node<WorkflowNodeData>, fallback: number) => {
   if (node.measured?.height) return node.measured.height;

@@ -116,8 +116,6 @@
 .site-page-main {
   box-sizing: border-box;
   padding-top: var(--theme-spacing-section-inset-top);
-  padding-bottom: var(--theme-spacing-section);
-  min-height: calc(100vh - 6.5rem);
 }
 
 .home-loading-hero {

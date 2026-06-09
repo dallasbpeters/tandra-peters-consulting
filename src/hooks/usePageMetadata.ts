@@ -12,7 +12,7 @@ type MetaConfig = {
 
 const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
 const DEFAULT_DESCRIPTION =
-  "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
+  "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight — from consultation through installation.";
 
 const ensureMeta = (selector: string, attrs: Record<string, string>): HTMLMetaElement => {
   const existing = document.head.querySelector<HTMLMetaElement>(selector);

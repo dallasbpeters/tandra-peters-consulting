@@ -158,7 +158,7 @@ function FilterBarSkeleton() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-9 w-[140px] animate-pulse rounded-md bg-neutral-100" />
+        <div key={i} className="h-9 w-35 animate-pulse rounded-md bg-neutral-100" />
       ))}
     </div>
   );

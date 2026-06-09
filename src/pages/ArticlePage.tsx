@@ -44,7 +44,7 @@ export const ArticlePage = () => {
     description:
       post?.seoDescription?.trim() ||
       post?.excerpt?.trim() ||
-      "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.",
+      "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight — from consultation through installation.",
     type: post ? "article" : "website",
   });
 

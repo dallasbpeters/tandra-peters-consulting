@@ -1,0 +1,278 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Plugin } from "vite";
+
+import { createClient } from "@sanity/client";
+
+import { parseGoogleIdToken } from "../api/lib/google-auth";
+
+const WORKFLOW_SAVE_PATH = "/api/workflow-save";
+const SANITY_PROJECT_ID = "7irm699i";
+const SANITY_DATASET = "production";
+const SANITY_API_VERSION = "2024-01-01";
+const WORKFLOW_PAGE_DOCUMENT_ID = "workflowPage";
+
+const VALID_HANDLES = new Set(["top", "right", "bottom", "left"]);
+
+const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+
+const readBody = (req: IncomingMessage): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer | string) => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+
+const setCors = (res: ServerResponse) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+};
+
+const json = (res: ServerResponse, status: number, body: unknown) => {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+};
+
+const parseBearerToken = (header: string | undefined): string | null => {
+  if (!header || !header.startsWith("Bearer ")) {
+    return null;
+  }
+
+  return header.slice("Bearer ".length).trim() || null;
+};
+
+const normalize = (value: string): string => value.trim().toLowerCase();
+
+const isAllowedGoogleUserFromEnv = (
+  user: { email: string; hostedDomain?: string },
+  env: Record<string, string>,
+): boolean => {
+  const emails = new Set(
+    (env.GOOGLE_ALLOWED_EMAILS ?? env.VITE_GOOGLE_ALLOWED_EMAILS ?? "")
+      .split(",")
+      .map((entry) => normalize(entry))
+      .filter(Boolean),
+  );
+
+  const domain = normalize(env.GOOGLE_ALLOWED_DOMAIN ?? env.VITE_GOOGLE_ALLOWED_DOMAIN ?? "");
+
+  if (emails.size === 0 && !domain) {
+    return false;
+  }
+
+  const email = normalize(user.email);
+  if (emails.has(email)) {
+    return true;
+  }
+
+  if (domain && normalize(user.hostedDomain ?? "") === domain) {
+    return true;
+  }
+
+  return false;
+};
+
+const sanitizeString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+
+const sanitizeNumber = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+type InputNode = {
+  stepId?: unknown;
+  title?: unknown;
+  body?: unknown;
+  wide?: unknown;
+  subsections?: unknown;
+  posX?: unknown;
+  posY?: unknown;
+};
+
+type InputEdge = {
+  edgeId?: unknown;
+  sourceStep?: unknown;
+  targetStep?: unknown;
+  sourceHandle?: unknown;
+  targetHandle?: unknown;
+  label?: unknown;
+};
+
+const sanitizeNodes = (input: unknown) => {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return (input as InputNode[])
+    .map((node) => {
+      const stepId = sanitizeString(node.stepId);
+      const title = sanitizeString(node.title);
+      const body = sanitizeString(node.body);
+      if (!stepId || !title || !body) {
+        return null;
+      }
+
+      const posX = sanitizeNumber(node.posX);
+      const posY = sanitizeNumber(node.posY);
+
+      const subsections = Array.isArray(node.subsections)
+        ? node.subsections
+            .map((section) => {
+              if (!section || typeof section !== "object") {
+                return null;
+              }
+
+              const titleValue = sanitizeString((section as Record<string, unknown>).title);
+              const bodyValue = sanitizeString((section as Record<string, unknown>).body);
+              if (!titleValue || !bodyValue) {
+                return null;
+              }
+
+              return {
+                _type: "workflowDiagramNodeSubsection",
+                _key: `${stepId}-${titleValue.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+                title: titleValue,
+                body: bodyValue,
+              };
+            })
+            .filter(Boolean)
+        : [];
+
+      return {
+        _type: "workflowDiagramNode",
+        _key: `node-${stepId}`,
+        stepId,
+        title,
+        body,
+        wide: node.wide === true,
+        ...(subsections.length > 0 ? { subsections } : {}),
+        ...(posX !== null ? { posX } : {}),
+        ...(posY !== null ? { posY } : {}),
+      };
+    })
+    .filter(Boolean);
+};
+
+const sanitizeEdges = (input: unknown) => {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return (input as InputEdge[])
+    .map((edge) => {
+      const edgeId = sanitizeString(edge.edgeId);
+      const sourceStep = sanitizeString(edge.sourceStep);
+      const targetStep = sanitizeString(edge.targetStep);
+      const sourceHandle = sanitizeString(edge.sourceHandle) || "right";
+      const targetHandle = sanitizeString(edge.targetHandle) || "left";
+      const label = sanitizeString(edge.label) || "Connection";
+
+      if (!edgeId || !sourceStep || !targetStep) {
+        return null;
+      }
+
+      if (!VALID_HANDLES.has(sourceHandle) || !VALID_HANDLES.has(targetHandle)) {
+        return null;
+      }
+
+      return {
+        _type: "workflowDiagramEdge",
+        _key: `edge-${edgeId}`,
+        edgeId,
+        sourceStep,
+        targetStep,
+        sourceHandle,
+        targetHandle,
+        label,
+      };
+    })
+    .filter(Boolean);
+};
+
+export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
+  name: "vite-workflow-save-api",
+  configureServer(server) {
+    server.middlewares.use(async (req, res, next) => {
+      if (pathnameOnly(req.url) !== WORKFLOW_SAVE_PATH) {
+        next();
+        return;
+      }
+
+      setCors(res);
+
+      if (req.method === "OPTIONS") {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+
+      if (req.method !== "POST") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+
+      const bearer = parseBearerToken(req.headers.authorization);
+      if (!bearer) {
+        json(res, 401, { error: "Missing Google authorization token." });
+        return;
+      }
+
+      const user = parseGoogleIdToken(bearer);
+      if (!user || !isAllowedGoogleUserFromEnv(user, env)) {
+        json(res, 403, { error: "Google account is not authorized for workflow edits." });
+        return;
+      }
+
+      const token =
+        env.SANITY_WRITE_TOKEN?.trim() ||
+        env.SANITY_API_WRITE_TOKEN?.trim() ||
+        process.env.SANITY_WRITE_TOKEN?.trim() ||
+        process.env.SANITY_API_WRITE_TOKEN?.trim() ||
+        "";
+      if (!token) {
+        json(res, 500, { error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set." });
+        return;
+      }
+
+      try {
+        const bodyBuffer = await readBody(req);
+        const body = bodyBuffer.length
+          ? (JSON.parse(bodyBuffer.toString("utf8")) as { nodes?: unknown; edges?: unknown })
+          : {};
+
+        const nodes = sanitizeNodes(body.nodes);
+        const edges = sanitizeEdges(body.edges);
+
+        if (nodes.length === 0) {
+          json(res, 400, { error: "No valid workflow nodes provided." });
+          return;
+        }
+
+        const client = createClient({
+          projectId: SANITY_PROJECT_ID,
+          dataset: SANITY_DATASET,
+          apiVersion: SANITY_API_VERSION,
+          token,
+          useCdn: false,
+        });
+
+        await client
+          .patch(WORKFLOW_PAGE_DOCUMENT_ID)
+          .set({
+            nodes,
+            edges,
+          })
+          .commit();
+
+        json(res, 200, { ok: true, nodeCount: nodes.length, edgeCount: edges.length });
+      } catch (error) {
+        console.error("[vite-workflow-save-api]", error);
+        json(res, 500, {
+          error: error instanceof Error ? error.message : "Unexpected workflow save error.",
+        });
+      }
+    });
+  },
+});

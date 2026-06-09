@@ -88,37 +88,42 @@ export const HeroPillNav: React.FC<HeroProps> = ({
 
   useGSAP(
     () => {
-      if (isMobile) return;
+      // Let GSAP own the responsive lifecycle so we don't tear down/revert
+      // animations when viewport height changes (mobile toolbar show/hide).
+      const mm = gsap.matchMedia();
 
-      const trigger = {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: 1, // 1 s lag — buttery smooth, not jittery
-      };
+      mm.add("(min-width: 1200px)", () => {
+        const trigger = {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+          invalidateOnRefresh: true,
+        };
 
-      if (skyWrapRef.current) {
-        gsap.to(skyWrapRef.current, {
-          yPercent: -35,
-          scrollTrigger: trigger,
-        });
-      }
-      if (houseRef.current) {
-        gsap.to(houseRef.current, {
-          yPercent: -20,
-          ease: "none",
-          scrollTrigger: trigger,
-        });
-      }
+        if (skyWrapRef.current) {
+          gsap.to(skyWrapRef.current, {
+            yPercent: -35,
+            scrollTrigger: trigger,
+          });
+        }
+        if (houseRef.current) {
+          gsap.to(houseRef.current, {
+            yPercent: -20,
+            ease: "none",
+            scrollTrigger: trigger,
+          });
+        }
+      });
     },
-    { scope: sectionRef, dependencies: [isMobile] },
+    { scope: sectionRef },
   );
 
   const styles: Record<string, CSSProperties> = {
     /* Section is flex-column on mobile so content stacks in flow */
     section: {
       position: "relative",
-      minHeight: isMobile ? "auto" : "96vh",
+      minHeight: isMobile ? "auto" : "98vh",
       overflow: "hidden",
       background: theme.colors.black,
       boxSizing: "border-box",
@@ -161,7 +166,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     /* ── DESKTOP: absolute content layers ── */
     headlineLayerDesktop: {
       position: "absolute",
-      inset: 50,
+      inset: "auto 0 50% 0",
       zIndex: 5,
       display: "flex",
       flexDirection: "column",

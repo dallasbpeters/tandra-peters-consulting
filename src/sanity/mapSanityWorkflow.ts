@@ -1,7 +1,6 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
-/** Hex stroke — oklch in inline SVG styles fails to paint in some browsers */
-export const WORKFLOW_EDGE_COLOR = "#8156f6";
+const WORKFLOW_EDGE_COLOR = "#8156f6";
 
 export type WorkflowNodeData = {
   title: string;
@@ -32,6 +31,8 @@ export type WorkflowPageDoc = {
     title?: string;
     body?: string;
     wide?: boolean;
+    posX?: number;
+    posY?: number;
     subsections?: Array<{ title?: string; body?: string }>;
   }>;
   edges?: Array<{
@@ -41,6 +42,7 @@ export type WorkflowPageDoc = {
     sourceHandle?: string;
     targetHandle?: string;
     label?: string;
+    animated?: boolean;
   }>;
 };
 
@@ -235,9 +237,9 @@ const edgeLabelDefaults = {
 
 const edgeDefaults = {
   type: "smoothstep" as const,
-  style: { stroke: WORKFLOW_EDGE_COLOR, strokeWidth: 3 },
-  markerEnd: { type: MarkerType.ArrowClosed, color: WORKFLOW_EDGE_COLOR, width: 22, height: 22 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: WORKFLOW_EDGE_COLOR, width: 16, height: 16 },
   ...edgeLabelDefaults,
+  animated: true,
 };
 
 const buildFallbackNodes = (layout: WorkflowLayout): Node<WorkflowNodeData>[] =>
@@ -246,9 +248,6 @@ const buildFallbackNodes = (layout: WorkflowLayout): Node<WorkflowNodeData>[] =>
     type: "workflowStep",
     position: layoutPosition(index, layout),
     data: step,
-    draggable: false,
-    selectable: false,
-    connectable: false,
   }));
 
 const buildFallbackEdges = (): Edge[] =>
@@ -292,14 +291,15 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
           .map((node) => {
             const stepId = asString(node.stepId)!;
             const index = stepIndexFromId(stepId) ?? 0;
+            const defaultPosition = layoutPosition(index, layout);
             return {
               id: stepId,
               type: "workflowStep" as const,
-              position: layoutPosition(index, layout),
+              position: {
+                x: asNumber(node.posX, defaultPosition.x),
+                y: asNumber(node.posY, defaultPosition.y),
+              },
               data: mapNodeData(node),
-              draggable: false,
-              selectable: false,
-              connectable: false,
             };
           })
       : buildFallbackNodes(layout);

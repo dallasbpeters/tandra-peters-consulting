@@ -51,7 +51,7 @@ export const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
   return (
     <RoofInspectionContext.Provider value={chapterValue}>
       <CameraContext.Provider value={cameraValue}>
-        <div className="stage content-section content-section--padded">{children}</div>
+        <div className="stage content-section">{children}</div>
       </CameraContext.Provider>
     </RoofInspectionContext.Provider>
   );

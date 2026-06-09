@@ -183,6 +183,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     boxShadow: theme.shadow.md,
     gap: isStacked ? theme.spacing.lg : 0,
     contain: "paint",
+    borderBlockEnd: `8px solid ${theme.colors.heroAccent}`,
   };
 
   const bodyTextStyle: React.CSSProperties = {

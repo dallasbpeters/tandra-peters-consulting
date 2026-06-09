@@ -502,6 +502,7 @@ export default defineConfig({
             resolve: {
               mainDocuments: defineDocuments([
                 { route: "/", filter: `_type == "homePage"` },
+                { route: "/roof-inspections", filter: `_id == "roofInspectionsPage"` },
                 { route: "/articles", filter: `_id == "articlesPage"` },
                 { route: "/workflow", filter: `_id == "workflowPage"` },
                 {
@@ -526,6 +527,12 @@ export default defineConfig({
                   select: { id: "_id" },
                   resolve: () => ({
                     locations: [{ title: "Home", href: "/" }],
+                  }),
+                }),
+                roofInspectionsPage: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [{ title: "Roof inspections", href: "/roof-inspections" }],
                   }),
                 }),
                 siteSettings: defineLocations({

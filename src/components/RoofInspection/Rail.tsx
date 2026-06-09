@@ -84,6 +84,10 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
     borderTop: `1px solid ${theme.palette.paper[100]}`,
   };
 
+  const listItemStyle: React.CSSProperties = {
+    marginInlineStart: 0,
+  };
+
   const getChapterButtonStyle = (isActive: boolean): React.CSSProperties => ({
     fontSize: "11px",
     fontWeight: 700,
@@ -138,7 +142,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
           {chapters.map((chapter) => {
             const isActive = activeChapterId === chapter.id;
             return (
-              <li key={chapter.id}>
+              <li key={chapter.id} style={listItemStyle}>
                 <button
                   style={getChapterButtonStyle(isActive)}
                   data-active={isActive}

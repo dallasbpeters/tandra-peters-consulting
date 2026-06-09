@@ -11,6 +11,7 @@ import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
 import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteUnsplashApi } from "./plugins/viteUnsplashApi";
+import { viteWorkflowSaveApi } from "./plugins/viteWorkflowSaveApi";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
@@ -70,6 +71,7 @@ export default defineConfig(({ mode }) => {
     viteUnsplashApi(env) as unknown as PluginOption,
     viteSitemapApi(env) as unknown as PluginOption,
     viteSeoDashboardApi(env) as unknown as PluginOption,
+    viteWorkflowSaveApi(env) as unknown as PluginOption,
     tailwindcss() as unknown as PluginOption,
     react() as unknown as PluginOption,
     {
