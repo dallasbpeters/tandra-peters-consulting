@@ -177,7 +177,8 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     display: "grid",
     gridTemplateColumns: isStacked ? "1fr" : ".5fr 1fr",
     gridTemplateRows: isStacked ? "1fr auto" : "1fr",
-    backgroundColor: theme.palette.granite["800"],
+    backgroundColor: theme.colors.paperDark,
+    color: theme.colors.black,
     padding: isStacked ? theme.spacing.xxxxl : 0,
     borderRadius: theme.radius.large,
     boxShadow: theme.shadow.md,
@@ -191,7 +192,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
   };
 
   const pStyle: React.CSSProperties = {
-    color: theme.colors.paper,
+    color: "inherit",
     lineHeight: 1.6,
     fontSize: "clamp(1.1rem, 4vw, 1.3rem)",
     fontWeight: 500,
