@@ -67,7 +67,7 @@
   align-items: center;
   gap: var(--theme-spacing-xxl);
   font-size: 12px;
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: "Hanken Grotesk Variable", sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -116,11 +116,12 @@
 .site-page-main {
   box-sizing: border-box;
   padding-top: var(--theme-spacing-section-inset-top);
+  background: #ececec;
 }
 
 .home-loading-hero {
   min-height: 80svh;
-  background: #031f15;
+  background: #ececec;
 }
 
 .site-page-main.site-page-main--article {

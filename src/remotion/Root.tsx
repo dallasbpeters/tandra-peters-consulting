@@ -19,14 +19,14 @@ export const RemotionRoot = () => {
       defaultProps={{
         content: {
           storm: {
-            kicker: "Austin homeowners",
-            line1: "Texas roofs",
+            kicker: "Austin Homeowners",
+            line1: "Austin roofs",
             line2: "take a beating.",
             body: "Hail, heat, wind, and insurance paperwork can turn one bad storm into weeks of second-guessing.",
           },
           straightAnswers: {
             kicker: "Why Tandra?",
-            line1: "Straight",
+            line1: "Honest",
             line2: "answers.",
             line3: "No pressure.",
             quote: "If your roof just needs a repair, I'll tell you that.",
@@ -40,10 +40,15 @@ export const RemotionRoot = () => {
           },
           managed: {
             kicker: "What homeowners need",
-            line1: "EXPERIENCE AND PROFESSIONALISM",
-            line2: " HIGH-QUALITY MATERIALS",
-            line3: "from first look to final walkthrough.",
-            items: ["Claim guidance", "Paperwork review", "Birdcreek Crews", "Final walkthrough"],
+            line1: "Professionalism.",
+            line2: "Highest Quality Materials.",
+            line3: "Unparalleled customer service.",
+            items: [
+              "Claim guidance",
+              "Paperwork review",
+              "Birdcreek Roofing crews",
+              "Final walkthrough",
+            ],
           },
           proof: {
             kicker: "Built for Austin-area homeowners",
@@ -55,7 +60,7 @@ export const RemotionRoot = () => {
             kicker: "Tandra Peters · Austin roofing consultant",
             line1: "Your roof,",
             line2: "handled right.",
-            cta: "Call or text 512-968-3965",
+            cta: "Schedule a free consultation",
           },
         },
       }}

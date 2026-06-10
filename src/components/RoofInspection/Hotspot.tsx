@@ -234,8 +234,8 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
 
   const buttonStyle: React.CSSProperties = {
     position: "relative",
-    width: "3rem",
-    height: "3rem",
+    width: "3.5rem",
+    height: "3.5rem",
     background: "transparent",
     border: 0,
     padding: 0,
@@ -257,7 +257,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
 
   const numStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,
-    fontSize: "1rem",
+    fontSize: "1.5rem",
     fontWeight: 600,
     color: theme.colors.black,
     position: "relative",
@@ -287,7 +287,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const cardNumStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headlineAlt,
     fontStyle: "italic",
-    fontSize: "0.85rem",
+    fontSize: "1rem",
     color: theme.colors.heroAccent,
     margin: `0 0 ${theme.spacing.tight}`,
   };
@@ -295,21 +295,21 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const cardTitleStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headlineAlt,
     fontWeight: 400,
-    fontSize: "1.375rem",
+    fontSize: "1.575rem",
     lineHeight: 1.1,
     margin: `0 0 ${theme.spacing.compact}`,
     color: theme.colors.paper,
   };
 
   const cardBodyStyle: React.CSSProperties = {
-    fontSize: "0.8125rem",
+    fontSize: "1.025rem",
     lineHeight: 1.6,
     color: mix(theme.colors.paper, 80),
     margin: `0 0 ${theme.spacing.md}`,
   };
 
   const cardWatchLabelStyle: React.CSSProperties = {
-    fontSize: "10px",
+    fontSize: "0.825rem",
     fontWeight: 700,
     letterSpacing: "0.22em",
     textTransform: "uppercase",
@@ -319,7 +319,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   };
 
   const cardWatchStyle: React.CSSProperties = {
-    fontSize: "0.8rem",
+    fontSize: "0.9rem",
     lineHeight: 1.55,
     color: mix(theme.colors.paper, 65),
     margin: 0,

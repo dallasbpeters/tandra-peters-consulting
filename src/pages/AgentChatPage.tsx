@@ -1,9 +1,19 @@
+import type { FileUIPart } from "ai";
+
 import { usePostHog } from "@posthog/react";
-import { Check, Copy, Download } from "iconoir-react";
+import { Check, Copy, Download, Globe } from "iconoir-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { Spinner } from "@/components/ui/spinner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
+import { AgentArtifactMessage } from "../components/ai-elements/agent-artifact-message";
+import {
+  Attachment,
+  AttachmentPreview,
+  AttachmentRemove,
+  Attachments,
+} from "../components/ai-elements/attachments";
 import {
   Conversation,
   ConversationContent,
@@ -18,19 +28,38 @@ import {
   MessageResponse,
 } from "../components/ai-elements/message";
 import {
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuTrigger,
+  PromptInputActionMenuContent,
+  PromptInputActionAddScreenshot,
+  PromptInputSelect,
+  PromptInputSelectTrigger,
+  PromptInputSelectValue,
+  PromptInputSelectContent,
+  PromptInputSelectItem,
   PromptInput,
   PromptInputBody,
   PromptInputFooter,
   PromptInputSubmit,
+  PromptInputButton,
   PromptInputTextarea,
   PromptInputTools,
+  usePromptInputAttachments,
+  PromptInputHeader,
 } from "../components/ai-elements/prompt-input";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "../components/ai-elements/reasoning";
 import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import {
+  buildApiMessages,
+  filePartsToImages,
+  type StoredChatImage,
+} from "../lib/buildAgentApiMessages";
 import { mix, theme } from "../theme";
+import "../styles/agent-chat.css";
 
 export type AgentConfig = {
   endpoint: string;
@@ -45,6 +74,10 @@ export type AgentConfig = {
   emptyBody: string;
   inputPlaceholder: string;
   starterPrompts: readonly string[];
+  /** When true, assistant text is parsed for <artifact> blocks and rendered with Artifact UI. */
+  useArtifacts?: boolean;
+  /** When true, image attachments are sent to the API (screenshot workflow). */
+  supportsVision?: boolean;
 };
 
 type Role = "user" | "assistant";
@@ -64,11 +97,7 @@ type ChatMessage = {
   role: Role;
   content: string;
   parts: ChatPart[];
-};
-
-type ApiMessage = {
-  role: Role;
-  content: string;
+  images?: StoredChatImage[];
 };
 
 type Props = {
@@ -119,14 +148,52 @@ const isChatMessage = (value: unknown): value is ChatMessage =>
 
 const getStorageKey = (agentSlug: string) => `${CHAT_STORAGE_PREFIX}:${agentSlug}`;
 
+const PromptInputSubmitGuard = ({ loading, input }: { loading: boolean; input: string }) => {
+  const attachments = usePromptInputAttachments();
+  const hasContent = input.trim().length > 0 || attachments.files.length > 0;
+
+  return (
+    <PromptInputSubmit
+      status={loading ? "streaming" : "ready"}
+      disabled={!loading && !hasContent}
+      variant="ghost"
+    />
+  );
+};
+
+const PromptInputAttachmentsHeader = () => {
+  const attachments = usePromptInputAttachments();
+  if (attachments.files.length === 0) {
+    return null;
+  }
+  return (
+    <PromptInputHeader>
+      <Attachments variant="inline">
+        {attachments.files.map((attachment) => (
+          <Attachment
+            data={attachment}
+            key={attachment.id}
+            onRemove={() => attachments.remove(attachment.id)}
+          >
+            <AttachmentPreview />
+            <AttachmentRemove />
+          </Attachment>
+        ))}
+      </Attachments>
+    </PromptInputHeader>
+  );
+};
+
 const MessageParts = ({
   message,
   isLastMessage,
   isStreaming,
+  useArtifacts,
 }: {
   message: ChatMessage;
   isLastMessage: boolean;
   isStreaming: boolean;
+  useArtifacts: boolean;
 }) => {
   const reasoningParts = message.parts.filter(
     (part): part is Extract<ChatPart, { type: "reasoning" }> => part.type === "reasoning",
@@ -139,13 +206,17 @@ const MessageParts = ({
   return (
     <>
       {hasReasoning && (
-        <Reasoning className="w-full" isStreaming={isReasoningStreaming}>
+        <Reasoning className="agent-chat__reasoning" isStreaming={isReasoningStreaming}>
           <ReasoningTrigger />
           <ReasoningContent>{reasoningText}</ReasoningContent>
         </Reasoning>
       )}
       {message.parts.map((part, i) => {
         if (part.type === "text") {
+          if (useArtifacts && message.role === "assistant" && part.text.includes("<artifact")) {
+            return <AgentArtifactMessage key={`${message.id}-${i}`} text={part.text} />;
+          }
+
           return <MessageResponse key={`${message.id}-${i}`}>{part.text}</MessageResponse>;
         }
         return null;
@@ -156,12 +227,16 @@ const MessageParts = ({
 
 export const AgentChatPage = ({ config }: Props) => {
   const posthog = usePostHog();
-  const auth = useGoogleDashboardAuth();
 
   usePageMetadata({
     title: config.pageTitle,
     description: config.pageDescription,
   });
+
+  const models = [
+    { id: "gpt-4o", name: "GPT-4o" },
+    { id: "llama-3.3-70b-versatile", name: "Llama 3.3" },
+  ];
 
   const threadIdRef = useRef<string>(crypto.randomUUID());
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -171,6 +246,9 @@ export const AgentChatPage = ({ config }: Props) => {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [hasHydratedConversation, setHasHydratedConversation] = useState(false);
   const [statusCode, setStatusCode] = useState<number | null>(null);
+  const [model, setModel] = useState<string>("gpt-4o");
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
+  const auth = useGoogleDashboardAuth();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -202,27 +280,37 @@ export const AgentChatPage = ({ config }: Props) => {
 
     const payload: PersistedConversation = {
       threadId: threadIdRef.current,
-      messages,
+      messages: messages.map((message) =>
+        message.images?.length ? { ...message, images: undefined } : message,
+      ),
       updatedAt: Date.now(),
     };
     window.localStorage.setItem(getStorageKey(config.agentSlug), JSON.stringify(payload));
   }, [config.agentSlug, hasHydratedConversation, messages]);
 
   const handleSend = useCallback(
-    async (text: string) => {
+    async (text: string, files: FileUIPart[] = []) => {
       const trimmed = text.trim();
-      if (!trimmed || loading || !auth.token) return;
+      const attachedImages = config.supportsVision ? filePartsToImages(files) : [];
+
+      if (!trimmed && attachedImages.length === 0) return;
+      if (loading || !auth.token) return;
+
+      const displayContent =
+        trimmed || (attachedImages.length > 0 ? "Screenshot of Nextdoor thread" : "");
 
       const userMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "user",
-        content: trimmed,
-        parts: [{ type: "text", text: trimmed }],
+        content: displayContent,
+        parts: [{ type: "text", text: displayContent }],
+        ...(attachedImages.length > 0 ? { images: attachedImages } : {}),
       };
 
       posthog?.capture("agent_message_sent", {
         agent: config.agentSlug,
-        message_length: trimmed.length,
+        message_length: displayContent.length,
+        attachment_count: attachedImages.length,
         total_messages_in_session: messages.length + 1,
       });
 
@@ -231,10 +319,7 @@ export const AgentChatPage = ({ config }: Props) => {
       setLoading(true);
       setError(null);
 
-      const history: ApiMessage[] = [...messages, userMsg].map(({ role, content }) => ({
-        role,
-        content,
-      }));
+      const history = buildApiMessages([...messages, userMsg]);
 
       try {
         const response = await fetch(config.endpoint, {
@@ -370,7 +455,13 @@ export const AgentChatPage = ({ config }: Props) => {
     <SitePageChrome>
       {auth.clientId && !auth.token ? (
         <section style={cardStyle}>
-          <div style={{ display: "grid", gap: theme.spacing.lg, justifyItems: "start" }}>
+          <div
+            style={{
+              display: "grid",
+              gap: theme.spacing.lg,
+              justifyItems: "start",
+            }}
+          >
             <div>
               <h2
                 style={{
@@ -411,189 +502,212 @@ export const AgentChatPage = ({ config }: Props) => {
       ) : null}
 
       {auth.token ? (
-        <main className="mx-auto w-full px-3 pb-5 py-28 sm:px-4 sm:py-32 lg:py-36">
-          <header className="mx-auto mb-6 max-w-3xl text-center">
-            <p
-              className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em]"
-              style={{ color: theme.palette.accent["600"] }}
-            >
-              {config.eyebrow ?? "Tandra.me"}
-            </p>
-            <h1
-              className="m-0 text-[clamp(1.75rem,4vw,2.25rem)] leading-[1.15]"
-              style={{
-                color: theme.colors.everglade,
-                fontFamily: theme.fonts.headlineAlt,
-                fontWeight: 400,
-              }}
-            >
-              {config.title}
-            </h1>
-            <p
-              className="mt-2 text-[0.95rem] leading-7"
-              style={{ color: mix(theme.colors.everglade, 65) }}
-            >
-              {config.subtitle}
-            </p>
+        <main className="agent-chat agent-chat__main">
+          <header className="agent-chat__header">
+            <p className="agent-chat__eyebrow">{config.eyebrow ?? "Tandra.me"}</p>
+            <h1 className="agent-chat__title">{config.title}</h1>
+            <p className="agent-chat__subtitle">{config.subtitle}</p>
           </header>
 
-          <section
-            className="mx-auto flex max-w-4xl flex-col overflow-hidden rounded-3xl border bg-white/85 shadow-[0_18px_60px_-28px_rgba(0,0,0,0.35)] backdrop-blur-sm"
-            style={{ borderColor: mix(theme.colors.everglade, 12) }}
-          >
-            <div className="flex-1 px-2 pt-2 sm:px-4 sm:pt-4">
-              <Conversation className="h-full min-h-96">
-                <ConversationContent className="gap-5 px-0 pb-8">
-                  {isEmpty ? (
-                    <ConversationEmptyState
-                      title={config.emptyTitle}
-                      description={config.emptyBody}
-                      icon={
-                        <div className="text-3xl" aria-hidden="true">
-                          {config.emptyIcon}
-                        </div>
-                      }
-                    >
-                      <div className="flex w-full max-w-2xl flex-col items-center gap-4 px-2">
-                        <div className="text-center">
-                          <p className="font-semibold text-base text-foreground">
-                            {config.emptyTitle}
-                          </p>
-                          <p className="mt-1 text-muted-foreground text-sm leading-6">
-                            {config.emptyBody}
-                          </p>
-                        </div>
-                        <Suggestions>
-                          {config.starterPrompts.map((prompt) => (
-                            <Suggestion
-                              key={prompt}
-                              suggestion={prompt}
-                              onClick={() => handleSuggestion(prompt)}
-                              aria-label={`Start with: ${prompt}`}
-                            >
-                              {prompt}
-                            </Suggestion>
-                          ))}
-                        </Suggestions>
-                      </div>
-                    </ConversationEmptyState>
-                  ) : (
-                    messages.map((message, index) => (
-                      <Message key={message.id} from={message.role}>
-                        <MessageContent
-                          className={
-                            message.role === "user"
-                              ? "max-w-[90%] rounded-2xl border px-4 py-3"
-                              : "max-w-[92%] rounded-2xl px-4 py-3"
-                          }
-                          style={{
-                            borderColor:
-                              message.role === "user"
-                                ? theme.palette.everglade["900"]
-                                : mix(theme.colors.everglade, 12),
-                            backgroundColor:
-                              message.role === "user"
-                                ? theme.palette.everglade["900"]
-                                : theme.colors.white,
-                            color:
-                              message.role === "user" ? theme.colors.white : theme.colors.everglade,
-                          }}
-                        >
-                          {message.role === "assistant" ? (
-                            <MessageParts
-                              message={message}
-                              isLastMessage={index === messages.length - 1}
-                              isStreaming={loading}
-                            />
-                          ) : (
-                            <p className="whitespace-pre-wrap">{message.content}</p>
-                          )}
-                        </MessageContent>
-                        {message.role === "assistant" && (
-                          <MessageActions>
-                            <MessageAction
-                              aria-label="Copy message"
-                              tooltip={copiedMessageId === message.id ? "Copied" : "Copy answer"}
-                              onClick={() => handleCopyMessage(message)}
-                            >
-                              {copiedMessageId === message.id ? (
-                                <Check className="size-4" />
-                              ) : (
-                                <Copy className="size-4" />
-                              )}
-                            </MessageAction>
-                            <MessageAction
-                              aria-label="Download message"
-                              tooltip="Download as .md"
-                              onClick={() => handleDownloadMessage(message)}
-                            >
-                              <Download className="size-4" />
-                            </MessageAction>
-                          </MessageActions>
-                        )}
-                      </Message>
-                    ))
-                  )}
-
-                  {loading && (
-                    <Message from="assistant">
-                      <MessageContent className="max-w-[92%] rounded-2xl border bg-white px-4 py-3 shadow-sm">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <Spinner />
-                          <span>Thinking…</span>
-                        </div>
-                      </MessageContent>
-                    </Message>
-                  )}
-
-                  {error && (
-                    <Message from="assistant">
-                      <MessageContent
-                        className="max-w-[92%] rounded-2xl border px-4 py-3 text-sm"
-                        style={{
-                          borderColor: theme.palette.coral["200"],
-                          backgroundColor: theme.palette.coral["50"],
-                          color: theme.palette.coral["800"],
-                        }}
-                        role="alert"
+          <TooltipProvider delayDuration={200}>
+            <section className="agent-chat__panel">
+              <div className="agent-chat__conversation-wrap">
+                <Conversation className="agent-chat__conversation">
+                  <ConversationContent className="agent-chat__conversation-content">
+                    {isEmpty ? (
+                      <ConversationEmptyState
+                        title={config.emptyTitle}
+                        description={config.emptyBody}
+                        icon={
+                          <div className="agent-chat__empty-icon" aria-hidden="true">
+                            {config.emptyIcon}
+                          </div>
+                        }
                       >
-                        {error}
-                      </MessageContent>
-                    </Message>
-                  )}
-                </ConversationContent>
-                <ConversationScrollButton />
-              </Conversation>
-            </div>
+                        <div className="agent-chat__empty-body">
+                          <div className="agent-chat__empty-copy">
+                            <p className="agent-chat__empty-title">{config.emptyTitle}</p>
+                            <p className="agent-chat__empty-description">{config.emptyBody}</p>
+                          </div>
+                          <Suggestions>
+                            {config.starterPrompts.map((prompt) => (
+                              <Suggestion
+                                key={prompt}
+                                suggestion={prompt}
+                                className="agent-chat__suggestion"
+                                onClick={() => handleSuggestion(prompt)}
+                                aria-label={`Start with: ${prompt}`}
+                              >
+                                {prompt}
+                              </Suggestion>
+                            ))}
+                          </Suggestions>
+                        </div>
+                      </ConversationEmptyState>
+                    ) : (
+                      messages.map((message, index) => (
+                        <Message
+                          key={message.id}
+                          from={message.role}
+                          className="agent-chat__message-row"
+                        >
+                          <MessageContent
+                            className={
+                              message.role === "user"
+                                ? "agent-chat__message-content agent-chat__message-content--user"
+                                : "agent-chat__message-content agent-chat__message-content--assistant"
+                            }
+                          >
+                            {message.role === "assistant" ? (
+                              <MessageParts
+                                message={message}
+                                isLastMessage={index === messages.length - 1}
+                                isStreaming={loading}
+                                useArtifacts={config.useArtifacts ?? false}
+                              />
+                            ) : (
+                              <div className="agent-chat__user-attachments">
+                                {message.images?.map((image) => (
+                                  <img
+                                    key={image.url}
+                                    src={image.url}
+                                    alt={
+                                      image.filename
+                                        ? `Attached screenshot: ${image.filename}`
+                                        : "Attached screenshot of Nextdoor thread"
+                                    }
+                                    className="agent-chat__user-screenshot"
+                                  />
+                                ))}
+                                {message.content ? (
+                                  <p className="agent-chat__user-text">{message.content}</p>
+                                ) : null}
+                              </div>
+                            )}
+                          </MessageContent>
+                          {message.role === "user" ? (
+                            <>
+                              {auth.user?.picture ? (
+                                <img
+                                  src={auth.user.picture}
+                                  alt=""
+                                  className="agent-chat__avatar"
+                                />
+                              ) : null}
+                            </>
+                          ) : null}
+                          {message.role === "assistant" && (
+                            <MessageActions>
+                              <MessageAction
+                                aria-label="Copy message"
+                                tooltip={copiedMessageId === message.id ? "Copied" : "Copy answer"}
+                                onClick={() => handleCopyMessage(message)}
+                              >
+                                {copiedMessageId === message.id ? (
+                                  <Check className="agent-chat__icon" />
+                                ) : (
+                                  <Copy className="agent-chat__icon" />
+                                )}
+                              </MessageAction>
+                              <MessageAction
+                                aria-label="Download message"
+                                tooltip="Download as .md"
+                                onClick={() => handleDownloadMessage(message)}
+                              >
+                                <Download className="agent-chat__icon" />
+                              </MessageAction>
+                            </MessageActions>
+                          )}
+                        </Message>
+                      ))
+                    )}
 
-            <div className="sticky bottom-0 border-t bg-white/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3">
-              <PromptInput
-                className="w-full"
-                onSubmit={({ text }) => handleSend(text)}
-                aria-label="Chat input"
-              >
-                <PromptInputBody>
-                  <PromptInputTextarea
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    placeholder={config.inputPlaceholder}
-                    disabled={loading}
-                    className="min-h-14"
-                  />
-                </PromptInputBody>
-                <PromptInputFooter>
-                  <PromptInputTools />
-                  <PromptInputSubmit
-                    status={loading ? "streaming" : "ready"}
-                    disabled={!loading && input.trim().length === 0}
-                  />
-                </PromptInputFooter>
-              </PromptInput>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line
-              </p>
-            </div>
-          </section>
+                    {loading && (
+                      <Message from="assistant">
+                        <MessageContent className="agent-chat__message-content agent-chat__message-content--loading">
+                          <div className="agent-chat__loading">
+                            <Spinner />
+                            <span>Thinking…</span>
+                          </div>
+                        </MessageContent>
+                      </Message>
+                    )}
+
+                    {error && (
+                      <Message from="assistant">
+                        <MessageContent
+                          className="agent-chat__message-content agent-chat__message-content--error"
+                          role="alert"
+                        >
+                          {error}
+                        </MessageContent>
+                      </Message>
+                    )}
+                  </ConversationContent>
+                  <ConversationScrollButton />
+                </Conversation>
+              </div>
+
+              <div className="agent-chat__composer-dock">
+                <PromptInput
+                  className="agent-chat__prompt"
+                  onSubmit={({ text, files }) => handleSend(text, files)}
+                  aria-label="Chat input"
+                  globalDrop
+                  multiple
+                >
+                  <PromptInputAttachmentsHeader />
+                  <PromptInputBody>
+                    <PromptInputTextarea
+                      value={input}
+                      onChange={(event) => setInput(event.target.value)}
+                      placeholder={config.inputPlaceholder}
+                      disabled={loading}
+                      className="agent-chat__textarea"
+                    />
+                  </PromptInputBody>
+                  <PromptInputFooter>
+                    <PromptInputTools>
+                      <PromptInputActionMenu>
+                        <PromptInputActionMenuTrigger />
+                        <PromptInputActionMenuContent>
+                          <PromptInputActionAddAttachments />
+                          <PromptInputActionAddScreenshot />
+                        </PromptInputActionMenuContent>
+                      </PromptInputActionMenu>
+                      <PromptInputButton
+                        aria-pressed={useWebSearch}
+                        onClick={() => setUseWebSearch(!useWebSearch)}
+                        tooltip={{ content: "Search the web", shortcut: "⌘K" }}
+                        variant="ghost"
+                      >
+                        <Globe className="agent-chat__icon" />
+                        <span>Search</span>
+                      </PromptInputButton>
+                      <PromptInputSelect
+                        onValueChange={(value) => {
+                          setModel(value);
+                        }}
+                        value={model}
+                      >
+                        <PromptInputSelectTrigger>
+                          <PromptInputSelectValue />
+                        </PromptInputSelectTrigger>
+                        <PromptInputSelectContent>
+                          {models.map((model) => (
+                            <PromptInputSelectItem key={model.id} value={model.id}>
+                              {model.name}
+                            </PromptInputSelectItem>
+                          ))}
+                        </PromptInputSelectContent>
+                      </PromptInputSelect>
+                    </PromptInputTools>
+                    <PromptInputSubmitGuard loading={loading} input={input} />
+                  </PromptInputFooter>
+                </PromptInput>
+              </div>
+            </section>
+          </TooltipProvider>
         </main>
       ) : null}
     </SitePageChrome>

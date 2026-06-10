@@ -74,8 +74,8 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         defaults: { ease: "none", immediateRender: false },
         scrollTrigger: {
           trigger,
-          start: "top 75%",
-          end: "bottom 60%",
+          start: "top 85%",
+          end: "bottom 70%",
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -177,7 +177,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     display: "grid",
     gridTemplateColumns: isStacked ? "1fr" : ".5fr 1fr",
     gridTemplateRows: isStacked ? "1fr auto" : "1fr",
-    backgroundColor: theme.colors.paper,
+    backgroundColor: theme.palette.granite["800"],
     padding: isStacked ? theme.spacing.xxxxl : 0,
     borderRadius: theme.radius.large,
     boxShadow: theme.shadow.md,
@@ -191,9 +191,9 @@ export const About: React.FC<AboutProps> = ({ body }) => {
   };
 
   const pStyle: React.CSSProperties = {
-    color: theme.colors.everglade,
+    color: theme.colors.paper,
     lineHeight: 1.6,
-    fontSize: "clamp(1.3rem, 4vw, 1.7rem)",
+    fontSize: "clamp(1.1rem, 4vw, 1.3rem)",
     fontWeight: 500,
     zIndex: 12,
   };

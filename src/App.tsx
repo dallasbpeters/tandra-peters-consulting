@@ -52,6 +52,10 @@ const FeatureBuilderPage = lazy(async () => {
   const module = await import("./pages/FeatureBuilderPage");
   return { default: module.FeatureBuilderPage };
 });
+const ResponseAgentPage = lazy(async () => {
+  const module = await import("./pages/ResponseAgentPage");
+  return { default: module.ResponseAgentPage };
+});
 
 const MarketingAgentPage = lazy(async () => {
   const module = await import("./pages/MarketingAgentPage");
@@ -94,6 +98,7 @@ const appRouter = createBrowserRouter([
       { path: "marketing", element: <MarketingAgentPage /> },
       { path: "ads", element: <AdDashboardPage /> },
       { path: "advertising", element: <AdDashboardPage /> },
+      { path: "response", element: <ResponseAgentPage /> },
     ],
   },
 ]);

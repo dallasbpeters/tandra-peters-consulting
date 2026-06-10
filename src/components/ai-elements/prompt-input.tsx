@@ -852,21 +852,22 @@ export const PromptInput = ({
 
   // Render with or without local provider
   const inner = (
-    <>
+    <div className="prompt-input-root w-full">
       <input
         accept={accept}
         aria-label="Upload files"
-        className="hidden"
+        className="prompt-input-file-input"
         multiple={multiple}
         onChange={handleChange}
         ref={inputRef}
+        tabIndex={-1}
         title="Upload files"
         type="file"
       />
       <form className={cn("w-full", className)} onSubmit={handleSubmit} ref={formRef} {...props}>
         <InputGroup className="overflow-hidden">{children}</InputGroup>
       </form>
-    </>
+    </div>
   );
 
   const withReferencedSources = (
@@ -1005,11 +1006,7 @@ export const PromptInputTextarea = ({
 export type PromptInputHeaderProps = Omit<ComponentProps<typeof InputGroupAddon>, "align">;
 
 export const PromptInputHeader = ({ className, ...props }: PromptInputHeaderProps) => (
-  <InputGroupAddon
-    align="block-end"
-    className={cn("order-first flex-wrap gap-1", className)}
-    {...props}
-  />
+  <InputGroupAddon align="block-start" className={cn("flex-wrap gap-1", className)} {...props} />
 );
 
 export type PromptInputFooterProps = Omit<ComponentProps<typeof InputGroupAddon>, "align">;
@@ -1051,7 +1048,7 @@ export const PromptInputButton = ({
 
   const button = (
     <InputGroupButton
-      className={cn(className)}
+      className={cn("wa-plain", className)}
       size={newSize}
       type="button"
       variant={variant}
@@ -1069,8 +1066,10 @@ export const PromptInputButton = ({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={side}>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent align="center" side={side}>
         {tooltipContent}
         {shortcut && <span className="ml-2 text-muted-foreground">{shortcut}</span>}
       </TooltipContent>
@@ -1156,7 +1155,7 @@ export const PromptInputSubmit = ({
   return (
     <InputGroupButton
       aria-label={isGenerating ? "Stop" : "Submit"}
-      className={cn(className)}
+      className={cn("wa-plain", className)}
       onClick={handleClick}
       size={size}
       type={isGenerating && onStop ? "button" : "submit"}
@@ -1180,7 +1179,7 @@ export const PromptInputSelectTrigger = ({
 }: PromptInputSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      "border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
+      "wa-plain border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
       "hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground",
       className,
     )}

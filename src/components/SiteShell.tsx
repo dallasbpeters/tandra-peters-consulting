@@ -15,11 +15,12 @@ const Footer = lazy(async () => {
   return { default: module.Footer };
 });
 
-const AGENT_PATHS = new Set(["/agent", "/marketing", "/ads", "/advertising"]);
+const AGENT_PATHS = new Set(["/agent", "/marketing", "/ads", "/advertising", "/response"]);
 
 const agentNavItems: NavItem[] = [
   { name: "Feature Agent", href: "/agent" },
   { name: "Marketing Agent", href: "/marketing" },
+  { name: "Response Agent", href: "/response" },
   { name: "Ad Builder", href: "/ads" },
 ];
 
@@ -78,9 +79,11 @@ export const SiteShell = () => {
         <main className={`${getMainRouteClass(location.pathname)} site-main-route`}>{outlet}</main>
       )}
 
-      <Suspense fallback={null}>
-        <Footer {...mapFooterProps(site)} />
-      </Suspense>
+      {!isAgentRoute ? (
+        <Suspense fallback={null}>
+          <Footer {...mapFooterProps(site)} />
+        </Suspense>
+      ) : null}
     </>
   );
 };

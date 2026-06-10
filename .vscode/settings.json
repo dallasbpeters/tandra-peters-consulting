@@ -13,10 +13,10 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[css]": {
-    "editor.defaultFormatter": null,
+    "editor.defaultFormatter": "stylelint.vscode-stylelint",
     "editor.formatOnSave": false
   },
   "stylelint.packageManager": "pnpm",

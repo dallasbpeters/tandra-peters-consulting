@@ -139,7 +139,7 @@ kbd {
 }
 
 .border-input {
-  border-color: var(--border);
+  border-color: transparent;
 }
 
 .number-field {
@@ -148,11 +148,7 @@ kbd {
   }
 }
 
-button,
-input[type="button"],
-input[type="reset"],
-input[type="submit"],
-input[type="file"],
+/* WA token overrides for Web Awesome surfaces only — not every native <button>. */
 a.wa-button {
   --wa-color-fill-loud: oklch(100% 0 0);
   --wa-form-control-border-color: oklch(68% 0.018 163.6deg);

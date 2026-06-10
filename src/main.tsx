@@ -29,13 +29,13 @@ if (posthogToken && isPosthogEnabled()) {
     // Do not pass `bootstrap.featureFlags: {}` — an empty object makes
     // useFeatureFlagVariantKey return undefined before /flags loads, which
     // flashes the control nav on off-home routes.
-    loaded: (client) => {
+    loaded: () => {
       if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true") {
-        const toolbarReady = client.toolbar?.maybeLoadToolbar?.() ?? false;
+        const toolbarReady = posthog.toolbar?.maybeLoadToolbar?.() ?? false;
         console.info("[PostHog] SDK ready", {
-          api_host: client.config.api_host,
-          ui_host: client.config.ui_host,
-          toolbar_external_deps: !client.config.disable_external_dependency_loading,
+          api_host: posthog.config.api_host,
+          ui_host: posthog.config.ui_host,
+          toolbar_external_deps: !posthog.config.disable_external_dependency_loading,
           toolbar_launch_detected: toolbarReady,
         });
         if (!toolbarReady) {

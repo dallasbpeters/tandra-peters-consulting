@@ -1,5 +1,6 @@
 /**
- * Serves POST /api/agent, POST /api/feature-agent, and POST /api/marketing-agent
+ * Serves POST /api/agent, POST /api/feature-agent, POST /api/marketing-agent,
+ * and POST /api/response-agent
  * during `vite` dev so you can test all agents locally without running
  * `vercel dev`. Requires SANITY_API_READ_TOKEN and GROQ_API_KEY in repo-root
  * `.env.local`.
@@ -7,7 +8,18 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
-const AGENT_PATHS = ["/api/agent", "/api/feature-agent", "/api/marketing-agent"] as const;
+import { downloadVisionAssets } from "../api/lib/download-vision-assets";
+import { fetchNextdoorThread, NEXTDOOR_FETCH_TOOL } from "../api/lib/fetch-nextdoor-thread";
+import { normalizeVisionMessages } from "../api/lib/normalize-vision-messages";
+import { pickResponseAgentModel } from "../api/lib/response-agent-models";
+import { RESPONSE_AGENT_SYSTEM_PROMPT } from "../api/lib/response-agent-prompt";
+
+const AGENT_PATHS = [
+  "/api/agent",
+  "/api/feature-agent",
+  "/api/marketing-agent",
+  "/api/response-agent",
+] as const;
 type AgentPath = (typeof AGENT_PATHS)[number];
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
@@ -133,12 +145,17 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 
 ## Response format
 Use markdown. Lead with a concise summary, then structure and detail. Use code blocks with language tags for TypeScript, TSX, and GROQ.`,
+
+  "/api/response-agent": RESPONSE_AGENT_SYSTEM_PROMPT,
 };
+
+const getSystemPrompt = (pathname: AgentPath): string => SYSTEM_PROMPTS[pathname];
 
 const MCP_SLUGS: Record<AgentPath, string> = {
   "/api/agent": "content-editor",
   "/api/feature-agent": "feature-builder",
   "/api/marketing-agent": "content-editor",
+  "/api/response-agent": "response-agent",
 };
 
 type RpcTool = {
@@ -151,12 +168,14 @@ const PRIMARY_MODEL_BY_PATH: Record<AgentPath, string> = {
   "/api/agent": "llama-3.3-70b-versatile",
   "/api/feature-agent": "llama-3.3-70b-versatile",
   "/api/marketing-agent": "openai/gpt-oss-120b",
+  "/api/response-agent": "llama-3.3-70b-versatile", // overridden when messages include images
 };
 
 const FALLBACK_MODEL_BY_PATH: Record<AgentPath, string> = {
   "/api/agent": "llama-3.3-70b-versatile",
   "/api/feature-agent": "llama-3.3-70b-versatile",
   "/api/marketing-agent": "llama-3.3-70b-versatile",
+  "/api/response-agent": "meta-llama/llama-4-scout-17b-16e-instruct",
 };
 
 const GROQ_DEFAULT_HEADERS_BY_PATH: Partial<Record<AgentPath, Record<string, string>>> = {
@@ -290,6 +309,27 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           },
         ]);
 
+        if (pathname === "/api/response-agent") {
+          const nextdoorCookie = env.NEXTDOOR_SESSION_COOKIE?.trim();
+          const jinaApiKey = env.JINA_API_KEY?.trim();
+
+          allToolEntries.push([
+            NEXTDOOR_FETCH_TOOL.name,
+            {
+              name: NEXTDOOR_FETCH_TOOL.name,
+              description: NEXTDOOR_FETCH_TOOL.description,
+              inputSchema: NEXTDOOR_FETCH_TOOL.inputSchema,
+            },
+            async (input: Record<string, unknown>) => {
+              const url = typeof input.url === "string" ? input.url : "";
+              return fetchNextdoorThread(url, {
+                cookie: nextdoorCookie,
+                jinaApiKey,
+              });
+            },
+          ]);
+        }
+
         if (pathname === "/api/feature-agent" && mobbinMcpUrl) {
           const mobbinToolsResult = (await callJsonRpc(
             mobbinMcpUrl,
@@ -358,9 +398,14 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           });
         }
 
+        const requestMessages =
+          pathname === "/api/response-agent"
+            ? normalizeVisionMessages(body.messages as import("ai").ModelMessage[])
+            : body.messages;
+
         const baseRequest = {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          messages: body.messages as any,
+          messages: requestMessages as any,
           ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
         };
 
@@ -370,10 +415,13 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             ({ text: responseText } = await generateText({
               ...baseRequest,
               model: groq(modelId),
-              system: SYSTEM_PROMPTS[pathname],
+              system: getSystemPrompt(pathname),
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               tools: tools as any,
               stopWhen: stepCountIs(10),
+              ...(pathname === "/api/response-agent"
+                ? { experimental_download: downloadVisionAssets }
+                : {}),
             }));
           } catch (toolError) {
             const toolErrorMessage =
@@ -385,15 +433,23 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             ({ text: responseText } = await generateText({
               ...baseRequest,
               model: groq(modelId),
-              system: `${SYSTEM_PROMPTS[pathname]}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+              system: `${getSystemPrompt(pathname)}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+              ...(pathname === "/api/response-agent"
+                ? { experimental_download: downloadVisionAssets }
+                : {}),
             }));
           }
           return responseText;
         };
 
+        const primaryModel =
+          pathname === "/api/response-agent"
+            ? pickResponseAgentModel(requestMessages as import("ai").ModelMessage[])
+            : PRIMARY_MODEL_BY_PATH[pathname];
+
         let text: string;
         try {
-          text = await runWithModel(PRIMARY_MODEL_BY_PATH[pathname]);
+          text = await runWithModel(primaryModel);
         } catch (modelError) {
           const modelErrorMessage =
             modelError instanceof Error ? modelError.message : String(modelError);
