@@ -319,7 +319,6 @@ export const Diagram: React.FC<DiagramProps> = ({
     width: "100%",
     height: 0,
     paddingBottom: "85%", // 4:3
-    background: theme.colors.paper,
     borderRadius: theme.radius.small,
     overflow: "visible",
   };
@@ -385,7 +384,12 @@ export const Diagram: React.FC<DiagramProps> = ({
           <img
             src="/roof.jpeg"
             alt="Roof inspection diagram fallback"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
           />
         </div>
       ) : null}

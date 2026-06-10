@@ -3,15 +3,16 @@ import { usePostHog } from "@posthog/react";
 import { motion } from "motion/react";
 import React, { useEffect, useMemo } from "react";
 
+import type { FaqItem, FaqProps } from "../types";
+
 import { plainTextFromRich } from "../portableText/plainText";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
-import { mix, theme } from "../theme";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 
-import { FaqProps } from "../types";
+import { mix, theme } from "../theme";
 
-const DEFAULT_ITEMS = [
+const DEFAULT_ITEMS: FaqItem[] = [
   {
     question: "What does a roofing consultant do?",
     answer:
@@ -57,6 +58,9 @@ export const Faq: React.FC<FaqProps> = ({
   intro = "Straight answers from me—how I work with homeowners, insurance, Birdcreek Roofing, and how to reach out.",
   items = DEFAULT_ITEMS,
   paddingTop = "3rem",
+  backgroundColor,
+  sectionId = "faq",
+  includeJsonLd = true,
 }) => {
   const posthog = usePostHog();
 
@@ -77,18 +81,20 @@ export const Faq: React.FC<FaqProps> = ({
   );
 
   useEffect(() => {
+    if (!includeJsonLd) return;
+
     const script = document.createElement("script");
-    script.id = JSON_LD_ID;
+    script.id = `${JSON_LD_ID}-${sectionId}`;
     script.type = "application/ld+json";
     script.textContent = JSON.stringify(faqJsonLd);
     document.head.appendChild(script);
     return () => {
       script.remove();
     };
-  }, [faqJsonLd]);
+  }, [faqJsonLd, includeJsonLd, sectionId]);
 
   const sectionStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.paper,
+    backgroundColor: backgroundColor ?? theme.colors.paper,
     paddingTop: paddingTop,
   };
 
@@ -100,10 +106,10 @@ export const Faq: React.FC<FaqProps> = ({
 
   return (
     <section
-      id="faq"
+      id={sectionId}
       className={layoutClass.sectionPadded}
       style={sectionStyle}
-      aria-labelledby="faq-heading"
+      aria-labelledby={`${sectionId}-heading`}
     >
       <div className={layoutClass.containerArticle}>
         <motion.div
@@ -126,7 +132,7 @@ export const Faq: React.FC<FaqProps> = ({
             {tagline}
           </span>
           <h2
-            id="faq-heading"
+            id={`${sectionId}-heading`}
             style={{
               fontSize: "clamp(2rem, 6vw, 3rem)",
               lineHeight: 1.1,
@@ -164,7 +170,7 @@ export const Faq: React.FC<FaqProps> = ({
         `}</style>
 
         <div className="faq-details-container">
-          {items.map((item, index) => (
+          {items.map((item: FaqItem, index: number) => (
             <WaDetails
               appearance="outlined"
               summary={item.question}

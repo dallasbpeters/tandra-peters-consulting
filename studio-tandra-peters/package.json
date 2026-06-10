@@ -17,6 +17,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:articles-page": "tsx scripts/seedArticlesPage.ts",
     "seed:workflow-page": "tsx scripts/seedWorkflowPage.ts",
+    "seed:insurance-faqs-page": "tsx scripts/seedInsuranceFaqsPage.ts",
     "seed:roof-inspections-page": "tsx scripts/seedRoofInspectionsPage.ts",
     "seed:post-faqs": "tsx scripts/seedPostFaqs.ts",
     "seed:posts": "tsx scripts/seedPosts.ts",

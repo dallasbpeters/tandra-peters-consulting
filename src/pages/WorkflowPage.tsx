@@ -33,6 +33,10 @@ import { useOptionalGoogleAuthGate } from "../hooks/useGoogleAuthGate";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityWorkflowPage } from "../hooks/useSanityWorkflowPage";
 import {
+  CONTACT_BANNER_FREE_INSPECTION,
+  CONTACT_BANNER_WORKFLOW_FAQ,
+} from "../lib/contactBannerPresets";
+import {
   estimateMobileStackedNodes,
   measureMobileStackedNodes,
   mobileStackPositionsChanged,
@@ -44,7 +48,6 @@ import {
   mapWorkflowPageCopy,
   type WorkflowNodeData,
 } from "../sanity/mapSanityWorkflow";
-
 const WORKFLOW_CANVAS_BOTTOM_PAD = 64;
 const WORKFLOW_MOBILE_ZOOM = 1;
 
@@ -835,7 +838,6 @@ export const WorkflowPage = () => {
   const { page, loading } = useSanityWorkflowPage();
   const copy = useMemo(() => mapWorkflowPageCopy(page), [page]);
   const diagram = useMemo(() => mapWorkflowDiagram(page), [page]);
-
   usePageMetadata({
     title: copy.seoTitle,
     description: copy.seoDescription,
@@ -855,7 +857,8 @@ export const WorkflowPage = () => {
         ) : (
           <>
             <InsuranceWorkflowDiagram {...diagram} />
-            <ContactBanner />
+            <ContactBanner {...CONTACT_BANNER_WORKFLOW_FAQ} />
+            <ContactBanner {...CONTACT_BANNER_FREE_INSPECTION} />
           </>
         )}
       </>

@@ -254,6 +254,12 @@ export interface FaqProps {
   intro?: RichTextSource;
   items?: FaqItem[];
   paddingTop?: string;
+  /** Background color of the section. Defaults to `theme.colors.paper`. Pass `"transparent"` to inherit the page background. */
+  backgroundColor?: string;
+  /** Section element id for in-page anchors. Defaults to `faq`. */
+  sectionId?: string;
+  /** When false, skips FAQPage JSON-LD (use when multiple FAQ blocks share one page). */
+  includeJsonLd?: boolean;
 }
 
 export interface ServiceAreaEntry {

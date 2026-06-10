@@ -2,6 +2,7 @@ import { aiContextType } from "./documents/aiContext";
 import { articlesPageType } from "./documents/articlesPage";
 import beforeAfterGalleryType from "./documents/beforeAfterGallery";
 import { homePageType } from "./documents/homePage";
+import { insuranceFaqsPageType } from "./documents/insuranceFaqsPage";
 import { roofInspectionsPageType } from "./documents/roofInspectionsPage";
 import { seoDashboardInsightsType } from "./documents/seoDashboardInsights";
 import { siteSettingsType } from "./documents/siteSettings";
@@ -80,6 +81,7 @@ export const schemaTypes = [
   homePageType,
   roofInspectionsPageType,
   articlesPageType,
+  insuranceFaqsPageType,
   workflowPageType,
   tandraIntroVideoType,
   aiContextType,

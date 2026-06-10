@@ -505,6 +505,7 @@ export default defineConfig({
                 { route: "/roof-inspections", filter: `_id == "roofInspectionsPage"` },
                 { route: "/articles", filter: `_id == "articlesPage"` },
                 { route: "/workflow", filter: `_id == "workflowPage"` },
+                { route: "/insurance-faqs", filter: `_id == "insuranceFaqsPage"` },
                 {
                   route: "/articles/:slug",
                   resolve: ({ params }) => {
@@ -556,6 +557,12 @@ export default defineConfig({
                   select: { id: "_id" },
                   resolve: () => ({
                     locations: [{ title: "Insurance workflow", href: "/workflow" }],
+                  }),
+                }),
+                insuranceFaqsPage: defineLocations({
+                  select: { id: "_id" },
+                  resolve: () => ({
+                    locations: [{ title: "Insurance FAQs", href: "/insurance-faqs" }],
                   }),
                 }),
                 post: defineLocations({

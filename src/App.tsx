@@ -23,6 +23,11 @@ const WorkflowPage = lazy(async () => {
   const module = await import("./pages/WorkflowPage");
   return { default: module.WorkflowPage };
 });
+
+const InsuranceFaqsPage = lazy(async () => {
+  const module = await import("./pages/InsuranceFaqsPage");
+  return { default: module.InsuranceFaqsPage };
+});
 const RoofInspections = lazy(async () => {
   const module = await import("./pages/RoofInspections");
   return { default: module.RoofInspections };
@@ -92,6 +97,7 @@ const appRouter = createBrowserRouter([
       { path: "terms", element: <TermsOfServicePage /> },
       { path: "cookies", element: <CookiePolicyPage /> },
       { path: "workflow", element: <WorkflowPage /> },
+      { path: "insurance-faqs", element: <InsuranceFaqsPage /> },
       { path: "roof-inspection", element: <RoofInspections /> },
       { path: "roof-inspections", element: <RoofInspections /> },
       { path: "agent", element: <FeatureBuilderPage /> },

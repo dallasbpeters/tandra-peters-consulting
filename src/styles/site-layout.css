@@ -116,7 +116,7 @@
 .site-page-main {
   box-sizing: border-box;
   padding-top: var(--theme-spacing-section-inset-top);
-  background: #ececec;
+  min-height: 80svh;
 }
 
 .home-loading-hero {
@@ -735,4 +735,10 @@ main {
 
 #about-tandra .about-split-word {
   mix-blend-mode: exclusion;
+}
+
+/* WebAwesome wa-details: global accordion header typography */
+wa-details::part(summary) {
+  font-size: 1.125rem;
+  font-weight: 700;
 }

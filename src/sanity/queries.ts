@@ -207,6 +207,32 @@ export const WORKFLOW_PAGE_QUERY = groq`*[_id == "workflowPage"][0]{
   }
 }`;
 
+/** /insurance-faqs: claims + supplements FAQ singleton. */
+export const INSURANCE_FAQS_PAGE_QUERY = groq`*[_id == "insuranceFaqsPage"][0]{
+  seoTitle,
+  seoDescription,
+  claimsFaq {
+    tagline,
+    title,
+    intro,
+    items[]{
+      _key,
+      question,
+      answer
+    }
+  },
+  supplementsFaq {
+    tagline,
+    title,
+    intro,
+    items[]{
+      _key,
+      question,
+      answer
+    }
+  }
+}`;
+
 /** /articles: singleton page copy + all posts (newest first). */
 export const ARTICLES_INDEX_QUERY = groq`{
   "page": *[_id == "articlesPage"][0]{
