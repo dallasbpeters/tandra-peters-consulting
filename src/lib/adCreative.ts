@@ -14,6 +14,24 @@ export type PlatformPreset = {
   height: number;
 };
 
+/** Brand palette shared by the swatch grid and every ad color picker. */
+export const BRAND_SWATCHES = [
+  { label: "Everglade", value: "#092A1D" },
+  { label: "Paper", value: "#F6F2EA" },
+  { label: "Mint", value: "#D5F6E9" },
+  { label: "Purple", value: "#9C99FF" },
+  { label: "Laurel", value: "#A5CA9B" },
+  { label: "Coral", value: "#FB6237" },
+  { label: "Storm", value: "#46656B" },
+  { label: "Granite", value: "#667A71" },
+  { label: "Blue", value: "#335CFF" },
+  { label: "Green", value: "#12533A" },
+  { label: "Moss", value: "#217D57" },
+] as const;
+
+/** Just the hex values — the preset list react-color's BlockPicker expects. */
+export const BRAND_SWATCH_VALUES: string[] = BRAND_SWATCHES.map((swatch) => swatch.value);
+
 export type CreativeState = {
   templateId: string;
   platformId: string;

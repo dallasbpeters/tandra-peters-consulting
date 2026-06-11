@@ -40,6 +40,10 @@
   /* eslint-disable-next-line css/use-baseline */
   user-select: none;
   touch-action: none;
+
+  /* iOS: suppress the save-image/text callout so long-press opens our menu. */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-touch-callout: none;
 }
 
 .ad-canvas-el.is-locked {
@@ -232,6 +236,31 @@
   background: rgb(255 156 138 / 12%);
 }
 
+/* Touch devices: the menu opens via long-press — give items finger-sized
+   targets and keep the whole menu comfortably tappable. */
+@media (pointer: coarse) {
+  .ad-canvas-menu {
+    min-width: 13rem;
+    padding: 0.4rem;
+  }
+
+  .ad-canvas-menu button {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.92rem;
+  }
+
+  .ad-canvas-context-controls button,
+  .ad-color-swatch {
+    min-width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .ad-canvas-context-controls .ad-canvas-layer-group button {
+    min-width: 2.1rem;
+    height: 2.1rem;
+  }
+}
+
 /* ─── Stage toolbar additions ──────────────────────────────────────────────── */
 
 .ad-canvas-toolbar-actions {
@@ -266,11 +295,17 @@
 .ad-canvas-context-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 2.9rem;
   padding: 0.35rem 0.75rem;
   overflow-x: auto;
   border-bottom: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
   background: var(--studio-panel, #141c18);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .ad-canvas-context-hint {
@@ -286,6 +321,7 @@
   flex-wrap: nowrap;
   gap: 0.45rem;
   align-items: center;
+  justify-content: start;
 }
 
 .ad-canvas-context-controls > * {
@@ -323,16 +359,6 @@
 
 .ad-canvas-context-controls input[type="number"] {
   width: 4.25rem;
-}
-
-.ad-canvas-context-controls input[type="color"] {
-  width: 2rem;
-  height: 2rem;
-  padding: 0.15rem;
-  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
-  border-radius: 6px;
-  background: var(--studio-panel-raised, #1b2620);
-  cursor: pointer;
 }
 
 .ad-canvas-context-controls button {
@@ -375,6 +401,67 @@
 
 .ad-canvas-context-controls button:where(.is-danger):where(:hover) {
   background: rgb(255 156 138 / 12%);
+}
+
+/* ─── Color swatch + BlockPicker popover ───────────────────────────────────── */
+
+.ad-color-swatch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.2rem;
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
+  background: var(--studio-panel-raised, #1b2620);
+  cursor: pointer;
+}
+
+.ad-color-swatch:where(:hover, :focus-visible),
+.ad-color-swatch.is-open {
+  border-color: var(--studio-accent, #92b661);
+}
+
+/* Context-bar button styles also match this button — pin the chip padding. */
+.ad-canvas-context-controls .ad-color-swatch {
+  min-width: 2rem;
+  padding: 0.2rem;
+}
+
+.ad-color-swatch-chip {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+.ad-color-pop {
+  position: fixed;
+  z-index: 4500;
+}
+
+/* BlockPicker's hex label sits on the current color — keep it readable. */
+.ad-color-pop input {
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.ad-canvas-layer-group {
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: center;
+  padding: 0.15rem;
+  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  border-radius: 8px;
+}
+
+.ad-canvas-context-controls .ad-canvas-layer-group button {
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: none;
 }
 
 .ad-canvas-opacity {

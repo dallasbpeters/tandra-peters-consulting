@@ -9,7 +9,7 @@ export type CreativeLayout =
   | "canva-storm-overlay"
   | "canva-gradient-panel";
 
-export type FontPresetId = "brand-serif" | "clean-sans" | "condensed";
+export type FontPresetId = "brand-serif" | "clean-sans" | "condensed" | "caveat";
 
 export type AdTemplatePreset = {
   layout: CreativeLayout;

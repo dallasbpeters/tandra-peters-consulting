@@ -424,7 +424,7 @@ export const Services: React.FC<ServicesProps> = ({
 
             <a
               href={birdcreekAdvantage.ctaHref}
-              tabIndex={1}
+              tabIndex={0}
               target="_blank"
               rel="noopener noreferrer"
               className="group-advantage-cta"

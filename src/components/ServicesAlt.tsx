@@ -273,7 +273,7 @@ const BirdcreekAdvantageItem = ({
         <RichText value={birdcreekAdvantage.description} paragraphStyle={richParagraphStyle} />
       </div>
       <motion.a
-        tabIndex={1}
+        tabIndex={0}
         href={birdcreekAdvantage.ctaHref}
         target="_blank"
         rel="noopener noreferrer"

@@ -11,8 +11,7 @@
 /* stylelint-disable no-descending-specificity */
 
 .site-page-main {
-  --site-padding-inline-start: var(--theme-spacing-xxl);
-
+  padding-top: 100px;
   min-height: 100vh;
 }
 
@@ -128,6 +127,11 @@ footer {
   padding: var(--theme-spacing-sm) var(--theme-spacing-md);
   border-bottom: 1px solid var(--studio-border);
   background: var(--studio-panel);
+  position: fixed;
+  top: var(--nav-bar-offset);
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .ad-dashboard-toolbar-meta {
@@ -365,7 +369,15 @@ footer {
 }
 
 .ad-dashboard-color-field {
-  display: grid;
+  display: flex;
+  gap: var(--theme-spacing-sm);
+  align-items: center;
+}
+
+.ad-dashboard-color-field-label {
+  color: var(--studio-text);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 /* ─── Account menu ───────────────────────────────────────────────────────── */

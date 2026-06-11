@@ -41,7 +41,7 @@ export const GoogleAuthFooterTrigger = () => {
 
   return (
     <button
-      tabIndex={1}
+      tabIndex={0}
       type="button"
       className="google-auth-gate__footer-trigger"
       aria-label="Sign in"

@@ -1,6 +1,17 @@
 import { usePostHog } from "@posthog/react";
 import { toBlob } from "html-to-image";
-import { Copy, Download, Lock, PlusSquare, Text, Trash } from "iconoir-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Copy,
+  Download,
+  FastArrowDown,
+  FastArrowUp,
+  Lock,
+  PlusSquare,
+  Text,
+  Trash,
+} from "iconoir-react";
 import {
   useCallback,
   useEffect,
@@ -29,6 +40,7 @@ import {
   type TextCanvasElement,
 } from "../lib/adCanvasDoc";
 import { formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
+import { AdColorSwatch } from "./AdColorSwatch";
 import "../styles/ad-canvas.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -44,6 +56,11 @@ const MIN_FONT_SIZE = 0.8;
 const MAX_FONT_SIZE = 40;
 const NUDGE_STEP = 0.5;
 const NUDGE_STEP_LARGE = 2;
+
+/** Touch has no right-click — holding still this long opens the context menu. */
+const LONG_PRESS_MS = 450;
+/** Pointer travel (px) below which a touch is a press, not a drag. */
+const TOUCH_DRAG_DEAD_ZONE = 8;
 
 type HandleId = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
@@ -174,6 +191,7 @@ export const AdCanvasEditor = ({
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const nodesRef = useRef<Record<string, HTMLDivElement | null>>({});
   const editRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [elements, setElements] = useState<CanvasElement[]>(() => seedCanvasElements(creative));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -332,6 +350,12 @@ export const AdCanvasEditor = ({
     setEditingId(null);
   }, [editingId, patchElement]);
 
+  // ── Context menu open helper (shared by right-click and touch long-press) ──
+  const openMenuAt = useCallback((x: number, y: number, elementId: string) => {
+    setSelectedId(elementId);
+    setMenu({ x, y, elementId });
+  }, []);
+
   // ── Drag to move ──────────────────────────────────────────────────────────
   const startMove = useCallback(
     (event: ReactPointerEvent, id: string) => {
@@ -346,7 +370,10 @@ export const AdCanvasEditor = ({
       setSelectedId(id);
       setMenu(null);
       if (editingId) commitEdit();
-      if (el.locked) return;
+
+      const isTouch = event.pointerType === "touch";
+      // Locked elements can't drag, but touch still needs the long-press menu.
+      if (el.locked && !isTouch) return;
 
       const rect = canvas.getBoundingClientRect();
       const startX = event.clientX;
@@ -358,9 +385,39 @@ export const AdCanvasEditor = ({
         rect.height / rect.width,
       );
 
+      // Touch: the element doesn't move inside the dead zone, so a long-press
+      // opens the menu without nudging it. Mouse drags start immediately.
+      let dragging = !isTouch;
+      let longPressFired = false;
+      let longPressTimer: number | null = isTouch
+        ? window.setTimeout(() => {
+            longPressFired = true;
+            setGuides([]);
+            openMenuAt(startX, startY, id);
+          }, LONG_PRESS_MS)
+        : null;
+
+      const cancelLongPress = () => {
+        if (longPressTimer != null) {
+          window.clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
       const onMove = (move: PointerEvent) => {
-        const dx = ((move.clientX - startX) / rect.width) * 100;
-        const dy = ((move.clientY - startY) / rect.height) * 100;
+        if (longPressFired) return;
+        const dxPx = move.clientX - startX;
+        const dyPx = move.clientY - startY;
+
+        if (!dragging) {
+          if (Math.hypot(dxPx, dyPx) < TOUCH_DRAG_DEAD_ZONE) return;
+          cancelLongPress();
+          if (el.locked) return;
+          dragging = true;
+        }
+
+        const dx = (dxPx / rect.width) * 100;
+        const dy = (dyPx / rect.height) * 100;
         let nx = origin.x + dx;
         let ny = origin.y + dy;
 
@@ -394,14 +451,18 @@ export const AdCanvasEditor = ({
       };
 
       const onUp = () => {
+        cancelLongPress();
         window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
         setGuides([]);
       };
 
       window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp, { once: true });
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
     },
-    [commitEdit, editingId, patchElement],
+    [commitEdit, editingId, openMenuAt, patchElement],
   );
 
   // ── Resize via handles ────────────────────────────────────────────────────
@@ -482,12 +543,14 @@ export const AdCanvasEditor = ({
   );
 
   // ── Context menu ──────────────────────────────────────────────────────────
-  const openMenu = useCallback((event: ReactPointerEvent | React.MouseEvent, id: string) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSelectedId(id);
-    setMenu({ x: event.clientX, y: event.clientY, elementId: id });
-  }, []);
+  const openMenu = useCallback(
+    (event: ReactPointerEvent | React.MouseEvent, id: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openMenuAt(event.clientX, event.clientY, id);
+    },
+    [openMenuAt],
+  );
 
   useEffect(() => {
     if (!menu) return undefined;
@@ -497,6 +560,17 @@ export const AdCanvasEditor = ({
     };
     window.addEventListener("pointerdown", close);
     return () => window.removeEventListener("pointerdown", close);
+  }, [menu]);
+
+  // Keep the menu on-screen — long-press near a viewport edge would otherwise
+  // push it off the bottom/right on small screens.
+  useLayoutEffect(() => {
+    const node = menuRef.current;
+    if (!menu || !node) return;
+    const rect = node.getBoundingClientRect();
+    const margin = 8;
+    node.style.left = `${clamp(menu.x, margin, Math.max(margin, window.innerWidth - rect.width - margin))}px`;
+    node.style.top = `${clamp(menu.y, margin, Math.max(margin, window.innerHeight - rect.height - margin))}px`;
   }, [menu]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
@@ -785,11 +859,10 @@ export const AdCanvasEditor = ({
                 }
               }}
             />
-            <input
-              aria-label="Text color"
-              type="color"
+            <AdColorSwatch
+              label="Text color"
               value={selected.color}
-              onChange={(event) => patchElement(selected.id, { color: event.target.value })}
+              onChange={(hex) => patchElement(selected.id, { color: hex })}
             />
             <button
               type="button"
@@ -838,11 +911,10 @@ export const AdCanvasEditor = ({
               <option value="center">Center</option>
               <option value="right">Right</option>
             </select>
-            <input
-              aria-label="Background color"
-              type="color"
+            <AdColorSwatch
+              label="Background color"
               value={selected.background ?? "#000000"}
-              onChange={(event) => patchElement(selected.id, { background: event.target.value })}
+              onChange={(hex) => patchElement(selected.id, { background: hex })}
             />
             <button
               type="button"
@@ -870,11 +942,10 @@ export const AdCanvasEditor = ({
 
         {selected.kind === "rect" ? (
           <>
-            <input
-              aria-label="Fill color"
-              type="color"
+            <AdColorSwatch
+              label="Fill color"
               value={selected.fill}
-              onChange={(event) => patchElement(selected.id, { fill: event.target.value })}
+              onChange={(hex) => patchElement(selected.id, { fill: hex })}
             />
             <input
               aria-label="Corner radius"
@@ -920,6 +991,41 @@ export const AdCanvasEditor = ({
         </label>
 
         <span className="ad-canvas-context-spacer" />
+
+        <div className="ad-canvas-layer-group" role="group" aria-label="Layer order">
+          <button
+            type="button"
+            aria-label="Bring forward"
+            title="Bring forward"
+            onClick={() => moveLayer(selected.id, "forward")}
+          >
+            <ArrowUp width={15} height={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Send backward"
+            title="Send backward"
+            onClick={() => moveLayer(selected.id, "backward")}
+          >
+            <ArrowDown width={15} height={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Bring to front"
+            title="Bring to front"
+            onClick={() => moveLayer(selected.id, "front")}
+          >
+            <FastArrowUp width={15} height={15} />
+          </button>
+          <button
+            type="button"
+            aria-label="Send to back"
+            title="Send to back"
+            onClick={() => moveLayer(selected.id, "back")}
+          >
+            <FastArrowDown width={15} height={15} />
+          </button>
+        </div>
 
         <button
           type="button"
@@ -1042,7 +1148,12 @@ export const AdCanvasEditor = ({
       </div>
 
       {menu ? (
-        <div className="ad-canvas-menu" style={{ left: menu.x, top: menu.y }} role="menu">
+        <div
+          ref={menuRef}
+          className="ad-canvas-menu"
+          style={{ left: menu.x, top: menu.y }}
+          role="menu"
+        >
           {(() => {
             const el = elements.find((item) => item.id === menu.elementId);
             if (!el) return null;

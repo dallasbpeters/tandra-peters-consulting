@@ -1,11 +1,9 @@
-import type WaColorPickerElement from "@awesome.me/webawesome/dist/components/color-picker/color-picker.js";
-
+import "@fontsource-variable/caveat/wght.css";
 import "@fontsource/bebas-neue/latin-400.css";
 import "@fontsource/ibm-plex-serif/400.css";
 import "@fontsource/ibm-plex-serif/400-italic.css";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 
-import WaColorPicker from "@awesome.me/webawesome/dist/react/color-picker/index.js";
 import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
@@ -25,12 +23,13 @@ import type {
 } from "../lib/adCreative";
 
 import { AdCanvasEditor } from "../components/AdCanvasEditor";
+import { AdColorSwatch } from "../components/AdColorSwatch";
 import { AdImagePicker } from "../components/AdImagePicker";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityImageAssets, type SanityImageAsset } from "../hooks/useSanityImageAssets";
-import { formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
+import { BRAND_SWATCHES, formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
 import { AD_TEMPLATES, applyAdTemplatePreset, type FontPresetId } from "../lib/adCreativeTemplates";
 import "../styles/ad-dashboard.css";
 
@@ -96,22 +95,6 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   },
 ] as const;
 
-const BRAND_SWATCHES = [
-  { label: "Everglade", value: "#092A1D" },
-  { label: "Paper", value: "#F6F2EA" },
-  { label: "Mint", value: "#D5F6E9" },
-  { label: "Purple", value: "#9C99FF" },
-  { label: "Laurel", value: "#A5CA9B" },
-  { label: "Coral", value: "#FB6237" },
-  { label: "Storm", value: "#46656B" },
-  { label: "Granite", value: "#667A71" },
-  { label: "Blue", value: "#335CFF" },
-  { label: "Green", value: "#12533A" },
-  { label: "Moss", value: "#217D57" },
-] as const;
-
-const COLOR_PICKER_SWATCHES = BRAND_SWATCHES.map((s) => s.value).join(";");
-
 const LOGO_VARIANTS: ReadonlyArray<{
   id: LogoVariant;
   label: string;
@@ -158,6 +141,14 @@ const FONT_PRESETS: readonly FontPreset[] = [
     headlineFamily: '"Bebas Neue", sans-serif',
     bodyFamily: "Hanken Grotesk Variable, sans-serif",
     headlineWeight: 400,
+  },
+  {
+    id: "caveat",
+    label: "Caveat",
+    // fontsource-variable registers the family as "Caveat Variable".
+    headlineFamily: '"Caveat Variable", cursive',
+    bodyFamily: '"Hanken Grotesk Variable", sans-serif',
+    headlineWeight: 600,
   },
 ] as const;
 
@@ -271,47 +262,12 @@ type AdColorPickerFieldProps = {
   onValueChange: (value: string) => void;
 };
 
-const AdColorPickerField = ({ label, value, onValueChange }: AdColorPickerFieldProps) => {
-  const pickerRef = useRef<WaColorPickerElement | null>(null);
-
-  useEffect(() => {
-    const picker = pickerRef.current;
-    if (!picker || picker.value === value) return;
-    picker.value = value;
-  }, [value]);
-
-  useEffect(() => {
-    const picker = pickerRef.current;
-    if (!picker) return undefined;
-
-    const handleValueChange = (event: Event) => {
-      const nextValue = (event.target as WaColorPickerElement | null)?.value ?? picker.value ?? "";
-      if (nextValue) onValueChange(nextValue);
-    };
-
-    picker.addEventListener("input", handleValueChange);
-    picker.addEventListener("change", handleValueChange);
-    return () => {
-      picker.removeEventListener("input", handleValueChange);
-      picker.removeEventListener("change", handleValueChange);
-    };
-  }, [onValueChange]);
-
-  return (
-    <div className="ad-dashboard-color-field">
-      <WaColorPicker
-        ref={pickerRef}
-        label={label}
-        value={value}
-        format="hex"
-        uppercase
-        size="m"
-        placement="bottom-start"
-        swatches={COLOR_PICKER_SWATCHES}
-      />
-    </div>
-  );
-};
+const AdColorPickerField = ({ label, value, onValueChange }: AdColorPickerFieldProps) => (
+  <div className="ad-dashboard-color-field">
+    <AdColorSwatch label={label} value={value} onChange={onValueChange} />
+    <span className="ad-dashboard-color-field-label">{label}</span>
+  </div>
+);
 
 const useDraftNumberInput = (
   safeValue: number,

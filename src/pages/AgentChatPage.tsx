@@ -690,7 +690,7 @@ export const AgentChatPage = ({ config }: Props) => {
                         }}
                         value={model}
                       >
-                        <PromptInputSelectTrigger>
+                        <PromptInputSelectTrigger aria-label="Model">
                           <PromptInputSelectValue />
                         </PromptInputSelectTrigger>
                         <PromptInputSelectContent>
