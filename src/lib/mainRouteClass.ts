@@ -1,6 +1,7 @@
 import { layoutClass } from "../styles/layoutClasses";
 
 const LEGAL_PATHS = new Set(["/privacy", "/terms", "/cookies"]);
+const AD_DASHBOARD_PATHS = new Set(["/ads", "/advertising"]);
 
 /** Shared <main> class in SiteShell — one persistent view-transition target per sub-page. */
 export const getMainRouteClass = (pathname: string): string => {
@@ -14,6 +15,10 @@ export const getMainRouteClass = (pathname: string): string => {
 
   if (LEGAL_PATHS.has(pathname)) {
     return `${layoutClass.pageMain} ${layoutClass.pageMainLegal}`;
+  }
+
+  if (AD_DASHBOARD_PATHS.has(pathname)) {
+    return layoutClass.pageMainAdDashboard;
   }
 
   return layoutClass.pageMain;

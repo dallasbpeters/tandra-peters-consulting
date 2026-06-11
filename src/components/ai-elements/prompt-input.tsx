@@ -854,6 +854,7 @@ export const PromptInput = ({
   const inner = (
     <div className="prompt-input-root w-full">
       <input
+        name="prompt-attachments"
         accept={accept}
         aria-label="Upload files"
         className="prompt-input-file-input"

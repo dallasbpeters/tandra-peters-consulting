@@ -833,6 +833,8 @@ export const AdCanvasEditor = ({
         {selected.kind === "text" ? (
           <>
             <select
+              name="ad-font-family"
+              id="ad-font-family"
               aria-label="Font family"
               value={selected.fontFamily}
               onChange={(event) => patchElement(selected.id, { fontFamily: event.target.value })}
@@ -844,6 +846,8 @@ export const AdCanvasEditor = ({
               ))}
             </select>
             <input
+              name="ad-font-size"
+              id="ad-font-size"
               aria-label="Font size"
               type="number"
               min={MIN_FONT_SIZE}
@@ -869,7 +873,9 @@ export const AdCanvasEditor = ({
               className={selected.fontWeight >= 700 ? "is-active" : ""}
               aria-label="Bold"
               onClick={() =>
-                patchElement(selected.id, { fontWeight: selected.fontWeight >= 700 ? 400 : 750 })
+                patchElement(selected.id, {
+                  fontWeight: selected.fontWeight >= 700 ? 400 : 750,
+                })
               }
             >
               B
@@ -899,6 +905,8 @@ export const AdCanvasEditor = ({
               AA
             </button>
             <select
+              name="ad-text-align"
+              id="ad-text-align"
               aria-label="Text align"
               value={selected.textAlign}
               onChange={(event) =>
@@ -948,6 +956,8 @@ export const AdCanvasEditor = ({
               onChange={(hex) => patchElement(selected.id, { fill: hex })}
             />
             <input
+              name="ad-border-radius"
+              id="ad-border-radius"
               aria-label="Corner radius"
               type="number"
               min={0}
@@ -957,7 +967,9 @@ export const AdCanvasEditor = ({
               onChange={(event) => {
                 const value = Number.parseFloat(event.target.value);
                 if (Number.isFinite(value)) {
-                  patchElement(selected.id, { borderRadius: clamp(value, 0, 20) });
+                  patchElement(selected.id, {
+                    borderRadius: clamp(value, 0, 20),
+                  });
                 }
               }}
             />
@@ -966,10 +978,14 @@ export const AdCanvasEditor = ({
 
         {selected.kind === "logo" ? (
           <select
+            name="ad-logo-variant"
+            id="ad-logo-variant"
             aria-label="Logo variant"
             value={selected.variant}
             onChange={(event) =>
-              patchElement(selected.id, { variant: event.target.value as LogoVariant })
+              patchElement(selected.id, {
+                variant: event.target.value as LogoVariant,
+              })
             }
           >
             <option value="horizontal-white">Horizontal (white)</option>
@@ -980,12 +996,16 @@ export const AdCanvasEditor = ({
         <label className="ad-canvas-opacity">
           <span>Opacity</span>
           <input
+            name="ad-opacity"
+            id="ad-opacity"
             type="range"
             min={10}
             max={100}
             value={Math.round(selected.opacity * 100)}
             onChange={(event) =>
-              patchElement(selected.id, { opacity: Number.parseInt(event.target.value, 10) / 100 })
+              patchElement(selected.id, {
+                opacity: Number.parseInt(event.target.value, 10) / 100,
+              })
             }
           />
         </label>

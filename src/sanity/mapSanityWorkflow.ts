@@ -137,9 +137,15 @@ const layoutPosition = (index: number, layout: WorkflowLayout): { x: number; y: 
     case 4:
       return { x: layout.originX, y: layout.originY + rowStride * 2 };
     case 5:
-      return { x: layout.originX + colStride, y: layout.originY + rowStride * 2 };
+      return {
+        x: layout.originX + colStride,
+        y: layout.originY + rowStride * 2,
+      };
     case 6:
-      return { x: layout.originX + colStride * 2, y: layout.originY + rowStride * 2 };
+      return {
+        x: layout.originX + colStride * 2,
+        y: layout.originY + rowStride * 2,
+      };
     case 7:
       return {
         x: layout.originX,
@@ -237,7 +243,12 @@ const edgeLabelDefaults = {
 
 const edgeDefaults = {
   type: "smoothstep" as const,
-  markerEnd: { type: MarkerType.ArrowClosed, color: WORKFLOW_EDGE_COLOR, width: 16, height: 16 },
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: WORKFLOW_EDGE_COLOR,
+    width: 16,
+    height: 16,
+  },
   ...edgeLabelDefaults,
   animated: false,
 };

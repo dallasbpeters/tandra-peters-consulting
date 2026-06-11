@@ -10,6 +10,12 @@
   background: rgb(14 14 14);
 }
 
+.site-page-main--ad-dashboard {
+  --site-padding-inline-start: var(--theme-spacing-xl);
+
+  background: rgb(14 14 14);
+}
+
 .ad-canvas-viewport {
   position: relative;
 }

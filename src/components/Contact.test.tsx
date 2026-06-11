@@ -72,21 +72,20 @@ describe("Contact form", () => {
     );
   });
 
-  it("clears all fields after a successful submission", async () => {
+  it("replaces the form with a confirmation after a successful submission", async () => {
     render(<Contact />);
 
     await fillRequiredFields(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      // FIX 1: match the actual success message text
-      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent(/message was sent/i);
     });
 
-    expect(screen.getByRole("textbox", { name: /full name/i })).toHaveValue("");
-    expect(screen.getByRole("textbox", { name: /email address/i })).toHaveValue("");
-    expect(screen.getByRole("textbox", { name: /your message/i })).toHaveValue("");
-    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    // The form is swapped out for the confirmation, so no fields remain.
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /send message/i })).not.toBeInTheDocument();
   });
 
   // ── validation ──────────────────────────────────────────────────────────────

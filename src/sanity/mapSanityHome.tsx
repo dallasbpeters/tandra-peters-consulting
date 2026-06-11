@@ -229,7 +229,9 @@ export const mapServicesProps = (svc: SanityDoc): Partial<ServicesProps> => {
           ? { baseMaskImage: toSanityImage(rawTypographicArt.baseMaskImage) }
           : {}),
         ...(rawTypographicArt.overlayMaskImage
-          ? { overlayMaskImage: toSanityImage(rawTypographicArt.overlayMaskImage) }
+          ? {
+              overlayMaskImage: toSanityImage(rawTypographicArt.overlayMaskImage),
+            }
           : {}),
       }
     : undefined;

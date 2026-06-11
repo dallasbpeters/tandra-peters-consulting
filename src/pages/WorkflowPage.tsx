@@ -702,6 +702,8 @@ const InsuranceWorkflowDiagramInner = ({
             <label className="workflow-page__editor-field">
               Label
               <input
+                name="workflow-edge-label"
+                id="workflow-edge-label"
                 className="workflow-page__editor-input"
                 value={editor.label}
                 onChange={(event) =>
@@ -718,6 +720,8 @@ const InsuranceWorkflowDiagramInner = ({
               <label className="workflow-page__editor-field">
                 Title
                 <input
+                  name="workflow-step-title"
+                  id="workflow-step-title"
                   className="workflow-page__editor-input"
                   value={editor.title}
                   onChange={(event) =>
@@ -734,6 +738,8 @@ const InsuranceWorkflowDiagramInner = ({
               <label className="workflow-page__editor-field">
                 Body
                 <textarea
+                  name="workflow-step-body"
+                  id="workflow-step-body"
                   className="workflow-page__editor-textarea"
                   value={editor.body}
                   onChange={(event) =>

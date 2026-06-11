@@ -205,7 +205,11 @@ export const Hero: React.FC<HeroProps> = ({
           <GoogleAuthGate>
             <motion.div
               variants={itemVariants}
-              style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: theme.spacing.lg,
+              }}
               className="sm-row"
             >
               <style>{`

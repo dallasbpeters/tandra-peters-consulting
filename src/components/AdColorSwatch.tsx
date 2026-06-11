@@ -90,6 +90,10 @@ export const AdColorSwatch = ({
       below = false;
     }
     setLayout({ left, top, below });
+
+    // react-color's hex input has no id/name and BlockPicker doesn't expose
+    // its props, so name it here to satisfy Chrome's autofill audit.
+    pop.querySelector("input")?.setAttribute("name", "ad-color-hex");
   }, [open, anchor]);
 
   useEffect(() => {

@@ -41,11 +41,7 @@ export const RoofInspections = () => {
   });
 
   if (loading && !pageData && !homeRoofInspection) {
-    return (
-      <main>
-        <section className="home-loading-hero" aria-label="Loading roof install page" />
-      </main>
-    );
+    return <section className="home-loading-hero" aria-label="Loading roof install page" />;
   }
 
   if (error && import.meta.env.DEV) {
@@ -61,14 +57,12 @@ export const RoofInspections = () => {
   return (
     <SitePageChrome>
       <SeoStructuredData />
-      <main>
-        <HomeRoofInspection chapters={chapters} roofInspection={roofInspection} />
-        {socialShare ? (
-          <Suspense fallback={null}>
-            <SocialShareBar {...mapSocialShareProps(socialShare)} />
-          </Suspense>
-        ) : null}
-      </main>
+      <HomeRoofInspection chapters={chapters} roofInspection={roofInspection} />
+      {socialShare ? (
+        <Suspense fallback={null}>
+          <SocialShareBar {...mapSocialShareProps(socialShare)} />
+        </Suspense>
+      ) : null}
       <Suspense fallback={null}>
         <Band
           minHeight={8}

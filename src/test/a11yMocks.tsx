@@ -165,7 +165,7 @@ vi.mock("@remotion/player", () => {
     removeEventListener: () => {},
   };
 
-  const MockRemotionPlayer = React.forwardRef<HTMLDivElement>((_props, ref) => {
+  const MockRemotionPlayer = React.forwardRef<typeof mockPlayerApi>((_props, ref) => {
     React.useImperativeHandle(ref, () => mockPlayerApi);
     return (
       <div role="region" aria-label="Featured video player">

@@ -502,7 +502,7 @@ export const AgentChatPage = ({ config }: Props) => {
       ) : null}
 
       {auth.token ? (
-        <main className="agent-chat agent-chat__main">
+        <div className="agent-chat agent-chat__main">
           <header className="agent-chat__header">
             <p className="agent-chat__eyebrow">{config.eyebrow ?? "Tandra.me"}</p>
             <h1 className="agent-chat__title">{config.title}</h1>
@@ -708,7 +708,7 @@ export const AgentChatPage = ({ config }: Props) => {
               </div>
             </section>
           </TooltipProvider>
-        </main>
+        </div>
       ) : null}
     </SitePageChrome>
   );

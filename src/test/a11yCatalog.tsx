@@ -147,10 +147,7 @@ export const a11yCases: A11yCase[] = [
   {
     name: "SocialShareBar",
     render: () =>
-      renderRouted(
-        <SocialShareBar title="Roof inspection guide" path="/articles/test-article" />,
-        "/articles/test-article",
-      ),
+      renderRouted(<SocialShareBar heading="Roof inspection guide" />, "/articles/test-article"),
   },
   { name: "Stats", render: () => renderPlain(<Stats />) },
   { name: "Testimonials", render: () => renderPlain(<Testimonials />) },
@@ -163,7 +160,10 @@ export const a11yCases: A11yCase[] = [
   // ── Hero & navigation variants ────────────────────────────────────────────
   { name: "Hero", render: () => renderRouted(<Hero />) },
   { name: "HeroVariant", render: () => renderRouted(<HeroVariant />) },
-  { name: "HeroGlassOverlay", render: () => renderRouted(<HeroGlassOverlay />) },
+  {
+    name: "HeroGlassOverlay",
+    render: () => renderRouted(<HeroGlassOverlay />),
+  },
   { name: "HeroDualCTARail", render: () => renderRouted(<HeroDualCTARail />) },
   { name: "HeroPillNav", render: () => renderRouted(<HeroPillNav />) },
   { name: "Nav", render: () => renderRouted(<Nav />) },
@@ -173,20 +173,35 @@ export const a11yCases: A11yCase[] = [
   { name: "NavPillNav", render: () => renderRouted(<NavPillNav />) },
 
   // ── Articles & map ────────────────────────────────────────────────────────
-  { name: "ArticlesTeaser", render: () => renderRouted(<ArticlesTeaser posts={[]} />) },
+  {
+    name: "ArticlesTeaser",
+    render: () => renderRouted(<ArticlesTeaser posts={[]} />),
+  },
   {
     name: "ArticleGridCard",
     render: () => renderRouted(<ArticleGridCard post={mockArticlePost} cardIndex={0} />),
   },
-  { name: "ArticleCardSharedStyles", render: () => renderPlain(<ArticleCardSharedStyles />) },
-  { name: "ArticleRichTextLinkStyles", render: () => renderPlain(<ArticleRichTextLinkStyles />) },
+  {
+    name: "ArticleCardSharedStyles",
+    render: () => renderPlain(<ArticleCardSharedStyles />),
+  },
+  {
+    name: "ArticleRichTextLinkStyles",
+    render: () => renderPlain(<ArticleRichTextLinkStyles />),
+  },
   {
     name: "ArticleJsonLd",
     render: () =>
       renderPlain(<ArticleJsonLd post={mockArticlePost} path="/articles/test-article" />),
   },
-  { name: "SeoStructuredData", render: () => renderSite(<SeoStructuredData />) },
-  { name: "FooterBg", render: () => renderPlain(<FooterBg style={{ height: 120 }} />) },
+  {
+    name: "SeoStructuredData",
+    render: () => renderSite(<SeoStructuredData />),
+  },
+  {
+    name: "FooterBg",
+    render: () => renderPlain(<FooterBg style={{ height: 120 }} />),
+  },
   {
     name: "AdImagePicker",
     render: () =>
@@ -201,19 +216,31 @@ export const a11yCases: A11yCase[] = [
         />,
       ),
   },
-  { name: "ServiceAreaMap", render: () => renderPlain(<ServiceAreaMap areas={[]} />) },
+  {
+    name: "ServiceAreaMap",
+    render: () => renderPlain(<ServiceAreaMap areas={[]} />),
+  },
 
   // ── Reviews ───────────────────────────────────────────────────────────────
   { name: "GoogleReviews", render: () => renderPlain(<GoogleReviews />) },
   { name: "GoogleLogo", render: () => renderPlain(<GoogleLogo />) },
-  { name: "MarqueeRow", render: () => renderPlain(<MarqueeRow reviews={reviews.slice(0, 4)} />) },
-  { name: "ReviewCard", render: () => renderPlain(<ReviewCard review={sampleReview} />) },
+  {
+    name: "MarqueeRow",
+    render: () => renderPlain(<MarqueeRow reviews={reviews.slice(0, 4)} />),
+  },
+  {
+    name: "ReviewCard",
+    render: () => renderPlain(<ReviewCard review={sampleReview} />),
+  },
   {
     name: "ReviewModal",
     render: () => renderPlain(<ReviewModal review={sampleReview} isOpen onClose={() => {}} />),
   },
   { name: "ReviewStars", render: () => renderPlain(<Stars rating={5} />) },
-  { name: "ReviewAvatar", render: () => renderPlain(<Avatar review={sampleReview} />) },
+  {
+    name: "ReviewAvatar",
+    render: () => renderPlain(<Avatar review={sampleReview} />),
+  },
   { name: "ReviewGoogleMark", render: () => renderPlain(<GoogleMark />) },
 
   // ── Video ─────────────────────────────────────────────────────────────────
@@ -242,7 +269,18 @@ export const a11yCases: A11yCase[] = [
   {
     name: "SeekBar",
     render: () =>
-      renderPlain(<SeekBar currentTime={12} duration={120} onSeek={() => {}} isVisible />),
+      renderPlain(
+        <SeekBar
+          progress={0.1}
+          progressPercent={10}
+          isDragging={false}
+          trackRef={{ current: null }}
+          onPointerDown={() => {}}
+          onPointerMove={() => {}}
+          onPointerUp={() => {}}
+          onKeyDown={() => {}}
+        />,
+      ),
   },
   {
     name: "VideoControls",
@@ -349,7 +387,10 @@ export const a11yCases: A11yCase[] = [
         </Suggestions>,
       ),
   },
-  { name: "Shimmer", render: () => renderPlain(<Shimmer>Loading response…</Shimmer>) },
+  {
+    name: "Shimmer",
+    render: () => renderPlain(<Shimmer>Loading response…</Shimmer>),
+  },
   {
     name: "Reasoning",
     render: () =>
@@ -383,13 +424,40 @@ export const a11yCases: A11yCase[] = [
       ),
   },
   { name: "Home", render: () => renderSite(<Home />) },
-  { name: "ArticlesIndexPage", render: () => renderSite(<ArticlesIndexPage />, "/articles") },
-  { name: "ArticlePage", render: () => renderSite(<ArticlePage />, "/articles/test-article") },
-  { name: "PrivacyPolicyPage", render: () => renderSite(<PrivacyPolicyPage />, "/privacy") },
-  { name: "TermsOfServicePage", render: () => renderSite(<TermsOfServicePage />, "/terms") },
-  { name: "CookiePolicyPage", render: () => renderSite(<CookiePolicyPage />, "/cookies") },
-  { name: "FeatureBuilderPage", render: () => renderSite(<FeatureBuilderPage />, "/agent") },
-  { name: "MarketingAgentPage", render: () => renderSite(<MarketingAgentPage />, "/marketing") },
-  { name: "SeoDashboardPage", render: () => renderSite(<SeoDashboardPage />, "/seo") },
-  { name: "AdDashboardPage", render: () => renderSite(<AdDashboardPage />, "/ads") },
+  {
+    name: "ArticlesIndexPage",
+    render: () => renderSite(<ArticlesIndexPage />, "/articles"),
+  },
+  {
+    name: "ArticlePage",
+    render: () => renderSite(<ArticlePage />, "/articles/test-article"),
+  },
+  {
+    name: "PrivacyPolicyPage",
+    render: () => renderSite(<PrivacyPolicyPage />, "/privacy"),
+  },
+  {
+    name: "TermsOfServicePage",
+    render: () => renderSite(<TermsOfServicePage />, "/terms"),
+  },
+  {
+    name: "CookiePolicyPage",
+    render: () => renderSite(<CookiePolicyPage />, "/cookies"),
+  },
+  {
+    name: "FeatureBuilderPage",
+    render: () => renderSite(<FeatureBuilderPage />, "/agent"),
+  },
+  {
+    name: "MarketingAgentPage",
+    render: () => renderSite(<MarketingAgentPage />, "/marketing"),
+  },
+  {
+    name: "SeoDashboardPage",
+    render: () => renderSite(<SeoDashboardPage />, "/seo"),
+  },
+  {
+    name: "AdDashboardPage",
+    render: () => renderSite(<AdDashboardPage />, "/ads"),
+  },
 ];

@@ -15,6 +15,7 @@ export const layoutClass = {
   containerWideAboutGrid: "site-container site-container--wide site-container--about-grid",
   containerWideStatsRow: "site-container site-container--wide site-container--stats-row",
   pageMain: "site-page-main",
+  pageMainAdDashboard: "site-page-main site-page-main--ad-dashboard",
   pageMainArticle: "site-page-main site-page-main--article",
   pageMainLegal: "site-page-main site-page-main--legal",
   sectionPadded: "content-section content-section--padded",

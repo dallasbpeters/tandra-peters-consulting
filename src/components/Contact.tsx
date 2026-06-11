@@ -279,7 +279,13 @@ export const Contact = ({
           >
             {title}
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: theme.spacing.lg,
+            }}
+          >
             <div style={infoItemStyle} className="contact-group">
               <div style={iconWrapperStyle} className="icon-wrapper">
                 <Mail style={{ color: "inherit" }} />
@@ -336,7 +342,11 @@ export const Contact = ({
             </div>
           ) : (
             <form
-              style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xxxxl }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: theme.spacing.xxxxl,
+              }}
               onSubmit={handleSubmit}
               onKeyDown={(e) => e.stopPropagation()}
               noValidate

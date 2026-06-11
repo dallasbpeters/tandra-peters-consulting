@@ -114,15 +114,17 @@
 
 /* Block: site-page-main — routed pages under fixed chrome */
 .site-page-main {
-  --site-padding-inline-start: var(--theme-spacing-xxl);
+  --site-padding-inline-start: var(--nav-bar-offset);
 
   box-sizing: border-box;
   padding-top: var(--site-padding-inline-start);
-  min-height: 80svh;
+  min-height: 80vh;
+  display: grid;
+  place-content: end stretch;
 }
 
 .home-loading-hero {
-  min-height: 80svh;
+  min-height: 80vh;
   background: #ececec;
 }
 

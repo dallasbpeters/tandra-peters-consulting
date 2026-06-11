@@ -221,7 +221,9 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
 
       const user = parseGoogleIdToken(bearer);
       if (!user || !isAllowedGoogleUserFromEnv(user, env)) {
-        json(res, 403, { error: "Google account is not authorized for workflow edits." });
+        json(res, 403, {
+          error: "Google account is not authorized for workflow edits.",
+        });
         return;
       }
 
@@ -232,14 +234,19 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
         process.env.SANITY_API_WRITE_TOKEN?.trim() ||
         "";
       if (!token) {
-        json(res, 500, { error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set." });
+        json(res, 500, {
+          error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set.",
+        });
         return;
       }
 
       try {
         const bodyBuffer = await readBody(req);
         const body = bodyBuffer.length
-          ? (JSON.parse(bodyBuffer.toString("utf8")) as { nodes?: unknown; edges?: unknown })
+          ? (JSON.parse(bodyBuffer.toString("utf8")) as {
+              nodes?: unknown;
+              edges?: unknown;
+            })
           : {};
 
         const nodes = sanitizeNodes(body.nodes);
@@ -266,7 +273,11 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
           })
           .commit();
 
-        json(res, 200, { ok: true, nodeCount: nodes.length, edgeCount: edges.length });
+        json(res, 200, {
+          ok: true,
+          nodeCount: nodes.length,
+          edgeCount: edges.length,
+        });
       } catch (error) {
         console.error("[vite-workflow-save-api]", error);
         json(res, 500, {

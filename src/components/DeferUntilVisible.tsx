@@ -5,7 +5,7 @@ import { useNearViewport } from "../hooks/useNearViewport";
 type DeferUntilVisibleProps = {
   children: ReactNode;
   /** Reserved space before the section mounts (avoids layout shift). */
-  minHeight: string | number;
+  minHeight?: string | number;
   rootMargin?: string;
   className?: string;
 };

@@ -157,7 +157,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   const token = readWriteToken();
   if (!token) {
-    res.status(500).json({ error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set." });
+    res.status(500).json({
+      error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set.",
+    });
     return;
   }
 

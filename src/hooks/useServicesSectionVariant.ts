@@ -42,5 +42,8 @@ export const useServicesSectionVariant = (servicesStyle?: ServicesStyleVariant) 
     return { variant: "typographic-alt", source: "posthog" as const };
   }
 
-  return { variant: "control" as const, source: flagVariant ? "posthog" : ("default" as const) };
+  return {
+    variant: "control" as const,
+    source: flagVariant ? "posthog" : ("default" as const),
+  };
 };

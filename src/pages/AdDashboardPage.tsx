@@ -667,7 +667,13 @@ export const AdDashboardPage = () => {
 
       <ToolbarMenu icon={<Upload width={16} height={16} />} label="Image">
         <label className="ad-dashboard-upload">
-          <input type="file" accept="image/*" onChange={handleImageChange} />
+          <input
+            name="ad-image-upload"
+            id="ad-image-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
           <MediaImage width={22} height={22} />
           <span>{creative.imageName ?? "Choose roof, project, or portrait photo"}</span>
         </label>
@@ -778,7 +784,8 @@ export const AdDashboardPage = () => {
     </ToolbarMenu>
   );
 
-  // SiteShell already wraps non-home routes in <main class="site-page-main">.
+  // SiteShell already wraps non-home routes in <main class="site-page-main">;
+  // the --ad-dashboard modifier comes from getMainRouteClass.
   return (
     <SitePageChrome>
       <div className="ad-dashboard-shell wa-dark">

@@ -4,5 +4,8 @@ type SitePageChromeProps = {
   children: ReactNode;
 };
 
-/** Page content wrapper — nav and footer live in SiteShell (RootLayout). */
+/**
+ * Page content pass-through — the single <main> landmark (and its
+ * route-specific classes) is rendered by SiteShell via getMainRouteClass.
+ */
 export const SitePageChrome = ({ children }: SitePageChromeProps) => children;

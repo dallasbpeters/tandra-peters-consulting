@@ -539,7 +539,11 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
       <ImagePip from={630} src="tandra.png" opacity={1} />
-      <div style={{ padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}` }}>
+      <div
+        style={{
+          padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}`,
+        }}
+      >
         <Kicker delay={6} duration={150} from={630}>
           {content.kicker}
         </Kicker>
