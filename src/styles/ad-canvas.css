@@ -1,0 +1,394 @@
+/* ─── Ad canvas editor ──────────────────────────────────────────────────────
+   Direct-manipulation editor chrome: selection handles, alignment guides,
+   context bar, and the canvas itself. Geometry lives in element inline styles
+   (percentages); chrome sizes divide by --canvas-scale so they stay a constant
+   visual size at any zoom level. */
+
+.site-page-main {
+  --site-padding-inline-start: var(--theme-spacing-xl);
+
+  background: rgb(14 14 14);
+}
+
+.ad-canvas-viewport {
+  position: relative;
+}
+
+.ad-canvas-frame {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.ad-canvas {
+  container-type: inline-size;
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--theme-radius-medium);
+  touch-action: none;
+}
+
+/* ─── Elements ─────────────────────────────────────────────────────────────── */
+
+.ad-canvas-el {
+  position: absolute;
+  cursor: move;
+
+  /* eslint-disable-next-line css/use-baseline */
+  user-select: none;
+  touch-action: none;
+}
+
+.ad-canvas-el.is-locked {
+  cursor: default;
+}
+
+.ad-canvas-el.is-editing {
+  cursor: text;
+}
+
+.ad-canvas-el:hover:not(.is-locked, .is-editing) {
+  outline: calc(1.5px / var(--canvas-scale, 1)) solid rgb(146 182 97 / 70%);
+}
+
+.ad-canvas-el img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ad-canvas-el .ad-canvas-rect {
+  width: 100%;
+  height: 100%;
+}
+
+.ad-canvas-text {
+  width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  outline: none;
+}
+
+.ad-canvas-text.is-editing {
+  cursor: text;
+
+  /* eslint-disable-next-line css/use-baseline */
+  user-select: text;
+}
+
+/* ─── Selection + handles ──────────────────────────────────────────────────── */
+
+.ad-canvas-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 600;
+  pointer-events: none;
+}
+
+.ad-canvas-selection {
+  position: absolute;
+  pointer-events: none;
+  outline: calc(2px / var(--canvas-scale, 1)) solid #7c5cff;
+}
+
+.ad-canvas-selection.is-locked {
+  outline-style: dashed;
+}
+
+.ad-canvas-handle {
+  --handle-size: calc(12px / var(--canvas-scale, 1));
+
+  position: absolute;
+
+  /* eslint-disable-next-line css/no-invalid-properties */
+  width: var(--handle-size);
+
+  /* eslint-disable-next-line css/no-invalid-properties */
+  height: var(--handle-size);
+  border: calc(1.5px / var(--canvas-scale, 1)) solid #7c5cff;
+  border-radius: 50%;
+  background: white;
+  pointer-events: auto;
+  box-shadow: 0 calc(1px / var(--canvas-scale, 1)) calc(4px / var(--canvas-scale, 1))
+    rgb(9 42 29 / 25%);
+}
+
+.ad-canvas-handle--nw {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  cursor: nwse-resize;
+}
+
+.ad-canvas-handle--n {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: ns-resize;
+}
+
+.ad-canvas-handle--ne {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  cursor: nesw-resize;
+}
+
+.ad-canvas-handle--e {
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+  cursor: ew-resize;
+}
+
+.ad-canvas-handle--se {
+  right: 0;
+  bottom: 0;
+  transform: translate(50%, 50%);
+  cursor: nwse-resize;
+}
+
+.ad-canvas-handle--s {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  cursor: ns-resize;
+}
+
+.ad-canvas-handle--sw {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+  cursor: nesw-resize;
+}
+
+.ad-canvas-handle--w {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+}
+
+/* ─── Alignment guides ─────────────────────────────────────────────────────── */
+
+.ad-canvas-guide {
+  position: absolute;
+  background: #ff2d92;
+}
+
+.ad-canvas-guide--x {
+  top: 0;
+  bottom: 0;
+  width: calc(1.5px / var(--canvas-scale, 1));
+  transform: translateX(-50%);
+}
+
+.ad-canvas-guide--y {
+  right: 0;
+  left: 0;
+  height: calc(1.5px / var(--canvas-scale, 1));
+  transform: translateY(-50%);
+}
+
+/* ─── Context menu ─────────────────────────────────────────────────────────── */
+
+.ad-canvas-menu {
+  position: fixed;
+  z-index: 4000;
+  display: grid;
+  min-width: 11rem;
+  padding: 0.3rem;
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: var(--theme-radius-small, 8px);
+  background: var(--studio-panel-raised, #1b2620);
+  box-shadow: var(--shadow-large);
+}
+
+.ad-canvas-menu button {
+  padding: 0.45rem 0.65rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--studio-text, #edf3ed);
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-canvas-menu button:where(:hover) {
+  background: rgb(146 182 97 / 18%);
+}
+
+.ad-canvas-menu button:where(.is-danger) {
+  color: #ff9c8a;
+}
+
+.ad-canvas-menu button:where(.is-danger):where(:hover) {
+  background: rgb(255 156 138 / 12%);
+}
+
+/* ─── Stage toolbar additions ──────────────────────────────────────────────── */
+
+.ad-canvas-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--theme-spacing-sm);
+  align-items: center;
+}
+
+.ad-canvas-add-btn {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  border-radius: var(--theme-radius-small, 8px);
+  background: var(--studio-panel-raised, #1b2620);
+  color: var(--studio-text, #edf3ed);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ad-canvas-add-btn:hover {
+  border-color: var(--studio-border-strong, rgb(255 255 255 / 18%));
+  background: #233029;
+}
+
+/* ─── Context bar ──────────────────────────────────────────────────────────── */
+
+.ad-canvas-context-bar {
+  display: flex;
+  align-items: center;
+  min-height: 2.9rem;
+  padding: 0.35rem 0.75rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  background: var(--studio-panel, #141c18);
+}
+
+.ad-canvas-context-hint {
+  margin: 0;
+  color: var(--studio-muted, rgb(237 243 237 / 60%));
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.ad-canvas-context-controls {
+  display: flex;
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.ad-canvas-context-controls > * {
+  flex: 0 0 auto;
+}
+
+.ad-canvas-context-name {
+  margin-inline-end: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-text, #edf3ed);
+  white-space: nowrap;
+}
+
+.ad-canvas-context-spacer {
+  flex: 1 1 0;
+}
+
+.ad-canvas-context-controls select,
+.ad-canvas-context-controls input[type="number"] {
+  /* WebAwesome native.css forces selects to width: 100% — pin them back. */
+  width: auto;
+  max-width: 10rem;
+  height: 2rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
+  background: var(--studio-panel-raised, #1b2620);
+  color: var(--studio-text, #edf3ed);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.ad-canvas-context-controls input[type="number"] {
+  width: 4.25rem;
+}
+
+.ad-canvas-context-controls input[type="color"] {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.15rem;
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
+  background: var(--studio-panel-raised, #1b2620);
+  cursor: pointer;
+}
+
+.ad-canvas-context-controls button {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
+  background: var(--studio-panel-raised, #1b2620);
+  color: var(--studio-text, #edf3ed);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ad-canvas-context-controls button:where(:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ad-canvas-context-controls button:where(:hover, :focus-visible):where(:not(:disabled)) {
+  background: rgb(146 182 97 / 18%);
+}
+
+.ad-canvas-context-controls button:where(.is-active) {
+  border-color: var(--studio-accent, #92b661);
+  background: var(--studio-accent, #92b661);
+  color: #0c1210;
+}
+
+.ad-canvas-context-controls button:where(.is-danger) {
+  border-color: rgb(255 156 138 / 40%);
+  color: #ff9c8a;
+}
+
+.ad-canvas-context-controls button:where(.is-danger):where(:hover) {
+  background: rgb(255 156 138 / 12%);
+}
+
+.ad-canvas-opacity {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--studio-muted, rgb(237 243 237 / 60%));
+  white-space: nowrap;
+}
+
+.ad-canvas-opacity input[type="range"] {
+  width: 5rem;
+
+  /* eslint-disable-next-line css/use-baseline */
+  accent-color: var(--studio-accent, #92b661);
+}

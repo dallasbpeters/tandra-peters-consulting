@@ -52,6 +52,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
+  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`${sharePlain} ${pageUrl}`)}`;
 
   const handleCopyLink = useCallback(async () => {
     if (!pageUrl) return;
@@ -138,6 +139,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInAriaLabel = "Share this page on LinkedIn";
   const twitterAriaLabel = "Share this page on X (Twitter)";
   const emailAriaLabel = "Share this page by email";
+  const nextdoorAriaLabel = "Share this page on Nextdoor";
   const copyButtonLabel = copied ? "Copied" : "Copy link";
 
   return (
@@ -210,6 +212,30 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
           >
             <Mail height={18} strokeWidth={1.75} aria-hidden />
+          </a>
+          <a
+            href={pageUrl ? nextdoorHref : undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={iconButtonStyle}
+            className="social-share-icon"
+            aria-label={nextdoorAriaLabel}
+            title={nextdoorAriaLabel}
+            onClick={() => posthog?.capture("social_share_clicked", { platform: "nextdoor" })}
+          >
+            <svg
+              aria-hidden
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 14.5h-2.25v-5.836l-4.5 5.836H7.5V7.5h2.25v5.836l4.5-5.836H16.5v9z"
+                fill="currentColor"
+              />
+            </svg>
           </a>
           <button
             type="button"

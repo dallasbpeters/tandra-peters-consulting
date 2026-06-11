@@ -91,35 +91,27 @@ export const AdImagePicker = ({
 
   return (
     <div className="ad-image-picker">
-      <button id={triggerId} type="button" className="ad-image-picker__trigger">
+      <button
+        id={triggerId}
+        type="button"
+        className="ad-toolbar-menu-trigger ad-image-picker__trigger"
+        aria-label="Image library"
+        title="Image library"
+      >
         {selectedImage ? (
           <img src={thumbnailUrl(selectedImage.url)} alt="" />
         ) : (
-          <span className="ad-image-picker__trigger-icon">
-            <MediaImage width={20} height={20} />
-          </span>
+          <MediaImage width={16} height={16} />
         )}
-        <span>
-          <strong>
-            {selectedImage?.label ??
-              (imageSource === "sanity" ? "Choose from Sanity" : "Search Unsplash")}
-          </strong>
-          <small>
-            {currentLoading
-              ? "Loading image library..."
-              : imageSource === "sanity"
-                ? `${currentImages.length} CMS images`
-                : `${currentImages.length} Unsplash results`}
-          </small>
-        </span>
+        <span>Library</span>
       </button>
 
       <WaPopover
         ref={popoverRef}
         className="ad-image-picker__popover"
         for={triggerId}
-        placement="left-start"
-        distance={12}
+        placement="bottom-start"
+        distance={10}
         withoutArrow
       >
         <div className="ad-image-picker__surface">

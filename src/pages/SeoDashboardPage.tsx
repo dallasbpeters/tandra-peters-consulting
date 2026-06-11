@@ -430,151 +430,79 @@ export const SeoDashboardPage = () => {
     }
   }, [auth, statusCode]);
 
+  // SiteShell already wraps non-home routes in <main class="site-page-main">.
   return (
     <SitePageChrome>
-      <main className={layoutClass.pageMain}>
-        <div className={layoutClass.containerWide} style={shellStyle}>
-          <TransitionLink to="/" style={typeStyles.backLink}>
-            ← Back to home
-          </TransitionLink>
+      <div className={layoutClass.containerWide} style={shellStyle}>
+        <TransitionLink to="/" style={typeStyles.backLink}>
+          ← Back to home
+        </TransitionLink>
 
-          {!auth.clientId ? (
-            <section
+        {!auth.clientId ? (
+          <section
+            style={{
+              ...cardStyle,
+              borderColor: mix(theme.palette.coral["500"], 30),
+            }}
+          >
+            <div
               style={{
-                ...cardStyle,
-                borderColor: mix(theme.palette.coral["500"], 30),
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.md,
+                marginBottom: theme.spacing.md,
+                color: theme.palette.coral["800"],
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: theme.spacing.md,
-                  marginBottom: theme.spacing.md,
-                  color: theme.palette.coral["800"],
-                }}
-              >
-                <WarningTriangle width={20} height={20} />
-                <strong>Google auth is not configured</strong>
-              </div>
-              <p
-                style={{
-                  color: mix(theme.colors.everglade, 75),
-                  lineHeight: 1.6,
-                }}
-              >
-                Add <code>VITE_GOOGLE_CLIENT_ID</code> to the app env so the dashboard can render
-                the Google sign-in button.
-              </p>
-            </section>
-          ) : null}
+              <WarningTriangle width={20} height={20} />
+              <strong>Google auth is not configured</strong>
+            </div>
+            <p
+              style={{
+                color: mix(theme.colors.everglade, 75),
+                lineHeight: 1.6,
+              }}
+            >
+              Add <code>VITE_GOOGLE_CLIENT_ID</code> to the app env so the dashboard can render the
+              Google sign-in button.
+            </p>
+          </section>
+        ) : null}
 
-          {auth.clientId && !auth.token ? (
-            <section style={cardStyle}>
-              <div style={{ display: "grid", gap: theme.spacing.lg, justifyItems: "start" }}>
-                <div>
-                  <h2
-                    style={{
-                      fontSize: "1.2rem",
-                      color: theme.colors.everglade,
-                      marginBottom: theme.spacing.sm,
-                    }}
-                  >
-                    Sign in to the dashboard
-                  </h2>
-                  <p
-                    style={{
-                      color: mix(theme.colors.everglade, 72),
-                      lineHeight: 1.7,
-                      maxWidth: "36rem",
-                    }}
-                  >
-                    This route is protected with Google Identity Services and a server-side
-                    allowlist. The public site stays untouched; only the dashboard API is gated.
-                  </p>
-                </div>
-                <div ref={auth.buttonRef} />
-                {auth.authError ? (
-                  <p
-                    style={{
-                      color: theme.palette.coral["800"],
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {auth.authError}
-                  </p>
-                ) : null}
-                {!auth.ready ? (
-                  <p style={{ color: mix(theme.colors.everglade, 60) }}>Loading Google sign-in…</p>
-                ) : null}
-              </div>
-            </section>
-          ) : null}
-
-          {auth.token && auth.user ? (
-            <section style={cardStyle}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: theme.spacing.lg,
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div
+        {auth.clientId && !auth.token ? (
+          <section style={cardStyle}>
+            <div
+              style={{
+                display: "grid",
+                gap: theme.spacing.lg,
+                justifyItems: "start",
+              }}
+            >
+              <div>
+                <h2
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: theme.spacing.md,
-                  }}
-                >
-                  {auth.user.picture ? (
-                    <img
-                      src={auth.user.picture}
-                      alt=""
-                      style={{
-                        width: "2.75rem",
-                        height: "2.75rem",
-                        borderRadius: theme.radius.pill,
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : null}
-                  <div>
-                    <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
-                      {auth.user.name || auth.user.email}
-                    </div>
-                    <div
-                      style={{
-                        color: mix(theme.colors.everglade, 60),
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      {auth.user.email}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => auth.signOut()}
-                  style={{
-                    border: `1px solid ${mix(theme.colors.everglade, 16)}`,
-                    borderRadius: theme.radius.pill,
-                    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                    backgroundColor: theme.colors.white,
+                    fontSize: "1.2rem",
                     color: theme.colors.everglade,
-                    fontWeight: 700,
-                    cursor: "pointer",
+                    marginBottom: theme.spacing.sm,
                   }}
                 >
-                  Sign out
-                </button>
+                  Sign in to the dashboard
+                </h2>
+                <p
+                  style={{
+                    color: mix(theme.colors.everglade, 72),
+                    lineHeight: 1.7,
+                    maxWidth: "36rem",
+                  }}
+                >
+                  This route is protected with Google Identity Services and a server-side allowlist.
+                  The public site stays untouched; only the dashboard API is gated.
+                </p>
               </div>
+              <div ref={auth.buttonRef} />
               {auth.authError ? (
                 <p
                   style={{
-                    marginTop: theme.spacing.md,
                     color: theme.palette.coral["800"],
                     lineHeight: 1.6,
                   }}
@@ -582,648 +510,818 @@ export const SeoDashboardPage = () => {
                   {auth.authError}
                 </p>
               ) : null}
-            </section>
-          ) : null}
-
-          {auth.token ? (
-            <>
-              {loading && !data ? (
-                <section style={cardStyle}>
-                  <p style={{ color: theme.colors.everglade }}>Loading saved dashboard snapshot…</p>
-                </section>
+              {!auth.ready ? (
+                <p style={{ color: mix(theme.colors.everglade, 60) }}>Loading Google sign-in…</p>
               ) : null}
+            </div>
+          </section>
+        ) : null}
 
-              {error ? (
-                <section
+        {auth.token && auth.user ? (
+          <section style={cardStyle}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: theme.spacing.lg,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: theme.spacing.md,
+                }}
+              >
+                {auth.user.picture ? (
+                  <img
+                    src={auth.user.picture}
+                    alt=""
+                    style={{
+                      width: "2.75rem",
+                      height: "2.75rem",
+                      borderRadius: theme.radius.pill,
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : null}
+                <div>
+                  <div style={{ fontWeight: 700, color: theme.colors.everglade }}>
+                    {auth.user.name || auth.user.email}
+                  </div>
+                  <div
+                    style={{
+                      color: mix(theme.colors.everglade, 60),
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    {auth.user.email}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => auth.signOut()}
+                style={{
+                  border: `1px solid ${mix(theme.colors.everglade, 16)}`,
+                  borderRadius: theme.radius.pill,
+                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                  backgroundColor: theme.colors.white,
+                  color: theme.colors.everglade,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+            {auth.authError ? (
+              <p
+                style={{
+                  marginTop: theme.spacing.md,
+                  color: theme.palette.coral["800"],
+                  lineHeight: 1.6,
+                }}
+              >
+                {auth.authError}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {auth.token ? (
+          <>
+            {loading && !data ? (
+              <section style={cardStyle}>
+                <p style={{ color: theme.colors.everglade }}>Loading saved dashboard snapshot…</p>
+              </section>
+            ) : null}
+
+            {error ? (
+              <section
+                style={{
+                  ...cardStyle,
+                  borderColor: mix(theme.palette.coral["500"], 30),
+                }}
+              >
+                <div
                   style={{
-                    ...cardStyle,
-                    borderColor: mix(theme.palette.coral["500"], 30),
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.md,
+                    marginBottom: theme.spacing.md,
+                    color: theme.palette.coral["800"],
                   }}
                 >
+                  <WarningTriangle width={20} height={20} />
+                  <strong>Could not load dashboard</strong>
+                </div>
+                <p
+                  style={{
+                    color: mix(theme.colors.everglade, 75),
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {error}
+                </p>
+              </section>
+            ) : null}
+
+            {data ? (
+              <>
+                <section style={heroCardStyle}>
                   <div
                     style={{
                       display: "flex",
-                      alignItems: "center",
-                      gap: theme.spacing.md,
-                      marginBottom: theme.spacing.md,
-                      color: theme.palette.coral["800"],
+                      justifyContent: "space-between",
+                      gap: theme.spacing.lg,
+                      flexWrap: "wrap",
+                      alignItems: "flex-start",
                     }}
                   >
-                    <WarningTriangle width={20} height={20} />
-                    <strong>Could not load dashboard</strong>
+                    <div style={{ maxWidth: "40rem" }}>
+                      <div style={chipStyle("neutral")}>Internal SEO Dashboard</div>
+                      <h1
+                        style={{
+                          ...typeStyles.pageListTitle,
+                          color: theme.colors.white,
+                          marginTop: theme.spacing.lg,
+                          marginBottom: theme.spacing.md,
+                        }}
+                      >
+                        Search visibility, content hygiene, and traffic signals in one place.
+                      </h1>
+                      <p
+                        style={{
+                          fontSize: "1rem",
+                          lineHeight: 1.7,
+                          color: mix(theme.colors.white, 82),
+                          maxWidth: "36rem",
+                        }}
+                      >
+                        This dashboard stays isolated from the public site. It audits the current
+                        Sanity content, checks the static SEO shell, and pulls PostHog metrics
+                        server-side when those credentials are available.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void regenerate()}
+                      disabled={loading}
+                      style={{
+                        border: "none",
+                        borderRadius: theme.radius.pill,
+                        padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: theme.spacing.sm,
+                        backgroundColor: mix(theme.colors.white, 14),
+                        color: theme.colors.white,
+                        fontWeight: 700,
+                        cursor: loading ? "wait" : "pointer",
+                        opacity: loading ? 0.72 : 1,
+                      }}
+                    >
+                      <Refresh width={18} height={18} />
+                      {loading ? "Regenerating…" : "Regenerate snapshot"}
+                    </button>
                   </div>
-                  <p
-                    style={{
-                      color: mix(theme.colors.everglade, 75),
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {error}
-                  </p>
                 </section>
-              ) : null}
+                <section style={metricGridStyle}>
+                  <MetricCard
+                    label="Technical score"
+                    value={`${data.overview.technicalScore}`}
+                    subtext="Global metadata and route-level SEO field coverage."
+                  />
+                  <MetricCard
+                    label="Content score"
+                    value={`${data.overview.contentScore}`}
+                    subtext="Published article completeness across summaries, imagery, and freshness."
+                  />
+                  <MetricCard
+                    label="Observed pageviews"
+                    value={
+                      data.analytics.pageviews7d == null ? "—" : `${data.analytics.pageviews7d}`
+                    }
+                    subtext={`${data.analytics.timeframeLabel} · ${data.analytics.scopeLabel}`}
+                  />
+                  <MetricCard
+                    label="Open opportunities"
+                    value={`${data.overview.opportunities}`}
+                    subtext={`${data.overview.totalPublishedPosts} published articles across ${data.overview.totalPages} tracked pages.`}
+                  />
+                </section>
 
-              {data ? (
-                <>
-                  <section style={heroCardStyle}>
+                <section style={responsiveRowStyle}>
+                  <article style={cardStyle}>
+                    <h2
+                      style={{
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      System status
+                    </h2>
+                    <div style={{ display: "grid", gap: theme.spacing.md }}>
+                      {data.sourceStatus.notes.map((note) => (
+                        <div
+                          key={note}
+                          style={{
+                            padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
+                            borderRadius: theme.radius.large,
+                            backgroundColor: theme.palette.paper["100"],
+                            color: mix(theme.colors.everglade, 76),
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {note}
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article style={cardStyle}>
+                    <h2
+                      style={{
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      Issue rollup
+                    </h2>
+                    <div style={{ display: "grid", gap: theme.spacing.md }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                          alignItems: "center",
+                        }}
+                      >
+                        <span style={chipStyle("critical")}>Critical</span>
+                        <strong>{data.overview.criticalIssues}</strong>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                          alignItems: "center",
+                        }}
+                      >
+                        <span style={chipStyle("warning")}>Warning</span>
+                        <strong>{data.overview.warningIssues}</strong>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                          alignItems: "center",
+                        }}
+                      >
+                        <span style={chipStyle("good")}>Healthy</span>
+                        <strong>
+                          {data.audits.filter((audit) => audit.status === "good").length}
+                        </strong>
+                      </div>
+                    </div>
+                  </article>
+                </section>
+
+                <section style={sectionGridStyle} className="seo-dashboard-two-column">
+                  <article style={cardStyle}>
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
                         gap: theme.spacing.lg,
                         flexWrap: "wrap",
-                        alignItems: "flex-start",
+                        marginBottom: theme.spacing.lg,
                       }}
                     >
-                      <div style={{ maxWidth: "40rem" }}>
-                        <div style={chipStyle("neutral")}>Internal SEO Dashboard</div>
-                        <h1
+                      <div>
+                        <div
+                          style={chipStyle(data.sourceStatus.posthogConnected ? "good" : "warning")}
+                        >
+                          <Internet width={14} height={14} />
+                          {data.sourceStatus.posthogConnected
+                            ? "PostHog connected"
+                            : "PostHog fallback"}
+                        </div>
+                        <h2
                           style={{
-                            ...typeStyles.pageListTitle,
-                            color: theme.colors.white,
-                            marginTop: theme.spacing.lg,
-                            marginBottom: theme.spacing.md,
+                            fontSize: "1.2rem",
+                            color: theme.colors.everglade,
+                            marginTop: theme.spacing.md,
+                            marginBottom: theme.spacing.sm,
                           }}
                         >
-                          Search visibility, content hygiene, and traffic signals in one place.
-                        </h1>
-                        <p
+                          Traffic snapshot
+                        </h2>
+                        <div
                           style={{
-                            fontSize: "1rem",
-                            lineHeight: 1.7,
-                            color: mix(theme.colors.white, 82),
-                            maxWidth: "36rem",
+                            fontSize: "0.82rem",
+                            color: mix(theme.colors.everglade, 58),
+                            marginTop: theme.spacing.sm,
                           }}
                         >
-                          This dashboard stays isolated from the public site. It audits the current
-                          Sanity content, checks the static SEO shell, and pulls PostHog metrics
-                          server-side when those credentials are available.
-                        </p>
+                          {data.analytics.scopeLabel}
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void regenerate()}
-                        disabled={loading}
+                      <div
                         style={{
-                          border: "none",
-                          borderRadius: theme.radius.pill,
-                          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: theme.spacing.sm,
-                          backgroundColor: mix(theme.colors.white, 14),
-                          color: theme.colors.white,
-                          fontWeight: 700,
-                          cursor: loading ? "wait" : "pointer",
-                          opacity: loading ? 0.72 : 1,
+                          fontSize: "0.82rem",
+                          color: mix(theme.colors.everglade, 58),
                         }}
                       >
-                        <Refresh width={18} height={18} />
-                        {loading ? "Regenerating…" : "Regenerate snapshot"}
-                      </button>
+                        Updated {formatDateTime(data.generatedAt)}
+                      </div>
                     </div>
-                  </section>
-                  <section style={metricGridStyle}>
-                    <MetricCard
-                      label="Technical score"
-                      value={`${data.overview.technicalScore}`}
-                      subtext="Global metadata and route-level SEO field coverage."
-                    />
-                    <MetricCard
-                      label="Content score"
-                      value={`${data.overview.contentScore}`}
-                      subtext="Published article completeness across summaries, imagery, and freshness."
-                    />
-                    <MetricCard
-                      label="Observed pageviews"
-                      value={
-                        data.analytics.pageviews7d == null ? "—" : `${data.analytics.pageviews7d}`
-                      }
-                      subtext={`${data.analytics.timeframeLabel} · ${data.analytics.scopeLabel}`}
-                    />
-                    <MetricCard
-                      label="Open opportunities"
-                      value={`${data.overview.opportunities}`}
-                      subtext={`${data.overview.totalPublishedPosts} published articles across ${data.overview.totalPages} tracked pages.`}
-                    />
-                  </section>
 
-                  <section style={responsiveRowStyle}>
-                    <article style={cardStyle}>
-                      <h2
-                        style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
-                        }}
-                      >
-                        System status
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.md }}>
-                        {data.sourceStatus.notes.map((note) => (
+                    <div
+                      style={{
+                        ...metricGridStyle,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: mix(theme.colors.everglade, 58),
+                            marginBottom: theme.spacing.sm,
+                          }}
+                        >
+                          Pageviews
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.6rem",
+                            fontWeight: 700,
+                            color: theme.colors.everglade,
+                          }}
+                        >
+                          {data.analytics.pageviews7d ?? "—"}
+                        </div>
+                        <div style={deltaTone(data.analytics.deltaPageviews)}>
+                          {formatDelta(data.analytics.deltaPageviews, "pageviews")}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: mix(theme.colors.everglade, 58),
+                            marginBottom: theme.spacing.sm,
+                          }}
+                        >
+                          Visitors
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.6rem",
+                            fontWeight: 700,
+                            color: theme.colors.everglade,
+                          }}
+                        >
+                          {data.analytics.visitors7d ?? "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: mix(theme.colors.everglade, 58),
+                            marginBottom: theme.spacing.sm,
+                          }}
+                        >
+                          CTA clicks
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.6rem",
+                            fontWeight: 700,
+                            color: theme.colors.everglade,
+                          }}
+                        >
+                          {data.analytics.ctaClicks7d ?? "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: mix(theme.colors.everglade, 58),
+                            marginBottom: theme.spacing.sm,
+                          }}
+                        >
+                          Leads
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.6rem",
+                            fontWeight: 700,
+                            color: theme.colors.everglade,
+                          }}
+                        >
+                          {data.analytics.leads7d ?? "—"}
+                        </div>
+                        <div style={deltaTone(data.analytics.deltaLeads)}>
+                          {formatDelta(data.analytics.deltaLeads, "leads")}
+                        </div>
+                      </div>
+                    </div>
+
+                    <MiniBars points={data.analytics.dailyPageviews} />
+                  </article>
+
+                  <article style={cardStyle}>
+                    <div style={chipStyle("good")}>
+                      <StatsUpSquare width={14} height={14} />
+                      Evidence-based summary
+                    </div>
+                    <h2
+                      style={{
+                        fontSize: "1.2rem",
+                        color: theme.colors.everglade,
+                        marginTop: theme.spacing.md,
+                        marginBottom: theme.spacing.sm,
+                      }}
+                    >
+                      Executive summary
+                    </h2>
+                    <p
+                      style={{
+                        color: mix(theme.colors.everglade, 78),
+                        lineHeight: 1.75,
+                      }}
+                    >
+                      {data.aiSummary}
+                    </p>
+                    <div
+                      style={{
+                        marginTop: theme.spacing.lg,
+                        color: mix(theme.colors.everglade, 60),
+                        fontSize: "0.88rem",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Site URL: {data.sourceStatus.siteUrl}
+                    </div>
+                  </article>
+                </section>
+
+                <section style={responsiveRowStyle}>
+                  <article style={cardStyle}>
+                    <h2
+                      style={{
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      Opportunity briefs
+                    </h2>
+                    <div style={{ display: "grid", gap: theme.spacing.lg }}>
+                      {data.opportunities.map((opportunity) => (
+                        <div
+                          key={`${opportunity.type}-${opportunity.title}`}
+                          style={{
+                            padding: theme.spacing.lg,
+                            borderRadius: theme.radius.large,
+                            backgroundColor: theme.palette.paper["100"],
+                            border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                          }}
+                        >
                           <div
-                            key={note}
                             style={{
-                              padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
-                              borderRadius: theme.radius.large,
-                              backgroundColor: theme.palette.paper["100"],
-                              color: mix(theme.colors.everglade, 76),
-                              lineHeight: 1.6,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: theme.spacing.lg,
+                              flexWrap: "wrap",
+                              marginBottom: theme.spacing.md,
                             }}
                           >
-                            {note}
+                            <strong style={{ color: theme.colors.everglade }}>
+                              {opportunity.title}
+                            </strong>
+                            <span style={opportunityChip(opportunity.type)}>
+                              {opportunity.type.replace("-", " ")}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    </article>
+                          <p
+                            style={{
+                              color: mix(theme.colors.everglade, 75),
+                              lineHeight: 1.65,
+                              marginBottom: theme.spacing.md,
+                            }}
+                          >
+                            {opportunity.detail}
+                          </p>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: theme.spacing.lg,
+                              color: mix(theme.colors.everglade, 60),
+                              fontSize: "0.84rem",
+                            }}
+                          >
+                            <span>Target: {opportunity.target}</span>
+                            <span style={priorityTone(opportunity.impact)}>
+                              {opportunity.impact} impact
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                </section>
 
-                    <article style={cardStyle}>
-                      <h2
-                        style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
-                        }}
-                      >
-                        Issue rollup
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.md }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                            alignItems: "center",
-                          }}
-                        >
-                          <span style={chipStyle("critical")}>Critical</span>
-                          <strong>{data.overview.criticalIssues}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                            alignItems: "center",
-                          }}
-                        >
-                          <span style={chipStyle("warning")}>Warning</span>
-                          <strong>{data.overview.warningIssues}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                            alignItems: "center",
-                          }}
-                        >
-                          <span style={chipStyle("good")}>Healthy</span>
-                          <strong>
-                            {data.audits.filter((audit) => audit.status === "good").length}
-                          </strong>
-                        </div>
-                      </div>
-                    </article>
-                  </section>
-
-                  <section style={sectionGridStyle} className="seo-dashboard-two-column">
-                    <article style={cardStyle}>
+                <section style={responsiveRowStyle}>
+                  <article style={cardStyle}>
+                    <h2
+                      style={{
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      Content coverage
+                    </h2>
+                    <div style={{ display: "grid", gap: theme.spacing.md }}>
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
                           gap: theme.spacing.lg,
-                          flexWrap: "wrap",
-                          marginBottom: theme.spacing.lg,
                         }}
                       >
-                        <div>
-                          <div
-                            style={chipStyle(
-                              data.sourceStatus.posthogConnected ? "good" : "warning",
-                            )}
-                          >
-                            <Internet width={14} height={14} />
-                            {data.sourceStatus.posthogConnected
-                              ? "PostHog connected"
-                              : "PostHog fallback"}
-                          </div>
-                          <h2
-                            style={{
-                              fontSize: "1.2rem",
-                              color: theme.colors.everglade,
-                              marginTop: theme.spacing.md,
-                              marginBottom: theme.spacing.sm,
-                            }}
-                          >
-                            Traffic snapshot
-                          </h2>
-                          <div
-                            style={{
-                              fontSize: "0.82rem",
-                              color: mix(theme.colors.everglade, 58),
-                              marginTop: theme.spacing.sm,
-                            }}
-                          >
-                            {data.analytics.scopeLabel}
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.82rem",
-                            color: mix(theme.colors.everglade, 58),
-                          }}
-                        >
-                          Updated {formatDateTime(data.generatedAt)}
-                        </div>
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Published posts
+                        </span>
+                        <strong>{data.content.publishedPosts}</strong>
                       </div>
-
-                      <div style={{ ...metricGridStyle, marginBottom: theme.spacing.lg }}>
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.82rem",
-                              color: mix(theme.colors.everglade, 58),
-                              marginBottom: theme.spacing.sm,
-                            }}
-                          >
-                            Pageviews
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "1.6rem",
-                              fontWeight: 700,
-                              color: theme.colors.everglade,
-                            }}
-                          >
-                            {data.analytics.pageviews7d ?? "—"}
-                          </div>
-                          <div style={deltaTone(data.analytics.deltaPageviews)}>
-                            {formatDelta(data.analytics.deltaPageviews, "pageviews")}
-                          </div>
-                        </div>
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.82rem",
-                              color: mix(theme.colors.everglade, 58),
-                              marginBottom: theme.spacing.sm,
-                            }}
-                          >
-                            Visitors
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "1.6rem",
-                              fontWeight: 700,
-                              color: theme.colors.everglade,
-                            }}
-                          >
-                            {data.analytics.visitors7d ?? "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.82rem",
-                              color: mix(theme.colors.everglade, 58),
-                              marginBottom: theme.spacing.sm,
-                            }}
-                          >
-                            CTA clicks
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "1.6rem",
-                              fontWeight: 700,
-                              color: theme.colors.everglade,
-                            }}
-                          >
-                            {data.analytics.ctaClicks7d ?? "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.82rem",
-                              color: mix(theme.colors.everglade, 58),
-                              marginBottom: theme.spacing.sm,
-                            }}
-                          >
-                            Leads
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "1.6rem",
-                              fontWeight: 700,
-                              color: theme.colors.everglade,
-                            }}
-                          >
-                            {data.analytics.leads7d ?? "—"}
-                          </div>
-                          <div style={deltaTone(data.analytics.deltaLeads)}>
-                            {formatDelta(data.analytics.deltaLeads, "leads")}
-                          </div>
-                        </div>
-                      </div>
-
-                      <MiniBars points={data.analytics.dailyPageviews} />
-                    </article>
-
-                    <article style={cardStyle}>
-                      <div style={chipStyle("good")}>
-                        <StatsUpSquare width={14} height={14} />
-                        Evidence-based summary
-                      </div>
-                      <h2
-                        style={{
-                          fontSize: "1.2rem",
-                          color: theme.colors.everglade,
-                          marginTop: theme.spacing.md,
-                          marginBottom: theme.spacing.sm,
-                        }}
-                      >
-                        Executive summary
-                      </h2>
-                      <p
-                        style={{
-                          color: mix(theme.colors.everglade, 78),
-                          lineHeight: 1.75,
-                        }}
-                      >
-                        {data.aiSummary}
-                      </p>
                       <div
                         style={{
-                          marginTop: theme.spacing.lg,
-                          color: mix(theme.colors.everglade, 60),
-                          fontSize: "0.88rem",
-                          lineHeight: 1.6,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
                         }}
                       >
-                        Site URL: {data.sourceStatus.siteUrl}
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Missing SEO descriptions
+                        </span>
+                        <strong>{data.content.missingSeoDescription}</strong>
                       </div>
-                    </article>
-                  </section>
-
-                  <section style={responsiveRowStyle}>
-                    <article style={cardStyle}>
-                      <h2
+                      <div
                         style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
                         }}
                       >
-                        Opportunity briefs
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.lg }}>
-                        {data.opportunities.map((opportunity) => (
-                          <div
-                            key={`${opportunity.type}-${opportunity.title}`}
-                            style={{
-                              padding: theme.spacing.lg,
-                              borderRadius: theme.radius.large,
-                              backgroundColor: theme.palette.paper["100"],
-                              border: `1px solid ${mix(theme.colors.everglade, 8)}`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: theme.spacing.lg,
-                                flexWrap: "wrap",
-                                marginBottom: theme.spacing.md,
-                              }}
-                            >
-                              <strong style={{ color: theme.colors.everglade }}>
-                                {opportunity.title}
-                              </strong>
-                              <span style={opportunityChip(opportunity.type)}>
-                                {opportunity.type.replace("-", " ")}
-                              </span>
-                            </div>
-                            <p
-                              style={{
-                                color: mix(theme.colors.everglade, 75),
-                                lineHeight: 1.65,
-                                marginBottom: theme.spacing.md,
-                              }}
-                            >
-                              {opportunity.detail}
-                            </p>
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: theme.spacing.lg,
-                                color: mix(theme.colors.everglade, 60),
-                                fontSize: "0.84rem",
-                              }}
-                            >
-                              <span>Target: {opportunity.target}</span>
-                              <span style={priorityTone(opportunity.impact)}>
-                                {opportunity.impact} impact
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Missing excerpts
+                        </span>
+                        <strong>{data.content.missingExcerpt}</strong>
                       </div>
-                    </article>
-                  </section>
-
-                  <section style={responsiveRowStyle}>
-                    <article style={cardStyle}>
-                      <h2
+                      <div
                         style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
                         }}
                       >
-                        Content coverage
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.md }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Published posts
-                          </span>
-                          <strong>{data.content.publishedPosts}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Missing SEO descriptions
-                          </span>
-                          <strong>{data.content.missingSeoDescription}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Missing excerpts
-                          </span>
-                          <strong>{data.content.missingExcerpt}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Missing lead images
-                          </span>
-                          <strong>{data.content.missingImage}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Stale posts
-                          </span>
-                          <strong>{data.content.stalePosts}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Thin articles
-                          </span>
-                          <strong>{data.content.thinContentPosts}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Posts with no internal links
-                          </span>
-                          <strong>{data.content.postsWithoutInternalLinks}</strong>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: theme.spacing.lg,
-                          }}
-                        >
-                          <span style={{ color: mix(theme.colors.everglade, 68) }}>
-                            Posts with weak structure
-                          </span>
-                          <strong>{data.content.postsWithWeakStructure}</strong>
-                        </div>
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Missing lead images
+                        </span>
+                        <strong>{data.content.missingImage}</strong>
                       </div>
-                    </article>
-
-                    <article style={cardStyle}>
-                      <h2
+                      <div
                         style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
                         }}
                       >
-                        Category spread
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.md }}>
-                        {data.content.categories.length > 0 ? (
-                          data.content.categories.map((category) => (
-                            <div key={category.slug}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  gap: theme.spacing.lg,
-                                  marginBottom: theme.spacing.sm,
-                                }}
-                              >
-                                <span style={{ color: theme.colors.everglade }}>
-                                  {category.label}
-                                </span>
-                                <strong>{category.count}</strong>
-                              </div>
-                              <div
-                                style={{
-                                  height: "0.5rem",
-                                  borderRadius: theme.radius.pill,
-                                  backgroundColor: theme.palette.paper["200"],
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    height: "100%",
-                                    width: `${(category.count / Math.max(data.content.categories[0]?.count ?? 1, 1)) * 100}%`,
-                                    borderRadius: theme.radius.pill,
-                                    background: `linear-gradient(90deg, ${theme.palette.everglade["700"]}, ${theme.palette.purple["300"]})`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p style={{ color: mix(theme.colors.everglade, 65) }}>
-                            Publish some categorized articles and this cluster view will fill in.
-                          </p>
-                        )}
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>Stale posts</span>
+                        <strong>{data.content.stalePosts}</strong>
                       </div>
-                    </article>
-                  </section>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                        }}
+                      >
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Thin articles
+                        </span>
+                        <strong>{data.content.thinContentPosts}</strong>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                        }}
+                      >
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Posts with no internal links
+                        </span>
+                        <strong>{data.content.postsWithoutInternalLinks}</strong>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: theme.spacing.lg,
+                        }}
+                      >
+                        <span style={{ color: mix(theme.colors.everglade, 68) }}>
+                          Posts with weak structure
+                        </span>
+                        <strong>{data.content.postsWithWeakStructure}</strong>
+                      </div>
+                    </div>
+                  </article>
 
-                  <section style={cardStyle}>
+                  <article style={cardStyle}>
                     <h2
                       style={{
                         fontSize: "1.15rem",
                         color: theme.colors.everglade,
-                        marginBottom: theme.spacing.xs,
+                        marginBottom: theme.spacing.lg,
                       }}
                     >
-                      Article content analysis
+                      Category spread
                     </h2>
-                    <p
+                    <div style={{ display: "grid", gap: theme.spacing.md }}>
+                      {data.content.categories.length > 0 ? (
+                        data.content.categories.map((category) => (
+                          <div key={category.slug}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: theme.spacing.lg,
+                                marginBottom: theme.spacing.sm,
+                              }}
+                            >
+                              <span style={{ color: theme.colors.everglade }}>
+                                {category.label}
+                              </span>
+                              <strong>{category.count}</strong>
+                            </div>
+                            <div
+                              style={{
+                                height: "0.5rem",
+                                borderRadius: theme.radius.pill,
+                                backgroundColor: theme.palette.paper["200"],
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  height: "100%",
+                                  width: `${(category.count / Math.max(data.content.categories[0]?.count ?? 1, 1)) * 100}%`,
+                                  borderRadius: theme.radius.pill,
+                                  background: `linear-gradient(90deg, ${theme.palette.everglade["700"]}, ${theme.palette.purple["300"]})`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ color: mix(theme.colors.everglade, 65) }}>
+                          Publish some categorized articles and this cluster view will fill in.
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                </section>
+
+                <section style={cardStyle}>
+                  <h2
+                    style={{
+                      fontSize: "1.15rem",
+                      color: theme.colors.everglade,
+                      marginBottom: theme.spacing.xs,
+                    }}
+                  >
+                    Article content analysis
+                  </h2>
+                  <p
+                    style={{
+                      color: mix(theme.colors.everglade, 65),
+                      marginBottom: theme.spacing.md,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    These article checks are based on the actual Sanity body content: word count,
+                    headings, lists, and internal versus external links.
+                  </p>
+                  <div style={{ display: "grid", gap: theme.spacing.lg }}>
+                    {data.contentAnalyses.length > 0 ? (
+                      data.contentAnalyses.map((analysis) => (
+                        <ContentAnalysisCard key={analysis.path} analysis={analysis} />
+                      ))
+                    ) : (
+                      <p
+                        style={{
+                          color: mix(theme.colors.everglade, 65),
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        Publish some articles and this analysis panel will fill in with real content
+                        metrics.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                <section style={responsiveRowStyle}>
+                  <article style={cardStyle}>
+                    <h2
                       style={{
-                        color: mix(theme.colors.everglade, 65),
-                        marginBottom: theme.spacing.md,
-                        lineHeight: 1.6,
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
                       }}
                     >
-                      These article checks are based on the actual Sanity body content: word count,
-                      headings, lists, and internal versus external links.
-                    </p>
+                      Priority recommendations
+                    </h2>
                     <div style={{ display: "grid", gap: theme.spacing.lg }}>
-                      {data.contentAnalyses.length > 0 ? (
-                        data.contentAnalyses.map((analysis) => (
-                          <ContentAnalysisCard key={analysis.path} analysis={analysis} />
+                      {data.recommendations.map((recommendation) => (
+                        <div
+                          key={`${recommendation.source}-${recommendation.title}`}
+                          style={{
+                            padding: theme.spacing.lg,
+                            borderRadius: theme.radius.large,
+                            backgroundColor: theme.palette.paper["100"],
+                            border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: theme.spacing.lg,
+                              flexWrap: "wrap",
+                              marginBottom: theme.spacing.md,
+                            }}
+                          >
+                            <strong style={{ color: theme.colors.everglade }}>
+                              {recommendation.title}
+                            </strong>
+                            <span style={priorityTone(recommendation.priority)}>
+                              {recommendation.priority}
+                            </span>
+                          </div>
+                          <p
+                            style={{
+                              color: mix(theme.colors.everglade, 75),
+                              lineHeight: 1.65,
+                            }}
+                          >
+                            {recommendation.detail}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article style={cardStyle}>
+                    <h2
+                      style={{
+                        fontSize: "1.15rem",
+                        color: theme.colors.everglade,
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      Top pages in PostHog
+                    </h2>
+                    <div style={{ display: "grid", gap: theme.spacing.md }}>
+                      {data.analytics.topPages.length > 0 ? (
+                        data.analytics.topPages.map((page) => (
+                          <div
+                            key={page.path}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: theme.spacing.lg,
+                              alignItems: "center",
+                            }}
+                          >
+                            <span style={{ color: theme.colors.everglade }}>{page.path}</span>
+                            <strong>{page.pageviews}</strong>
+                          </div>
                         ))
                       ) : (
                         <p
@@ -1232,142 +1330,50 @@ export const SeoDashboardPage = () => {
                             lineHeight: 1.6,
                           }}
                         >
-                          Publish some articles and this analysis panel will fill in with real
-                          content metrics.
+                          No top-page data yet. Once PostHog server access is working, this panel
+                          will rank the routes people actually see.
                         </p>
                       )}
                     </div>
-                  </section>
+                  </article>
+                </section>
 
-                  <section style={responsiveRowStyle}>
-                    <article style={cardStyle}>
-                      <h2
-                        style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
-                        }}
+                <section style={cardStyle}>
+                  <h2
+                    style={{
+                      fontSize: "1.15rem",
+                      color: theme.colors.everglade,
+                      marginBottom: theme.spacing.xs,
+                    }}
+                  >
+                    Audit queue
+                  </h2>
+                  <p
+                    style={{
+                      color: mix(theme.colors.everglade, 65),
+                      marginBottom: theme.spacing.md,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    The rows below are ordered by overall severity, mixing site shell checks with
+                    the weakest content pages.
+                  </p>
+                  <div>
+                    {data.audits.map((audit, index) => (
+                      <div
+                        key={`${audit.path}-${audit.title}`}
+                        style={index === 0 ? { borderTop: "none" } : undefined}
                       >
-                        Priority recommendations
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.lg }}>
-                        {data.recommendations.map((recommendation) => (
-                          <div
-                            key={`${recommendation.source}-${recommendation.title}`}
-                            style={{
-                              padding: theme.spacing.lg,
-                              borderRadius: theme.radius.large,
-                              backgroundColor: theme.palette.paper["100"],
-                              border: `1px solid ${mix(theme.colors.everglade, 8)}`,
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: theme.spacing.lg,
-                                flexWrap: "wrap",
-                                marginBottom: theme.spacing.md,
-                              }}
-                            >
-                              <strong style={{ color: theme.colors.everglade }}>
-                                {recommendation.title}
-                              </strong>
-                              <span style={priorityTone(recommendation.priority)}>
-                                {recommendation.priority}
-                              </span>
-                            </div>
-                            <p
-                              style={{
-                                color: mix(theme.colors.everglade, 75),
-                                lineHeight: 1.65,
-                              }}
-                            >
-                              {recommendation.detail}
-                            </p>
-                          </div>
-                        ))}
+                        <AuditRow audit={audit} />
                       </div>
-                    </article>
-
-                    <article style={cardStyle}>
-                      <h2
-                        style={{
-                          fontSize: "1.15rem",
-                          color: theme.colors.everglade,
-                          marginBottom: theme.spacing.lg,
-                        }}
-                      >
-                        Top pages in PostHog
-                      </h2>
-                      <div style={{ display: "grid", gap: theme.spacing.md }}>
-                        {data.analytics.topPages.length > 0 ? (
-                          data.analytics.topPages.map((page) => (
-                            <div
-                              key={page.path}
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: theme.spacing.lg,
-                                alignItems: "center",
-                              }}
-                            >
-                              <span style={{ color: theme.colors.everglade }}>{page.path}</span>
-                              <strong>{page.pageviews}</strong>
-                            </div>
-                          ))
-                        ) : (
-                          <p
-                            style={{
-                              color: mix(theme.colors.everglade, 65),
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            No top-page data yet. Once PostHog server access is working, this panel
-                            will rank the routes people actually see.
-                          </p>
-                        )}
-                      </div>
-                    </article>
-                  </section>
-
-                  <section style={cardStyle}>
-                    <h2
-                      style={{
-                        fontSize: "1.15rem",
-                        color: theme.colors.everglade,
-                        marginBottom: theme.spacing.xs,
-                      }}
-                    >
-                      Audit queue
-                    </h2>
-                    <p
-                      style={{
-                        color: mix(theme.colors.everglade, 65),
-                        marginBottom: theme.spacing.md,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      The rows below are ordered by overall severity, mixing site shell checks with
-                      the weakest content pages.
-                    </p>
-                    <div>
-                      {data.audits.map((audit, index) => (
-                        <div
-                          key={`${audit.path}-${audit.title}`}
-                          style={index === 0 ? { borderTop: "none" } : undefined}
-                        >
-                          <AuditRow audit={audit} />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                </>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-      </main>
+                    ))}
+                  </div>
+                </section>
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </div>
       <style>{`
         @media (max-width: 960px) {
           .seo-dashboard-two-column {

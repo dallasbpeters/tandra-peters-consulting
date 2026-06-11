@@ -114,8 +114,10 @@
 
 /* Block: site-page-main — routed pages under fixed chrome */
 .site-page-main {
+  --site-padding-inline-start: var(--theme-spacing-xxl);
+
   box-sizing: border-box;
-  padding-top: var(--theme-spacing-section-inset-top);
+  padding-top: var(--site-padding-inline-start);
   min-height: 80svh;
 }
 
