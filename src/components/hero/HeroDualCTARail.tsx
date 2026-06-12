@@ -5,6 +5,7 @@ import React, { useState } from "react";
 
 import type { HeroProps } from "../../types";
 
+import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { layoutClass } from "../../styles/layoutClasses";
@@ -34,15 +35,15 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
 }) => {
   const posthog = usePostHog();
   const [hovBtn, setHovBtn] = useState<"primary" | "secondary" | null>(null);
-
+  const isMobile = useIsMobile();
   const styles: Record<string, CSSProperties> = {
     wrapper: {
       paddingTop: theme.spacing.sectionLoose,
     },
     section: {
       position: "relative",
-      height: "calc(100vh - 20rem)",
-      minHeight: 600,
+      height: isMobile ? "auto" : "calc(100vh - 20rem)",
+      minHeight: isMobile ? 0 : 600,
       overflow: "hidden",
       background: theme.colors.black,
     },
@@ -67,24 +68,30 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       width: "4px",
       background: theme.colors.heroAccent,
     },
-    copyOuter: {
-      position: "absolute",
-      top: "50%",
-      transform: "translateY(-50%)",
-      left: 0,
-      right: 0,
-      zIndex: 10,
-    },
+    // Mobile flows in-document so the section grows with the stacked content;
+    // desktop keeps the vertically-centered overlay.
+    copyOuter: isMobile
+      ? {
+          position: "relative",
+          zIndex: 10,
+          padding: `${theme.spacing.section} 0`,
+        }
+      : {
+          position: "absolute",
+          top: "50%",
+          transform: "translateY(-50%)",
+          left: 0,
+          right: 0,
+          zIndex: 10,
+        },
     contentRow: {
       display: "flex",
-      alignItems: "flex-end",
-      justifyContent: "space-between",
+      alignItems: isMobile ? "stretch" : "flex-end",
+      justifyContent: isMobile ? "center" : "space-between",
       gap: theme.spacing.xxxxl,
+      flexDirection: isMobile ? "column" : "row",
     },
-    copyBlock: {
-      maxWidth: "40rem",
-      flex: "0 1 40rem",
-    },
+    copyBlock: isMobile ? { maxWidth: "100%" } : { maxWidth: "40rem", flex: "0 0 40rem" },
     badge: {
       display: "flex",
       alignItems: "center",
@@ -94,18 +101,18 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     badgeLine: {
       height: "1.5px",
       width: "3rem",
-      background: theme.colors.accentLight,
+      background: theme.colors.everglade,
     },
     badgeText: {
       fontSize: "0.6875rem",
       fontWeight: 800,
       letterSpacing: "0.22em",
       textTransform: "uppercase",
-      color: theme.colors.accentLight,
+      color: theme.colors.everglade,
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: "clamp(2.75rem, 5vw, 5.5rem)",
+      fontSize: "clamp(3.5rem, 5vw, 5.5rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
@@ -122,7 +129,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       letterSpacing: "-0.02em",
     },
     subtitleStyle: {
-      color: "oklch(80% 0.01 107)",
+      color: theme.colors.white,
       fontSize: "1rem",
       lineHeight: 1.7,
       marginBottom: theme.spacing.xxxxxxl,
@@ -131,6 +138,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       display: "flex",
       gap: theme.spacing.lg,
       flexWrap: "wrap",
+      flexDirection: isMobile ? "column" : "row",
     },
     ctaPrimary: {
       background: hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
@@ -141,6 +149,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       letterSpacing: "0.12em",
       textTransform: "uppercase",
       textDecoration: "none",
+      textAlign: isMobile ? "center" : undefined,
       transition: "background 0.15s",
     },
     ctaSecondary: {
@@ -153,6 +162,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       letterSpacing: "0.12em",
       textTransform: "uppercase",
       textDecoration: "none",
+      textAlign: isMobile ? "center" : undefined,
       transition: "background 0.15s, border-color 0.15s",
     },
     statCard: {
@@ -160,7 +170,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       padding: `${theme.spacing.xxl} ${theme.spacing.xxxxl}`,
       borderTop: `3px solid ${theme.colors.accentLight}`,
       flexShrink: 0,
-      alignSelf: "flex-end",
+      alignSelf: isMobile ? "stretch" : "flex-end",
       borderRadius: theme.radius.medium,
     },
     statValue: {

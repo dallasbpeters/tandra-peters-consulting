@@ -3,6 +3,7 @@ import { Facebook, Linkedin, Twitter, Mail, Link } from "iconoir-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 
+import { useIsMobile } from "../hooks/isMobile";
 import { plainTextFromRich } from "../portableText/plainText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
@@ -30,6 +31,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const posthog = usePostHog();
+  const isMobile = useIsMobile();
   const { pathname, search, hash } = useLocation();
 
   const pageUrl = useMemo(
@@ -53,6 +55,25 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
   const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`${sharePlain} ${pageUrl}`)}`;
+
+  /**
+   * On phones, facebook.com links (including sharer.php) get hijacked by the
+   * OS and deep-linked into the Facebook app's feed, dropping the share
+   * intent entirely. The native share sheet hands the URL to Facebook's share
+   * extension instead, which opens a real post composer with the OG preview.
+   */
+  const handleFacebookShare = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      posthog?.capture("social_share_clicked", { platform: "facebook" });
+      if (isMobile && typeof navigator.share === "function") {
+        event.preventDefault();
+        navigator.share({ text: sharePlain, url: pageUrl }).catch(() => {
+          // User dismissed the sheet — nothing to do.
+        });
+      }
+    },
+    [posthog, isMobile, sharePlain, pageUrl],
+  );
 
   const handleCopyLink = useCallback(async () => {
     if (!pageUrl) return;
@@ -175,7 +196,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             className="social-share-icon"
             aria-label={facebookAriaLabel}
             title={facebookAriaLabel}
-            onClick={() => posthog?.capture("social_share_clicked", { platform: "facebook" })}
+            onClick={handleFacebookShare}
           >
             <Facebook height={18} strokeWidth={1.75} aria-hidden />
           </a>
