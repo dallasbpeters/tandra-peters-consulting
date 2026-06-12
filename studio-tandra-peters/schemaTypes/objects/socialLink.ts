@@ -10,8 +10,6 @@ export const socialLinkType = defineType({
       type: "string",
       options: {
         list: [
-          { title: "Instagram", value: "instagram" },
-          { title: "LinkedIn", value: "linkedin" },
           { title: "Facebook", value: "facebook" },
           { title: "Email", value: "email" },
           { title: "Phone", value: "phone" },
