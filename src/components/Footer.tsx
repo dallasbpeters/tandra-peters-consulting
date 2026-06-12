@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Linkedin } from "iconoir-react";
+import { Facebook, Instagram } from "iconoir-react";
 import React from "react";
 
 import { RichText } from "../portableText/RichText";
@@ -18,11 +18,6 @@ export const Footer: React.FC<FooterProps> = ({
       icon: Instagram,
       href: "https://www.instagram.com/tandra/",
       platform: "Visit my Instagram",
-    },
-    {
-      icon: Linkedin,
-      href: "https://www.linkedin.com/in/tandra-peters-b8b38026/",
-      platform: "Visit my LinkedIn",
     },
     {
       icon: Facebook,
