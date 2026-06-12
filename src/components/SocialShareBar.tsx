@@ -10,6 +10,9 @@ import { theme } from "../theme";
 import { SocialShareBarProps } from "../types";
 import { buildSharePageUrl } from "../utils/siteUrl";
 
+/** Same Facebook app as the fb:app_id meta tag in index.html. */
+const FACEBOOK_APP_ID = "1336381888287332";
+
 const copyTextFallback = (text: string) => {
   const ta = document.createElement("textarea");
   ta.value = text;
@@ -50,30 +53,24 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const encodedUrl = encodeURIComponent(pageUrl);
   const encodedText = encodeURIComponent(sharePlain);
 
-  const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  /**
+   * Mobile uses the official Share Dialog URL: when iOS hands the link to the
+   * Facebook app, the app opens a real post composer for it — unlike
+   * sharer.php, which the app deep-links to the user's feed and drops the
+   * share. Desktop keeps the plain sharer popup (no app_id requirements).
+   * The app id matches the fb:app_id meta tag in index.html.
+   */
+  const facebookHref = isMobile
+    ? `https://www.facebook.com/dialog/share?app_id=${FACEBOOK_APP_ID}&display=touch&href=${encodedUrl}&redirect_uri=${encodedUrl}`
+    : `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
   const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`${sharePlain} ${pageUrl}`)}`;
 
-  /**
-   * On phones, facebook.com links (including sharer.php) get hijacked by the
-   * OS and deep-linked into the Facebook app's feed, dropping the share
-   * intent entirely. The native share sheet hands the URL to Facebook's share
-   * extension instead, which opens a real post composer with the OG preview.
-   */
-  const handleFacebookShare = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      posthog?.capture("social_share_clicked", { platform: "facebook" });
-      if (isMobile && typeof navigator.share === "function") {
-        event.preventDefault();
-        navigator.share({ text: sharePlain, url: pageUrl }).catch(() => {
-          // User dismissed the sheet — nothing to do.
-        });
-      }
-    },
-    [posthog, isMobile, sharePlain, pageUrl],
-  );
+  const handleFacebookShare = useCallback(() => {
+    posthog?.capture("social_share_clicked", { platform: "facebook" });
+  }, [posthog]);
 
   const handleCopyLink = useCallback(async () => {
     if (!pageUrl) return;
@@ -115,7 +112,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: theme.spacing.md,
+    gap: theme.spacing.xs,
   };
 
   const labelStyle: React.CSSProperties = {
