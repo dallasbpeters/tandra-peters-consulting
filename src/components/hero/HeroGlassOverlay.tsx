@@ -109,7 +109,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       fontWeight: 800,
       letterSpacing: "0.2em",
       textTransform: "uppercase",
-      color: theme.colors.heroAccent,
+      color: theme.colors.everglade,
     },
     h1: {
       fontFamily: theme.fonts.headline,
