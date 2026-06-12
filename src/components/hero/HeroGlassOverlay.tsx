@@ -101,7 +101,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       width: 6,
       height: 6,
       borderRadius: theme.radius.pill,
-      background: theme.colors.accentLight,
+      background: theme.colors.everglade,
       boxShadow: `0 0 8px ${theme.colors.accentLight}`,
     },
     badgeText: {
@@ -130,7 +130,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       letterSpacing: "-0.02em",
     },
     subtitleStyle: {
-      color: "oklch(82% 0.01 107)",
+      color: theme.colors.white,
       fontSize: "1.0625rem",
       lineHeight: 1.7,
       marginBottom: theme.spacing.xxxxxxl,

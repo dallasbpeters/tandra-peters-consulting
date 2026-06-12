@@ -23,9 +23,11 @@ repos:
         files: \.(js|jsx|ts|tsx)$
         exclude: ^(\.agents|\.claude|studio-tandra-peters)/
         pass_filenames: true
+      # Auto-fixes like trailing-whitespace: a failed run leaves files
+      # formatted — just `git add` and commit again.
       - id: oxfmt
         name: oxfmt
-        entry: pnpm run fmt:check
+        entry: pnpm exec oxfmt
         language: system
         files: \.(js|jsx|ts|tsx)$
         pass_filenames: true
