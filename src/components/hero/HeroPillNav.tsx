@@ -39,9 +39,11 @@ function ShaderEffect({ src, style }: { src: string; style: CSSProperties }) {
         visible={false}
       />
 
-      <ImageTexture url={src} />
+      <ImageTexture id="heroPillImage" url={src} />
 
+      {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
       <Dither
+        id="heroPillDither"
         colorA="#2e73b3"
         colorB="#c3d5e3"
         pattern="bayer8"

@@ -410,7 +410,9 @@ export const ContactSmall = ({
         </motion.div>
       </div>
       <Shader style={shaderStyle}>
+        {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
         <LinearGradient
+          id="contactGradient"
           colorA="#6c66de"
           colorB="#298f07"
           colorSpace="oklab"
@@ -427,6 +429,7 @@ export const ContactSmall = ({
         />
 
         <WaveDistortion
+          id="contactWave"
           angle={81}
           frequency={0.9}
           speed={0.7}
@@ -434,7 +437,7 @@ export const ContactSmall = ({
           transform={{ scale: 1.84 }}
         />
 
-        <Dither blendMode="colorDodge" colorMode="source" pattern="bayer8" />
+        <Dither id="contactDither" blendMode="colorDodge" colorMode="source" pattern="bayer8" />
       </Shader>
     </section>
   );

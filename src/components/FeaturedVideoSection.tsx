@@ -109,9 +109,10 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
   return (
     <div ref={sectionRef} style={containerStyle}>
       <Shader style={shaderStyle}>
-        <SolidColor color="#09291d" />
-        <Halftone angle={0} frequency={135}>
-          <Swirl colorA="#12533A" colorB="#7f65cd" />
+        {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
+        <SolidColor id="videoSolid" color="#09291d" />
+        <Halftone id="videoHalftone" angle={0} frequency={135}>
+          <Swirl id="videoSwirl" colorA="#12533A" colorB="#7f65cd" />
         </Halftone>
       </Shader>
 

@@ -22,7 +22,9 @@ const DEFAULT_ABOUT_PARAGRAPHS = [
 function ShaderEffect({ style }: { style: React.CSSProperties }) {
   return (
     <Shader style={style}>
+      {/* Explicit id: React useId() fallback yields `__` GLSL names that fail on Safari. */}
       <MultiPointGradient
+        id="aboutGradient"
         colorA="#f5f6e9"
         colorB="#f9f8e7"
         colorC="#fbf8ea"

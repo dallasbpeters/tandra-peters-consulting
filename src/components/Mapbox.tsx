@@ -553,7 +553,9 @@ export const MapBox = ({
         </div>
       </div>
       <Shader style={{ position: "absolute", inset: 0, zIndex: 10 }}>
+        {/* Explicit id: React useId() fallback yields `__` GLSL names that fail on Safari. */}
         <ChromaFlow
+          id="mapChromaFlow"
           baseColor="#7449d6"
           blendMode="multiply"
           downColor="#7935b5"

@@ -4,7 +4,11 @@ import { Shader, Dither, ImageTexture } from "shaders/react";
 export default function FooterBg({ style }: { style: React.CSSProperties }) {
   return (
     <Shader style={style}>
+      {/* Explicit ids: without them the lib falls back to React useId(), whose
+          underscore format produces GLSL-reserved `__` uniform names that fail
+          to compile on Safari/iOS. */}
       <Dither
+        id="footerDither"
         blendMode="normal-oklch"
         colorA="#050a05"
         colorB="#183A2C"
@@ -17,6 +21,7 @@ export default function FooterBg({ style }: { style: React.CSSProperties }) {
         }}
       >
         <ImageTexture
+          id="footerImage"
           objectFit="cover"
           transform={{
             scale: 2,
