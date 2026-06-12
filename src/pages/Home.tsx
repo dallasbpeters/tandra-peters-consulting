@@ -242,10 +242,10 @@ export const Home = () => {
                 theme.colors.purple,
               ]}
             />
-            {contact ? <Contact {...mapContactProps(contact)} /> : null}
-            {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
           </Suspense>
         </GoogleAuthGate>
+        {contact ? <Contact {...mapContactProps(contact)} /> : null}
+        {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
       </main>
 
       <Suspense fallback={null}>
