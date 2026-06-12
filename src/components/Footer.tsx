@@ -1,4 +1,4 @@
-import { Facebook, Instagram } from "iconoir-react";
+import { Facebook, Instagram, Mail } from "iconoir-react";
 import React from "react";
 
 import { RichText } from "../portableText/RichText";
@@ -23,6 +23,11 @@ export const Footer: React.FC<FooterProps> = ({
       icon: Facebook,
       href: "https://www.facebook.com/tandra.peters.3",
       platform: "Visit my Facebook",
+    },
+    {
+      icon: Mail,
+      href: "mailto:tandra@birdcreekroofing.com",
+      platform: "Email me",
     },
   ],
   quickLinks = [
