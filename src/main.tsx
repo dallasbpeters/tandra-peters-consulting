@@ -18,6 +18,23 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { isPosthogEnabled, resolvePosthogClientOptions } from "./posthogClientConfig";
 
+/**
+ * After a deploy, tabs opened on the previous build request lazy-route chunks
+ * by their old hashed filenames, which 404 on Vercel (e.g. clicking the
+ * Privacy Policy link dies silently). Vite fires `vite:preloadError` when a
+ * dynamic-import preload fails — reload once so the tab picks up the new
+ * build. The sessionStorage guard prevents a reload loop if the chunk is
+ * genuinely broken.
+ */
+window.addEventListener("vite:preloadError", (event) => {
+  const RELOAD_AT_KEY = "vite-preload-error-reloaded-at";
+  const lastReloadAt = Number(window.sessionStorage.getItem(RELOAD_AT_KEY) ?? 0);
+  if (Date.now() - lastReloadAt < 30_000) return;
+  window.sessionStorage.setItem(RELOAD_AT_KEY, String(Date.now()));
+  event.preventDefault();
+  window.location.reload();
+});
+
 const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
 
 if (posthogToken && isPosthogEnabled()) {
