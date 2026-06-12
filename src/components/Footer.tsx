@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Mail } from "iconoir-react";
+import { Facebook, Mail } from "iconoir-react";
 import React from "react";
 
 import { RichText } from "../portableText/RichText";
@@ -14,11 +14,6 @@ export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
   description = "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.",
   socialLinks = [
-    {
-      icon: Instagram,
-      href: "https://www.instagram.com/tandra/",
-      platform: "Visit my Instagram",
-    },
     {
       icon: Facebook,
       href: "https://www.facebook.com/tandra.peters.3",

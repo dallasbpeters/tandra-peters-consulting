@@ -66,8 +66,8 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       position: "absolute",
       inset: 0,
 
-      backdropFilter: "blur(4px)",
-      WebkitBackdropFilter: "blur(4px)",
+      backdropFilter: "blur(2px)",
+      WebkitBackdropFilter: "blur(2px)",
       maskImage: "linear-gradient(to top, black 0%, transparent 70%)",
       WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 70%)",
     },
@@ -109,7 +109,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       fontWeight: 800,
       letterSpacing: "0.2em",
       textTransform: "uppercase",
-      color: theme.colors.everglade,
+      color: theme.colors.heroAccent,
     },
     h1: {
       fontFamily: theme.fonts.headline,
