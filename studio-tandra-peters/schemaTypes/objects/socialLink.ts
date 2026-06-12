@@ -13,6 +13,8 @@ export const socialLinkType = defineType({
           { title: "Instagram", value: "instagram" },
           { title: "LinkedIn", value: "linkedin" },
           { title: "Facebook", value: "facebook" },
+          { title: "Email", value: "email" },
+          { title: "Phone", value: "phone" },
         ],
         layout: "radio",
       },
@@ -22,7 +24,7 @@ export const socialLinkType = defineType({
       name: "url",
       type: "url",
       validation: (rule) =>
-        rule.required().uri({ allowRelative: false, scheme: ["http", "https"] }),
+        rule.required().uri({ allowRelative: false, scheme: ["http", "https", "mailto", "tel"] }),
     }),
   ],
 });

@@ -1,5 +1,5 @@
 import { stegaClean } from "@sanity/client/stega";
-import { Facebook, Instagram, Linkedin } from "iconoir-react";
+import { Facebook, Mail, Phone } from "iconoir-react";
 import React from "react";
 
 import type { HeroProps } from "../types";
@@ -25,15 +25,15 @@ import { theme } from "../theme";
 import { sanityImageUrl, type SanityImageTransform } from "./imageUrl";
 
 const SOCIAL_ICONS = {
-  instagram: Instagram,
-  linkedin: Linkedin,
   facebook: Facebook,
+  email: Mail,
+  phone: Phone,
 } as const;
 
 const SOCIAL_PLATFORM_LABELS: Record<keyof typeof SOCIAL_ICONS, string> = {
-  instagram: "Visit my Instagram",
-  linkedin: "Visit my LinkedIn",
   facebook: "Visit my Facebook",
+  email: "Email me",
+  phone: "Call me",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

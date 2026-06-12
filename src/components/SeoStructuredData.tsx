@@ -28,11 +28,7 @@ export const SeoStructuredData = () => {
         { "@type": "State", name: "Texas" },
       ],
       priceRange: "$$",
-      sameAs: [
-        "https://www.linkedin.com/in/tandra-peters-b8b38026/",
-        "https://www.instagram.com/tandra/",
-        "https://www.facebook.com/tandra.peters.3",
-      ],
+      sameAs: ["https://www.facebook.com/tandra.peters.3"],
     };
 
     const script = document.createElement("script");

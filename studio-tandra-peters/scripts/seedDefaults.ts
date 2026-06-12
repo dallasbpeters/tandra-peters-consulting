@@ -45,9 +45,9 @@ export const siteSettingsSeed = {
     { name: "Cookie Policy", href: "/cookies" },
   ],
   footerSocialLinks: [
-    { platform: "instagram", url: "https://www.instagram.com/tandra/" },
-    { platform: "linkedin", url: "https://www.linkedin.com/in/tandra-peters-b8b38026/" },
     { platform: "facebook", url: "https://www.facebook.com/tandra.peters.3" },
+    { platform: "email", url: "mailto:tandra@birdcreekroofing.com" },
+    { platform: "phone", url: "tel:+15129683965" },
   ],
   footerCopyrightText: "© 2026 Tandra Peters. All Rights Reserved.",
   footerPartnerText: "Birdcreek Roofing",
