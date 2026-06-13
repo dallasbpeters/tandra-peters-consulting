@@ -113,7 +113,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: "clamp(3.5rem, 5vw, 5.5rem)",
+      fontSize: "clamp(4.5rem, 8vw, 12.5rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
