@@ -86,10 +86,10 @@ export const ContactSmall = ({
             return "This site is not allowed to submit the form (ALLOWED_ORIGINS). Add your exact URL, including https:// and www if used.";
           }
           if (res.status === 503) {
-            return "Server is missing ATTIO_API_TOKEN. Add it in Vercel → Project → Environment Variables.";
+            return "Email delivery isn't configured (missing RESEND_API_KEY or EMAIL_FROM). Add them in Vercel → Project → Environment Variables.";
           }
           if (res.status === 502) {
-            return "Could not save your message (CRM error). Try again later or contact us by phone or email.";
+            return "Could not send your message right now. Try again later or contact us by phone or email.";
           }
           if (res.ok && !data.ok) {
             return "The server returned an unexpected response. Check that /api/contact is not rewritten to the SPA.";

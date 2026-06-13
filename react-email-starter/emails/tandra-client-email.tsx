@@ -12,8 +12,8 @@ import { ClientEmailDocument } from "../../server/email/template";
 const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
 
 const assets: EmailAssets = {
-  headerLogoUrl: `${baseUrl}/static/BC_Horizontal_Color.svg`,
-  signatureLogoFallback: `${baseUrl}/static/BC_Horizontal_Color.svg`,
+  headerLogoUrl: `${baseUrl}/static/BC_Horizontal_Color.png`,
+  signatureLogoFallback: `${baseUrl}/static/BC_Horizontal_Color.png`,
   signatureHeadshotFallback: `${baseUrl}/static/tandra.webp`,
 };
 

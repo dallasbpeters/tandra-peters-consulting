@@ -1,12 +1,15 @@
 /**
  * GET /api/email/recipients?search= → { recipients: [{ id, name, email }] }
  *
- * Lists contacts (Attio People with an email) for the composer's recipient
- * picker. Google-auth gated; reuses the website's ATTIO_API_TOKEN.
+ * Lists contacts for the composer's recipient picker, merging two sources
+ * (deduped by email): the website's Sanity `emailContact` list (people who used
+ * the contact form) and Attio People. Either source may be unconfigured.
+ * Google-auth gated.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { listAttioPeople } from "../../server/email/attio.js";
+import { listEmailContacts, mergeRecipients } from "../../server/email/contactsStore.js";
 import { DashboardAuthError, authorizeSeoDashboardRequest } from "../../server/seo/googleAuth.js";
 
 const applyCors = (res: VercelResponse) => {
@@ -31,23 +34,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   try {
     await authorizeSeoDashboardRequest(req.headers.authorization);
 
-    const token = process.env.ATTIO_API_TOKEN?.trim();
-    if (!token) {
-      res.status(503).json({ error: "CRM is not configured (missing ATTIO_API_TOKEN)." });
+    const attioToken = process.env.ATTIO_API_TOKEN?.trim();
+    const sanityToken =
+      process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim();
+
+    if (!attioToken && !sanityToken) {
+      res.status(503).json({
+        error: "No recipient source configured (set SANITY_WRITE_TOKEN and/or ATTIO_API_TOKEN).",
+      });
       return;
     }
 
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
-    const recipients = await listAttioPeople(token, { search });
+
+    const [attio, sanity] = await Promise.all([
+      attioToken
+        ? listAttioPeople(attioToken, { search }).catch((err) => {
+            console.error("[api/email/recipients] Attio", err);
+            return [];
+          })
+        : Promise.resolve([]),
+      sanityToken
+        ? listEmailContacts(sanityToken, { search }).catch((err) => {
+            console.error("[api/email/recipients] Sanity", err);
+            return [];
+          })
+        : Promise.resolve([]),
+    ]);
 
     res.setHeader("Cache-Control", "no-store");
-    res.status(200).json({ recipients });
+    res.status(200).json({ recipients: mergeRecipients(attio, sanity) });
   } catch (error) {
     if (error instanceof DashboardAuthError) {
       res.status(error.status).json({ error: error.message });
       return;
     }
     console.error("[api/email/recipients]", error);
-    res.status(502).json({ error: "Could not load contacts from the CRM." });
+    res.status(502).json({ error: "Could not load contacts." });
   }
 }

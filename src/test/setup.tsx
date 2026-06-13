@@ -345,6 +345,12 @@ vi.mock("@awesome.me/webawesome/dist/react/option/index.js", () => ({
   ),
 }));
 
+// Mapbox Address Autofill mounts a custom element that crashes jsdom on unmount;
+// render its children (the native address input) directly in tests.
+vi.mock("@mapbox/search-js-react", () => ({
+  AddressAutofill: ({ children }: { children?: React.ReactNode }) => children ?? null,
+}));
+
 vi.mock("../components/TransitionLink", () => ({
   TransitionLink: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>

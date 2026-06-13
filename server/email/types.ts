@@ -62,3 +62,16 @@ export type EmailRecipient = {
   name: string;
   email: string;
 };
+
+/** A website contact-form submission, emailed to Tandra as a new lead. */
+export type ContactLeadSubmission = {
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  /** Human-readable service label (falls back to the raw value when unknown). */
+  serviceLabel?: string;
+  message: string;
+  propertyAddress?: string;
+  /** ISO timestamp of submission; defaults to now when omitted. */
+  submittedAt?: string;
+};

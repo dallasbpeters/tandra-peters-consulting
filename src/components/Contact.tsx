@@ -3,6 +3,7 @@ import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
+import { AddressAutofill } from "@mapbox/search-js-react";
 import { usePostHog } from "@posthog/react";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
 import { motion } from "motion/react";
@@ -32,6 +33,7 @@ export const Contact = ({
   const [visitorEmail, setVisitorEmail] = useState("");
   const [serviceInterest, setServiceInterest] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [propertyAddress, setPropertyAddress] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
@@ -40,6 +42,7 @@ export const Contact = ({
   );
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
+  const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,6 +67,7 @@ export const Contact = ({
           fullName,
           email: visitorEmail,
           phoneNumber,
+          propertyAddress,
           serviceInterest,
           message,
           consentToContact: true,
@@ -92,10 +96,10 @@ export const Contact = ({
             return "This site is not allowed to submit the form (ALLOWED_ORIGINS). Add your exact URL, including https:// and www if used.";
           }
           if (res.status === 503) {
-            return "Server is missing ATTIO_API_TOKEN. Add it in Vercel → Project → Environment Variables.";
+            return "Email delivery isn't configured (missing RESEND_API_KEY or EMAIL_FROM). Add them in Vercel → Project → Environment Variables.";
           }
           if (res.status === 502) {
-            return "Could not save your message (CRM error). Try again later or contact us by phone or email.";
+            return "Could not send your message right now. Try again later or contact us by phone or email.";
           }
           if (res.ok && !data.ok) {
             return "The server returned an unexpected response. Check that /api/contact is not rewritten to the SPA.";
@@ -133,6 +137,7 @@ export const Contact = ({
       setVisitorEmail("");
       setServiceInterest("");
       setPhoneNumber("");
+      setPropertyAddress("");
       setMessage("");
       setHoneypot("");
       setConsentToContact(false);
@@ -192,6 +197,30 @@ export const Contact = ({
 
   const serviceLabel = formLabels?.service ?? "Service interest";
 
+  /** Native input styled to match the WebAwesome fields (Mapbox needs a real input, not a custom element). */
+  const addressLabelStyle: React.CSSProperties = {
+    display: "block",
+    fontFamily: theme.fonts.body,
+    fontSize: "var(--wa-form-control-label-font-size, 1rem)",
+    color: theme.colors.everglade,
+    marginBottom: "0.5rem",
+  };
+
+  const addressInputStyle: React.CSSProperties = {
+    width: "100%",
+    boxSizing: "border-box",
+    fontFamily: theme.fonts.body,
+    fontSize: "var(--wa-form-control-value-font-size, 1rem)",
+    color: theme.colors.everglade,
+    backgroundColor: "var(--wa-form-control-background-color, #fff)",
+    border:
+      "var(--wa-form-control-border-width, 1px) var(--wa-form-control-border-style, solid) var(--wa-form-control-border-color)",
+    borderRadius: "var(--wa-border-radius-m, 0.5rem)",
+    height: "var(--wa-form-control-height, 2.625rem)",
+    padding: "0 var(--wa-form-control-padding-inline, 1rem)",
+    outline: "none",
+  };
+
   const consentLinkStyle: React.CSSProperties = {
     color: theme.colors.everglade,
     fontWeight: 700,
@@ -246,6 +275,15 @@ export const Contact = ({
           }
           .send-btn:hover { background-color: ${mix(theme.colors.everglade, 93)} !important; }
           .send-btn:hover .send-icon { transform: translate(8px, 0) !important; }
+          mapbox-address-autofill { display: block; width: 100%; }
+          .contact-address-input::placeholder { color: ${mix(theme.colors.everglade, 33)}; }
+          .contact-address-input:focus {
+            border-color: var(--wa-form-control-activated-color, ${theme.colors.accent}) !important;
+          }
+          .contact-address-input:focus-visible {
+            outline: 2px solid ${theme.colors.accent};
+            outline-offset: 2px;
+          }
         `}</style>
         <motion.div
           initial={{ opacity: 0 }}
@@ -435,6 +473,53 @@ export const Contact = ({
                   name="phone"
                 ></Phone>
               </WaInput>
+              <div>
+                <label htmlFor="contact-property-address" style={addressLabelStyle}>
+                  Property Address{" "}
+                  <span style={{ fontWeight: 400, color: mix(theme.colors.everglade, 45) }}>
+                    (optional)
+                  </span>
+                </label>
+                {mapboxToken ? (
+                  <AddressAutofill
+                    accessToken={mapboxToken}
+                    options={{ country: "US", language: "en" }}
+                    onRetrieve={(res) => {
+                      const props = res?.features?.[0]?.properties as
+                        | { full_address?: string; place_name?: string }
+                        | undefined;
+                      const full = props?.full_address || props?.place_name;
+                      if (full) setPropertyAddress(full);
+                    }}
+                  >
+                    <input
+                      id="contact-property-address"
+                      name="property-address"
+                      type="text"
+                      className="contact-address-input"
+                      placeholder="Start typing your property address…"
+                      value={propertyAddress}
+                      onChange={(ev) => setPropertyAddress(ev.target.value)}
+                      autoComplete="address-line1"
+                      maxLength={500}
+                      style={addressInputStyle}
+                    />
+                  </AddressAutofill>
+                ) : (
+                  <input
+                    id="contact-property-address"
+                    name="property-address"
+                    type="text"
+                    className="contact-address-input"
+                    placeholder="123 Main St, Austin, TX"
+                    value={propertyAddress}
+                    onChange={(ev) => setPropertyAddress(ev.target.value)}
+                    autoComplete="street-address"
+                    maxLength={500}
+                    style={addressInputStyle}
+                  />
+                )}
+              </div>
               <WaSelect
                 name="service-interest"
                 label={serviceLabel}

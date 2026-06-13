@@ -2,6 +2,7 @@ import { aiContextType } from "./documents/aiContext";
 import { articlesPageType } from "./documents/articlesPage";
 import beforeAfterGalleryType from "./documents/beforeAfterGallery";
 import { clientEmailType } from "./documents/clientEmail";
+import { emailContactType } from "./documents/emailContact";
 import { emailSignatureType } from "./documents/emailSignature";
 import { homePageType } from "./documents/homePage";
 import { insuranceFaqsPageType } from "./documents/insuranceFaqsPage";
@@ -90,5 +91,6 @@ export const schemaTypes = [
   seoDashboardInsightsType,
   clientEmailType,
   emailSignatureType,
+  emailContactType,
   postType,
 ];

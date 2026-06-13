@@ -1,16 +1,28 @@
 /**
- * Vercel serverless: POST /api/contact → Attio People (assert by email).
+ * Vercel serverless: POST /api/contact → emails the submission to Tandra (Resend).
  *
  * Env (Vercel → Project → Settings → Environment Variables):
- *   ATTIO_API_TOKEN   — Bearer token from Attio (Developers / API tokens).
- *                       Scopes: record_permission:read-write, object_configuration:read,
- *                       and note:read-write (needed to create a Note with the form message on the person).
- *   ALLOWED_ORIGINS   — Optional. Comma-separated exact Origin values, e.g.
- *                       https://tandra.me,https://www.tandra.me
- *                       If omitted, any origin is allowed (OK for early setup; tighten for production).
- *                       Requests with no Origin (e.g. curl) are allowed when Host matches one of these URLs’ hostnames.
+ *   RESEND_API_KEY          — Resend API key.
+ *   EMAIL_FROM              — Verified sender, e.g. "Tandra Peters <tandra@tandra.me>".
+ *   CONTACT_NOTIFICATION_TO — Optional. Comma-separated recipients for lead emails.
+ *                             Defaults to tandra@birdcreekroofing.com.
+ *   EMAIL_ASSET_BASE_URL    — Optional. Base URL for email logo (defaults to https://www.tandra.me).
+ *   SANITY_WRITE_TOKEN      — Optional. When set, each submitter is saved to the
+ *     (or SANITY_API_WRITE_TOKEN)  Sanity `emailContact` list (draft-only, deduped by email) so
+ *                             the email composer can reach them later. Non-fatal if missing.
+ *   ALLOWED_ORIGINS         — Optional. Comma-separated exact Origin values, e.g.
+ *                             https://tandra.me,https://www.tandra.me
+ *                             If omitted, any origin is allowed (OK for early setup; tighten for production).
+ *                             Requests with no Origin (e.g. curl) are allowed when Host matches one of these URLs' hostnames.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+import { Resend } from "resend";
+
+import type { ContactLeadSubmission, EmailAssets } from "../server/email/types.js";
+
+import { renderContactLeadEmail } from "../server/email/contactLead.js";
+import { upsertContactLead } from "../server/email/contactsStore.js";
 
 /**
  * Inline copy of labels/validation (see `contactServiceOptions.ts` in the app).
@@ -37,12 +49,26 @@ const contactServiceLabel = (value: string): string | null => {
   return row?.label ?? null;
 };
 
-const ATTIO_ASSERT_URL =
-  "https://api.attio.com/v2/objects/people/records?matching_attribute=email_addresses";
-
-const ATTIO_NOTES_URL = "https://api.attio.com/v2/notes";
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const ASSET_BASE = (process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me").replace(/\/$/, "");
+
+const leadAssets: EmailAssets = {
+  headerLogoUrl: `${ASSET_BASE}/BC_Horizontal_Color.png`,
+  signatureLogoFallback: `${ASSET_BASE}/BC_Horizontal_Color.png`,
+};
+
+const DEFAULT_NOTIFICATION_TO = "tandra@birdcreekroofing.com";
+
+const parseNotificationRecipients = (): string[] => {
+  const raw = process.env.CONTACT_NOTIFICATION_TO?.trim();
+  if (!raw) return [DEFAULT_NOTIFICATION_TO];
+  const list = raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => EMAIL_RE.test(s));
+  return list.length > 0 ? list : [DEFAULT_NOTIFICATION_TO];
+};
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
@@ -103,164 +129,6 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
   }
 };
 
-/** Attio assert expects `name` as [{ first_name, last_name, full_name }]; all three keys should be present. */
-const nameValues = (fullName: string): Array<Record<string, string>> => {
-  const trimmed = fullName.trim();
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-  const first_name = parts[0] ?? trimmed;
-  const last_name = parts.length > 1 ? parts.slice(1).join(" ") : "";
-  return [{ first_name, last_name, full_name: trimmed }];
-};
-
-/**
- * Normalize to E.164 when possible. Returns null if too short / unusable (caller omits `phone_numbers`).
- */
-const normalizePhoneForAttio = (raw: string): string | null => {
-  const s = raw.trim();
-  if (!s) return null;
-  const hasPlus = s.startsWith("+");
-  const digits = s.replace(/\D/g, "");
-  if (digits.length < 10) return null;
-  if (hasPlus) return `+${digits}`;
-  if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
-  return `+${digits}`;
-};
-
-const phoneNumbersPayload = (raw: string): Array<{ original_phone_number: string }> | null => {
-  const normalized = normalizePhoneForAttio(raw);
-  if (!normalized) return null;
-  return [{ original_phone_number: normalized }];
-};
-
-/**
- * Assert schema requires every `primary_location` key; optional parts may be null.
- * Freeform form address is stored on `line_1` (see Attio assert example).
- */
-const primaryLocationPayload = (
-  line1: string,
-): Array<{
-  line_1: string;
-  line_2: null;
-  line_3: null;
-  line_4: null;
-  locality: null;
-  region: null;
-  postcode: null;
-  country_code: string;
-  latitude: null;
-  longitude: null;
-}> => [
-  {
-    line_1: line1,
-    line_2: null,
-    line_3: null,
-    line_4: null,
-    locality: null,
-    region: null,
-    postcode: null,
-    country_code: "US",
-    latitude: null,
-    longitude: null,
-  },
-];
-
-type AttioErrJson = {
-  type?: string;
-  message?: string;
-  status_code?: number;
-};
-
-const parseAttioErrorMessage = (bodyText: string): string | null => {
-  try {
-    const j = JSON.parse(bodyText) as AttioErrJson;
-    if (typeof j.message === "string" && j.message.trim()) {
-      return j.message.trim().slice(0, 400);
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-};
-
-const recordIdFromAssertResponse = (j: unknown): string | null => {
-  if (!j || typeof j !== "object") return null;
-  const data = (j as { data?: unknown }).data;
-  if (!data || typeof data !== "object" || data === null) return null;
-  const d = data as Record<string, unknown>;
-
-  const id = d.id;
-  if (id && typeof id === "object" && id !== null) {
-    const rid = (id as { record_id?: unknown }).record_id;
-    if (typeof rid === "string" && rid.length > 0) return rid;
-  }
-
-  const webUrl = d.web_url;
-  if (typeof webUrl === "string") {
-    const m = webUrl.match(/\/(?:person|people)\/([0-9a-f-]{36})/i);
-    if (m) return m[1];
-    try {
-      const last = new URL(webUrl).pathname.split("/").filter(Boolean).pop();
-      if (last && /^[0-9a-f-]{36}$/i.test(last)) return last;
-    } catch {
-      // ignore invalid URL
-    }
-  }
-
-  return null;
-};
-
-/** Plaintext body for an Attio Note (timeline) — mirrors description so the message is always visible in-app. */
-const buildFormNoteContent = (args: {
-  message: string;
-  propertyAddress: string;
-  serviceLine: string | null;
-  serviceInterestRaw: string;
-  consentNote: string;
-  phoneNumber: string;
-}): string => {
-  const lines = [
-    "MESSAGE",
-    args.message,
-    "",
-    "PROPERTY / ADDRESS (exact)",
-    args.propertyAddress || "—",
-    "",
-    `Service: ${args.serviceLine ?? args.serviceInterestRaw}`,
-  ];
-  if (args.phoneNumber.trim()) {
-    lines.push(`Phone (as entered): ${args.phoneNumber.trim()}`);
-  }
-  lines.push(args.consentNote, "", "Source: Website contact form");
-  return lines.join("\n").replace(/\0/g, "").slice(0, 100_000);
-};
-
-const postAttioPersonNote = async (
-  token: string,
-  recordId: string,
-  title: string,
-  content: string,
-): Promise<{ ok: boolean; status: number; body: string }> => {
-  const res = await fetch(ATTIO_NOTES_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      data: {
-        parent_object: "people",
-        parent_record_id: recordId,
-        title: title.slice(0, 500),
-        format: "plaintext",
-        content,
-      },
-    }),
-  });
-  const body = await res.text();
-  return { ok: res.ok, status: res.status, body };
-};
-
 const contactHandler = async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   const origin = req.headers.origin as string | undefined;
   applyCors(res, origin);
@@ -284,8 +152,9 @@ const contactHandler = async (req: VercelRequest, res: VercelResponse): Promise<
     return;
   }
 
-  const token = process.env.ATTIO_API_TOKEN?.trim();
-  if (!token) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.EMAIL_FROM?.trim();
+  if (!apiKey || !from) {
     res.status(503).json({ ok: false, error: "Service not configured" });
     return;
   }
@@ -347,149 +216,51 @@ const contactHandler = async (req: VercelRequest, res: VercelResponse): Promise<
     return;
   }
 
-  const consentNote = `Consent to be contacted: yes (website form, ${new Date().toISOString().slice(0, 10)})`;
-
-  /** Person `description` — message and address first so previews and exports surface them. */
-  const description = [
-    "MESSAGE",
+  const submission: ContactLeadSubmission = {
+    fullName,
+    email: email.toLowerCase(),
+    phoneNumber: phoneNumber || undefined,
+    serviceLabel: serviceLine ?? serviceInterestRaw,
     message,
-    "",
-    "PROPERTY / ADDRESS (exact)",
-    propertyAddress || "—",
-    "",
-    `Service: ${serviceLine ?? serviceInterestRaw}`,
-    consentNote,
-    "",
-    "Source: Website contact form",
-  ].join("\n");
-
-  const baseValues: Record<string, unknown> = {
-    email_addresses: [{ email_address: email.toLowerCase() }],
-    name: nameValues(fullName),
+    propertyAddress: propertyAddress || undefined,
+    submittedAt: new Date().toISOString(),
   };
 
-  const phonePayload = phoneNumbersPayload(phoneNumber);
-  if (phonePayload) {
-    baseValues.phone_numbers = phonePayload;
-  }
+  const subject = `New roofing inquiry · ${fullName} · ${serviceLine ?? serviceInterestRaw}`;
+  const html = await renderContactLeadEmail(submission, leadAssets);
 
-  if (propertyAddress.length > 0) {
-    baseValues.primary_location = primaryLocationPayload(propertyAddress);
-  }
-
-  const putAssert = async (values: Record<string, unknown>) =>
-    fetch(ATTIO_ASSERT_URL, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ data: { values } }),
-    });
-
-  const descriptionPayload = (text: string) =>
-    [{ value: text.replace(/\0/g, "").slice(0, 100_000) }] as const;
-
-  let attioRes = await putAssert({
-    ...baseValues,
-    description: descriptionPayload(description),
+  const resend = new Resend(apiKey);
+  const result = await resend.emails.send({
+    from,
+    to: parseNotificationRecipients(),
+    replyTo: submission.email,
+    subject,
+    html,
   });
 
-  let errText = !attioRes.ok ? await attioRes.text() : "";
-
-  /**
-   * Never retry with email+name only — that used to "succeed" while dropping
-   * description (service, property address, message) in Attio.
-   * If the first body fails validation, retry once with a shorter description shape.
-   */
-  if (!attioRes.ok && attioRes.status === 400) {
-    const compactDescription = [
-      "MESSAGE",
-      message,
-      "",
-      "PROPERTY / ADDRESS (exact)",
-      propertyAddress || "—",
-      "",
-      `Service: ${serviceLine ?? serviceInterestRaw}`,
-      consentNote,
-      "Source: Website contact form",
-    ].join("\n");
-    const retry = await putAssert({
-      ...baseValues,
-      description: descriptionPayload(compactDescription),
-    });
-    attioRes = retry;
-    errText = retry.ok ? "" : await retry.text();
-  }
-
-  if (!attioRes.ok) {
-    console.error("Attio error", attioRes.status, errText);
-    const attioMsg = parseAttioErrorMessage(errText);
-    if (attioRes.status === 401 || attioRes.status === 403) {
-      res.status(502).json({
-        ok: false,
-        error:
-          "CRM rejected the API token. Confirm ATTIO_API_TOKEN in Vercel and token scopes (read-write records).",
-      });
-      return;
-    }
+  if (result.error) {
+    console.error("[api/contact] Resend error", result.error);
     res.status(502).json({
       ok: false,
-      error: attioMsg ?? "Could not save your message. Try again later.",
+      error: "Could not send your message. Try again later or contact us by phone or email.",
     });
     return;
   }
 
-  let attioJson: unknown;
-  try {
-    attioJson = await attioRes.json();
-  } catch {
-    console.error("Attio: 2xx but response was not JSON");
-    res.status(502).json({
-      ok: false,
-      error: "Could not save your message. Try again later.",
-    });
-    return;
-  }
+  console.info("[api/contact] lead emailed", { id: result.data?.id, service: serviceInterestRaw });
 
-  const recordId = recordIdFromAssertResponse(attioJson);
-  if (!recordId) {
-    console.error("Attio: unexpected success payload", JSON.stringify(attioJson).slice(0, 800));
-    res.status(502).json({
-      ok: false,
-      error: "Could not save your message. Try again later.",
-    });
-    return;
-  }
-
-  const noteTitle = `Website contact · ${serviceLine ?? serviceInterestRaw} · ${new Date().toISOString().slice(0, 10)}`;
-  const noteContent = buildFormNoteContent({
-    message,
-    propertyAddress,
-    serviceLine,
-    serviceInterestRaw,
-    consentNote,
-    phoneNumber,
-  });
-
-  const noteRes = await postAttioPersonNote(token, recordId, noteTitle, noteContent);
-  if (!noteRes.ok) {
-    console.error("Attio note create failed", {
-      status: noteRes.status,
-      body: noteRes.body.slice(0, 500),
-      record_id: recordId,
-    });
-    if (noteRes.status === 401 || noteRes.status === 403) {
-      console.error(
-        "Attio: add note:read-write to the API token scope to create Notes with the form message.",
-      );
+  // Save the submitter to the Sanity contact list (draft-only) so the email
+  // composer can reach them later. Non-fatal: never block the visitor's success.
+  const sanityToken =
+    process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim();
+  if (sanityToken) {
+    try {
+      await upsertContactLead(sanityToken, submission);
+    } catch (err) {
+      console.error("[api/contact] contact upsert failed", err);
     }
   }
 
-  console.info("Attio person assert ok", {
-    record_id: recordId,
-    note_ok: noteRes.ok,
-  });
   res.status(200).json({ ok: true });
 };
 

@@ -117,11 +117,21 @@ export const structure: StructureResolver = (S) =>
                     .documentId("emailSignature")
                     .title("Email signature"),
                 ),
+              S.listItem()
+                .title("Contacts")
+                .id("desk-email-contacts")
+                .child(
+                  S.documentTypeList("emailContact")
+                    .id("email-contacts-documents")
+                    .title("Contacts")
+                    .defaultOrdering([{ field: "lastContactedAt", direction: "desc" }]),
+                ),
             ]),
         ),
       S.divider(),
       ...S.documentTypeListItems().filter((item) => {
         const id = item.getId() || "";
-        return !SINGLETONS.has(id) && id !== "post";
+        // `emailContact` is placed under the Emails hub above.
+        return !SINGLETONS.has(id) && id !== "post" && id !== "emailContact";
       }),
     ]);

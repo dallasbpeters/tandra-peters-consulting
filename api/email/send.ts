@@ -27,8 +27,8 @@ const ASSET_BASE = (process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me")
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const apiAssets: EmailAssets = {
-  headerLogoUrl: `${ASSET_BASE}/BC_Horizontal_Color.svg`,
-  signatureLogoFallback: `${ASSET_BASE}/BC_Horizontal_Color.svg`,
+  headerLogoUrl: `${ASSET_BASE}/BC_Horizontal_Color.png`,
+  signatureLogoFallback: `${ASSET_BASE}/BC_Horizontal_Color.png`,
 };
 
 const applyCors = (res: VercelResponse) => {

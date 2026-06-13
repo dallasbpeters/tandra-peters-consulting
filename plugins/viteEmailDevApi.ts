@@ -7,6 +7,7 @@ import { Resend } from "resend";
 import type { ClientEmailContent, EmailAssets, EmailRecipient } from "../server/email/types.js";
 
 import { listAttioPeople, postAttioPersonNote } from "../server/email/attio.js";
+import { listEmailContacts, mergeRecipients } from "../server/email/contactsStore.js";
 import { fetchClientEmail } from "../server/email/sanity.js";
 import { renderClientEmail } from "../server/email/template.js";
 import { DashboardAuthError, authorizeSeoDashboardRequest } from "../server/seo/googleAuth.js";
@@ -53,8 +54,8 @@ const pick = (env: Record<string, string>, key: string): string =>
 const assetsFrom = (env: Record<string, string>): EmailAssets => {
   const base = (pick(env, "EMAIL_ASSET_BASE_URL") || "https://www.tandra.me").replace(/\/$/, "");
   return {
-    headerLogoUrl: `${base}/BC_Horizontal_Color.svg`,
-    signatureLogoFallback: `${base}/BC_Horizontal_Color.svg`,
+    headerLogoUrl: `${base}/BC_Horizontal_Color.png`,
+    signatureLogoFallback: `${base}/BC_Horizontal_Color.png`,
   };
 };
 
@@ -159,15 +160,33 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             json(res, 405, { error: "Method not allowed" });
             return;
           }
-          const token = pick(env, "ATTIO_API_TOKEN");
-          if (!token) {
-            json(res, 503, { error: "CRM is not configured (missing ATTIO_API_TOKEN)." });
+          const attioToken = pick(env, "ATTIO_API_TOKEN");
+          const sanityToken =
+            pick(env, "SANITY_WRITE_TOKEN") || pick(env, "SANITY_API_WRITE_TOKEN");
+          if (!attioToken && !sanityToken) {
+            json(res, 503, {
+              error:
+                "No recipient source configured (set SANITY_WRITE_TOKEN and/or ATTIO_API_TOKEN).",
+            });
             return;
           }
           const requestUrl = new URL(req.url ?? RECIPIENTS_PATH, "http://localhost");
           const search = requestUrl.searchParams.get("search") ?? undefined;
-          const recipients = await listAttioPeople(token, { search });
-          json(res, 200, { recipients });
+          const [attio, sanity] = await Promise.all([
+            attioToken
+              ? listAttioPeople(attioToken, { search }).catch((err) => {
+                  console.error("[vite-email-dev-api] Attio", err);
+                  return [];
+                })
+              : Promise.resolve([]),
+            sanityToken
+              ? listEmailContacts(sanityToken, { search }).catch((err) => {
+                  console.error("[vite-email-dev-api] Sanity", err);
+                  return [];
+                })
+              : Promise.resolve([]),
+          ]);
+          json(res, 200, { recipients: mergeRecipients(attio, sanity) });
           return;
         }
 

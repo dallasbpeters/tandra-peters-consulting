@@ -220,7 +220,7 @@ describe("Contact form", () => {
     });
   });
 
-  it("shows 503 missing ATTIO_API_TOKEN error message", async () => {
+  it("shows 503 email-not-configured error message", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 503 })),
     );
@@ -230,11 +230,11 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/missing attio_api_token/i)).toBeInTheDocument();
+      expect(screen.getByText(/email delivery isn't configured/i)).toBeInTheDocument();
     });
   });
 
-  it("shows 502 CRM error message", async () => {
+  it("shows 502 send-failure error message", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 502 })),
     );
@@ -244,7 +244,7 @@ describe("Contact form", () => {
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/crm error/i)).toBeInTheDocument();
+      expect(screen.getByText(/could not send your message/i)).toBeInTheDocument();
     });
   });
 
@@ -380,6 +380,33 @@ describe("Contact form", () => {
       message: "Need a quote please.",
       consentToContact: true,
       _hp: "",
+    });
+  });
+
+  it("includes the optional property address in the request body", async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+
+    server.use(
+      http.post(CONTACT_API_PATH, async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+
+    render(<Contact />);
+    await fillRequiredFields(user);
+    await user.type(
+      screen.getByRole("textbox", { name: /property address/i }),
+      "123 Cedar Ridge Dr, Round Rock, TX",
+    );
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+    });
+
+    expect(capturedBody).toMatchObject({
+      propertyAddress: "123 Cedar Ridge Dr, Round Rock, TX",
     });
   });
 });
