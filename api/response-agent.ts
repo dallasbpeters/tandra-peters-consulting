@@ -12,8 +12,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { createGroq } from "@ai-sdk/groq";
-import { sanityInsightsIntegration } from "@sanity/agent-context/ai-sdk";
 import { createClient } from "@sanity/client";
+import { sanityInsightsIntegration } from "@sanity/context/ai-sdk";
 import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
 
 import { downloadVisionAssets } from "./lib/download-vision-assets.js";

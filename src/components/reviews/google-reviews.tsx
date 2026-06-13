@@ -101,7 +101,7 @@ export const GoogleReviews = () => {
     >
       <div className={layoutClass.containerWide}>
         <div style={styles.header}>
-          <p style={styles.kicker}>Trusted across Austin</p>
+          <p style={styles.kicker}>Trusted across Texas</p>
           <h2 id="reviews-heading" style={styles.title}>
             What homeowners say
           </h2>

@@ -383,7 +383,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         let insights: any;
         const writeToken = env.SANITY_WRITE_TOKEN;
         if (writeToken) {
-          const { sanityInsightsIntegration } = await import("@sanity/agent-context/ai-sdk");
+          const { sanityInsightsIntegration } = await import("@sanity/context/ai-sdk");
           const { createClient } = await import("@sanity/client");
           insights = sanityInsightsIntegration({
             client: createClient({

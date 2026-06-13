@@ -1,6 +1,8 @@
+import type { Variants } from "motion/react";
+
 import { Xmark, Play } from "iconoir-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Shader, ChromaFlow, ImageTexture, Pixelate, SolidColor } from "shaders/react";
 
 import { useIsMobile } from "../hooks/isMobile";
@@ -79,6 +81,11 @@ export const BirdcreekVideoBanner = () => {
   const embedUrl = `https://player.vimeo.com/video/834503838?h=f049c62156`;
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile(1100);
+  // Drive the entrance with useInView (not whileInView): on first render inView is
+  // false so `initial` paints, then the observer flips it true on the next tick and
+  // Motion actually tweens — reliable even when the banner is in view on load
+  // (whileInView can snap straight to the end state before `initial` paints).
+  const bannerRef = useRef<HTMLDivElement>(null);
   const dialogBackdrop: React.CSSProperties = {
     position: "fixed",
     inset: 0,
@@ -126,7 +133,6 @@ export const BirdcreekVideoBanner = () => {
     width: "100%",
     height: "100%",
     display: "grid",
-    transition: "opacity 0.3s ease",
     placeContent: "center",
     placeItems: "center",
   };
@@ -178,6 +184,24 @@ export const BirdcreekVideoBanner = () => {
     zIndex: 1,
   };
 
+  const cardVariants: Variants = {
+    offscreen: {
+      scale: 0.5,
+      opacity: 0,
+      originY: "100%",
+    },
+    onscreen: {
+      originY: "100%",
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        bounce: 0,
+        duration: 0.8,
+      },
+    },
+  };
+
   return (
     <div
       style={{
@@ -187,34 +211,31 @@ export const BirdcreekVideoBanner = () => {
     >
       <ShaderEffect style={shaderStyle} />
       <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        whileInView={{ scale: 1, opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        ref={bannerRef}
+        initial="offscreen"
+        whileInView="onscreen"
+        viewport={{ amount: 0.8 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
         style={imageContainerStyle}
       >
-        <motion.button
-          style={buttonStyle}
-          initial={{ scale: 0 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          onClick={() => setIsOpen(true)}
-        >
+        <motion.button style={buttonStyle} variants={cardVariants} onClick={() => setIsOpen(true)}>
           <Play />
         </motion.button>
-        <img
+        <motion.img
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          variants={cardVariants}
           alt="Watch the video"
           style={imageStyle}
           src="/poster.jpeg"
           onClick={() => setIsOpen(true)}
           className="open-btn"
         />
-        <div style={contentStyle}>
-          <h2 style={titleStyle}>Birdcreek Roofing - 10 Years of Helping Texas Homeowners</h2>
-        </div>
+        <motion.div style={contentStyle} variants={cardVariants}>
+          <motion.h2 style={titleStyle}>
+            Birdcreek Roofing - 10 Years of Helping Texas Homeowners
+          </motion.h2>
+        </motion.div>
       </motion.div>
 
       {/* Modal Overlay */}

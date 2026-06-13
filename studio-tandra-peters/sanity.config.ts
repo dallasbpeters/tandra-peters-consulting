@@ -1,6 +1,5 @@
 import type { SanityClient } from "@sanity/client";
 
-import { agentContextPlugin } from "@sanity/agent-context/studio";
 import {
   assist,
   defineAssistFieldAction,
@@ -10,6 +9,7 @@ import {
   useUserInput,
   type AssistFieldActionProps,
 } from "@sanity/assist";
+import { contextPlugin } from "@sanity/context/studio";
 import { StarFilledIcon } from "@sanity/icons";
 import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
@@ -491,7 +491,7 @@ export default defineConfig({
   // AI Assist: open any document → ✨ in the document header → “Manage instructions” → “Enable AI assistance”
   // once per project (creates the “Sanity AI” token). Growth plan+ required. Custom fieldActions need this enabled.
   plugins: [
-    agentContextPlugin(),
+    contextPlugin(),
     assist({
       fieldActions: brandVoiceFieldActions,
     }),

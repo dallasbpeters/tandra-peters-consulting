@@ -6,6 +6,7 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
+import { viteContactDevApi } from "./plugins/viteContactDevApi";
 import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
 import { viteFalDevApi } from "./plugins/viteFalDevApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
@@ -20,12 +21,19 @@ export default defineConfig(({ mode }) => {
   /** Canonical site origin for OG/Twitter meta in `index.html` (`%SITE_URL%`). */
   const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl).trim().replace(/\/$/, "");
 
-  /** Origin only (e.g. https://www.tandra.me). Strips `/api/contact` if pasted by mistake. */
+  /**
+   * Origin only (e.g. https://www.tandra.me). Strips `/api/contact` if pasted by
+   * mistake. When set, `/api/contact` is proxied to this remote target instead
+   * of being handled locally by `viteContactDevApi` — use it only to test a
+   * deployed endpoint. By default (unset) the form runs the real handler locally
+   * against `.env.local` (Resend email + Sanity upsert).
+   */
   const contactProxyTarget = (() => {
     const raw = env.VITE_CONTACT_API_URL?.trim().replace(/\/$/, "") ?? "";
     if (!raw) return "";
     return raw.replace(/\/api\/contact$/i, "").replace(/\/api$/i, "");
   })();
+  const useLocalContactApi = !contactProxyTarget;
 
   const posthogProxyTarget = env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(/\/$/, "") ?? "";
   const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(posthogProxyTarget);
@@ -83,6 +91,7 @@ export default defineConfig(({ mode }) => {
     viteSeoDashboardApi(env) as unknown as PluginOption,
     viteWorkflowSaveApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
+    ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
     tailwindcss() as unknown as PluginOption,
     react() as unknown as PluginOption,
     {
