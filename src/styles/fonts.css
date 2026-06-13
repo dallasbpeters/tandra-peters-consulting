@@ -1,2 +1,3 @@
 /* Self-hosted fonts — avoids render-blocking Google Fonts CSS on the critical path. */
 @import "@fontsource-variable/hanken-grotesk/wght.css";
+@import '@fontsource-variable/caveat/wght.css';

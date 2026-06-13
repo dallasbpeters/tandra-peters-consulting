@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { Shader, LinearGradient, WaveDistortion, Dither } from "shaders/react";
 
 import { layoutClass } from "../styles/layoutClasses";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
 import { mix, theme } from "../theme";
 import { ContactProps } from "../types";

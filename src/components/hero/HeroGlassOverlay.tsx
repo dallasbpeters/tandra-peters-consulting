@@ -85,7 +85,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       display: "grid",
       gridGap: "2rem",
       gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-      alignItems: "flex-end",
+      alignItems: isMobile ? "center" : "flex-end",
     },
     copyBlock: {
       maxWidth: "38rem",
@@ -113,7 +113,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: "clamp(2.75rem, 6vw, 15.5rem)",
+      fontSize: "clamp(3.5rem, 5vw, 5.5rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
@@ -176,6 +176,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       border: "1px solid oklch(100% 0 0 / 0.2)",
       padding: theme.spacing.lg,
       borderRadius: theme.radius.large,
+      width: isMobile ? "100%" : "auto",
     },
     trustValue: {
       color: theme.colors.accentLight,

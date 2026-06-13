@@ -5,7 +5,7 @@ import "@fontsource/ibm-plex-serif/400-italic.css";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 
 import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaPopover from "@awesome.me/webawesome/dist/react/popover/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";

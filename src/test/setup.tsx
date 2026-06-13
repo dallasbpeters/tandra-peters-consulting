@@ -357,4 +357,4 @@ vi.mock("../components/GoogleAuthGate", () => ({
   GoogleAuthFooterTrigger: () => null,
 }));
 
-vi.mock("@awesome.me/webawesome/dist/styles/webawesome.css", () => ({}));
+vi.mock("@awesome.me/webawesome/dist/styles/themes/default.css", () => ({}));

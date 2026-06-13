@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
+import { BirdcreekVideoBanner } from "../components/BirdcreekVideoBanner";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
 import { Faq } from "../components/Faq";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
@@ -196,6 +197,13 @@ export const Home = () => {
             ) : null}
             {about ? <About {...mapAboutProps(about)} /> : null}
             {stats ? <Stats {...mapStatsProps(stats)} /> : null}
+          </Suspense>
+        </GoogleAuthGate>
+
+        <BirdcreekVideoBanner />
+
+        <GoogleAuthGate>
+          <Suspense fallback={null}>
             {services ? <ServicesVariant {...mapServicesProps(services)} /> : null}
 
             {serviceAreaMap ? (

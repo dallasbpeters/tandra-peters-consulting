@@ -7,7 +7,7 @@ import { usePostHog } from "@posthog/react";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import React, { useState } from "react";
 
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";

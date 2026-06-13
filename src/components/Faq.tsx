@@ -8,7 +8,7 @@ import type { FaqItem, FaqProps } from "../types";
 import { plainTextFromRich } from "../portableText/plainText";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
 import { mix, theme } from "../theme";
 
