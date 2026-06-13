@@ -1,6 +1,6 @@
 import { Xmark, Play } from "iconoir-react";
-import { motion, AnimatePresence, useInView } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { useState } from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { theme } from "../theme";
@@ -16,33 +16,11 @@ const containerStyle: React.CSSProperties = {
   gap: theme.spacing.xxxxl,
 };
 
-const contentStyle: React.CSSProperties = {
-  width: "min(95vw, 1200px)",
-  maxWidth: 1200,
-  zIndex: 10,
-  position: "absolute",
-  bottom: "20%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  pointerEvents: "none",
-  display: "grid",
-  placeContent: "center",
-};
-
-const titleStyle: React.CSSProperties = {
-  fontSize: theme.typography.size400,
-  fontWeight: 700,
-  color: theme.colors.white,
-  textAlign: "center",
-};
-
 export const BirdcreekVideoBanner = () => {
   const [isOpen, setIsOpen] = useState(false);
   const embedUrl = `https://player.vimeo.com/video/834503838?h=f049c62156`;
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
-  const ref = useRef(null);
-  const isInView = useInView(ref);
   const dialogBackdrop: React.CSSProperties = {
     position: "fixed",
     inset: 0,
@@ -52,6 +30,13 @@ export const BirdcreekVideoBanner = () => {
     display: "grid",
     placeContent: "center",
     placeItems: "center",
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: isMobile ? theme.typography.size200 : theme.typography.size400,
+    fontWeight: 700,
+    color: theme.colors.white,
+    textAlign: "center",
   };
 
   const imageStyle: React.CSSProperties = {
@@ -78,14 +63,25 @@ export const BirdcreekVideoBanner = () => {
     placeContent: "center",
   };
 
+  const imageContainerStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    display: "grid",
+    placeContent: "center",
+    placeItems: "center",
+  };
+
   const buttonStyle: React.CSSProperties = {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
     zIndex: 1000,
-    background: "none",
     border: "none",
-    backgroundColor: isHovered ? theme.colors.heroAccent : theme.colors.everglade,
-    color: theme.colors.white,
+    backgroundColor: isHovered ? theme.colors.heroAccent : theme.colors.white,
+    color: theme.colors.everglade,
     padding: theme.spacing.sm,
-    borderRadius: theme.radius.medium,
+    borderRadius: theme.radius.pill,
     cursor: "pointer",
     transition: "background-color 0.3s ease",
     display: "grid",
@@ -102,41 +98,52 @@ export const BirdcreekVideoBanner = () => {
     aspectRatio: "20/9",
     borderRadius: theme.radius.large,
   };
-  useEffect(() => {
-    console.log("Element is in view: ", isInView);
-  }, [isInView]);
+  const contentStyle: React.CSSProperties = {
+    width: "min(95vw, 1200px)",
+    position: isMobile ? "relative" : "absolute",
+    top: "10%",
+    left: isMobile ? undefined : "20%",
+    maxWidth: isMobile ? 380 : 500,
+    zIndex: 10,
+    pointerEvents: "none",
+    display: "grid",
+    placeContent: "center",
+    backgroundColor: theme.colors.black,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.small,
+  };
 
   return (
     <div
-      ref={ref}
       style={{
         ...containerStyle,
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
       <div style={contentStyle}>
+        <h2 style={titleStyle}>Birdcreek Roofing - 10 Years of Helping Texas Homeowners</h2>
+      </div>
+      <div style={imageContainerStyle}>
         <motion.button
           style={buttonStyle}
           initial={{ scale: 0 }}
           whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
+          viewport={{ amount: 0.5 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={() => setIsOpen(true)}
         >
           <Play />
         </motion.button>
-        <h2 style={titleStyle}>Birdcreek Roofing - 10 Years of Helping Texas Homeowners</h2>
+        <img
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          alt="Watch the video"
+          style={imageStyle}
+          src="/scott-wade.jpg"
+          onClick={() => setIsOpen(true)}
+          className="open-btn"
+        />
       </div>
-
-      <img
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        alt="Watch the video"
-        style={imageStyle}
-        src="/scott-wade.jpg"
-        onClick={() => setIsOpen(true)}
-        className="open-btn"
-      />
 
       {/* Modal Overlay */}
       <AnimatePresence initial={false}>
@@ -153,7 +160,7 @@ export const BirdcreekVideoBanner = () => {
             <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
               {/* Close Button */}
               <button
-                style={{ ...buttonStyle, justifySelf: "end" }}
+                style={{ ...buttonStyle, top: -24, right: 0 }}
                 className="close-btn"
                 onClick={() => setIsOpen(false)}
               >
