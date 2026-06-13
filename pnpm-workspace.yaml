@@ -1,3 +1,4 @@
 packages:
   - "studio-tandra-peters"
+  - "react-email-starter"
 autoInstallPeers: true

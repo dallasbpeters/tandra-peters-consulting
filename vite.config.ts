@@ -6,6 +6,7 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
+import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
 import { viteFalDevApi } from "./plugins/viteFalDevApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
@@ -72,6 +73,7 @@ export default defineConfig(({ mode }) => {
     viteSitemapApi(env) as unknown as PluginOption,
     viteSeoDashboardApi(env) as unknown as PluginOption,
     viteWorkflowSaveApi(env) as unknown as PluginOption,
+    viteEmailDevApi(env) as unknown as PluginOption,
     tailwindcss() as unknown as PluginOption,
     react() as unknown as PluginOption,
     {

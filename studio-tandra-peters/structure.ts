@@ -9,6 +9,8 @@ const SINGLETONS = new Set([
   "insuranceFaqsPage",
   "aiContext",
   "seoDashboardInsights",
+  "clientEmail",
+  "emailSignature",
 ]);
 
 export const structure: StructureResolver = (S) =>
@@ -86,6 +88,34 @@ export const structure: StructureResolver = (S) =>
                     .id("articles-post-documents")
                     .title("Posts")
                     .defaultOrdering([{ field: "publishedAt", direction: "desc" }]),
+                ),
+            ]),
+        ),
+      S.listItem()
+        .title("Emails")
+        .id("desk-emails-section")
+        .child(
+          S.list()
+            .id("emails-hub")
+            .title("Emails")
+            .items([
+              S.listItem()
+                .title("Client email")
+                .id("desk-client-email")
+                .child(
+                  S.document()
+                    .schemaType("clientEmail")
+                    .documentId("clientEmail")
+                    .title("Client email"),
+                ),
+              S.listItem()
+                .title("Email signature")
+                .id("desk-email-signature")
+                .child(
+                  S.document()
+                    .schemaType("emailSignature")
+                    .documentId("emailSignature")
+                    .title("Email signature"),
                 ),
             ]),
         ),

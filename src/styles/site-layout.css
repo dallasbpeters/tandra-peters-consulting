@@ -120,7 +120,7 @@
   padding-top: var(--site-padding-inline-start);
   min-height: 80vh;
   display: grid;
-  place-content: end stretch;
+  place-content: center stretch;
 }
 
 .home-loading-hero {

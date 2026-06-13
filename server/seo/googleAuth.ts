@@ -66,10 +66,17 @@ export const authorizeSeoDashboardRequest = async (
   }
 
   const idToken = extractBearerToken(authorizationHeader);
-  const ticket = await client.verifyIdToken({
-    idToken,
-    audience: config.clientId,
-  });
+  let ticket;
+  try {
+    ticket = await client.verifyIdToken({
+      idToken,
+      audience: config.clientId,
+    });
+  } catch {
+    // Expired token, rotated signing key ("No pem found"), or bad signature.
+    // Surface as 401 so the client clears its stored token and re-prompts sign-in.
+    throw new DashboardAuthError(401, "Google sign-in expired. Please sign in again.");
+  }
   const payload = ticket.getPayload();
 
   if (!payload) {

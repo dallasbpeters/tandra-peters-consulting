@@ -1,0 +1,302 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Plugin } from "vite";
+
+import { createClient } from "@sanity/client";
+import { Resend } from "resend";
+
+import type { ClientEmailContent, EmailAssets, EmailRecipient } from "../server/email/types.js";
+
+import { listAttioPeople, postAttioPersonNote } from "../server/email/attio.js";
+import { fetchClientEmail } from "../server/email/sanity.js";
+import { renderClientEmail } from "../server/email/template.js";
+import { DashboardAuthError, authorizeSeoDashboardRequest } from "../server/seo/googleAuth.js";
+
+const RENDER_PATH = "/api/email/render";
+const RECIPIENTS_PATH = "/api/email/recipients";
+const SEND_PATH = "/api/email/send";
+const SAVE_DEFAULT_PATH = "/api/email/save-default";
+const EMAIL_PATHS = new Set([RENDER_PATH, RECIPIENTS_PATH, SEND_PATH, SAVE_DEFAULT_PATH]);
+
+const SANITY_PROJECT_ID = "7irm699i";
+const SANITY_DATASET = "production";
+const SANITY_API_VERSION = "2024-01-01";
+const CLIENT_EMAIL_DOCUMENT_ID = "clientEmail";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+
+const readBody = (req: IncomingMessage): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer | string) => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+
+const setCors = (res: ServerResponse) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+};
+
+const json = (res: ServerResponse, status: number, body: unknown) => {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+};
+
+const pick = (env: Record<string, string>, key: string): string =>
+  env[key]?.trim() || process.env[key]?.trim() || "";
+
+const assetsFrom = (env: Record<string, string>): EmailAssets => {
+  const base = (pick(env, "EMAIL_ASSET_BASE_URL") || "https://www.tandra.me").replace(/\/$/, "");
+  return {
+    headerLogoUrl: `${base}/BC_Horizontal_Color.svg`,
+    signatureLogoFallback: `${base}/BC_Horizontal_Color.svg`,
+  };
+};
+
+const str = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+
+const rand = () => Math.random().toString(36).slice(2, 10);
+
+type LooseObject = Record<string, unknown> & { _key?: string; _type?: string };
+
+/** Ensure every block, span, and markDef carries a `_key` (Sanity rejects keyless array items). */
+const normalizeBlocks = (input: unknown): LooseObject[] => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((raw, i): LooseObject | null => {
+      if (!raw || typeof raw !== "object") return null;
+      const block: LooseObject = { ...(raw as LooseObject) };
+      if (!block._key) block._key = `b-${i}-${rand()}`;
+      if (Array.isArray(block.children)) {
+        block.children = block.children
+          .map((child, ci): LooseObject | null => {
+            if (!child || typeof child !== "object") return null;
+            const span: LooseObject = { ...(child as LooseObject) };
+            if (!span._key) span._key = `s-${i}-${ci}-${rand()}`;
+            return span;
+          })
+          .filter((c): c is LooseObject => c !== null);
+      }
+      if (Array.isArray(block.markDefs)) {
+        block.markDefs = block.markDefs
+          .map((def, di): LooseObject | null => {
+            if (!def || typeof def !== "object") return null;
+            const markDef: LooseObject = { ...(def as LooseObject) };
+            if (!markDef._key) markDef._key = `m-${i}-${di}-${rand()}`;
+            return markDef;
+          })
+          .filter((d): d is LooseObject => d !== null);
+      }
+      return block;
+    })
+    .filter((b): b is LooseObject => b !== null);
+};
+
+const parseRecipients = (value: unknown): EmailRecipient[] => {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const out: EmailRecipient[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const email = typeof rec.email === "string" ? rec.email.trim().toLowerCase() : "";
+    if (!email || !EMAIL_RE.test(email) || seen.has(email)) continue;
+    seen.add(email);
+    out.push({
+      id: typeof rec.id === "string" ? rec.id : "",
+      name: typeof rec.name === "string" && rec.name.trim() ? rec.name.trim() : email,
+      email,
+    });
+  }
+  return out;
+};
+
+const parseJson = (buffer: Buffer): Record<string, unknown> => {
+  if (!buffer.length) return {};
+  try {
+    return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * Dev-only middleware that mirrors the `/api/email/*` Vercel serverless
+ * functions so the composer (preview, recipients, send, save) works under
+ * `pnpm dev`. Reuses the same shared `server/email/*` modules and Google auth.
+ */
+export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
+  name: "vite-email-dev-api",
+  configureServer(server) {
+    server.middlewares.use(async (req, res, next) => {
+      const pathname = pathnameOnly(req.url);
+      if (!EMAIL_PATHS.has(pathname)) {
+        next();
+        return;
+      }
+
+      setCors(res);
+
+      if (req.method === "OPTIONS") {
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+
+      try {
+        await authorizeSeoDashboardRequest(
+          typeof req.headers.authorization === "string" ? req.headers.authorization : undefined,
+          env,
+        );
+
+        if (pathname === RECIPIENTS_PATH) {
+          if (req.method !== "GET") {
+            json(res, 405, { error: "Method not allowed" });
+            return;
+          }
+          const token = pick(env, "ATTIO_API_TOKEN");
+          if (!token) {
+            json(res, 503, { error: "CRM is not configured (missing ATTIO_API_TOKEN)." });
+            return;
+          }
+          const requestUrl = new URL(req.url ?? RECIPIENTS_PATH, "http://localhost");
+          const search = requestUrl.searchParams.get("search") ?? undefined;
+          const recipients = await listAttioPeople(token, { search });
+          json(res, 200, { recipients });
+          return;
+        }
+
+        if (pathname === RENDER_PATH) {
+          if (req.method !== "POST") {
+            json(res, 405, { error: "Method not allowed" });
+            return;
+          }
+          const body = parseJson(await readBody(req));
+          const provided = body.content as ClientEmailContent | undefined;
+          const content = provided ?? (await fetchClientEmail()) ?? {};
+          const html = await renderClientEmail(content, assetsFrom(env));
+          json(res, 200, { html });
+          return;
+        }
+
+        if (pathname === SEND_PATH) {
+          if (req.method !== "POST") {
+            json(res, 405, { error: "Method not allowed" });
+            return;
+          }
+          const apiKey = pick(env, "RESEND_API_KEY");
+          const from = pick(env, "EMAIL_FROM");
+          if (!apiKey || !from) {
+            json(res, 503, {
+              error: "Email sending is not configured (missing RESEND_API_KEY or EMAIL_FROM).",
+            });
+            return;
+          }
+          const body = parseJson(await readBody(req));
+          const recipients = parseRecipients(body.recipients);
+          if (recipients.length === 0) {
+            json(res, 400, { error: "Add at least one valid recipient." });
+            return;
+          }
+          const content = (body.content as ClientEmailContent | undefined) ?? {};
+          const subject = content.subject?.trim() || "A note from Tandra Peters";
+          const replyTo = pick(env, "EMAIL_REPLY_TO") || content.signature?.email?.trim();
+          const html = await renderClientEmail(content, assetsFrom(env));
+
+          const resend = new Resend(apiKey);
+          const attioToken = pick(env, "ATTIO_API_TOKEN");
+          const today = new Date().toISOString().slice(0, 10);
+          const sent: string[] = [];
+          const failed: { email: string; error: string }[] = [];
+
+          for (const recipient of recipients) {
+            try {
+              const result = await resend.emails.send({
+                from,
+                to: [recipient.email],
+                subject,
+                html,
+                ...(replyTo ? { replyTo } : {}),
+              });
+              if (result.error) {
+                failed.push({ email: recipient.email, error: result.error.message });
+                continue;
+              }
+              sent.push(recipient.email);
+              if (attioToken && recipient.id) {
+                await postAttioPersonNote(
+                  attioToken,
+                  recipient.id,
+                  `Email sent · ${subject} · ${today}`,
+                  `Subject: ${subject}\nSent to: ${recipient.email}\nSource: Email composer (dev)`,
+                );
+              }
+            } catch (err) {
+              failed.push({
+                email: recipient.email,
+                error: err instanceof Error ? err.message : "Send failed",
+              });
+            }
+          }
+          json(res, failed.length && !sent.length ? 502 : 200, { sent, failed });
+          return;
+        }
+
+        if (pathname === SAVE_DEFAULT_PATH) {
+          if (req.method !== "POST") {
+            json(res, 405, { error: "Method not allowed" });
+            return;
+          }
+          const token = pick(env, "SANITY_WRITE_TOKEN") || pick(env, "SANITY_API_WRITE_TOKEN");
+          if (!token) {
+            json(res, 503, {
+              error: "Saving defaults is not configured (missing SANITY_WRITE_TOKEN).",
+            });
+            return;
+          }
+          const body = parseJson(await readBody(req));
+          const content = (body.content as ClientEmailContent | undefined) ?? {};
+          const fields = {
+            subject: str(content.subject),
+            previewText: str(content.previewText),
+            greeting: str(content.greeting),
+            body: normalizeBlocks(content.body),
+            ctaLabel: str(content.ctaLabel),
+            ctaUrl: str(content.ctaUrl),
+            closing: str(content.closing),
+          };
+          const client = createClient({
+            projectId: SANITY_PROJECT_ID,
+            dataset: SANITY_DATASET,
+            apiVersion: SANITY_API_VERSION,
+            token,
+            useCdn: false,
+          });
+          await client
+            .transaction()
+            .createIfNotExists({ _id: CLIENT_EMAIL_DOCUMENT_ID, _type: "clientEmail" })
+            .patch(CLIENT_EMAIL_DOCUMENT_ID, (p) => p.set(fields))
+            .commit();
+          json(res, 200, { ok: true });
+          return;
+        }
+
+        json(res, 404, { error: "Not found" });
+      } catch (error) {
+        if (error instanceof DashboardAuthError) {
+          json(res, error.status, { error: error.message });
+          return;
+        }
+        console.error("[vite-email-dev-api]", pathname, error);
+        json(res, 500, {
+          error: error instanceof Error ? error.message : "Unexpected email API error.",
+        });
+      }
+    });
+  },
+});

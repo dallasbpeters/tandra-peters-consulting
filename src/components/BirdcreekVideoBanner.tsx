@@ -68,6 +68,7 @@ export const BirdcreekVideoBanner = () => {
     width: "100%",
     height: "100%",
     display: "grid",
+    transition: "opacity 0.3s ease",
     placeContent: "center",
     placeItems: "center",
   };

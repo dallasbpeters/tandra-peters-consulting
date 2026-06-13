@@ -18,7 +18,11 @@ import { type SchemaType } from "sanity";
 import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 
-import { LazyFalImageStudioTool, LazyImageManagerTool } from "./components/lazyStudioTools";
+import {
+  LazyEmailPreviewTool,
+  LazyFalImageStudioTool,
+  LazyImageManagerTool,
+} from "./components/lazyStudioTools";
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
@@ -476,6 +480,11 @@ export default defineConfig({
       name: "fal-image-studio",
       title: "AI Image Studio",
       component: LazyFalImageStudioTool,
+    },
+    {
+      name: "email-preview",
+      title: "Email Preview",
+      component: LazyEmailPreviewTool,
     },
   ],
 

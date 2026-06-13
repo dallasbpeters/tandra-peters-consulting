@@ -37,3 +37,9 @@ export const LazyFalImageStudioTool = lazyStudioTool(() =>
     default: module.FalImageStudioTool,
   })),
 );
+
+export const LazyEmailPreviewTool = lazyStudioTool(() =>
+  import("./EmailPreviewTool").then((module) => ({
+    default: module.EmailPreviewTool,
+  })),
+);

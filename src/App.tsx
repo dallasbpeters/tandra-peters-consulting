@@ -72,6 +72,11 @@ const AdDashboardPage = lazy(async () => {
   return { default: module.AdDashboardPage };
 });
 
+const EmailComposerPage = lazy(async () => {
+  const module = await import("./pages/EmailComposerPage");
+  return { default: module.EmailComposerPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -105,6 +110,8 @@ const appRouter = createBrowserRouter([
       { path: "ads", element: <AdDashboardPage /> },
       { path: "advertising", element: <AdDashboardPage /> },
       { path: "response", element: <ResponseAgentPage /> },
+      { path: "emails", element: <EmailComposerPage /> },
+      { path: "email", element: <EmailComposerPage /> },
     ],
   },
 ]);

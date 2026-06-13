@@ -1,6 +1,8 @@
 import { aiContextType } from "./documents/aiContext";
 import { articlesPageType } from "./documents/articlesPage";
 import beforeAfterGalleryType from "./documents/beforeAfterGallery";
+import { clientEmailType } from "./documents/clientEmail";
+import { emailSignatureType } from "./documents/emailSignature";
 import { homePageType } from "./documents/homePage";
 import { insuranceFaqsPageType } from "./documents/insuranceFaqsPage";
 import { roofInspectionsPageType } from "./documents/roofInspectionsPage";
@@ -86,5 +88,7 @@ export const schemaTypes = [
   tandraIntroVideoType,
   aiContextType,
   seoDashboardInsightsType,
+  clientEmailType,
+  emailSignatureType,
   postType,
 ];
