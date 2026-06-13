@@ -194,7 +194,7 @@ export const ClientEmailDocument = ({
           <Section style={{ padding: "24px 36px 0" }}>
             <Img
               src={assets.headerLogoUrl}
-              height="40"
+              height="60"
               alt="Birdcreek Roofing"
               style={{ display: "block" }}
             />

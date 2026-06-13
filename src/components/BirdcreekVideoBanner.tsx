@@ -1,9 +1,67 @@
 import { Xmark, Play } from "iconoir-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
+import { Shader, ChromaFlow, ImageTexture, Pixelate, SolidColor } from "shaders/react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { mix, theme } from "../theme";
+
+export default function ShaderEffect({ style }: { style: React.CSSProperties }) {
+  return (
+    <Shader style={style} colorSpace="srgb">
+      <ChromaFlow
+        id="idmostv5d9xi2rmvn45"
+        baseColor="#ffffff"
+        downColor="#ffffff"
+        intensity={0.8}
+        leftColor="#ffffff"
+        momentum={32}
+        radius={1.5}
+        rightColor="#ffffff"
+        upColor="#ffffff"
+        visible={false}
+      />
+
+      <SolidColor blendMode="multiply" color="#204d31" maskSource="idmostv5d9xi2rmvn45" />
+
+      <ImageTexture blendMode="multiply" url="/poster.jpeg" visible={true} />
+
+      <Pixelate
+        scale={{
+          type: "map",
+
+          curve: -1,
+
+          source: "idmostv5d9xi2rmvn45",
+
+          channel: "alpha",
+
+          inputMax: 1,
+
+          inputMin: 0,
+
+          outputMax: 1000,
+
+          outputMin: 64,
+        }}
+      />
+
+      <ImageTexture maskSource="idmostv5d9xi2rmvn45" url="/poster.jpeg" visible={true} />
+
+      <ChromaFlow
+        baseColor="#ffffff"
+        downColor="#ffffff"
+        intensity={1.5}
+        leftColor="#ffffff"
+        momentum={32}
+        radius={4}
+        rightColor="#ffffff"
+        upColor="#ffffff"
+        visible={false}
+      />
+    </Shader>
+  );
+}
 
 const containerStyle: React.CSSProperties = {
   position: "relative",
@@ -114,6 +172,12 @@ export const BirdcreekVideoBanner = () => {
     borderRadius: `0 0 ${theme.radius.medium} ${theme.radius.medium}`,
   };
 
+  const shaderStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    zIndex: 1,
+  };
+
   return (
     <div
       style={{
@@ -121,11 +185,11 @@ export const BirdcreekVideoBanner = () => {
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
+      <ShaderEffect style={shaderStyle} />
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.5 }}
         whileInView={{ scale: 1, opacity: 1 }}
-        viewport={{ amount: 0.5 }}
-        exit={{ opacity: 0, y: 100 }}
+        viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         style={imageContainerStyle}
       >
@@ -133,7 +197,7 @@ export const BirdcreekVideoBanner = () => {
           style={buttonStyle}
           initial={{ scale: 0 }}
           whileInView={{ scale: 1 }}
-          viewport={{ amount: 0.5 }}
+          viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={() => setIsOpen(true)}
         >

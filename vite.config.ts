@@ -1,7 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { defineConfig, loadEnv, type PluginOption } from "vite";
+import { defineConfig, loadEnv, type PluginOption, type ProxyOptions } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 import { ogImageComposite } from "./plugins/ogImageComposite";
@@ -39,12 +39,21 @@ export default defineConfig(({ mode }) => {
     secure: true,
   };
 
-  const devProxy: Record<string, typeof posthogProxyBase> = {};
+  const devProxy: Record<string, ProxyOptions> = {};
   if (contactProxyTarget) {
     devProxy["/api/contact"] = {
       target: contactProxyTarget,
       changeOrigin: true,
       secure: true,
+      // The deployed /api/contact enforces ALLOWED_ORIGINS against the Origin
+      // header. The browser sends http://localhost:3001 (not in production's
+      // allowlist → 403). This hop is server-to-server, so rewrite Origin to the
+      // proxy target to test the live endpoint locally without weakening prod.
+      configure: (proxy) => {
+        proxy.on("proxyReq", (proxyReq) => {
+          proxyReq.setHeader("origin", contactProxyTarget);
+        });
+      },
     };
   }
   if (usePosthogDevProxy) {

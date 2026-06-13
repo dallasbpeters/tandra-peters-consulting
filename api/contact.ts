@@ -17,58 +17,7 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { Resend } from "resend";
-
-import type { ContactLeadSubmission, EmailAssets } from "../server/email/types.js";
-
-import { renderContactLeadEmail } from "../server/email/contactLead.js";
-import { upsertContactLead } from "../server/email/contactsStore.js";
-
-/**
- * Inline copy of labels/validation (see `contactServiceOptions.ts` in the app).
- * Kept inside `api/` so the Vercel function bundle does not depend on imports
- * outside this folder (avoids FUNCTION_INVOCATION_FAILED from missing modules).
- */
-const CONTACT_SERVICE_ROWS = [
-  { value: "shingle-roofing", label: "Shingle Roofing" },
-  { value: "metal-roofing", label: "Metal Roofing" },
-  { value: "storm-damage-restoration", label: "Storm Damage Restoration" },
-  { value: "commercial-roofing", label: "Commercial Roofing" },
-  {
-    value: "hail-wind-damage-roof-inspection",
-    label: "Hail & Wind Damage Roof Inspection",
-  },
-] as const;
-
-const SERVICE_VALUE_SET = new Set<string>(CONTACT_SERVICE_ROWS.map((o) => o.value));
-
-const isValidContactServiceValue = (v: string): boolean => SERVICE_VALUE_SET.has(v);
-
-const contactServiceLabel = (value: string): string | null => {
-  const row = CONTACT_SERVICE_ROWS.find((o) => o.value === value);
-  return row?.label ?? null;
-};
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const ASSET_BASE = (process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me").replace(/\/$/, "");
-
-const leadAssets: EmailAssets = {
-  headerLogoUrl: `${ASSET_BASE}/BC_Horizontal_Color.png`,
-  signatureLogoFallback: `${ASSET_BASE}/BC_Horizontal_Color.png`,
-};
-
-const DEFAULT_NOTIFICATION_TO = "tandra@birdcreekroofing.com";
-
-const parseNotificationRecipients = (): string[] => {
-  const raw = process.env.CONTACT_NOTIFICATION_TO?.trim();
-  if (!raw) return [DEFAULT_NOTIFICATION_TO];
-  const list = raw
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter((s) => EMAIL_RE.test(s));
-  return list.length > 0 ? list : [DEFAULT_NOTIFICATION_TO];
-};
+import { processContactSubmission } from "../server/email/contactSubmission.js";
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
@@ -152,116 +101,15 @@ const contactHandler = async (req: VercelRequest, res: VercelResponse): Promise<
     return;
   }
 
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.EMAIL_FROM?.trim();
-  if (!apiKey || !from) {
-    res.status(503).json({ ok: false, error: "Service not configured" });
-    return;
-  }
-
-  const body = parseBody(req);
-
-  const honeypot =
-    typeof body._hp === "string"
-      ? body._hp.trim()
-      : typeof body.company === "string"
-        ? body.company.trim()
-        : "";
-  if (honeypot) {
-    res.status(200).json({ ok: true });
-    return;
-  }
-
-  const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const propertyAddress =
-    typeof body.propertyAddress === "string" ? body.propertyAddress.trim() : "";
-  const phoneNumber = typeof body.phoneNumber === "string" ? body.phoneNumber.trim() : "";
-  const message = typeof body.message === "string" ? body.message.trim() : "";
-  const serviceInterestRaw =
-    typeof body.serviceInterest === "string" ? body.serviceInterest.trim() : "";
-  const consentToContact = body.consentToContact === true;
-
-  if (!consentToContact) {
-    res.status(400).json({
-      ok: false,
-      error: "Please confirm you agree to be contacted before submitting.",
-    });
-    return;
-  }
-
-  if (!fullName || fullName.length > 200) {
-    res.status(400).json({ ok: false, error: "Please enter your name." });
-    return;
-  }
-  if (!email || !EMAIL_RE.test(email) || email.length > 320) {
-    res.status(400).json({ ok: false, error: "Please enter a valid email." });
-    return;
-  }
-  if (!isValidContactServiceValue(serviceInterestRaw)) {
-    res.status(400).json({ ok: false, error: "Please select a service." });
-    return;
-  }
-  const serviceLine = contactServiceLabel(serviceInterestRaw);
-  if (!message || message.length > 8000) {
-    res.status(400).json({ ok: false, error: "Please enter a message." });
-    return;
-  }
-  if (propertyAddress.length > 500) {
-    res.status(400).json({ ok: false, error: "Property address is too long." });
-    return;
-  }
-  if (phoneNumber.length > 80) {
-    res.status(400).json({ ok: false, error: "Phone number is too long." });
-    return;
-  }
-
-  const submission: ContactLeadSubmission = {
-    fullName,
-    email: email.toLowerCase(),
-    phoneNumber: phoneNumber || undefined,
-    serviceLabel: serviceLine ?? serviceInterestRaw,
-    message,
-    propertyAddress: propertyAddress || undefined,
-    submittedAt: new Date().toISOString(),
-  };
-
-  const subject = `New roofing inquiry · ${fullName} · ${serviceLine ?? serviceInterestRaw}`;
-  const html = await renderContactLeadEmail(submission, leadAssets);
-
-  const resend = new Resend(apiKey);
-  const result = await resend.emails.send({
-    from,
-    to: parseNotificationRecipients(),
-    replyTo: submission.email,
-    subject,
-    html,
+  const result = await processContactSubmission(parseBody(req), {
+    resendApiKey: process.env.RESEND_API_KEY,
+    emailFrom: process.env.EMAIL_FROM,
+    notificationTo: process.env.CONTACT_NOTIFICATION_TO,
+    assetBaseUrl: process.env.EMAIL_ASSET_BASE_URL,
+    sanityWriteToken: process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
   });
 
-  if (result.error) {
-    console.error("[api/contact] Resend error", result.error);
-    res.status(502).json({
-      ok: false,
-      error: "Could not send your message. Try again later or contact us by phone or email.",
-    });
-    return;
-  }
-
-  console.info("[api/contact] lead emailed", { id: result.data?.id, service: serviceInterestRaw });
-
-  // Save the submitter to the Sanity contact list (draft-only) so the email
-  // composer can reach them later. Non-fatal: never block the visitor's success.
-  const sanityToken =
-    process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim();
-  if (sanityToken) {
-    try {
-      await upsertContactLead(sanityToken, submission);
-    } catch (err) {
-      console.error("[api/contact] contact upsert failed", err);
-    }
-  }
-
-  res.status(200).json({ ok: true });
+  res.status(result.status).json(result.body);
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
