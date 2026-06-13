@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
-import { theme } from "../theme";
+import { mix, theme } from "../theme";
 
 const containerStyle: React.CSSProperties = {
   position: "relative",
   overflow: "hidden",
-  padding: `${theme.spacing.xxxxl}`,
   display: "grid",
   placeContent: "center",
-  placeItems: "center",
+  placeItems: "stretch",
+  padding: `${theme.spacing.xxxxl}`,
   background: theme.colors.everglade,
   gap: theme.spacing.xxxxl,
 };
@@ -28,12 +28,12 @@ export const BirdcreekVideoBanner = () => {
     backgroundColor: "rgba(0, 0, 0, 0.8)",
     padding: theme.spacing.xxxxl,
     display: "grid",
-    placeContent: "center",
+    placeContent: "stretch",
     placeItems: "center",
   };
 
   const titleStyle: React.CSSProperties = {
-    fontSize: isMobile ? theme.typography.size200 : theme.typography.size400,
+    fontSize: isMobile ? theme.typography.size100 : theme.typography.size100,
     fontWeight: 700,
     color: theme.colors.white,
     textAlign: "center",
@@ -74,8 +74,8 @@ export const BirdcreekVideoBanner = () => {
 
   const buttonStyle: React.CSSProperties = {
     position: "absolute",
-    bottom: 24,
-    right: 24,
+    top: 30,
+    right: 30,
     zIndex: 1000,
     border: "none",
     backgroundColor: isHovered ? theme.colors.heroAccent : theme.colors.white,
@@ -99,18 +99,18 @@ export const BirdcreekVideoBanner = () => {
     borderRadius: theme.radius.large,
   };
   const contentStyle: React.CSSProperties = {
-    width: "min(95vw, 1200px)",
-    position: isMobile ? "relative" : "absolute",
-    top: "10%",
-    left: isMobile ? undefined : "20%",
-    maxWidth: isMobile ? 380 : 500,
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     zIndex: 10,
     pointerEvents: "none",
     display: "grid",
     placeContent: "center",
-    backgroundColor: theme.colors.black,
+    backgroundColor: mix(theme.colors.black, 70),
     padding: theme.spacing.md,
-    borderRadius: theme.radius.small,
+    borderRadius: `0 0 ${theme.radius.medium} ${theme.radius.medium}`,
   };
 
   return (
@@ -120,10 +120,14 @@ export const BirdcreekVideoBanner = () => {
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
-      <div style={contentStyle}>
-        <h2 style={titleStyle}>Birdcreek Roofing - 10 Years of Helping Texas Homeowners</h2>
-      </div>
-      <div style={imageContainerStyle}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ scale: 1, opacity: 1 }}
+        viewport={{ amount: 0.5 }}
+        exit={{ opacity: 0, y: 100 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        style={imageContainerStyle}
+      >
         <motion.button
           style={buttonStyle}
           initial={{ scale: 0 }}
@@ -143,15 +147,18 @@ export const BirdcreekVideoBanner = () => {
           onClick={() => setIsOpen(true)}
           className="open-btn"
         />
-      </div>
+        <div style={contentStyle}>
+          <h2 style={titleStyle}>Birdcreek Roofing - 10 Years of Helping Texas Homeowners</h2>
+        </div>
+      </motion.div>
 
       {/* Modal Overlay */}
       <AnimatePresence initial={false}>
         {isOpen ? (
           <motion.div
             key="video-modal"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             style={dialogBackdrop}
