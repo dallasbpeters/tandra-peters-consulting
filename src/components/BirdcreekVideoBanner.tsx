@@ -20,7 +20,7 @@ export const BirdcreekVideoBanner = () => {
   const [isOpen, setIsOpen] = useState(false);
   const embedUrl = `https://player.vimeo.com/video/834503838?h=f049c62156`;
   const [isHovered, setIsHovered] = useState(false);
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1100);
   const dialogBackdrop: React.CSSProperties = {
     position: "fixed",
     inset: 0,
@@ -45,7 +45,7 @@ export const BirdcreekVideoBanner = () => {
     objectFit: "cover",
     objectPosition: "center",
     cursor: "pointer",
-    maxWidth: isMobile ? "none" : 600,
+    maxWidth: isMobile ? "none" : 800,
     borderRadius: theme.radius.medium,
     cornerShape: "super-ellipse(50%)",
     transition: "box-shadow 0.3s ease",
@@ -58,7 +58,7 @@ export const BirdcreekVideoBanner = () => {
   const modalContentStyle: React.CSSProperties = {
     position: "relative",
     height: "auto",
-    aspectRatio: "16/9",
+    aspectRatio: "16/7",
     display: "grid",
     placeContent: "center",
   };
@@ -95,7 +95,7 @@ export const BirdcreekVideoBanner = () => {
   const iframeStyle: React.CSSProperties = {
     width: "100%",
     height: "auto",
-    minWidth: isMobile ? 380 : "760px",
+    minWidth: "90vw",
     aspectRatio: "20/9",
     borderRadius: theme.radius.large,
   };
@@ -144,7 +144,7 @@ export const BirdcreekVideoBanner = () => {
           onMouseLeave={() => setIsHovered(false)}
           alt="Watch the video"
           style={imageStyle}
-          src="/scott-wade.jpg"
+          src="/poster.jpeg"
           onClick={() => setIsOpen(true)}
           className="open-btn"
         />
