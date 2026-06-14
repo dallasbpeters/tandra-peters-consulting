@@ -9,6 +9,7 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
 
@@ -51,6 +52,8 @@ export const NavPillNav: React.FC<NavProps> = ({
       padding: `0 ${theme.spacing.sm} 0 ${theme.spacing.xl}`,
       height: scrolled ? "3rem" : "3.5rem",
       borderRadius: theme.radius.pill,
+      justifyContent: "space-between",
+      minInlineSize: "60vw",
       background: scrolled
         ? "oklch(18.97% 0.008 107.13 / 0.95)"
         : "oklch(18.97% 0.008 107.13 / 0.75)",
@@ -128,6 +131,7 @@ export const NavPillNav: React.FC<NavProps> = ({
       alignItems: "center",
       justifyContent: "space-between",
       padding: `0 ${theme.spacing.xl}`,
+
       height: "4rem",
       background: menuOpen
         ? "oklch(18.97% 0.008 107.13 / 0.97)"
@@ -208,18 +212,21 @@ export const NavPillNav: React.FC<NavProps> = ({
         <TransitionLink to="/" style={styles.pillLogo}>
           {logoText}
         </TransitionLink>
-        <div style={styles.pillDivider} />
-        {navItems.map((item) => (
-          <SiteNavLink
-            key={item.name}
-            href={item.href}
-            style={hovLink === item.name ? styles.pillLinkHover : styles.pillLink}
-            onMouseEnter={() => setHovLink(item.name)}
-            onMouseLeave={() => setHovLink(null)}
-          >
-            {item.name}
-          </SiteNavLink>
-        ))}
+        <GoogleAuthGate>
+          <div style={styles.pillDivider} />
+          {navItems.map((item) => (
+            <SiteNavLink
+              key={item.name}
+              href={item.href}
+              style={hovLink === item.name ? styles.pillLinkHover : styles.pillLink}
+              onMouseEnter={() => setHovLink(item.name)}
+              onMouseLeave={() => setHovLink(null)}
+            >
+              {item.name}
+            </SiteNavLink>
+          ))}
+          <div style={styles.pillDivider} />
+        </GoogleAuthGate>
         <SiteNavLink
           className="pill-cta"
           href={ctaHref}

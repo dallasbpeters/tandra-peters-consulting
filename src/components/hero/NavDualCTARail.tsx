@@ -9,6 +9,7 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
 
@@ -135,7 +136,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
       textDecoration: "none",
     },
     ctaGroup: {
-      display: isMobile ? "none" : "flex",
+      display: "flex",
       gap: theme.spacing.md,
       alignItems: "center",
       flexShrink: 0,
@@ -223,39 +224,42 @@ export const NavDualCTARail: React.FC<NavProps> = ({
             <div style={styles.logoTagline}>{logoTagline}</div>
           </div>
         </TransitionLink>
-
-        {/* Desktop links */}
-        <div style={styles.linkGroup}>
-          {navItems.map((item) => (
-            <SiteNavLink
-              key={item.name}
-              href={item.href}
-              style={hovLink === item.name ? styles.linkHover : styles.link}
-              onMouseEnter={() => setHovLink(item.name)}
-              onMouseLeave={() => setHovLink(null)}
-            >
-              {item.name}
-            </SiteNavLink>
-          ))}
-        </div>
+        <GoogleAuthGate>
+          {/* Desktop links */}
+          <div style={styles.linkGroup}>
+            {navItems.map((item) => (
+              <SiteNavLink
+                key={item.name}
+                href={item.href}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
+                onMouseEnter={() => setHovLink(item.name)}
+                onMouseLeave={() => setHovLink(null)}
+              >
+                {item.name}
+              </SiteNavLink>
+            ))}
+          </div>
+        </GoogleAuthGate>
 
         {/* Desktop dual CTAs */}
-        <div style={styles.ctaGroup}>
-          <SiteNavLink
-            href={secondaryCtaHref}
-            style={styles.ctaSecondary}
-            onMouseEnter={() => setHovSecondary(true)}
-            onMouseLeave={() => setHovSecondary(false)}
-            onClick={() =>
-              posthog?.capture("nav_cta_clicked", {
-                variant: "dual-cta-rail",
-                cta_text: secondaryCtaText,
-                position: "secondary",
-              })
-            }
-          >
-            {secondaryCtaText}
-          </SiteNavLink>
+        <div className="cta-group" style={styles.ctaGroup}>
+          <GoogleAuthGate>
+            <SiteNavLink
+              href={secondaryCtaHref}
+              style={styles.ctaSecondary}
+              onMouseEnter={() => setHovSecondary(true)}
+              onMouseLeave={() => setHovSecondary(false)}
+              onClick={() =>
+                posthog?.capture("nav_cta_clicked", {
+                  variant: "dual-cta-rail",
+                  cta_text: secondaryCtaText,
+                  position: "secondary",
+                })
+              }
+            >
+              {secondaryCtaText}
+            </SiteNavLink>
+          </GoogleAuthGate>
           <SiteNavLink
             href={ctaHref}
             style={styles.ctaPrimary}
@@ -274,19 +278,21 @@ export const NavDualCTARail: React.FC<NavProps> = ({
         </div>
 
         {/* Hamburger */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          style={styles.hamburger}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? (
-            <Xmark width={24} height={24} aria-hidden />
-          ) : (
-            <Menu width={24} height={24} aria-hidden />
-          )}
-        </button>
+        <GoogleAuthGate>
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            style={styles.hamburger}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? (
+              <Xmark width={24} height={24} aria-hidden />
+            ) : (
+              <Menu width={24} height={24} aria-hidden />
+            )}
+          </button>
+        </GoogleAuthGate>
       </div>
 
       {/* Mobile menu */}

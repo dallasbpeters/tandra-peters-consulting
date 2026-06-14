@@ -7,6 +7,7 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import { ogImageComposite } from "./plugins/ogImageComposite";
 import { viteAdVersionsApi } from "./plugins/viteAdVersionsApi";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
+import { viteAnalyticsApi } from "./plugins/viteAnalyticsApi";
 import { viteContactDevApi } from "./plugins/viteContactDevApi";
 import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
 import { viteFalDevApi } from "./plugins/viteFalDevApi";
@@ -93,6 +94,7 @@ export default defineConfig(({ mode }) => {
     viteWorkflowSaveApi(env) as unknown as PluginOption,
     viteAdVersionsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
+    viteAnalyticsApi(env) as unknown as PluginOption,
     ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
     tailwindcss() as unknown as PluginOption,
     react() as unknown as PluginOption,

@@ -58,6 +58,33 @@ Production builds use `pnpm build:vercel` (configured in [`vercel.json`](vercel.
 
 Do not set `SKIP_REMOTION_SNAPSHOT=1` on Production unless you are deliberately bypassing snapshot creation during a build emergency.
 
+## Sanity GA dashboard plugin (non-Next setup)
+
+This project uses `sanity-plugin-ga-dashboard` without Next.js.
+
+- Studio plugin is registered in `studio-tandra-peters/sanity.config.ts`.
+- API endpoint is served by `api/analytics.ts` (Vercel serverless).
+- Local dev endpoint is served by `plugins/viteAnalyticsApi.ts` via `pnpm dev` / `pnpm dev:all`.
+
+Required server env vars for analytics data:
+
+- `GA_PROPERTY_ID`
+- `GA_SERVICE_ACCOUNT_EMAIL`
+- `GA_PRIVATE_KEY`
+
+Required CORS allowlist for Studio origins (production):
+
+- `GA_DASHBOARD_ALLOWED_ORIGINS`
+
+Example:
+
+`GA_DASHBOARD_ALLOWED_ORIGINS=https://on6anif3y43e3t03oiwrgp30.sanity.studio,https://www.tandra.me`
+
+Notes:
+
+- In local dev, `/api/analytics` allows `http://localhost:3333` and `http://127.0.0.1:3333` by default.
+- In production, if `GA_DASHBOARD_ALLOWED_ORIGINS` is missing, cross-origin Studio requests are rejected.
+
 ---
 
 ## Remotion intro video (`TandraIntro`)

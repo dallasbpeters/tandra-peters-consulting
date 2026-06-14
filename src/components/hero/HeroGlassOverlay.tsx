@@ -43,7 +43,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
 }) => {
   const posthog = usePostHog();
   const [hovBtn, setHovBtn] = useState<"primary" | "secondary" | null>(null);
-  const isMobile = useIsMobile(800);
+  const isMobile = useIsMobile(1000);
   const styles: Record<string, CSSProperties> = {
     section: {
       position: "relative",
@@ -170,14 +170,15 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       display: "flex",
       flexDirection: isMobile ? "row" : "column",
       gap: theme.spacing.xl,
-      justifySelf: isMobile ? "center" : "flex-end",
+      justifySelf: isMobile ? "flex-start" : "flex-end",
+      alignSelf: isMobile ? "flex-start" : "flex-end",
       alignItems: "flex-end",
       background: "oklch(100% 0 0 / 0.08)",
       backdropFilter: "blur(4px)",
       border: "1px solid oklch(100% 0 0 / 0.2)",
       padding: theme.spacing.lg,
       borderRadius: theme.radius.large,
-      width: isMobile ? "100%" : "auto",
+      width: "auto",
     },
     trustValue: {
       color: theme.colors.accentLight,

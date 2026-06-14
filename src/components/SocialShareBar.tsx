@@ -10,21 +10,6 @@ import { theme } from "../theme";
 import { SocialShareBarProps } from "../types";
 import { buildSharePageUrl } from "../utils/siteUrl";
 
-const copyTextFallback = (text: string) => {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.position = "fixed";
-  ta.style.left = "-9999px";
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand("copy");
-  } finally {
-    document.body.removeChild(ta);
-  }
-};
-
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   heading = "Know someone who needs roofing help?",
   shareText = "Tandra Peters | Birdcreek Roofing consultant in Austin — assessments, insurance help, trusted installation",
@@ -62,7 +47,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
-  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}hashtag=birdcreek`;
+  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}hashtag=roofing`;
 
   const canWebShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
@@ -93,21 +78,11 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const handleCopyLink = useCallback(async () => {
     if (!pageUrl) return;
     try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(pageUrl);
-      } else {
-        copyTextFallback(pageUrl);
-      }
+      await navigator.clipboard.writeText(pageUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      try {
-        copyTextFallback(pageUrl);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 2000);
-      } catch {
-        setCopied(false);
-      }
+      setCopied(false);
     }
   }, [pageUrl]);
 

@@ -9,6 +9,7 @@ import type { NavProps } from "../../types";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
+import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
 
@@ -70,7 +71,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       justifyContent: isMobile ? "start" : "center",
     },
     linkGroupRight: {
-      display: isMobile ? "none" : "flex",
+      display: "flex",
       gap: theme.spacing.xxxl,
       alignItems: "center",
       marginLeft: "auto",
@@ -191,30 +192,32 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
           <span style={styles.logoText}>{logoText}</span>
           <span style={styles.logoTagline}>{logoTagline}</span>
         </TransitionLink>
-        <div style={styles.linkGroupLeft}>
-          {leftLinks.map((item) => (
-            <SiteNavLink
-              key={item.name}
-              href={item.href}
-              style={hovLink === item.name ? styles.linkHover : styles.link}
-              onMouseEnter={() => setHovLink(item.name)}
-              onMouseLeave={() => setHovLink(null)}
-            >
-              {item.name}
-            </SiteNavLink>
-          ))}
-          {rightLinks.map((item) => (
-            <SiteNavLink
-              key={item.name}
-              href={item.href}
-              style={hovLink === item.name ? styles.linkHover : styles.link}
-              onMouseEnter={() => setHovLink(item.name)}
-              onMouseLeave={() => setHovLink(null)}
-            >
-              {item.name}
-            </SiteNavLink>
-          ))}
-        </div>
+        <GoogleAuthGate>
+          <div style={styles.linkGroupLeft}>
+            {leftLinks.map((item) => (
+              <SiteNavLink
+                key={item.name}
+                href={item.href}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
+                onMouseEnter={() => setHovLink(item.name)}
+                onMouseLeave={() => setHovLink(null)}
+              >
+                {item.name}
+              </SiteNavLink>
+            ))}
+            {rightLinks.map((item) => (
+              <SiteNavLink
+                key={item.name}
+                href={item.href}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
+                onMouseEnter={() => setHovLink(item.name)}
+                onMouseLeave={() => setHovLink(null)}
+              >
+                {item.name}
+              </SiteNavLink>
+            ))}
+          </div>
+        </GoogleAuthGate>
 
         {/* Right links + CTA — logo is absolute-centered so this group doesn't skew it */}
         <div style={styles.linkGroupRight}>
@@ -233,21 +236,22 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
             {ctaText}
           </SiteNavLink>
         </div>
-
-        {/* Hamburger — mobile only */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          style={styles.hamburger}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? (
-            <Xmark width={24} height={24} aria-hidden />
-          ) : (
-            <Menu width={24} height={24} aria-hidden />
-          )}
-        </button>
+        <GoogleAuthGate>
+          {/* Hamburger — mobile only */}
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            style={styles.hamburger}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? (
+              <Xmark width={24} height={24} aria-hidden />
+            ) : (
+              <Menu width={24} height={24} aria-hidden />
+            )}
+          </button>
+        </GoogleAuthGate>
       </div>
 
       {/* Mobile menu */}

@@ -7,7 +7,6 @@ import { useSanitySite } from "../context/useSanitySite";
 import { getMainRouteClass } from "../lib/mainRouteClass";
 import { mapFooterProps } from "../sanity/mapSanityHome";
 import { resolveStableNavProps } from "../sanity/stableNavProps";
-import { GoogleAuthGate } from "./GoogleAuthGate";
 import { NavVariant } from "./NavVariant";
 
 const Footer = lazy(async () => {
@@ -65,21 +64,19 @@ export const SiteShell = () => {
 
   return (
     <>
-      <GoogleAuthGate>
-        {navProps ? (
-          <NavVariant
-            {...navProps}
-            navItems={isAgentRoute ? agentNavItems : navProps.navItems}
-            heroStyle={isAgentRoute ? undefined : heroStyle}
-          />
-        ) : (
-          <div
-            className="site-nav-vt"
-            style={{ minHeight: "4.5rem", visibility: "hidden" }}
-            aria-hidden
-          />
-        )}
-      </GoogleAuthGate>
+      {navProps ? (
+        <NavVariant
+          {...navProps}
+          navItems={isAgentRoute ? agentNavItems : navProps.navItems}
+          heroStyle={isAgentRoute ? undefined : heroStyle}
+        />
+      ) : (
+        <div
+          className="site-nav-vt"
+          style={{ minHeight: "4.5rem", visibility: "hidden" }}
+          aria-hidden
+        />
+      )}
 
       {isHome ? (
         outlet

@@ -36,7 +36,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
 }) => {
   const posthog = usePostHog();
   const [hovBtn, setHovBtn] = useState<"primary" | "secondary" | null>(null);
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1000);
   const styles: Record<string, CSSProperties> = {
     wrapper: {
       paddingTop: theme.spacing.sectionLoose,
@@ -87,8 +87,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
         },
     contentRow: {
       display: "flex",
-      alignItems: isMobile ? "stretch" : "flex-end",
-      justifyContent: isMobile ? "center" : "space-between",
+      alignItems: isMobile ? "flex-start" : "flex-end",
+      justifyContent: isMobile ? "start" : "space-between",
       gap: theme.spacing.xxxxl,
       flexDirection: isMobile ? "column" : "row",
     },
@@ -113,7 +113,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: "clamp(3.5rem, 5vw, 5.5rem)",
+      fontSize: "clamp(4.5rem, 8vw, 10.5rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
@@ -165,30 +165,6 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       textDecoration: "none",
       textAlign: isMobile ? "center" : undefined,
       transition: "background 0.15s, border-color 0.15s",
-    },
-    statCard: {
-      background: theme.colors.paper,
-      padding: `${theme.spacing.xxl} ${theme.spacing.xxxxl}`,
-      borderTop: `3px solid ${theme.colors.accentLight}`,
-      flexShrink: 0,
-      alignSelf: isMobile ? "stretch" : "flex-end",
-      borderRadius: theme.radius.medium,
-    },
-    statValue: {
-      fontFamily: theme.fonts.headline,
-      fontWeight: 800,
-      fontSize: "2.5rem",
-      color: theme.colors.heroAccent,
-      letterSpacing: "-0.04em",
-      lineHeight: 1,
-    },
-    statLabel: {
-      fontSize: "0.6875rem",
-      fontWeight: 700,
-      letterSpacing: "0.1em",
-      textTransform: "uppercase",
-      color: theme.colors.accent,
-      marginTop: theme.spacing.tight,
     },
   };
 
@@ -278,10 +254,11 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
               </div>
 
               {/* Stat card — flex sibling inside the container so it respects the 80rem boundary */}
-              <div style={styles.statCard}>
-                <div style={styles.statValue}>★ 4.7</div>
-                <div style={styles.statLabel}>Google · 200+ Reviews</div>
-              </div>
+              <script src="https://elfsightcdn.com/platform.js" async></script>
+              <div
+                className="elfsight-app-367b8f47-df3d-45c0-a27e-555bc948bfac"
+                data-elfsight-app-lazy
+              ></div>
             </div>
           </div>
         </div>

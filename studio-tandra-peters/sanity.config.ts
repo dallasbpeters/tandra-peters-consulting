@@ -15,6 +15,7 @@ import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
 import { defineConfig } from "sanity";
 import { type SchemaType } from "sanity";
+import { googleAnalyticsPlugin } from "sanity-plugin-ga-dashboard";
 import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 
@@ -49,6 +50,9 @@ const previewOrigin =
     ? "https://www.tandra.me"
     : configuredPreviewOrigin ||
       (process.env.NODE_ENV === "production" ? "https://www.tandra.me" : "http://localhost:3001");
+
+const gaApiUrl =
+  process.env.SANITY_STUDIO_GA_API_URL?.replace(/\/$/, "") || `${previewOrigin}/api/analytics`;
 
 const BRAND_TONE_CONTEXT_ID = "assist-context-brand-tone";
 const CUSTOM_AI_CONTEXT_ID = "aiContext";
@@ -496,6 +500,9 @@ export default defineConfig({
       fieldActions: brandVoiceFieldActions,
     }),
     structureTool({ structure }),
+    googleAnalyticsPlugin({
+      apiUrl: gaApiUrl,
+    }),
     ...(studioFlags.presentation
       ? [
           presentationTool({
