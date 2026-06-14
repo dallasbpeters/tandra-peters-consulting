@@ -20,6 +20,19 @@ const CONTACT_API_PATH = "/api/contact";
 const COMPACT_DEFAULT_SERVICE = "shingle-roofing";
 const COMPACT_DEFAULT_MESSAGE = "Please contact me using the email and phone provided.";
 
+const trackGaContactForm = (payload: Record<string, unknown>) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== "function") {
+    return;
+  }
+
+  gtag("event", "contact_form", payload);
+};
+
 export const ContactSmall = ({
   title = "Get a free roofing consultation.",
   formLabels,
@@ -122,6 +135,12 @@ export const ContactSmall = ({
         has_message: false,
         has_phone: Boolean(phoneNumber.trim()),
         form_variant: "compact",
+      });
+      trackGaContactForm({
+        form_variant: "compact",
+        service_interest: COMPACT_DEFAULT_SERVICE,
+        has_message: false,
+        has_phone: Boolean(phoneNumber.trim()),
       });
       setSubmitStatus("success");
       setFullName("");

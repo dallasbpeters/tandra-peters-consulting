@@ -20,6 +20,19 @@ import { TransitionLink } from "./TransitionLink";
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 export const CONTACT_API_PATH = "/api/contact";
 
+const trackGaContactForm = (payload: Record<string, unknown>) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== "function") {
+    return;
+  }
+
+  gtag("event", "contact_form", payload);
+};
+
 export const Contact = ({
   tagline = "Contact the consultant",
   title = "Request a free roofing consultation in Austin or statewide.",
@@ -129,6 +142,12 @@ export const Contact = ({
       posthog?.identify(visitorEmail, { name: fullName, email: visitorEmail });
       posthog?.capture("contact_form_submitted", {
         service_interest: serviceInterest,
+        has_message: Boolean(message),
+        has_phone: Boolean(phoneNumber.trim()),
+      });
+      trackGaContactForm({
+        form_variant: "full",
+        service_interest: serviceInterest || "unknown",
         has_message: Boolean(message),
         has_phone: Boolean(phoneNumber.trim()),
       });
