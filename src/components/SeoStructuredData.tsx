@@ -1,43 +1,43 @@
 import { useEffect } from "react";
 
+import { buildLocalBusinessSchema, buildPersonSchema } from "../../server/seo/businessInfo";
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
-const SCRIPT_ID = "professional-service-json-ld";
+const BUSINESS_SCRIPT_ID = "professional-service-json-ld";
+const PERSON_SCRIPT_ID = "person-json-ld";
+
+const injectJsonLd = (id: string, data: Record<string, unknown>): HTMLScriptElement => {
+  const script = document.createElement("script");
+  script.id = id;
+  script.type = "application/ld+json";
+  script.textContent = JSON.stringify(data);
+  document.head.appendChild(script);
+  return script;
+};
 
 /**
- * Injects ProfessionalService JSON-LD for SEO / rich results (complements FAQPage in Faq).
+ * Injects RoofingContractor + Person JSON-LD for SEO / rich results and AI
+ * entity recognition (complements FAQPage in Faq). The same schema is baked
+ * into the prerendered HTML at build time (scripts/prerender) so non-JS
+ * crawlers see it too; this runtime copy keeps SPA navigations covered and is
+ * skipped when the prerendered tag is already present.
  */
 export const SeoStructuredData = () => {
   useEffect(() => {
-    const url = resolveSiteOrigin();
-    const data = {
-      "@context": "https://schema.org",
-      "@type": "ProfessionalService",
-      name: "Tandra Peters — Roofing consultation",
-      description:
-        "Birdcreek Roofing consultant in Austin, Texas: roof assessments, insurance claim advocacy, and project oversight—with installation by the same Birdcreek team.",
-      url,
-      telephone: "+1-512-968-3965",
-      email: "tandra@birdcreekroofing.com",
-      areaServed: [
-        {
-          "@type": "City",
-          name: "Austin",
-          containedInPlace: { "@type": "State", name: "Texas" },
-        },
-        { "@type": "State", name: "Texas" },
-      ],
-      priceRange: "$$",
-      sameAs: ["https://www.facebook.com/tandra.peters.3"],
-    };
+    const origin = resolveSiteOrigin();
+    const scripts: HTMLScriptElement[] = [];
 
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.type = "application/ld+json";
-    script.textContent = JSON.stringify(data);
-    document.head.appendChild(script);
+    if (!document.getElementById(BUSINESS_SCRIPT_ID)) {
+      scripts.push(injectJsonLd(BUSINESS_SCRIPT_ID, buildLocalBusinessSchema(origin)));
+    }
+    if (!document.getElementById(PERSON_SCRIPT_ID)) {
+      scripts.push(injectJsonLd(PERSON_SCRIPT_ID, buildPersonSchema(origin)));
+    }
+
     return () => {
-      script.remove();
+      for (const script of scripts) {
+        script.remove();
+      }
     };
   }, []);
 

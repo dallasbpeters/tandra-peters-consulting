@@ -29,6 +29,10 @@ rmSync(studioTempDir, { recursive: true, force: true });
 
 run("pnpm", ["exec", "vite", "build"]);
 
+// Prerender static HTML per route (JSON-LD + meta baked in) and emit llms.txt
+// so AI crawlers / non-JS agents get real content and structured data.
+run("pnpm", ["exec", "tsx", "scripts/prerender.ts"]);
+
 if (!existsSync(path.join(studioDir, "node_modules", "styled-components"))) {
   run("pnpm", ["--dir", "studio-tandra-peters", "install", "--frozen-lockfile"]);
 }

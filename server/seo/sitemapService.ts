@@ -85,6 +85,16 @@ export const generateSitemapXml = async (siteUrlEnv?: string): Promise<string> =
       priority: "0.9",
     }),
     buildUrlEntry({
+      loc: `${origin}/insurance-faqs`,
+      changefreq: "monthly",
+      priority: "0.6",
+    }),
+    buildUrlEntry({
+      loc: `${origin}/roof-inspection`,
+      changefreq: "monthly",
+      priority: "0.6",
+    }),
+    buildUrlEntry({
       loc: `${origin}/privacy`,
       changefreq: "monthly",
       priority: "0.3",
