@@ -6,7 +6,6 @@ import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
-import { generateVttFromContent } from "../remotion/tandraIntroContent";
 import { theme } from "../theme";
 import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
@@ -53,18 +52,6 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
     () => (introContent ? JSON.stringify(introContent) : "uploaded-video"),
     [introContent],
   );
-
-  const captionsUrl = useMemo(() => {
-    if (!introContent) return null;
-    const vtt = generateVttFromContent(introContent);
-    return URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
-  }, [introContent]);
-
-  useEffect(() => {
-    return () => {
-      if (captionsUrl) URL.revokeObjectURL(captionsUrl);
-    };
-  }, [captionsUrl]);
 
   useEffect(() => {
     const updateInputMode = () => {
@@ -149,24 +136,21 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
               />
             </motion.div>
           ) : videoUrl ? (
-            <>
-              <motion.video
-                variants={videoVariants}
-                initial="offscreen"
-                animate={isInView ? "onscreen" : "offscreen"}
-                ref={videoRef}
-                className="featured-video__video"
-                src={videoUrl}
-                preload="metadata"
-                playsInline
-                poster={posterUrl}
-                controls={false}
-              >
-                {captionsUrl ? (
-                  <track kind="captions" src={captionsUrl} srcLang="en" label="English" default />
-                ) : null}
-              </motion.video>
-            </>
+            // Captions are burned into the rendered MP4 by the Remotion
+            // composition (see TandraIntro <Captions>), so no sidecar
+            // <track> is needed here.
+            <motion.video
+              variants={videoVariants}
+              initial="offscreen"
+              animate={isInView ? "onscreen" : "offscreen"}
+              ref={videoRef}
+              className="featured-video__video"
+              src={videoUrl}
+              preload="metadata"
+              playsInline
+              poster={posterUrl}
+              controls={false}
+            />
           ) : null}
           <VideoControls
             videoRef={videoRef}

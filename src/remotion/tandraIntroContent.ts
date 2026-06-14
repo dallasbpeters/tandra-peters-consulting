@@ -123,8 +123,80 @@ export const defaultTandraIntroContent: TandraIntroContent = {
   },
 };
 
+export const TANDRA_INTRO_FPS = 30;
+export const TANDRA_INTRO_DURATION_IN_FRAMES = 900;
+
+/**
+ * Single source of truth for caption timing. These windows mirror the visual
+ * `useScene(from, duration)` calls in TandraIntro.tsx. Scenes overlap by ~30
+ * frames during the cross-fade; caption windows below stop a few frames before
+ * the next scene's text reads so only one caption is on screen at a time.
+ *
+ * Both the in-composition <Captions> layer AND the sidecar WebVTT track derive
+ * from `getCaptionCues()` so on-screen text, burned-in captions, and the VTT
+ * can never drift apart. Edits to the copy flow into all three automatically.
+ */
+const SCENE_CAPTION_WINDOWS = [
+  { scene: "storm", from: 6, to: 150 },
+  { scene: "straightAnswers", from: 156, to: 300 },
+  { scene: "inspection", from: 306, to: 450 },
+  { scene: "managed", from: 456, to: 630 },
+  { scene: "proof", from: 636, to: 750 },
+  { scene: "closing", from: 756, to: 898 },
+] as const;
+
+export type CaptionCue = {
+  /** Inclusive start frame. */
+  fromFrame: number;
+  /** Exclusive end frame. */
+  toFrame: number;
+  /** Readable caption text (already collapsed to a single string). */
+  text: string;
+};
+
+const collapse = (value: string): string => value.replace(/\s+/g, " ").trim();
+
+const sceneCaptionText = (c: TandraIntroContent, scene: string): string => {
+  switch (scene) {
+    case "storm":
+      return collapse(`${c.storm.line1} ${c.storm.line2} — ${c.storm.body}`);
+    case "straightAnswers":
+      return collapse(
+        `${c.straightAnswers.line1} ${c.straightAnswers.line2} ${c.straightAnswers.line3} “${c.straightAnswers.quote}”`,
+      );
+    case "inspection":
+      return collapse(
+        `${c.inspection.line1} ${c.inspection.line2} ${c.inspection.line3} — ${c.inspection.body}`,
+      );
+    case "managed":
+      return collapse(
+        `${c.managed.line1} ${c.managed.line2} ${c.managed.line3}: ${c.managed.items.join(", ")}`,
+      );
+    case "proof":
+      return collapse(`${c.proof.line1} ${c.proof.line2} ${c.proof.items.join(", ")}`);
+    case "closing":
+      return collapse(`${c.closing.line1} ${c.closing.line2} — ${c.closing.cta}`);
+    default:
+      return "";
+  }
+};
+
+/** Ordered, non-overlapping caption cues derived from the live content. */
+export const getCaptionCues = (c: TandraIntroContent): CaptionCue[] =>
+  SCENE_CAPTION_WINDOWS.map(({ scene, from, to }) => ({
+    fromFrame: from,
+    toFrame: to,
+    text: sceneCaptionText(c, scene),
+  })).filter((cue) => cue.text.length > 0);
+
+/** Caption text active at a given frame, or "" when none. */
+export const captionAtFrame = (cues: CaptionCue[], frame: number): string => {
+  const active = cues.find((cue) => frame >= cue.fromFrame && frame < cue.toFrame);
+  return active ? active.text : "";
+};
+
 /** Frame → "MM:SS.mmm" timestamp for WebVTT. */
-const vttTime = (frame: number, fps = 30): string => {
+const vttTime = (frame: number, fps = TANDRA_INTRO_FPS): string => {
   const totalMs = Math.round((frame / fps) * 1000);
   const ms = totalMs % 1000;
   const totalSec = Math.floor(totalMs / 1000);
@@ -134,58 +206,13 @@ const vttTime = (frame: number, fps = 30): string => {
 };
 
 /**
- * Build a WebVTT string from live Sanity intro-video content.
- * Scene start frames match the Remotion composition (30fps, 900 total frames).
+ * Build a WebVTT string from live Sanity intro-video content. Derives from the
+ * same `getCaptionCues()` source as the on-screen captions, so the sidecar
+ * track can never drift from what the video shows (30fps, 900 total frames).
  */
 export const generateVttFromContent = (c: TandraIntroContent): string => {
-  const FPS = 30;
-  const scenes: Array<{ from: number; to: number; lines: string[] }> = [
-    {
-      from: 0,
-      to: 149,
-      lines: [`${c.storm.line1} ${c.storm.line2}`, c.storm.body],
-    },
-    {
-      from: 150,
-      to: 299,
-      lines: [
-        `${c.straightAnswers.line1} ${c.straightAnswers.line2} ${c.straightAnswers.line3}`,
-        c.straightAnswers.quote,
-      ],
-    },
-    {
-      from: 300,
-      to: 449,
-      lines: [
-        `${c.inspection.line1} ${c.inspection.line2} ${c.inspection.line3}`,
-        c.inspection.body,
-      ],
-    },
-    {
-      from: 450,
-      to: 629,
-      lines: [
-        `${c.managed.line1} ${c.managed.line2} ${c.managed.line3}`,
-        c.managed.items.join(" · "),
-      ],
-    },
-    {
-      from: 630,
-      to: 749,
-      lines: [`${c.proof.line1} ${c.proof.line2}`, c.proof.items.join(" · ")],
-    },
-    {
-      from: 750,
-      to: 899,
-      lines: [`${c.closing.line1} ${c.closing.line2}`, c.closing.cta],
-    },
-  ];
-
-  const cues = scenes
-    .map(
-      ({ from, to, lines }, i) =>
-        `${i + 1}\n${vttTime(from, FPS)} --> ${vttTime(to, FPS)}\n${lines.filter(Boolean).join("\n")}`,
-    )
+  const cues = getCaptionCues(c)
+    .map((cue, i) => `${i + 1}\n${vttTime(cue.fromFrame)} --> ${vttTime(cue.toFrame)}\n${cue.text}`)
     .join("\n\n");
 
   return `WEBVTT\n\n${cues}\n`;

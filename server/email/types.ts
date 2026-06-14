@@ -75,3 +75,20 @@ export type ContactLeadSubmission = {
   /** ISO timestamp of submission; defaults to now when omitted. */
   submittedAt?: string;
 };
+
+/** A completed roof-cost estimate from the /estimate wizard. */
+export type EstimateSubmission = {
+  fullName: string;
+  email: string;
+  /** Pre-formatted range, e.g. "$8,500 – $11,500". */
+  rangeDisplay: string;
+  /** Numeric bounds (for the record / future logic). */
+  lowEstimate: number;
+  highEstimate: number;
+  /** Home size used in the calc, when known. */
+  squareFootage?: number;
+  /** The visitor's answers, in order. */
+  answers: { prompt: string; answer: string }[];
+  /** ISO timestamp of submission; defaults to now when omitted. */
+  submittedAt?: string;
+};

@@ -43,3 +43,9 @@ export const LazyEmailPreviewTool = lazyStudioTool(() =>
     default: module.EmailPreviewTool,
   })),
 );
+
+export const LazyRemotionVideoTool = lazyStudioTool(() =>
+  import("./RemotionVideoTool").then((module) => ({
+    default: module.RemotionVideoTool,
+  })),
+);

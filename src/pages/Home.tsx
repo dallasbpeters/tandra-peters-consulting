@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { BirdcreekVideoBanner } from "../components/BirdcreekVideoBanner";
+import { ContactBanner } from "../components/ContactBanner";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
 import { Faq } from "../components/Faq";
 import { GoogleAuthGate } from "../components/GoogleAuthGate";
@@ -10,10 +11,13 @@ import { SeoStructuredData } from "../components/SeoStructuredData";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { useSanityEstimatorPage } from "../hooks/useSanityEstimatorPage";
+import { CONTACT_BANNER_ESTIMATOR } from "../lib/contactBannerPresets";
 import { asOptionalRichText } from "../portableText/value";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
 import { isSanityPresentationPreviewActive } from "../sanity/client";
 import { sanityImageUrl } from "../sanity/imageUrl";
+import { mapEstimatorPageContent } from "../sanity/mapEstimatorPage";
 import {
   mapAboutProps,
   mapArticlesTeaserEditorialProps,
@@ -90,6 +94,7 @@ const DevAgentation = import.meta.env.DEV
 
 export const Home = () => {
   const { data, loading, error } = useSanitySite();
+  const { page: estimatorPage } = useSanityEstimatorPage();
   const home = data?.home as Record<string, unknown> | null | undefined;
   const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
   const seoTitle =
@@ -180,6 +185,14 @@ export const Home = () => {
   const beforeAfterTitle = asString(beforeAfter?.title);
   const beforeAfterIntro = asOptionalRichText(beforeAfter?.intro);
 
+  const estimatorContent = mapEstimatorPageContent(estimatorPage);
+  const estimatorBannerProps = {
+    ...CONTACT_BANNER_ESTIMATOR,
+    ...(estimatorContent.bannerEyebrow ? { eyebrow: estimatorContent.bannerEyebrow } : {}),
+    ...(estimatorContent.bannerHeadline ? { headline: estimatorContent.bannerHeadline } : {}),
+    ...(estimatorContent.bannerCtaLabel ? { phoneDisplay: estimatorContent.bannerCtaLabel } : {}),
+  };
+
   return (
     <SitePageChrome>
       <SeoStructuredData />
@@ -238,6 +251,7 @@ export const Home = () => {
             <Certifications />
           </Suspense>
         </GoogleAuthGate>
+        <ContactBanner {...estimatorBannerProps} />
         <Suspense fallback={null}>
           <Band
             minHeight={8}

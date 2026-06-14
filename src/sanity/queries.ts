@@ -256,6 +256,39 @@ export const ARTICLES_INDEX_QUERY = groq`{
   }
 }`;
 
+/** /estimate: standalone cost-estimator singleton (+ homepage banner copy). */
+export const ESTIMATOR_PAGE_QUERY = groq`*[_id == "estimatorPage"][0]{
+  seoTitle,
+  seoDescription,
+  eyebrow,
+  title,
+  description,
+  startButtonLabel,
+  resultHeading,
+  disclaimer,
+  baseFee,
+  baseRatePerSqft,
+  rangeSpreadPercent,
+  currency,
+  bannerEyebrow,
+  bannerHeadline,
+  bannerCtaLabel,
+  questions[] {
+    _key,
+    prompt,
+    helpText,
+    drivesSquareFootage,
+    options[] {
+      _key,
+      label,
+      description,
+      sqftMidpoint,
+      pricePerSqftAdd,
+      flatAdd
+    }
+  }
+}`;
+
 export const BEFORE_AFTER_GALLERY_QUERY = groq`*[_type == "beforeAfterGallery"] | order(coalesce(orderRank, _createdAt) asc) {
   _id,
   title,

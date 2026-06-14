@@ -23,6 +23,7 @@ import {
   LazyEmailPreviewTool,
   LazyFalImageStudioTool,
   LazyImageManagerTool,
+  LazyRemotionVideoTool,
 } from "./components/lazyStudioTools";
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
@@ -489,6 +490,11 @@ export default defineConfig({
       name: "email-preview",
       title: "Email Preview",
       component: LazyEmailPreviewTool,
+    },
+    {
+      name: "videos",
+      title: "Videos",
+      component: LazyRemotionVideoTool,
     },
   ],
 

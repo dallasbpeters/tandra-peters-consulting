@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
-import { HelpCircle, Phone } from "iconoir-react";
+import { Calculator, HelpCircle, Phone } from "iconoir-react";
 
 import { mix, theme } from "../theme";
 
@@ -61,6 +61,22 @@ export const CONTACT_BANNER_FREE_INSPECTION: ContactBannerProps = {
   phoneLabel: "Call or text",
   ctaIcon: Phone,
   ariaLabel: "Schedule a free roof inspection",
+  phoneLinkBackground: mix(theme.colors.everglade, 40),
+  phoneLinkHoverBackground: mix(theme.colors.black, 60),
+  phoneLinkHoverShadow: mix(theme.colors.white, 15),
+};
+
+/** Homepage → /estimate CTA. Copy is overridden from the estimatorPage CMS doc. */
+export const CONTACT_BANNER_ESTIMATOR: ContactBannerProps = {
+  eyebrow: "Ballpark Pricing · 60 Seconds",
+  headline: "Estimate Your Roof",
+  phoneLabel: "No obligation",
+  phoneDisplay: "Start estimate",
+  phoneHref: "/estimate",
+  ctaIcon: Calculator,
+  phoneAriaLabel: "Open the roof cost estimator",
+  ariaLabel: "Estimate your roof cost",
+  backgroundColor: theme.colors.everglade,
   phoneLinkBackground: mix(theme.colors.everglade, 40),
   phoneLinkHoverBackground: mix(theme.colors.black, 60),
   phoneLinkHoverShadow: mix(theme.colors.white, 15),

@@ -317,3 +317,52 @@ export interface ArticlesTeaserProps {
   intro?: RichTextSource;
   viewAllLabel?: string;
 }
+
+export interface EstimatorOption {
+  _key?: string;
+  label: string;
+  description?: string;
+  /** Home size midpoint; only read on the question with `drivesSquareFootage`. */
+  sqftMidpoint?: number;
+  /** Dollars per square foot this option adds to the running rate. */
+  pricePerSqftAdd?: number;
+  /** Flat dollars this option adds regardless of size. */
+  flatAdd?: number;
+}
+
+export interface EstimatorQuestion {
+  _key?: string;
+  prompt: string;
+  helpText?: string;
+  /** When true, the selected option's `sqftMidpoint` sets the home size. */
+  drivesSquareFootage?: boolean;
+  options: EstimatorOption[];
+}
+
+export interface EstimatorProps {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  startButtonLabel?: string;
+  resultHeading?: string;
+  disclaimer?: string;
+  questions?: EstimatorQuestion[];
+  /** Flat amount added to every estimate. */
+  baseFee?: number;
+  /** Starting price per square foot before option modifiers. */
+  baseRatePerSqft?: number;
+  /** Half-width of the shown range, as a percent (15 = ±15%). */
+  rangeSpreadPercent?: number;
+  currency?: string;
+  /** Section element id for in-page anchors. Defaults to `estimator`. */
+  sectionId?: string;
+}
+
+/** Resolved /estimate page content: estimator config + SEO + homepage banner copy. */
+export interface EstimatorPageContent extends EstimatorProps {
+  seoTitle?: string;
+  seoDescription?: string;
+  bannerEyebrow?: string;
+  bannerHeadline?: string;
+  bannerCtaLabel?: string;
+}

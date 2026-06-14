@@ -46,19 +46,14 @@ const toTitleCase = (value) =>
     .join(" ");
 
 const toCamelCase = (value) => {
-  const parts = toWords(value)
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean);
+  const parts = toWords(value).toLowerCase().split(/\s+/).filter(Boolean);
 
   if (!parts.length) {
     return "";
   }
 
   return parts
-    .map((part, index) =>
-      index === 0 ? part : part[0].toUpperCase() + part.slice(1),
-    )
+    .map((part, index) => (index === 0 ? part : part[0].toUpperCase() + part.slice(1)))
     .join("");
 };
 
@@ -67,12 +62,13 @@ const toPascalCase = (value) => {
   return camel ? camel[0].toUpperCase() + camel.slice(1) : "";
 };
 
-const toConstCase = (value) =>
-  toWords(value)
-    .replace(/\s+/g, "_")
-    .toUpperCase();
+const toConstCase = (value) => toWords(value).replace(/\s+/g, "_").toUpperCase();
 
-const indentBlock = (block, indent) => block.split("\n").map((line) => `${indent}${line}`).join("\n");
+const indentBlock = (block, indent) =>
+  block
+    .split("\n")
+    .map((line) => `${indent}${line}`)
+    .join("\n");
 
 const fileExists = async (filePath) => {
   try {
@@ -96,9 +92,9 @@ const askYesNo = async (rl, prompt, defaultValue = true) => {
 
 const askNonEmpty = async (rl, prompt, fallback = "") => {
   for (;;) {
-    const answer = (await rl.question(
-      fallback ? `${prompt} (${fallback}): ` : `${prompt}: `,
-    )).trim();
+    const answer = (
+      await rl.question(fallback ? `${prompt} (${fallback}): ` : `${prompt}: `)
+    ).trim();
 
     if (answer) {
       return answer;
@@ -114,9 +110,7 @@ const askNonEmpty = async (rl, prompt, fallback = "") => {
 
 const askFieldType = async (rl) => {
   for (;;) {
-    const answer = (await rl.question(
-      `Field type [${FIELD_TYPE_OPTIONS.join(", ")}]: `,
-    ))
+    const answer = (await rl.question(`Field type [${FIELD_TYPE_OPTIONS.join(", ")}]: `))
       .trim()
       .toLowerCase();
 
@@ -129,18 +123,12 @@ const askFieldType = async (rl) => {
 };
 
 const renderSchemaField = (field) => {
-  const lines = [
-    "defineField({",
-    `  name: \"${field.name}\",`,
-    `  title: \"${field.title}\",`,
-  ];
+  const lines = ["defineField({", `  name: "${field.name}",`, `  title: "${field.title}",`];
 
   if (
-    ["string", "text", "number", "boolean", "url", "date", "datetime", "image"].includes(
-      field.type,
-    )
+    ["string", "text", "number", "boolean", "url", "date", "datetime", "image"].includes(field.type)
   ) {
-    lines.push(`  type: \"${field.type}\",`);
+    lines.push(`  type: "${field.type}",`);
   }
 
   if (field.type === "text") {
@@ -150,30 +138,30 @@ const renderSchemaField = (field) => {
   if (field.type === "slug") {
     lines.push('  type: "slug",');
     lines.push("  options: {");
-    lines.push(`    source: \"${field.slugSource || "title"}\",`);
+    lines.push(`    source: "${field.slugSource || "title"}",`);
     lines.push("  },");
   }
 
   if (field.type === "reference") {
     lines.push('  type: "reference",');
-    lines.push(`  to: [{ type: \"${field.referenceTo}\" }],`);
+    lines.push(`  to: [{ type: "${field.referenceTo}" }],`);
   }
 
   if (field.type === "array-string") {
     lines.push('  type: "array",');
-    lines.push("  of: [defineArrayMember({ type: \"string\" })],");
+    lines.push('  of: [defineArrayMember({ type: "string" })],');
   }
 
   if (field.type === "array-reference") {
     lines.push('  type: "array",');
     lines.push(
-      `  of: [defineArrayMember({ type: \"reference\", to: [{ type: \"${field.referenceTo}\" }] })],`,
+      `  of: [defineArrayMember({ type: "reference", to: [{ type: "${field.referenceTo}" }] })],`,
     );
   }
 
   if (field.type === "portable-text") {
     lines.push('  type: "array",');
-    lines.push("  of: [defineArrayMember({ type: \"block\" })],");
+    lines.push('  of: [defineArrayMember({ type: "block" })],');
   }
 
   if (field.required) {
@@ -280,20 +268,17 @@ const ensureDefineArrayMemberImport = (source) => {
     return source;
   }
 
-  return source.replace(
-    /import\s*\{([^}]+)\}\s*from\s*"sanity";/,
-    (_match, imports) => {
-      const parts = imports
-        .split(",")
-        .map((part) => part.trim())
-        .filter(Boolean);
-      if (parts.includes("defineArrayMember")) {
-        return _match;
-      }
-      const nextImports = [...parts, "defineArrayMember"];
-      return `import { ${nextImports.join(", ")} } from "sanity";`;
-    },
-  );
+  return source.replace(/import\s*\{([^}]+)\}\s*from\s*"sanity";/, (_match, imports) => {
+    const parts = imports
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts.includes("defineArrayMember")) {
+      return _match;
+    }
+    const nextImports = [...parts, "defineArrayMember"];
+    return `import { ${nextImports.join(", ")} } from "sanity";`;
+  });
 };
 
 const appendFieldsToExistingSchema = (source, fieldBlocks) => {
@@ -321,7 +306,9 @@ const appendFieldsToExistingSchema = (source, fieldBlocks) => {
   const arrayBody = source.slice(openBracketIndex + 1, closeBracketIndex);
   const hasEntries = arrayBody.trim().length > 0;
 
-  const insertion = hasEntries ? `,\n\n${fieldSource}\n${closeIndent}` : `\n${fieldSource}\n${closeIndent}`;
+  const insertion = hasEntries
+    ? `,\n\n${fieldSource}\n${closeIndent}`
+    : `\n${fieldSource}\n${closeIndent}`;
 
   return `${source.slice(0, closeBracketIndex)}${insertion}${source.slice(closeBracketIndex)}`;
 };
@@ -378,7 +365,7 @@ const ensureHomeMapperBirdcreek = (source) => {
     throw new Error("Could not find mapAboutProps marker in mapSanityHome.tsx.");
   }
 
-  const functionSource = `export const mapBirdcreekVideoBannerProps = (\n  data: SanityDoc,\n): Partial<{ vimeoUrl: string; title: string }> => {\n  if (!data) {\n    return {};\n  }\n\n  const rawVimeoUrl =\n    typeof data.birdcreekVimeoUrl === \"string\"\n      ? data.birdcreekVimeoUrl\n      : typeof data.vimeoUrl === \"string\"\n        ? data.vimeoUrl\n        : undefined;\n\n  const rawTitle =\n    typeof data.birdcreekVideoTitle === \"string\"\n      ? data.birdcreekVideoTitle\n      : typeof data.title === \"string\"\n        ? data.title\n        : undefined;\n\n  const vimeoUrl = typeof rawVimeoUrl === \"string\" ? stegaClean(rawVimeoUrl).trim() : \"\";\n  const title = typeof rawTitle === \"string\" ? stegaClean(rawTitle).trim() : \"\";\n\n  return {\n    ...(vimeoUrl ? { vimeoUrl } : {}),\n    ...(title ? { title } : {}),\n  };\n};\n\n`;
+  const functionSource = `export const mapBirdcreekVideoBannerProps = (\n  data: SanityDoc,\n): Partial<{ vimeoUrl: string; title: string }> => {\n  if (!data) {\n    return {};\n  }\n\n  const rawVimeoUrl =\n    typeof data.birdcreekVimeoUrl === "string"\n      ? data.birdcreekVimeoUrl\n      : typeof data.vimeoUrl === "string"\n        ? data.vimeoUrl\n        : undefined;\n\n  const rawTitle =\n    typeof data.birdcreekVideoTitle === "string"\n      ? data.birdcreekVideoTitle\n      : typeof data.title === "string"\n        ? data.title\n        : undefined;\n\n  const vimeoUrl = typeof rawVimeoUrl === "string" ? stegaClean(rawVimeoUrl).trim() : "";\n  const title = typeof rawTitle === "string" ? stegaClean(rawTitle).trim() : "";\n\n  return {\n    ...(vimeoUrl ? { vimeoUrl } : {}),\n    ...(title ? { title } : {}),\n  };\n};\n\n`;
 
   return `${source.slice(0, insertAt)}${functionSource}${source.slice(insertAt)}`;
 };
@@ -415,7 +402,10 @@ const ensureHomePageBirdcreekConsumption = (source) => {
   }
 
   if (next.includes("<BirdcreekVideoBanner />")) {
-    next = next.replace("<BirdcreekVideoBanner />", "<BirdcreekVideoBanner {...birdcreekVideoProps} />");
+    next = next.replace(
+      "<BirdcreekVideoBanner />",
+      "<BirdcreekVideoBanner {...birdcreekVideoProps} />",
+    );
   }
 
   return next;
@@ -477,7 +467,7 @@ const toTypeScriptType = (field) => {
 const toQueryProjectionLine = (field) => {
   switch (field.type) {
     case "slug":
-      return `\"${field.name}\": ${field.name}.current`;
+      return `"${field.name}": ${field.name}.current`;
     case "image":
       return `${field.name}{ asset->{ url } }`;
     case "reference":
@@ -507,7 +497,7 @@ const ensureFileWithExports = async (indexPath, exportLine) => {
 const registerSchemaType = async ({ importPath, exportName }) => {
   const source = await readFile(schemaIndexPath, "utf8");
 
-  const importLine = `import { ${exportName} } from \"${importPath}\";`;
+  const importLine = `import { ${exportName} } from "${importPath}";`;
   let nextSource = source;
 
   if (!nextSource.includes(importLine)) {
@@ -535,9 +525,7 @@ const main = async () => {
     console.log("\nSanity component scaffolder");
     console.log("Create new schema bundles OR extend an existing schema with new fields.\n");
 
-    const modeInput = (
-      await askNonEmpty(rl, "Mode (create/extend)", "create")
-    ).toLowerCase();
+    const modeInput = (await askNonEmpty(rl, "Mode (create/extend)", "create")).toLowerCase();
     const mode = modeInput === "extend" ? "extend" : "create";
 
     if (mode === "extend") {
@@ -554,11 +542,7 @@ const main = async () => {
         );
       });
 
-      const selection = await askNonEmpty(
-        rl,
-        "Select type by number or type name",
-        "homePage",
-      );
+      const selection = await askNonEmpty(rl, "Select type by number or type name", "homePage");
 
       const selectionNumber = Number(selection);
       const selected = Number.isInteger(selectionNumber)
@@ -612,7 +596,11 @@ const main = async () => {
       const fieldBlocks = fields.map((field) => renderSchemaField(field));
       let schemaSource = await readFile(selected.filePath, "utf8");
 
-      if (fields.some((field) => ["array-string", "array-reference", "portable-text"].includes(field.type))) {
+      if (
+        fields.some((field) =>
+          ["array-string", "array-reference", "portable-text"].includes(field.type),
+        )
+      ) {
         schemaSource = ensureDefineArrayMemberImport(schemaSource);
       }
 
@@ -637,7 +625,9 @@ const main = async () => {
       console.log(`- File:   ${selected.relativePath}`);
       console.log(`- Fields: ${fields.map((field) => field.name).join(", ")}`);
       if (autoWireSummary?.updated) {
-        console.log("- Wiring: Updated src/sanity/queries.ts, src/sanity/mapSanityHome.tsx, src/pages/Home.tsx");
+        console.log(
+          "- Wiring: Updated src/sanity/queries.ts, src/sanity/mapSanityHome.tsx, src/pages/Home.tsx",
+        );
       } else if (autoWireSummary?.reason) {
         console.log(`- Wiring: Skipped (${autoWireSummary.reason})`);
       }
@@ -697,9 +687,7 @@ const main = async () => {
       }
 
       if (fieldType === "slug") {
-        field.slugSource = toCamelCase(
-          await askNonEmpty(rl, "Slug source field", "title"),
-        );
+        field.slugSource = toCamelCase(await askNonEmpty(rl, "Slug source field", "title"));
       }
 
       fields.push(field);
@@ -720,11 +708,14 @@ const main = async () => {
 
     const schemaFields = fields.map((field) => renderSchemaField(field)).join(",\n\n    ");
 
-    const schemaSource = `import { defineField, defineType${needsArrayMember ? ", defineArrayMember" : ""} } from \"sanity\";\n\nexport const ${exportName} = defineType({\n  name: \"${typeName}\",\n  title: \"${schemaTitle}\",\n  type: \"${schemaKind}\",\n  fields: [\n    ${schemaFields}\n  ],\n  preview: {\n    select: {\n      title: \"${firstStringLikeField}\",\n    },\n  },\n});\n`;
+    const schemaSource = `import { defineField, defineType${needsArrayMember ? ", defineArrayMember" : ""} } from "sanity";\n\nexport const ${exportName} = defineType({\n  name: "${typeName}",\n  title: "${schemaTitle}",\n  type: "${schemaKind}",\n  fields: [\n    ${schemaFields}\n  ],\n  preview: {\n    select: {\n      title: "${firstStringLikeField}",\n    },\n  },\n});\n`;
 
     await mkdir(schemaDir, { recursive: true });
 
-    if ((await fileExists(schemaFilePath)) && !(await askYesNo(rl, `${schemaFileName} exists. Overwrite?`, false))) {
+    if (
+      (await fileExists(schemaFilePath)) &&
+      !(await askYesNo(rl, `${schemaFileName} exists. Overwrite?`, false))
+    ) {
       console.log("Aborted to avoid overwriting existing schema file.");
       return;
     }
@@ -741,14 +732,15 @@ const main = async () => {
     const projection = fields.map((field) => `    ${toQueryProjectionLine(field)},`).join("\n");
     const constPrefix = toConstCase(typeName);
 
-    const querySource = schemaKind === "document"
-      ? `import { defineQuery } from \"groq\";\n\nexport const ${constPrefix}_BY_ID_QUERY = defineQuery(/* groq */ \`*[_type == \"${typeName}\" && _id == $id][0]{\n${projection}\n  }\`);\n\nexport const ${constPrefix}_LIST_QUERY = defineQuery(/* groq */ \`*[_type == \"${typeName}\"] | order(_createdAt desc){\n${projection}\n  }\`);\n`
-      : `export const ${constPrefix}_FRAGMENT = /* groq */ \`{\n${projection}\n  }\`;\n`;
+    const querySource =
+      schemaKind === "document"
+        ? `import { defineQuery } from "groq";\n\nexport const ${constPrefix}_BY_ID_QUERY = defineQuery(/* groq */ \`*[_type == "${typeName}" && _id == $id][0]{\n${projection}\n  }\`);\n\nexport const ${constPrefix}_LIST_QUERY = defineQuery(/* groq */ \`*[_type == "${typeName}"] | order(_createdAt desc){\n${projection}\n  }\`);\n`
+        : `export const ${constPrefix}_FRAGMENT = /* groq */ \`{\n${projection}\n  }\`;\n`;
 
     await writeFile(queryFilePath, querySource, "utf8");
     await ensureFileWithExports(
       path.join(generatedSanityDir, "index.ts"),
-      `export * from \"./${typeName}.queries\";`,
+      `export * from "./${typeName}.queries";`,
     );
 
     await mkdir(generatedComponentsDir, { recursive: true });
@@ -764,42 +756,42 @@ const main = async () => {
       })
       .join("\n");
 
-    const componentSource = `import React from \"react\";\n\nexport type ${componentName}Data = {\n${componentFields}\n};\n\nexport type ${componentName}Props = {\n  data: ${componentName}Data;\n};\n\nexport function ${componentName}({ data }: ${componentName}Props) {\n  return (\n    <section data-sanity-component=\"${typeName}\">\n      <pre>{JSON.stringify(data, null, 2)}</pre>\n    </section>\n  );\n}\n`;
+    const componentSource = `import React from "react";\n\nexport type ${componentName}Data = {\n${componentFields}\n};\n\nexport type ${componentName}Props = {\n  data: ${componentName}Data;\n};\n\nexport function ${componentName}({ data }: ${componentName}Props) {\n  return (\n    <section data-sanity-component="${typeName}">\n      <pre>{JSON.stringify(data, null, 2)}</pre>\n    </section>\n  );\n}\n`;
 
-    const mapperSource = `import { stegaClean } from \"@sanity/client/stega\";\n\nimport type { ${componentName}Data } from \"../../components/generated/${componentName}\";\n\ntype UnknownRecord = Record<string, unknown> | null | undefined;\n\nconst asString = (value: unknown): string | undefined => {\n  if (typeof value !== \"string\") return undefined;\n  const cleaned = stegaClean(value).trim();\n  return cleaned || undefined;\n};\n\nconst asNumber = (value: unknown): number | undefined => {\n  if (typeof value === \"number\" && Number.isFinite(value)) return value;\n  if (typeof value === \"string\") {\n    const parsed = Number(stegaClean(value).trim());\n    return Number.isFinite(parsed) ? parsed : undefined;\n  }\n  return undefined;\n};\n\nconst asBoolean = (value: unknown): boolean | undefined =>\n  typeof value === \"boolean\" ? value : undefined;\n\nexport const map${componentName} = (input: UnknownRecord): Partial<${componentName}Data> => {\n  if (!input || typeof input !== \"object\") return {};\n\n  const source = input as Record<string, unknown>;\n\n  return {\n${fields
-  .map((field) => {
-    if (field.type === "number") {
-      return `    ...(asNumber(source.${field.name}) !== undefined ? { ${field.name}: asNumber(source.${field.name}) } : {}),`;
-    }
-    if (field.type === "boolean") {
-      return `    ...(asBoolean(source.${field.name}) !== undefined ? { ${field.name}: asBoolean(source.${field.name}) } : {}),`;
-    }
-    if (field.type === "array-string" || field.type === "portable-text") {
-      return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as ${toTypeScriptType(field).replace(/;$/, "")} } : {}),`;
-    }
-    if (field.type === "array-reference") {
-      return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as Array<{ _id?: string; _type?: string }> } : {}),`;
-    }
-    if (field.type === "reference") {
-      return `    ...(source.${field.name} && typeof source.${field.name} === "object" ? { ${field.name}: source.${field.name} as { _id?: string; _type?: string } } : {}),`;
-    }
-    if (field.type === "image") {
-      return `    ...(source.${field.name} && typeof source.${field.name} === "object" ? { ${field.name}: source.${field.name} as { asset?: { url?: string } } } : {}),`;
-    }
-    return `    ...(asString(source.${field.name}) ? { ${field.name}: asString(source.${field.name}) } : {}),`;
-  })
-  .join("\n")}\n  };\n};\n`;
+    const mapperSource = `import { stegaClean } from "@sanity/client/stega";\n\nimport type { ${componentName}Data } from "../../components/generated/${componentName}";\n\ntype UnknownRecord = Record<string, unknown> | null | undefined;\n\nconst asString = (value: unknown): string | undefined => {\n  if (typeof value !== "string") return undefined;\n  const cleaned = stegaClean(value).trim();\n  return cleaned || undefined;\n};\n\nconst asNumber = (value: unknown): number | undefined => {\n  if (typeof value === "number" && Number.isFinite(value)) return value;\n  if (typeof value === "string") {\n    const parsed = Number(stegaClean(value).trim());\n    return Number.isFinite(parsed) ? parsed : undefined;\n  }\n  return undefined;\n};\n\nconst asBoolean = (value: unknown): boolean | undefined =>\n  typeof value === "boolean" ? value : undefined;\n\nexport const map${componentName} = (input: UnknownRecord): Partial<${componentName}Data> => {\n  if (!input || typeof input !== "object") return {};\n\n  const source = input as Record<string, unknown>;\n\n  return {\n${fields
+      .map((field) => {
+        if (field.type === "number") {
+          return `    ...(asNumber(source.${field.name}) !== undefined ? { ${field.name}: asNumber(source.${field.name}) } : {}),`;
+        }
+        if (field.type === "boolean") {
+          return `    ...(asBoolean(source.${field.name}) !== undefined ? { ${field.name}: asBoolean(source.${field.name}) } : {}),`;
+        }
+        if (field.type === "array-string" || field.type === "portable-text") {
+          return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as ${toTypeScriptType(field).replace(/;$/, "")} } : {}),`;
+        }
+        if (field.type === "array-reference") {
+          return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as Array<{ _id?: string; _type?: string }> } : {}),`;
+        }
+        if (field.type === "reference") {
+          return `    ...(source.${field.name} && typeof source.${field.name} === "object" ? { ${field.name}: source.${field.name} as { _id?: string; _type?: string } } : {}),`;
+        }
+        if (field.type === "image") {
+          return `    ...(source.${field.name} && typeof source.${field.name} === "object" ? { ${field.name}: source.${field.name} as { asset?: { url?: string } } } : {}),`;
+        }
+        return `    ...(asString(source.${field.name}) ? { ${field.name}: asString(source.${field.name}) } : {}),`;
+      })
+      .join("\n")}\n  };\n};\n`;
 
     await writeFile(componentFilePath, componentSource, "utf8");
     await writeFile(mapperFilePath, mapperSource, "utf8");
 
     await ensureFileWithExports(
       path.join(generatedComponentsDir, "index.ts"),
-      `export * from \"./${componentName}\";`,
+      `export * from "./${componentName}";`,
     );
     await ensureFileWithExports(
       path.join(generatedSanityDir, "index.ts"),
-      `export * from \"./map${componentName}\";`,
+      `export * from "./map${componentName}";`,
     );
 
     console.log("\n✅ Scaffold created and registered.");

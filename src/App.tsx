@@ -33,6 +33,11 @@ const RoofInspections = lazy(async () => {
   return { default: module.RoofInspections };
 });
 
+const EstimatorPage = lazy(async () => {
+  const module = await import("./pages/EstimatorPage");
+  return { default: module.EstimatorPage };
+});
+
 const PrivacyPolicyPage = lazy(async () => {
   const module = await import("./pages/PrivacyPolicyPage");
   return { default: module.PrivacyPolicyPage };
@@ -77,6 +82,11 @@ const EmailComposerPage = lazy(async () => {
   return { default: module.EmailComposerPage };
 });
 
+const RemotionPreviewPage = lazy(async () => {
+  const module = await import("./pages/RemotionPreviewPage");
+  return { default: module.RemotionPreviewPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -92,6 +102,12 @@ const RootLayout = () => (
 
 const appRouter = createBrowserRouter([
   {
+    // Standalone, chrome-less Remotion preview embedded by the Sanity Studio
+    // "Videos" tool. No SiteShell / nav / providers — just the player.
+    path: "remotion-preview",
+    element: <RemotionPreviewPage />,
+  },
+  {
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
@@ -105,6 +121,7 @@ const appRouter = createBrowserRouter([
       { path: "insurance-faqs", element: <InsuranceFaqsPage /> },
       { path: "roof-inspection", element: <RoofInspections /> },
       { path: "roof-inspections", element: <RoofInspections /> },
+      { path: "estimate", element: <EstimatorPage /> },
       { path: "agent", element: <FeatureBuilderPage /> },
       { path: "marketing", element: <MarketingAgentPage /> },
       { path: "ads", element: <AdDashboardPage /> },

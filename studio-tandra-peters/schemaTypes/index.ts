@@ -5,6 +5,7 @@ import beforeAfterGalleryType from "./documents/beforeAfterGallery";
 import { clientEmailType } from "./documents/clientEmail";
 import { emailContactType } from "./documents/emailContact";
 import { emailSignatureType } from "./documents/emailSignature";
+import { estimatorPageType } from "./documents/estimatorPage";
 import { homePageType } from "./documents/homePage";
 import { insuranceFaqsPageType } from "./documents/insuranceFaqsPage";
 import { roofInspectionsPageType } from "./documents/roofInspectionsPage";
@@ -31,6 +32,8 @@ import {
 } from "./homePageSections";
 import { birdcreekAdvantageCardType } from "./objects/birdcreekAdvantageCard";
 import { blockContentType } from "./objects/blockContent";
+import { estimatorOptionType } from "./objects/estimatorOption";
+import { estimatorQuestionType } from "./objects/estimatorQuestion";
 import { expertiseItemType } from "./objects/expertiseItem";
 import { faqItemType } from "./objects/faqItem";
 import { missionValueType } from "./objects/missionValue";
@@ -66,6 +69,8 @@ export const schemaTypes = [
   seoDashboardOpportunityType,
   statRowType,
   serviceAreaMapType,
+  estimatorOptionType,
+  estimatorQuestionType,
   roofInspectionHotspotType,
   heroSectionType,
   marqueeSectionType,
@@ -88,6 +93,7 @@ export const schemaTypes = [
   articlesPageType,
   insuranceFaqsPageType,
   workflowPageType,
+  estimatorPageType,
   tandraIntroVideoType,
   aiContextType,
   seoDashboardInsightsType,

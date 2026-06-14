@@ -10,6 +10,7 @@ import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
 import { viteAnalyticsApi } from "./plugins/viteAnalyticsApi";
 import { viteContactDevApi } from "./plugins/viteContactDevApi";
 import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
+import { viteEstimateDevApi } from "./plugins/viteEstimateDevApi";
 import { viteFalDevApi } from "./plugins/viteFalDevApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
@@ -94,6 +95,7 @@ export default defineConfig(({ mode }) => {
     viteWorkflowSaveApi(env) as unknown as PluginOption,
     viteAdVersionsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
+    viteEstimateDevApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,
     ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
     tailwindcss() as unknown as PluginOption,
@@ -128,6 +130,10 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       exclude: ["@awesome.me/webawesome"],
+    },
+    css: {
+      // Map compiled CSS back to source (theme files, estimator.css, etc.) in dev.
+      devSourcemap: true,
     },
     server: {
       port: 3001,

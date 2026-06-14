@@ -27,12 +27,23 @@ import {
 } from "@remotion/vercel";
 import { execSync } from "node:child_process";
 
+import { AD_COMPOSITION_DEFAULTS, isAdCompositionId } from "./lib/ad-composition-defaults.js";
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
 import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
-const COMPOSITION_ID = "TandraIntro";
+const DEFAULT_COMPOSITION_ID = "TandraIntro";
 const LOCAL_BUNDLE_DIR = ".remotion";
+
+const resolveCompositionId = (req: VercelRequest): string => {
+  const fromQuery = queryValue(req.query.compositionId) ?? queryValue(req.query.id);
+  const fromBody =
+    req.body && typeof req.body === "object"
+      ? ((req.body as Record<string, unknown>).compositionId as string | undefined)
+      : undefined;
+  const raw = (fromBody ?? fromQuery ?? DEFAULT_COMPOSITION_ID).trim();
+  return raw || DEFAULT_COMPOSITION_ID;
+};
 
 const isAuthorized = (req: VercelRequest): boolean => {
   const required = process.env.RENDER_VIDEO_SECRET?.trim();
@@ -83,9 +94,78 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   const onVercel = Boolean(process.env.VERCEL);
+  const compositionId = resolveCompositionId(req);
+  const isAd = isAdCompositionId(compositionId);
   let sandbox: Sandbox | null = null;
 
+  const startSandbox = async (): Promise<Sandbox> => {
+    const sb = onVercel
+      ? await restoreRemotionSnapshot()
+      : await createSandbox({
+          onProgress: ({ progress, message }) => {
+            console.log(`[render-video] ${message} (${Math.round(progress * 100)}%)`);
+          },
+        });
+    if (!onVercel) {
+      bundleRemotionProject();
+      await sb.mkDir("remotion-bundle");
+      await addBundleToSandbox({ sandbox: sb, bundleDir: LOCAL_BUNDLE_DIR });
+    }
+    return sb;
+  };
+
+  const logRenderProgress = (update: { stage: string; overallProgress: number }): void => {
+    console.log(`[render-video] ${update.stage} ${Math.round(update.overallProgress * 100)}%`);
+  };
+
+  // Compositions that render three.js / WebGL (RoofScene's GLB roof) need a GPU-
+  // less OpenGL backend in the headless Chromium used by the renderer. Without
+  // this the <ThreeCanvas> renders blank (the roof.glb never appears) even
+  // though it works in the in-browser <Player> preview. "angle" uses SwiftShader
+  // (software ANGLE) which is reliable in the Vercel Sandbox. The CLI
+  // `remotion.config.ts` setting does NOT apply to renderMediaOnVercel — it must
+  // be passed here as a render option.
+  const WEBGL_COMPOSITIONS = new Set(["RoofScene"]);
+  const chromiumOptions = WEBGL_COMPOSITIONS.has(compositionId)
+    ? ({ gl: "angle" } as const)
+    : undefined;
+
+  const blobSlug = compositionId
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
   try {
+    // ── Social-ad compositions: static default copy, no Sanity skip/patch. ──
+    if (isAd) {
+      const inputProps = AD_COMPOSITION_DEFAULTS[compositionId];
+      sandbox = await startSandbox();
+
+      const { sandboxFilePath, contentType } = await renderMediaOnVercel({
+        sandbox,
+        compositionId,
+        inputProps,
+        ...(chromiumOptions ? { chromiumOptions } : {}),
+        onProgress: logRenderProgress,
+      });
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const blobPath = `videos/${blobSlug}/${stamp}.mp4`;
+      const { url, size } = await uploadToVercelBlob({
+        sandbox,
+        sandboxFilePath,
+        blobPath,
+        contentType,
+        blobToken,
+        access: "public",
+      });
+
+      res.status(200).json({ url, size, compositionId, copySource: "defaults" });
+      return;
+    }
+
+    // ── TandraIntro: CMS-backed copy with content-hash skip + Sanity patch. ──
     const { content, contentHash, renderContentHash, source, documentId } =
       await fetchTandraIntroContent();
 
@@ -93,7 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       res.status(200).json({
         skipped: true,
         reason: "Intro video content has already been rendered.",
-        compositionId: COMPOSITION_ID,
+        compositionId,
         copySource: source,
         documentId,
         contentHash,
@@ -101,29 +181,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    sandbox = onVercel
-      ? await restoreRemotionSnapshot()
-      : await createSandbox({
-          onProgress: ({ progress, message }) => {
-            console.log(`[render-tandra-intro] ${message} (${Math.round(progress * 100)}%)`);
-          },
-        });
-
-    if (!onVercel) {
-      bundleRemotionProject();
-      await sandbox.mkDir("remotion-bundle");
-      await addBundleToSandbox({ sandbox, bundleDir: LOCAL_BUNDLE_DIR });
-    }
+    sandbox = await startSandbox();
 
     const { sandboxFilePath, contentType } = await renderMediaOnVercel({
       sandbox,
-      compositionId: COMPOSITION_ID,
+      compositionId,
       inputProps: { content },
-      onProgress: (update) => {
-        console.log(
-          `[render-tandra-intro] ${update.stage} ${Math.round(update.overallProgress * 100)}%`,
-        );
-      },
+      onProgress: logRenderProgress,
     });
 
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -142,15 +206,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     let sanityError: string | undefined;
     if (sanityPatch.ok === false) {
       sanityError = sanityPatch.reason;
-      console.warn(
-        `[render-tandra-intro] Render succeeded but Sanity was not updated: ${sanityError}`,
-      );
+      console.warn(`[render-video] Render succeeded but Sanity was not updated: ${sanityError}`);
     }
 
     res.status(200).json({
       url,
       size,
-      compositionId: COMPOSITION_ID,
+      compositionId,
       copySource: source,
       documentId,
       contentHash,
@@ -158,7 +220,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       ...(sanityError ? { sanityError } : {}),
     });
   } catch (error) {
-    console.error("[render-tandra-intro]", error);
+    console.error("[render-video]", error);
     res.status(500).json({
       error: error instanceof Error ? error.message : "Remotion render failed unexpectedly.",
     });

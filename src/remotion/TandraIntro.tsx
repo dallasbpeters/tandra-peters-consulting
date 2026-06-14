@@ -10,9 +10,10 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import type { TandraIntroContent, TandraIntroProps } from "./tandraIntroContent";
+import type { CaptionCue, TandraIntroContent, TandraIntroProps } from "./tandraIntroContent";
 
 import { theme } from "../theme";
+import { getCaptionCues } from "./tandraIntroContent";
 
 const colors = {
   everglade: "#092A1D",
@@ -638,7 +639,69 @@ const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) =
   );
 };
 
+const CAPTION_FADE = 8;
+
+/**
+ * Readable subtitle bar rendered inside the composition, so captions appear in
+ * both the live <Player> (homepage / Sanity preview) and the burned-in MP4
+ * render. Text + timing come from getCaptionCues(content), the same source the
+ * sidecar WebVTT track uses, so edits to the copy regenerate captions
+ * automatically with no drift.
+ */
+const Captions = ({ cues }: { cues: CaptionCue[] }) => {
+  const frame = useCurrentFrame();
+  const active = cues.find((cue) => frame >= cue.fromFrame && frame < cue.toFrame);
+  if (!active) {
+    return null;
+  }
+
+  const opacity = interpolate(
+    frame,
+    [
+      active.fromFrame,
+      active.fromFrame + CAPTION_FADE,
+      active.toFrame - CAPTION_FADE,
+      active.toFrame,
+    ],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  return (
+    <AbsoluteFill
+      style={{
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: "0 8% 56px",
+        pointerEvents: "none",
+        zIndex: 200,
+      }}
+    >
+      <p
+        style={{
+          backgroundColor: "rgba(3, 16, 11, 0.82)",
+          borderRadius: 14,
+          color: colors.white,
+          fontFamily: theme.fonts.headline,
+          fontSize: 38,
+          fontWeight: 600,
+          lineHeight: 1.3,
+          margin: 0,
+          maxWidth: 1500,
+          opacity,
+          padding: "20px 36px",
+          textAlign: "center",
+          textShadow: "0 2px 12px rgba(0, 0, 0, 0.55)",
+        }}
+      >
+        {active.text}
+      </p>
+    </AbsoluteFill>
+  );
+};
+
 export const TandraIntro = ({ content }: TandraIntroProps) => {
+  const captionCues = getCaptionCues(content);
   return (
     <AbsoluteFill style={{ backgroundColor: colors.black }}>
       <StormScene content={content.storm} />
@@ -647,6 +710,7 @@ export const TandraIntro = ({ content }: TandraIntroProps) => {
       <ManagedScene content={content.managed} />
       <ProofScene content={content.proof} />
       <ClosingScene content={content.closing} />
+      <Captions cues={captionCues} />
     </AbsoluteFill>
   );
 };

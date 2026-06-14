@@ -1,0 +1,99 @@
+/**
+ * Plain CSS-variable version of the ad compositions' design tokens.
+ *
+ * The ad compositions (Clips / RoofScene / CustomComposition) style everything
+ * with inline `var(--color-*)` / `var(--font-*)` tokens — they use no Tailwind
+ * utility classes, so the original `@theme` block was only ever a token source.
+ *
+ * Exposing the tokens as plain `:root` custom properties lets the SAME file work
+ * in both the Remotion render bundle (default webpack CSS loader) and the
+ * in-browser SPA preview route (`/remotion-preview`) without pulling in a second
+ * Tailwind scan.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800;900&family=Instrument+Serif&display=swap");
+
+:root {
+  --color-primary: #092a1d;
+  --color-white: #fff;
+  --color-black: #0b0b09;
+  --color-everglade: #061d14;
+  --color-everglade-light: #12533a;
+  --color-everglade-muted: #acecd3;
+  --color-text-on-brand: #d5f6e9;
+  --color-paper: #f4f4f1;
+  --color-paper-dark: #d2d2c6;
+  --color-paper-dim: #e7e7e4;
+  --color-accent: #69a758;
+  --color-accent-light: #a5ca9b;
+  --color-purple: #ceccff;
+  --color-hero-accent: #9c99ff;
+  --color-purple-dark: #9c99ff;
+  --color-danger: #f3a61e;
+  --color-legal-muted: #3c5d4e;
+  --blue-50: oklch(94.15% 0.028 272.51);
+  --blue-100: oklch(88.18% 0.058 274.39);
+  --blue-200: oklch(76.45% 0.12 272.81);
+  --blue-300: oklch(65.41% 0.184 269.97);
+  --blue-400: oklch(55.5% 0.245 266.68);
+  --blue-500: oklch(48.49% 0.291 264.12);
+  --blue-600: oklch(41.26% 0.244 264.08);
+  --blue-700: oklch(33.73% 0.195 263.98);
+  --blue-800: oklch(25.63% 0.143 263.79);
+  --blue-900: oklch(17.14% 0.083 262.6);
+  --blue-950: oklch(14.44% 0.064 261.4);
+  --coral-50: oklch(95.38% 0.022 35.12);
+  --coral-100: oklch(91.13% 0.045 36.72);
+  --coral-200: oklch(82.55% 0.096 35.89);
+  --coral-300: oklch(74.98% 0.147 36.45);
+  --coral-400: oklch(68.72% 0.196 36.21);
+  --coral-500: oklch(64.27% 0.232 33.5);
+  --coral-600: oklch(54.55% 0.194 33.93);
+  --coral-700: oklch(44.3% 0.155 34.4);
+  --coral-800: oklch(33.44% 0.113 35.39);
+  --coral-900: oklch(21.83% 0.066 39.88);
+  --coral-950: oklch(17.99% 0.05 41.79);
+  --font-display: "Manrope";
+  --font-h1: "Instrument Serif";
+  --font-h2: "Instrument Serif";
+  --font-body-lg: "Manrope";
+  --font-body-md: "Manrope";
+  --font-body-sm: "Manrope";
+  --font-label-caps: "Manrope";
+  --font-nav-link: "Manrope";
+  --font-button: "Manrope";
+  --text-display: 6rem;
+  --text-display-letter-spacing: -0.02em;
+  --text-display-font-weight: 800;
+  --text-h1: 2.75rem;
+  --text-h1-font-weight: 400;
+  --text-h2: 2.35rem;
+  --text-h2-letter-spacing: 0.01em;
+  --text-h2-font-weight: 600;
+  --text-body-lg: 1.25rem;
+  --text-body-lg-font-weight: 300;
+  --text-body-md: 1rem;
+  --text-body-md-font-weight: 400;
+  --text-body-sm: 0.875rem;
+  --text-body-sm-font-weight: 400;
+  --text-label-caps: 0.6875rem;
+  --text-label-caps-letter-spacing: 0.16em;
+  --text-label-caps-font-weight: 800;
+  --text-nav-link: 0.8125rem;
+  --text-nav-link-letter-spacing: 0.1em;
+  --text-nav-link-font-weight: 700;
+  --text-button: 1rem;
+  --text-button-letter-spacing: 0.1em;
+  --text-button-font-weight: 900;
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+}

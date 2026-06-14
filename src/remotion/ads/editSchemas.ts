@@ -1,0 +1,382 @@
+export type FieldType = "text" | "textarea" | "boolean" | "select" | "number";
+
+export type EditorField = {
+  key: string;
+  label: string;
+  type: FieldType;
+  options?: string[];
+};
+
+export type EditorSection = {
+  key: string;
+  label: string;
+  fields: EditorField[];
+};
+
+type EditorSchema = EditorSection[];
+
+const IMAGE_OPTIONS = [
+  "photo-0.png",
+  "photo-1.png",
+  "photo-2.png",
+  "photo-3.png",
+  "photo-8.png",
+  "photo-9.png",
+  "photo-10.jpg",
+  "photo-11.png",
+  "photo-12.jpg",
+  "photo-13.jpeg",
+  "photo-14.jpg",
+  "photo-15.jpg",
+  "photo-16.jpg",
+  "photo-17.jpeg",
+  "photo-21.jpeg",
+  "photo-20.jpeg",
+  "photo-19.jpeg",
+  "photo-18.jpeg",
+];
+
+const badgeFields: EditorField[] = [
+  { key: "badges.show", label: "Show badges", type: "boolean" },
+  { key: "badges.gafMasterElite", label: "GAF Master Elite", type: "boolean" },
+  { key: "badges.ikoRoofSelect", label: "IKO Roof Select", type: "boolean" },
+  { key: "badges.rcatMember", label: "RCAT Member", type: "boolean" },
+  { key: "badges.rsraCommittee", label: "RSRA Committee", type: "boolean" },
+  { key: "badges.tamkoPro", label: "Tamko Pro", type: "boolean" },
+];
+
+const profilePhotoFields: EditorField[] = [
+  { key: "intro.showProfilePhoto", label: "Show profile photo", type: "boolean" },
+  { key: "intro.profilePhoto.src", label: "Photo URL", type: "textarea" },
+];
+
+export const SCHEMAS: Record<string, EditorSchema> = {
+  TandraRoofValue: [
+    {
+      key: "hook",
+      label: "Hook scene",
+      fields: [
+        { key: "hook.eyebrow", label: "Eyebrow", type: "text" },
+        { key: "hook.headline", label: "Headline", type: "textarea" },
+        { key: "hook.sub", label: "Sub", type: "textarea" },
+        { key: "hook.image", label: "Background image", type: "select", options: IMAGE_OPTIONS },
+      ],
+    },
+    {
+      key: "simple",
+      label: "Simple scene",
+      fields: [
+        { key: "simple.headline", label: "Headline", type: "text" },
+        { key: "simple.body", label: "Body", type: "textarea" },
+        { key: "simple.showPill", label: "Show pill", type: "boolean" },
+        { key: "simple.pill", label: "Pill text", type: "text" },
+        { key: "simple.image", label: "Background image", type: "select", options: IMAGE_OPTIONS },
+      ],
+    },
+    {
+      key: "benefits",
+      label: "Benefits scene",
+      fields: [
+        { key: "benefits.lead", label: "Lead", type: "text" },
+        { key: "benefits.item1", label: "Item 1", type: "text" },
+        { key: "benefits.item2", label: "Item 2", type: "text" },
+        { key: "benefits.item3", label: "Item 3", type: "text" },
+      ],
+    },
+    {
+      key: "intro",
+      label: "Intro scene",
+      fields: [
+        { key: "intro.name", label: "Name", type: "text" },
+        { key: "intro.tagline", label: "Tagline", type: "textarea" },
+        { key: "intro.detail", label: "Detail", type: "textarea" },
+        ...profilePhotoFields,
+      ],
+    },
+    {
+      key: "trust",
+      label: "Trust scene",
+      fields: [
+        { key: "trust.line1", label: "Line 1", type: "text" },
+        { key: "trust.line2", label: "Line 2", type: "text" },
+        { key: "trust.hueShift", label: "Light leak hue shift", type: "number" },
+        { key: "trust.style", label: "Light leak style (0-100)", type: "number" },
+      ],
+    },
+    {
+      key: "cta",
+      label: "CTA scene",
+      fields: [
+        { key: "cta.setup", label: "Setup", type: "text" },
+        { key: "cta.punch", label: "Punch", type: "textarea" },
+        { key: "cta.action", label: "Action", type: "text" },
+        { key: "cta.badge", label: "Badge", type: "text" },
+        { key: "cta.byline", label: "Byline", type: "text" },
+      ],
+    },
+    {
+      key: "badges",
+      label: "Certification badges",
+      fields: badgeFields,
+    },
+  ],
+
+  TandraStormSpot: [
+    {
+      key: "impact",
+      label: "Impact scene",
+      fields: [
+        { key: "impact.eyebrow", label: "Eyebrow", type: "text" },
+        { key: "impact.headline", label: "Headline", type: "textarea" },
+        { key: "impact.subline", label: "Subline", type: "text" },
+      ],
+    },
+    {
+      key: "urgency",
+      label: "Urgency scene",
+      fields: [
+        { key: "urgency.setup", label: "Setup", type: "text" },
+        { key: "urgency.punch", label: "Punch", type: "textarea" },
+      ],
+    },
+    {
+      key: "intro",
+      label: "Intro scene",
+      fields: [
+        { key: "intro.hueShift", label: "Light leak hue shift", type: "number" },
+        { key: "intro.showProfilePhoto", label: "Show profile photo", type: "boolean" },
+        { key: "intro.label", label: "Label", type: "text" },
+        { key: "intro.nameBlock", label: "Name block", type: "textarea" },
+        { key: "intro.tagline", label: "Tagline", type: "textarea" },
+        { key: "profilePhoto.src", label: "Profile photo URL", type: "textarea" },
+      ],
+    },
+    {
+      key: "value",
+      label: "Value scene",
+      fields: [
+        { key: "value.setup", label: "Setup", type: "text" },
+        { key: "value.punch", label: "Punch", type: "textarea" },
+      ],
+    },
+    {
+      key: "cta",
+      label: "CTA scene",
+      fields: [
+        { key: "cta.trust", label: "Trust", type: "textarea" },
+        { key: "cta.callout", label: "Callout", type: "textarea" },
+        { key: "cta.byline", label: "Byline", type: "text" },
+        { key: "cta.badge", label: "Badge", type: "text" },
+      ],
+    },
+    {
+      key: "badges",
+      label: "Certification badges",
+      fields: badgeFields,
+    },
+  ],
+
+  RoofScene: [
+    {
+      key: "settings",
+      label: "Settings",
+      fields: [
+        { key: "showCallouts", label: "Show callouts", type: "boolean" },
+        { key: "showProgress", label: "Show progress dots", type: "boolean" },
+        { key: "fov", label: "Field of view (degrees)", type: "number" },
+        { key: "introSecs", label: "Intro duration (seconds)", type: "number" },
+        { key: "springStiffness", label: "Camera spring stiffness", type: "number" },
+        { key: "springDamping", label: "Camera spring damping", type: "number" },
+      ],
+    },
+    {
+      key: "chapter0",
+      label: "Chapter 1 — Ridge & vent",
+      fields: [
+        { key: "chapters.0.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.0.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.0.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.0.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.0.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.0.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.0.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.0.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.0.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.0.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.0.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter1",
+      label: "Chapter 2 — Field shingles",
+      fields: [
+        { key: "chapters.1.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.1.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.1.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.1.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.1.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.1.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.1.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.1.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.1.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.1.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.1.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter2",
+      label: "Chapter 3 — Underlayment",
+      fields: [
+        { key: "chapters.2.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.2.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.2.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.2.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.2.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.2.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.2.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.2.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.2.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.2.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.2.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter3",
+      label: "Chapter 4 — Decking",
+      fields: [
+        { key: "chapters.3.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.3.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.3.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.3.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.3.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.3.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.3.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.3.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.3.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.3.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.3.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter4",
+      label: "Chapter 5 — Step flashing",
+      fields: [
+        { key: "chapters.4.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.4.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.4.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.4.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.4.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.4.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.4.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.4.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.4.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.4.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.4.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter5",
+      label: "Chapter 6 — Drip edge",
+      fields: [
+        { key: "chapters.5.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.5.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.5.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.5.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.5.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.5.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.5.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.5.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.5.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.5.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.5.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "chapter6",
+      label: "Chapter 7 — Soffit & fascia",
+      fields: [
+        { key: "chapters.6.durationSecs", label: "Duration (secs)", type: "number" },
+        { key: "chapters.6.skip", label: "Skip chapter", type: "boolean" },
+        { key: "chapters.6.camera.azimuthal", label: "Cam azimuthal", type: "number" },
+        { key: "chapters.6.camera.polar", label: "Cam polar", type: "number" },
+        { key: "chapters.6.camera.radius", label: "Cam radius", type: "number" },
+        { key: "chapters.6.camera.targetX", label: "Cam target X", type: "number" },
+        { key: "chapters.6.camera.targetY", label: "Cam target Y", type: "number" },
+        { key: "chapters.6.camera.targetZ", label: "Cam target Z", type: "number" },
+        { key: "chapters.6.hotspot.x", label: "Hotspot X", type: "number" },
+        { key: "chapters.6.hotspot.y", label: "Hotspot Y", type: "number" },
+        { key: "chapters.6.hotspot.z", label: "Hotspot Z", type: "number" },
+      ],
+    },
+    {
+      key: "cta",
+      label: "CTA scene",
+      fields: [
+        { key: "cta.trust", label: "Trust", type: "textarea" },
+        { key: "cta.callout", label: "Callout", type: "textarea" },
+        { key: "cta.byline", label: "Byline", type: "text" },
+        { key: "cta.badge", label: "Badge", type: "text" },
+        { key: "cta.durationSecs", label: "Duration (secs)", type: "number" },
+      ],
+    },
+    {
+      key: "badges",
+      label: "Certification badges",
+      fields: badgeFields,
+    },
+  ],
+
+  CustomSlots: [
+    {
+      key: "general",
+      label: "Scenes",
+      fields: [
+        { key: "scenes", label: "Scene count (read-only — edit in Sanity schema)", type: "text" },
+      ],
+    },
+  ],
+
+  HelpingTexasHomeowners: [
+    {
+      key: "general",
+      label: "Scenes",
+      fields: [
+        { key: "scenes", label: "Scene count (read-only — edit in Sanity schema)", type: "text" },
+      ],
+    },
+  ],
+};
+
+export function getProp(props: Record<string, unknown>, key: string): unknown {
+  const parts = key.split(".");
+  let val: unknown = props;
+  for (const part of parts) {
+    if (val == null || typeof val !== "object") return undefined;
+    val = (val as Record<string, unknown>)[part];
+  }
+  return val;
+}
+
+export function setProp(
+  props: Record<string, unknown>,
+  key: string,
+  value: unknown,
+): Record<string, unknown> {
+  const parts = key.split(".");
+  const result = { ...props };
+  let current: unknown = result;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i];
+    const next = (current as Record<string, unknown>)[part];
+    if (next == null || typeof next !== "object") {
+      (current as Record<string, unknown>)[part] = {};
+    } else if (Array.isArray(next)) {
+      (current as Record<string, unknown>)[part] = [...next];
+    } else {
+      (current as Record<string, unknown>)[part] = { ...(next as Record<string, unknown>) };
+    }
+    current = (current as Record<string, unknown>)[part];
+  }
+  (current as Record<string, unknown>)[parts[parts.length - 1]] = value;
+  return result;
+}
