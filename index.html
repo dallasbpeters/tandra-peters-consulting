@@ -52,7 +52,15 @@
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
-    gtag('config', 'G-VQZKRBK2BE');
+    const isDevelopmentHost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0' ||
+      window.location.hostname.endsWith('.local');
+
+    gtag('config', 'G-VQZKRBK2BE', {
+      debug_mode: isDevelopmentHost,
+    });
   </script>
   <script>
     (() => {
