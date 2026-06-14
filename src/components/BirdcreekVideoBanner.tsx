@@ -18,13 +18,17 @@ export default function ShaderEffect({ style }: { style: React.CSSProperties }) 
         intensity={0.8}
         leftColor="#ffffff"
         momentum={32}
-        radius={1.5}
+        radius={4.5}
         rightColor="#ffffff"
         upColor="#ffffff"
         visible={false}
       />
 
-      <SolidColor blendMode="multiply" color="#204d31" maskSource="idmostv5d9xi2rmvn45" />
+      <SolidColor
+        blendMode="multiply"
+        color="oklch(0.3954 0.077 162.53)"
+        maskSource="idmostv5d9xi2rmvn45"
+      />
 
       <ImageTexture blendMode="multiply" url="/poster.jpeg" visible={true} />
 
