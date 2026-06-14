@@ -5,6 +5,7 @@ import { defineConfig, loadEnv, type PluginOption, type ProxyOptions } from "vit
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 import { ogImageComposite } from "./plugins/ogImageComposite";
+import { viteAdVersionsApi } from "./plugins/viteAdVersionsApi";
 import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
 import { viteContactDevApi } from "./plugins/viteContactDevApi";
 import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
@@ -90,6 +91,7 @@ export default defineConfig(({ mode }) => {
     viteSitemapApi(env) as unknown as PluginOption,
     viteSeoDashboardApi(env) as unknown as PluginOption,
     viteWorkflowSaveApi(env) as unknown as PluginOption,
+    viteAdVersionsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
     ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
     tailwindcss() as unknown as PluginOption,

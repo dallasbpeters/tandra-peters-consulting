@@ -278,6 +278,14 @@ export const SANITY_IMAGE_LIBRARY_QUERY = groq`*[_type == "sanity.imageAsset" &&
   }
 }`;
 
+/** Saved ad creative versions for the Ad Builder version picker. */
+export const AD_CREATIVE_VERSIONS_QUERY = groq`*[_type == "adCreativeVersion"] | order(savedAt desc)[0...100] {
+  _id,
+  name,
+  savedAt,
+  config
+}`;
+
 /** Single post by slug for /articles/:slug */
 export const POST_BY_SLUG_QUERY = groq`*[_type == "post" && slug.current == $slug][0] {
   ...,

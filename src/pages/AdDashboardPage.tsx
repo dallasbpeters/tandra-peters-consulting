@@ -4,14 +4,15 @@ import "@fontsource/ibm-plex-serif/400.css";
 import "@fontsource/ibm-plex-serif/400-italic.css";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 
-import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
+import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
+import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaPopover from "@awesome.me/webawesome/dist/react/popover/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaSwitch from "@awesome.me/webawesome/dist/react/switch/index.js";
 import { usePostHog } from "@posthog/react";
-import { LogOut, MediaImage, Palette, Page, Trash, Upload, User } from "iconoir-react";
+import { LogOut, MediaImage, Palette, Page, FloppyDisk, Trash, Upload, User } from "iconoir-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type {
@@ -26,6 +27,7 @@ import { AdCanvasEditor } from "../components/AdCanvasEditor";
 import { AdColorSwatch } from "../components/AdColorSwatch";
 import { AdImagePicker } from "../components/AdImagePicker";
 import { SitePageChrome } from "../components/SitePageChrome";
+import { useAdVersions } from "../hooks/useAdVersions";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityImageAssets, type SanityImageAsset } from "../hooks/useSanityImageAssets";
@@ -229,6 +231,30 @@ const getPlatformShape = (platform: Pick<PlatformPreset, "width" | "height">): P
 
 const revokeObjectUrl = (url: string | null) => {
   if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+};
+
+// ─── Version persistence helpers ──────────────────────────────────────────────
+
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+// Format-CurrentDateTime — used as the default saved-version name.
+const formatVersionName = (date = new Date()) =>
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ` +
+  `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+
+// Serialize the editable configuration only. The uploaded File and blob: object
+// URLs cannot be persisted, so we drop them; Sanity-hosted image URLs survive.
+const serializeCreative = (creative: CreativeState): string => {
+  const { imageFile: _imageFile, imageUrl, ...rest } = creative;
+  return JSON.stringify({
+    ...rest,
+    imageUrl: imageUrl && !imageUrl.startsWith("blob:") ? imageUrl : null,
+  });
+};
+
+const deserializeCreative = (config: string): CreativeState => {
+  const parsed = JSON.parse(config) as Partial<CreativeState>;
+  return { ...DEFAULT_CREATIVE, ...parsed, imageFile: null };
 };
 
 // ─── Default state ────────────────────────────────────────────────────────────
@@ -496,7 +522,11 @@ export const AdDashboardPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
   const imageLibrary = useSanityImageAssets();
+  const versions = useAdVersions();
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
+  const [selectedVersionId, setSelectedVersionId] = useState("");
+  const [versionStatus, setVersionStatus] = useState<string | null>(null);
+  const [versionBusy, setVersionBusy] = useState(false);
 
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
@@ -609,6 +639,81 @@ export const AdDashboardPage = () => {
       };
     });
   }, []);
+
+  const handleSaveVersion = useCallback(async () => {
+    if (!auth.token) return;
+    setVersionBusy(true);
+    setVersionStatus(null);
+    try {
+      const response = await fetch("/api/ad-versions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({
+          name: formatVersionName(),
+          config: serializeCreative(creative),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Save failed (${response.status})`);
+      }
+      setVersionStatus("Version saved.");
+      versions.refresh();
+    } catch (saveError) {
+      setVersionStatus(saveError instanceof Error ? saveError.message : "Could not save version.");
+    } finally {
+      setVersionBusy(false);
+    }
+  }, [auth.token, creative, versions]);
+
+  const handleSelectVersion = useCallback(
+    (id: string) => {
+      setSelectedVersionId(id);
+      if (!id) return;
+      const match = versions.versions.find((version) => version.id === id);
+      if (!match) return;
+      try {
+        setCreative((current) => {
+          revokeObjectUrl(current.imageUrl);
+          return deserializeCreative(match.config);
+        });
+        setVersionStatus(`Loaded "${match.name}".`);
+      } catch {
+        setVersionStatus("Could not load that version.");
+      }
+    },
+    [versions.versions],
+  );
+
+  const handleDeleteVersion = useCallback(async () => {
+    if (!auth.token || !selectedVersionId) return;
+    setVersionBusy(true);
+    setVersionStatus(null);
+    try {
+      const response = await fetch("/api/ad-versions", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({ id: selectedVersionId }),
+      });
+      if (!response.ok) {
+        throw new Error(`Delete failed (${response.status})`);
+      }
+      setSelectedVersionId("");
+      setVersionStatus("Version deleted.");
+      versions.refresh();
+    } catch (deleteError) {
+      setVersionStatus(
+        deleteError instanceof Error ? deleteError.message : "Could not delete version.",
+      );
+    } finally {
+      setVersionBusy(false);
+    }
+  }, [auth.token, selectedVersionId, versions]);
 
   const toolbarMenus = (
     <div className="ad-toolbar-menus">
@@ -764,10 +869,63 @@ export const AdDashboardPage = () => {
           />
           <AdColorPickerField
             label="Accent"
-            value={creative.accentColor}
-            onValueChange={(value) => updateCreative("accentColor", value)}
+            value={creative.headlineAccentColor}
+            onValueChange={(value) =>
+              setCreative((current) => ({
+                ...current,
+                headlineAccentColor: value,
+                accentColor: value,
+              }))
+            }
           />
         </div>
+      </ToolbarMenu>
+
+      <ToolbarMenu icon={<FloppyDisk width={16} height={16} />} label="Versions">
+        <WaButton
+          appearance="filled"
+          variant="brand"
+          size="small"
+          loading={versionBusy}
+          onClick={() => {
+            void handleSaveVersion();
+          }}
+        >
+          <FloppyDisk slot="start" width={15} height={15} />
+          Save version
+        </WaButton>
+
+        <WaSelect
+          name="adVersion"
+          label="Saved versions"
+          placeholder={versions.loading ? "Loading…" : "Choose a version"}
+          value={selectedVersionId}
+          appearance="outlined"
+          size="xs"
+          onChange={(event) => handleSelectVersion(getSelectValue(event))}
+        >
+          {versions.versions.map((version) => (
+            <WaOption key={version.id} value={version.id}>
+              {version.name}
+            </WaOption>
+          ))}
+        </WaSelect>
+
+        <WaButton
+          appearance="outlined"
+          variant="danger"
+          size="small"
+          disabled={!selectedVersionId || versionBusy}
+          onClick={() => {
+            void handleDeleteVersion();
+          }}
+        >
+          <Trash slot="start" width={15} height={15} />
+          Delete version
+        </WaButton>
+
+        {versions.error ? <p className="ad-dashboard-error">{versions.error}</p> : null}
+        {versionStatus ? <p className="ad-toolbar-popover-label">{versionStatus}</p> : null}
       </ToolbarMenu>
     </div>
   );

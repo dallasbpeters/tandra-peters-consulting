@@ -1,3 +1,4 @@
+import { adCreativeVersionType } from "./documents/adCreativeVersion";
 import { aiContextType } from "./documents/aiContext";
 import { articlesPageType } from "./documents/articlesPage";
 import beforeAfterGalleryType from "./documents/beforeAfterGallery";
@@ -47,6 +48,7 @@ import { workflowDiagramNodeSubsectionType } from "./objects/workflowDiagramNode
 import { postType } from "./postType";
 import { serviceAreaMapType } from "./serviceAreaMap";
 export const schemaTypes = [
+  adCreativeVersionType,
   blockContentType,
   navLinkType,
   workflowDiagramNodeSubsectionType,

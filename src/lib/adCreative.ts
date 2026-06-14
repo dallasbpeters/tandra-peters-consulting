@@ -43,8 +43,9 @@ export const BRAND_SWATCHES = [
   { label: "Laurel", value: "#A5CA9B" },
   { label: "Coral", value: "#FB6237" },
   { label: "Storm", value: "#46656B" },
-  { label: "Granite", value: "#667A71" },
   { label: "Blue", value: "#335CFF" },
+  { label: "Granite", value: "#667A71" },
+  { label: "Gold", value: "#F0D15C" },
   { label: "Green", value: "#12533A" },
   { label: "Moss", value: "#217D57" },
 ] as const;

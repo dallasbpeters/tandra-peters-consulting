@@ -7,14 +7,24 @@
     "eslint.config.ts",
     "plugins/**/*.ts"
   ],
-  "exclude": ["studio-tandra-peters", "dist", "node_modules"],
+  "exclude": [
+    "studio-tandra-peters",
+    "dist",
+    "node_modules"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vitest/globals"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "vitest/globals"
+    ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
@@ -23,10 +33,18 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "iconoir-react": ["./node_modules/iconoir-react/dist/index.d.ts"],
-      "@/components": ["./src/components"],
-      "@/data": ["./src/data"]
+      "@/*": [
+        "./*"
+      ],
+      "iconoir-react": [
+        "./node_modules/iconoir-react/dist/index.d.ts"
+      ],
+      "@/components": [
+        "./src/components"
+      ],
+      "@/data": [
+        "./src/data"
+      ]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
