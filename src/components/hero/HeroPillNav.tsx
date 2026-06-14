@@ -12,6 +12,7 @@ import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { theme } from "../../theme";
+import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
 const STATS = [
   { value: "7×", label: "Best Roofer Award" },
@@ -79,6 +80,7 @@ function ShaderEffect({ src, style }: { src: string; style: CSSProperties }) {
 export const HeroPillNav: React.FC<HeroProps> = ({
   titleLine1 = "Helping Texas",
   titleLine2 = "Homeowners.",
+  badgeText = DEFAULT_HERO_EYEBROW,
   subtitle,
   skyImage,
   foregroundImage,
@@ -229,6 +231,14 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
       marginTop: "auto",
     },
+    eyebrow: {
+      fontSize: "0.6875rem",
+      fontWeight: 800,
+      letterSpacing: "0.2em",
+      textTransform: "uppercase",
+      color: theme.colors.accentLight,
+      textAlign: "center",
+    },
     h1: {
       fontFamily: theme.fonts.headline,
       fontSize: isMobile ? "clamp(3rem, 12vw, 5rem)" : "clamp(4rem, 10vw, 12rem)",
@@ -275,10 +285,13 @@ export const HeroPillNav: React.FC<HeroProps> = ({
   };
 
   const headlineEl = (
-    <h1 style={styles.h1}>
-      {titleLine1}
-      <span style={styles.h1Accent}>{titleLine2}</span>
-    </h1>
+    <>
+      {badgeText && <span style={styles.eyebrow}>{badgeText}</span>}
+      <h1 style={styles.h1}>
+        {titleLine1}
+        <span style={styles.h1Accent}>{titleLine2}</span>
+      </h1>
+    </>
   );
 
   const copyEl = subtitle ? (

@@ -9,6 +9,7 @@ import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { HeroProps } from "../types";
 import { GoogleAuthGate } from "./GoogleAuthGate";
+import { DEFAULT_HERO_EYEBROW } from "./hero/heroConstants";
 
 const fallbackHeroImage = "/roof.jpeg";
 
@@ -38,7 +39,7 @@ export const Hero: React.FC<HeroProps> = ({
       <span style={{ color: theme.colors.heroAccent }}>Our Expertise.</span>
     </>
   ),
-  badgeText = "Birdcreek Roofing consultant · Austin, TX",
+  badgeText = DEFAULT_HERO_EYEBROW,
   subtitle = "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",

@@ -11,6 +11,7 @@ import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { layoutClass } from "../../styles/layoutClasses";
 import { theme } from "../../theme";
 import { GoogleAuthGate } from "../GoogleAuthGate";
+import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
 const fallbackImage = "/roof.jpeg";
 
@@ -25,7 +26,7 @@ const srcSet = (url: string) =>
 /** Direction 5 — Full-bleed photo hero. paddingTop offsets the fixed NavDualCTARail. Nav is rendered separately. */
 export const HeroDualCTARail: React.FC<HeroProps> = ({
   title,
-  badgeText = "Birdcreek Roofing · Austin, TX",
+  badgeText = DEFAULT_HERO_EYEBROW,
   subtitle,
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",

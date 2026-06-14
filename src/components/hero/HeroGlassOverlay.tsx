@@ -12,6 +12,7 @@ import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { theme } from "../../theme";
 import { GoogleAuthGate } from "../GoogleAuthGate";
+import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
 const TRUST = [
   { value: "7×", label: "Best Roofer" },
@@ -32,7 +33,7 @@ const srcSet = (url: string) =>
 /** Direction 4 — Full-bleed hero photo with bottom-left copy block. Nav is rendered separately by NavGlassOverlay. */
 export const HeroGlassOverlay: React.FC<HeroProps> = ({
   title,
-  badgeText = "Birdcreek Roofing · Austin, TX",
+  badgeText = DEFAULT_HERO_EYEBROW,
   subtitle,
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
