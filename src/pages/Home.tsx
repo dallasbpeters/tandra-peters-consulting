@@ -17,6 +17,7 @@ import { sanityImageUrl } from "../sanity/imageUrl";
 import {
   mapAboutProps,
   mapArticlesTeaserEditorialProps,
+  mapBirdcreekVideoBannerProps,
   mapContactProps,
   mapExpertiseProps,
   mapFaqProps,
@@ -151,6 +152,7 @@ export const Home = () => {
   const contact = home?.contact as Record<string, unknown> | undefined;
   const socialShare = home?.socialShare as Record<string, unknown> | undefined;
   const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
+  const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home);
   const marqueeText =
     typeof marquee?.text === "string" && marquee.text.trim() ? marquee.text : undefined;
   const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
@@ -184,22 +186,20 @@ export const Home = () => {
       <main>
         {hero ? <HeroVariant {...mapHeroProps(hero)} /> : null}
 
-        <GoogleAuthGate>
-          <Suspense fallback={null}>
-            {marqueeText ? (
-              <ScrollVelocity
-                direction={marqueeDirection}
-                velocity={marqueeVelocity}
-                texts={[{ text: marqueeText }]}
-                fontSize="1.2rem"
-              />
-            ) : null}
-            {about ? <About {...mapAboutProps(about)} /> : null}
-            {stats ? <Stats {...mapStatsProps(stats)} /> : null}
-          </Suspense>
-        </GoogleAuthGate>
+        <Suspense fallback={null}>
+          {marqueeText ? (
+            <ScrollVelocity
+              direction={marqueeDirection}
+              velocity={marqueeVelocity}
+              texts={[{ text: marqueeText }]}
+              fontSize="1.2rem"
+            />
+          ) : null}
+          {about ? <About {...mapAboutProps(about)} /> : null}
+          {stats ? <Stats {...mapStatsProps(stats)} /> : null}
+        </Suspense>
 
-        <BirdcreekVideoBanner />
+        <BirdcreekVideoBanner {...birdcreekVideoProps} />
 
         <GoogleAuthGate>
           <Suspense fallback={null}>
@@ -236,23 +236,25 @@ export const Home = () => {
               {...mapArticlesTeaserEditorialProps(articlesTeaser)}
             />
             <Certifications />
-            <Band
-              minHeight={8}
-              maxHeight={16}
-              tint={theme.colors.everglade}
-              colors={[
-                theme.colors.evergladeLight,
-                theme.colors.evergladeMuted,
-                theme.colors.paper,
-                theme.colors.purple,
-                theme.colors.purple,
-                theme.colors.purple,
-              ]}
-            />
           </Suspense>
         </GoogleAuthGate>
-        {contact ? <Contact {...mapContactProps(contact)} /> : null}
-        {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
+        <Suspense fallback={null}>
+          <Band
+            minHeight={8}
+            maxHeight={16}
+            tint={theme.colors.everglade}
+            colors={[
+              theme.colors.evergladeLight,
+              theme.colors.evergladeMuted,
+              theme.colors.paper,
+              theme.colors.purple,
+              theme.colors.purple,
+              theme.colors.purple,
+            ]}
+          />
+          {contact ? <Contact {...mapContactProps(contact)} /> : null}
+          {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
+        </Suspense>
       </main>
 
       <Suspense fallback={null}>

@@ -20,6 +20,7 @@
     "video:render": "tsx scripts/render-tandra-intro.mjs render",
     "video:snapshot": "node scripts/create-remotion-snapshot.mjs",
     "video:render:vercel": "node scripts/trigger-tandra-intro-render.mjs",
+    "scaffold:sanity-component": "node scripts/scaffold-sanity-component.mjs",
     "lora:build": "node scripts/build-shingle-training-zip.mjs",
     "lora:train": "node scripts/train-txshingle-lora.mjs",
     "preview": "vite preview",

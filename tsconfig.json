@@ -13,6 +13,7 @@
     "node_modules"
   ],
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,

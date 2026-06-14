@@ -136,6 +136,18 @@ export const homePageType = defineType({
       type: "serviceAreaMap",
       group: "serviceAreaMap",
     }),
+    ,
+    defineField({
+      name: "vimeoUrl",
+      title: "Vimeo URL",
+      type: "url",
+    }),
+    defineField({
+      name: "title",
+      title: "Title",
+      type: "text",
+      rows: 3,
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Home page" }),

@@ -15,13 +15,21 @@ const Footer = lazy(async () => {
   return { default: module.Footer };
 });
 
-const AGENT_PATHS = new Set(["/agent", "/marketing", "/ads", "/advertising", "/response"]);
+const AGENT_PATHS = new Set([
+  "/agent",
+  "/marketing",
+  "/ads",
+  "/advertising",
+  "/response",
+  "/emails",
+]);
 
 const agentNavItems: NavItem[] = [
   { name: "Feature Agent", href: "/agent" },
   { name: "Marketing Agent", href: "/marketing" },
   { name: "Response Agent", href: "/response" },
   { name: "Ad Builder", href: "/ads" },
+  { name: "Email Builder", href: "/emails" },
 ];
 
 const resolveHeroStyle = (

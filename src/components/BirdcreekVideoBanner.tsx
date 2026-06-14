@@ -1,8 +1,34 @@
 import { useIsMobile } from "../hooks/isMobile";
 import { theme } from "../theme";
 
-export const BirdcreekVideoBanner = () => {
-  const embedUrl = `https://player.vimeo.com/video/834503838?h=f049c62156`;
+const DEFAULT_EMBED_URL = "https://player.vimeo.com/video/834503838?h=f049c62156";
+
+const toVimeoEmbedUrl = (rawUrl?: string): string => {
+  if (typeof rawUrl !== "string" || !rawUrl.trim()) {
+    return DEFAULT_EMBED_URL;
+  }
+
+  const trimmed = rawUrl.trim();
+
+  if (trimmed.includes("player.vimeo.com/video/")) {
+    return trimmed;
+  }
+
+  const match = trimmed.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (match?.[1]) {
+    return `https://player.vimeo.com/video/${match[1]}`;
+  }
+
+  return DEFAULT_EMBED_URL;
+};
+
+type BirdcreekVideoBannerProps = {
+  vimeoUrl?: string;
+  title?: string;
+};
+
+export const BirdcreekVideoBanner = ({ vimeoUrl, title }: BirdcreekVideoBannerProps) => {
+  const embedUrl = toVimeoEmbedUrl(vimeoUrl);
 
   const isMobile = useIsMobile(1100);
   // Drive the entrance with useInView (not whileInView): on first render inView is
@@ -30,6 +56,15 @@ export const BirdcreekVideoBanner = () => {
     borderRadius: theme.radius.large,
   };
 
+  const titleStyle: React.CSSProperties = {
+    margin: 0,
+    color: theme.colors.paper,
+    textAlign: "center",
+    fontSize: `clamp(1.5rem, 3vw, 2.5rem)`,
+    fontWeight: 700,
+    lineHeight: 1.2,
+  };
+
   return (
     <div
       style={{
@@ -37,6 +72,7 @@ export const BirdcreekVideoBanner = () => {
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
+      {typeof title === "string" && title.trim() ? <h2 style={titleStyle}>{title}</h2> : null}
       <iframe
         title="vimeo-player"
         src={embedUrl}

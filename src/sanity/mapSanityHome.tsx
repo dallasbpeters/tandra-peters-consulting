@@ -139,6 +139,36 @@ export const mapVideoProps = (
   };
 };
 
+export const mapBirdcreekVideoBannerProps = (
+  data: SanityDoc,
+): Partial<{ vimeoUrl: string; title: string }> => {
+  if (!data) {
+    return {};
+  }
+
+  const rawVimeoUrl =
+    typeof data.birdcreekVimeoUrl === "string"
+      ? data.birdcreekVimeoUrl
+      : typeof data.vimeoUrl === "string"
+        ? data.vimeoUrl
+        : undefined;
+
+  const rawTitle =
+    typeof data.birdcreekVideoTitle === "string"
+      ? data.birdcreekVideoTitle
+      : typeof data.title === "string"
+        ? data.title
+        : undefined;
+
+  const vimeoUrl = typeof rawVimeoUrl === "string" ? stegaClean(rawVimeoUrl).trim() : "";
+  const title = typeof rawTitle === "string" ? stegaClean(rawTitle).trim() : "";
+
+  return {
+    ...(vimeoUrl ? { vimeoUrl } : {}),
+    ...(title ? { title } : {}),
+  };
+};
+
 export const mapAboutProps = (about: SanityDoc): Partial<AboutProps> => {
   if (!about) {
     return {};

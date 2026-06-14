@@ -23,6 +23,32 @@ Marketing site for [tandra.me](https://www.tandra.me/) — Vite + React SPA, San
    - Site: http://localhost:3001
    - Studio: http://localhost:3333
 
+## Scaffold Sanity schema + query + component
+
+Use the interactive scaffolder when you need a new Sanity-backed component without re-prompting an LLM each time:
+
+```bash
+pnpm scaffold:sanity-component
+```
+
+It will generate and register:
+
+- a Sanity schema type in `studio-tandra-peters/schemaTypes/(documents|objects)`
+- schema registration in `studio-tandra-peters/schemaTypes/index.ts`
+- GROQ query helpers in `src/sanity/generated/`
+- a mapper in `src/sanity/generated/`
+- a React component stub in `src/components/generated/`
+
+After scaffolding, wire the generated query + mapper + component into the page where you want it rendered.
+
+When extending `homePage`, the script can also auto-wire Birdcreek video fields into:
+
+- `src/sanity/queries.ts`
+- `src/sanity/mapSanityHome.tsx`
+- `src/pages/Home.tsx`
+
+Use field names like `vimeoUrl` / `birdcreekVimeoUrl` and `title` / `birdcreekVideoTitle` to trigger that flow.
+
 ## Deploy (Vercel)
 
 Production builds use `pnpm build:vercel` (configured in [`vercel.json`](vercel.json)). That script:

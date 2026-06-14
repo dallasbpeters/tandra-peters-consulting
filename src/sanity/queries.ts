@@ -6,6 +6,8 @@ export const HOME_AND_SITE_QUERY = groq`{
     ...,
     seoTitle,
     seoDescription,
+    "birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),
+    "birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),
     hero {
       ...,
       "backgroundImage": backgroundImage.asset->url,
@@ -296,3 +298,5 @@ export const POST_BY_SLUG_QUERY = groq`*[_type == "post" && slug.current == $slu
   authorName,
   "image": image.asset->url
 }`;
+
+export * from "./generated";
