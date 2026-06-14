@@ -12,6 +12,11 @@ const SINGLETONS = new Set([
   "seoDashboardInsights",
   "clientEmail",
   "emailSignature",
+  "roofSceneSettings",
+  "stormSpotSettings",
+  "roofValueSettings",
+  "customSlotsSettings",
+  "helpingTexasHomeownersSettings",
 ]);
 
 export const structure: StructureResolver = (S) =>
@@ -134,6 +139,61 @@ export const structure: StructureResolver = (S) =>
                     .id("email-contacts-documents")
                     .title("Contacts")
                     .defaultOrdering([{ field: "lastContactedAt", direction: "desc" }]),
+                ),
+            ]),
+        ),
+      S.listItem()
+        .title("Video ad settings")
+        .id("desk-video-ads-section")
+        .child(
+          S.list()
+            .id("video-ads-hub")
+            .title("Video ad settings")
+            .items([
+              S.listItem()
+                .title("3D Roof Scene")
+                .id("desk-roof-scene")
+                .child(
+                  S.document()
+                    .schemaType("roofSceneSettings")
+                    .documentId("roofSceneSettings")
+                    .title("3D Roof Scene"),
+                ),
+              S.listItem()
+                .title("Storm Spot Ad")
+                .id("desk-storm-spot")
+                .child(
+                  S.document()
+                    .schemaType("stormSpotSettings")
+                    .documentId("stormSpotSettings")
+                    .title("Storm Spot Ad"),
+                ),
+              S.listItem()
+                .title("Roof Value Ad")
+                .id("desk-roof-value")
+                .child(
+                  S.document()
+                    .schemaType("roofValueSettings")
+                    .documentId("roofValueSettings")
+                    .title("Roof Value Ad"),
+                ),
+              S.listItem()
+                .title("Custom Slots Ad")
+                .id("desk-custom-slots")
+                .child(
+                  S.document()
+                    .schemaType("customSlotsSettings")
+                    .documentId("customSlotsSettings")
+                    .title("Custom Slots Ad"),
+                ),
+              S.listItem()
+                .title("Helping Texas Homeowners Ad")
+                .id("desk-helping-texas")
+                .child(
+                  S.document()
+                    .schemaType("helpingTexasHomeownersSettings")
+                    .documentId("helpingTexasHomeownersSettings")
+                    .title("Helping Texas Homeowners Ad"),
                 ),
             ]),
         ),

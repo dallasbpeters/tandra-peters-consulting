@@ -60,7 +60,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       position: "relative",
       height: "5rem",
       display: "grid",
-      gridTemplateColumns: isMobile ? "1fr auto" : "1fr auto 1fr",
+      gridTemplateColumns: " repeat(auto-fit, minmax(0, 1fr))",
       padding: `0 ${theme.spacing.xxxxl}`,
       placeItems: "center stretch",
     },
@@ -74,6 +74,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       display: "flex",
       gap: theme.spacing.xxxl,
       alignItems: "center",
+      justifyContent: "end",
       marginLeft: "auto",
     },
     link: {
@@ -109,6 +110,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       fontSize: isMobile ? "1.2rem" : "1.25rem",
       letterSpacing: "-0.03em",
       lineHeight: 1,
+      whiteSpace: "nowrap",
       textTransform: "uppercase",
     },
     logoTagline: {
@@ -132,6 +134,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       borderRadius: theme.radius.pill,
       fontWeight: 800,
       fontSize: "0.75rem",
+      display: isMobile ? "none" : "inline-flex",
       letterSpacing: "0.1em",
       textTransform: "uppercase",
       textDecoration: "none",

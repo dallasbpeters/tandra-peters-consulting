@@ -169,7 +169,7 @@ type CameraRigProps = {
 };
 
 const CameraRig: React.FC<CameraRigProps> = (props) => {
-  const { camera } = useThree();
+  const { camera, invalidate } = useThree();
   const ref = useRef(props);
   ref.current = props;
 
@@ -178,6 +178,7 @@ const CameraRig: React.FC<CameraRigProps> = (props) => {
     camera.position.copy(pos);
     camera.lookAt(target);
     camera.updateProjectionMatrix();
+    invalidate();
   };
 
   // Apply camera state from the latest ref values.
@@ -478,8 +479,12 @@ const ProgressHeader: React.FC<{
 
 // ─── main composition ─────────────────────────────────────────────────────────
 
+const fallbackProps = roofSceneSchema.parse({});
+let stableProps = fallbackProps;
+
 export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
-  const props = roofSceneSchema.parse(rawProps);
+  const parsed = roofSceneSchema.safeParse(rawProps);
+  const props = parsed.success ? (stableProps = parsed.data) : stableProps;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
 

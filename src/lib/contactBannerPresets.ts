@@ -1,11 +1,11 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
 
 import { Calculator, HelpCircle, Phone } from "iconoir-react";
 
 import { mix, theme } from "../theme";
 
-export type ContactBannerCtaIcon = ComponentType<
-  SVGProps<SVGSVGElement> & { strokeWidth?: number }
+export type ContactBannerCtaIcon = ForwardRefExoticComponent<
+  Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>
 >;
 
 export type ContactBannerProps = {

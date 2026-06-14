@@ -25,7 +25,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "iconoir-react": ["./node_modules/iconoir-react/dist/index.d.ts"],
+
       "@/components": ["./src/components"],
       "@/data": ["./src/data"]
     },

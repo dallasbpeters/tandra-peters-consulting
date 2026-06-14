@@ -1,3 +1,10 @@
+import {
+  customSlotsSettingsType,
+  helpingTexasHomeownersSettingsType,
+  roofSceneSettingsType,
+  roofValueSettingsType,
+  stormSpotSettingsType,
+} from "./documents/adCompositionSettings";
 import { adCreativeVersionType } from "./documents/adCreativeVersion";
 import { aiContextType } from "./documents/aiContext";
 import { articlesPageType } from "./documents/articlesPage";
@@ -100,5 +107,10 @@ export const schemaTypes = [
   clientEmailType,
   emailSignatureType,
   emailContactType,
+  roofSceneSettingsType,
+  stormSpotSettingsType,
+  roofValueSettingsType,
+  customSlotsSettingsType,
+  helpingTexasHomeownersSettingsType,
   postType,
 ];

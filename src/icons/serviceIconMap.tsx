@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
 
 import {
   BadgeCheck,
@@ -38,6 +38,10 @@ import {
 
 import { LEGACY_SERVICE_ICON_ALIASES, type ServiceIconKey } from "../sanity/serviceIconMeta";
 
+export type IconoirIconComponent = ForwardRefExoticComponent<
+  Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>
+>;
+
 export type IconoirIconProps = SVGProps<SVGSVGElement> & {
   className?: string;
   width?: string | number;
@@ -45,7 +49,7 @@ export type IconoirIconProps = SVGProps<SVGSVGElement> & {
   strokeWidth?: string | number;
 };
 
-const SERVICE_ICONS: Record<ServiceIconKey, ComponentType<IconoirIconProps>> = {
+const SERVICE_ICONS: Record<ServiceIconKey, IconoirIconComponent> = {
   search: Search,
   page: Page,
   shieldCheck: ShieldCheck,
@@ -81,9 +85,7 @@ const SERVICE_ICONS: Record<ServiceIconKey, ComponentType<IconoirIconProps>> = {
   badgeCheck: BadgeCheck,
 };
 
-export const getServiceIconComponent = (
-  key: string | undefined,
-): ComponentType<IconoirIconProps> => {
+export const getServiceIconComponent = (key: string | undefined): IconoirIconComponent => {
   if (!key) {
     return Search;
   }

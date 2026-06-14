@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useColorSchemeValue } from "sanity";
+import { useClient, useColorSchemeValue } from "sanity";
 
 import type { EditorField, EditorSection } from "../../src/remotion/ads/editSchemas";
 
@@ -69,6 +69,10 @@ const COMPOSITIONS: CompositionMeta[] = [
   },
 ];
 
+const PREVIEW_BASE =
+  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
+const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_PROPS: Record<string, any> = {
   TandraRoofValue: ROOF_VALUE_DEFAULTS,
@@ -78,9 +82,19 @@ const DEFAULT_PROPS: Record<string, any> = {
   HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
 };
 
-const PREVIEW_BASE =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
-const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
+const COMPOSITION_TO_SCHEMA: Record<string, string> = {
+  RoofScene: "roofSceneSettings",
+  TandraStormSpot: "stormSpotSettings",
+  TandraRoofValue: "roofValueSettings",
+  CustomSlots: "customSlotsSettings",
+  HelpingTexasHomeowners: "helpingTexasHomeownersSettings",
+};
+
+type SaveState =
+  | { status: "idle" }
+  | { status: "saving" }
+  | { status: "saved" }
+  | { status: "error"; message: string };
 
 type RenderState =
   | { status: "idle" }
@@ -91,8 +105,10 @@ type RenderState =
 export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
+  const client = useClient({ apiVersion: "2024-01-01" });
   const [activeId, setActiveId] = useState<string>(COMPOSITIONS[0].id);
   const [render, setRender] = useState<RenderState>({ status: "idle" });
+  const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const active = useMemo(
@@ -110,8 +126,30 @@ export function RemotionVideoTool() {
   );
 
   useEffect(() => {
-    setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
-  }, [activeId]);
+    const schemaName = COMPOSITION_TO_SCHEMA[activeId];
+    if (!schemaName) {
+      setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    client
+      .fetch<{ props?: string } | null>(`*[_id == "${schemaName}"][0]{ props }`)
+      .then((doc) => {
+        if (doc?.props) {
+          try {
+            const parsed = JSON.parse(doc.props);
+            setFormProps({ ...DEFAULT_PROPS[activeId], ...parsed });
+          } catch {
+            setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
+          }
+        } else {
+          setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
+        }
+      })
+      .catch(() => {
+        setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
+      });
+  }, [activeId, client]);
 
   const schema = SCHEMAS[activeId] ?? [];
 
@@ -129,6 +167,25 @@ export function RemotionVideoTool() {
   const onFieldChange = useCallback((key: string, value: unknown) => {
     setFormProps((prev) => setProp(prev, key, value));
   }, []);
+
+  const onSave = useCallback(async () => {
+    const schemaName = COMPOSITION_TO_SCHEMA[activeId];
+    if (!schemaName) return;
+    setSaveState({ status: "saving" });
+    try {
+      await client.createOrReplace({
+        _id: schemaName,
+        _type: schemaName,
+        props: JSON.stringify(formProps),
+      });
+      setSaveState({ status: "saved" });
+    } catch (error) {
+      setSaveState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Save failed.",
+      });
+    }
+  }, [activeId, client, formProps]);
 
   const onRender = useCallback(async () => {
     setRender({ status: "rendering" });
@@ -291,6 +348,31 @@ export function RemotionVideoTool() {
             Preview origin: <code>{PREVIEW_BASE}</code>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
+            <SaveStatus
+              state={saveState}
+              colors={colors}
+              onDismiss={() => setSaveState({ status: "idle" })}
+            />
+            {!active.cms && (
+              <button
+                type="button"
+                onClick={onSave}
+                disabled={saveState.status === "saving"}
+                style={{
+                  cursor: saveState.status === "saving" ? "wait" : "pointer",
+                  borderRadius: 8,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.panel,
+                  color: colors.text,
+                  fontWeight: 600,
+                  fontSize: "0.8125rem",
+                  padding: "0.5rem 1rem",
+                  opacity: saveState.status === "saving" ? 0.7 : 1,
+                }}
+              >
+                {saveState.status === "saving" ? "Saving…" : "Save to Sanity"}
+              </button>
+            )}
             <RenderStatus state={render} colors={colors} />
             <button
               type="button"
@@ -559,6 +641,34 @@ function EditorFieldRow({
 }
 
 // ── Render status ──────────────────────────────────────────────────────────────
+
+function SaveStatus({
+  state,
+  colors,
+  onDismiss,
+}: {
+  state: SaveState;
+  colors: { subtle: string; text: string };
+  onDismiss: () => void;
+}) {
+  if (state.status === "idle") return null;
+  if (state.status === "saving") {
+    return <span style={{ fontSize: "0.75rem", color: colors.subtle }}>Saving…</span>;
+  }
+  if (state.status === "error") {
+    return (
+      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>{state.message}</span>
+    );
+  }
+  return (
+    <span
+      style={{ fontSize: "0.75rem", color: "#69a758", fontWeight: 600, cursor: "pointer" }}
+      onClick={onDismiss}
+    >
+      ✓ Saved
+    </span>
+  );
+}
 
 function RenderStatus({
   state,

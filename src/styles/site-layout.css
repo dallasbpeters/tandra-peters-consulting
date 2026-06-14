@@ -121,6 +121,7 @@
   min-height: 80vh;
   display: grid;
   place-content: center stretch;
+  grid-template-rows: minmax(max-content, 1fr);
 }
 
 .home-loading-hero {

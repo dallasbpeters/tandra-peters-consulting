@@ -6,7 +6,7 @@ import type { PortableTextBlock } from "@portabletext/types";
 
 import React from "react";
 
-import type { IconoirIconProps } from "./icons/serviceIconMap";
+import type { IconoirIconComponent } from "./icons/serviceIconMap";
 import type { PostListItem } from "./types/article";
 
 declare module "react" {
@@ -84,7 +84,7 @@ export interface Stat {
   rowKey?: string;
   name: string;
   value: string;
-  icon: React.ComponentType<IconoirIconProps>;
+  icon: IconoirIconComponent;
 }
 
 export interface StatsProps {

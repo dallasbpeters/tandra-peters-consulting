@@ -52,23 +52,40 @@ export const roofSceneSchema = z.object({
   springDamping: z.number().min(5).max(60).default(22),
 
   /** CTA scene shown after all chapters */
-  cta: z.object({
-    trust: z.string().default("Honest answers,\nno sales pressure."),
-    callout: z.string().default("Give me\na call."),
-    byline: z.string().default("Tandra Peters · Birdcreek Roofing"),
-    badge: z.string().default("No cost · No pressure"),
-    durationSecs: z.number().min(1).max(30).default(6),
-  }),
+  cta: z
+    .object({
+      trust: z.string().default("Honest answers,\nno sales pressure."),
+      callout: z.string().default("Give me\na call."),
+      byline: z.string().default("Tandra Peters · Birdcreek Roofing"),
+      badge: z.string().default("No cost · No pressure"),
+      durationSecs: z.number().min(1).max(30).default(6),
+    })
+    .default({
+      trust: "Honest answers,\nno sales pressure.",
+      callout: "Give me\na call.",
+      byline: "Tandra Peters · Birdcreek Roofing",
+      badge: "No cost · No pressure",
+      durationSecs: 6,
+    }),
 
   /** Certification badges shown in the CTA scene */
-  badges: z.object({
-    show: z.boolean().default(true),
-    gafMasterElite: z.boolean().default(true),
-    ikoRoofSelect: z.boolean().default(true),
-    rcatMember: z.boolean().default(true),
-    rsraCommittee: z.boolean().default(false),
-    tamkoPro: z.boolean().default(true),
-  }),
+  badges: z
+    .object({
+      show: z.boolean().default(true),
+      gafMasterElite: z.boolean().default(true),
+      ikoRoofSelect: z.boolean().default(true),
+      rcatMember: z.boolean().default(true),
+      rsraCommittee: z.boolean().default(false),
+      tamkoPro: z.boolean().default(true),
+    })
+    .default({
+      show: true,
+      gafMasterElite: true,
+      ikoRoofSelect: true,
+      rcatMember: true,
+      rsraCommittee: false,
+      tamkoPro: true,
+    }),
 
   chapters: z.array(chapterConfigSchema).default([
     // i — ridge & ridge vent
