@@ -32,6 +32,7 @@ import type { Chapter } from "./types";
 
 import { CHAPTERS } from "./chapters";
 import Logo from "./components/Logo";
+import { roofSceneSchema } from "./composition/roofSceneSchema";
 import { RoofCTA } from "./RoofCTA";
 import { Model } from "./RoofModel";
 
@@ -179,21 +180,8 @@ const CameraRig: React.FC<CameraRigProps> = (props) => {
     camera.updateProjectionMatrix();
   };
 
-  // Set camera immediately on mount (before first frame renders).
-  useLayoutEffect(() => {
-    if (props.chapters.length === 0) return;
-    const first = computeCameraState(
-      0,
-      props.fps,
-      props.introFrames,
-      props.chapters,
-      props.springStiffness,
-      props.springDamping,
-    );
-    if (first) applyCamera(first);
-  }, []);
-
-  useFrame(() => {
+  // Apply camera state from the latest ref values.
+  const applyCurrent = () => {
     const { frame, fps, introFrames, chapters, springStiffness, springDamping } = ref.current;
     const state = computeCameraState(
       frame,
@@ -203,8 +191,18 @@ const CameraRig: React.FC<CameraRigProps> = (props) => {
       springStiffness,
       springDamping,
     );
-    if (!state) return;
-    applyCamera(state);
+    if (state) applyCamera(state);
+  };
+
+  // Run on every render (catches prop changes while paused —
+  // useFrame only fires on frame advances in @remotion/three).
+  useLayoutEffect(() => {
+    applyCurrent();
+  });
+
+  // Frame-by-frame updates during playback / scrubbing.
+  useFrame(() => {
+    applyCurrent();
   });
 
   return null;
