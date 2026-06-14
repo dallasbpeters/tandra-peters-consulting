@@ -3,59 +3,9 @@ import type { Variants } from "motion/react";
 import { Xmark, Play } from "iconoir-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useRef, useState } from "react";
-import { Shader, ChromaFlow, ImageTexture, Pixelate, SolidColor } from "shaders/react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { mix, theme } from "../theme";
-
-export default function ShaderEffect({ style }: { style: React.CSSProperties }) {
-  return (
-    <Shader style={style} colorSpace="srgb">
-      <ChromaFlow
-        id="idmostv5d9xi2rmvn45"
-        baseColor="#ba94fc"
-        downColor="#ba94fc"
-        intensity={0.8}
-        leftColor="#ba94fc"
-        momentum={32}
-        radius={0.5}
-        rightColor="#ba94fc"
-        upColor="#ba94fc"
-        visible={false}
-      />
-
-      <SolidColor
-        blendMode="multiply"
-        color="oklch(0.3954 0.077 162.53)"
-        maskSource="idmostv5d9xi2rmvn45"
-      />
-
-      <ImageTexture blendMode="multiply" url="/poster.jpeg" visible={true} />
-
-      <Pixelate
-        scale={{
-          type: "map",
-
-          curve: -1,
-
-          source: "idmostv5d9xi2rmvn45",
-
-          channel: "alpha",
-
-          inputMax: 1,
-
-          inputMin: 0,
-
-          outputMax: 1000,
-
-          outputMin: 64,
-        }}
-      />
-
-      <ImageTexture maskSource="idmostv5d9xi2rmvn45" url="/poster.jpeg" visible={true} />
-    </Shader>
-  );
-}
 
 const containerStyle: React.CSSProperties = {
   position: "relative",
@@ -170,12 +120,6 @@ export const BirdcreekVideoBanner = () => {
     borderRadius: `0 0 ${theme.radius.medium} ${theme.radius.medium}`,
   };
 
-  const shaderStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    zIndex: 1,
-  };
-
   const cardVariants: Variants = {
     offscreen: {
       scale: 0.5,
@@ -201,7 +145,6 @@ export const BirdcreekVideoBanner = () => {
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
-      <ShaderEffect style={shaderStyle} />
       <motion.div
         ref={bannerRef}
         initial="offscreen"

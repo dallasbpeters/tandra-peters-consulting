@@ -109,7 +109,7 @@ export const GoogleReviews = () => {
           <div style={styles.ratingRow}>
             <GoogleLogo style={{ height: "1.75rem", width: "auto" }} />
             <div style={styles.ratingMeta}>
-              <span style={styles.ratingValue}>5.0</span>
+              <span style={styles.ratingValue}>4.8</span>
               <RatingStars />
               <span style={styles.ratingCount}>· {reviews.length} reviews shown</span>
             </div>
