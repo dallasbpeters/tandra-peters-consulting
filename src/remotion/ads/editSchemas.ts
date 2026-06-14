@@ -345,6 +345,75 @@ export const SCHEMAS: Record<string, EditorSchema> = {
       ],
     },
   ],
+
+  TandraIntro: [
+    {
+      key: "settings",
+      label: "Settings",
+      fields: [{ key: "showProfilePhoto", label: "Show profile photo", type: "boolean" }],
+    },
+    {
+      key: "storm",
+      label: "Opening — Storm scene",
+      fields: [
+        { key: "content.storm.kicker", label: "Kicker", type: "text" },
+        { key: "content.storm.line1", label: "Line 1", type: "text" },
+        { key: "content.storm.line2", label: "Line 2", type: "text" },
+        { key: "content.storm.body", label: "Body", type: "textarea" },
+      ],
+    },
+    {
+      key: "straightAnswers",
+      label: "Straight answers",
+      fields: [
+        { key: "content.straightAnswers.kicker", label: "Kicker", type: "text" },
+        { key: "content.straightAnswers.line1", label: "Line 1", type: "text" },
+        { key: "content.straightAnswers.line2", label: "Line 2", type: "text" },
+        { key: "content.straightAnswers.line3", label: "Line 3", type: "text" },
+        { key: "content.straightAnswers.quote", label: "Quote", type: "textarea" },
+      ],
+    },
+    {
+      key: "inspection",
+      label: "Inspection",
+      fields: [
+        { key: "content.inspection.kicker", label: "Kicker", type: "text" },
+        { key: "content.inspection.line1", label: "Line 1", type: "text" },
+        { key: "content.inspection.line2", label: "Line 2", type: "text" },
+        { key: "content.inspection.line3", label: "Line 3", type: "text" },
+        { key: "content.inspection.body", label: "Body", type: "textarea" },
+      ],
+    },
+    {
+      key: "managed",
+      label: "Managed process",
+      fields: [
+        { key: "content.managed.kicker", label: "Kicker", type: "text" },
+        { key: "content.managed.line1", label: "Line 1", type: "text" },
+        { key: "content.managed.line2", label: "Line 2", type: "text" },
+        { key: "content.managed.line3", label: "Line 3", type: "text" },
+      ],
+    },
+    {
+      key: "proof",
+      label: "Proof",
+      fields: [
+        { key: "content.proof.kicker", label: "Kicker", type: "text" },
+        { key: "content.proof.line1", label: "Line 1", type: "text" },
+        { key: "content.proof.line2", label: "Line 2", type: "text" },
+      ],
+    },
+    {
+      key: "closing",
+      label: "Closing",
+      fields: [
+        { key: "content.closing.kicker", label: "Kicker", type: "text" },
+        { key: "content.closing.line1", label: "Line 1", type: "text" },
+        { key: "content.closing.line2", label: "Line 2", type: "text" },
+        { key: "content.closing.cta", label: "CTA", type: "text" },
+      ],
+    },
+  ],
 };
 
 export function getProp(props: Record<string, unknown>, key: string): unknown {

@@ -17,6 +17,13 @@ import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
 import "../styles/estimator.css";
 
+const trackGaEstimator = (payload: Record<string, unknown>) => {
+  if (typeof window === "undefined") return;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== "function") return;
+  gtag("event", "estimator", payload);
+};
+
 /** Relative path so production stays same-origin; Vite proxies `/api` in dev. */
 export const ESTIMATE_API_PATH = "/api/estimate";
 
@@ -112,10 +119,20 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
         throw new Error(data.error || "Could not send the estimate.");
       }
       setSendStatus("sent");
+      posthog?.identify(email.trim(), { name: fullName.trim(), email: email.trim() });
       posthog?.capture("estimator_emailed", { range: formatRange(estimate, currency) });
+      trackGaEstimator({ action: "emailed", range: formatRange(estimate, currency) });
     } catch (err) {
       setSendStatus("error");
       setSendError(err instanceof Error ? err.message : "Could not send the estimate.");
+      posthog?.capture("estimator_error", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      posthog?.captureException(err);
+      trackGaEstimator({
+        action: "error",
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 

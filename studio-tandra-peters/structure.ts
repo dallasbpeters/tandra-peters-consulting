@@ -17,6 +17,7 @@ const SINGLETONS = new Set([
   "roofValueSettings",
   "customSlotsSettings",
   "helpingTexasHomeownersSettings",
+  "tandraIntroSettings",
 ]);
 
 export const structure: StructureResolver = (S) =>
@@ -185,6 +186,15 @@ export const structure: StructureResolver = (S) =>
                     .schemaType("customSlotsSettings")
                     .documentId("customSlotsSettings")
                     .title("Custom Slots Ad"),
+                ),
+              S.listItem()
+                .title("Tandra Intro Video")
+                .id("desk-tandra-intro")
+                .child(
+                  S.document()
+                    .schemaType("tandraIntroSettings")
+                    .documentId("tandraIntroSettings")
+                    .title("Tandra Intro Video"),
                 ),
               S.listItem()
                 .title("Helping Texas Homeowners Ad")

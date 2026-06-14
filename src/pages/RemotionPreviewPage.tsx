@@ -90,10 +90,14 @@ export const RemotionPreviewPage = () => {
     return () => window.removeEventListener("message", handler);
   }, []);
 
-  const inputProps = useMemo(
-    () => editedProps ?? liveProps ?? entry?.defaultProps ?? {},
-    [editedProps, liveProps, entry?.defaultProps],
-  );
+  const inputProps = useMemo(() => {
+    // For CMS-backed compositions, merge Studio edits on top of live Sanity content
+    // so fields not touched in the editor still reflect the published copy.
+    if (entry?.sanityField && editedProps && liveProps) {
+      return { ...liveProps, ...editedProps };
+    }
+    return editedProps ?? liveProps ?? entry?.defaultProps ?? {};
+  }, [editedProps, liveProps, entry?.defaultProps, entry?.sanityField]);
 
   const playerStyle = useMemo<React.CSSProperties>(() => {
     if (!entry) return {};

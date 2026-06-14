@@ -64,6 +64,22 @@ export const customSlotsSettingsType = defineType({
   ],
 });
 
+export const tandraIntroSettingsType = defineType({
+  name: "tandraIntroSettings",
+  title: "Tandra Intro Video",
+  type: "document",
+  preview: { prepare: () => ({ title: "Tandra Intro Video" }) },
+  fields: [
+    defineField({
+      name: "props",
+      title: "Intro video copy config",
+      type: "text",
+      rows: 8,
+      description: "JSON blob — edit via the Videos tool, not here directly.",
+    }),
+  ],
+});
+
 export const helpingTexasHomeownersSettingsType = defineType({
   name: "helpingTexasHomeownersSettings",
   title: "Helping Texas Homeowners Ad",

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useClient, useColorSchemeValue } from "sanity";
 
 import type { EditorField, EditorSection } from "../../src/remotion/ads/editSchemas";
+import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
 
 import {
   CUSTOM_SLOTS_DEFAULTS,
@@ -11,6 +12,47 @@ import {
   STORM_SPOT_DEFAULTS,
 } from "../../src/remotion/ads/adDefaults";
 import { SCHEMAS, getProp, setProp } from "../../src/remotion/ads/editSchemas";
+import { defaultTandraIntroContent } from "../../src/remotion/tandraIntroContent";
+
+// ── helpers (inline to avoid pulling fetchTandraIntroContent which uses import.meta.env) ──
+
+const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
+  incoming && typeof incoming === "object" && !Array.isArray(incoming)
+    ? ({ ...fallback, ...incoming } as T)
+    : fallback;
+
+const stringItems = (value: unknown, fallback: string[]): string[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : fallback;
+
+const mergeIntroContent = (
+  raw: Record<string, unknown>,
+  defaults: typeof defaultTandraIntroContent,
+): TandraIntroContent => {
+  const managed = mergeScene(defaults.managed, raw.managed);
+  const proof = mergeScene(defaults.proof, raw.proof);
+  return {
+    storm: mergeScene(defaults.storm, raw.storm),
+    straightAnswers: mergeScene(defaults.straightAnswers, raw.straightAnswers),
+    inspection: mergeScene(defaults.inspection, raw.inspection),
+    managed: {
+      ...managed,
+      items: stringItems(
+        (raw.managed as Record<string, unknown> | undefined)?.items,
+        defaults.managed.items,
+      ),
+    },
+    proof: {
+      ...proof,
+      items: stringItems(
+        (raw.proof as Record<string, unknown> | undefined)?.items,
+        defaults.proof.items,
+      ),
+    },
+    closing: mergeScene(defaults.closing, raw.closing),
+  };
+};
 
 /**
  * "Videos" Studio tool: preview, edit, and render Remotion compositions.
@@ -69,8 +111,8 @@ const COMPOSITIONS: CompositionMeta[] = [
   },
 ];
 
-const PREVIEW_BASE =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
+const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3001";
+const PREVIEW_BASE = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || origin;
 const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,6 +122,7 @@ const DEFAULT_PROPS: Record<string, any> = {
   RoofScene: ROOF_SCENE_DEFAULTS,
   CustomSlots: CUSTOM_SLOTS_DEFAULTS,
   HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
+  TandraIntro: { content: defaultTandraIntroContent },
 };
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {
@@ -88,6 +131,7 @@ const COMPOSITION_TO_SCHEMA: Record<string, string> = {
   TandraRoofValue: "roofValueSettings",
   CustomSlots: "customSlotsSettings",
   HelpingTexasHomeowners: "helpingTexasHomeownersSettings",
+  TandraIntro: "tandraIntroSettings",
 };
 
 type SaveState =
@@ -126,29 +170,64 @@ export function RemotionVideoTool() {
   );
 
   useEffect(() => {
-    const schemaName = COMPOSITION_TO_SCHEMA[activeId];
-    if (!schemaName) {
-      setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
-      return;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    client
-      .fetch<{ props?: string } | null>(`*[_id == "${schemaName}"][0]{ props }`)
-      .then((doc) => {
-        if (doc?.props) {
-          try {
-            const parsed = JSON.parse(doc.props);
-            setFormProps({ ...DEFAULT_PROPS[activeId], ...parsed });
-          } catch {
-            setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
+    // Start with defaults — will be refined below as data becomes available.
+    const defaults = DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {};
+    if (activeId === "TandraIntro") {
+      // Load actual copy from the home page's tandraIntroVideo field so the editor
+      // shows what's currently published, then overlay any saved settings on top.
+      client
+        .fetch<{ tandraIntroVideo?: Record<string, unknown> } | null>(
+          `*[_id == "homePage"][0]{ tandraIntroVideo }`,
+        )
+        .then((doc) => {
+          const base = doc?.tandraIntroVideo
+            ? { content: mergeIntroContent(doc.tandraIntroVideo, defaultTandraIntroContent) }
+            : defaults;
+          // Now overlay saved settings if they exist.
+          client
+            .fetch<{ props?: string } | null>(`*[_id == "tandraIntroSettings"][0]{ props }`)
+            .then((settingsDoc) => {
+              if (settingsDoc?.props) {
+                try {
+                  const parsed = JSON.parse(settingsDoc.props);
+                  setFormProps({ ...base, ...parsed });
+                  return;
+                } catch {
+                  /* fall through */
+                }
+              }
+              setFormProps(base);
+            })
+            .catch(() => setFormProps(base));
+        })
+        .catch(() => {
+          setFormProps(defaults);
+        });
+    } else {
+      const schemaName = COMPOSITION_TO_SCHEMA[activeId];
+      if (!schemaName) {
+        setFormProps(defaults);
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      client
+        .fetch<{ props?: string } | null>(`*[_id == "${schemaName}"][0]{ props }`)
+        .then((doc) => {
+          if (doc?.props) {
+            try {
+              const parsed = JSON.parse(doc.props);
+              setFormProps({ ...defaults, ...parsed });
+            } catch {
+              setFormProps(defaults);
+            }
+          } else {
+            setFormProps(defaults);
           }
-        } else {
-          setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
-        }
-      })
-      .catch(() => {
-        setFormProps(DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {});
-      });
+        })
+        .catch(() => {
+          setFormProps(defaults);
+        });
+    }
   }, [activeId, client]);
 
   const schema = SCHEMAS[activeId] ?? [];
@@ -342,9 +421,9 @@ export function RemotionVideoTool() {
         >
           <div style={{ fontSize: "0.8125rem", color: colors.subtle, lineHeight: 1.5 }}>
             <strong style={{ color: colors.text }}>{active.label}</strong> —{" "}
-            {active.cms
-              ? "Shows Sanity copy (edit the Home page video fields and refresh)."
-              : "Edit copy in the right panel — changes update live via message channel."}{" "}
+            {schema.length > 0
+              ? "Edit copy in the right panel — changes update live via message channel."
+              : "Shows Sanity copy (edit the Home page video fields in the main Studio and refresh)."}{" "}
             Preview origin: <code>{PREVIEW_BASE}</code>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
@@ -353,7 +432,7 @@ export function RemotionVideoTool() {
               colors={colors}
               onDismiss={() => setSaveState({ status: "idle" })}
             />
-            {!active.cms && (
+            {schema.length > 0 && (
               <button
                 type="button"
                 onClick={onSave}

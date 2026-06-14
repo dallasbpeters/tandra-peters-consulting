@@ -4,6 +4,7 @@ import {
   roofSceneSettingsType,
   roofValueSettingsType,
   stormSpotSettingsType,
+  tandraIntroSettingsType,
 } from "./documents/adCompositionSettings";
 import { adCreativeVersionType } from "./documents/adCreativeVersion";
 import { aiContextType } from "./documents/aiContext";
@@ -110,6 +111,7 @@ export const schemaTypes = [
   roofSceneSettingsType,
   stormSpotSettingsType,
   roofValueSettingsType,
+  tandraIntroSettingsType,
   customSlotsSettingsType,
   helpingTexasHomeownersSettingsType,
   postType,
