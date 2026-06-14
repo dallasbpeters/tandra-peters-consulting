@@ -93,6 +93,24 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
     width: 1200,
     height: 1200,
   },
+  {
+    id: "door-hanger-large",
+    label: "Door Hanger — Large",
+    helper: "Die-cut, print",
+    width: 4.25,
+    height: 11,
+    unit: "in",
+    cutout: { topRadius: 0.35, holeDiameter: 1.25, holeCenterFromTop: 1.5, slotWidth: 0.3 },
+  },
+  {
+    id: "door-hanger-standard",
+    label: "Door Hanger — Standard",
+    helper: "Die-cut, print",
+    width: 3.5,
+    height: 8.5,
+    unit: "in",
+    cutout: { topRadius: 0.3, holeDiameter: 1.0, holeCenterFromTop: 1.3, slotWidth: 0.25 },
+  },
 ] as const;
 
 const LOGO_VARIANTS: ReadonlyArray<{
@@ -200,13 +218,7 @@ const formatDimensionDisplay = (value: number, unit: AdUnit) =>
 const getSelectedPlatform = (platformId: string) =>
   PLATFORM_PRESETS.find((p) => p.id === platformId) ?? PLATFORM_PRESETS[0];
 
-const getPlatformDimensions = (platform: PlatformPreset, unit: AdUnit) =>
-  unit === "px"
-    ? { width: platform.width, height: platform.height }
-    : {
-        width: Math.round((platform.width / PRINT_DPI) * 1000) / 1000,
-        height: Math.round((platform.height / PRINT_DPI) * 1000) / 1000,
-      };
+const getPlatformUnit = (platform: PlatformPreset): AdUnit => platform.unit ?? "px";
 
 const getPlatformShape = (platform: Pick<PlatformPreset, "width" | "height">): PlatformShape => {
   const ratio = platform.width / platform.height;
@@ -529,15 +541,16 @@ export const AdDashboardPage = () => {
 
   const handlePlatformChange = useCallback((platformId: string) => {
     const platform = getSelectedPlatform(platformId);
-    setCreative((current) => {
-      const dimensions = getPlatformDimensions(platform, current.unit);
-      return {
-        ...current,
-        platformId,
-        adWidth: dimensions.width,
-        adHeight: dimensions.height,
-      };
-    });
+    // Switch to the format's natural unit so door hangers land in inches and
+    // social presets land in pixels without the user toggling units.
+    const unit = getPlatformUnit(platform);
+    setCreative((current) => ({
+      ...current,
+      platformId,
+      unit,
+      adWidth: platform.width,
+      adHeight: platform.height,
+    }));
   }, []);
 
   const handleUnitChange = useCallback((nextUnit: AdUnit) => {
@@ -610,7 +623,8 @@ export const AdDashboardPage = () => {
         >
           {PLATFORM_PRESETS.map((platform) => (
             <WaOption key={platform.id} value={platform.id}>
-              {platform.label} · {formatAdDimensions(platform.width, platform.height, "px")} ·{" "}
+              {platform.label} ·{" "}
+              {formatAdDimensions(platform.width, platform.height, getPlatformUnit(platform))} ·{" "}
               {platform.helper}
             </WaOption>
           ))}

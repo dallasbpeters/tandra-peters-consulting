@@ -5,12 +5,15 @@ import {
   ArrowUp,
   Copy,
   Download,
+  Eye,
   FastArrowDown,
   FastArrowUp,
   Lock,
   PlusSquare,
+  QrCode,
   Text,
   Trash,
+  Xmark,
 } from "iconoir-react";
 import {
   useCallback,
@@ -30,6 +33,7 @@ import {
   SNAP_THRESHOLD,
   collectSnapTargets,
   createElementId,
+  createQrElement,
   createRectElement,
   createTextElement,
   findSnapShift,
@@ -40,6 +44,8 @@ import {
   type TextCanvasElement,
 } from "../lib/adCanvasDoc";
 import { formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
+import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/doorHanger";
+import { buildQrDataUri } from "../lib/qrCode";
 import { AdColorSwatch } from "./AdColorSwatch";
 import "../styles/ad-canvas.css";
 
@@ -117,6 +123,7 @@ const exportCanvasNode = async (
   exportWidth: number,
   exportHeight: number,
   backgroundColor: string,
+  stripMask = false,
 ): Promise<Blob> => {
   if (document.fonts) {
     await document.fonts.ready;
@@ -124,6 +131,15 @@ const exportCanvasNode = async (
 
   const previousBoxShadow = node.style.boxShadow;
   node.style.boxShadow = "none";
+
+  // For the door mockup we want a clean rectangular export (the mockup clips it
+  // to the silhouette itself), so temporarily drop the die-cut mask.
+  const previousMask = node.style.maskImage;
+  const previousWebkitMask = node.style.webkitMaskImage;
+  if (stripMask) {
+    node.style.maskImage = "none";
+    node.style.webkitMaskImage = "none";
+  }
 
   try {
     await new Promise<void>((resolve) => {
@@ -157,8 +173,27 @@ const exportCanvasNode = async (
     return blob;
   } finally {
     node.style.boxShadow = previousBoxShadow;
+    if (stripMask) {
+      node.style.maskImage = previousMask;
+      node.style.webkitMaskImage = previousWebkitMask;
+    }
   }
 };
+
+const blobToImage = (blob: Blob): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not load the exported design."));
+    };
+    img.src = url;
+  });
 
 const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -201,6 +236,9 @@ export const AdCanvasEditor = ({
   const [previewScale, setPreviewScale] = useState(1);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [mockupUrl, setMockupUrl] = useState<string | null>(null);
+  const [mockupBusy, setMockupBusy] = useState(false);
+  const [mockupError, setMockupError] = useState<string | null>(null);
 
   const elementsRef = useRef(elements);
   elementsRef.current = elements;
@@ -662,6 +700,12 @@ export const AdCanvasEditor = ({
     setSelectedId(el.id);
   }, [creative.accentColor]);
 
+  const addQr = useCallback(() => {
+    const el = createQrElement();
+    setElements((prev) => [...prev, el]);
+    setSelectedId(el.id);
+  }, []);
+
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -704,14 +748,89 @@ export const AdCanvasEditor = ({
     selectedPlatform.id,
   ]);
 
+  const handlePreviewOnDoor = useCallback(async () => {
+    const canvas = canvasRef.current;
+    const cutoutSpec = selectedPlatform.cutout;
+    if (!canvas || !cutoutSpec) return;
+
+    setSelectedId(null);
+    setEditingId(null);
+    setMenu(null);
+    setMockupBusy(true);
+    setMockupError(null);
+
+    try {
+      const blob = await exportCanvasNode(
+        canvas,
+        exportPixelSize.width,
+        exportPixelSize.height,
+        creative.backgroundColor,
+        true,
+      );
+      const design = await blobToImage(blob);
+      const mockupBlob = await renderDoorMockup({
+        design,
+        cutout: cutoutSpec,
+        hangerWidthInches: selectedPlatform.width,
+        hangerHeightInches: selectedPlatform.height,
+      });
+      setMockupUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous);
+        return URL.createObjectURL(mockupBlob);
+      });
+      posthog?.capture("ad_door_mockup_generated", { platform: selectedPlatform.id });
+    } catch (error) {
+      setMockupError(error instanceof Error ? error.message : "Could not build the door mockup.");
+    } finally {
+      setMockupBusy(false);
+    }
+  }, [
+    creative.backgroundColor,
+    exportPixelSize.height,
+    exportPixelSize.width,
+    posthog,
+    selectedPlatform.cutout,
+    selectedPlatform.height,
+    selectedPlatform.id,
+    selectedPlatform.width,
+  ]);
+
+  const closeMockup = useCallback(() => {
+    setMockupUrl((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return null;
+    });
+    setMockupError(null);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (mockupUrl) URL.revokeObjectURL(mockupUrl);
+    },
+    [mockupUrl],
+  );
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const selected = elements.find((el) => el.id === selectedId) ?? null;
 
+  const cutout = selectedPlatform.cutout;
   const canvasStyle: CSSProperties = {
     width: getPreviewBaseWidth(selectedPlatformShape),
     aspectRatio: `${exportPixelSize.width} / ${exportPixelSize.height}`,
     background: creative.backgroundColor,
   };
+  if (cutout) {
+    const maskUri = buildCutoutMaskDataUri(cutout, selectedPlatform.width, selectedPlatform.height);
+    // The die-cut silhouette defines the corners + knob hole; drop the rounded
+    // canvas frame so the mask isn't clipped twice.
+    canvasStyle.borderRadius = 0;
+    canvasStyle.maskImage = maskUri;
+    canvasStyle.WebkitMaskImage = maskUri;
+    canvasStyle.maskSize = "100% 100%";
+    canvasStyle.WebkitMaskSize = "100% 100%";
+    canvasStyle.maskRepeat = "no-repeat";
+    canvasStyle.WebkitMaskRepeat = "no-repeat";
+  }
 
   const frameStyle = {
     transform: `scale(${previewScale})`,
@@ -789,6 +908,15 @@ export const AdCanvasEditor = ({
       );
     } else if (el.kind === "logo") {
       inner = <img src={LOGO_SOURCES[el.variant]} alt="Birdcreek Roofing" draggable={false} />;
+    } else if (el.kind === "qr") {
+      inner = (
+        <img
+          className="ad-canvas-qr"
+          src={buildQrDataUri(el.value, el.fgColor, el.bgColor)}
+          alt={`QR code linking to ${el.value}`}
+          draggable={false}
+        />
+      );
     } else {
       inner = (
         <div
@@ -819,7 +947,7 @@ export const AdCanvasEditor = ({
   const renderContextBar = () => {
     if (!selected) {
       return (
-        <p className="ad-canvas-context-hint">
+        <p className="ad-canvas-context-hint whitespace-pre-wrap">
           Select an element to edit it — drag to move, handles to resize, double-click text to edit,
           right-click for more.
         </p>
@@ -976,6 +1104,32 @@ export const AdCanvasEditor = ({
           </>
         ) : null}
 
+        {selected.kind === "qr" ? (
+          <>
+            <input
+              name="ad-qr-value"
+              id="ad-qr-value"
+              className="ad-canvas-qr-input"
+              type="text"
+              inputMode="url"
+              aria-label="QR code link"
+              placeholder="https://..."
+              value={selected.value}
+              onChange={(event) => patchElement(selected.id, { value: event.target.value })}
+            />
+            <AdColorSwatch
+              label="QR color"
+              value={selected.fgColor}
+              onChange={(hex) => patchElement(selected.id, { fgColor: hex })}
+            />
+            <AdColorSwatch
+              label="QR background"
+              value={selected.bgColor}
+              onChange={(hex) => patchElement(selected.id, { bgColor: hex })}
+            />
+          </>
+        ) : null}
+
         {selected.kind === "logo" ? (
           <select
             name="ad-logo-variant"
@@ -1098,6 +1252,21 @@ export const AdCanvasEditor = ({
             <PlusSquare width={16} height={16} />
             Shape
           </button>
+          <button type="button" className="ad-canvas-add-btn" onClick={addQr}>
+            <QrCode width={16} height={16} />
+            QR code
+          </button>
+          {cutout ? (
+            <button
+              type="button"
+              className="ad-canvas-add-btn"
+              onClick={() => void handlePreviewOnDoor()}
+              disabled={mockupBusy}
+            >
+              <Eye width={16} height={16} />
+              {mockupBusy ? "Rendering..." : "Preview on door"}
+            </button>
+          ) : null}
           <button
             type="button"
             className="ad-dashboard-export"
@@ -1220,6 +1389,49 @@ export const AdCanvasEditor = ({
               </>
             );
           })()}
+        </div>
+      ) : null}
+
+      {mockupUrl || mockupError ? (
+        <div
+          className="ad-mockup-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Door hanger mockup"
+          onClick={closeMockup}
+        >
+          <div className="ad-mockup-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="ad-mockup-head">
+              <strong>Door hanger preview</strong>
+              <button
+                type="button"
+                className="ad-mockup-close"
+                onClick={closeMockup}
+                aria-label="Close preview"
+              >
+                <Xmark width={18} height={18} />
+              </button>
+            </div>
+            {mockupError ? (
+              <p className="ad-dashboard-error">{mockupError}</p>
+            ) : mockupUrl ? (
+              <>
+                <img
+                  className="ad-mockup-image"
+                  src={mockupUrl}
+                  alt="The door hanger design shown hanging on a real door"
+                />
+                <a
+                  className="ad-dashboard-export"
+                  href={mockupUrl}
+                  download={`tandra-door-hanger-mockup-${Date.now()}.png`}
+                >
+                  <Download width={18} height={18} />
+                  Download mockup
+                </a>
+              </>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </section>

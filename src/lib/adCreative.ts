@@ -6,12 +6,32 @@ export type LogoVariant = "horizontal-white" | "vertical-white";
 
 export type PlatformShape = "square" | "wide" | "tall";
 
+/**
+ * Die-cut silhouette for door hangers. All measurements are in inches and are
+ * interpreted against the format's own width/height so the same shape scales to
+ * any export size. Drives both the canvas clip mask and the on-door mockup.
+ */
+export type DoorHangerCutout = {
+  /** Top corner radius (rounded "tombstone" top). */
+  topRadius: number;
+  /** Doorknob hole diameter. */
+  holeDiameter: number;
+  /** Distance from the top edge to the center of the hole. */
+  holeCenterFromTop: number;
+  /** Width of the slit/throat that connects the hole to the top edge. */
+  slotWidth: number;
+};
+
 export type PlatformPreset = {
   id: string;
   label: string;
   helper: string;
   width: number;
   height: number;
+  /** Natural unit of `width`/`height`. Defaults to "px" when omitted. */
+  unit?: AdUnit;
+  /** Present on die-cut door-hanger formats; enables the clip mask + mockup. */
+  cutout?: DoorHangerCutout;
 };
 
 /** Brand palette shared by the swatch grid and every ad color picker. */

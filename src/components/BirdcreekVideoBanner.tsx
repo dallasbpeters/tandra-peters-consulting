@@ -13,14 +13,14 @@ export default function ShaderEffect({ style }: { style: React.CSSProperties }) 
     <Shader style={style} colorSpace="srgb">
       <ChromaFlow
         id="idmostv5d9xi2rmvn45"
-        baseColor="#ffffff"
-        downColor="#ffffff"
+        baseColor="#ba94fc"
+        downColor="#ba94fc"
         intensity={0.8}
-        leftColor="#ffffff"
+        leftColor="#ba94fc"
         momentum={32}
-        radius={4.5}
-        rightColor="#ffffff"
-        upColor="#ffffff"
+        radius={0.5}
+        rightColor="#ba94fc"
+        upColor="#ba94fc"
         visible={false}
       />
 
@@ -53,18 +53,6 @@ export default function ShaderEffect({ style }: { style: React.CSSProperties }) 
       />
 
       <ImageTexture maskSource="idmostv5d9xi2rmvn45" url="/poster.jpeg" visible={true} />
-
-      <ChromaFlow
-        baseColor="#ffffff"
-        downColor="#ffffff"
-        intensity={1.5}
-        leftColor="#ffffff"
-        momentum={32}
-        radius={4}
-        rightColor="#ffffff"
-        upColor="#ffffff"
-        visible={false}
-      />
     </Shader>
   );
 }

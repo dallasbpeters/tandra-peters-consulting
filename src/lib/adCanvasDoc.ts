@@ -6,7 +6,7 @@ import type { FontPresetId } from "./adCreativeTemplates";
 // width, y/height relative to canvas height. Text font sizes are in cqw so they
 // scale with the canvas at any export size.
 
-export type CanvasElementKind = "text" | "image" | "logo" | "rect";
+export type CanvasElementKind = "text" | "image" | "logo" | "rect" | "qr";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -62,11 +62,22 @@ export type RectCanvasElement = CanvasElementBase & {
   borderRadius: number;
 };
 
+export type QrCanvasElement = CanvasElementBase & {
+  kind: "qr";
+  /** URL or text the QR encodes. */
+  value: string;
+  /** Dark-module color. */
+  fgColor: string;
+  /** Quiet-zone / background color. */
+  bgColor: string;
+};
+
 export type CanvasElement =
   | TextCanvasElement
   | ImageCanvasElement
   | LogoCanvasElement
-  | RectCanvasElement;
+  | RectCanvasElement
+  | QrCanvasElement;
 
 export type CanvasGuide = { axis: "x" | "y"; position: number };
 
@@ -166,6 +177,25 @@ export const createTextElement = (text: string): TextCanvasElement =>
     fontSize: 5,
     color: "#ffffff",
   });
+
+/** Default destination for a fresh QR — the public site. */
+export const DEFAULT_QR_VALUE = "https://www.tandra.me";
+
+export const createQrElement = (value = DEFAULT_QR_VALUE): QrCanvasElement => ({
+  id: createElementId(),
+  kind: "qr",
+  name: "QR code",
+  x: 60,
+  y: 60,
+  width: 26,
+  // Square: null height lets the wrapper size to the 1:1 SVG.
+  height: null,
+  opacity: 1,
+  locked: false,
+  value,
+  fgColor: "#000000",
+  bgColor: "#ffffff",
+});
 
 export const createRectElement = (fill: string): RectCanvasElement => ({
   id: createElementId(),

@@ -76,6 +76,17 @@
   height: 100%;
 }
 
+/* QR is square — size to width and keep a 1:1 box regardless of wrapper height. */
+.ad-canvas-el img.ad-canvas-qr {
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.ad-canvas-qr-input {
+  width: 14rem;
+  max-width: 40vw;
+}
+
 .ad-canvas-text {
   width: 100%;
   white-space: pre-wrap;
@@ -484,4 +495,72 @@
 
   /* eslint-disable-next-line css/use-baseline */
   accent-color: var(--studio-accent, #92b661);
+}
+
+/* ─── Door hanger mockup modal ──────────────────────────────────────────────── */
+
+.ad-mockup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--theme-spacing-lg, 1.5rem);
+  background: rgb(8 10 9 / 80%);
+}
+
+.ad-mockup-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--theme-spacing-md, 1rem);
+  width: min(90vw, 30rem);
+  max-height: 90vh;
+  padding: var(--theme-spacing-md, 1rem);
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: var(--theme-radius-medium, 14px);
+  background: var(--studio-panel, #141c18);
+  box-shadow: var(--shadow-large);
+}
+
+.ad-mockup-head {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--studio-text, #edf3ed);
+  font-size: 0.95rem;
+  font-weight: 750;
+}
+
+.ad-mockup-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  border-radius: 8px;
+  background: var(--studio-panel-raised, #1b2620);
+  color: var(--studio-text, #edf3ed);
+  cursor: pointer;
+}
+
+.ad-mockup-close:hover {
+  background: #233029;
+}
+
+.ad-mockup-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 68vh;
+  border-radius: var(--theme-radius-small, 8px);
+  object-fit: contain;
+  background: #fff;
+}
+
+.ad-mockup-modal .ad-dashboard-export {
+  justify-content: center;
+  text-decoration: none;
 }
