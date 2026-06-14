@@ -22,11 +22,12 @@ export const BirdcreekVideoBanner = () => {
   };
 
   const iframeStyle: React.CSSProperties = {
-    width: "100%",
+    width: "fit-content",
     height: "auto",
-    minWidth: "96vw",
+    minWidth: isMobile ? "98vw" : "96vw",
     maxWidth: "1200px",
     aspectRatio: isMobile ? "20/9" : "20/6",
+    borderRadius: theme.radius.large,
   };
 
   return (
@@ -40,8 +41,6 @@ export const BirdcreekVideoBanner = () => {
         title="vimeo-player"
         src={embedUrl}
         style={iframeStyle}
-        height="640"
-        width="360"
         referrerPolicy="strict-origin-when-cross-origin"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
         allowFullScreen
