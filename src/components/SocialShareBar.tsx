@@ -47,7 +47,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
-  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}hashtag=roofing`;
+  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}&hashtag=roofing`;
 
   const canWebShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
