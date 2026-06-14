@@ -131,7 +131,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     },
     subtitleStyle: {
       color: theme.colors.white,
-      fontSize: "1rem",
+      fontSize: "1.3rem",
       lineHeight: 1.7,
       marginBottom: theme.spacing.xxxxxxl,
     },
