@@ -228,7 +228,9 @@ export const AdCanvasEditor = ({
   const editRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const [elements, setElements] = useState<CanvasElement[]>(() => seedCanvasElements(creative));
+  const [elements, setElements] = useState<CanvasElement[]>(() =>
+    seedCanvasElements(creative, selectedPlatform.cutout),
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [guides, setGuides] = useState<CanvasGuide[]>([]);
@@ -254,11 +256,11 @@ export const AdCanvasEditor = ({
   useEffect(() => {
     if (prevSeedKey.current === seedKey) return;
     prevSeedKey.current = seedKey;
-    setElements(seedCanvasElements(creative));
+    setElements(seedCanvasElements(creative, selectedPlatform.cutout));
     setSelectedId(null);
     setEditingId(null);
     setMenu(null);
-  }, [seedKey, creative]);
+  }, [seedKey, creative, selectedPlatform.cutout]);
 
   // ── Sync panel copy edits into role elements ─────────────────────────────
   useEffect(() => {
@@ -726,6 +728,7 @@ export const AdCanvasEditor = ({
         exportPixelSize.width,
         exportPixelSize.height,
         creative.backgroundColor,
+        true,
       );
       downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
       posthog?.capture("ad_creative_exported", {

@@ -1,4 +1,4 @@
-import type { CreativeState, LogoVariant } from "./adCreative";
+import type { CreativeState, DoorHangerCutout, LogoVariant } from "./adCreative";
 import type { FontPresetId } from "./adCreativeTemplates";
 
 // ─── Element model ────────────────────────────────────────────────────────────
@@ -680,6 +680,182 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
 };
 
 /**
+ * Die-cut door-hanger recipe — a single centered, vertically stacked column
+ * tuned for the tall/narrow print format. Every element is positioned BELOW the
+ * knob cutout (hole + slot) so nothing crowds the die-cut, and the default font
+ * sizes are scaled up substantially: font sizes are cqw (percent of the narrow
+ * width), so on a tall canvas they must be much larger than the social recipes
+ * to read at a comparable visual size.
+ *
+ * This recipe is used for any platform with a {@link DoorHangerCutout},
+ * regardless of which template layout the user picked, so the defaults are
+ * always door-hanger-appropriate (the template still drives colors, fonts,
+ * copy, and photo).
+ */
+const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasElement[] => {
+  const { creative, fonts, hs, bs, cs } = ctx;
+  const elements: CanvasElement[] = [];
+
+  const widthIn = creative.adWidth || 4.25;
+  const heightIn = creative.adHeight || 11;
+  // cqw is a percent of WIDTH; convert a cqw text height into a percent of
+  // canvas HEIGHT so the flowing stack advances correctly on a tall canvas.
+  const aspect = widthIn / heightIn;
+  const blockPct = (sizeCqw: number, lines: number, lineHeight: number) =>
+    sizeCqw * aspect * lineHeight * lines;
+  const lineCount = (text: string) =>
+    text.split("\n").filter((line) => line.trim().length > 0).length || 1;
+
+  // Clear the knob hole plus a comfortable margin so nothing sits near the
+  // cutout. Hole bottom = (centre-from-top + radius) / total height.
+  const holeBottomPct = ((cutout.holeCenterFromTop + cutout.holeDiameter / 2) / heightIn) * 100;
+  const safeTop = holeBottomPct + 6;
+
+  // Full-bleed photo with a heavy brand tint keeps the stacked copy legible;
+  // without a photo the solid canvas background shows through.
+  if (creative.imageUrl) {
+    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedRectEl(
+        ROLE_IDS.tint,
+        "Tint",
+        { x: 0, y: 0, width: 100, height: 100 },
+        creative.backgroundColor,
+        0.55,
+      ),
+    );
+  }
+
+  let y = safeTop;
+
+  if (creative.showLogo) {
+    elements.push(seedLogoEl(creative, { x: 27, y, width: 46 }));
+    // Logo is auto-height (~aspect ratio of the horizontal mark over 46% width).
+    y += 46 * aspect * 0.42 + 4;
+  }
+
+  if (creative.eyebrow) {
+    const size = 5.5;
+    elements.push(
+      baseText({
+        id: ROLE_IDS.eyebrow,
+        name: "Eyebrow",
+        text: creative.eyebrow,
+        x: 6,
+        y,
+        width: 88,
+        fontFamily: fonts.body,
+        fontWeight: 700,
+        fontSize: size,
+        letterSpacing: 0.12,
+        textAlign: "center",
+        textTransform: "uppercase",
+        color: creative.headlineAccentColor || creative.textColor,
+      }),
+    );
+    y += blockPct(size, 1, 1.1) + 2.5;
+  }
+
+  if (creative.headline) {
+    const size = 18 * hs;
+    elements.push(
+      baseText({
+        id: ROLE_IDS.headline,
+        name: "Headline",
+        text: creative.headline,
+        x: 5,
+        y,
+        width: 90,
+        fontFamily: fonts.headline,
+        fontWeight: fonts.headlineWeight,
+        fontSize: size,
+        lineHeight: 0.98,
+        textAlign: "center",
+        textTransform: "uppercase",
+        color: creative.headlineColor || creative.textColor,
+      }),
+    );
+    y += blockPct(size, lineCount(creative.headline), 0.98) + 4;
+  }
+
+  if (creative.body) {
+    const size = 7 * bs;
+    elements.push(
+      baseText({
+        id: ROLE_IDS.body,
+        name: "Supporting copy",
+        text: creative.body,
+        x: 8,
+        y,
+        width: 84,
+        fontFamily: '"IBM Plex Serif", serif',
+        fontStyle: "italic",
+        fontWeight: 400,
+        fontSize: size,
+        lineHeight: 1.25,
+        textAlign: "center",
+        color: creative.textColor,
+      }),
+    );
+    y += blockPct(size, lineCount(creative.body), 1.25) + 4;
+  }
+
+  if (creative.cta) {
+    elements.push(
+      baseText({
+        id: ROLE_IDS.cta,
+        name: "CTA",
+        text: creative.cta,
+        x: 8,
+        y,
+        width: 84,
+        fontFamily: fonts.body,
+        fontWeight: 800,
+        fontSize: 10 * cs,
+        letterSpacing: 0.02,
+        textAlign: "center",
+        textTransform: "uppercase",
+        color: "#ffffff",
+        background: creative.accentColor,
+        paddingX: 4,
+        paddingY: 2.4,
+        borderRadius: 1.6,
+      }),
+    );
+  }
+
+  // Contact band pinned to the bottom, sized up for the print format.
+  const footerText = [creative.footnote, creative.footnote2].filter(Boolean).join("  ·  ");
+  if (footerText) {
+    elements.push(
+      seedRectEl(
+        ROLE_IDS.footerBar,
+        "Footer bar",
+        { x: 0, y: 92, width: 100, height: 8 },
+        creative.backgroundColor,
+      ),
+      baseText({
+        id: ROLE_IDS.footnote,
+        name: "Footer",
+        text: footerText,
+        x: 6,
+        y: 94.6,
+        width: 88,
+        fontFamily: fonts.body,
+        fontWeight: 700,
+        fontSize: 3.4,
+        letterSpacing: 0.08,
+        textAlign: "center",
+        textTransform: "uppercase",
+        color: creative.textColor,
+      }),
+    );
+  }
+
+  return elements;
+};
+
+/**
  * Builds the initial canvas elements for a creative, dispatching to the
  * layout-specific recipe so each template reproduces its original design
  * (geometry, layering, fonts, and colors) instead of a generic composition.
@@ -688,9 +864,14 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
  * be synced onto them via {@link syncElementsFromCreative}.
  *
  * @param creative - Creative state from the selected template preset
+ * @param cutout - Die-cut spec when the platform is a door hanger; when present
+ *   the door-hanger recipe is used regardless of the template's layout
  * @returns Elements in paint order (backgrounds first, copy on top)
  */
-export const seedCanvasElements = (creative: CreativeState): CanvasElement[] => {
+export const seedCanvasElements = (
+  creative: CreativeState,
+  cutout?: DoorHangerCutout,
+): CanvasElement[] => {
   const ctx: SeedContext = {
     creative,
     fonts: getFontPair(creative.fontPresetId),
@@ -698,6 +879,10 @@ export const seedCanvasElements = (creative: CreativeState): CanvasElement[] => 
     bs: (creative.bodySize || 100) / 100,
     cs: (creative.ctaSize || 100) / 100,
   };
+
+  if (cutout) {
+    return seedDoorHanger(ctx, cutout);
+  }
 
   switch (creative.layout) {
     case "canva-hero-footer":

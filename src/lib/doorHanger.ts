@@ -23,27 +23,43 @@ const outlinePath = (w: number, h: number, r: number): string => {
 };
 
 /**
- * SVG `d` for the keyhole subpath: a thin slit from the top edge down to a full
- * circular doorknob hole. The circle is traced as two half-arcs (left wall →
- * bottom → right wall) so the arc flags are unambiguous — a single major arc
- * picks the wrong center and bulges back up to the top edge.
+ * SVG `d` for the keyhole subpath: a full circular doorknob hole with a slot
+ * running up to the top edge at a 45° angle. The slot is a constant-width strip
+ * (its walls stay parallel) angled up-and-to-the-left, exiting the top edge.
+ * The circle stays whole — only the small cap between the two walls (on the
+ * opening side) is absorbed into the slot; the rest of the circle is traced as
+ * two arcs through the far point so the arc flags are unambiguous.
  */
 const keyholePath = (w: number, cutout: DoorHangerCutout): string => {
   const cx = w / 2;
-  const holeRadius = cutout.holeDiameter / 1.5;
+  const r = cutout.holeDiameter / 1.5;
   const cy = cutout.holeCenterFromTop;
-  const slotHalf = Math.min(cutout.slotWidth / 5, holeRadius * 1.95);
-  // Where the vertical slit walls meet the circle.
-  const meetY = cy - Math.sqrt(Math.max(holeRadius * holeRadius - slotHalf * slotHalf, 0));
-  const bottom = cy + holeRadius;
+  // Keep the half-width below the radius so the wall/circle intersection is real.
+  const h = Math.min(cutout.slotWidth / 5, r * 0.9);
+  const k = Math.sqrt(Math.max(r * r - h * h, 0));
+  const s = Math.SQRT1_2; // 1/√2 — the slot runs at 45°.
+
+  // Top-edge endpoints of the two parallel walls (y = 0).
+  const t1x = cx - cy - h * Math.SQRT2; // outer (left) wall
+  const t2x = cx - cy + h * Math.SQRT2; // inner (right) wall
+  // Where each wall meets the circle, on the opening (up-left) side.
+  const m1x = cx - (h + k) * s;
+  const m1y = cy + (h - k) * s;
+  const m2x = cx + (h - k) * s;
+  const m2y = cy - (h + k) * s;
+  // Far point of the circle, diametrically opposite the opening (down-right).
+  const fx = cx + r * s;
+  const fy = cy + r * s;
+
   return [
-    `M ${round(cx - slotHalf)} 0`,
-    `L ${round(cx - slotHalf)} ${round(meetY)}`,
-    // Left meet point → bottom of the circle, down the left side.
-    `A ${round(holeRadius)} ${round(holeRadius)} 0 0 0 ${round(cx)} ${round(bottom)}`,
-    // Bottom → right meet point, up the right side.
-    `A ${round(holeRadius)} ${round(holeRadius)} 0 0 0 ${round(cx + slotHalf)} ${round(meetY)}`,
-    `L ${round(cx + slotHalf)}0 0`,
+    `M ${round(t1x)} 0`,
+    // Down the left wall to the circle.
+    `L ${round(m1x)} ${round(m1y)}`,
+    // Around the far (down-right) side of the circle via the opposite point.
+    `A ${round(r)} ${round(r)} 0 0 0 ${round(fx)} ${round(fy)}`,
+    `A ${round(r)} ${round(r)} 0 0 0 ${round(m2x)} ${round(m2y)}`,
+    // Up the right wall back to the top edge.
+    `L ${round(t2x)} 0`,
     "Z",
   ].join(" ");
 };
@@ -207,10 +223,26 @@ export const renderDoorMockup = async ({
   ctx.drawImage(door, 0, 0, W, H);
   ctx.restore();
 
-  // Punch the slit above the hole.
+  // Punch the 45-degree slit above the hole. The circle is punched separately,
+  // so this is just a constant-width strip running at 45° from the top edge into
+  // the hole. Centerline goes from the top edge down-right to the knob center.
   ctx.save();
   ctx.beginPath();
-  ctx.rect(knobX - slotHalf, hangerY, slotHalf * 2, knobY - hangerY);
+  const s = Math.SQRT1_2;
+  const vDist = knobY - hangerY; // top edge → knob center
+  // Centerline endpoints: top edge (45° up-left of the knob) and just past the knob.
+  const topX = knobX - vDist;
+  const topY = hangerY;
+  const botX = knobX + holeRadius * s;
+  const botY = knobY + holeRadius * s;
+  // Perpendicular offset (half the slot width) for the parallel walls.
+  const nx = slotHalf * s;
+  const ny = -slotHalf * s;
+  ctx.moveTo(topX + nx, topY + ny);
+  ctx.lineTo(botX + nx, botY + ny);
+  ctx.lineTo(botX - nx, botY - ny);
+  ctx.lineTo(topX - nx, topY - ny);
+  ctx.closePath();
   ctx.clip();
   ctx.drawImage(door, 0, 0, W, H);
   ctx.restore();
