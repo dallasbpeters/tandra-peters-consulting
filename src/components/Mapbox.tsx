@@ -155,7 +155,7 @@ function resolveLabelFont(map: mapboxgl.Map): string[] {
       return font as string[];
     }
   }
-  return ["Open Sans Semibold", "Arial Unicode MS Bold"];
+  return ["Hanken Grotesk Variable", "Arial Unicode MS Bold"];
 }
 
 function applyBasemapConfig(map: mapboxgl.Map) {
@@ -554,6 +554,11 @@ export const MapBox = ({
       </div>
       <Shader style={{ position: "absolute", inset: 0, zIndex: 10 }}>
         {/* Explicit id: React useId() fallback yields `__` GLSL names that fail on Safari. */}
+        {/* All four corner colors stay in the purple family so the multiply blend tints
+            every county the same hue regardless of position. A green right/up corner
+            (the previous values) desaturated counties on the east/north — e.g. Dallas,
+            Fort Worth, Waco — making them read paler than the Austin cluster. Brand green
+            still appears via the green state outline (MAP_COLORS.stateOutline). */}
         <ChromaFlow
           id="mapChromaFlow"
           baseColor="#7449d6"
@@ -562,9 +567,9 @@ export const MapBox = ({
           intensity={1}
           momentum={19}
           radius={2.5}
-          rightColor="#0cb01a"
+          rightColor="#8a5ae8"
           transform={{ offsetX: 0.01 }}
-          upColor="#0eb00e"
+          upColor="#9a6cf0"
         />
       </Shader>
     </section>

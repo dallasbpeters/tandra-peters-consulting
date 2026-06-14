@@ -27,7 +27,6 @@ import {
   mapServicesProps,
   mapServiceAreaMapProps,
   mapSocialShareProps,
-  mapTestimonialsProps,
 } from "../sanity/mapSanityHome";
 import { theme } from "../theme";
 
@@ -230,7 +229,7 @@ export const Home = () => {
                 introContent={shouldUseRenderedIntroVideo ? undefined : introVideoContent}
               />
             ) : null}
-            {testimonials ? <Testimonials {...mapTestimonialsProps(testimonials)} /> : null}
+            {testimonials ? <Testimonials /> : null}
             <Faq {...mapFaqProps(faq)} />
             <ArticlesTeaser
               posts={data?.latestPosts ?? []}

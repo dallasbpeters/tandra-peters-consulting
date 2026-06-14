@@ -7,7 +7,7 @@
 .site-page-main {
   --site-padding-inline-start: var(--theme-spacing-xl);
 
-  background: rgb(14 14 14);
+  /* background: rgb(14 14 14); */
 }
 
 .site-page-main--ad-dashboard {
@@ -514,7 +514,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--theme-spacing-md, 1rem);
-  width: min(90vw, 30rem);
+  width: min(90vw, 60rem);
   max-height: 90vh;
   padding: var(--theme-spacing-md, 1rem);
   border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));

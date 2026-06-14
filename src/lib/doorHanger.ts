@@ -30,9 +30,9 @@ const outlinePath = (w: number, h: number, r: number): string => {
  */
 const keyholePath = (w: number, cutout: DoorHangerCutout): string => {
   const cx = w / 2;
-  const holeRadius = cutout.holeDiameter / 2;
+  const holeRadius = cutout.holeDiameter / 1.5;
   const cy = cutout.holeCenterFromTop;
-  const slotHalf = Math.min(cutout.slotWidth / 2, holeRadius * 0.95);
+  const slotHalf = Math.min(cutout.slotWidth / 5, holeRadius * 1.95);
   // Where the vertical slit walls meet the circle.
   const meetY = cy - Math.sqrt(Math.max(holeRadius * holeRadius - slotHalf * slotHalf, 0));
   const bottom = cy + holeRadius;
@@ -43,7 +43,7 @@ const keyholePath = (w: number, cutout: DoorHangerCutout): string => {
     `A ${round(holeRadius)} ${round(holeRadius)} 0 0 0 ${round(cx)} ${round(bottom)}`,
     // Bottom → right meet point, up the right side.
     `A ${round(holeRadius)} ${round(holeRadius)} 0 0 0 ${round(cx + slotHalf)} ${round(meetY)}`,
-    `L ${round(cx + slotHalf)} 0`,
+    `L ${round(cx + slotHalf)}0 0`,
     "Z",
   ].join(" ");
 };

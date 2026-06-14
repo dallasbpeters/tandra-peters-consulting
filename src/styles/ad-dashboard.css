@@ -42,7 +42,7 @@ footer {
 
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--nav-bar-offset) - var(--theme-spacing-md));
+  height: calc(92vh - var(--nav-bar-offset) - var(--theme-spacing-md));
   min-height: 32rem;
   overflow: hidden;
   border: 1px solid var(--studio-border);
