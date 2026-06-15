@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm build:vercel",
+  "devCommand": "pnpm dev",
+  "outputDirectory": "dist",
   "functions": {
     "api/render-tandra-intro.ts": {
       "maxDuration": 300

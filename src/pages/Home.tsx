@@ -189,9 +189,13 @@ export const Home = () => {
       case "birdcreekVideoBannerSection":
         return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
       case "videoSection": {
+        const sectionPosterUrl =
+          typeof sectionData.posterUrl === "string" && sectionData.posterUrl.trim()
+            ? sectionData.posterUrl.trim()
+            : undefined;
         return introVideoContent ? (
           <FeaturedVideoSection
-            posterUrl={introVideoThumbnailUrl}
+            posterUrl={introVideoThumbnailUrl ?? sectionPosterUrl}
             introContent={introVideoContent}
           />
         ) : null;
