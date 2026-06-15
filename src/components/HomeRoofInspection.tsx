@@ -22,7 +22,7 @@ const HomeRoofInspection = ({ chapters, roofInspection }: HomeRoofInspectionProp
       <RoofInspection.Rail
         kicker={roofInspection.kicker}
         title={inspectionTitle}
-        lede={roofInspection.lede}
+        lede={roofInspection.lede ?? ""}
       />
       <RoofInspection.Canvas>
         <RoofInspection.Toolbar />

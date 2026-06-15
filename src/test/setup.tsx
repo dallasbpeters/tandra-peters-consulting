@@ -363,4 +363,28 @@ vi.mock("../components/GoogleAuthGate", () => ({
   GoogleAuthFooterTrigger: () => null,
 }));
 
+vi.mock("@awesome.me/webawesome/dist/react/button/index.js", () => ({
+  default: ({
+    children,
+    onClick,
+    type,
+    disabled,
+    ...rest
+  }: {
+    children?: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    type?: "button" | "submit" | "reset";
+    disabled?: boolean;
+  } & Record<string, unknown>) => (
+    <button
+      onClick={onClick}
+      type={type ?? "button"}
+      disabled={disabled}
+      {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+    >
+      {children}
+    </button>
+  ),
+}));
+
 vi.mock("@awesome.me/webawesome/dist/styles/themes/default.css", () => ({}));
