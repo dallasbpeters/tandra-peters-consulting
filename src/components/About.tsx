@@ -98,7 +98,7 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
     backgroundColor: theme.colors.paper,
     overflow: "hidden",
     position: "relative",
-    padding: isMobile ? 0 : `${theme.spacing.sectionHero} ${theme.spacing.lg}`,
+    padding: isMobile ? 0 : `${theme.spacing.xl}`,
   };
 
   const paragraphWrapperStyle: React.CSSProperties = {
