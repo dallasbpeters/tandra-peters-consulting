@@ -47,7 +47,6 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
   const [hideControlsUntilMouseLeave, setHideControlsUntilMouseLeave] = useState(false);
-  const [showCaptions, setShowCaptions] = useState(false);
   const isInView = useInView(sectionRef, { once: true, amount: 0.45 });
   const captionCues = useMemo(
     () => (introContent ? getCaptionCues(introContent) : []),
@@ -78,14 +77,6 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
       setHideControlsUntilMouseLeave(true);
     }
   }, [isMobileDevice]);
-
-  const handleToggleCaptions = useCallback(() => {
-    setShowCaptions((current) => !current);
-  }, []);
-
-  useEffect(() => {
-    setShowCaptions(false);
-  }, [introContentKey]);
 
   const shouldShowControls = isMobileDevice || (isHoveringVideo && !hideControlsUntilMouseLeave);
 
@@ -163,7 +154,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
                 ref={playerRef}
                 content={introContent}
                 posterUrl={posterUrl}
-                showCaptions={showCaptions}
+                showCaptions={false}
               />
             </motion.div>
           ) : null}
@@ -172,9 +163,8 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             playerRef={playerRef}
             isRemotion={showRemotionPlayer}
             posterUrl={posterUrl}
-            captionsVisible={showCaptions}
+            captionsVisible={false}
             captionCues={captionCues}
-            onToggleCaptions={captionCues.length > 0 ? handleToggleCaptions : undefined}
             isVisible={shouldShowControls}
             onControlPress={handleControlPress}
           />

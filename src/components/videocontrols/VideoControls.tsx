@@ -26,7 +26,6 @@ type Props = {
   posterUrl?: string;
   captionsVisible?: boolean;
   captionCues?: CaptionCue[];
-  onToggleCaptions?: () => void;
   isVisible: boolean;
   onControlPress?: () => void;
 };
@@ -40,7 +39,6 @@ export const VideoControls = ({
   posterUrl,
   captionsVisible,
   captionCues,
-  onToggleCaptions,
   isVisible,
   onControlPress,
 }: Props) => {
@@ -246,7 +244,6 @@ export const VideoControls = ({
 
   const showPoster = Boolean(posterUrl && !isPlaying && currentTime === 0);
   const controlsVisible = isVisible || showPoster;
-  const showCaptionsToggle = Boolean(onToggleCaptions && captionCues?.length);
   const progress = duration > 0 ? clampRatio(currentTime / duration) : 0;
   const progressPercent = Math.round(progress * 100);
   const activeCaption =
@@ -273,21 +270,6 @@ export const VideoControls = ({
         onPointerUp={handleProgressPointerUp}
         onKeyDown={handleProgressKeyDown}
       />
-
-      {showCaptionsToggle ? (
-        <button
-          type="button"
-          className="featured-video__captions"
-          aria-label={captionsVisible ? "Hide captions" : "Show captions"}
-          aria-pressed={captionsVisible}
-          onClick={() => {
-            onToggleCaptions?.();
-            onControlPress?.();
-          }}
-        >
-          CC
-        </button>
-      ) : null}
 
       {activeCaption ? (
         <div className="featured-video__captions-overlay" aria-hidden="true">
