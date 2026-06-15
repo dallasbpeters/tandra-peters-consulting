@@ -31,11 +31,21 @@ type ExpertiseRow = (typeof homePageSeed.expertise.items)[number] & {
 type HomePageSeedWithImages = typeof homePageSeed & {
   hero: typeof homePageSeed.hero & { backgroundImage: SanityImageValue };
   about: typeof homePageSeed.about & { image: SanityImageValue };
-  services: Omit<typeof homePageSeed.services, "services"> & {
+  services: Omit<typeof homePageSeed.services, "services" | "typographicArt"> & {
     services: ServiceRow[];
+    typographicArt: {
+      _type: string;
+      baseMaskImage?: SanityImageValue;
+      overlayMaskImage?: SanityImageValue;
+    };
   };
   mission: Omit<typeof homePageSeed.mission, "values"> & { values: MissionRow[] };
   expertise: Omit<typeof homePageSeed.expertise, "items"> & { items: ExpertiseRow[] };
+};
+
+type HomePageSection = Record<string, unknown> & {
+  _key: string;
+  _type: string;
 };
 
 const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -56,12 +66,60 @@ if (!token) {
 const client = createClient({
   projectId: "7irm699i",
   dataset: "production",
-  apiVersion: "2024-01-01",
+  apiVersion: "2026-05-29",
   token,
   useCdn: false,
 });
 
 const pub = (filename: string) => resolve(publicDir, filename);
+
+const withSectionKey = (
+  section: Record<string, unknown> & { _type: string },
+  _key: string,
+): HomePageSection => ({
+  ...section,
+  _key,
+});
+
+const buildHomePageDocument = (homePayload: HomePageSeedWithImages) => ({
+  _id: homePayload._id,
+  _type: homePayload._type,
+  sections: [
+    withSectionKey(homePayload.hero, "home-section-hero"),
+    withSectionKey(homePayload.marquee, "home-section-marquee"),
+    withSectionKey(homePayload.about, "home-section-about"),
+    withSectionKey(homePayload.stats, "home-section-stats"),
+    withSectionKey(homePayload.services, "home-section-services"),
+    {
+      _key: "home-section-estimator-banner",
+      _type: "contactBannerSection",
+      eyebrow: "Ballpark Pricing · 60 Seconds",
+      headline: "Estimate Your Roof",
+      phoneLabel: "No obligation",
+      phoneDisplay: "Start estimate",
+      phoneHref: "/estimate",
+      phoneAriaLabel: "Open the roof cost estimator",
+      ariaLabel: "Estimate your roof cost",
+      ctaIcon: "calculator",
+    },
+    withSectionKey(homePayload.mission, "home-section-mission"),
+    withSectionKey(homePayload.expertise, "home-section-expertise"),
+    {
+      _key: "home-section-featured-video",
+      _type: "videoSection",
+    },
+    withSectionKey(homePayload.testimonials, "home-section-testimonials"),
+    withSectionKey(homePayload.faq, "home-section-faq"),
+    withSectionKey(homePayload.articlesTeaser, "home-section-articles"),
+    {
+      _key: "home-section-certifications",
+      _type: "certificationsSection",
+      title: "Certifications",
+    },
+    withSectionKey(homePayload.contact, "home-section-contact"),
+    withSectionKey(homePayload.socialShare, "home-section-social-share"),
+  ],
+});
 
 async function main() {
   const navLogoImage = await uploadImageFromUrl(
@@ -122,10 +180,12 @@ async function main() {
     }
   }
 
+  const homeDocument = buildHomePageDocument(homePayload);
+
   await client
     .transaction()
     .createOrReplace(sitePayload)
-    .createOrReplace(homePayload)
+    .createOrReplace(homeDocument)
     .createOrReplace(articlesPageSeed)
     .createOrReplace(workflowPageSeed)
     .commit();

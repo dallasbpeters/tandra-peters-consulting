@@ -149,7 +149,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
     }
 
-    console.info("[api/email/send]", { sent: sent.length, failed: failed.length });
+    console.info("[api/email/send]", {
+      sent: sent.length,
+      failed: failed.length,
+    });
     res.status(failed.length && !sent.length ? 502 : 200).json({
       sent,
       failed,

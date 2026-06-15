@@ -147,6 +147,7 @@
     "@remotion/google-fonts": "4.0.466",
     "@remotion/tailwind-v4": "4.0.466",
     "@remotion/zod-types": "4.0.466",
+    "@sanity-labs/eslint-plugin": "^1.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

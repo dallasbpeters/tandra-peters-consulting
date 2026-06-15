@@ -12,12 +12,9 @@ import { SeoStructuredData } from "../components/SeoStructuredData";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
-import { useSanityEstimatorPage } from "../hooks/useSanityEstimatorPage";
-import { CONTACT_BANNER_ESTIMATOR } from "../lib/contactBannerPresets";
 import { asOptionalRichText } from "../portableText/value";
 import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
 import { sanityImageUrl } from "../sanity/imageUrl";
-import { mapEstimatorPageContent } from "../sanity/mapEstimatorPage";
 import {
   mapAboutProps,
   mapArticlesTeaserEditorialProps,
@@ -60,7 +57,9 @@ const Expertise = lazy(async () => {
 });
 const Testimonials = lazy(async () => {
   const module = await import("../components/Testimonials");
-  return { default: module.Testimonials as React.ComponentType<TestimonialsProps> };
+  return {
+    default: module.Testimonials as React.ComponentType<TestimonialsProps>,
+  };
 });
 const FeaturedVideoSection = lazy(async () => {
   const module = await import("../components/FeaturedVideoSection");
@@ -100,7 +99,6 @@ const DevAgentation = import.meta.env.DEV
 
 export const Home = () => {
   const { data, loading, error } = useSanitySite();
-  const { page: estimatorPage } = useSanityEstimatorPage();
   const home = data?.home as Record<string, unknown> | null | undefined;
   const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
   const seoTitle =
@@ -135,59 +133,15 @@ export const Home = () => {
     );
   }
 
-  const hero = home?.hero as Record<string, unknown> | undefined;
   const introVideoContent = introVideo ? mergeTandraIntroContent(introVideo) : undefined;
   const renderedVideoUrl =
     typeof introVideo?.renderedVideoUrl === "string" && introVideo.renderedVideoUrl.trim()
-      ? introVideo.renderedVideoUrl.trim()
+      ? introVideo.renderedVideoUrl.trim().replace(/\?download=1$/, "")
       : undefined;
-  const videoProps = mapVideoProps(home?.featuredVideo as Record<string, unknown> | undefined, {
-    renderedVideoUrl,
-  });
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
       ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })
       : undefined;
-  const marquee = home?.marquee as Record<string, unknown> | undefined;
-  const about = home?.about as Record<string, unknown> | undefined;
-  const stats = home?.stats as Record<string, unknown> | undefined;
-  const services = home?.services as Record<string, unknown> | undefined;
-
-  const mission = home?.mission as Record<string, unknown> | undefined;
-  const expertise = home?.expertise as Record<string, unknown> | undefined;
-  const testimonials = home?.testimonials as Record<string, unknown> | undefined;
-  const faq = home?.faq as Record<string, unknown> | undefined;
-  const articlesTeaser = home?.articlesTeaser as Record<string, unknown> | undefined;
-  const contact = home?.contact as Record<string, unknown> | undefined;
-  const socialShare = home?.socialShare as Record<string, unknown> | undefined;
-  const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined;
-  const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home);
-  const marqueeText =
-    typeof marquee?.text === "string" && marquee.text.trim() ? marquee.text : undefined;
-  const marqueeDirection = marquee?.direction === "left" ? "left" : "right";
-  const marqueeVelocity = typeof marquee?.velocity === "number" ? marquee.velocity : 80;
-
-  const beforeAfter = home?.beforeAfter as Record<string, unknown> | undefined;
-  const asString = (v: unknown): string | undefined =>
-    typeof v === "string" && v.trim() ? v : undefined;
-  const beforeAfterItems = (beforeAfter?.items as Record<string, unknown>[] | undefined)
-    ?.map((item) => {
-      return {
-        id: asString(item._key),
-        title: asString(item.title),
-        beforeImage: asString(item.beforeImage)
-          ? sanityImageUrl(asString(item.beforeImage)!, { w: 1200, fit: "max" })
-          : undefined,
-        afterImage: asString(item.afterImage)
-          ? sanityImageUrl(asString(item.afterImage)!, { w: 1200, fit: "max" })
-          : undefined,
-        description: asString(item.description),
-      };
-    })
-    ?.filter((item) => item.beforeImage && item.afterImage);
-  const beforeAfterEyebrow = asString(beforeAfter?.eyebrow);
-  const beforeAfterTitle = asString(beforeAfter?.title);
-  const beforeAfterIntro = asOptionalRichText(beforeAfter?.intro);
 
   type HomeSection = {
     _key?: string;
@@ -196,7 +150,6 @@ export const Home = () => {
   };
 
   const builderSections = Array.isArray(home?.sections) ? (home.sections as HomeSection[]) : null;
-  const hasBuilderSections = Boolean(builderSections && builderSections.length > 0);
 
   const isAuthSection = (type?: string) =>
     type === "servicesSection" ||
@@ -237,7 +190,9 @@ export const Home = () => {
       case "birdcreekVideoBannerSection":
         return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
       case "videoSection": {
-        const sectionVideoProps = mapVideoProps(sectionData, { renderedVideoUrl });
+        const sectionVideoProps = mapVideoProps(sectionData, {
+          renderedVideoUrl,
+        });
         return sectionVideoProps.videoUrl || introVideoContent ? (
           <FeaturedVideoSection
             videoUrl={sectionVideoProps.videoUrl}
@@ -269,10 +224,16 @@ export const Home = () => {
             id: asMaybeString(item._key),
             title: asMaybeString(item.title),
             beforeImage: asMaybeString(item.beforeImage)
-              ? sanityImageUrl(asMaybeString(item.beforeImage)!, { w: 1200, fit: "max" })
+              ? sanityImageUrl(asMaybeString(item.beforeImage)!, {
+                  w: 1200,
+                  fit: "max",
+                })
               : undefined,
             afterImage: asMaybeString(item.afterImage)
-              ? sanityImageUrl(asMaybeString(item.afterImage)!, { w: 1200, fit: "max" })
+              ? sanityImageUrl(asMaybeString(item.afterImage)!, {
+                  w: 1200,
+                  fit: "max",
+                })
               : undefined,
             description: asMaybeString(item.description),
           }))
@@ -333,133 +294,10 @@ export const Home = () => {
     </Suspense>
   ) : null;
 
-  const estimatorContent = mapEstimatorPageContent(estimatorPage);
-  const estimatorBannerProps = {
-    ...CONTACT_BANNER_ESTIMATOR,
-    ...(estimatorContent.bannerEyebrow ? { eyebrow: estimatorContent.bannerEyebrow } : {}),
-    ...(estimatorContent.bannerHeadline ? { headline: estimatorContent.bannerHeadline } : {}),
-    ...(estimatorContent.bannerCtaLabel ? { phoneDisplay: estimatorContent.bannerCtaLabel } : {}),
-  };
-
-  if (hasBuilderSections) {
-    return (
-      <SitePageChrome>
-        <SeoStructuredData />
-        <main>{builderSectionNodes}</main>
-
-        <Suspense fallback={null}>
-          <Band
-            minHeight={8}
-            maxHeight={16}
-            reverse={true}
-            rotate={true}
-            tint={theme.colors.everglade}
-            colors={[
-              theme.colors.evergladeLight,
-              theme.colors.evergladeMuted,
-              theme.colors.paper,
-              theme.colors.purple,
-              theme.colors.purple,
-              theme.colors.purple,
-            ]}
-          />
-        </Suspense>
-
-        {DevAgentation ? (
-          <Suspense fallback={null}>
-            <DevAgentation />
-          </Suspense>
-        ) : null}
-      </SitePageChrome>
-    );
-  }
-
   return (
     <SitePageChrome>
       <SeoStructuredData />
-      <main>
-        {hero ? <HeroVariant {...mapHeroProps(hero)} /> : null}
-
-        <Suspense fallback={null}>
-          {marqueeText ? (
-            <ScrollVelocity
-              direction={marqueeDirection}
-              velocity={marqueeVelocity}
-              texts={[{ text: marqueeText }]}
-              fontSize="1.2rem"
-            />
-          ) : null}
-          {about ? <About {...mapAboutProps(about)} /> : null}
-          {stats ? <Stats {...mapStatsProps(stats)} /> : null}
-        </Suspense>
-
-        <BirdcreekVideoBanner {...birdcreekVideoProps} />
-
-        <GoogleAuthGate>
-          <Suspense fallback={null}>
-            {services ? <ServicesVariant {...mapServicesProps(services)} /> : null}
-          </Suspense>
-        </GoogleAuthGate>
-        <ContactBanner {...estimatorBannerProps} />
-        <GoogleAuthGate>
-          <Suspense fallback={null}>
-            {serviceAreaMap ? (
-              <DeferUntilVisible minHeight="28rem">
-                <ServiceAreaMap {...mapServiceAreaMapProps(serviceAreaMap)} />
-              </DeferUntilVisible>
-            ) : null}
-
-            {mission ? <Mission {...mapMissionProps(mission)} /> : null}
-            {beforeAfterItems && beforeAfterItems.length > 0 ? (
-              <BeforeAfterSlider
-                imagePairs={beforeAfterItems}
-                eyebrow={beforeAfterEyebrow}
-                title={beforeAfterTitle}
-                description={beforeAfterIntro}
-              />
-            ) : null}
-            {expertise ? <Expertise {...mapExpertiseProps(expertise)} /> : null}
-          </Suspense>
-        </GoogleAuthGate>
-
-        <GoogleAuthGate>
-          <Suspense fallback={null}>
-            {videoProps.videoUrl || introVideoContent ? (
-              <FeaturedVideoSection
-                videoUrl={videoProps.videoUrl}
-                title={videoProps.title}
-                posterUrl={introVideoThumbnailUrl ?? videoProps.posterUrl}
-                introContent={introVideoContent}
-              />
-            ) : null}
-            {testimonials ? <Testimonials /> : null}
-            <Faq {...mapFaqProps(faq)} />
-            <ArticlesTeaser
-              posts={data?.latestPosts ?? []}
-              {...mapArticlesTeaserEditorialProps(articlesTeaser)}
-            />
-            <Certifications />
-          </Suspense>
-        </GoogleAuthGate>
-
-        <Suspense fallback={null}>
-          <Band
-            minHeight={8}
-            maxHeight={16}
-            tint={theme.colors.everglade}
-            colors={[
-              theme.colors.evergladeLight,
-              theme.colors.evergladeMuted,
-              theme.colors.paper,
-              theme.colors.purple,
-              theme.colors.purple,
-              theme.colors.purple,
-            ]}
-          />
-          {contact ? <Contact {...mapContactProps(contact)} /> : null}
-          {socialShare ? <SocialShareBar {...mapSocialShareProps(socialShare)} /> : null}
-        </Suspense>
-      </main>
+      <main>{builderSectionNodes}</main>
 
       <Suspense fallback={null}>
         <Band

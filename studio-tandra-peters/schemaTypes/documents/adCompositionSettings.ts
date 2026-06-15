@@ -1,6 +1,6 @@
 import { defineField, defineType } from "sanity";
 
-const roofSceneCameraFields = [
+export const roofSceneCameraFields = [
   defineField({ name: "azimuthal", title: "Azimuthal", type: "number" }),
   defineField({ name: "polar", title: "Polar", type: "number" }),
   defineField({ name: "radius", title: "Radius", type: "number" }),
@@ -9,13 +9,13 @@ const roofSceneCameraFields = [
   defineField({ name: "targetZ", title: "Target Z", type: "number" }),
 ];
 
-const roofSceneHotspotFields = [
+export const roofSceneHotspotFields = [
   defineField({ name: "x", title: "Hotspot X", type: "number" }),
   defineField({ name: "y", title: "Hotspot Y", type: "number" }),
   defineField({ name: "z", title: "Hotspot Z", type: "number" }),
 ];
 
-const roofSceneCalloutFields = [
+export const roofSceneCalloutFields = [
   defineField({ name: "num", title: "Number", type: "string" }),
   defineField({ name: "title", title: "Callout title", type: "string" }),
   defineField({ name: "body", title: "Callout body", type: "text", rows: 4 }),

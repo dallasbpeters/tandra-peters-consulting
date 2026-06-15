@@ -8,7 +8,7 @@ import { parseGoogleIdToken } from "../api/lib/google-auth";
 const WORKFLOW_SAVE_PATH = "/api/workflow-save";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 const WORKFLOW_PAGE_DOCUMENT_ID = "workflowPage";
 
 const VALID_HANDLES = new Set(["top", "right", "bottom", "left"]);

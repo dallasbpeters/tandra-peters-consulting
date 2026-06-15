@@ -9,7 +9,7 @@ if (!tokenMatch) throw new Error("SANITY_API_READ_TOKEN not found in .env.local"
 const client = createClient({
   projectId: "7irm699i",
   dataset: "production",
-  apiVersion: "2024-01-01",
+  apiVersion: "2026-05-29",
   useCdn: false,
   token: tokenMatch[1],
 });

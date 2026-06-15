@@ -23,6 +23,8 @@ const mapOption = (raw: Record<string, unknown>): EstimatorOption | null => {
   if (description) option.description = description;
   const sqft = cleanNumber(raw.sqftMidpoint);
   if (sqft != null) option.sqftMidpoint = sqft;
+  const mult = cleanNumber(raw.sqftMultiplier);
+  if (mult != null) option.sqftMultiplier = mult;
   const perSqft = cleanNumber(raw.pricePerSqftAdd);
   if (perSqft != null) option.pricePerSqftAdd = perSqft;
   const flat = cleanNumber(raw.flatAdd);
@@ -44,6 +46,7 @@ const mapQuestion = (raw: Record<string, unknown>): EstimatorQuestion | null => 
   const helpText = cleanString(raw.helpText);
   if (helpText) question.helpText = helpText;
   if (raw.drivesSquareFootage === true) question.drivesSquareFootage = true;
+  if (raw.multipliesSquareFootage === true) question.multipliesSquareFootage = true;
   return question;
 };
 

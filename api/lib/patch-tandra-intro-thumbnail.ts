@@ -6,8 +6,8 @@ import { createClient } from "@sanity/client";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
-const HOME_PAGE_DOCUMENT_ID = "homePage";
+const SANITY_API_VERSION = "2026-05-29";
+const HOME_PAGE_DOCUMENT_IDS = ["homePage", "drafts.homePage"] as const;
 
 export type PatchTandraIntroThumbnailResult =
   | { ok: true; thumbnailUrl: string }
@@ -40,18 +40,27 @@ export const patchTandraIntroThumbnail = async (
 
     const asset = await client.assets.upload("image", image, { filename });
 
-    await client
-      .patch(HOME_PAGE_DOCUMENT_ID)
-      .setIfMissing({
-        tandraIntroVideo: { _type: "tandraIntroVideo" },
-      })
-      .set({
-        "tandraIntroVideo.thumbnail": {
-          _type: "image",
-          asset: { _type: "reference", _ref: asset._id },
-        },
-      })
-      .commit();
+    for (const documentId of HOME_PAGE_DOCUMENT_IDS) {
+      const exists = await client.fetch<boolean>(`count(*[_id == $id]) > 0`, {
+        id: documentId,
+      });
+      if (!exists) {
+        continue;
+      }
+
+      await client
+        .patch(documentId)
+        .setIfMissing({
+          tandraIntroVideo: { _type: "tandraIntroVideo" },
+        })
+        .set({
+          "tandraIntroVideo.thumbnail": {
+            _type: "image",
+            asset: { _type: "reference", _ref: asset._id },
+          },
+        })
+        .commit();
+    }
 
     return { ok: true, thumbnailUrl: asset.url };
   } catch (error) {

@@ -37,7 +37,11 @@ function BirdAnimation() {
         viewBox="0 0 147.75 117.21"
         width={520}
         height={500}
-        style={{ display: "block", overflow: "visible", opacity: logoFillOpacity }}
+        style={{
+          display: "block",
+          overflow: "visible",
+          opacity: logoFillOpacity,
+        }}
       >
         <path
           d={BC_BIRD_PATH}

@@ -24,7 +24,9 @@ const SlideUp: React.FC<{ children: React.ReactNode; startFrame?: number }> = ({
     to: 1,
   });
   const translateY = interpolate(progress, [0, 1], [56, 0]);
-  const opacity = interpolate(progress, [0, 0.25], [0, 1], { extrapolateRight: "clamp" });
+  const opacity = interpolate(progress, [0, 0.25], [0, 1], {
+    extrapolateRight: "clamp",
+  });
   return <div style={{ transform: `translateY(${translateY}px)`, opacity }}>{children}</div>;
 };
 
@@ -85,7 +87,11 @@ export const RoofCTA: React.FC<Props> = ({ cta, badges, durationInFrames }) => {
       {/* Content fades in then out */}
       <FadeWrapper durationInFrames={safeDuration} fadeOutFrames={25}>
         <AbsoluteFill
-          style={{ justifyContent: "center", alignItems: "center", padding: `0 ${H_PAD}px` }}
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            padding: `0 ${H_PAD}px`,
+          }}
         >
           <div style={{ width: "100%" }}>
             <SlideUp startFrame={0}>
@@ -137,7 +143,14 @@ export const RoofCTA: React.FC<Props> = ({ cta, badges, durationInFrames }) => {
               </div>
             </FadeIn>
             <FadeIn startFrame={75}>
-              <div style={{ marginBlock: 48, display: "flex", alignItems: "center", gap: 16 }}>
+              <div
+                style={{
+                  marginBlock: 48,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                }}
+              >
                 <div
                   style={{
                     width: 40,

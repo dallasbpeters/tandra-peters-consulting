@@ -6,32 +6,6 @@ export const HOME_AND_SITE_QUERY = groq`{
     ...,
     seoTitle,
     seoDescription,
-    "birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),
-    "birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),
-    hero {
-      ...,
-      "backgroundImage": backgroundImage.asset->url,
-      "skyImage": skyImage.asset->url,
-      "foregroundImage": foregroundImage.asset->url
-    },
-    "featuredVideo": select(
-      featuredVideoSection._type == "videoSection" => {
-        ...featuredVideoSection,
-        "video": coalesce(featuredVideoSection.video.asset->url, featuredVideoSection.video),
-        "posterUrl": coalesce(featuredVideoSection.posterUrl.asset->url, featuredVideoSection.posterUrl)
-      },
-      featuredVideo._type == "videoSection" => {
-        ...featuredVideo,
-        "video": coalesce(featuredVideo.video.asset->url, featuredVideo.video),
-        "posterUrl": coalesce(featuredVideo.posterUrl.asset->url, featuredVideo.posterUrl)
-      },
-      defined(featuredVideoSection) => {
-        "video": featuredVideoSection
-      },
-      defined(featuredVideo) => {
-        "video": featuredVideo
-      }
-    ),
     "tandraIntroVideo": tandraIntroVideo{
       ...,
       "thumbnailUrl": thumbnail.asset->url
@@ -208,86 +182,6 @@ export const HOME_AND_SITE_QUERY = groq`{
           shareText
         }
       )
-    },
-    about {
-      ...,
-      "image": image.asset->url
-    },
-    stats {
-      ...,
-      items[] { ... }
-    },
-    services {
-      ...,
-      services[] {
-        ...,
-        "image": image.asset->url
-      },
-      typographicArt {
-        "baseMaskImage": baseMaskImage.asset->url,
-        "overlayMaskImage": overlayMaskImage.asset->url
-      }
-    },
-    mission {
-      ...,
-      values[] {
-        ...,
-        "image": image.asset->url
-      }
-    },
-    beforeAfter {
-      eyebrow,
-      title,
-      intro,
-      items[] {
-        _key,
-        title,
-        description,
-        "beforeImage": beforeImage.asset->url,
-        "afterImage": afterImage.asset->url
-      }
-    },
-    expertise {
-      ...,
-      items[] {
-        ...,
-        "image": image.asset->url
-      }
-    },
-    testimonials { ... },
-    faq { ... },
-    articlesTeaser {
-      ...,
-      "articlesResolved": articles[]->{
-        _id,
-        title,
-        "slug": slug.current,
-        publishedAt,
-        excerpt,
-        category,
-        "image": image.asset->url
-      },
-      "legacyFeaturedResolved": featuredPosts[]->{
-        _id,
-        title,
-        "slug": slug.current,
-        publishedAt,
-        excerpt,
-        category,
-        "image": image.asset->url
-      }
-    },
-    contact { ... },
-    socialShare { ... },
-    serviceAreaMap {
-      eyebrow,
-      title,
-      description,
-      areas[] {
-        countyKey,
-        displayName,
-        clientCount
-      }
     },
   },
   "site": *[_id == "siteSettings"][0]{

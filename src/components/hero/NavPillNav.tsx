@@ -225,7 +225,6 @@ export const NavPillNav: React.FC<NavProps> = ({
               {item.name}
             </SiteNavLink>
           ))}
-          <div style={styles.pillDivider} />
         </GoogleAuthGate>
         <SiteNavLink
           className="pill-cta"

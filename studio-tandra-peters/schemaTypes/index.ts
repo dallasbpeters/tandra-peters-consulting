@@ -6,21 +6,21 @@ import {
   roofValueSettingsType,
   stormSpotSettingsType,
   tandraIntroSettingsType,
-} from "./documents/adCompositionSettings";
-import { adCreativeVersionType } from "./documents/adCreativeVersion";
-import { aiContextType } from "./documents/aiContext";
-import { articlesPageType } from "./documents/articlesPage";
-import beforeAfterGalleryType from "./documents/beforeAfterGallery";
-import { clientEmailType } from "./documents/clientEmail";
-import { emailContactType } from "./documents/emailContact";
-import { emailSignatureType } from "./documents/emailSignature";
-import { estimatorPageType } from "./documents/estimatorPage";
-import { homePageType } from "./documents/homePage";
-import { insuranceFaqsPageType } from "./documents/insuranceFaqsPage";
-import { roofInspectionsPageType } from "./documents/roofInspectionsPage";
-import { seoDashboardInsightsType } from "./documents/seoDashboardInsights";
-import { siteSettingsType } from "./documents/siteSettings";
-import { workflowPageType } from "./documents/workflowPage";
+  adCreativeVersionType,
+  aiContextType,
+  articlesPageType,
+  beforeAfterGalleryType,
+  clientEmailType,
+  emailContactType,
+  emailSignatureType,
+  estimatorPageType,
+  homePageType,
+  insuranceFaqsPageType,
+  roofInspectionsPageType,
+  seoDashboardInsightsType,
+  siteSettingsType,
+  workflowPageType,
+} from "./documents";
 import {
   heroSectionType,
   marqueeSectionType,

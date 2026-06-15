@@ -1,7 +1,7 @@
 // studio-tandra-peters/schemaTypes/beforeAfterGallery.ts
 import { defineField, defineType } from "sanity";
 
-export default defineType({
+const beforeAfterGalleryType = defineType({
   name: "beforeAfterGallery",
   title: "Before/After Gallery",
   type: "document",
@@ -28,3 +28,5 @@ export default defineType({
     }),
   ],
 });
+
+export default beforeAfterGalleryType;

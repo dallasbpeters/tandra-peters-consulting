@@ -145,11 +145,22 @@ export const EstimateEmail = ({
           <Section style={inner}>
             <Heading
               as="h1"
-              style={{ fontSize: "21px", color: colors.ink, margin: "0 0 6px", lineHeight: "28px" }}
+              style={{
+                fontSize: "21px",
+                color: colors.ink,
+                margin: "0 0 6px",
+                lineHeight: "28px",
+              }}
             >
               {isVisitor ? `Here's your rough estimate, ${firstName}` : "New estimate lead"}
             </Heading>
-            <Text style={{ fontSize: "13px", color: colors.muted, margin: "0 0 18px" }}>
+            <Text
+              style={{
+                fontSize: "13px",
+                color: colors.muted,
+                margin: "0 0 18px",
+              }}
+            >
               {isVisitor
                 ? "Thanks for using the roof estimator. Here's roughly what you'll spend based on your answers."
                 : `${submission.fullName} (${submission.email}) just completed the estimator.`}
@@ -167,7 +178,14 @@ export const EstimateEmail = ({
               >
                 Estimated range
               </Text>
-              <Text style={{ fontSize: "28px", fontWeight: 800, color: colors.ink, margin: 0 }}>
+              <Text
+                style={{
+                  fontSize: "28px",
+                  fontWeight: 800,
+                  color: colors.ink,
+                  margin: 0,
+                }}
+              >
                 {submission.rangeDisplay}
               </Text>
             </Section>

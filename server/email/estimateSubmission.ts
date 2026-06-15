@@ -28,7 +28,10 @@ export type EstimateEnv = {
   sanityWriteToken?: string;
 };
 
-export type EstimateResult = { status: number; body: { ok: boolean; error?: string } };
+export type EstimateResult = {
+  status: number;
+  body: { ok: boolean; error?: string };
+};
 
 const parseNotificationRecipients = (raw?: string): string[] => {
   const trimmed = raw?.trim();
@@ -70,7 +73,10 @@ export const processEstimateSubmission = async (
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
   if (!apiKey || !from) {
-    return { status: 503, body: { ok: false, error: "Service not configured" } };
+    return {
+      status: 503,
+      body: { ok: false, error: "Service not configured" },
+    };
   }
 
   const fullName = str(body.fullName);
@@ -79,15 +85,24 @@ export const processEstimateSubmission = async (
   const answers = parseAnswers(body.answers);
 
   if (!fullName || fullName.length > 200) {
-    return { status: 400, body: { ok: false, error: "Please enter your name." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please enter your name." },
+    };
   }
   if (!email || !EMAIL_RE.test(email) || email.length > 320) {
-    return { status: 400, body: { ok: false, error: "Please enter a valid email." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please enter a valid email." },
+    };
   }
   if (!rangeDisplay) {
     return {
       status: 400,
-      body: { ok: false, error: "Missing estimate. Please finish the estimator." },
+      body: {
+        ok: false,
+        error: "Missing estimate. Please finish the estimator.",
+      },
     };
   }
 
@@ -127,7 +142,10 @@ export const processEstimateSubmission = async (
     console.error("[estimate] Resend visitor error", visitorResult.error);
     return {
       status: 502,
-      body: { ok: false, error: "Could not send your estimate. Try again later." },
+      body: {
+        ok: false,
+        error: "Could not send your estimate. Try again later.",
+      },
     };
   }
 
@@ -145,7 +163,10 @@ export const processEstimateSubmission = async (
     console.error("[estimate] lead notification failed", err);
   }
 
-  console.info("[estimate] estimate emailed", { id: visitorResult.data?.id, range: rangeDisplay });
+  console.info("[estimate] estimate emailed", {
+    id: visitorResult.data?.id,
+    range: rangeDisplay,
+  });
 
   // 3) Save the visitor to the Sanity contact list (non-fatal).
   const sanityToken = env.sanityWriteToken?.trim();

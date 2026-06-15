@@ -6,6 +6,19 @@ import { useMemo, type CSSProperties, type ReactNode } from "react";
 import { theme } from "../theme";
 import { coercePortableTextInput } from "./value";
 
+/** Strip zero-width and invisible unicode chars that pollute SplitText word splitting. */
+const cleanText = (text: string): string => text.replace(/[\u200B-\u200D\uFEFF\u2060-\u206F]/g, "");
+
+/** Deep-clean all text spans in a PortableText block array. */
+const sanitizeBlocks = (blocks: PortableTextBlock[]): PortableTextBlock[] =>
+  blocks.map((block) => ({
+    ...block,
+    children: block.children.map((child) => ({
+      ...child,
+      text: cleanText(child.text ?? ""),
+    })),
+  }));
+
 export type RichTextValue = PortableTextBlock[] | string | undefined | null;
 
 export type RichTextProps = {
@@ -115,12 +128,12 @@ export const RichText = ({
         number: ({ children }) => <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>,
       },
       marks: {
-        strong: ({ children }) => <strong>{children}</strong>,
-        em: ({ children }) => <em>{children}</em>,
+        strong: ({ children }) => <strong>{cleanText(String(children))}</strong>,
+        em: ({ children }) => <em>{cleanText(String(children))}</em>,
         link: ({ value: linkValue, children }) => {
           const href = linkValue?.href;
           if (!href) {
-            return <>{children}</>;
+            return <>{cleanText(String(children))}</>;
           }
           const isExternal = /^https?:\/\//i.test(href);
           return (
@@ -134,10 +147,12 @@ export const RichText = ({
               }}
               {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
-              {children}
+              {cleanText(String(children))}
             </a>
           );
         },
+        /** Catch-all for plain text spans (no marks) — also cleans zero-width chars. */
+        text: ({ children }) => cleanText(String(children)),
       },
     }),
     [
@@ -165,7 +180,7 @@ export const RichText = ({
     const StringTag = isHeadingFlow ? "div" : "p";
     return (
       <StringTag className={className} style={{ margin: stringMargin, ...paragraphStyle }}>
-        {normalized}
+        {cleanText(normalized)}
       </StringTag>
     );
   }
@@ -174,9 +189,11 @@ export const RichText = ({
     return null;
   }
 
+  const sanitized = sanitizeBlocks(normalized);
+
   return (
     <div className={className} style={{ overflowWrap: "anywhere" }}>
-      <PortableText value={normalized} components={components} />
+      <PortableText value={sanitized} components={components} />
     </div>
   );
 };

@@ -197,6 +197,7 @@ export default function ScrollVelocity(props) {
     <section
       role="marquee"
       aria-label="Service Areas"
+      data-sanity-stega="false"
       style={{
         width: "100%",
         height: 80,

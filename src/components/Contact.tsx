@@ -495,7 +495,12 @@ export const Contact = ({
               <div>
                 <label htmlFor="contact-property-address" style={addressLabelStyle}>
                   Property Address{" "}
-                  <span style={{ fontWeight: 400, color: mix(theme.colors.everglade, 45) }}>
+                  <span
+                    style={{
+                      fontWeight: 400,
+                      color: mix(theme.colors.everglade, 45),
+                    }}
+                  >
                     (optional)
                   </span>
                 </label>

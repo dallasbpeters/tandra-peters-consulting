@@ -187,7 +187,7 @@ type PosthogTopPageRow = {
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 const DEFAULT_SITE_URL = "https://www.tandra.me";
 const AI_MODEL = "gemini-2.5-flash";
 

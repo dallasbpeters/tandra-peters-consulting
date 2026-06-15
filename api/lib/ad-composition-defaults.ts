@@ -46,7 +46,12 @@ const ROOF_VALUE_DEFAULTS = {
     showProfilePhoto: true,
     profilePhoto: { src: PROFILE_PHOTO_SRC, width: 260, height: 260 },
   },
-  trust: { line1: "No surprises.", line2: "No pressure.", hueShift: 169, style: 48 },
+  trust: {
+    line1: "No surprises.",
+    line2: "No pressure.",
+    hueShift: 169,
+    style: 48,
+  },
   cta: {
     setup: "If you've been putting it off —",
     punch: "Let's just\nget it done.",
@@ -61,8 +66,15 @@ const ROOF_VALUE_DEFAULTS = {
 const STORM_SPOT_DEFAULTS = {
   showProfilePhoto: true,
   profilePhoto: { width: 200, height: 200, src: PROFILE_PHOTO_SRC },
-  impact: { eyebrow: "Storm Alert", headline: "Austin", subline: "just got hit." },
-  urgency: { setup: "If you haven't had your roof looked at yet,", punch: "now's the time." },
+  impact: {
+    eyebrow: "Storm Alert",
+    headline: "Austin",
+    subline: "just got hit.",
+  },
+  urgency: {
+    setup: "If you haven't had your roof looked at yet,",
+    punch: "now's the time.",
+  },
   intro: {
     hueShift: 141,
     showProfilePhoto: true,
@@ -70,7 +82,10 @@ const STORM_SPOT_DEFAULTS = {
     nameBlock: "I'm Tandra.",
     tagline: "Insurance claim guidance. Honest answers.",
   },
-  value: { setup: "I'll help you figure out if you've got a", punch: "claim worth filing." },
+  value: {
+    setup: "I'll help you figure out if you've got a",
+    punch: "claim worth filing.",
+  },
   cta: {
     trust: "Honest answers,\nno sales pressure.",
     callout: "Give me\na call.",
@@ -218,7 +233,11 @@ const ctaScene = {
   badges: { ...SHARED_BADGES, rsraCommittee: false },
 };
 
-const logoAnimationScene = { type: "logo-animation", durationInFrames: 180, text: "" };
+const logoAnimationScene = {
+  type: "logo-animation",
+  durationInFrames: 180,
+  text: "",
+};
 
 const CUSTOM_SLOTS_DEFAULTS = {
   scenes: [

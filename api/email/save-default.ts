@@ -20,7 +20,7 @@ import { DashboardAuthError, authorizeSeoDashboardRequest } from "../../server/s
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 const CLIENT_EMAIL_DOCUMENT_ID = "clientEmail";
 
 const readWriteToken = (): string | undefined =>
@@ -135,7 +135,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     await client
       .transaction()
-      .createIfNotExists({ _id: CLIENT_EMAIL_DOCUMENT_ID, _type: "clientEmail" })
+      .createIfNotExists({
+        _id: CLIENT_EMAIL_DOCUMENT_ID,
+        _type: "clientEmail",
+      })
       .patch(CLIENT_EMAIL_DOCUMENT_ID, (p) => p.set(fields))
       .commit();
 

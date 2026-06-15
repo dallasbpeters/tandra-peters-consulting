@@ -53,6 +53,85 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         drivesSquareFootage: true,
       },
     ),
+    q(
+      "How many stories?",
+      [
+        {
+          label: "One story",
+          description: "Ranch, bungalow, single level",
+          sqftMultiplier: 1.0,
+        },
+        {
+          label: "Two stories",
+          description: "Colonial, two-level home",
+          sqftMultiplier: 0.55,
+        },
+        {
+          label: "Three+ stories",
+          description: "Tall narrow home",
+          sqftMultiplier: 0.4,
+        },
+        { label: "Not sure", sqftMultiplier: 0.8 },
+      ],
+      {
+        helpText:
+          "A two-story home has a smaller roof footprint than a one-story with the same living space.",
+        multipliesSquareFootage: true,
+      },
+    ),
+    q(
+      "How complex is your roof?",
+      [
+        {
+          label: "Simple",
+          description: "Basic gable or hip, few penetrations",
+          sqftMultiplier: 1.0,
+        },
+        {
+          label: "Average",
+          description: "A few gables, dormers, or a porch",
+          sqftMultiplier: 1.15,
+        },
+        {
+          label: "Complex",
+          description: "Many gables, dormers, porches, valleys",
+          sqftMultiplier: 1.35,
+        },
+        { label: "Not sure", sqftMultiplier: 1.15 },
+      ],
+      {
+        helpText: "More gables, dormers, and porches = more roof surface area.",
+        multipliesSquareFootage: true,
+      },
+    ),
+    q(
+      "How steep is your roof?",
+      [
+        {
+          label: "Low / walkable",
+          description: "Flat to 4/12 — easy to walk",
+          sqftMultiplier: 1.0,
+          pricePerSqftAdd: 0,
+        },
+        {
+          label: "Average pitch",
+          description: "5/12 to 8/12 — standard",
+          sqftMultiplier: 1.1,
+          pricePerSqftAdd: 0.75,
+        },
+        {
+          label: "Steep",
+          description: "9/12 to 12/12+ — needs extra safety",
+          sqftMultiplier: 1.3,
+          pricePerSqftAdd: 2,
+        },
+        { label: "Not sure", sqftMultiplier: 1.1, pricePerSqftAdd: 0.5 },
+      ],
+      {
+        helpText: "Steeper roofs have more surface area and cost more to work on.",
+        multipliesSquareFootage: true,
+      },
+    ),
     q("What kind of roof are you considering?", [
       {
         label: "Asphalt shingles",
@@ -64,17 +143,23 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         description: "Thicker, longer-lasting",
         pricePerSqftAdd: 2,
       },
-      { label: "Metal roofing", description: "Durable, energy-efficient", pricePerSqftAdd: 6 },
-      { label: "Not sure yet", description: "I'll help you decide", pricePerSqftAdd: 1 },
-    ]),
-    q("How steep is your roof?", [
-      { label: "Low / walkable", description: "Easy to work on", pricePerSqftAdd: 0 },
-      { label: "Average pitch", pricePerSqftAdd: 0.75 },
-      { label: "Steep", description: "Needs extra safety setup", pricePerSqftAdd: 2 },
-      { label: "Not sure", pricePerSqftAdd: 0.5 },
+      {
+        label: "Metal roofing",
+        description: "Durable, energy-efficient",
+        pricePerSqftAdd: 6,
+      },
+      {
+        label: "Not sure yet",
+        description: "I'll help you decide",
+        pricePerSqftAdd: 1,
+      },
     ]),
     q("Are you working through an insurance claim?", [
-      { label: "Yes—storm or hail damage", description: "I can help with the claim", flatAdd: 0 },
+      {
+        label: "Yes—storm or hail damage",
+        description: "I can help with the claim",
+        flatAdd: 0,
+      },
       { label: "No—paying out of pocket", flatAdd: 0 },
       { label: "Not sure yet", flatAdd: 0 },
     ]),
@@ -120,6 +205,13 @@ export const computeEstimate = (
 
     if (question.drivesSquareFootage && typeof option.sqftMidpoint === "number") {
       sqft = option.sqftMidpoint;
+    }
+    if (
+      question.multipliesSquareFootage &&
+      typeof option.sqftMultiplier === "number" &&
+      sqft != null
+    ) {
+      sqft *= option.sqftMultiplier;
     }
     if (typeof option.pricePerSqftAdd === "number") ratePerSqft += option.pricePerSqftAdd;
     if (typeof option.flatAdd === "number") flatTotal += option.flatAdd;

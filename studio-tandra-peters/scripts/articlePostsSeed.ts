@@ -203,7 +203,7 @@ export const articlePostsSeed: ArticleSeed[] = [
   },
 ];
 
-/** Reference list for `homePage.articlesTeaser.articles` (seed order). */
+/** Reference list for the home page Articles Teaser section (seed order). */
 export const homePageArticleReferences = () =>
   articlePostsSeed.map((p) => ({
     _key: p._id,
@@ -219,11 +219,30 @@ export const patchHomePageArticleRefs = async (client: SanityClient) => {
   const updated: string[] = [];
   for (const id of HOME_PAGE_IDS) {
     try {
-      const exists = await client.fetch<boolean>(`count(*[_id == $id]) > 0`, { id });
-      if (!exists) {
+      const sections = await client.fetch<Array<Record<string, unknown>> | null>(
+        `*[_id == $id][0].sections`,
+        { id },
+      );
+      if (!Array.isArray(sections)) {
         continue;
       }
-      await client.patch(id).set({ "articlesTeaser.articles": refs }).commit();
+      let patched = false;
+      const nextSections = sections.map((section) => {
+        if (!patched && section?._type === "articlesTeaserSection") {
+          patched = true;
+          return { ...section, articles: refs };
+        }
+        return section;
+      });
+      if (!patched) {
+        nextSections.push({
+          _key: "home-section-articles",
+          _type: "articlesTeaserSection",
+          articles: refs,
+          maxPosts: 8,
+        });
+      }
+      await client.patch(id).set({ sections: nextSections }).commit();
       updated.push(id);
     } catch (e) {
       console.warn(`patchHomePageArticleRefs: ${id}`, e);

@@ -58,12 +58,26 @@ const VisualEditing = lazy(async () => {
   return { default: module.VisualEditing };
 });
 
+const suppressStegaErrors = () => {
+  const original = console.error;
+  console.error = (...args: Parameters<typeof console.error>) => {
+    if (typeof args[0] === "string" && args[0].includes("Failed to decode stega for string"))
+      return;
+    original.apply(console, args);
+  };
+  return () => {
+    console.error = original;
+  };
+};
+
 export const SanityVisualEditing = () => {
   const ctx = useContext(SanitySiteContext);
   const refetch = ctx?.refetch ?? noop;
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   const [onHistoryNavigate, setOnHistoryNavigate] = useState<HistoryAdapterNavigate | undefined>();
+
+  useEffect(() => suppressStegaErrors(), []);
 
   useEffect(() => {
     navigateRef.current = navigate;

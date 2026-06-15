@@ -75,7 +75,12 @@ export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
         console.error("[vite-estimate-dev-api]", error);
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ ok: false, error: "Unexpected estimate API error." }));
+        res.end(
+          JSON.stringify({
+            ok: false,
+            error: "Unexpected estimate API error.",
+          }),
+        );
       }
     });
   },

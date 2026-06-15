@@ -19,7 +19,10 @@ const CONTACT_SERVICE_ROWS = [
   { value: "metal-roofing", label: "Metal Roofing" },
   { value: "storm-damage-restoration", label: "Storm Damage Restoration" },
   { value: "commercial-roofing", label: "Commercial Roofing" },
-  { value: "hail-wind-damage-roof-inspection", label: "Hail & Wind Damage Roof Inspection" },
+  {
+    value: "hail-wind-damage-roof-inspection",
+    label: "Hail & Wind Damage Roof Inspection",
+  },
 ] as const;
 
 const SERVICE_VALUE_SET = new Set<string>(CONTACT_SERVICE_ROWS.map((o) => o.value));
@@ -42,7 +45,10 @@ export type ContactEnv = {
   sanityWriteToken?: string;
 };
 
-export type ContactResult = { status: number; body: { ok: boolean; error?: string } };
+export type ContactResult = {
+  status: number;
+  body: { ok: boolean; error?: string };
+};
 
 const parseNotificationRecipients = (raw?: string): string[] => {
   const trimmed = raw?.trim();
@@ -71,7 +77,10 @@ export const processContactSubmission = async (
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
   if (!apiKey || !from) {
-    return { status: 503, body: { ok: false, error: "Service not configured" } };
+    return {
+      status: 503,
+      body: { ok: false, error: "Service not configured" },
+    };
   }
 
   const fullName = str(body.fullName);
@@ -85,27 +94,48 @@ export const processContactSubmission = async (
   if (!consentToContact) {
     return {
       status: 400,
-      body: { ok: false, error: "Please confirm you agree to be contacted before submitting." },
+      body: {
+        ok: false,
+        error: "Please confirm you agree to be contacted before submitting.",
+      },
     };
   }
   if (!fullName || fullName.length > 200) {
-    return { status: 400, body: { ok: false, error: "Please enter your name." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please enter your name." },
+    };
   }
   if (!email || !EMAIL_RE.test(email) || email.length > 320) {
-    return { status: 400, body: { ok: false, error: "Please enter a valid email." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please enter a valid email." },
+    };
   }
   if (!isValidContactServiceValue(serviceInterestRaw)) {
-    return { status: 400, body: { ok: false, error: "Please select a service." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please select a service." },
+    };
   }
   const serviceLine = contactServiceLabel(serviceInterestRaw);
   if (!message || message.length > 8000) {
-    return { status: 400, body: { ok: false, error: "Please enter a message." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Please enter a message." },
+    };
   }
   if (propertyAddress.length > 500) {
-    return { status: 400, body: { ok: false, error: "Property address is too long." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Property address is too long." },
+    };
   }
   if (phoneNumber.length > 80) {
-    return { status: 400, body: { ok: false, error: "Phone number is too long." } };
+    return {
+      status: 400,
+      body: { ok: false, error: "Phone number is too long." },
+    };
   }
 
   const submission: ContactLeadSubmission = {
@@ -147,7 +177,10 @@ export const processContactSubmission = async (
     };
   }
 
-  console.info("[contact] lead emailed", { id: result.data?.id, service: serviceInterestRaw });
+  console.info("[contact] lead emailed", {
+    id: result.data?.id,
+    service: serviceInterestRaw,
+  });
 
   // Save the submitter to the Sanity contact list (draft-only). Non-fatal: never
   // block the visitor's success response on a CRM write.

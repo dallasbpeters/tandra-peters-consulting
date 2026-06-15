@@ -77,15 +77,28 @@ const closingStyle: CSSProperties = {
   margin: "8px 0 4px",
 };
 
-const sigName: CSSProperties = { fontSize: "16px", fontWeight: 700, color: colors.ink, margin: 0 };
-const sigRole: CSSProperties = { fontSize: "13px", color: colors.accent, margin: "2px 0 0" };
+const sigName: CSSProperties = {
+  fontSize: "16px",
+  fontWeight: 700,
+  color: colors.ink,
+  margin: 0,
+};
+const sigRole: CSSProperties = {
+  fontSize: "13px",
+  color: colors.accent,
+  margin: "2px 0 0",
+};
 const sigTagline: CSSProperties = {
   fontSize: "12px",
   lineHeight: "18px",
   color: colors.muted,
   margin: "6px 0 0",
 };
-const sigContact: CSSProperties = { fontSize: "12px", color: colors.muted, margin: "8px 0 0" };
+const sigContact: CSSProperties = {
+  fontSize: "12px",
+  color: colors.muted,
+  margin: "8px 0 0",
+};
 const sigLink: CSSProperties = { color: colors.accent, textDecoration: "none" };
 const legal: CSSProperties = {
   fontSize: "11px",
@@ -137,7 +150,12 @@ const Signature = ({ signature, assets }: { signature: EmailSignature; assets: E
             />
           </Column>
         ) : null}
-        <Column style={{ verticalAlign: "top", paddingLeft: headshotUrl ? "14px" : 0 }}>
+        <Column
+          style={{
+            verticalAlign: "top",
+            paddingLeft: headshotUrl ? "14px" : 0,
+          }}
+        >
           <Text style={sigName}>{signature.name}</Text>
           <Text style={sigRole}>
             {[signature.jobTitle, signature.company].filter(Boolean).join(" · ")}
@@ -256,4 +274,6 @@ export const ClientEmailDocument = ({
 
 /** Render the client email to an HTML string for preview or sending. */
 export const renderClientEmail = (content: ClientEmailContent, assets: EmailAssets) =>
-  render(<ClientEmailDocument content={content} assets={assets} />, { pretty: false });
+  render(<ClientEmailDocument content={content} assets={assets} />, {
+    pretty: false,
+  });

@@ -2,8 +2,8 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitText from "gsap/SplitText";
+import { motion } from "motion/react";
 import React, { useEffect, useMemo, useRef } from "react";
-import { Shader, MultiPointGradient } from "shaders/react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
@@ -19,32 +19,12 @@ const DEFAULT_ABOUT_PARAGRAPHS = [
   "As a Birdcreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.",
 ];
 
-function ShaderEffect({ style }: { style: React.CSSProperties }) {
-  return (
-    <Shader style={style}>
-      {/* Explicit id: React useId() fallback yields `__` GLSL names that fail on Safari. */}
-      <MultiPointGradient
-        id="aboutGradient"
-        colorA="#f5f6e9"
-        colorB="#f9f8e7"
-        colorC="#fbf8ea"
-        colorD="#fdfcf2"
-        colorE="#eefbef"
-        positionA={{ x: 0.24, y: 0.08 }}
-        positionB={{ x: 0.81, y: 0.19 }}
-        positionC={{ x: 0.68, y: 0.64 }}
-        positionD={{ x: 0.35, y: 1 }}
-        positionE={{ x: 0.29, y: 0.22 }}
-        smoothness={2.1}
-      />
-    </Shader>
-  );
-}
-
 const ABOUT_MOBILE_BREAKPOINT = 800;
 const ABOUT_STACKED_BREAKPOINT = 1224;
 
-export const About: React.FC<AboutProps> = ({ body }) => {
+const cssUrl = (url: string) => `url("${url.replace(/"/g, '\\"')}")`;
+
+export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, imageSrc, title }) => {
   const isMobile = useIsMobile(ABOUT_MOBILE_BREAKPOINT);
   const isStacked = useIsMobile(ABOUT_STACKED_BREAKPOINT);
   const sectionRef = useRef<HTMLElement>(null);
@@ -55,19 +35,15 @@ export const About: React.FC<AboutProps> = ({ body }) => {
       const trigger = sectionRef.current?.querySelector(".about-body-text");
       if (!trigger) return;
 
-      const split = SplitText.create(".about-body-text p", {
-        type: "lines,words",
+      const split = SplitText.create(".about-body-copy p", {
+        type: "lines",
         linesClass: "about-split-line",
-        wordsClass: "about-split-word",
         // SplitText defaults add aria-label on <p>, which axe flags as prohibited.
         aria: "none",
       });
 
-      const wordStagger = 0.04;
-
       // Warm wash — matches ShaderEffect palette so the sweep reads on scroll
 
-      gsap.set(split.words, { opacity: 0 });
       gsap.set(split.lines, {
         clipPath: "inset(0 100% 0 0)",
       });
@@ -86,34 +62,12 @@ export const About: React.FC<AboutProps> = ({ body }) => {
       // Pair each line's words + clip-path at the same timeline slot so reverse
       // scroll cannot leave a visible gradient strip after words fade out.
       split.lines.forEach((line) => {
-        const wordsInLine = [...line.querySelectorAll<HTMLElement>(".about-split-word")];
-        if (!wordsInLine.length) return;
-
-        const firstWordIndex = split.words.indexOf(wordsInLine[0]);
-        if (firstWordIndex < 0) return;
-
-        const lineStart = firstWordIndex * wordStagger;
-        const lineDuration = wordsInLine.length * wordStagger;
-
-        tl.fromTo(
-          wordsInLine,
-          { opacity: 0 },
-          {
-            opacity: 1,
-            duration: wordStagger,
-            stagger: { each: wordStagger, from: "start" },
-          },
-          lineStart,
-        );
-
         tl.fromTo(
           line,
           { clipPath: "inset(0 100% 0 0)" },
           {
             clipPath: "inset(0 0% 0 0)",
-            duration: lineDuration,
           },
-          lineStart,
         );
       });
 
@@ -133,7 +87,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         split.revert();
       };
     },
-    { scope: sectionRef, dependencies: [body] },
+    { scope: sectionRef, dependencies: [badgeSubtext, badgeText, body] },
   );
 
   useEffect(() => {
@@ -147,18 +101,11 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     padding: isMobile ? 0 : `${theme.spacing.sectionHero} ${theme.spacing.lg}`,
   };
 
-  const shaderStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    height: "100%",
-    zIndex: 0,
-  };
-
   const paragraphWrapperStyle: React.CSSProperties = {
     padding: isMobile ? theme.spacing.lg : theme.spacing.xxxxl,
   };
 
-  const tandraPhoto = "url(/tandra.webp)";
+  const tandraPhoto = cssUrl(imageSrc ?? "/tandra.webp");
   const stackedPhotoBackdrop = `linear-gradient(45deg, ${theme.colors.black}, ${theme.colors.paper})`;
 
   const imagewrapperStyle: React.CSSProperties = {
@@ -170,7 +117,7 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     zIndex: 10,
     backgroundImage: isStacked ? `${tandraPhoto}, ${stackedPhotoBackdrop}` : tandraPhoto,
     // First layer = photo (top); second = gradient fill behind it in the pill.
-    backgroundSize: isStacked ? "contain, cover" : isMobile ? "contain" : "cover",
+    backgroundSize: isStacked ? "contain" : isMobile ? "contain" : "cover",
     backgroundPosition: isStacked ? "60% 0, center" : "60% 0",
     backgroundRepeat: "no-repeat",
   };
@@ -193,6 +140,26 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     padding: isStacked ? 0 : theme.spacing.xxxxl,
   };
 
+  const eyebrowStyle: React.CSSProperties = {
+    margin: `0 0 ${theme.spacing.sm}`,
+    color: theme.colors.heroAccent,
+    fontFamily: theme.fonts.headline,
+    fontSize: isStacked ? "0.78rem" : "0.84rem",
+    fontWeight: 800,
+    letterSpacing: 0,
+    textTransform: "uppercase",
+  };
+
+  const titleStyle: React.CSSProperties = {
+    margin: `0 0 ${theme.spacing.lg}`,
+    color: theme.colors.white,
+    fontFamily: theme.fonts.headline,
+    fontSize: isStacked ? "2.5rem" : "3.75rem",
+    fontWeight: 800,
+    letterSpacing: 0,
+    lineHeight: 0.95,
+  };
+
   const pStyle: React.CSSProperties = {
     color: "inherit",
     lineHeight: 1.6,
@@ -200,6 +167,21 @@ export const About: React.FC<AboutProps> = ({ body }) => {
     fontWeight: 500,
     zIndex: 12,
   };
+
+  const headingVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  const badgeParts = [badgeText, badgeSubtext].filter(Boolean) as string[];
+  const eyebrow = badgeParts.length
+    ? badgeParts.map((part, i) => (
+        <span key={i}>
+          {part}
+          {i < badgeParts.length - 1 ? <span> · </span> : null}
+        </span>
+      ))
+    : null;
 
   return (
     <section
@@ -214,16 +196,26 @@ export const About: React.FC<AboutProps> = ({ body }) => {
         style={paragraphWrapperStyle}
       >
         <div className="about-card" style={cardStyle}>
-          <div style={imagewrapperStyle} />
-          {/* Text body — GSAP targets every <p> inside .about-body-text */}
+          <div style={imagewrapperStyle} aria-hidden="true" />
+          {/* Text body — GSAP targets all text inside .about-body-text */}
           <div className="about-body-text" style={bodyTextStyle}>
-            <p style={{ ...pStyle, fontWeight: 700 }}>Hi, I&apos;m Tandra.</p>
-            <RichText value={richBody} paragraphStyle={pStyle} />
+            {eyebrow ? <p style={eyebrowStyle}>{eyebrow}</p> : null}
+            <motion.h2
+              variants={headingVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ amount: 0.3 }}
+              id="about-heading"
+              style={titleStyle}
+            >
+              {title ?? "Hi, I'm Tandra."}
+            </motion.h2>
+            <div className="about-body-copy">
+              <RichText value={richBody} paragraphStyle={pStyle} />
+            </div>
           </div>
         </div>
       </div>
-
-      <ShaderEffect style={shaderStyle} />
     </section>
   );
 };

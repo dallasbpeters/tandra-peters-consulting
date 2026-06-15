@@ -102,7 +102,12 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
     width: 4.25,
     height: 11,
     unit: "in",
-    cutout: { topRadius: 0.35, holeDiameter: 1.25, holeCenterFromTop: 1.5, slotWidth: 0.3 },
+    cutout: {
+      topRadius: 0.35,
+      holeDiameter: 1.25,
+      holeCenterFromTop: 1.5,
+      slotWidth: 0.3,
+    },
   },
   {
     id: "door-hanger-standard",
@@ -111,7 +116,12 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
     width: 3.5,
     height: 8.5,
     unit: "in",
-    cutout: { topRadius: 0.3, holeDiameter: 1.0, holeCenterFromTop: 1.3, slotWidth: 0.25 },
+    cutout: {
+      topRadius: 0.3,
+      holeDiameter: 1.0,
+      holeCenterFromTop: 1.3,
+      slotWidth: 0.25,
+    },
   },
 ] as const;
 

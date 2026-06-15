@@ -303,7 +303,12 @@ const HotspotDot: React.FC<{
 
 // ─── callout card ─────────────────────────────────────────────────────────────
 
-type ResolvedCallout = { num: string; title: string; body: string; watchFor: string };
+type ResolvedCallout = {
+  num: string;
+  title: string;
+  body: string;
+  watchFor: string;
+};
 
 /**
  * Merge editable callout copy (props) over the static CHAPTERS fallback.

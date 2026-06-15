@@ -232,7 +232,9 @@ export const mapContactBannerProps = (data: SanityDoc): Partial<ContactBannerPro
     ...(typeof data.ctaIcon === "string" &&
     data.ctaIcon.trim() &&
     data.ctaIcon in CONTACT_BANNER_ICONS
-      ? { ctaIcon: CONTACT_BANNER_ICONS[data.ctaIcon as keyof typeof CONTACT_BANNER_ICONS] }
+      ? {
+          ctaIcon: CONTACT_BANNER_ICONS[data.ctaIcon as keyof typeof CONTACT_BANNER_ICONS],
+        }
       : {}),
   };
 };

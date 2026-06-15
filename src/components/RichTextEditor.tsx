@@ -153,12 +153,18 @@ const Toolbar = () => {
 
   const handleLink = () => {
     if (link) {
-      editor.send({ type: "annotation.toggle", annotation: { name: "link", value: { href: "" } } });
+      editor.send({
+        type: "annotation.toggle",
+        annotation: { name: "link", value: { href: "" } },
+      });
       return;
     }
     const href = window.prompt("Link URL", "https://");
     if (!href) return;
-    editor.send({ type: "annotation.toggle", annotation: { name: "link", value: { href } } });
+    editor.send({
+      type: "annotation.toggle",
+      annotation: { name: "link", value: { href } },
+    });
   };
 
   return (
@@ -181,7 +187,11 @@ const Toolbar = () => {
         Link
       </ToolbarButton>
       <span
-        style={{ width: 1, backgroundColor: mix(theme.colors.everglade, 14), margin: "0 4px" }}
+        style={{
+          width: 1,
+          backgroundColor: mix(theme.colors.everglade, 14),
+          margin: "0 4px",
+        }}
       />
       <ToolbarButton
         active={h2}
@@ -205,7 +215,11 @@ const Toolbar = () => {
         &ldquo;
       </ToolbarButton>
       <span
-        style={{ width: 1, backgroundColor: mix(theme.colors.everglade, 14), margin: "0 4px" }}
+        style={{
+          width: 1,
+          backgroundColor: mix(theme.colors.everglade, 14),
+          margin: "0 4px",
+        }}
       />
       <ToolbarButton
         active={bullet}

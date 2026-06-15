@@ -65,7 +65,10 @@ const valueText: CSSProperties = {
   margin: "0 0 18px",
 };
 
-const linkStyle: CSSProperties = { color: colors.accent, textDecoration: "none" };
+const linkStyle: CSSProperties = {
+  color: colors.accent,
+  textDecoration: "none",
+};
 
 const buttonStyle: CSSProperties = {
   backgroundColor: colors.accent,
@@ -150,11 +153,22 @@ export const ContactLeadEmail = ({
           <Section style={inner}>
             <Heading
               as="h1"
-              style={{ fontSize: "21px", color: colors.ink, margin: "0 0 6px", lineHeight: "28px" }}
+              style={{
+                fontSize: "21px",
+                color: colors.ink,
+                margin: "0 0 6px",
+                lineHeight: "28px",
+              }}
             >
               New roofing inquiry
             </Heading>
-            <Text style={{ fontSize: "13px", color: colors.muted, margin: "0 0 22px" }}>
+            <Text
+              style={{
+                fontSize: "13px",
+                color: colors.muted,
+                margin: "0 0 22px",
+              }}
+            >
               Submitted via the website contact form on {formatTimestamp(submission.submittedAt)}.
             </Text>
 
@@ -195,4 +209,6 @@ export const ContactLeadEmail = ({
 
 /** Render the contact-lead notification email to an HTML string for sending. */
 export const renderContactLeadEmail = (submission: ContactLeadSubmission, assets: EmailAssets) =>
-  render(<ContactLeadEmail submission={submission} assets={assets} />, { pretty: false });
+  render(<ContactLeadEmail submission={submission} assets={assets} />, {
+    pretty: false,
+  });

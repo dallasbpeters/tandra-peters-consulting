@@ -6,8 +6,8 @@ import { createClient } from "@sanity/client";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
-const HOME_PAGE_DOCUMENT_ID = "homePage";
+const SANITY_API_VERSION = "2026-05-29";
+const HOME_PAGE_DOCUMENT_IDS = ["homePage", "drafts.homePage"] as const;
 
 export type PatchTandraIntroRenderResult = { ok: true } | { ok: false; reason: string };
 
@@ -27,9 +27,15 @@ export const patchTandraIntroRenderedVideo = async (
     };
   }
 
-  const trimmedUrl = url.trim();
-  if (!trimmedUrl) {
+  let sanitizedUrl = url.trim();
+  if (!sanitizedUrl) {
     return { ok: false, reason: "Render URL was empty." };
+  }
+  // Vercel Blob appends ?download=1 which sets Content-Disposition: attachment,
+  // preventing HTML <video> from playing the stream inline. Strip it.
+  const qs = sanitizedUrl.indexOf("?download=1");
+  if (qs !== -1) {
+    sanitizedUrl = sanitizedUrl.slice(0, qs);
   }
 
   try {
@@ -41,21 +47,30 @@ export const patchTandraIntroRenderedVideo = async (
       useCdn: false,
     });
 
-    const patch = client
-      .patch(HOME_PAGE_DOCUMENT_ID)
-      .setIfMissing({
-        tandraIntroVideo: { _type: "tandraIntroVideo" },
-      })
-      .set({
-        "tandraIntroVideo.renderedVideoUrl": trimmedUrl,
-        "tandraIntroVideo.renderedAt": new Date().toISOString(),
+    for (const documentId of HOME_PAGE_DOCUMENT_IDS) {
+      const exists = await client.fetch<boolean>(`count(*[_id == $id]) > 0`, {
+        id: documentId,
       });
+      if (!exists) {
+        continue;
+      }
 
-    if (contentHash) {
-      patch.set({ "tandraIntroVideo.renderContentHash": contentHash });
+      const patch = client
+        .patch(documentId)
+        .setIfMissing({
+          tandraIntroVideo: { _type: "tandraIntroVideo" },
+        })
+        .set({
+          "tandraIntroVideo.renderedVideoUrl": sanitizedUrl,
+          "tandraIntroVideo.renderedAt": new Date().toISOString(),
+        });
+
+      if (contentHash) {
+        patch.set({ "tandraIntroVideo.renderContentHash": contentHash });
+      }
+
+      await patch.commit();
     }
-
-    await patch.commit();
 
     return { ok: true };
   } catch (error) {

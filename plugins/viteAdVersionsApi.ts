@@ -8,7 +8,7 @@ import { parseGoogleIdToken } from "../api/lib/google-auth";
 const AD_VERSIONS_PATH = "/api/ad-versions";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 const MAX_CONFIG_BYTES = 200_000;
 
 const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
@@ -100,7 +100,9 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
 
       const user = parseGoogleIdToken(bearer);
       if (!user || !isAllowedGoogleUserFromEnv(user, env)) {
-        json(res, 403, { error: "Google account is not authorized for ad versions." });
+        json(res, 403, {
+          error: "Google account is not authorized for ad versions.",
+        });
         return;
       }
 
@@ -111,7 +113,9 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
         process.env.SANITY_API_WRITE_TOKEN?.trim() ||
         "";
       if (!token) {
-        json(res, 500, { error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set." });
+        json(res, 500, {
+          error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set.",
+        });
         return;
       }
 

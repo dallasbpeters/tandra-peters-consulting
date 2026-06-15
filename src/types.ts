@@ -324,6 +324,8 @@ export interface EstimatorOption {
   description?: string;
   /** Home size midpoint; only read on the question with `drivesSquareFootage`. */
   sqftMidpoint?: number;
+  /** Multiplier applied to the running square footage (for stories, complexity, pitch). */
+  sqftMultiplier?: number;
   /** Dollars per square foot this option adds to the running rate. */
   pricePerSqftAdd?: number;
   /** Flat dollars this option adds regardless of size. */
@@ -336,6 +338,8 @@ export interface EstimatorQuestion {
   helpText?: string;
   /** When true, the selected option's `sqftMidpoint` sets the home size. */
   drivesSquareFootage?: boolean;
+  /** When true, the selected option's `sqftMultiplier` multiplies the running square footage. */
+  multipliesSquareFootage?: boolean;
   options: EstimatorOption[];
 }
 

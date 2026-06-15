@@ -176,7 +176,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         if (!intro) {
           throw new Error("Poster capture requires intro content.");
         }
-        posterInputProps = { content: intro.content, showCaptions: intro.showCaptions };
+        posterInputProps = {
+          content: intro.content,
+          showCaptions: intro.showCaptions,
+        };
       }
 
       const { sandboxFilePath, contentType } = await renderStillOnVercel({
@@ -292,6 +295,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       console.warn(`[render-video] Render succeeded but Sanity was not updated: ${sanityError}`);
     }
 
+    let posterUrl: string | undefined;
+    let posterError: string | undefined;
+    let thumbnailUpdated = false;
+    if (compositionId === DEFAULT_COMPOSITION_ID) {
+      try {
+        const { sandboxFilePath: posterSandboxFilePath, contentType: posterContentType } =
+          await renderStillOnVercel({
+            sandbox,
+            compositionId,
+            inputProps: { content, showCaptions },
+            frame: 0,
+            imageFormat: "png",
+            onProgress: (update) => {
+              console.log(
+                `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`,
+              );
+            },
+          });
+
+        const posterImage = await sandbox.readFileToBuffer({
+          path: posterSandboxFilePath,
+        });
+        if (!posterImage) {
+          throw new Error(
+            "Poster render finished but the image file could not be read from the sandbox.",
+          );
+        }
+
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = `${blobSlug}-${stamp}.png`;
+        const posterPatch = await patchTandraIntroThumbnail(posterImage, filename);
+        if (posterPatch.ok === false) {
+          throw new Error(posterPatch.reason);
+        }
+
+        posterUrl = posterPatch.thumbnailUrl;
+        thumbnailUpdated = true;
+        console.log(`[render-video] Poster captured (${posterContentType}).`);
+      } catch (error) {
+        posterError = error instanceof Error ? error.message : "Unknown poster render error.";
+        console.warn(`[render-video] Render succeeded but poster was not updated: ${posterError}`);
+      }
+    }
+
     res.status(200).json({
       url,
       size,
@@ -300,7 +347,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       documentId,
       contentHash,
       sanityUpdated: sanityPatch.ok,
+      ...(posterUrl ? { posterUrl } : {}),
+      thumbnailUpdated,
       ...(sanityError ? { sanityError } : {}),
+      ...(posterError ? { posterError } : {}),
     });
   } catch (error) {
     console.error("[render-video]", error);

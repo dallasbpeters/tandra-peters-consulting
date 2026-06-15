@@ -7,7 +7,11 @@ import type { EmailRecipient } from "./types.js";
 const ATTIO_QUERY_URL = "https://api.attio.com/v2/objects/people/records/query";
 const ATTIO_NOTES_URL = "https://api.attio.com/v2/notes";
 
-type AttioNameValue = { full_name?: string; first_name?: string; last_name?: string };
+type AttioNameValue = {
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+};
 type AttioEmailValue = { email_address?: string };
 
 type AttioRecord = {

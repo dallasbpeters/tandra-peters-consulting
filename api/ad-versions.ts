@@ -6,7 +6,7 @@ import { isAllowedGoogleUser, parseGoogleIdToken } from "./lib/google-auth.js";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 
 const MAX_CONFIG_BYTES = 200_000;
 
@@ -47,7 +47,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const token = readWriteToken();
   if (!token) {
-    res.status(500).json({ error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set." });
+    res.status(500).json({
+      error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set.",
+    });
     return;
   }
 
@@ -60,7 +62,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   try {
-    const body = (req.body ?? {}) as { id?: unknown; name?: unknown; config?: unknown };
+    const body = (req.body ?? {}) as {
+      id?: unknown;
+      name?: unknown;
+      config?: unknown;
+    };
 
     if (req.method === "DELETE") {
       const id = sanitizeString(body.id);

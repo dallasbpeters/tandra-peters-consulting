@@ -161,7 +161,7 @@ type RenderState =
 export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
-  const client = useClient({ apiVersion: "2024-01-01" });
+  const client = useClient({ apiVersion: "2026-05-29" });
   const [activeId, setActiveId] = useState<string>(COMPOSITIONS[0].id);
   const [render, setRender] = useState<RenderState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });

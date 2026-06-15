@@ -114,14 +114,25 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
           answers: summary,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
       if (!res.ok || !data.ok) {
         throw new Error(data.error || "Could not send the estimate.");
       }
       setSendStatus("sent");
-      posthog?.identify(email.trim(), { name: fullName.trim(), email: email.trim() });
-      posthog?.capture("estimator_emailed", { range: formatRange(estimate, currency) });
-      trackGaEstimator({ action: "emailed", range: formatRange(estimate, currency) });
+      posthog?.identify(email.trim(), {
+        name: fullName.trim(),
+        email: email.trim(),
+      });
+      posthog?.capture("estimator_emailed", {
+        range: formatRange(estimate, currency),
+      });
+      trackGaEstimator({
+        action: "emailed",
+        range: formatRange(estimate, currency),
+      });
     } catch (err) {
       setSendStatus("error");
       setSendError(err instanceof Error ? err.message : "Could not send the estimate.");

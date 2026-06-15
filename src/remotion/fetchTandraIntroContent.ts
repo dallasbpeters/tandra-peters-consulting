@@ -97,7 +97,11 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
 
     if (!response.ok) {
       console.warn(`[video] Sanity fetch failed (${response.status}); using default video copy.`);
-      return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
+      return {
+        showCaptions: false,
+        content: defaultTandraIntroContent,
+        source: "fallback",
+      };
     }
 
     const payload = (await response.json()) as {
@@ -113,7 +117,11 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
 
     if (!result) {
       console.warn("[video] No homepage tandraIntroVideo content found; using default video copy.");
-      return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
+      return {
+        showCaptions: false,
+        content: defaultTandraIntroContent,
+        source: "fallback",
+      };
     }
 
     const documentId =
@@ -127,6 +135,10 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
     };
   } catch (error) {
     console.warn(`[video] Sanity fetch failed; using default video copy. ${error}`);
-    return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
+    return {
+      showCaptions: false,
+      content: defaultTandraIntroContent,
+      source: "fallback",
+    };
   }
 };

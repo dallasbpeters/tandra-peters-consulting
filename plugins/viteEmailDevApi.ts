@@ -20,7 +20,7 @@ const EMAIL_PATHS = new Set([RENDER_PATH, RECIPIENTS_PATH, SEND_PATH, SAVE_DEFAU
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 const CLIENT_EMAIL_DOCUMENT_ID = "clientEmail";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -243,7 +243,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
                 ...(replyTo ? { replyTo } : {}),
               });
               if (result.error) {
-                failed.push({ email: recipient.email, error: result.error.message });
+                failed.push({
+                  email: recipient.email,
+                  error: result.error.message,
+                });
                 continue;
               }
               sent.push(recipient.email);
@@ -262,7 +265,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
               });
             }
           }
-          json(res, failed.length && !sent.length ? 502 : 200, { sent, failed });
+          json(res, failed.length && !sent.length ? 502 : 200, {
+            sent,
+            failed,
+          });
           return;
         }
 
@@ -298,7 +304,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
           });
           await client
             .transaction()
-            .createIfNotExists({ _id: CLIENT_EMAIL_DOCUMENT_ID, _type: "clientEmail" })
+            .createIfNotExists({
+              _id: CLIENT_EMAIL_DOCUMENT_ID,
+              _type: "clientEmail",
+            })
             .patch(CLIENT_EMAIL_DOCUMENT_ID, (p) => p.set(fields))
             .commit();
           json(res, 200, { ok: true });

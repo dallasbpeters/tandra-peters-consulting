@@ -39,7 +39,7 @@ const ORIGIN = normalizeOrigin(process.env.VITE_SITE_URL);
 const SANITY = {
   projectId: "7irm699i",
   dataset: "production",
-  apiVersion: "2024-01-01",
+  apiVersion: "2026-05-29",
 };
 
 const escapeHtml = (value: string): string =>
@@ -109,7 +109,10 @@ const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX
 const DEFAULT_DESCRIPTION =
   "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
 
-const fetchSanity = async (): Promise<{ posts: PostDoc[]; home: HomeDoc | null }> => {
+const fetchSanity = async (): Promise<{
+  posts: PostDoc[];
+  home: HomeDoc | null;
+}> => {
   try {
     const client = createClient({ ...SANITY, useCdn: true });
     const [posts, home] = await Promise.all([
@@ -244,7 +247,12 @@ const articlePage = (post: PostDoc): PageMeta | null => {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${ORIGIN}/` },
-      { "@type": "ListItem", position: 2, name: "Articles", item: `${ORIGIN}/articles` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Articles",
+        item: `${ORIGIN}/articles`,
+      },
       { "@type": "ListItem", position: 3, name: post.title, item: url },
     ],
   };

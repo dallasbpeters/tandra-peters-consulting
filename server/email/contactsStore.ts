@@ -14,7 +14,7 @@ import type { ContactLeadSubmission, EmailRecipient } from "./types.js";
 
 const PROJECT_ID = "7irm699i";
 const DATASET = "production";
-const API_VERSION = "2024-01-01";
+const API_VERSION = "2026-05-29";
 
 const client = (token: string): SanityClient =>
   createClient({

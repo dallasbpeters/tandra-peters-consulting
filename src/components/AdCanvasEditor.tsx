@@ -781,7 +781,9 @@ export const AdCanvasEditor = ({
         if (previous) URL.revokeObjectURL(previous);
         return URL.createObjectURL(mockupBlob);
       });
-      posthog?.capture("ad_door_mockup_generated", { platform: selectedPlatform.id });
+      posthog?.capture("ad_door_mockup_generated", {
+        platform: selectedPlatform.id,
+      });
     } catch (error) {
       setMockupError(error instanceof Error ? error.message : "Could not build the door mockup.");
     } finally {

@@ -6,7 +6,7 @@ import { hashTandraIntroContent } from "./tandra-intro-content-hash.js";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 
 const INTRO_QUERY = `{
   "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{

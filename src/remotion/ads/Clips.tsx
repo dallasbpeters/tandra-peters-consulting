@@ -1158,7 +1158,11 @@ const SsSceneImpact: React.FC<SsImpactProps> = ({ eyebrow, headline, subline }) 
       <EvergladeBackground />
       <NoiseBackground />
       <AbsoluteFill
-        style={{ justifyContent: "center", alignItems: "flex-start", padding: `0 ${H_PAD}px` }}
+        style={{
+          justifyContent: "center",
+          alignItems: "flex-start",
+          padding: `0 ${H_PAD}px`,
+        }}
       >
         <div style={{ width: "100%" }}>
           <SlideUp startFrame={0}>
@@ -1228,7 +1232,11 @@ const SsSceneUrgency: React.FC<SsUrgencyProps> = ({ setup, punch }) => (
   <FadeWrapper durationInFrames={150} fadeOutFrames={20}>
     <EvergladeBackground />
     <AbsoluteFill
-      style={{ justifyContent: "center", alignItems: "flex-start", padding: `0 ${H_PAD}px` }}
+      style={{
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: `0 ${H_PAD}px`,
+      }}
     >
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
@@ -1294,7 +1302,11 @@ const SsSceneIntro: React.FC<SsIntroProps> = ({
     <AbsoluteFill style={{ background: "var(--color-hero-accent)" }} />
     <LightLeak durationInFrames={40} seed={seed} hueShift={hueShift} />
     <AbsoluteFill
-      style={{ justifyContent: "center", alignItems: "flex-start", padding: `0 ${H_PAD}px` }}
+      style={{
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: `0 ${H_PAD}px`,
+      }}
     >
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
@@ -1364,7 +1376,11 @@ const SsSceneValue: React.FC<SsValueProps> = ({ setup, punch }) => (
   <FadeWrapper durationInFrames={180} fadeOutFrames={20}>
     <EvergladeBackground />
     <AbsoluteFill
-      style={{ justifyContent: "center", alignItems: "flex-start", padding: `0 ${H_PAD}px` }}
+      style={{
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: `0 ${H_PAD}px`,
+      }}
     >
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
@@ -1385,7 +1401,11 @@ const SsSceneCTA: React.FC<SsCtaProps> = ({ trust, callout, byline, badge, badge
   <FadeWrapper durationInFrames={180} fadeOutFrames={25}>
     <AbsoluteFill style={{ background: "var(--color-paper-dark)" }} />
     <AbsoluteFill
-      style={{ justifyContent: "center", alignItems: "center", padding: `0 ${H_PAD}px` }}
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        padding: `0 ${H_PAD}px`,
+      }}
     >
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
@@ -1437,7 +1457,14 @@ const SsSceneCTA: React.FC<SsCtaProps> = ({ trust, callout, byline, badge, badge
           </div>
         </FadeIn>
         <FadeIn startFrame={75}>
-          <div style={{ marginBlock: 48, display: "flex", alignItems: "center", gap: 16 }}>
+          <div
+            style={{
+              marginBlock: 48,
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
             <div
               style={{
                 width: 40,
@@ -1609,10 +1636,22 @@ const SceneStormHook: React.FC<StormHookProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headlineScale = spring({ frame, fps, from: 0.88, to: 1, durationInFrames: 20 });
-  const taglineOpacity = interpolate(frame, [18, 32], [0, 1], { extrapolateRight: "clamp" });
-  const taglineY = interpolate(frame, [18, 36], [30, 0], { extrapolateRight: "clamp" });
-  const pillOpacity = interpolate(frame, [30, 44], [0, 1], { extrapolateRight: "clamp" });
+  const headlineScale = spring({
+    frame,
+    fps,
+    from: 0.88,
+    to: 1,
+    durationInFrames: 20,
+  });
+  const taglineOpacity = interpolate(frame, [18, 32], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+  const taglineY = interpolate(frame, [18, 36], [30, 0], {
+    extrapolateRight: "clamp",
+  });
+  const pillOpacity = interpolate(frame, [30, 44], [0, 1], {
+    extrapolateRight: "clamp",
+  });
   const phoneScale = spring({
     frame: Math.max(0, frame - 44),
     fps,
@@ -1620,7 +1659,9 @@ const SceneStormHook: React.FC<StormHookProps> = ({
     to: 1,
     durationInFrames: 20,
   });
-  const barOpacity = interpolate(frame, [60, 80], [0, 1], { extrapolateRight: "clamp" });
+  const barOpacity = interpolate(frame, [60, 80], [0, 1], {
+    extrapolateRight: "clamp",
+  });
 
   return (
     <PunchWrap>
@@ -1812,10 +1853,18 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headlineOpacity = interpolate(frame, [0, 14], [0, 1], { extrapolateRight: "clamp" });
-  const headlineX = interpolate(frame, [0, 18], [-60, 0], { extrapolateRight: "clamp" });
-  const taglineOpacity = interpolate(frame, [20, 38], [0, 1], { extrapolateRight: "clamp" });
-  const taglineY = interpolate(frame, [20, 40], [28, 0], { extrapolateRight: "clamp" });
+  const headlineOpacity = interpolate(frame, [0, 14], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+  const headlineX = interpolate(frame, [0, 18], [-60, 0], {
+    extrapolateRight: "clamp",
+  });
+  const taglineOpacity = interpolate(frame, [20, 38], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+  const taglineY = interpolate(frame, [20, 40], [28, 0], {
+    extrapolateRight: "clamp",
+  });
   const barScale = spring({
     frame: Math.max(0, frame - 40),
     fps,
@@ -1823,7 +1872,9 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
     to: 1,
     durationInFrames: 18,
   });
-  const barOpacity = interpolate(frame, [40, 58], [0, 1], { extrapolateRight: "clamp" });
+  const barOpacity = interpolate(frame, [40, 58], [0, 1], {
+    extrapolateRight: "clamp",
+  });
 
   return (
     <PunchWrap>
@@ -1937,7 +1988,13 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
             >
               {name}
             </span>
-            <span style={{ fontSize: 48, color: "var(--color-accent-light)", margin: "0 12px" }}>
+            <span
+              style={{
+                fontSize: 48,
+                color: "var(--color-accent-light)",
+                margin: "0 12px",
+              }}
+            >
               |
             </span>
             <span
@@ -1952,7 +2009,14 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
             </span>
           </div>
           {/* Right: Bird Creek logo */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             <Img
               src={adsFile("BC_Bird_White.svg")}
               style={{ width: 88, height: 88, objectFit: "contain" }}

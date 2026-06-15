@@ -21,7 +21,7 @@ import { mix, theme } from "../theme";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2024-01-01";
+const SANITY_API_VERSION = "2026-05-29";
 
 type Recipient = { id: string; name: string; email: string };
 
@@ -169,7 +169,10 @@ export const EmailComposerPage = () => {
   } | null>(null);
 
   const [savingDefault, setSavingDefault] = useState(false);
-  const [saveResult, setSaveResult] = useState<{ ok: boolean; error?: string } | null>(null);
+  const [saveResult, setSaveResult] = useState<{
+    ok: boolean;
+    error?: string;
+  } | null>(null);
 
   usePageMetadata({
     title: "Email Composer | Tandra Peters",
@@ -237,7 +240,10 @@ export const EmailComposerPage = () => {
       const res = await fetch("/api/email/recipients", {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-      const json = (await res.json()) as { recipients?: Recipient[]; error?: string };
+      const json = (await res.json()) as {
+        recipients?: Recipient[];
+        error?: string;
+      };
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           auth.signOut("Your session expired or this account is not allowed.");
@@ -374,7 +380,10 @@ export const EmailComposerPage = () => {
       setSaveResult({ ok: true });
       posthog?.capture("email_default_saved");
     } catch (err) {
-      setSaveResult({ ok: false, error: err instanceof Error ? err.message : "Save failed." });
+      setSaveResult({
+        ok: false,
+        error: err instanceof Error ? err.message : "Save failed.",
+      });
     } finally {
       setSavingDefault(false);
     }
@@ -383,15 +392,32 @@ export const EmailComposerPage = () => {
   return (
     <SitePageChrome>
       <div className={layoutClass.containerWide} style={{ display: "grid", gap: theme.spacing.xl }}>
-        <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.md }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: theme.spacing.md,
+          }}
+        >
           <Mail width={26} height={26} color={theme.palette.accent["600"]} />
-          <h1 style={{ fontSize: "1.6rem", color: theme.colors.everglade, margin: 0 }}>
+          <h1
+            style={{
+              fontSize: "1.6rem",
+              color: theme.colors.everglade,
+              margin: 0,
+            }}
+          >
             Email composer
           </h1>
         </div>
 
         {!auth.clientId ? (
-          <section style={{ ...cardStyle, borderColor: mix(theme.palette.coral["500"], 30) }}>
+          <section
+            style={{
+              ...cardStyle,
+              borderColor: mix(theme.palette.coral["500"], 30),
+            }}
+          >
             <div
               style={{
                 display: "flex",
@@ -403,7 +429,12 @@ export const EmailComposerPage = () => {
               <WarningTriangle width={20} height={20} />
               <strong>Google auth is not configured</strong>
             </div>
-            <p style={{ color: mix(theme.colors.everglade, 75), lineHeight: 1.6 }}>
+            <p
+              style={{
+                color: mix(theme.colors.everglade, 75),
+                lineHeight: 1.6,
+              }}
+            >
               Add <code>VITE_GOOGLE_CLIENT_ID</code> so the composer can render the sign-in button.
             </p>
           </section>
@@ -411,7 +442,13 @@ export const EmailComposerPage = () => {
 
         {auth.clientId && !auth.token ? (
           <section style={cardStyle}>
-            <div style={{ display: "grid", gap: theme.spacing.lg, justifyItems: "start" }}>
+            <div
+              style={{
+                display: "grid",
+                gap: theme.spacing.lg,
+                justifyItems: "start",
+              }}
+            >
               <div>
                 <h2
                   style={{
@@ -498,7 +535,11 @@ export const EmailComposerPage = () => {
                   />
                 </Field>
                 <div
-                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: theme.spacing.lg }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: theme.spacing.lg,
+                  }}
                 >
                   <Field label="Button label">
                     <input
@@ -593,7 +634,12 @@ export const EmailComposerPage = () => {
                       </span>
                     )
                   ) : (
-                    <span style={{ fontSize: "0.8rem", color: mix(theme.colors.everglade, 55) }}>
+                    <span
+                      style={{
+                        fontSize: "0.8rem",
+                        color: mix(theme.colors.everglade, 55),
+                      }}
+                    >
                       Updates the published default for everyone.
                     </span>
                   )}
@@ -611,9 +657,20 @@ export const EmailComposerPage = () => {
                     flexWrap: "wrap",
                   }}
                 >
-                  <h2 style={{ fontSize: "1.05rem", color: theme.colors.everglade, margin: 0 }}>
+                  <h2
+                    style={{
+                      fontSize: "1.05rem",
+                      color: theme.colors.everglade,
+                      margin: 0,
+                    }}
+                  >
                     Recipients{" "}
-                    <span style={{ color: mix(theme.colors.everglade, 55), fontWeight: 400 }}>
+                    <span
+                      style={{
+                        color: mix(theme.colors.everglade, 55),
+                        fontWeight: 400,
+                      }}
+                    >
                       ({selectedList.length} selected)
                     </span>
                   </h2>
@@ -635,7 +692,12 @@ export const EmailComposerPage = () => {
                   </button>
                 </div>
 
-                <div style={{ position: "relative", marginBottom: theme.spacing.md }}>
+                <div
+                  style={{
+                    position: "relative",
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
                   <Search
                     width={16}
                     height={16}
@@ -656,15 +718,31 @@ export const EmailComposerPage = () => {
                 </div>
 
                 {recipientsError ? (
-                  <p style={{ color: theme.palette.coral["800"], lineHeight: 1.6, margin: 0 }}>
+                  <p
+                    style={{
+                      color: theme.palette.coral["800"],
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
                     {recipientsError}
                   </p>
                 ) : recipientsLoading ? (
-                  <p style={{ color: mix(theme.colors.everglade, 60), margin: 0 }}>
+                  <p
+                    style={{
+                      color: mix(theme.colors.everglade, 60),
+                      margin: 0,
+                    }}
+                  >
                     Loading contacts…
                   </p>
                 ) : filteredRecipients.length === 0 ? (
-                  <p style={{ color: mix(theme.colors.everglade, 60), margin: 0 }}>
+                  <p
+                    style={{
+                      color: mix(theme.colors.everglade, 60),
+                      margin: 0,
+                    }}
+                  >
                     No contacts found.
                   </p>
                 ) : (
@@ -697,7 +775,12 @@ export const EmailComposerPage = () => {
                             onChange={() => toggleRecipient(r)}
                           />
                           <span style={{ display: "grid" }}>
-                            <span style={{ color: theme.colors.everglade, fontWeight: 600 }}>
+                            <span
+                              style={{
+                                color: theme.colors.everglade,
+                                fontWeight: 600,
+                              }}
+                            >
                               {r.name}
                             </span>
                             <span
@@ -733,9 +816,7 @@ export const EmailComposerPage = () => {
                     <SendDiagonal width={18} height={18} />
                     {sending
                       ? "Sending…"
-                      : `Send to ${selectedList.length || ""} ${
-                          selectedList.length === 1 ? "contact" : "contacts"
-                        }`}
+                      : `Send to ${selectedList.length || ""} ${selectedList.length === 1 ? "contact" : "contacts"}`}
                   </button>
 
                   {sendResult ? (
@@ -787,7 +868,12 @@ export const EmailComposerPage = () => {
               >
                 <span style={{ ...labelStyle, marginBottom: 0 }}>Live preview</span>
                 {previewError ? (
-                  <span style={{ color: theme.palette.coral["800"], fontSize: "0.8rem" }}>
+                  <span
+                    style={{
+                      color: theme.palette.coral["800"],
+                      fontSize: "0.8rem",
+                    }}
+                  >
                     {previewError}
                   </span>
                 ) : null}
