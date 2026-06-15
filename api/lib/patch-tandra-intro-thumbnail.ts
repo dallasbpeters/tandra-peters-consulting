@@ -14,7 +14,7 @@ export type PatchTandraIntroThumbnailResult =
   | { ok: false; reason: string };
 
 const readSanityWriteToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim() || undefined;
+  process.env.SANITY_API_WRITE_TOKEN?.trim() || process.env.SANITY_WRITE_TOKEN?.trim() || undefined;
 
 export const patchTandraIntroThumbnail = async (
   image: Buffer,

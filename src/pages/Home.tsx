@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 
 import type { TestimonialsProps } from "../types";
 
@@ -98,8 +98,12 @@ const DevAgentation = import.meta.env.DEV
   : null;
 
 export const Home = () => {
-  const { data, loading, error } = useSanitySite();
+  const { data, loading, error, refetch } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
+
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
   const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
@@ -137,6 +141,10 @@ export const Home = () => {
   const renderedVideoUrl =
     typeof introVideo?.renderedVideoUrl === "string" && introVideo.renderedVideoUrl.trim()
       ? introVideo.renderedVideoUrl.trim().replace(/\?download=1$/, "")
+      : undefined;
+  const uploadedVideoUrl =
+    typeof introVideo?.uploadedVideoUrl === "string" && introVideo.uploadedVideoUrl.trim()
+      ? introVideo.uploadedVideoUrl.trim()
       : undefined;
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
@@ -191,7 +199,7 @@ export const Home = () => {
         return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
       case "videoSection": {
         const sectionVideoProps = mapVideoProps(sectionData, {
-          renderedVideoUrl,
+          renderedVideoUrl: uploadedVideoUrl ?? renderedVideoUrl,
         });
         return sectionVideoProps.videoUrl || introVideoContent ? (
           <FeaturedVideoSection

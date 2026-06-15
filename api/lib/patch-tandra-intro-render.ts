@@ -12,7 +12,7 @@ const HOME_PAGE_DOCUMENT_IDS = ["homePage", "drafts.homePage"] as const;
 export type PatchTandraIntroRenderResult = { ok: true } | { ok: false; reason: string };
 
 const readSanityWriteToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim() || undefined;
+  process.env.SANITY_API_WRITE_TOKEN?.trim() || process.env.SANITY_WRITE_TOKEN?.trim() || undefined;
 
 export const patchTandraIntroRenderedVideo = async (
   url: string,
