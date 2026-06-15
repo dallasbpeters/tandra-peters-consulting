@@ -115,6 +115,7 @@ const COMPOSITIONS: CompositionMeta[] = [
 const PREVIEW_BASE =
   process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
 const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
+const RENDER_SECRET = process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_PROPS: Record<string, any> = {
@@ -322,7 +323,10 @@ export function RemotionVideoTool() {
     try {
       const response = await fetch(`${RENDER_BASE}/api/render-tandra-intro?force=true`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(RENDER_SECRET ? { "x-render-secret": RENDER_SECRET } : {}),
+        },
         body: JSON.stringify({ compositionId: active.id }),
       });
       const payload = (await response.json().catch(() => ({}))) as {

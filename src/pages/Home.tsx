@@ -30,7 +30,6 @@ import {
   mapSocialShareProps,
   mapStatsProps,
   mapTestimonialsProps,
-  mapVideoProps,
 } from "../sanity/mapSanityHome";
 import { theme } from "../theme";
 
@@ -138,10 +137,6 @@ export const Home = () => {
   }
 
   const introVideoContent = introVideo ? mergeTandraIntroContent(introVideo) : undefined;
-  const renderedVideoUrl =
-    typeof introVideo?.renderedVideoUrl === "string" && introVideo.renderedVideoUrl.trim()
-      ? introVideo.renderedVideoUrl.trim().replace(/\?download=1$/, "")
-      : undefined;
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
       ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })
@@ -194,14 +189,9 @@ export const Home = () => {
       case "birdcreekVideoBannerSection":
         return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
       case "videoSection": {
-        const sectionVideoProps = mapVideoProps(sectionData, {
-          renderedVideoUrl,
-        });
-        return sectionVideoProps.videoUrl || introVideoContent ? (
+        return introVideoContent ? (
           <FeaturedVideoSection
-            videoUrl={sectionVideoProps.videoUrl}
-            title={sectionVideoProps.title}
-            posterUrl={introVideoThumbnailUrl ?? sectionVideoProps.posterUrl}
+            posterUrl={introVideoThumbnailUrl}
             introContent={introVideoContent}
           />
         ) : null;

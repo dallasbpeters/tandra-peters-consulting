@@ -135,7 +135,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             // composition (see TandraIntro <Captions>), so no sidecar
             // <track> is needed here.
             <motion.video
-              key={mediaAssetKey}
+              key={`${mediaAssetKey}-video`}
               variants={videoVariants}
               initial="offscreen"
               animate={isInView ? "onscreen" : "offscreen"}
@@ -144,12 +144,12 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
               src={videoUrl}
               preload="metadata"
               playsInline
-              poster={posterUrl}
+              poster={posterUrl ?? "./main-poster.jpeg"}
               controls={false}
             />
           ) : introContent ? (
             <motion.div
-              key={mediaAssetKey}
+              key={`${mediaAssetKey}-player`}
               variants={videoVariants}
               initial="offscreen"
               animate={isInView ? "onscreen" : "offscreen"}
@@ -164,7 +164,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             </motion.div>
           ) : null}
           <VideoControls
-            key={mediaAssetKey}
+            key={`${mediaAssetKey}-controls`}
             videoRef={videoRef}
             playerRef={playerRef}
             isRemotion={showRemotionPlayer}
