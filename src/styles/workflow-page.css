@@ -360,8 +360,10 @@
   pointer-events: auto;
 }
 
-/* Edge SVGs ship without dimensions — paths never paint without this */
+/* In ReactFlow v12 each edge is its own <svg> with no intrinsic size.
+   Give the container and every per-edge SVG explicit dimensions so paths paint. */
 .workflow-page__canvas .react-flow__edges {
+  position: absolute;
   inset: 0;
   z-index: 3;
   width: 100%;
@@ -369,13 +371,21 @@
   pointer-events: none;
 }
 
-.workflow-page__canvas .react-flow__edges svg:not(.react-flow__marker) {
+.workflow-page__canvas .react-flow__edges svg {
   position: absolute;
   top: 0;
   left: 0;
   overflow: visible;
   width: 100%;
   height: 100%;
+}
+
+/* Keep the marker defs SVG from inheriting the same treatment */
+.workflow-page__canvas .react-flow__edges svg.react-flow__marker {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: visible;
 }
 
 .workflow-page__canvas .react-flow__edge-path {

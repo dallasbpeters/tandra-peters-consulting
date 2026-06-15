@@ -15,6 +15,7 @@ import {
   useNodesState,
   useReactFlow,
   useStore,
+  useUpdateNodeInternals,
   type Connection,
   type Edge,
   type Node,
@@ -93,6 +94,7 @@ const isWorkflowHandleId = (value: string | null | undefined): value is Workflow
 const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
   const edges = useStore((state) => state.edges);
   const isEditMode = useStore((state) => state.nodesConnectable);
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const sourceHandles = useMemo(() => {
     if (isEditMode) {
@@ -123,6 +125,17 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
 
     return [...handles];
   }, [edges, id, isEditMode]);
+
+  // ReactFlow measures a node's handles when it mounts. Toggling edit mode (or
+  // adding an edge) changes which handles render on an already-mounted node, and
+  // those new handles stay unregistered — so connections can't start from them
+  // and new edges fail with "Couldn't create edge" (error #008). Re-measure
+  // whenever the rendered handle set changes.
+  const sourceHandleKey = sourceHandles.join(",");
+  const targetHandleKey = targetHandles.join(",");
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, sourceHandleKey, targetHandleKey, updateNodeInternals]);
 
   return (
     <div className={`workflow-node${data.wide ? " workflow-node--wide" : ""}`}>
@@ -407,7 +420,7 @@ const InsuranceWorkflowDiagramInner = ({
             ...connection,
             id: edgeId,
             label: "Connection",
-            animated: true,
+            animated: false,
             labelShowBg: true,
             labelBgPadding: [8, 6],
             labelBgBorderRadius: 6,
@@ -440,7 +453,7 @@ const InsuranceWorkflowDiagramInner = ({
         reconnectEdge(
           {
             ...oldEdge,
-            animated: true,
+            animated: false,
             type: "smoothstep",
             markerEnd: {
               type: MarkerType.ArrowClosed,

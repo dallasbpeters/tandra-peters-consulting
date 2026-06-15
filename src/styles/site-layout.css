@@ -21,6 +21,10 @@
   max-width: 80rem;
 }
 
+.site-container.site-container--full {
+  max-width: 95rem;
+}
+
 .site-container.site-container--article {
   max-width: 52rem;
 }

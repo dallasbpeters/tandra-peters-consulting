@@ -180,30 +180,51 @@ export type EstimatorRange = {
 const findOption = (question: EstimatorQuestion, key: string): EstimatorOption | undefined =>
   question.options.find((o) => (o._key ?? o.label) === key);
 
+export type ComputeEstimateOverrides = {
+  /**
+   * When an address lookup succeeds, pass the property's total living area
+   * here. It replaces the `drivesSquareFootage` question's sqftMidpoint so the
+   * calculation uses real data instead of a bucket selection.
+   */
+  sqft?: number;
+  /**
+   * Keys of questions whose multipliers/adders should be skipped in the
+   * calculation (e.g. the home-size question when sqft is overridden).
+   */
+  skipQuestionKeys?: Set<string>;
+};
+
 /**
  * Compute the estimate range from the answered selections. Returns null until
- * the square-footage question has been answered (we can't size anything without
- * it). The spread guarantees a low/high band, never a single figure.
+ * the square-footage question has been answered (or an override sqft is
+ * provided). The spread guarantees a low/high band, never a single figure.
  */
 export const computeEstimate = (
   content: EstimatorPageContent,
   selections: EstimatorSelections,
+  overrides?: ComputeEstimateOverrides,
 ): EstimatorRange | null => {
   const questions = content.questions ?? [];
   if (questions.length === 0) return null;
 
-  let sqft: number | undefined;
+  let sqft: number | undefined = overrides?.sqft;
   let ratePerSqft = content.baseRatePerSqft ?? 0;
   let flatTotal = content.baseFee ?? 0;
 
   for (const question of questions) {
     const key = question._key ?? question.prompt;
+    if (overrides?.skipQuestionKeys?.has(key)) continue;
     const selectedKey = selections[key];
     if (!selectedKey) continue;
     const option = findOption(question, selectedKey);
     if (!option) continue;
 
-    if (question.drivesSquareFootage && typeof option.sqftMidpoint === "number") {
+    // Only use sqftMidpoint from the question if no override was provided.
+    if (
+      !overrides?.sqft &&
+      question.drivesSquareFootage &&
+      typeof option.sqftMidpoint === "number"
+    ) {
       sqft = option.sqftMidpoint;
     }
     if (

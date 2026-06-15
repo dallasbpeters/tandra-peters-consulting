@@ -64,17 +64,11 @@ export const SiteShell = () => {
 
   return (
     <>
-      {navProps ? (
+      {navProps && (
         <NavVariant
           {...navProps}
           navItems={isAgentRoute ? agentNavItems : navProps.navItems}
           heroStyle={isAgentRoute ? undefined : heroStyle}
-        />
-      ) : (
-        <div
-          className="site-nav-vt"
-          style={{ minHeight: "4.5rem", visibility: "hidden" }}
-          aria-hidden
         />
       )}
 

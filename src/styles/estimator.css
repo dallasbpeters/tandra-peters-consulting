@@ -5,6 +5,8 @@
   border: 1px solid var(--theme-colors-paper-dark, #e4e8e6);
   background-color: var(--theme-colors-white, #fff);
   overflow: hidden;
+  z-index: 10;
+  transform: translateY(-25%);
 }
 
 .estimator-options {
@@ -63,5 +65,19 @@
 @media (width >= 38rem) {
   .estimator-email-row {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Intro step: card + map panel side by side */
+.estimator-intro-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (width >= 56rem) {
+  .estimator-intro-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }

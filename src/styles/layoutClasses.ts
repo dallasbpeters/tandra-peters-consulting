@@ -7,6 +7,8 @@ export const layoutClass = {
   containerReading: "site-container site-container--reading",
   containerLegal: "site-container site-container--legal",
   containerWideRow: "site-container site-container--wide site-container--row",
+  containerFull: "site-container site-container--full",
+  containerFullRow: "site-container site-container--full site-container--row",
   containerWideLayered: "site-container site-container--wide site-container--layered",
   containerWideGridFooter: "site-container site-container--wide site-container--grid-footer",
   containerWideFooterLegal: "site-container site-container--wide site-container--footer-legal",

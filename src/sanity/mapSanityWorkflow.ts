@@ -1,3 +1,4 @@
+import { stegaClean } from "@sanity/client/stega";
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
 const WORKFLOW_EDGE_COLOR = "#8156f6";
@@ -115,8 +116,10 @@ const DEFAULT_LAYOUT: WorkflowLayout = {
   finalRowExtraOffset: 24,
 };
 
-const asString = (value: unknown): string | undefined =>
-  typeof value === "string" && value.trim() ? value : undefined;
+const asString = (value: unknown): string | undefined => {
+  const cleaned = stegaClean(value);
+  return typeof cleaned === "string" && cleaned.trim() ? cleaned : undefined;
+};
 
 const asNumber = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -323,8 +326,8 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
         asString(edge.sourceStep) &&
         asString(edge.targetStep) &&
         asString(edge.sourceHandle) &&
-        asString(edge.targetHandle) &&
-        asString(edge.label),
+        asString(edge.targetHandle),
+      // label is intentionally optional — blank label just shows no text on the edge
     )
       ? edgesRaw.map((edge) => ({
           ...edgeDefaults,
@@ -333,7 +336,7 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
           target: asString(edge.targetStep)!,
           sourceHandle: asString(edge.sourceHandle)!,
           targetHandle: asString(edge.targetHandle)!,
-          label: asString(edge.label)!,
+          ...(asString(edge.label) ? { label: asString(edge.label) } : {}),
         }))
       : buildFallbackEdges();
 
