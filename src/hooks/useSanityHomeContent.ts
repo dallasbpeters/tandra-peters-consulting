@@ -67,6 +67,25 @@ export type HomeDocuments = {
 
 const PRESENTATION_REFETCH_MS = 450;
 
+const CACHE_KEY = "sanity-home-v1";
+
+const readCache = (): HomeDocuments | null => {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    return raw ? (JSON.parse(raw) as HomeDocuments) : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (data: HomeDocuments): void => {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch (_) {
+    // sessionStorage may be unavailable (private browsing, quota exceeded)
+  }
+};
+
 const debounce = <Args extends unknown[]>(
   fn: (...args: Args) => void,
   waitMs: number,
@@ -109,15 +128,18 @@ const normalizeHomeDocuments = (raw: HomeDocuments): HomeDocuments => {
 };
 
 export const useSanityHomeContent = () => {
-  const [data, setData] = useState<HomeDocuments | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedOnMount = useState(() => readCache())[0];
+  const [data, setData] = useState<HomeDocuments | null>(cachedOnMount);
+  const [loading, setLoading] = useState(cachedOnMount === null);
   const [error, setError] = useState<Error | null>(null);
 
   const refetchNow = useCallback(async () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
-      setData(normalizeHomeDocuments(raw));
+      const normalized = normalizeHomeDocuments(raw);
+      setData(normalized);
+      writeCache(normalized);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
@@ -151,12 +173,13 @@ export const useSanityHomeContent = () => {
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      setLoading(true);
       try {
         const client = getSanityClient();
         const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
         if (!cancelled) {
-          setData(normalizeHomeDocuments(raw));
+          const normalized = normalizeHomeDocuments(raw);
+          setData(normalized);
+          writeCache(normalized);
           setError(null);
         }
       } catch (e) {

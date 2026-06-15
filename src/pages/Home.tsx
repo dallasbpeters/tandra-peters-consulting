@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect } from "react";
+import React, { Suspense, lazy } from "react";
 
 import type { TestimonialsProps } from "../types";
 
@@ -97,12 +97,9 @@ const DevAgentation = import.meta.env.DEV
   : null;
 
 export const Home = () => {
-  const { data, loading, error, refetch } = useSanitySite();
+  const { data, loading, error } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
 
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
   const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()

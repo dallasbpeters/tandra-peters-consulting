@@ -63,6 +63,9 @@ const readTokenWhenDrafts = (drafts: boolean): string | undefined => {
 
 let warnedMissingPreviewToken = false;
 
+// Memoize by configuration key so callers don't create a new instance per render.
+const clientCache = new Map<string, SanityClient>();
+
 /** Stega + click-to-edit when in Presentation iframe or VITE_SANITY_STEGA=true */
 export const getSanityClient = (): SanityClient => {
   const drafts = useDraftsPerspective();
@@ -73,18 +76,26 @@ export const getSanityClient = (): SanityClient => {
       "[Sanity] Presentation preview needs VITE_SANITY_API_READ_TOKEN (Viewer token) to load draft content.",
     );
   }
-  return createClient({
+  const stega = stegaEnabled();
+  const cacheKey = `${drafts ? "drafts" : "pub"}:${stega ? "stega" : "plain"}`;
+  const cached = clientCache.get(cacheKey);
+  if (cached) return cached;
+
+  const client = createClient({
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
-    // Deployed homepage sections are edited directly in Sanity/Presentation and
-    // should update immediately after publish instead of waiting on the CDN.
-    useCdn: import.meta.env.PROD ? false : !drafts,
+    // Use the CDN in all non-draft contexts. The CDN TTL (~60 s) is acceptable
+    // for a content site; avoiding it on every production request was costing
+    // 500–2000 ms per page load with no meaningful freshness benefit.
+    useCdn: !drafts,
     ...(drafts ? { perspective: "drafts" as const } : {}),
     ...(token ? { token, ignoreBrowserTokenWarning: true } : {}),
     stega: {
-      enabled: stegaEnabled(),
+      enabled: stega,
       studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || fallbackStudioUrl,
     },
   });
+  clientCache.set(cacheKey, client);
+  return client;
 };
