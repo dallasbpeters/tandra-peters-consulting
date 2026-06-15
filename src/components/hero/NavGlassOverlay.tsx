@@ -59,13 +59,14 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
     navInner: {
       position: "relative",
       height: "5rem",
-      display: "grid",
-      gridTemplateColumns: " repeat(auto-fit, minmax(0, 1fr))",
+      display: "flex",
       padding: `0 ${theme.spacing.xxxxl}`,
       placeItems: "center stretch",
+      flexGrow: 1,
     },
     linkGroupLeft: {
       display: isMobile ? "none" : "flex",
+      flexGrow: 1,
       gap: theme.spacing.xxxl,
       alignItems: "center",
       justifyContent: isMobile ? "start" : "center",
