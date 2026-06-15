@@ -5,6 +5,7 @@ const INTRO_QUERY = `{
   "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{
     _id,
     "intro": tandraIntroVideo{
+      showCaptions,
       storm,
       straightAnswers,
       inspection,
@@ -76,6 +77,7 @@ const readSanityToken = (): string | undefined => {
 };
 
 export type FetchTandraIntroResult = {
+  showCaptions: boolean;
   content: TandraIntroContent;
   source: "sanity-draft-or-published" | "sanity-published" | "fallback";
   documentId?: string;
@@ -95,7 +97,7 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
 
     if (!response.ok) {
       console.warn(`[video] Sanity fetch failed (${response.status}); using default video copy.`);
-      return { content: defaultTandraIntroContent, source: "fallback" };
+      return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
     }
 
     const payload = (await response.json()) as {
@@ -111,19 +113,20 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
 
     if (!result) {
       console.warn("[video] No homepage tandraIntroVideo content found; using default video copy.");
-      return { content: defaultTandraIntroContent, source: "fallback" };
+      return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
     }
 
     const documentId =
       typeof payload.result?.home?._id === "string" ? payload.result.home._id : undefined;
 
     return {
+      showCaptions: typeof result.showCaptions === "boolean" ? result.showCaptions : false,
       content: mergeTandraIntroContent(result),
       source: token ? "sanity-draft-or-published" : "sanity-published",
       documentId,
     };
   } catch (error) {
     console.warn(`[video] Sanity fetch failed; using default video copy. ${error}`);
-    return { content: defaultTandraIntroContent, source: "fallback" };
+    return { showCaptions: false, content: defaultTandraIntroContent, source: "fallback" };
   }
 };

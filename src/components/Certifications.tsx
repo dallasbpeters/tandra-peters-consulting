@@ -18,6 +18,7 @@ const defaultCertifications: CertificationsProps["certifications"] = [
 
 export const Certifications: React.FC<CertificationsProps> = ({
   certifications = defaultCertifications,
+  title,
 }) => {
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
@@ -29,8 +30,16 @@ export const Certifications: React.FC<CertificationsProps> = ({
       id="certifications"
       className={`${layoutClass.containerWide} certifications`}
       style={sectionStyle}
-      aria-labelledby="certifications-heading"
+      aria-label={typeof title === "string" && title.trim() ? undefined : "Certifications"}
+      aria-labelledby={
+        typeof title === "string" && title.trim() ? "certifications-heading" : undefined
+      }
     >
+      {typeof title === "string" && title.trim() ? (
+        <h2 id="certifications-heading" style={{ margin: 0, marginBottom: theme.spacing.md }}>
+          {title}
+        </h2>
+      ) : null}
       <div className="certifications__logos">
         {certifications.map((certification) => (
           <img

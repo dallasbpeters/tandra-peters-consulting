@@ -12,6 +12,7 @@ const INTRO_QUERY = `{
   "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{
     _id,
     "intro": tandraIntroVideo{
+      showCaptions,
       storm,
       straightAnswers,
       inspection,
@@ -152,6 +153,7 @@ export const mergeTandraIntroContent = (incoming: unknown): TandraIntroContent =
 };
 
 export type FetchTandraIntroResult = {
+  showCaptions: boolean;
   content: TandraIntroContent;
   contentHash: string;
   renderContentHash?: string;
@@ -181,6 +183,7 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
         `[render-tandra-intro] Sanity fetch failed (${response.status}); using default video copy.`,
       );
       return {
+        showCaptions: false,
         content: defaultTandraIntroContent,
         contentHash: hashTandraIntroContent(defaultTandraIntroContent),
         source: "fallback",
@@ -203,6 +206,7 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
         "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy.",
       );
       return {
+        showCaptions: false,
         content: defaultTandraIntroContent,
         contentHash: hashTandraIntroContent(defaultTandraIntroContent),
         source: "fallback",
@@ -217,6 +221,7 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
       typeof result.renderContentHash === "string" ? result.renderContentHash : undefined;
 
     return {
+      showCaptions: typeof result.showCaptions === "boolean" ? result.showCaptions : false,
       content,
       contentHash: hashTandraIntroContent(content),
       renderContentHash,
@@ -226,6 +231,7 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
   } catch (error) {
     console.warn(`[render-tandra-intro] Sanity fetch failed; using default video copy. ${error}`);
     return {
+      showCaptions: false,
       content: defaultTandraIntroContent,
       contentHash: hashTandraIntroContent(defaultTandraIntroContent),
       source: "fallback",

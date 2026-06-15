@@ -19,6 +19,7 @@ export const RemotionRoot = () => {
         component={TandraIntro}
         schema={tandraIntroSchema}
         defaultProps={{
+          showCaptions: false,
           content: {
             storm: {
               kicker: "Austin Homeowners",

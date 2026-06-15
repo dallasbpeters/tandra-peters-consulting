@@ -147,6 +147,71 @@ export const videoSectionType = defineType({
   ],
 });
 
+export const birdcreekVideoBannerSectionType = defineType({
+  name: "birdcreekVideoBannerSection",
+  title: "Birdcreek video banner",
+  type: "object",
+  fields: [
+    defineField({
+      name: "vimeoUrl",
+      title: "Vimeo URL",
+      type: "url",
+      description: "Vimeo link or player URL used by the embedded banner.",
+    }),
+    defineField({
+      name: "title",
+      title: "Title",
+      type: "string",
+      description: "Optional heading shown above the video banner.",
+    }),
+  ],
+});
+
+export const contactBannerSectionType = defineType({
+  name: "contactBannerSection",
+  title: "Contact banner",
+  type: "object",
+  fields: [
+    defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
+    defineField({ name: "headline", title: "Headline", type: "string" }),
+    defineField({ name: "phoneLabel", title: "Label", type: "string" }),
+    defineField({ name: "phoneDisplay", title: "Phone / button text", type: "string" }),
+    defineField({ name: "phoneTel", title: "Phone number (tel)", type: "string" }),
+    defineField({ name: "phoneHref", title: "CTA href", type: "string" }),
+    defineField({ name: "phoneAriaLabel", title: "CTA aria label", type: "string" }),
+    defineField({ name: "ariaLabel", title: "Section aria label", type: "string" }),
+    defineField({
+      name: "ctaIcon",
+      title: "CTA icon",
+      type: "string",
+      options: {
+        list: [
+          { title: "Phone", value: "phone" },
+          { title: "Calculator", value: "calculator" },
+          { title: "Help circle", value: "helpCircle" },
+        ],
+      },
+    }),
+  ],
+});
+
+export const certificationsSectionType = defineType({
+  name: "certificationsSection",
+  title: "Certifications",
+  type: "object",
+  fields: [
+    defineField({
+      name: "title",
+      title: "Heading",
+      type: "string",
+      initialValue: "Certifications",
+    }),
+  ],
+  preview: {
+    prepare: () => ({ title: "Certifications" }),
+  },
+});
+
 export const marqueeSectionType = defineType({
   name: "marqueeSection",
   title: "Scroll marquee",

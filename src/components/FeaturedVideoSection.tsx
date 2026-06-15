@@ -6,6 +6,7 @@ import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
+import { getCaptionCues } from "../remotion/tandraIntroContent";
 import { theme } from "../theme";
 import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
@@ -46,8 +47,13 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
   const [hideControlsUntilMouseLeave, setHideControlsUntilMouseLeave] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
   const isInView = useInView(sectionRef, { once: true, amount: 0.45 });
-  const showRemotionPlayer = Boolean(introContent);
+  const captionCues = useMemo(
+    () => (introContent ? getCaptionCues(introContent) : []),
+    [introContent],
+  );
+  const showRemotionPlayer = Boolean(introContent) && !videoUrl;
   const introContentKey = useMemo(
     () => (introContent ? JSON.stringify(introContent) : "uploaded-video"),
     [introContent],
@@ -72,6 +78,14 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
       setHideControlsUntilMouseLeave(true);
     }
   }, [isMobileDevice]);
+
+  const handleToggleCaptions = useCallback(() => {
+    setShowCaptions((current) => !current);
+  }, []);
+
+  useEffect(() => {
+    setShowCaptions(false);
+  }, [introContentKey]);
 
   const shouldShowControls = isMobileDevice || (isHoveringVideo && !hideControlsUntilMouseLeave);
 
@@ -121,21 +135,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
         }}
       >
         <div className="featured-video__frame">
-          {introContent ? (
-            <motion.div
-              key={introContentKey}
-              variants={videoVariants}
-              initial="offscreen"
-              animate={isInView ? "onscreen" : "offscreen"}
-              className="featured-video__video featured-video__player"
-            >
-              <FeaturedRemotionPlayer
-                ref={playerRef}
-                content={introContent}
-                posterUrl={posterUrl}
-              />
-            </motion.div>
-          ) : videoUrl ? (
+          {videoUrl ? (
             // Captions are burned into the rendered MP4 by the Remotion
             // composition (see TandraIntro <Captions>), so no sidecar
             // <track> is needed here.
@@ -151,12 +151,30 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
               poster={posterUrl}
               controls={false}
             />
+          ) : introContent ? (
+            <motion.div
+              key={introContentKey}
+              variants={videoVariants}
+              initial="offscreen"
+              animate={isInView ? "onscreen" : "offscreen"}
+              className="featured-video__video featured-video__player"
+            >
+              <FeaturedRemotionPlayer
+                ref={playerRef}
+                content={introContent}
+                posterUrl={posterUrl}
+                showCaptions={showCaptions}
+              />
+            </motion.div>
           ) : null}
           <VideoControls
             videoRef={videoRef}
             playerRef={playerRef}
             isRemotion={showRemotionPlayer}
             posterUrl={posterUrl}
+            captionsVisible={showCaptions}
+            captionCues={captionCues}
+            onToggleCaptions={captionCues.length > 0 ? handleToggleCaptions : undefined}
             isVisible={shouldShowControls}
             onControlPress={handleControlPress}
           />

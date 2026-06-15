@@ -107,6 +107,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "1.",
+        title: "Ridge cap & vent",
+        body: "The peak. Caps are heavier than field shingles — wind hits hardest here and the ridge is the last line of defence. The slot underneath is the ridge vent: that's how your attic breathes out in summer.",
+        watchFor:
+          "Lifted or buckling caps after a windstorm. A vent that was painted shut during the last re-roof.",
+      },
       camera: {
         azimuthal: -135.2,
         polar: 86,
@@ -120,6 +127,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "2.",
+        title: "Field shingles",
+        body: "The main course. Most Texas roofs are architectural asphalt — heavier than three-tab, rated 110+ mph when nailed correctly. What you're looking at is the granular surface that takes the UV hit every summer.",
+        watchFor:
+          "Bare patches where granules washed into the gutters. Sun age, not always storm damage.",
+      },
       camera: {
         azimuthal: -29.3,
         polar: 88.3,
@@ -133,6 +147,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "3.",
+        title: "Underlayment",
+        body: "The layer between shingles and decking — only visible at the cut face or during a tear-off. Synthetic beats old #15 felt: tougher, lighter, won't shred if wind catches it mid-install.",
+        watchFor:
+          "Whether your installer is using the manufacturer's matched underlayment system. Mix brands and the warranty thins fast.",
+      },
       camera: {
         azimuthal: 251.6,
         polar: 53.9,
@@ -146,6 +167,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "4.",
+        title: "Decking",
+        body: "Plywood or OSB nailed to the rafters. You only see it during a tear-off — and that's the moment to check for soft boards. A soft board telegraphs right through the new roof within a year.",
+        watchFor:
+          'A contract that includes decking replacement at cost per sheet, not a vague "as needed" line that turns into a surprise.',
+      },
       camera: {
         azimuthal: 187.5,
         polar: 68.6,
@@ -159,6 +187,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "5.",
+        title: "Step flashing",
+        body: "Bent metal pieces tucked under each shingle course where the slope meets a vertical wall. Half the leaks I see start here — because someone saved twenty minutes during install.",
+        watchFor:
+          "One continuous L-strip pretending to be step flashing. That's a leak waiting for the first hard sideways rain.",
+      },
       camera: {
         azimuthal: -167.6,
         polar: 64.6,
@@ -172,6 +207,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "6.",
+        title: "Drip edge",
+        body: "The L-shaped metal that runs along the eave and rakes, kicking water away from the fascia into the gutter. Code in Texas. Skipped on more cheap re-roofs than I'd like to count.",
+        watchFor:
+          "Stain lines on the fascia board below — water's been running where it shouldn't.",
+      },
       camera: {
         azimuthal: -94.6,
         polar: 80.8,
@@ -185,6 +227,13 @@ export const ROOF_SCENE_DEFAULTS = {
     {
       durationSecs: 12,
       skip: false,
+      callout: {
+        num: "7.",
+        title: "Soffit & fascia",
+        body: "The boards you see from the driveway — fascia in front, soffit underneath. Soffit vents are how cool air enters the attic; without them the ridge vent has nothing to pull through.",
+        watchFor:
+          "Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.",
+      },
       camera: {
         azimuthal: -75.7,
         polar: 80,

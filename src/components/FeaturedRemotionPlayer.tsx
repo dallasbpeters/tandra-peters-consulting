@@ -8,6 +8,7 @@ import { TandraIntro } from "../remotion/TandraIntro";
 type Props = {
   content: TandraIntroContent;
   posterUrl?: string;
+  showCaptions: boolean;
 };
 
 const REMOTION_FPS = 30;
@@ -15,8 +16,8 @@ export const REMOTION_DURATION_IN_FRAMES = 900;
 export const REMOTION_DURATION_SECONDS = REMOTION_DURATION_IN_FRAMES / REMOTION_FPS;
 
 export const FeaturedRemotionPlayer = memo(
-  forwardRef<PlayerRef, Props>(({ content, posterUrl }, ref) => {
-    const inputProps = useMemo(() => ({ content }), [content]);
+  forwardRef<PlayerRef, Props>(({ content, posterUrl, showCaptions }, ref) => {
+    const inputProps = useMemo(() => ({ content, showCaptions }), [content, showCaptions]);
     const renderPoster = useMemo(
       () =>
         posterUrl

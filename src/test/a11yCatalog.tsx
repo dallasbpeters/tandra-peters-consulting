@@ -248,7 +248,11 @@ export const a11yCases: A11yCase[] = [
     name: "FeaturedRemotionPlayer",
     render: () =>
       renderPlain(
-        <FeaturedRemotionPlayer content={defaultTandraIntroContent} posterUrl="/roof.jpeg" />,
+        <FeaturedRemotionPlayer
+          content={defaultTandraIntroContent}
+          posterUrl="/roof.jpeg"
+          showCaptions={false}
+        />,
       ),
   },
   {
@@ -294,6 +298,7 @@ export const a11yCases: A11yCase[] = [
           isRemotion={false}
           isVisible
           posterUrl="/roof.jpeg"
+          captionsVisible={false}
         />,
       );
     },

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * POST /api/render-tandra-intro on local dev or production.
+ * POST /api/render-tandra-intro on production by default.
  *
  * Usage:
  *   pnpm video:render:vercel
@@ -18,7 +18,7 @@ const urlFlagIndex = args.indexOf("--url");
 const baseUrl =
   urlFlagIndex >= 0
     ? args[urlFlagIndex + 1]
-    : process.env.VITE_SITE_URL?.trim() || "http://localhost:3001";
+    : process.env.VITE_RENDER_SITE_URL?.trim() || "https://www.tandra.me";
 
 const secret = process.env.RENDER_VIDEO_SECRET?.trim();
 const endpoint = `${baseUrl.replace(/\/$/, "")}/api/render-tandra-intro`;

@@ -31,6 +31,13 @@ export const tandraIntroVideoType = defineType({
   ],
   fields: [
     defineField({
+      name: "showCaptions",
+      title: "Show captions",
+      type: "boolean",
+      initialValue: false,
+      description: "Toggle the subtitle overlay in the rendered video and preview.",
+    }),
+    defineField({
       name: "thumbnail",
       title: "Video thumbnail",
       type: "image",

@@ -1,7 +1,8 @@
 import { stegaClean } from "@sanity/client/stega";
-import { Facebook, Mail, Phone } from "iconoir-react";
+import { Calculator, Facebook, HelpCircle, Mail, Phone } from "iconoir-react";
 import React from "react";
 
+import type { ContactBannerProps } from "../lib/contactBannerPresets";
 import type { HeroProps } from "../types";
 import type { VideoProps } from "../types";
 import type { AboutProps } from "../types";
@@ -35,6 +36,12 @@ const SOCIAL_PLATFORM_LABELS: Record<keyof typeof SOCIAL_ICONS, string> = {
   email: "Email me",
   phone: "Call me",
 };
+
+const CONTACT_BANNER_ICONS = {
+  phone: Phone,
+  calculator: Calculator,
+  helpCircle: HelpCircle,
+} as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SanityDoc = Record<string, any> | null | undefined;
@@ -166,6 +173,67 @@ export const mapBirdcreekVideoBannerProps = (
   return {
     ...(vimeoUrl ? { vimeoUrl } : {}),
     ...(title ? { title } : {}),
+  };
+};
+
+export const mapContactBannerProps = (data: SanityDoc): Partial<ContactBannerProps> => {
+  if (!data) {
+    return {};
+  }
+
+  const pick = (value: unknown): string | undefined =>
+    typeof value === "string" && value.trim() ? value.trim() : undefined;
+
+  return {
+    ...(pick(data.eyebrow) ? { eyebrow: pick(data.eyebrow) } : {}),
+    ...(pick(data.headline) ? { headline: pick(data.headline) } : {}),
+    ...(pick(data.phoneLabel) ? { phoneLabel: pick(data.phoneLabel) } : {}),
+    ...(pick(data.phoneDisplay) ? { phoneDisplay: pick(data.phoneDisplay) } : {}),
+    ...(pick(data.phoneTel) ? { phoneTel: pick(data.phoneTel) } : {}),
+    ...(pick(data.phoneHref) ? { phoneHref: pick(data.phoneHref) } : {}),
+    ...(pick(data.phoneAriaLabel) ? { phoneAriaLabel: pick(data.phoneAriaLabel) } : {}),
+    ...(pick(data.ariaLabel) ? { ariaLabel: pick(data.ariaLabel) } : {}),
+    ...(pick(data.backgroundColor) ? { backgroundColor: pick(data.backgroundColor) } : {}),
+    ...(pick(data.textColor) ? { textColor: pick(data.textColor) } : {}),
+    ...(pick(data.eyebrowColor) ? { eyebrowColor: pick(data.eyebrowColor) } : {}),
+    ...(pick(data.eyebrowColorLight) ? { eyebrowColorLight: pick(data.eyebrowColorLight) } : {}),
+    ...(pick(data.accentGlowColor) ? { accentGlowColor: pick(data.accentGlowColor) } : {}),
+    ...(pick(data.iconColor) ? { iconColor: pick(data.iconColor) } : {}),
+    ...(pick(data.iconColorLight) ? { iconColorLight: pick(data.iconColorLight) } : {}),
+    ...(pick(data.iconColorDark) ? { iconColorDark: pick(data.iconColorDark) } : {}),
+    ...(pick(data.iconColorVeryDark) ? { iconColorVeryDark: pick(data.iconColorVeryDark) } : {}),
+    ...(pick(data.phoneLinkBackground)
+      ? { phoneLinkBackground: pick(data.phoneLinkBackground) }
+      : {}),
+    ...(pick(data.phoneLinkHoverBackground)
+      ? { phoneLinkHoverBackground: pick(data.phoneLinkHoverBackground) }
+      : {}),
+    ...(pick(data.phoneLinkHoverShadow)
+      ? { phoneLinkHoverShadow: pick(data.phoneLinkHoverShadow) }
+      : {}),
+    ...(pick(data.phoneLinkHoverOutline)
+      ? { phoneLinkHoverOutline: pick(data.phoneLinkHoverOutline) }
+      : {}),
+    ...(pick(data.phoneLinkHoverTextColor)
+      ? { phoneLinkHoverTextColor: pick(data.phoneLinkHoverTextColor) }
+      : {}),
+    ...(pick(data.phoneLinkHoverLabelColor)
+      ? { phoneLinkHoverLabelColor: pick(data.phoneLinkHoverLabelColor) }
+      : {}),
+    ...(pick(data.phoneIconBackground)
+      ? { phoneIconBackground: pick(data.phoneIconBackground) }
+      : {}),
+    ...(pick(data.phoneIconHoverBackground)
+      ? { phoneIconHoverBackground: pick(data.phoneIconHoverBackground) }
+      : {}),
+    ...(pick(data.pulseColor) ? { pulseColor: pick(data.pulseColor) } : {}),
+    ...(pick(data.pulsePingColor) ? { pulsePingColor: pick(data.pulsePingColor) } : {}),
+    ...(pick(data.gridColor) ? { gridColor: pick(data.gridColor) } : {}),
+    ...(typeof data.ctaIcon === "string" &&
+    data.ctaIcon.trim() &&
+    data.ctaIcon in CONTACT_BANNER_ICONS
+      ? { ctaIcon: CONTACT_BANNER_ICONS[data.ctaIcon as keyof typeof CONTACT_BANNER_ICONS] }
+      : {}),
   };
 };
 

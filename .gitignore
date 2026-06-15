@@ -17,3 +17,5 @@ coverage/
 .playwright-cli/*
 training/output/
 training/txshingle-lora.json
+
+.remotion

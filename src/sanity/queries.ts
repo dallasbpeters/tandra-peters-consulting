@@ -36,6 +36,179 @@ export const HOME_AND_SITE_QUERY = groq`{
       ...,
       "thumbnailUrl": thumbnail.asset->url
     },
+    sections[]{
+      _key,
+      _type,
+      "data": select(
+        _type == "heroSection" => {
+          badge,
+          titleLine1,
+          titleLine2,
+          subtitle,
+          ctaText,
+          ctaHref,
+          secondaryCtaText,
+          secondaryCtaHref,
+          "backgroundImage": backgroundImage.asset->url,
+          "skyImage": skyImage.asset->url,
+          "foregroundImage": foregroundImage.asset->url,
+          heroStyle
+        },
+        _type == "marqueeSection" => {
+          text,
+          direction,
+          velocity
+        },
+        _type == "birdcreekVideoBannerSection" => {
+          vimeoUrl,
+          title
+        },
+        _type == "videoSection" => {
+          "video": coalesce(video.asset->url, video),
+          title,
+          "posterUrl": posterUrl.asset->url
+        },
+        _type == "aboutSection" => {
+          badgeText,
+          badgeSubtext,
+          "image": image.asset->url,
+          titleLine1,
+          titleLine2,
+          body,
+          paragraphs
+        },
+        _type == "statsSection" => {
+          title,
+          items[] { ... }
+        },
+        _type == "servicesSection" => {
+          tagline,
+          titleLines,
+          description,
+          services[] {
+            ...,
+            "image": image.asset->url
+          },
+          birdcreekAdvantage {
+            ...
+          },
+          servicesStyle,
+          typographicArt {
+            "baseMaskImage": baseMaskImage.asset->url,
+            "overlayMaskImage": overlayMaskImage.asset->url
+          }
+        },
+        _type == "serviceAreaMap" => {
+          eyebrow,
+          title,
+          description,
+          areas[] {
+            countyKey,
+            displayName,
+            clientCount
+          }
+        },
+        _type == "missionSection" => {
+          tagline,
+          title,
+          description,
+          values[] {
+            ...,
+            "image": image.asset->url
+          }
+        },
+        _type == "beforeAfterSection" => {
+          eyebrow,
+          title,
+          intro,
+          items[] {
+            _key,
+            title,
+            description,
+            "beforeImage": beforeImage.asset->url,
+            "afterImage": afterImage.asset->url
+          }
+        },
+        _type == "expertiseSection" => {
+          tagline,
+          title,
+          items[] {
+            ...,
+            "image": image.asset->url
+          }
+        },
+        _type == "contactBannerSection" => {
+          eyebrow,
+          headline,
+          phoneLabel,
+          phoneDisplay,
+          phoneTel,
+          phoneHref,
+          phoneAriaLabel,
+          ariaLabel,
+          ctaIcon,
+          backgroundColor,
+          textColor,
+          eyebrowColor,
+          eyebrowColorLight,
+          accentGlowColor,
+          iconColor,
+          iconColorLight,
+          iconColorDark,
+          iconColorVeryDark,
+          phoneLinkBackground,
+          phoneLinkHoverBackground,
+          phoneLinkHoverShadow,
+          phoneLinkHoverOutline,
+          phoneLinkHoverTextColor,
+          phoneLinkHoverLabelColor,
+          phoneIconBackground,
+          phoneIconHoverBackground,
+          pulseColor,
+          pulsePingColor,
+          gridColor
+        },
+        _type == "testimonialsSection" => {
+          tagline,
+          title,
+          elfsightWidgetId,
+          emptyStateNote
+        },
+        _type == "faqSection" => {
+          tagline,
+          title,
+          intro,
+          items[] {
+            _key,
+            question,
+            answer
+          }
+        },
+        _type == "articlesTeaserSection" => {
+          eyebrow,
+          title,
+          intro,
+          viewAllLabel,
+          maxPosts,
+          enabled,
+          featuredPosts
+        },
+        _type == "certificationsSection" => {
+          title
+        },
+        _type == "contactSection" => {
+          tagline,
+          title,
+          email,
+          phone,
+          location
+        },
+        _type == "socialShareSection" => {
+          heading,
+          shareText
+        }
+      )
+    },
     about {
       ...,
       "image": image.asset->url

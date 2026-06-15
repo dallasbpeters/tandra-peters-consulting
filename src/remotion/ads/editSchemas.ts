@@ -50,6 +50,60 @@ const profilePhotoFields: EditorField[] = [
   { key: "intro.profilePhoto.src", label: "Photo URL", type: "textarea" },
 ];
 
+const helpingSceneFields = (index: number, label: string): EditorSection => ({
+  key: `scene${index}`,
+  label,
+  fields: [
+    { key: `scenes.${index}.headline`, label: "Headline", type: "text" },
+    { key: `scenes.${index}.body`, label: "Body", type: "textarea" },
+    { key: `scenes.${index}.showPill`, label: "Show pill", type: "boolean" },
+    { key: `scenes.${index}.pill`, label: "Pill text", type: "text" },
+    {
+      key: `scenes.${index}.image`,
+      label: "Background image",
+      type: "select",
+      options: IMAGE_OPTIONS,
+    },
+  ],
+});
+
+const helpingOpeningFields: EditorSection = {
+  key: "opening",
+  label: "Opening scene",
+  fields: [
+    { key: "scenes.0.line1", label: "Line 1", type: "text" },
+    { key: "scenes.0.line2", label: "Line 2", type: "text" },
+    { key: "scenes.0.line3", label: "Line 3", type: "text" },
+    { key: "scenes.0.style", label: "Light leak style", type: "number" },
+    { key: "scenes.0.hueshift", label: "Hue shift", type: "number" },
+    { key: "scenes.0.shiftDuration", label: "Shift duration", type: "number" },
+  ],
+};
+
+const helpingCtaFields: EditorSection = {
+  key: "cta",
+  label: "CTA scene",
+  fields: [
+    { key: "scenes.5.setup", label: "Setup", type: "text" },
+    { key: "scenes.5.punch", label: "Punch", type: "textarea" },
+    { key: "scenes.5.action", label: "Action", type: "text" },
+    { key: "scenes.5.badge", label: "Badge", type: "text" },
+    { key: "scenes.5.byline", label: "Byline", type: "text" },
+    { key: "scenes.5.badges.show", label: "Show badges", type: "boolean" },
+    { key: "scenes.5.badges.gafMasterElite", label: "GAF Master Elite", type: "boolean" },
+    { key: "scenes.5.badges.ikoRoofSelect", label: "IKO Roof Select", type: "boolean" },
+    { key: "scenes.5.badges.rcatMember", label: "RCAT Member", type: "boolean" },
+    { key: "scenes.5.badges.rsraCommittee", label: "RSRA Committee", type: "boolean" },
+    { key: "scenes.5.badges.tamkoPro", label: "Tamko Pro", type: "boolean" },
+  ],
+};
+
+const helpingLogoFields: EditorSection = {
+  key: "logo",
+  label: "Logo scene",
+  fields: [{ key: "scenes.6.text", label: "Logo text", type: "text" }],
+};
+
 export const SCHEMAS: Record<string, EditorSchema> = {
   TandraRoofValue: [
     {
@@ -204,6 +258,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.0.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.0.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.0.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.0.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.0.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.0.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -221,6 +278,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.1.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.1.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.1.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.1.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.1.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.1.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -238,6 +298,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.2.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.2.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.2.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.2.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.2.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.2.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -255,6 +318,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.3.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.3.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.3.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.3.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.3.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.3.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -272,6 +338,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.4.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.4.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.4.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.4.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.4.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.4.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -289,6 +358,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.5.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.5.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.5.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.5.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.5.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.5.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -306,6 +378,9 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         { key: "chapters.6.hotspot.x", label: "Hotspot X", type: "number" },
         { key: "chapters.6.hotspot.y", label: "Hotspot Y", type: "number" },
         { key: "chapters.6.hotspot.z", label: "Hotspot Z", type: "number" },
+        { key: "chapters.6.callout.title", label: "Callout title", type: "text" },
+        { key: "chapters.6.callout.body", label: "Callout body", type: "textarea" },
+        { key: "chapters.6.callout.watchFor", label: "Watch for", type: "textarea" },
       ],
     },
     {
@@ -337,20 +412,23 @@ export const SCHEMAS: Record<string, EditorSchema> = {
   ],
 
   HelpingTexasHomeowners: [
-    {
-      key: "general",
-      label: "Scenes",
-      fields: [
-        { key: "scenes", label: "Scene count (read-only — edit in Sanity schema)", type: "text" },
-      ],
-    },
+    helpingOpeningFields,
+    helpingSceneFields(1, "Scene 2 — Roof damages"),
+    helpingSceneFields(2, "Scene 3 — Water leaks"),
+    helpingSceneFields(3, "Scene 4 — Cracked tiles"),
+    helpingSceneFields(4, "Scene 5 — Missing shingles"),
+    helpingCtaFields,
+    helpingLogoFields,
   ],
 
   TandraIntro: [
     {
       key: "settings",
       label: "Settings",
-      fields: [{ key: "showProfilePhoto", label: "Show profile photo", type: "boolean" }],
+      fields: [
+        { key: "showCaptions", label: "Show captions", type: "boolean" },
+        { key: "showProfilePhoto", label: "Show profile photo", type: "boolean" },
+      ],
     },
     {
       key: "storm",

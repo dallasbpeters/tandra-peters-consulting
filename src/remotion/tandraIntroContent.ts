@@ -15,6 +15,7 @@ const threeLineSceneSchema = twoLineSceneSchema.extend({
 });
 
 export const tandraIntroSchema = z.object({
+  showCaptions: z.boolean().default(false),
   content: z.object({
     storm: twoLineSceneSchema.extend({
       body: bodyText,
@@ -188,6 +189,15 @@ export const getCaptionCues = (c: TandraIntroContent): CaptionCue[] =>
     toFrame: to,
     text: sceneCaptionText(c, scene),
   })).filter((cue) => cue.text.length > 0);
+
+export const captionAtTime = (
+  cues: CaptionCue[],
+  timeSeconds: number,
+  fps = TANDRA_INTRO_FPS,
+): string => {
+  const frame = Math.floor(timeSeconds * fps);
+  return captionAtFrame(cues, frame);
+};
 
 /** Caption text active at a given frame, or "" when none. */
 export const captionAtFrame = (cues: CaptionCue[], frame: number): string => {

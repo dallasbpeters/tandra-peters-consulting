@@ -12,6 +12,7 @@ import { viteContactDevApi } from "./plugins/viteContactDevApi";
 import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
 import { viteEstimateDevApi } from "./plugins/viteEstimateDevApi";
 import { viteFalDevApi } from "./plugins/viteFalDevApi";
+import { viteRenderTandraIntroApi } from "./plugins/viteRenderTandraIntroApi";
 import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
 import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
 import { viteSitemapApi } from "./plugins/viteSitemapApi";
@@ -96,6 +97,7 @@ export default defineConfig(({ mode }) => {
     viteAdVersionsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
     viteEstimateDevApi(env) as unknown as PluginOption,
+    viteRenderTandraIntroApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,
     ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
     tailwindcss() as unknown as PluginOption,

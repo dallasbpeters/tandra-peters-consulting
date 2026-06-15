@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
 
+import { loadFont } from "@remotion/google-fonts/HankenGrotesk";
+
+const { fontFamily } = loadFont("normal", {
+  weights: ["400", "300", "500", "700", "800"],
+  subsets: ["latin"],
+});
+
 import {
   AbsoluteFill,
   Easing,
@@ -103,7 +110,7 @@ const Kicker = ({
         alignItems: "center",
         color: color,
         display: "flex",
-        fontFamily: theme.fonts.headline,
+        fontFamily: fontFamily,
         fontSize: 25,
         fontWeight: 800,
         gap: 24,
@@ -158,7 +165,7 @@ const BigLine = ({
     <div
       style={{
         color,
-        fontFamily: serif ? theme.fonts.headlineAlt : theme.fonts.headline,
+        fontFamily: serif ? theme.fonts.headlineAlt : fontFamily,
         fontSize: size,
         fontWeight: serif ? 400 : 800,
         letterSpacing: 0,
@@ -339,7 +346,7 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
           style={{
             bottom: 104,
             color: colors.paperDark,
-            fontFamily: theme.fonts.headline,
+            fontFamily: fontFamily,
             fontSize: 44,
             fontWeight: 300,
             left: 128,
@@ -391,7 +398,7 @@ const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straig
             alignSelf: "end",
             borderLeft: `2px solid ${colors.paperDark}`,
             color: colors.everglade,
-            fontFamily: theme.fonts.headlineAlt,
+            fontFamily: fontFamily,
             fontSize: 74,
             lineHeight: 1.08,
             paddingLeft: 56,
@@ -439,7 +446,7 @@ const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"
           <p
             style={{
               color: colors.paper,
-              fontFamily: theme.fonts.headline,
+              fontFamily: fontFamily,
               fontSize: 40,
               fontWeight: 300,
               lineHeight: 1.38,
@@ -561,7 +568,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
             bottom: 96,
             color: colors.paperDark,
             display: "flex",
-            fontFamily: theme.fonts.headline,
+            fontFamily: fontFamily,
             fontSize: 34,
             fontWeight: 700,
             gap: 34,
@@ -622,7 +629,7 @@ const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) =
           style={{
             backgroundColor: colors.everglade,
             color: colors.paper,
-            fontFamily: theme.fonts.headline,
+            fontFamily: fontFamily,
             fontSize: 34,
             fontWeight: 800,
             letterSpacing: "0.1em",
@@ -682,7 +689,7 @@ const Captions = ({ cues }: { cues: CaptionCue[] }) => {
           backgroundColor: "rgba(3, 16, 11, 0.82)",
           borderRadius: 14,
           color: colors.white,
-          fontFamily: theme.fonts.headline,
+          fontFamily: fontFamily,
           fontSize: 38,
           fontWeight: 600,
           lineHeight: 1.3,
@@ -700,7 +707,7 @@ const Captions = ({ cues }: { cues: CaptionCue[] }) => {
   );
 };
 
-export const TandraIntro = ({ content }: TandraIntroProps) => {
+export const TandraIntro = ({ content, showCaptions = true }: TandraIntroProps) => {
   const captionCues = getCaptionCues(content);
   return (
     <AbsoluteFill style={{ backgroundColor: colors.black }}>
@@ -710,7 +717,7 @@ export const TandraIntro = ({ content }: TandraIntroProps) => {
       <ManagedScene content={content.managed} />
       <ProofScene content={content.proof} />
       <ClosingScene content={content.closing} />
-      <Captions cues={captionCues} />
+      {showCaptions ? <Captions cues={captionCues} /> : null}
     </AbsoluteFill>
   );
 };

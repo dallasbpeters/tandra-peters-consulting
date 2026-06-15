@@ -23,6 +23,7 @@ import {
   addBundleToSandbox,
   createSandbox,
   renderMediaOnVercel,
+  renderStillOnVercel,
   uploadToVercelBlob,
 } from "@remotion/vercel";
 import { execSync } from "node:child_process";
@@ -30,6 +31,7 @@ import { execSync } from "node:child_process";
 import { AD_COMPOSITION_DEFAULTS, isAdCompositionId } from "./lib/ad-composition-defaults.js";
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
 import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.js";
+import { patchTandraIntroThumbnail } from "./lib/patch-tandra-intro-thumbnail.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
 const DEFAULT_COMPOSITION_ID = "TandraIntro";
@@ -43,6 +45,16 @@ const resolveCompositionId = (req: VercelRequest): string => {
       : undefined;
   const raw = (fromBody ?? fromQuery ?? DEFAULT_COMPOSITION_ID).trim();
   return raw || DEFAULT_COMPOSITION_ID;
+};
+
+const shouldCapturePoster = (req: VercelRequest): boolean => {
+  const fromQuery = queryValue(req.query.poster)?.toLowerCase();
+  const fromBody =
+    req.body && typeof req.body === "object"
+      ? ((req.body as Record<string, unknown>).poster as boolean | undefined)
+      : undefined;
+
+  return fromQuery === "true" || fromBody === true;
 };
 
 const isAuthorized = (req: VercelRequest): boolean => {
@@ -73,7 +85,23 @@ const bundleRemotionProject = (): void => {
   });
 };
 
+const applyCors = (res: VercelResponse): void => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, x-force-render, x-render-secret",
+  );
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  applyCors(res);
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
@@ -95,6 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   const onVercel = Boolean(process.env.VERCEL);
   const compositionId = resolveCompositionId(req);
+  const capturePoster = shouldCapturePoster(req);
   const isAd = isAdCompositionId(compositionId);
   let sandbox: Sandbox | null = null;
 
@@ -137,6 +166,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     .replace(/(^-|-$)/g, "");
 
   try {
+    if (capturePoster) {
+      sandbox = await startSandbox();
+      const intro = isAd ? null : await fetchTandraIntroContent();
+      let posterInputProps: Record<string, unknown>;
+      if (isAd) {
+        posterInputProps = AD_COMPOSITION_DEFAULTS[compositionId];
+      } else {
+        if (!intro) {
+          throw new Error("Poster capture requires intro content.");
+        }
+        posterInputProps = { content: intro.content, showCaptions: intro.showCaptions };
+      }
+
+      const { sandboxFilePath, contentType } = await renderStillOnVercel({
+        sandbox,
+        compositionId,
+        inputProps: posterInputProps,
+        frame: 0,
+        imageFormat: "png",
+        onProgress: (update) => {
+          console.log(
+            `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`,
+          );
+        },
+      });
+
+      const image = await sandbox.readFileToBuffer({ path: sandboxFilePath });
+      if (!image) {
+        throw new Error(
+          "Poster render finished but the image file could not be read from the sandbox.",
+        );
+      }
+
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `${blobSlug}-${stamp}.png`;
+      const posterPatch =
+        compositionId === DEFAULT_COMPOSITION_ID
+          ? await patchTandraIntroThumbnail(image, filename)
+          : { ok: true as const, thumbnailUrl: "" };
+
+      if (posterPatch.ok === false) {
+        throw new Error(posterPatch.reason);
+      }
+
+      res.status(200).json({
+        compositionId,
+        posterUrl: posterPatch.thumbnailUrl || undefined,
+        contentType,
+        copySource: isAd ? "defaults" : "sanity",
+        thumbnailUpdated: compositionId === DEFAULT_COMPOSITION_ID,
+      });
+      return;
+    }
+
     // ── Social-ad compositions: static default copy, no Sanity skip/patch. ──
     if (isAd) {
       const inputProps = AD_COMPOSITION_DEFAULTS[compositionId];
@@ -166,7 +249,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     // ── TandraIntro: CMS-backed copy with content-hash skip + Sanity patch. ──
-    const { content, contentHash, renderContentHash, source, documentId } =
+    const { content, contentHash, renderContentHash, source, documentId, showCaptions } =
       await fetchTandraIntroContent();
 
     if (!shouldForceRender(req) && source !== "fallback" && renderContentHash === contentHash) {
@@ -186,7 +269,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const { sandboxFilePath, contentType } = await renderMediaOnVercel({
       sandbox,
       compositionId,
-      inputProps: { content },
+      inputProps: { content, showCaptions },
       onProgress: logRenderProgress,
     });
 

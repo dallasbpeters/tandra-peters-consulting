@@ -61,7 +61,7 @@ export const RemotionPreviewPage = () => {
       fetchTandraIntroContent()
         .then((result) => {
           if (!cancelled) {
-            setLiveProps({ content: result.content });
+            setLiveProps({ showCaptions: result.showCaptions, content: result.content });
           }
         })
         .catch(() => {

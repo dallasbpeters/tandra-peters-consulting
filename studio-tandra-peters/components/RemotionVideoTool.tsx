@@ -111,8 +111,8 @@ const COMPOSITIONS: CompositionMeta[] = [
   },
 ];
 
-const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3001";
-const PREVIEW_BASE = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || origin;
+const PREVIEW_BASE =
+  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
 const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,8 +122,20 @@ const DEFAULT_PROPS: Record<string, any> = {
   RoofScene: ROOF_SCENE_DEFAULTS,
   CustomSlots: CUSTOM_SLOTS_DEFAULTS,
   HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
-  TandraIntro: { content: defaultTandraIntroContent },
+  TandraIntro: { showCaptions: false, content: defaultTandraIntroContent },
 };
+
+const isStructuredRoofSceneDoc = (doc: Record<string, unknown> | null | undefined): boolean =>
+  Boolean(
+    doc &&
+    (Array.isArray(doc.chapters) ||
+      typeof doc.showCallouts === "boolean" ||
+      typeof doc.showProgress === "boolean" ||
+      typeof doc.fov === "number" ||
+      typeof doc.introSecs === "number" ||
+      doc.cta ||
+      doc.badges),
+  );
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {
   RoofScene: "roofSceneSettings",
@@ -181,7 +193,13 @@ export function RemotionVideoTool() {
         )
         .then((doc) => {
           const base = doc?.tandraIntroVideo
-            ? { content: mergeIntroContent(doc.tandraIntroVideo, defaultTandraIntroContent) }
+            ? {
+                showCaptions:
+                  typeof doc.tandraIntroVideo.showCaptions === "boolean"
+                    ? doc.tandraIntroVideo.showCaptions
+                    : false,
+                content: mergeIntroContent(doc.tandraIntroVideo, defaultTandraIntroContent),
+              }
             : defaults;
           // Now overlay saved settings if they exist.
           client
@@ -207,6 +225,29 @@ export function RemotionVideoTool() {
       const schemaName = COMPOSITION_TO_SCHEMA[activeId];
       if (!schemaName) {
         setFormProps(defaults);
+        return;
+      }
+      if (activeId === "RoofScene") {
+        client
+          .fetch<Record<string, unknown> | null>(`*[_id == "roofSceneSettings"][0]`)
+          .then((doc) => {
+            if (doc && isStructuredRoofSceneDoc(doc)) {
+              const { _createdAt, _id, _rev, _type, _updatedAt, props, ...structured } = doc;
+              setFormProps({ ...defaults, ...structured });
+              return;
+            }
+            if (typeof doc?.props === "string") {
+              try {
+                const parsed = JSON.parse(doc.props);
+                setFormProps({ ...defaults, ...parsed });
+                return;
+              } catch {
+                /* fall through */
+              }
+            }
+            setFormProps(defaults);
+          })
+          .catch(() => setFormProps(defaults));
         return;
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -252,11 +293,20 @@ export function RemotionVideoTool() {
     if (!schemaName) return;
     setSaveState({ status: "saving" });
     try {
-      await client.createOrReplace({
-        _id: schemaName,
-        _type: schemaName,
-        props: JSON.stringify(formProps),
-      });
+      await client.createOrReplace(
+        activeId === "RoofScene"
+          ? {
+              _id: schemaName,
+              _type: schemaName,
+              ...formProps,
+              props: JSON.stringify(formProps),
+            }
+          : {
+              _id: schemaName,
+              _type: schemaName,
+              props: JSON.stringify(formProps),
+            },
+      );
       setSaveState({ status: "saved" });
     } catch (error) {
       setSaveState({

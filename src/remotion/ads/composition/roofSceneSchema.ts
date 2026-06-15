@@ -33,6 +33,15 @@ export const chapterConfigSchema = z.object({
     y: z.number().min(-20).max(20).multipleOf(0.01).default(2.5),
     z: z.number().min(-20).max(20).multipleOf(0.01).default(0),
   }),
+  /** Callout copy shown in the bottom panel + hotspot. Optional — falls back to CHAPTERS. */
+  callout: z
+    .object({
+      num: z.string().default(""),
+      title: z.string().default(""),
+      body: z.string().default(""),
+      watchFor: z.string().default(""),
+    })
+    .default({ num: "", title: "", body: "", watchFor: "" }),
 });
 
 // ─── root schema ─────────────────────────────────────────────────────────────
@@ -92,6 +101,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: -130, polar: 48, radius: 8, targetX: 0, targetY: 0.5, targetZ: 0 },
       hotspot: { x: 0, y: 0.5, z: 0 },
     },
@@ -99,6 +109,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: -60, polar: 55, radius: 6, targetX: 0, targetY: 0.5, targetZ: 0 },
       hotspot: { x: 0, y: 0.5, z: 0 },
     },
@@ -106,6 +117,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: 80, polar: 60, radius: 5, targetX: 0, targetY: 0, targetZ: 0 },
       hotspot: { x: 0, y: 0, z: 0 },
     },
@@ -113,6 +125,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: -120, polar: 70, radius: 6, targetX: 0, targetY: -0.5, targetZ: 0 },
       hotspot: { x: 0, y: -0.5, z: 0 },
     },
@@ -120,6 +133,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: 150, polar: 52, radius: 6, targetX: 0, targetY: 0, targetZ: 0 },
       hotspot: { x: 0, y: 0, z: 0 },
     },
@@ -127,6 +141,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: -90, polar: 108, radius: 7, targetX: 0, targetY: -0.5, targetZ: 0 },
       hotspot: { x: 0, y: -0.5, z: 0 },
     },
@@ -134,6 +149,7 @@ export const roofSceneSchema = z.object({
     {
       durationSecs: 6,
       skip: false,
+      callout: { num: "", title: "", body: "", watchFor: "" },
       camera: { azimuthal: -40, polar: 115, radius: 7, targetX: 0, targetY: -0.5, targetZ: 0 },
       hotspot: { x: 0, y: -0.5, z: 0 },
     },

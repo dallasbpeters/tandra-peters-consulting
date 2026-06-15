@@ -28,7 +28,6 @@ import {
 } from "remotion";
 
 import type { CameraConfig, ParsedRoofScene, RoofSceneProps } from "./composition/roofSceneSchema";
-import type { Chapter } from "./types";
 
 import { CHAPTERS } from "./chapters";
 import Logo from "./components/Logo";
@@ -304,7 +303,29 @@ const HotspotDot: React.FC<{
 
 // ─── callout card ─────────────────────────────────────────────────────────────
 
-const Callout: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
+type ResolvedCallout = { num: string; title: string; body: string; watchFor: string };
+
+/**
+ * Merge editable callout copy (props) over the static CHAPTERS fallback.
+ * Empty/missing prop strings fall back to the hardcoded chapter copy.
+ */
+const resolveCallout = (
+  globalIdx: number,
+  cfg: ParsedRoofScene["chapters"][number] | undefined,
+): ResolvedCallout => {
+  const base = CHAPTERS[globalIdx];
+  const override = cfg?.callout;
+  const pick = (a: string | undefined, b: string | undefined): string =>
+    a && a.trim().length > 0 ? a : (b ?? "");
+  return {
+    num: pick(override?.num, base?.num),
+    title: pick(override?.title, base?.callout.title),
+    body: pick(override?.body, base?.callout.body),
+    watchFor: pick(override?.watchFor, base?.callout.watchFor),
+  };
+};
+
+const Callout: React.FC<{ callout: ResolvedCallout }> = ({ callout }) => {
   const frame = useCurrentFrame();
   const opacity = interpolate(frame, [0, 8], [0, 1], {
     extrapolateRight: "clamp",
@@ -341,7 +362,7 @@ const Callout: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
             marginBottom: 8,
           }}
         >
-          {chapter.num}
+          {callout.num}
         </div>
 
         <h2
@@ -354,7 +375,7 @@ const Callout: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
             lineHeight: 1.05,
           }}
         >
-          {chapter.callout.title}
+          {callout.title}
         </h2>
 
         <p
@@ -366,7 +387,7 @@ const Callout: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
             margin: "0 0 16px",
           }}
         >
-          {chapter.callout.body}
+          {callout.body}
         </p>
 
         <div
@@ -401,7 +422,7 @@ const Callout: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
               fontStyle: "italic",
             }}
           >
-            {chapter.callout.watchFor}
+            {callout.watchFor}
           </p>
         </div>
       </div>
@@ -537,7 +558,7 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
     camState && activeEntry
       ? projectToScreen(activeEntry.cfg.hotspot, camState.blendedCam, props.fov, width, height)
       : null;
-  const activeChapter = activeEntry ? (CHAPTERS[activeEntry.globalIdx] ?? null) : null;
+  const activeCallout = activeEntry ? resolveCallout(activeEntry.globalIdx, activeEntry.cfg) : null;
 
   return (
     <AbsoluteFill
@@ -612,10 +633,10 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
         </div>
       </AbsoluteFill>
       {/* ── pulsing hotspot dot (active chapter only) ────────── */}
-      {activeHotspotScreen && activeChapter && frame > introFrames && (
+      {activeHotspotScreen && activeCallout && frame > introFrames && (
         <HotspotDot
           screen={activeHotspotScreen}
-          num={activeChapter.num}
+          num={activeCallout.num}
           globalFrame={frame}
           introFrames={introFrames}
           isActive
@@ -629,7 +650,7 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
       {props.showCallouts &&
         sequences.map(({ from, duration, chapterIdx }) => (
           <Sequence key={chapterIdx} from={from} durationInFrames={duration}>
-            <Callout chapter={CHAPTERS[chapterIdx]} />
+            <Callout callout={resolveCallout(chapterIdx, props.chapters[chapterIdx])} />
           </Sequence>
         ))}
       {/* ── CTA ──────────────────────────────────────────────── */}

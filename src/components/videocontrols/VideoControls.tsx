@@ -10,6 +10,8 @@ import {
   type SyntheticEvent,
 } from "react";
 
+import type { CaptionCue } from "../../remotion/tandraIntroContent";
+
 import { REMOTION_DURATION_IN_FRAMES, REMOTION_DURATION_SECONDS } from "../FeaturedRemotionPlayer";
 import { PlayPauseButton } from "./PlayPauseButton";
 import { SeekBar } from "./SeekBar";
@@ -22,6 +24,9 @@ type Props = {
   playerRef: React.RefObject<PlayerRef | null>;
   isRemotion: boolean;
   posterUrl?: string;
+  captionsVisible?: boolean;
+  captionCues?: CaptionCue[];
+  onToggleCaptions?: () => void;
   isVisible: boolean;
   onControlPress?: () => void;
 };
@@ -33,6 +38,9 @@ export const VideoControls = ({
   playerRef,
   isRemotion,
   posterUrl,
+  captionsVisible,
+  captionCues,
+  onToggleCaptions,
   isVisible,
   onControlPress,
 }: Props) => {
@@ -238,8 +246,16 @@ export const VideoControls = ({
 
   const showPoster = Boolean(posterUrl && !isPlaying && currentTime === 0);
   const controlsVisible = isVisible || showPoster;
+  const showCaptionsToggle = Boolean(onToggleCaptions && captionCues?.length);
   const progress = duration > 0 ? clampRatio(currentTime / duration) : 0;
   const progressPercent = Math.round(progress * 100);
+  const activeCaption =
+    captionsVisible && captionCues?.length
+      ? captionCues.find(
+          (cue) =>
+            currentTime * REMOTION_FPS >= cue.fromFrame && currentTime * REMOTION_FPS < cue.toFrame,
+        )
+      : undefined;
 
   return (
     <>
@@ -257,6 +273,27 @@ export const VideoControls = ({
         onPointerUp={handleProgressPointerUp}
         onKeyDown={handleProgressKeyDown}
       />
+
+      {showCaptionsToggle ? (
+        <button
+          type="button"
+          className="featured-video__captions"
+          aria-label={captionsVisible ? "Hide captions" : "Show captions"}
+          aria-pressed={captionsVisible}
+          onClick={() => {
+            onToggleCaptions?.();
+            onControlPress?.();
+          }}
+        >
+          CC
+        </button>
+      ) : null}
+
+      {activeCaption ? (
+        <div className="featured-video__captions-overlay" aria-hidden="true">
+          <p>{activeCaption.text}</p>
+        </div>
+      ) : null}
 
       <PlayPauseButton
         isPlaying={isPlaying}

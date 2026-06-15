@@ -68,7 +68,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
     fps: TANDRA_INTRO_FPS,
     durationInFrames: TANDRA_INTRO_DURATION_IN_FRAMES,
     aspectRatio: ratio(1920, 1080),
-    defaultProps: { content: defaultTandraIntroContent },
+    defaultProps: { showCaptions: false, content: defaultTandraIntroContent },
     sanityField: "tandraIntroVideo",
   },
   {
