@@ -57,7 +57,7 @@ const TEXAS_STATE_GEOJSON = texasStateOutline as GeoJSON.FeatureCollection;
 /** Mapbox paint props must be sRGB hex. High opacity — Standard night basemap is dark underneath. */
 const MAP_COLORS = {
   fill: "#945bea78",
-  fillOpacity: 0.78,
+  fillOpacity: 1,
   stroke: "#9a55e4",
   strokeWidth: 1.5,
   boundary: "rgba(255, 255, 255, 0.65)",

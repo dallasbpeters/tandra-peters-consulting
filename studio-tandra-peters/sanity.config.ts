@@ -16,6 +16,7 @@ import { useMemo } from "react";
 import { defineConfig } from "sanity";
 import { type SchemaType } from "sanity";
 import { googleAnalyticsPlugin } from "sanity-plugin-ga-dashboard";
+import { iconPicker } from "sanity-plugin-icon-picker";
 import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 
@@ -509,6 +510,7 @@ export default defineConfig({
     googleAnalyticsPlugin({
       apiUrl: gaApiUrl,
     }),
+    iconPicker(),
     ...(studioFlags.presentation
       ? [
           presentationTool({

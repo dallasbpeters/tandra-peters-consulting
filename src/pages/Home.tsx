@@ -214,6 +214,12 @@ export const Home = () => {
             <ServiceAreaMap {...mapServiceAreaMapProps(sectionData)} />
           </DeferUntilVisible>
         );
+      case "certificationsSection":
+        return (
+          <Certifications
+            title={typeof sectionData.title === "string" ? sectionData.title : undefined}
+          />
+        );
       case "missionSection":
         return <Mission {...mapMissionProps(sectionData)} />;
       case "beforeAfterSection": {
@@ -255,19 +261,21 @@ export const Home = () => {
         return <Testimonials {...mapTestimonialsProps(sectionData)} />;
       case "faqSection":
         return <Faq {...mapFaqProps(sectionData)} />;
-      case "articlesTeaserSection":
+      case "articlesTeaserSection": {
+        const maxPosts =
+          typeof sectionData.maxPosts === "number" && sectionData.maxPosts > 0
+            ? Math.min(50, Math.floor(sectionData.maxPosts))
+            : undefined;
         return (
           <ArticlesTeaser
-            posts={data?.latestPosts ?? []}
+            posts={
+              maxPosts ? (data?.latestPosts ?? []).slice(0, maxPosts) : (data?.latestPosts ?? [])
+            }
             {...mapArticlesTeaserEditorialProps(sectionData)}
           />
         );
-      case "certificationsSection":
-        return (
-          <Certifications
-            title={typeof sectionData.title === "string" ? sectionData.title : undefined}
-          />
-        );
+      }
+
       case "contactSection":
         return <Contact {...mapContactProps(sectionData)} />;
       case "socialShareSection":

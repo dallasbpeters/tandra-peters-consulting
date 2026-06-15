@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useClient, useColorSchemeValue } from "sanity";
+import { useColorSchemeValue } from "sanity";
 
 import type { EditorField, EditorSection } from "../../src/remotion/ads/editSchemas";
 import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
@@ -13,6 +13,7 @@ import {
 } from "../../src/remotion/ads/adDefaults";
 import { SCHEMAS, getProp, setProp } from "../../src/remotion/ads/editSchemas";
 import { defaultTandraIntroContent } from "../../src/remotion/tandraIntroContent";
+import { useStudioClient } from "../hooks/useStudioClient";
 
 // ── helpers (inline to avoid pulling fetchTandraIntroContent which uses import.meta.env) ──
 
@@ -161,7 +162,7 @@ type RenderState =
 export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
-  const client = useClient({ apiVersion: "2026-05-29" });
+  const client = useStudioClient({ apiVersion: "2026-05-29" });
   const [activeId, setActiveId] = useState<string>(COMPOSITIONS[0].id);
   const [render, setRender] = useState<RenderState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });

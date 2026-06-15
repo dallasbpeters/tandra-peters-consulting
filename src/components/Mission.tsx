@@ -3,7 +3,7 @@ import React from "react";
 
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
-import { mix, theme } from "../theme";
+import { theme } from "../theme";
 import { MissionProps } from "../types";
 
 export const Mission: React.FC<MissionProps> = ({
@@ -157,7 +157,7 @@ export const Mission: React.FC<MissionProps> = ({
           <div
             style={{
               maxWidth: "24rem",
-              color: mix(theme.colors.paper, 60),
+              color: theme.colors.paper,
               lineHeight: 1.6,
               fontSize: "1.1rem",
             }}

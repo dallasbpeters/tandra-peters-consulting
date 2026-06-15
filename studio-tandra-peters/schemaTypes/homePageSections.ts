@@ -165,6 +165,12 @@ export const birdcreekVideoBannerSectionType = defineType({
       description: "Optional heading shown above the video banner.",
     }),
   ],
+  preview: {
+    select: { title: "title" },
+    prepare: ({ title }) => ({
+      title: `Birdcreek video banner${title ? `: ${title}` : ""}`,
+    }),
+  },
 });
 
 export const contactBannerSectionType = defineType({
@@ -183,13 +189,9 @@ export const contactBannerSectionType = defineType({
     defineField({
       name: "ctaIcon",
       title: "CTA icon",
-      type: "string",
+      type: "iconPicker",
       options: {
-        list: [
-          { title: "Phone", value: "phone" },
-          { title: "Calculator", value: "calculator" },
-          { title: "Help circle", value: "helpCircle" },
-        ],
+        providers: ["f7", "fa", "mdi", "sa", "hi", "fi", "si"],
       },
     }),
   ],
@@ -236,6 +238,12 @@ export const marqueeSectionType = defineType({
     }),
     defineField({ name: "velocity", type: "number", initialValue: 80 }),
   ],
+  preview: {
+    select: { title: "text" },
+    prepare: ({ title }) => ({
+      title: `Marquee: ${title}`,
+    }),
+  },
 });
 
 export const aboutSectionType = defineType({
@@ -259,6 +267,13 @@ export const aboutSectionType = defineType({
       description: "Main copy (replaces legacy “paragraphs” list).",
     }),
   ],
+  preview: {
+    select: { title: "titleLine1", subtitle: "titleLine2", media: "image" },
+    prepare: ({ title, media }) => ({
+      title: `About section: ${title}`,
+      media,
+    }),
+  },
 });
 
 export const statsSectionType = defineType({
@@ -280,6 +295,13 @@ export const statsSectionType = defineType({
       validation: (rule) => rule.min(1).max(8),
     }),
   ],
+  preview: {
+    select: { title: "title", subtitle: "items.length" },
+    prepare: ({ title, subtitle }) => ({
+      title: `Stats strip: ${title}`,
+      subtitle: `${subtitle} stat rows`,
+    }),
+  },
 });
 
 export const servicesSectionType = defineType({
@@ -343,6 +365,11 @@ export const servicesSectionType = defineType({
       ],
     }),
   ],
+  preview: {
+    prepare: ({}) => ({
+      title: `Services`,
+    }),
+  },
 });
 
 export const missionSectionType = defineType({
@@ -455,6 +482,11 @@ export const socialShareSectionType = defineType({
         "Plain text is used for Twitter/email share strings (formatting is stripped for URLs).",
     }),
   ],
+  preview: {
+    prepare: ({}) => ({
+      title: `Social share bar`,
+    }),
+  },
 });
 
 export const beforeAfterPairType = defineType({
