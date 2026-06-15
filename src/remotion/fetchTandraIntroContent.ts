@@ -1,5 +1,9 @@
 import { SANITY_API_VERSION, SANITY_DATASET, SANITY_PROJECT_ID } from "../sanity/projectDetails";
-import { defaultTandraIntroContent, type TandraIntroContent } from "./tandraIntroContent";
+import {
+  defaultTandraIntroContent,
+  mergeTandraIntroContent,
+  type TandraIntroContent,
+} from "./tandraIntroContent";
 
 const INTRO_QUERY = `{
   "home": *[_id in ["homePage", "drafts.homePage"] && defined(tandraIntroVideo)] | order(_updatedAt desc)[0]{
@@ -15,50 +19,6 @@ const INTRO_QUERY = `{
     }
   }
 }`;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  Boolean(value) && typeof value === "object" && !Array.isArray(value);
-
-const stringItems = (value: unknown, fallback: string[]): string[] =>
-  Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : fallback;
-
-const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
-  isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback;
-
-export const mergeTandraIntroContent = (incoming: unknown): TandraIntroContent => {
-  if (!isRecord(incoming)) {
-    return defaultTandraIntroContent;
-  }
-
-  const managed = mergeScene(defaultTandraIntroContent.managed, incoming.managed);
-  const proof = mergeScene(defaultTandraIntroContent.proof, incoming.proof);
-
-  return {
-    storm: mergeScene(defaultTandraIntroContent.storm, incoming.storm),
-    straightAnswers: mergeScene(
-      defaultTandraIntroContent.straightAnswers,
-      incoming.straightAnswers,
-    ),
-    inspection: mergeScene(defaultTandraIntroContent.inspection, incoming.inspection),
-    managed: {
-      ...managed,
-      items: stringItems(
-        isRecord(incoming.managed) ? incoming.managed.items : undefined,
-        defaultTandraIntroContent.managed.items,
-      ),
-    },
-    proof: {
-      ...proof,
-      items: stringItems(
-        isRecord(incoming.proof) ? incoming.proof.items : undefined,
-        defaultTandraIntroContent.proof.items,
-      ),
-    },
-    closing: mergeScene(defaultTandraIntroContent.closing, incoming.closing),
-  };
-};
 
 const readSanityToken = (): string | undefined => {
   if (typeof process !== "undefined" && process.env) {

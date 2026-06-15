@@ -17,6 +17,7 @@ const readSanityWriteToken = (): string | undefined =>
 export const patchTandraIntroRenderedVideo = async (
   url: string,
   contentHash?: string,
+  artifactHash?: string,
 ): Promise<PatchTandraIntroRenderResult> => {
   const token = readSanityWriteToken();
   if (!token) {
@@ -67,6 +68,9 @@ export const patchTandraIntroRenderedVideo = async (
 
       if (contentHash) {
         patch.set({ "tandraIntroVideo.renderContentHash": contentHash });
+      }
+      if (artifactHash) {
+        patch.set({ "tandraIntroVideo.renderArtifactHash": artifactHash });
       }
 
       await patch.commit();

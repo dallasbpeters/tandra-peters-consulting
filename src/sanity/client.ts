@@ -6,10 +6,7 @@ const fallbackStudioUrl = import.meta.env.PROD
   ? "https://www.tandra.me/studio"
   : "http://localhost:3333";
 
-const stegaEnabled = (): boolean => {
-  if (import.meta.env.VITE_SANITY_STEGA === "true") {
-    return true;
-  }
+const isEmbeddedPreview = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
@@ -20,9 +17,6 @@ const stegaEnabled = (): boolean => {
   }
 };
 
-/** When true, keep encoded stega in fetched values (required for Presentation click-to-edit). */
-export const isSanityStegaUiActive = (): boolean => stegaEnabled();
-
 /** Set on preview URLs by Presentation (see sanity/preview-url-secret). */
 const presentationPerspectiveFromUrl = (): boolean => {
   if (typeof window === "undefined") {
@@ -30,6 +24,19 @@ const presentationPerspectiveFromUrl = (): boolean => {
   }
   return new URLSearchParams(window.location.search).has("sanity-preview-perspective");
 };
+
+const stegaEnabled = (): boolean => {
+  if (
+    import.meta.env.VITE_SANITY_STEGA === "true" &&
+    (import.meta.env.DEV || isEmbeddedPreview() || presentationPerspectiveFromUrl())
+  ) {
+    return true;
+  }
+  return isEmbeddedPreview();
+};
+
+/** When true, keep encoded stega in fetched values (required for Presentation click-to-edit). */
+export const isSanityStegaUiActive = (): boolean => stegaEnabled();
 
 /** True only for Sanity Presentation / preview URLs, not plain local draft reads. */
 export const isSanityPresentationPreviewActive = (): boolean =>

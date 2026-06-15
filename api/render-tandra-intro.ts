@@ -27,6 +27,7 @@ import {
   uploadToVercelBlob,
 } from "@remotion/vercel";
 import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 import { AD_COMPOSITION_DEFAULTS, isAdCompositionId } from "./lib/ad-composition-defaults.js";
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
@@ -36,6 +37,7 @@ import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
 const DEFAULT_COMPOSITION_ID = "TandraIntro";
 const LOCAL_BUNDLE_DIR = ".remotion";
+const RENDER_PIPELINE_VERSION = "tandra-intro-render-v2";
 
 const resolveCompositionId = (req: VercelRequest): string => {
   const fromQuery = queryValue(req.query.compositionId) ?? queryValue(req.query.id);
@@ -85,7 +87,58 @@ const isAuthorized = (req: VercelRequest): boolean => {
   }
 
   const direct = req.headers["x-render-secret"];
-  return typeof direct === "string" && direct === required;
+  if (typeof direct === "string" && direct === required) {
+    return true;
+  }
+
+  return isTrustedBrowserOrigin(req);
+};
+
+const parseOrigin = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  try {
+    return new URL(value).origin;
+  } catch {
+    return undefined;
+  }
+};
+
+const trustedRenderOrigins = (): Set<string> => {
+  const origins = new Set<string>();
+  const candidates = [
+    process.env.VITE_SITE_URL,
+    process.env.SITE_URL,
+    process.env.SANITY_STUDIO_PREVIEW_URL,
+    process.env.SANITY_STUDIO_RENDER_API_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+    process.env.VERCEL_BRANCH_URL ? `https://${process.env.VERCEL_BRANCH_URL}` : undefined,
+  ];
+
+  for (const candidate of candidates) {
+    const origin = parseOrigin(candidate?.trim());
+    if (origin) {
+      origins.add(origin);
+    }
+  }
+
+  for (const raw of process.env.ALLOWED_ORIGINS?.split(",") ?? []) {
+    const origin = parseOrigin(raw.trim());
+    if (origin) {
+      origins.add(origin);
+    }
+  }
+
+  return origins;
+};
+
+const isTrustedBrowserOrigin = (req: VercelRequest): boolean => {
+  const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+  if (!origin) {
+    return false;
+  }
+  return trustedRenderOrigins().has(origin);
 };
 
 const queryValue = (value: string | string[] | undefined): string | undefined =>
@@ -93,6 +146,24 @@ const queryValue = (value: string | string[] | undefined): string | undefined =>
 
 const shouldForceRender = (req: VercelRequest): boolean =>
   queryValue(req.query.force)?.toLowerCase() === "true" || req.headers["x-force-render"] === "true";
+
+const getRenderBundleFingerprint = (): string =>
+  process.env.VERCEL_GIT_COMMIT_SHA?.trim() ||
+  process.env.VERCEL_DEPLOYMENT_ID?.trim() ||
+  process.env.REMOTION_RENDER_FINGERPRINT?.trim() ||
+  "local";
+
+const hashRenderArtifact = (args: { compositionId: string; contentHash: string }): string =>
+  createHash("sha256")
+    .update(
+      JSON.stringify({
+        version: RENDER_PIPELINE_VERSION,
+        compositionId: args.compositionId,
+        contentHash: args.contentHash,
+        bundle: getRenderBundleFingerprint(),
+      }),
+    )
+    .digest("hex");
 
 const bundleRemotionProject = (): void => {
   execSync(`pnpm exec remotion bundle --out-dir ./${LOCAL_BUNDLE_DIR}`, {
@@ -268,10 +339,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     // ── TandraIntro: CMS-backed copy with content-hash skip + Sanity patch. ──
-    const { content, contentHash, renderContentHash, source, documentId, showCaptions } =
-      await fetchTandraIntroContent();
+    const {
+      content,
+      contentHash,
+      renderArtifactHash,
+      renderedVideoUrl,
+      source,
+      documentId,
+      showCaptions,
+      thumbnailUrl,
+    } = await fetchTandraIntroContent();
+    const artifactHash = hashRenderArtifact({ compositionId, contentHash });
 
-    if (!shouldForceRender(req) && source !== "fallback" && renderContentHash === contentHash) {
+    if (
+      !shouldForceRender(req) &&
+      source !== "fallback" &&
+      renderArtifactHash === artifactHash &&
+      renderedVideoUrl &&
+      thumbnailUrl
+    ) {
       res.status(200).json({
         skipped: true,
         reason: "Intro video content has already been rendered.",
@@ -279,6 +365,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         copySource: source,
         documentId,
         contentHash,
+        artifactHash,
+        url: renderedVideoUrl,
+        posterUrl: thumbnailUrl,
       });
       return;
     }
@@ -348,6 +437,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
         posterUrl = posterPatch.thumbnailUrl;
         thumbnailUpdated = true;
+        const artifactPatch = await patchTandraIntroRenderedVideo(url, contentHash, artifactHash);
+        if (artifactPatch.ok === false) {
+          throw new Error(artifactPatch.reason);
+        }
         console.log(`[render-video] Poster captured (${posterContentType}).`);
       } catch (error) {
         posterError = error instanceof Error ? error.message : "Unknown poster render error.";
@@ -362,6 +455,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       copySource: source,
       documentId,
       contentHash,
+      artifactHash,
       sanityUpdated: sanityPatch.ok,
       ...(posterUrl ? { posterUrl } : {}),
       thumbnailUpdated,

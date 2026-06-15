@@ -19,7 +19,10 @@ const INTRO_QUERY = `{
       managed,
       proof,
       closing,
-      renderContentHash
+      renderContentHash,
+      renderArtifactHash,
+      renderedVideoUrl,
+      "thumbnailUrl": thumbnail.asset->url
     }
   }
 }`;
@@ -157,6 +160,9 @@ export type FetchTandraIntroResult = {
   content: TandraIntroContent;
   contentHash: string;
   renderContentHash?: string;
+  renderArtifactHash?: string;
+  renderedVideoUrl?: string;
+  thumbnailUrl?: string;
   source: "sanity-draft-or-published" | "sanity-published" | "fallback";
   documentId?: string;
 };
@@ -219,12 +225,25 @@ export const fetchTandraIntroContent = async (): Promise<FetchTandraIntroResult>
     const content = mergeTandraIntroContent(result);
     const renderContentHash =
       typeof result.renderContentHash === "string" ? result.renderContentHash : undefined;
+    const renderArtifactHash =
+      typeof result.renderArtifactHash === "string" ? result.renderArtifactHash : undefined;
+    const renderedVideoUrl =
+      typeof result.renderedVideoUrl === "string" && result.renderedVideoUrl.trim()
+        ? result.renderedVideoUrl.trim()
+        : undefined;
+    const thumbnailUrl =
+      typeof result.thumbnailUrl === "string" && result.thumbnailUrl.trim()
+        ? result.thumbnailUrl.trim()
+        : undefined;
 
     return {
       showCaptions: typeof result.showCaptions === "boolean" ? result.showCaptions : false,
       content,
       contentHash: hashTandraIntroContent(content),
       renderContentHash,
+      renderArtifactHash,
+      renderedVideoUrl,
+      thumbnailUrl,
       source: token ? "sanity-draft-or-published" : "sanity-published",
       documentId,
     };

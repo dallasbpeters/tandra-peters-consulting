@@ -13,7 +13,7 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import { useSanitySite } from "../context/useSanitySite";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { asOptionalRichText } from "../portableText/value";
-import { mergeTandraIntroContent } from "../remotion/fetchTandraIntroContent";
+import { mergeTandraIntroContent } from "../remotion/tandraIntroContent";
 import { sanityImageUrl } from "../sanity/imageUrl";
 import {
   mapAboutProps,
@@ -142,10 +142,6 @@ export const Home = () => {
     typeof introVideo?.renderedVideoUrl === "string" && introVideo.renderedVideoUrl.trim()
       ? introVideo.renderedVideoUrl.trim().replace(/\?download=1$/, "")
       : undefined;
-  const uploadedVideoUrl =
-    typeof introVideo?.uploadedVideoUrl === "string" && introVideo.uploadedVideoUrl.trim()
-      ? introVideo.uploadedVideoUrl.trim()
-      : undefined;
   const introVideoThumbnailUrl =
     typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
       ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })
@@ -199,7 +195,7 @@ export const Home = () => {
         return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
       case "videoSection": {
         const sectionVideoProps = mapVideoProps(sectionData, {
-          renderedVideoUrl: uploadedVideoUrl ?? renderedVideoUrl,
+          renderedVideoUrl,
         });
         return sectionVideoProps.videoUrl || introVideoContent ? (
           <FeaturedVideoSection

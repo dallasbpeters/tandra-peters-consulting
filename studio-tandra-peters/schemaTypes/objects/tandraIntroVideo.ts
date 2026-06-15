@@ -142,6 +142,16 @@ export const tandraIntroVideoType = defineType({
       description:
         "Used by the Sanity publish webhook to avoid re-rendering when only render metadata changes.",
     }),
+    defineField({
+      name: "renderArtifactHash",
+      title: "Rendered artifact hash",
+      type: "string",
+      group: "render",
+      readOnly: true,
+      hidden: true,
+      description:
+        "Includes the deployed render bundle fingerprint so code/design changes can produce fresh video and poster output even when copy is unchanged.",
+    }),
   ],
   initialValue: {
     storm: {
