@@ -469,10 +469,10 @@ export const MapBox = ({
             justifyContent: "center",
             padding: theme.spacing.lg,
             borderRight: `1px solid ${mix(theme.colors.white, 8)}`,
-            maxInlineSize: "70vw",
+            maxInlineSize: isMobile ? "80vw" : "40vw",
             position: "absolute",
             top: isMobile ? "10%" : "15%",
-            left: isMobile ? "5%" : "30%",
+            left: isMobile ? "5%" : "10%",
             zIndex: 10,
             backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "transparent",
           }}
