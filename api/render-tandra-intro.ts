@@ -57,6 +57,22 @@ const shouldCapturePoster = (req: VercelRequest): boolean => {
   return fromQuery === "true" || fromBody === true;
 };
 
+const getPosterFrame = (req: VercelRequest): number => {
+  const fromQuery = queryValue(req.query.posterFrame);
+  const fromBody =
+    req.body && typeof req.body === "object"
+      ? ((req.body as Record<string, unknown>).posterFrame as number | undefined)
+      : undefined;
+
+  const raw = fromBody ?? fromQuery;
+  if (typeof raw === "string") {
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) return raw;
+  return 150;
+};
+
 const isAuthorized = (req: VercelRequest): boolean => {
   const required = process.env.RENDER_VIDEO_SECRET?.trim();
   if (!required) {
@@ -186,7 +202,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         sandbox,
         compositionId,
         inputProps: posterInputProps,
-        frame: 0,
+        frame: getPosterFrame(req),
         imageFormat: "png",
         onProgress: (update) => {
           console.log(
@@ -305,7 +321,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             sandbox,
             compositionId,
             inputProps: { content, showCaptions },
-            frame: 0,
+            frame: getPosterFrame(req),
             imageFormat: "png",
             onProgress: (update) => {
               console.log(

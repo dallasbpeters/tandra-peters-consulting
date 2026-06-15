@@ -421,9 +421,17 @@ export const mapContactBannerProps = (data: SanityDoc): Partial<ContactBannerPro
           "mdi-wallet": "wallet",
           "mdi-wifi": "wifi",
         };
-        const mappedKey = iconMap[iconName] ?? iconMap[iconName.toLowerCase()];
+        const normalizedName = iconName.toLowerCase().replace(/_/g, "-");
+        const mappedKey = iconMap[normalizedName] ?? iconMap[iconName];
         if (mappedKey && mappedKey in CONTACT_BANNER_ICONS) {
           return { ctaIcon: CONTACT_BANNER_ICONS[mappedKey] };
+        }
+        // Keyword fallback: match by substring against known icon keys
+        const matchedKey = Object.keys(CONTACT_BANNER_ICONS).find((k) =>
+          normalizedName.includes(k.toLowerCase()),
+        );
+        if (matchedKey) {
+          return { ctaIcon: CONTACT_BANNER_ICONS[matchedKey as keyof typeof CONTACT_BANNER_ICONS] };
         }
       }
       // Legacy string format fallback

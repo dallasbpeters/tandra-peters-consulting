@@ -37,6 +37,7 @@ const styles: Record<string, CSSProperties> = {
     display: "grid",
     gap: theme.spacing.md,
     justifySelf: "start",
+    width: "100%",
   },
   eyebrow: {
     fontFamily: theme.fonts.headline,
