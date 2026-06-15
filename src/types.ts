@@ -114,7 +114,7 @@ export interface Service {
   id: string;
   title: string;
   description: RichTextSource;
-  icon: React.ElementType;
+  icon: IconoirIconComponent;
   image?: string;
 }
 
@@ -225,7 +225,7 @@ export interface ContactProps {
 export interface FooterProps {
   logoText?: string;
   description?: RichTextSource;
-  socialLinks?: { icon: React.ElementType; href: string; platform?: string }[];
+  socialLinks?: { icon: IconoirIconComponent; href: string; platform?: string }[];
   quickLinks?: NavItem[];
   legalLinks?: NavItem[];
   newsletterTitle?: string;

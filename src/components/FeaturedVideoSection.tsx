@@ -57,6 +57,10 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
     () => (introContent ? JSON.stringify(introContent) : "uploaded-video"),
     [introContent],
   );
+  const mediaAssetKey = useMemo(
+    () => [videoUrl ?? "remotion-preview", posterUrl ?? "no-poster", introContentKey].join("|"),
+    [introContentKey, posterUrl, videoUrl],
+  );
 
   useEffect(() => {
     const updateInputMode = () => {
@@ -131,6 +135,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             // composition (see TandraIntro <Captions>), so no sidecar
             // <track> is needed here.
             <motion.video
+              key={mediaAssetKey}
               variants={videoVariants}
               initial="offscreen"
               animate={isInView ? "onscreen" : "offscreen"}
@@ -144,7 +149,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             />
           ) : introContent ? (
             <motion.div
-              key={introContentKey}
+              key={mediaAssetKey}
               variants={videoVariants}
               initial="offscreen"
               animate={isInView ? "onscreen" : "offscreen"}
@@ -159,6 +164,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
             </motion.div>
           ) : null}
           <VideoControls
+            key={mediaAssetKey}
             videoRef={videoRef}
             playerRef={playerRef}
             isRemotion={showRemotionPlayer}
