@@ -11,6 +11,7 @@ import { isInPageHashHref } from "../hooks/useSiteNav";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import { NavProps } from "../types";
+import { GoogleAuthGate } from "./GoogleAuthGate";
 import { TransitionLink } from "./TransitionLink";
 
 export const Nav: React.FC<NavProps> = ({
@@ -221,45 +222,20 @@ export const Nav: React.FC<NavProps> = ({
 
             }
           `}</style>
-          {navItems.map((item, i) =>
-            isHome && isInPageHashHref(item.href) ? (
-              <motion.a
-                key={i}
-                href={item.href}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: i * 0.05,
-                  duration: 0.2,
-                  ease: "easeInOut",
-                }}
-                tabIndex={0}
-                style={styles.navLink}
-                className="nav-focusable"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "0.6";
-                }}
-              >
-                {item.name}
-              </motion.a>
-            ) : (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: isHome ? i * 0.05 : i * 0.1,
-                  duration: 0.2,
-                  ease: "easeInOut",
-                }}
-                style={{ display: "inline-block" }}
-              >
-                <TransitionLink
-                  to={offHomeNavTo(item.href)}
-                  viewTransition
+          <GoogleAuthGate>
+            {navItems.map((item, i) =>
+              isHome && isInPageHashHref(item.href) ? (
+                <motion.a
+                  key={i}
+                  href={item.href}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  tabIndex={0}
                   style={styles.navLink}
                   className="nav-focusable"
                   onMouseEnter={(e) => {
@@ -270,10 +246,37 @@ export const Nav: React.FC<NavProps> = ({
                   }}
                 >
                   {item.name}
-                </TransitionLink>
-              </motion.div>
-            ),
-          )}
+                </motion.a>
+              ) : (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: isHome ? i * 0.05 : i * 0.1,
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  style={{ display: "inline-block" }}
+                >
+                  <TransitionLink
+                    to={offHomeNavTo(item.href)}
+                    viewTransition
+                    style={styles.navLink}
+                    className="nav-focusable"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "0.6";
+                    }}
+                  >
+                    {item.name}
+                  </TransitionLink>
+                </motion.div>
+              ),
+            )}
+          </GoogleAuthGate>
         </div>
 
         <div

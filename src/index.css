@@ -297,6 +297,28 @@ a.wa-button {
   }
 }
 
+.estimator-map-marker {
+  animation: scale-pulse 2.5s ease-out infinite;
+}
+
+@keyframes scale-pulse {
+  0% {
+    box-shadow:
+      0 0 0 0 rgb(128 58 220 / 70%),
+      0 0 0 0 rgb(200 169 239 / 31.2%);
+  }
+
+  70% {
+    box-shadow: 0 0 0 20px rgb(128 58 220 / 0%); /* Blurs out to invisible */
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 0 rgb(128 58 220 / 0%),
+      0 0 0 0 rgb(128 58 220 / 70%);
+  }
+}
+
 /* eslint-disable-next-line css/no-invalid-at-rules */
 @theme inline {
   --font-heading: var(--font-sans);

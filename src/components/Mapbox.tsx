@@ -472,9 +472,9 @@ export const MapBox = ({
             maxInlineSize: isMobile ? "80vw" : "40vw",
             position: "absolute",
             top: isMobile ? "10%" : "15%",
-            left: isMobile ? "5%" : "10%",
+            left: isMobile ? "5%" : "15%",
             zIndex: 10,
-            backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "transparent",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
           }}
           className="service-area-map-copy"
         >

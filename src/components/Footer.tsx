@@ -1,5 +1,5 @@
 import { Facebook, Mail } from "iconoir-react";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
@@ -9,33 +9,6 @@ import FooterBg from "./FooterBg";
 import { GoogleAuthFooterTrigger } from "./GoogleAuthGate";
 import { GoogleAuthGate } from "./GoogleAuthGate";
 import { TransitionLink } from "./TransitionLink";
-
-/**
- * Loads the Facebook JS SDK once (for XFBML embeds like the Page plugin).
- * Equivalent of Facebook's inline fb-root + sdk.js snippet, made idempotent
- * so remounting the footer never injects a second script.
- */
-const useFacebookSdk = () => {
-  useEffect(() => {
-    if (document.getElementById("facebook-jssdk")) {
-      return;
-    }
-
-    if (!document.getElementById("fb-root")) {
-      const root = document.createElement("div");
-      root.id = "fb-root";
-      document.body.prepend(root);
-    }
-
-    const js = document.createElement("script");
-    js.id = "facebook-jssdk";
-    js.async = true;
-    js.defer = true;
-    js.crossOrigin = "anonymous";
-    js.src = "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.0";
-    document.body.appendChild(js);
-  }, []);
-};
 
 export const Footer: React.FC<FooterProps> = ({
   logoText = "Tandra Peters",
@@ -68,8 +41,6 @@ export const Footer: React.FC<FooterProps> = ({
   copyrightText = "© 2026 Tandra Peters. All Rights Reserved.",
   partnerText = "Birdcreek Roofing",
 }) => {
-  useFacebookSdk();
-
   const footerStyle: React.CSSProperties = {
     backgroundColor: theme.palette.everglade[900],
     color: theme.colors.white,

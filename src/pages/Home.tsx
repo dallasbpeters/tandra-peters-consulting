@@ -162,6 +162,22 @@ export const Home = () => {
   const getSectionData = (section: HomeSection) =>
     (section.data ?? section) as Record<string, unknown>;
 
+  const deferredSectionMinHeight = (type?: string): string | null => {
+    switch (type) {
+      case "videoSection":
+        return "34rem";
+      case "missionSection":
+      case "expertiseSection":
+      case "beforeAfterSection":
+        return "32rem";
+      case "certificationsSection":
+      case "socialShareSection":
+        return "12rem";
+      default:
+        return null;
+    }
+  };
+
   const renderSection = (section: HomeSection, _index: number) => {
     const sectionData = getSectionData(section);
     switch (section._type) {
@@ -288,10 +304,19 @@ export const Home = () => {
           return null;
         }
         const key = section._key ?? `${section._type ?? "section"}-${index}`;
-        return isAuthSection(section._type) ? (
-          <GoogleAuthGate key={key}>{node}</GoogleAuthGate>
+        const deferredMinHeight = deferredSectionMinHeight(section._type);
+        const content = deferredMinHeight ? (
+          <DeferUntilVisible minHeight={deferredMinHeight} rootMargin="120px 0px">
+            {node}
+          </DeferUntilVisible>
         ) : (
-          <React.Fragment key={key}>{node}</React.Fragment>
+          node
+        );
+
+        return isAuthSection(section._type) ? (
+          <GoogleAuthGate key={key}>{content}</GoogleAuthGate>
+        ) : (
+          <React.Fragment key={key}>{content}</React.Fragment>
         );
       })}
     </Suspense>

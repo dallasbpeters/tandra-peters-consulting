@@ -1,11 +1,26 @@
 import groq from "groq";
 
+const postListItemProjection = groq`{
+  _id,
+  title,
+  "slug": slug.current,
+  publishedAt,
+  excerpt,
+  category,
+  "image": image.asset->url
+}`;
+
 /** Resolve Sanity image fields to CDN URLs for the Vite app (no @sanity/image-url needed). */
 export const HOME_AND_SITE_QUERY = groq`{
   "home": *[_id == "homePage"][0]{
-    ...,
+    _id,
+    _type,
+    _updatedAt,
     seoTitle,
     seoDescription,
+    "hero": sections[_type == "heroSection"][0]{
+      heroStyle
+    },
     "tandraIntroVideo": tandraIntroVideo{
       ...,
       "thumbnailUrl": thumbnail.asset->url
@@ -165,7 +180,8 @@ export const HOME_AND_SITE_QUERY = groq`{
           viewAllLabel,
           maxPosts,
           enabled,
-          featuredPosts
+          "articlesResolved": articles[]->${postListItemProjection},
+          "legacyFeaturedResolved": featuredPosts[]->${postListItemProjection}
         },
         _type == "certificationsSection" => {
           title
@@ -185,18 +201,41 @@ export const HOME_AND_SITE_QUERY = groq`{
     },
   },
   "site": *[_id == "siteSettings"][0]{
-    ...,
-    "navLogoImage": navLogoImage.asset->url
-  },
-  "latestPosts": *[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...20] {
     _id,
-    title,
-    "slug": slug.current,
-    publishedAt,
-    excerpt,
-    category,
-    "image": image.asset->url
-  }
+    _type,
+    _updatedAt,
+    navLogoText,
+    navLogoTagline,
+    "navLogoImage": navLogoImage.asset->url,
+    navItems[] {
+      name,
+      href
+    },
+    navCtaText,
+    navCtaHref,
+    navSecondaryCtaText,
+    navSecondaryCtaHref,
+    footerLogoText,
+    footerDescription,
+    footerQuickLinks[] {
+      name,
+      href
+    },
+    footerLegalLinks[] {
+      name,
+      href
+    },
+    footerSocialLinks[] {
+      platform,
+      url
+    },
+    footerCopyrightText,
+    footerPartnerText
+  },
+  "latestPosts": select(
+    count(*[_id == "homePage"][0].sections[_type == "articlesTeaserSection"][0].articles[]) > 0 => [],
+    *[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...20] ${postListItemProjection}
+  )
 }`;
 
 const roofInspectionSectionProjection = groq`{

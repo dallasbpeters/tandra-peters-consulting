@@ -41,6 +41,7 @@ export const estimatorIntroLayoutStyle: React.CSSProperties = {
   gap: "1.5rem",
   alignItems: "start",
   justifyItems: "start",
+  minBlockSize: "70vh",
 };
 
 export const estimatorCardLayoutStyle: React.CSSProperties = {
@@ -49,6 +50,7 @@ export const estimatorCardLayoutStyle: React.CSSProperties = {
   gap: "1.5rem",
   alignItems: "start",
   justifyItems: "start",
+  minBlockSize: "70vh",
 };
 
 export const estimatorCardStyle: React.CSSProperties = {
@@ -111,4 +113,27 @@ export const estimatorFooterStyle: React.CSSProperties = {
   justifyContent: "space-between",
   gap: "1rem",
   flexWrap: "wrap",
+};
+
+export const foundStatus: React.CSSProperties = {
+  marginTop: theme.spacing.md,
+  padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+  backgroundColor: mix(theme.colors.accent, 8),
+  border: `1px solid ${mix(theme.colors.accent, 22)}`,
+  borderRadius: theme.radius.medium,
+  fontSize: "0.85rem",
+  color: theme.colors.everglade,
+  display: "flex",
+  gap: theme.spacing.sm,
+  alignItems: "flex-start",
+};
+
+export const eyebrow: React.CSSProperties = {
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: "0.2em",
+  color: theme.palette.coral["300"],
+  fontSize: "0.75rem",
+  marginBottom: theme.spacing.md,
+  display: "block",
 };

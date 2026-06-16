@@ -88,10 +88,7 @@ const resolvePalette = ({
 const buildStyles = (palette: ContactBannerPalette, isMobile: boolean) =>
   ({
     card: {
-      margin: isMobile ? theme.spacing.lg : theme.spacing.xl,
-      marginTop: theme.spacing.xl,
-      padding: theme.spacing.sm,
-      borderRadius: theme.radius.large,
+      padding: theme.spacing.md,
       backgroundColor: palette.cardBackground,
       boxShadow: theme.shadow.md,
     } satisfies CSSProperties,

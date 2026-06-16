@@ -28,5 +28,5 @@ ${tokenLines("shadow", theme.shadow).join("\n")}
 }
 `;
 
-writeFileSync(outPath, `${css}\n`, "utf8");
+writeFileSync(outPath, css, "utf8");
 console.log("[generate-theme-css] src/styles/theme-variables.css");

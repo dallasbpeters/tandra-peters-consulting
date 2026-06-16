@@ -31,8 +31,24 @@ const filterResolvedPosts = (v: unknown): PostListItem[] => {
   return v.filter(isPostListItem);
 };
 
+const homeArticleTeaser = (
+  home: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | undefined => {
+  const sections = home?.sections;
+  if (!Array.isArray(sections)) {
+    return undefined;
+  }
+  const section = sections.find(
+    (item): item is { _type?: string; data?: Record<string, unknown> } =>
+      Boolean(item) &&
+      typeof item === "object" &&
+      (item as { _type?: unknown })._type === "articlesTeaserSection",
+  );
+  return section?.data;
+};
+
 const teaserMaxPosts = (home: Record<string, unknown> | null | undefined): number => {
-  const teaser = home?.articlesTeaser as Record<string, unknown> | undefined;
+  const teaser = homeArticleTeaser(home);
   const raw = teaser?.maxPosts;
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return Math.min(50, Math.max(1, Math.floor(raw)));
@@ -46,7 +62,7 @@ const resolveHomeArticleCards = (
   home: Record<string, unknown> | null | undefined,
 ): PostListItem[] => {
   const n = teaserMaxPosts(home);
-  const teaser = home?.articlesTeaser as Record<string, unknown> | undefined;
+  const teaser = homeArticleTeaser(home);
   const fromArticles = filterResolvedPosts(teaser?.articlesResolved);
   const fromLegacy = filterResolvedPosts(teaser?.legacyFeaturedResolved);
   const manual = fromArticles.length > 0 ? fromArticles : fromLegacy.length > 0 ? fromLegacy : [];

@@ -49,7 +49,9 @@ const focusMapOnCoords = (
     background: "#945bea",
     border: "3px solid #ffffff",
     boxShadow: "0 2px 14px rgba(0,0,0,0.65)",
+    animation: "scale-pulse 1.5s ease-out infinite",
   });
+  Object.assign(el.classList.add, "estimator-map-marker");
   markerRef.current = new mapboxgl.Marker({ element: el }).setLngLat(propertyCoords).addTo(map);
 };
 
@@ -108,7 +110,9 @@ export const EstimatorMapBackground = ({
       center: TX_CENTER,
       zoom: TX_ZOOM,
       attributionControl: false,
-      scrollZoom: false,
+      scrollZoom: true,
+      pitch: 45,
+      bearing: -10,
     });
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
@@ -118,7 +122,7 @@ export const EstimatorMapBackground = ({
       try {
         map.setTerrain(null);
         map.setConfigProperty("basemap", "lightPreset", "dusk");
-        map.setConfigProperty("basemap", "show3dObjects", false);
+        map.setConfigProperty("basemap", "show3dObjects", true);
       } catch {
         /* non-Standard basemap - skip */
       }
@@ -146,7 +150,7 @@ export const EstimatorMapBackground = ({
 
   const estimatorPanelStyle: React.CSSProperties = {
     position: "absolute",
-    inset: isMobile ? "0 -5% 0 -5%" : 24,
+    inset: isMobile ? "-7vh -5% 0 -5%" : "-7vh -0.5vw 0 -0.5vw",
     zIndex: 0,
     borderRadius: theme.radius.large,
     overflow: "hidden",
@@ -158,16 +162,21 @@ export const EstimatorMapBackground = ({
   return (
     <div ref={panelRef} className="estimator-map-panel" style={estimatorPanelStyle}>
       <div ref={mapContainerRef} style={{ position: "absolute", inset: 0 }} aria-hidden="true" />
+      <style>{`
+        .mapboxgl-ctrl-top-right {
+          top: 1rem;
+          right: 1rem;
+        }`}</style>
 
       <Shader style={{ position: "absolute", inset: 0, zIndex: 10 }}>
         <ChromaFlow
           id="mapChromaFlow"
           baseColor="#7449d6"
-          blendMode="multiply"
+          blendMode="difference"
           downColor="#7935b5"
           intensity={1}
           momentum={19}
-          radius={2.5}
+          radius={1.5}
           rightColor="#8a5ae8"
           transform={{ offsetX: 0.01 }}
           upColor="#9a6cf0"

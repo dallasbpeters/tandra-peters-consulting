@@ -1,14 +1,13 @@
 import type { PlayerRef } from "@remotion/player";
 
 import { motion, useInView, type Variants } from "motion/react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
 import { getCaptionCues } from "../remotion/tandraIntroContent";
 import { theme } from "../theme";
-import { FeaturedRemotionPlayer } from "./FeaturedRemotionPlayer";
 import { VideoControls } from "./videocontrols";
 
 interface Props {
@@ -39,6 +38,11 @@ const mediaSurfaceStyle: React.CSSProperties = {
   maxWidth: 1200,
   zIndex: 10,
 };
+
+const FeaturedRemotionPlayer = lazy(async () => {
+  const module = await import("./FeaturedRemotionPlayer");
+  return { default: module.FeaturedRemotionPlayer };
+});
 
 export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Props) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
@@ -155,12 +159,20 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
               animate={isInView ? "onscreen" : "offscreen"}
               className="featured-video__video featured-video__player"
             >
-              <FeaturedRemotionPlayer
-                ref={playerRef}
-                content={introContent}
-                posterUrl={posterUrl}
-                showCaptions={false}
-              />
+              <Suspense
+                fallback={
+                  posterUrl ? (
+                    <img alt="" className="featured-video__poster-image" src={posterUrl} />
+                  ) : null
+                }
+              >
+                <FeaturedRemotionPlayer
+                  ref={playerRef}
+                  content={introContent}
+                  posterUrl={posterUrl}
+                  showCaptions={false}
+                />
+              </Suspense>
             </motion.div>
           ) : null}
           <VideoControls

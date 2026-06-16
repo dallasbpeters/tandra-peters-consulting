@@ -254,7 +254,6 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
               </div>
 
               {/* Stat card — flex sibling inside the container so it respects the 80rem boundary */}
-              <script src="https://elfsightcdn.com/platform.js" async></script>
               <div
                 className="elfsight-app-367b8f47-df3d-45c0-a27e-555bc948bfac"
                 data-elfsight-app-lazy

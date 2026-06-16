@@ -28,6 +28,8 @@ import {
   estimatorOptionStyle,
   estimatorOptionsStyle,
   introCardStyle,
+  foundStatus,
+  eyebrow,
 } from "./styles";
 
 const trackGaEstimator = (payload: Record<string, unknown>) => {
@@ -331,26 +333,12 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     <section
       id={sectionId}
       className={layoutClass.sectionPadded}
-      style={{ backgroundColor: theme.colors.paper, position: "relative" }}
+      style={{ placeItems: "center", backgroundColor: theme.colors.paper, position: "relative" }}
       aria-labelledby={`${sectionId}-heading`}
     >
       <div className={layoutClass.containerFull}>
-        <div style={{ marginBottom: theme.spacing.xxxxl, maxWidth: "80vw" }}>
-          {content.eyebrow ? (
-            <span
-              style={{
-                fontWeight: 800,
-                textTransform: "uppercase",
-                letterSpacing: "0.2em",
-                color: theme.palette.coral["300"],
-                fontSize: "0.75rem",
-                marginBottom: theme.spacing.md,
-                display: "block",
-              }}
-            >
-              {content.eyebrow}
-            </span>
-          ) : null}
+        <div style={{ marginBlock: theme.spacing.xxxxl, maxWidth: "80vw" }}>
+          {content.eyebrow ? <span style={eyebrow}>{content.eyebrow}</span> : null}
           <h1
             id={`${sectionId}-heading`}
             style={{ ...headingStyle, fontSize: "clamp(2rem, 6vw, 3rem)" }}
@@ -399,7 +387,6 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                     exit="exit"
                     transition={{ duration: 0.3 }}
                   >
-                    <h2 style={cardHeadingStyle}>Ready for a ballpark?</h2>
                     <p style={cardTextStyle}>
                       {totalSteps} quick question{totalSteps === 1 ? "" : "s"}, about a minute.
                       {" You'll see an honest price range at the end—no obligation."}
@@ -464,7 +451,6 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                 placeholder="123 Main St, Austin, TX"
                                 value={address}
                                 onChange={(ev) => setAddress(ev.target.value)}
-                                autoComplete="address-line1"
                                 maxLength={500}
                                 style={addressInputStyle}
                               />
@@ -478,7 +464,6 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                               placeholder="123 Main St, Austin, TX"
                               value={address}
                               onChange={(ev) => setAddress(ev.target.value)}
-                              autoComplete="street-address"
                               maxLength={500}
                               style={addressInputStyle}
                             />
@@ -504,20 +489,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                       </div>
 
                       {lookupStatus === "found" && selectedAddress ? (
-                        <div
-                          style={{
-                            marginTop: theme.spacing.md,
-                            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                            backgroundColor: mix(theme.colors.accent, 8),
-                            border: `1px solid ${mix(theme.colors.accent, 22)}`,
-                            borderRadius: theme.radius.medium,
-                            fontSize: "0.85rem",
-                            color: theme.colors.everglade,
-                            display: "flex",
-                            gap: theme.spacing.sm,
-                            alignItems: "flex-start",
-                          }}
-                        >
+                        <div style={foundStatus}>
                           <Check
                             width={15}
                             height={15}
@@ -656,7 +628,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             })}
                           </div>
 
-                          {step > 0 ? (
+                          {step >= 0 ? (
                             <div style={{ marginTop: theme.spacing.xxl }}>
                               <button
                                 type="button"

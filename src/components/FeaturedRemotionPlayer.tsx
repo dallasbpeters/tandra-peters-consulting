@@ -4,16 +4,13 @@ import { forwardRef, memo, useMemo } from "react";
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 
 import { TandraIntro } from "../remotion/TandraIntro";
+import { TANDRA_INTRO_DURATION_IN_FRAMES, TANDRA_INTRO_FPS } from "../remotion/tandraIntroContent";
 
 type Props = {
   content: TandraIntroContent;
   posterUrl?: string;
   showCaptions: boolean;
 };
-
-const REMOTION_FPS = 30;
-export const REMOTION_DURATION_IN_FRAMES = 900;
-export const REMOTION_DURATION_SECONDS = REMOTION_DURATION_IN_FRAMES / REMOTION_FPS;
 
 export const FeaturedRemotionPlayer = memo(
   forwardRef<PlayerRef, Props>(({ content, posterUrl, showCaptions }, ref) => {
@@ -30,10 +27,10 @@ export const FeaturedRemotionPlayer = memo(
       <Player
         ref={ref}
         component={TandraIntro}
-        durationInFrames={REMOTION_DURATION_IN_FRAMES}
+        durationInFrames={TANDRA_INTRO_DURATION_IN_FRAMES}
         compositionWidth={1906}
         compositionHeight={1072}
-        fps={REMOTION_FPS}
+        fps={TANDRA_INTRO_FPS}
         controls={false}
         clickToPlay={false}
         acknowledgeRemotionLicense

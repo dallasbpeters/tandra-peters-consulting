@@ -2,7 +2,7 @@ import { Composition } from "remotion";
 
 import { AdsCompositions } from "./ads/AdsCompositions";
 import { TandraIntro } from "./TandraIntro";
-import { tandraIntroSchema } from "./tandraIntroContent";
+import { tandraIntroSchema } from "./tandraIntroSchema";
 
 /**
  * Editable copy for Remotion Studio (props panel writes here on save).

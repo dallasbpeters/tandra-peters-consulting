@@ -12,12 +12,15 @@ import {
 
 import type { CaptionCue } from "../../remotion/tandraIntroContent";
 
-import { REMOTION_DURATION_IN_FRAMES, REMOTION_DURATION_SECONDS } from "../FeaturedRemotionPlayer";
+import {
+  TANDRA_INTRO_DURATION_IN_FRAMES,
+  TANDRA_INTRO_FPS,
+} from "../../remotion/tandraIntroContent";
 import { PlayPauseButton } from "./PlayPauseButton";
 import { SeekBar } from "./SeekBar";
 import { VideoPoster } from "./VideoPoster";
 
-const REMOTION_FPS = REMOTION_DURATION_IN_FRAMES / REMOTION_DURATION_SECONDS;
+const REMOTION_DURATION_SECONDS = TANDRA_INTRO_DURATION_IN_FRAMES / TANDRA_INTRO_FPS;
 
 type Props = {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -77,17 +80,17 @@ export const VideoControls = ({
     };
     const handlePause = () => {
       setIsPlaying(false);
-      setCurrentTime(player.getCurrentFrame() / REMOTION_FPS);
+      setCurrentTime(player.getCurrentFrame() / TANDRA_INTRO_FPS);
     };
     const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(REMOTION_DURATION_SECONDS);
     };
     const handleFrameUpdate = (event: { detail: { frame: number } }) => {
-      setCurrentTime(event.detail.frame / REMOTION_FPS);
+      setCurrentTime(event.detail.frame / TANDRA_INTRO_FPS);
     };
 
-    setCurrentTime(player.getCurrentFrame() / REMOTION_FPS);
+    setCurrentTime(player.getCurrentFrame() / TANDRA_INTRO_FPS);
     setIsPlaying(player.isPlaying());
     player.addEventListener("play", handlePlay);
     player.addEventListener("pause", handlePause);
@@ -138,7 +141,7 @@ export const VideoControls = ({
     (time: number) => {
       const nextTime = Math.min(duration, Math.max(0, time));
       if (isRemotion) {
-        playerRef.current?.seekTo(Math.round(nextTime * REMOTION_FPS));
+        playerRef.current?.seekTo(Math.round(nextTime * TANDRA_INTRO_FPS));
         setCurrentTime(nextTime);
         return;
       }
@@ -250,7 +253,8 @@ export const VideoControls = ({
     captionsVisible && captionCues?.length
       ? captionCues.find(
           (cue) =>
-            currentTime * REMOTION_FPS >= cue.fromFrame && currentTime * REMOTION_FPS < cue.toFrame,
+            currentTime * TANDRA_INTRO_FPS >= cue.fromFrame &&
+            currentTime * TANDRA_INTRO_FPS < cue.toFrame,
         )
       : undefined;
 

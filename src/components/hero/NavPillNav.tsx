@@ -30,6 +30,10 @@ export const NavPillNav: React.FC<NavProps> = ({
   const [hovLink, setHovLink] = useState<string | null>(null);
   const [hovBtn, setHovBtn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const createLink =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3333/studio"
+      : "https://tandra.me/studio";
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -225,6 +229,14 @@ export const NavPillNav: React.FC<NavProps> = ({
               {item.name}
             </SiteNavLink>
           ))}
+          <SiteNavLink
+            href={createLink}
+            style={hovLink === "Creative" ? styles.pillLinkHover : styles.pillLink}
+            onMouseEnter={() => setHovLink("Creative")}
+            onMouseLeave={() => setHovLink(null)}
+          >
+            Creative
+          </SiteNavLink>
         </GoogleAuthGate>
         <SiteNavLink
           className="pill-cta"
