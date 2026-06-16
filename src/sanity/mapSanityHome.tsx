@@ -431,7 +431,9 @@ export const mapContactBannerProps = (data: SanityDoc): Partial<ContactBannerPro
           normalizedName.includes(k.toLowerCase()),
         );
         if (matchedKey) {
-          return { ctaIcon: CONTACT_BANNER_ICONS[matchedKey as keyof typeof CONTACT_BANNER_ICONS] };
+          return {
+            ctaIcon: CONTACT_BANNER_ICONS[matchedKey as keyof typeof CONTACT_BANNER_ICONS],
+          };
         }
       }
       // Legacy string format fallback

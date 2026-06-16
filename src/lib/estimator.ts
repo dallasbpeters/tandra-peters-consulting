@@ -39,9 +39,10 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
   bannerCtaLabel: "Start estimate",
   questions: [
     q(
-      "How big is your home?",
+      "What's your roof's footprint?",
       [
-        { label: "Under 1,500 sq ft", sqftMidpoint: 1250 },
+        { label: "Under 1,000 sq ft", sqftMidpoint: 800 },
+        { label: "1,000 – 1,500 sq ft", sqftMidpoint: 1250 },
         { label: "1,500 – 2,000 sq ft", sqftMidpoint: 1750 },
         { label: "2,000 – 2,500 sq ft", sqftMidpoint: 2250 },
         { label: "2,500 – 3,000 sq ft", sqftMidpoint: 2750 },
@@ -49,7 +50,8 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         { label: "Over 4,000 sq ft", sqftMidpoint: 4500 },
       ],
       {
-        helpText: "A rough number is fine—use your living square footage.",
+        helpText:
+          "Roof footprint = house footprint × roof pitch factor. If unsure, pick the range closest to your home's living area.",
         drivesSquareFootage: true,
       },
     ),
@@ -59,24 +61,23 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "One story",
           description: "Ranch, bungalow, single level",
-          sqftMultiplier: 1.0,
+          pricePerSqftAdd: 0,
         },
         {
           label: "Two stories",
           description: "Colonial, two-level home",
-          sqftMultiplier: 0.55,
+          pricePerSqftAdd: 0.5,
         },
         {
           label: "Three+ stories",
           description: "Tall narrow home",
-          sqftMultiplier: 0.4,
+          pricePerSqftAdd: 1,
         },
-        { label: "Not sure", sqftMultiplier: 0.8 },
+        { label: "Not sure", pricePerSqftAdd: 0.25 },
       ],
       {
         helpText:
-          "A two-story home has a smaller roof footprint than a one-story with the same living space.",
-        multipliesSquareFootage: true,
+          "Multi-story homes have less roof area per sq ft of living space, but steeper access.",
       },
     ),
     q(
@@ -85,23 +86,22 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "Simple",
           description: "Basic gable or hip, few penetrations",
-          sqftMultiplier: 1.0,
+          pricePerSqftAdd: 0,
         },
         {
           label: "Average",
           description: "A few gables, dormers, or a porch",
-          sqftMultiplier: 1.15,
+          pricePerSqftAdd: 1,
         },
         {
           label: "Complex",
           description: "Many gables, dormers, porches, valleys",
-          sqftMultiplier: 1.35,
+          pricePerSqftAdd: 2.5,
         },
-        { label: "Not sure", sqftMultiplier: 1.15 },
+        { label: "Not sure", pricePerSqftAdd: 1 },
       ],
       {
-        helpText: "More gables, dormers, and porches = more roof surface area.",
-        multipliesSquareFootage: true,
+        helpText: "More gables, dormers, and porches = more roof surface area and labor.",
       },
     ),
     q(
@@ -110,26 +110,22 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "Low / walkable",
           description: "Flat to 4/12 — easy to walk",
-          sqftMultiplier: 1.0,
           pricePerSqftAdd: 0,
         },
         {
           label: "Average pitch",
           description: "5/12 to 8/12 — standard",
-          sqftMultiplier: 1.1,
-          pricePerSqftAdd: 0.75,
+          pricePerSqftAdd: 1,
         },
         {
           label: "Steep",
           description: "9/12 to 12/12+ — needs extra safety",
-          sqftMultiplier: 1.3,
-          pricePerSqftAdd: 2,
+          pricePerSqftAdd: 2.5,
         },
-        { label: "Not sure", sqftMultiplier: 1.1, pricePerSqftAdd: 0.5 },
+        { label: "Not sure", pricePerSqftAdd: 0.75 },
       ],
       {
-        helpText: "Steeper roofs have more surface area and cost more to work on.",
-        multipliesSquareFootage: true,
+        helpText: "Steeper roofs cost more to work on safely.",
       },
     ),
     q("What kind of roof are you considering?", [

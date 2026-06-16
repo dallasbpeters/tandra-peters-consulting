@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { ContactBanner } from "../components/ContactBanner";
-import { Estimator } from "../components/Estimator";
+import { Estimator } from "../components/estimator/Estimator";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityEstimatorPage } from "../hooks/useSanityEstimatorPage";

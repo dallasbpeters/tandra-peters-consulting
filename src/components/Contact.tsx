@@ -1,10 +1,10 @@
-import "@fontsource/bebas-neue/latin-400.css";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import { AddressAutofill } from "@mapbox/search-js-react";
 import { usePostHog } from "@posthog/react";
+import { stegaClean } from "@sanity/client/stega";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
@@ -19,6 +19,52 @@ import { TransitionLink } from "./TransitionLink";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 export const CONTACT_API_PATH = "/api/contact";
+
+const isInvisibleTextCodePoint = (codePoint: number): boolean =>
+  codePoint === 0x034f ||
+  codePoint === 0x061c ||
+  codePoint === 0x115f ||
+  codePoint === 0x1160 ||
+  codePoint === 0x17b4 ||
+  codePoint === 0x17b5 ||
+  codePoint === 0x180e ||
+  (codePoint >= 0x200b && codePoint <= 0x200f) ||
+  (codePoint >= 0x202a && codePoint <= 0x202e) ||
+  (codePoint >= 0x2060 && codePoint <= 0x206f) ||
+  codePoint === 0x3164 ||
+  codePoint === 0xfeff ||
+  codePoint === 0xffa0;
+
+const stripInvisibleText = (value: string): string =>
+  Array.from(value)
+    .filter((char) => !isInvisibleTextCodePoint(char.codePointAt(0) ?? 0))
+    .join("");
+
+const cleanPlainText = (value: string): string => {
+  try {
+    const cleaned = stegaClean(value);
+    if (typeof cleaned === "string") {
+      return stripInvisibleText(cleaned).trim();
+    }
+  } catch {
+    // Fall back to a plain invisible-character strip if Sanity metadata is malformed.
+  }
+  return stripInvisibleText(value).trim();
+};
+
+const phoneHrefFor = (value: string): string => {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) {
+    return "#contact";
+  }
+  const normalized = digits.length === 10 ? `1${digits}` : digits;
+  return `tel:+${normalized}`;
+};
+
+const eventStringValue = (event: React.SyntheticEvent): string => {
+  const value = (event.target as { value?: string | null }).value;
+  return value ?? "";
+};
 
 const trackGaContactForm = (payload: Record<string, unknown>) => {
   if (typeof window === "undefined") {
@@ -56,6 +102,11 @@ export const Contact = ({
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
   const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
+  const cleanedTagline = cleanPlainText(tagline);
+  const cleanedTitle = cleanPlainText(title);
+  const cleanedEmail = cleanPlainText(email);
+  const cleanedPhone = cleanPlainText(phone);
+  const cleanedLocation = cleanPlainText(location);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -214,7 +265,12 @@ export const Contact = ({
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   };
 
+  const nameLabel = formLabels?.name ?? "Full Name";
+  const emailLabel = formLabels?.email ?? "Email Address";
   const serviceLabel = formLabels?.service ?? "Service interest";
+  const propertyLabel = formLabels?.property ?? "Property Address";
+  const messageLabel = formLabels?.message ?? "Your Message";
+  const submitLabel = formLabels?.button ?? "Send Message";
 
   /** Native input styled to match the WebAwesome fields (Mapbox needs a real input, not a custom element). */
   const addressLabelStyle: React.CSSProperties = {
@@ -269,7 +325,7 @@ export const Contact = ({
   return (
     <section
       id="contact"
-      className={layoutClass.sectionPadded}
+      className={`${layoutClass.sectionPadded} contact-section`}
       style={sectionStyle}
       aria-labelledby="contact-heading"
     >
@@ -279,6 +335,22 @@ export const Contact = ({
             .lg-grid-12 { grid-template-columns: repeat(12, 1fr) !important; }
             .lg-col-6 { grid-column: span 6 / span 6 !important; }
             .md-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+          .contact-section {
+            padding-block-end: calc(var(--theme-spacing-section-wide) + 5.5rem + env(safe-area-inset-bottom));
+          }
+          .contact-heading {
+            font-size: 3.75rem;
+          }
+          @media (min-width: 768px) {
+            .contact-section {
+              padding-block-end: var(--theme-spacing-section-wide);
+            }
+          }
+          @media (max-width: 767px) {
+            .contact-heading {
+              font-size: 2.75rem;
+            }
           }
           .contact-group:has( a ):hover .icon-wrapper { background-color: ${theme.palette.blue[300]} !important; }
           .contact-group:hover a { text-decoration: underline !important; }
@@ -322,19 +394,19 @@ export const Contact = ({
               display: "block",
             }}
           >
-            {tagline}
+            {cleanedTagline}
           </span>
           <h2
             id="contact-heading"
+            className="contact-heading"
             style={{
-              fontSize: "clamp(2rem, 10vw, 4rem)",
               lineHeight: 1,
               marginBottom: theme.spacing.xxxxxxxxl,
-              fontFamily: theme.fonts.special,
-              fontWeight: 400,
+              fontFamily: theme.fonts.headline,
+              fontWeight: 900,
             }}
           >
-            {title}
+            {cleanedTitle}
           </h2>
           <div
             style={{
@@ -349,8 +421,8 @@ export const Contact = ({
               </div>
               <div>
                 <p style={labelStyle}>Email</p>
-                <a href={`mailto:${email}`} style={valueStyle}>
-                  {email}
+                <a href={`mailto:${cleanedEmail}`} style={valueStyle}>
+                  {cleanedEmail}
                 </a>
               </div>
             </div>
@@ -360,8 +432,8 @@ export const Contact = ({
               </div>
               <div>
                 <p style={labelStyle}>Phone</p>
-                <a href="sms:15129683965" style={valueStyle}>
-                  {phone}
+                <a href={phoneHrefFor(cleanedPhone)} style={valueStyle}>
+                  {cleanedPhone}
                 </a>
               </div>
             </div>
@@ -371,7 +443,7 @@ export const Contact = ({
               </div>
               <div>
                 <p style={labelStyle}>Location</p>
-                <p style={valueStyle}>{location}</p>
+                <p style={valueStyle}>{cleanedLocation}</p>
               </div>
             </div>
           </div>
@@ -437,27 +509,27 @@ export const Contact = ({
                 className="md-grid-2"
               >
                 <WaInput
-                  label="Full Name"
+                  label={nameLabel}
                   id="contact-full-name"
                   name="full-name"
                   type="text"
                   className="contact-form-field"
                   placeholder="John Doe"
                   value={fullName}
-                  onChange={(ev) => setFullName(ev.target.value)}
+                  onChange={(ev) => setFullName(eventStringValue(ev))}
                   required
                   autocomplete="name"
                 />
 
                 <WaInput
-                  label="Email Address"
+                  label={emailLabel}
                   id="contact-email"
                   name="email"
                   type="email"
                   className="contact-form-field"
                   placeholder="john@example.com"
                   value={visitorEmail}
-                  onChange={(ev) => setVisitorEmail(ev.target.value)}
+                  onChange={(ev) => setVisitorEmail(eventStringValue(ev))}
                   required
                   autocomplete="email"
                 >
@@ -479,7 +551,7 @@ export const Contact = ({
                 className="contact-form-field"
                 placeholder="(512) 555-0100"
                 value={phoneNumber}
-                onChange={(ev) => setPhoneNumber(ev.target.value)}
+                onChange={(ev) => setPhoneNumber(eventStringValue(ev))}
                 autocomplete="tel"
                 withLabel={true}
               >
@@ -494,7 +566,7 @@ export const Contact = ({
               </WaInput>
               <div>
                 <label htmlFor="contact-property-address" style={addressLabelStyle}>
-                  Property Address{" "}
+                  {propertyLabel}{" "}
                   <span
                     style={{
                       fontWeight: 400,
@@ -521,7 +593,7 @@ export const Contact = ({
                       name="property-address"
                       type="text"
                       className="contact-address-input"
-                      placeholder="Start typing your property address…"
+                      placeholder="123 Main St, Austin, TX"
                       value={propertyAddress}
                       onChange={(ev) => setPropertyAddress(ev.target.value)}
                       autoComplete="address-line1"
@@ -552,9 +624,7 @@ export const Contact = ({
                 placeholder="Select a service..."
                 size="m"
                 withClear
-                onChange={(e) =>
-                  setServiceInterest((e.target as unknown as { value: string }).value)
-                }
+                onChange={(e) => setServiceInterest(eventStringValue(e))}
               >
                 {serviceOptions.map((opt) => (
                   <WaOption key={opt.value} value={opt.value} id={opt.value}>
@@ -564,8 +634,8 @@ export const Contact = ({
               </WaSelect>
 
               <WaTextarea
-                aria-label="Your Message"
-                label="Your Message"
+                aria-label={messageLabel}
+                label={messageLabel}
                 id="contact-message"
                 name="message"
                 rows={4}
@@ -573,7 +643,7 @@ export const Contact = ({
                 style={{ resize: "none", minHeight: "6rem" }}
                 placeholder="Tell us about your roofing needs..."
                 value={message}
-                onChange={(ev) => setMessage(ev.target.value)}
+                onChange={(ev) => setMessage(eventStringValue(ev))}
                 required
                 maxlength={8000}
               />
@@ -644,7 +714,7 @@ export const Contact = ({
                 }}
                 className="send-btn"
               >
-                <span>{submitStatus === "sending" ? "Sending…" : "Send Message"}</span>
+                <span>{submitStatus === "sending" ? "Sending…" : submitLabel}</span>
                 <Send
                   width={18}
                   height={18}

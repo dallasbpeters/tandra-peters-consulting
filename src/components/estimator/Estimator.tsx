@@ -1,35 +1,34 @@
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { usePostHog } from "@posthog/react";
+import { AddressAutofill } from "@mapbox/search-js-react";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
+import { usePostHog } from "@posthog/react";
 import { ArrowLeft, ArrowRight, Check, RefreshDouble, Search, Send } from "iconoir-react";
-import mapboxgl from "mapbox-gl";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ChromaFlow, Shader } from "shaders/react";
+import React, { useMemo, useState } from "react";
 
-import type { EstimatorPageContent, EstimatorQuestion } from "../types";
+import type { EstimatorPageContent } from "../../types";
 
-import { useIsMobile } from "../hooks/isMobile";
-import { useNearViewport } from "../hooks/useNearViewport";
 import {
   computeEstimate,
   formatRange,
   summarizeSelections,
   type EstimatorSelections,
-} from "../lib/estimator";
+} from "../../lib/estimator";
+import { layoutClass } from "../../styles/layoutClasses";
+import { mix, theme } from "../../theme";
+import { EstimatorMapBackground } from "./EstimatorMapBackground";
+import { optionIllustrationFor } from "./optionIllustrations";
 import {
-  lookupProperty,
-  type PropertyLookupResult,
-  type PropertyLookupStatus,
-} from "../lib/propertyLookup";
-import { layoutClass } from "../styles/layoutClasses";
-import { mix, theme } from "../theme";
-import "../styles/estimator.css";
-
-const MAP_STYLE = "mapbox://styles/dallasbpeters/cmpp12ft3003f01s8fw2fdari";
-const TX_CENTER: [number, number] = [-99.5, 31.0];
-const TX_ZOOM = 5.8;
+  estimatorCardLayoutStyle,
+  estimatorCardStyle,
+  estimatorEmailRowStyle,
+  estimatorFooterStyle,
+  estimatorIntroLayoutStyle,
+  estimatorOptionArtStyle,
+  estimatorOptionStyle,
+  estimatorOptionsStyle,
+  introCardStyle,
+} from "./styles";
 
 const trackGaEstimator = (payload: Record<string, unknown>) => {
   if (typeof window === "undefined") return;
@@ -44,38 +43,15 @@ export const ESTIMATE_API_PATH = "/api/estimate";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type SendStatus = "idle" | "sending" | "sent" | "error";
+type AddressLookupStatus = "idle" | "loading" | "found" | "error";
 
 type EstimatorProps = {
   content: EstimatorPageContent;
   sectionId?: string;
 };
 
-/** Match a story count to one of the question's option keys. */
-const resolveStoryOptionKey = (
-  storyCount: number | null,
-  options: EstimatorQuestion["options"],
-): string | null => {
-  if (!storyCount) return null;
-  const hints: [number, string[]][] = [
-    [1, ["one story", "1 story", "single", "ranch", "bungalow"]],
-    [2, ["two stor", "2 stor", "colonial"]],
-    [3, ["three", "3+", "tall narrow"]],
-  ];
-  const match = hints
-    .slice()
-    .reverse()
-    .find(([n]) => storyCount >= n);
-  if (!match) return null;
-  const [, keywords] = match;
-  const opt = options.find((o) =>
-    keywords.some((kw) => (o.label + " " + (o.description ?? "")).toLowerCase().includes(kw)),
-  );
-  return opt ? (opt._key ?? opt.label) : null;
-};
-
 export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "estimator" }) => {
   const posthog = usePostHog();
-  const isMobile = useIsMobile();
   const questions = content.questions ?? [];
   const currency = content.currency ?? "$";
 
@@ -89,122 +65,73 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
   const [sendStatus, setSendStatus] = useState<SendStatus>("idle");
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Property address lookup
+  // Property address map focus
   const [address, setAddress] = useState("");
-  const [propertyData, setPropertyData] = useState<PropertyLookupResult | null>(null);
-  const [lookupStatus, setLookupStatus] = useState<PropertyLookupStatus>("idle");
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [lookupStatus, setLookupStatus] = useState<AddressLookupStatus>("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [propertyCoords, setPropertyCoords] = useState<[number, number] | null>(null);
 
   // Mapbox
   const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-  const sectionRef = useRef<HTMLElement>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const [propertyCoords, setPropertyCoords] = useState<[number, number] | null>(null);
-  const isNearViewport = useNearViewport(sectionRef, "300px 0px");
 
-  // Init map when on intro + near viewport
-  useEffect(() => {
-    if (step !== -1 || !isNearViewport) return;
-    const container = mapContainerRef.current;
-    if (!container || !mapboxToken || mapRef.current) return;
-
-    mapboxgl.accessToken = mapboxToken;
-    const map = new mapboxgl.Map({
-      container,
-      style: MAP_STYLE,
-      center: TX_CENTER,
-      zoom: TX_ZOOM,
-      attributionControl: false,
-      scrollZoom: false,
-    });
-
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
-
-    map.once("style.load", () => {
-      try {
-        map.setTerrain(null);
-        map.setConfigProperty("basemap", "lightPreset", "dusk");
-        map.setConfigProperty("basemap", "show3dObjects", false);
-      } catch {
-        /* non-Standard basemap — skip */
-      }
-    });
-
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-      markerRef.current = null;
-    };
-  }, [step, isNearViewport, mapboxToken]);
-
-  // Fly to property when geocoords are known
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!propertyCoords || !map) return;
-
-    map.flyTo({ center: propertyCoords, zoom: 15.5, duration: 2000, essential: true });
-
-    if (markerRef.current) {
-      markerRef.current.setLngLat(propertyCoords);
-    } else {
-      const el = document.createElement("div");
-      Object.assign(el.style, {
-        width: "14px",
-        height: "14px",
-        borderRadius: "50%",
-        background: "#945bea",
-        border: "3px solid #ffffff",
-        boxShadow: "0 2px 14px rgba(0,0,0,0.65)",
-      });
-      markerRef.current = new mapboxgl.Marker({ element: el }).setLngLat(propertyCoords).addTo(map);
-    }
-  }, [propertyCoords]);
-
-  /** Forward-geocode the formatted address so we can fly the map there. */
-  const geocodeForMap = async (formattedAddress: string) => {
-    if (!mapboxToken) return;
-    try {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formattedAddress)}.json?access_token=${mapboxToken}&limit=1&country=US&types=address`;
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        features?: Array<{ center?: [number, number] }>;
-      };
-      const center = data.features?.[0]?.center;
-      if (center) setPropertyCoords(center);
-    } catch {
-      /* non-fatal — map just stays on Texas */
+  const setMapboxAddress = (
+    formattedAddress: string,
+    coords: [number, number] | null,
+    source: "mapbox-autofill" | "mapbox-geocoding",
+  ) => {
+    setAddress(formattedAddress);
+    setSelectedAddress(formattedAddress);
+    setLookupError(null);
+    if (coords) {
+      setPropertyCoords(coords);
+      setLookupStatus("found");
+      posthog?.capture("estimator_property_mapped", { source });
     }
   };
 
-  // The home-size question drives sq footage; skip it when we have real property data.
-  const sqftQuestionIndex = questions.findIndex((q) => q.drivesSquareFootage);
-  const visibleQuestions = useMemo(
-    () =>
-      propertyData && sqftQuestionIndex >= 0
-        ? questions.filter((_, i) => i !== sqftQuestionIndex)
-        : questions,
-    [questions, propertyData, sqftQuestionIndex],
-  );
+  /** Forward-geocode manually typed addresses with Mapbox so the map can zoom there. */
+  const geocodeForMap = async (formattedAddress: string) => {
+    if (!mapboxToken) {
+      setLookupStatus("error");
+      setLookupError("Map lookup needs a Mapbox token.");
+      return;
+    }
+    setLookupStatus("loading");
+    setLookupError(null);
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formattedAddress)}.json?access_token=${mapboxToken}&limit=1&country=US&types=address`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Could not check that address on the map.");
+      const data = (await res.json()) as {
+        features?: Array<{
+          center?: [number, number];
+          place_name?: string;
+          text?: string;
+        }>;
+      };
+      const feature = data.features?.[0];
+      if (!feature?.center) {
+        throw new Error("I could not find that address on the map.");
+      }
+      const formatted = feature.place_name || formattedAddress;
+      setMapboxAddress(formatted, feature.center, "mapbox-geocoding");
+    } catch (err) {
+      setLookupStatus("error");
+      setLookupError(
+        err instanceof Error ? err.message : "Could not check that address on the map.",
+      );
+    }
+  };
+
+  const visibleQuestions = questions;
 
   const totalSteps = visibleQuestions.length;
   const onResults = step >= totalSteps;
 
-  // When property data is available, pass real total living area as sqft override.
-  // The stories multiplier question still runs to convert living area → footprint.
-  const estimateOverrides = useMemo(
-    () => (propertyData?.totalAreaSqft ? { sqft: propertyData.totalAreaSqft } : undefined),
-    [propertyData],
-  );
-
   const estimate = useMemo(
-    () => (onResults ? computeEstimate(content, selections, estimateOverrides) : null),
-    [onResults, content, selections, estimateOverrides],
+    () => (onResults ? computeEstimate(content, selections) : null),
+    [onResults, content, selections],
   );
   const summary = useMemo(
     () => (onResults ? summarizeSelections(content, selections) : []),
@@ -219,44 +146,13 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
   const handleLookup = async () => {
     const trimmed = address.trim();
     if (!trimmed) return;
-    setLookupStatus("loading");
-    setLookupError(null);
-    try {
-      const result = await lookupProperty(trimmed);
-      setPropertyData(result);
-      setLookupStatus("found");
-      void geocodeForMap(result.formattedAddress);
-      posthog?.capture("estimator_property_lookup", {
-        stories: result.stories,
-        sqft: result.totalAreaSqft,
-      });
-    } catch (err) {
-      setLookupStatus("error");
-      setLookupError(err instanceof Error ? err.message : "Could not look up that address.");
-    }
+    await geocodeForMap(trimmed);
   };
 
   const start = () => {
-    posthog?.capture("estimator_started", { addressProvided: lookupStatus === "found" });
-
-    // Pre-select the stories answer when we know it from property data.
-    if (propertyData) {
-      const storiesQ = questions.find(
-        (q) =>
-          q.multipliesSquareFootage &&
-          q.options.some((o) =>
-            (o.label + " " + (o.description ?? "")).toLowerCase().includes("stor"),
-          ),
-      );
-      if (storiesQ) {
-        const key = resolveStoryOptionKey(propertyData.stories, storiesQ.options);
-        if (key) {
-          const qKey = storiesQ._key ?? storiesQ.prompt;
-          setSelections((prev) => ({ ...prev, [qKey]: key }));
-        }
-      }
-    }
-
+    posthog?.capture("estimator_started", {
+      addressProvided: lookupStatus === "found",
+    });
     goTo(0, 1);
   };
 
@@ -272,7 +168,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     setSendStatus("idle");
     setSendError(null);
     setAddress("");
-    setPropertyData(null);
+    setSelectedAddress(null);
     setPropertyCoords(null);
     setLookupStatus("idle");
     setLookupError(null);
@@ -303,16 +199,27 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
           highEstimate: estimate.high,
           rangeDisplay: formatRange(estimate, currency),
           squareFootage: estimate.sqft,
-          propertyAddress: propertyData?.formattedAddress ?? null,
+          propertyAddress: selectedAddress ?? (address.trim() || null),
           answers: summary,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
       if (!res.ok || !data.ok) throw new Error(data.error || "Could not send the estimate.");
       setSendStatus("sent");
-      posthog?.identify(email.trim(), { name: fullName.trim(), email: email.trim() });
-      posthog?.capture("estimator_emailed", { range: formatRange(estimate, currency) });
-      trackGaEstimator({ action: "emailed", range: formatRange(estimate, currency) });
+      posthog?.identify(email.trim(), {
+        name: fullName.trim(),
+        email: email.trim(),
+      });
+      posthog?.capture("estimator_emailed", {
+        range: formatRange(estimate, currency),
+      });
+      trackGaEstimator({
+        action: "emailed",
+        range: formatRange(estimate, currency),
+      });
     } catch (err) {
       setSendStatus("error");
       setSendError(err instanceof Error ? err.message : "Could not send the estimate.");
@@ -331,12 +238,28 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     lineHeight: 1.15,
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
-    color: theme.colors.everglade,
+    color: theme.colors.white,
+    margin: 0,
+  };
+  const cardHeadingStyle: React.CSSProperties = {
+    fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
+    lineHeight: 1.15,
+    fontFamily: theme.fonts.headline,
+    fontWeight: 800,
+    color: theme.colors.black,
+    marginBlockEnd: theme.spacing.md,
+  };
+  const cardTextStyle: React.CSSProperties = {
+    fontSize: "1.2rem",
+    lineHeight: 1.15,
+    fontFamily: theme.fonts.headline,
+    fontWeight: 800,
+    color: theme.colors.black,
     margin: 0,
   };
 
   const helpStyle: React.CSSProperties = {
-    color: mix(theme.colors.everglade, 70),
+    color: mix(theme.colors.white, 70),
     fontSize: "1rem",
     lineHeight: 1.6,
     margin: `${theme.spacing.sm} 0 0`,
@@ -348,12 +271,67 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -40 : 40 }),
   };
 
+  const addressLabelStyle: React.CSSProperties = {
+    display: "block",
+    fontFamily: theme.fonts.body,
+    fontSize: "var(--wa-form-control-label-font-size, 1rem)",
+    color: theme.colors.everglade,
+    marginBottom: "0.5rem",
+  };
+
+  const primaryButtonStyle: React.CSSProperties = {
+    backgroundColor: theme.colors.everglade,
+    color: theme.colors.white,
+    padding: `${theme.spacing.lg} ${theme.spacing.xxl}`,
+    fontFamily: theme.fonts.headline,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    borderRadius: theme.radius.medium,
+    letterSpacing: "0.08em",
+    fontSize: "0.875rem",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: theme.spacing.md,
+    border: "none",
+    cursor: "pointer",
+    marginTop: theme.spacing.xl,
+  };
+
+  const ghostButtonStyle: React.CSSProperties = {
+    backgroundColor: "transparent",
+    color: mix(theme.colors.everglade, 80),
+    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+    fontFamily: theme.fonts.headline,
+    fontWeight: 700,
+    fontSize: "0.875rem",
+    borderRadius: theme.radius.medium,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    border: "none",
+    cursor: "pointer",
+  };
+
+  const addressInputStyle: React.CSSProperties = {
+    width: "100%",
+    boxSizing: "border-box",
+    fontFamily: theme.fonts.body,
+    fontSize: "var(--wa-form-control-value-font-size, 1rem)",
+    color: theme.colors.everglade,
+    backgroundColor: "var(--wa-form-control-background-color, #fff)",
+    border:
+      "var(--wa-form-control-border-width, 1px) var(--wa-form-control-border-style, solid) var(--wa-form-control-border-color)",
+    borderRadius: "var(--wa-border-radius-m, 0.5rem)",
+    height: "var(--wa-form-control-height, 2.625rem)",
+    padding: "0 var(--wa-form-control-padding-inline, 1rem)",
+    outline: "none",
+  };
+
   return (
     <section
-      ref={sectionRef}
       id={sectionId}
       className={layoutClass.sectionPadded}
-      style={{ backgroundColor: theme.colors.paper }}
+      style={{ backgroundColor: theme.colors.paper, position: "relative" }}
       aria-labelledby={`${sectionId}-heading`}
     >
       <div className={layoutClass.containerFull}>
@@ -381,14 +359,17 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
           </h1>
           {content.description ? <p style={helpStyle}>{content.description}</p> : null}
         </div>
-
         {/* Intro: 2-col with map panel. Questions/results: single card. */}
-        <div className={step === -1 ? "estimator-intro-layout" : ""}>
-          <div className="estimator-card">
+        <div style={step === -1 ? estimatorIntroLayoutStyle : estimatorCardLayoutStyle}>
+          <div data-estimator-card style={step === -1 ? introCardStyle : estimatorCardStyle}>
             {/* Progress bar (hidden on intro + results) */}
             {step >= 0 && !onResults ? (
               <div
-                style={{ height: 6, backgroundColor: theme.colors.paperDark, position: "relative" }}
+                style={{
+                  height: 6,
+                  backgroundColor: theme.colors.paperDark,
+                  position: "relative",
+                }}
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={totalSteps}
@@ -397,7 +378,10 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                 <motion.div
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
-                  style={{ height: "100%", backgroundColor: theme.colors.accent }}
+                  style={{
+                    height: "100%",
+                    backgroundColor: theme.colors.accent,
+                  }}
                 />
               </div>
             ) : null}
@@ -415,36 +399,14 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                     exit="exit"
                     transition={{ duration: 0.3 }}
                   >
-                    <h2 style={headingStyle}>Ready for a ballpark?</h2>
-                    <p style={helpStyle}>
+                    <h2 style={cardHeadingStyle}>Ready for a ballpark?</h2>
+                    <p style={cardTextStyle}>
                       {totalSteps} quick question{totalSteps === 1 ? "" : "s"}, about a minute.
                       {" You'll see an honest price range at the end—no obligation."}
                     </p>
 
                     {/* Address lookup */}
                     <div style={{ marginTop: theme.spacing.xxl }}>
-                      <p
-                        style={{
-                          fontFamily: theme.fonts.headline,
-                          fontWeight: 700,
-                          fontSize: "0.9rem",
-                          color: theme.colors.everglade,
-                          margin: `0 0 ${theme.spacing.xs}`,
-                        }}
-                      >
-                        Want a more accurate estimate?
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "0.85rem",
-                          color: mix(theme.colors.everglade, 60),
-                          margin: `0 0 ${theme.spacing.md}`,
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        Enter your address to pull real building data — no guessing on square
-                        footage.
-                      </p>
                       <div
                         style={{
                           display: "flex",
@@ -454,17 +416,73 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                         }}
                       >
                         <div style={{ flex: "1 1 220px" }}>
-                          <WaInput
-                            label="Property address (optional)"
-                            value={address}
-                            onInput={(e) =>
-                              setAddress((e.target as unknown as { value: string }).value)
-                            }
-                            onKeyDown={(e: React.KeyboardEvent) => {
-                              if (e.key === "Enter") void handleLookup();
-                            }}
-                            autocomplete="street-address"
-                          />
+                          <label htmlFor="contact-property-address" style={addressLabelStyle}>
+                            Property Address{" "}
+                            <span
+                              style={{
+                                fontWeight: 400,
+                                color: mix(theme.colors.everglade, 45),
+                              }}
+                            >
+                              (optional)
+                            </span>
+                          </label>
+                          {mapboxToken ? (
+                            <AddressAutofill
+                              accessToken={mapboxToken}
+                              options={{ country: "US", language: "en" }}
+                              onRetrieve={(res) => {
+                                const feature = res?.features?.[0] as unknown as
+                                  | {
+                                      geometry?: { coordinates?: unknown };
+                                      properties?: {
+                                        full_address?: string;
+                                        place_name?: string;
+                                        name?: string;
+                                      };
+                                    }
+                                  | undefined;
+                                const props = feature?.properties;
+                                const full = props?.full_address || props?.place_name;
+                                const rawCoords = feature?.geometry?.coordinates;
+                                const coords =
+                                  Array.isArray(rawCoords) &&
+                                  typeof rawCoords[0] === "number" &&
+                                  typeof rawCoords[1] === "number"
+                                    ? ([rawCoords[0], rawCoords[1]] as [number, number])
+                                    : null;
+                                if (full) {
+                                  setMapboxAddress(full, coords, "mapbox-autofill");
+                                }
+                              }}
+                            >
+                              <input
+                                id="contact-property-address"
+                                name="property-address"
+                                type="text"
+                                className="contact-address-input"
+                                placeholder="123 Main St, Austin, TX"
+                                value={address}
+                                onChange={(ev) => setAddress(ev.target.value)}
+                                autoComplete="address-line1"
+                                maxLength={500}
+                                style={addressInputStyle}
+                              />
+                            </AddressAutofill>
+                          ) : (
+                            <input
+                              id="contact-property-address"
+                              name="property-address"
+                              type="text"
+                              className="contact-address-input"
+                              placeholder="123 Main St, Austin, TX"
+                              value={address}
+                              onChange={(ev) => setAddress(ev.target.value)}
+                              autoComplete="street-address"
+                              maxLength={500}
+                              style={addressInputStyle}
+                            />
+                          )}
                         </div>
                         <button
                           type="button"
@@ -481,12 +499,11 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                           }}
                         >
                           <Search width={15} height={15} />
-                          <span>{lookupStatus === "loading" ? "Looking up…" : "Look up"}</span>
+                          <span>{lookupStatus === "loading" ? "Finding…" : "Find on map"}</span>
                         </button>
                       </div>
 
-                      {/* Lookup result chip */}
-                      {lookupStatus === "found" && propertyData ? (
+                      {lookupStatus === "found" && selectedAddress ? (
                         <div
                           style={{
                             marginTop: theme.spacing.md,
@@ -511,19 +528,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             }}
                           />
                           <div>
-                            <strong style={{ display: "block" }}>
-                              {propertyData.formattedAddress}
-                            </strong>
+                            <strong style={{ display: "block" }}>{selectedAddress}</strong>
                             <span style={{ color: mix(theme.colors.everglade, 60) }}>
-                              {[
-                                propertyData.totalAreaSqft
-                                  ? `${propertyData.totalAreaSqft.toLocaleString()} sq ft`
-                                  : null,
-                                propertyData.stories ? `${propertyData.stories}-story` : null,
-                                propertyData.yearBuilt ? `built ${propertyData.yearBuilt}` : null,
-                              ]
-                                .filter(Boolean)
-                                .join(" · ")}
+                              Map centered. I’ll still ask for roof size so the range stays honest.
                             </span>
                           </div>
                         </div>
@@ -543,12 +550,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                       ) : null}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={start}
-                      className="estimator-cta"
-                      style={primaryButtonStyle}
-                    >
+                    <button type="button" onClick={start} style={primaryButtonStyle}>
                       <span>{content.startButtonLabel ?? "Estimate my roof"}</span>
                       <ArrowRight width={18} height={18} />
                     </button>
@@ -584,24 +586,31 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                           >
                             Question {step + 1} of {totalSteps}
                           </p>
-                          <h2 style={headingStyle}>{question.prompt}</h2>
-                          {question.helpText ? <p style={helpStyle}>{question.helpText}</p> : null}
+                          <h2 style={cardHeadingStyle}>{question.prompt}</h2>
+                          {question.helpText ? (
+                            <p style={cardTextStyle}>{question.helpText}</p>
+                          ) : null}
 
                           <div
-                            className="estimator-options"
-                            style={{ marginTop: theme.spacing.xxl }}
+                            style={{
+                              ...estimatorOptionsStyle,
+                              marginTop: theme.spacing.xxl,
+                            }}
                           >
                             {question.options.map((option) => {
                               const optionKey = option._key ?? option.label;
                               const isSelected = selected === optionKey;
+                              const illustration =
+                                option.illustration ??
+                                optionIllustrationFor(question.prompt, option.label);
                               return (
                                 <button
                                   type="button"
                                   key={optionKey}
-                                  className="estimator-option"
                                   onClick={() => selectOption(questionKey, optionKey)}
                                   aria-pressed={isSelected}
                                   style={{
+                                    ...estimatorOptionStyle,
                                     borderColor: isSelected
                                       ? theme.colors.accent
                                       : theme.colors.paperDark,
@@ -613,6 +622,15 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                       : "none",
                                   }}
                                 >
+                                  {illustration ? (
+                                    <img
+                                      src={illustration}
+                                      alt=""
+                                      aria-hidden="true"
+                                      loading="lazy"
+                                      style={estimatorOptionArtStyle}
+                                    />
+                                  ) : null}
                                   <span
                                     style={{
                                       fontFamily: theme.fonts.headline,
@@ -701,41 +719,6 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             gap: theme.spacing.xs,
                           }}
                         >
-                          {/* Property data row when it drove the calculation */}
-                          {propertyData?.totalAreaSqft ? (
-                            <li
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: theme.spacing.lg,
-                                fontSize: "0.95rem",
-                                color: mix(theme.colors.everglade, 75),
-                                borderBottom: `1px solid ${theme.colors.paperDark}`,
-                                padding: `${theme.spacing.sm} 0`,
-                              }}
-                            >
-                              <span>Square footage</span>
-                              <span
-                                style={{
-                                  fontWeight: 700,
-                                  color: theme.colors.everglade,
-                                  textAlign: "right",
-                                }}
-                              >
-                                {propertyData.totalAreaSqft.toLocaleString()} sq ft
-                                <span
-                                  style={{
-                                    display: "block",
-                                    fontWeight: 400,
-                                    fontSize: "0.78rem",
-                                    color: mix(theme.colors.everglade, 50),
-                                  }}
-                                >
-                                  from property records
-                                </span>
-                              </span>
-                            </li>
-                          ) : null}
                           {summary.map((row) => (
                             <li
                               key={row.prompt}
@@ -810,10 +793,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             >
                               Email me this estimate
                             </p>
-                            <div
-                              className="estimator-email-row"
-                              style={{ marginBottom: theme.spacing.md }}
-                            >
+                            <div style={estimatorEmailRowStyle}>
                               <WaInput
                                 label="Your name"
                                 value={fullName}
@@ -844,7 +824,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                 {sendError}
                               </p>
                             ) : null}
-                            <div className="estimator-footer">
+                            <div style={estimatorFooterStyle}>
                               <button
                                 type="submit"
                                 disabled={sendStatus === "sending"}
@@ -889,143 +869,10 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
               </AnimatePresence>
             </div>
           </div>
-
-          {/* Map panel — only visible on intro step */}
-          {step === -1 ? (
-            <div
-              className="estimator-map-panel"
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 0,
-                borderRadius: theme.radius.large,
-                overflow: "hidden",
-                minHeight: isMobile ? "220px" : "480px",
-                backgroundColor: theme.palette.everglade["950"],
-                border: `1px solid ${mix(theme.colors.white, 8)}`,
-              }}
-            >
-              {/* Mapbox canvas */}
-              <div
-                ref={mapContainerRef}
-                style={{ position: "absolute", inset: 0 }}
-                aria-hidden="true"
-              />
-
-              {/* No-token fallback */}
-              {!mapboxToken ? (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "0.8rem",
-                    color: mix(theme.colors.white, 40),
-                    padding: theme.spacing.xxl,
-                    textAlign: "center",
-                  }}
-                >
-                  Add <code>VITE_MAPBOX_ACCESS_TOKEN</code> to .env.local to load the map.
-                </div>
-              ) : null}
-
-              {/* ChromaFlow purple tint — matches service area map */}
-              <Shader
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  pointerEvents: "none",
-                  zIndex: 1,
-                  mixBlendMode: "multiply",
-                }}
-              >
-                <ChromaFlow
-                  id="mapChromaFlow"
-                  baseColor="#7449d6"
-                  blendMode="multiply"
-                  downColor="#7935b5"
-                  intensity={1}
-                  momentum={19}
-                  radius={2.5}
-                  rightColor="#8a5ae8"
-                  transform={{ offsetX: 0.01 }}
-                  upColor="#9a6cf0"
-                />
-              </Shader>
-
-              {/* Property found label */}
-              {lookupStatus === "found" && propertyData ? (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: theme.spacing.lg,
-                    left: theme.spacing.lg,
-                    right: theme.spacing.lg,
-                    zIndex: 5,
-                    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                    backgroundColor: "rgba(8, 24, 16, 0.82)",
-                    borderRadius: theme.radius.medium,
-                    backdropFilter: "blur(6px)",
-                    color: theme.colors.white,
-                    fontSize: "0.8rem",
-                    lineHeight: 1.4,
-                    pointerEvents: "none",
-                  }}
-                >
-                  <strong style={{ display: "block", marginBottom: "0.1rem" }}>
-                    {propertyData.formattedAddress}
-                  </strong>
-                  <span style={{ color: mix(theme.colors.white, 70) }}>
-                    {[
-                      propertyData.totalAreaSqft
-                        ? `${propertyData.totalAreaSqft.toLocaleString()} sq ft`
-                        : null,
-                      propertyData.stories ? `${propertyData.stories}-story` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       </div>
+
+      <EstimatorMapBackground active mapboxToken={mapboxToken} propertyCoords={propertyCoords} />
     </section>
   );
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  backgroundColor: theme.colors.everglade,
-  color: theme.colors.white,
-  padding: `${theme.spacing.lg} ${theme.spacing.xxl}`,
-  fontFamily: theme.fonts.headline,
-  fontWeight: 900,
-  textTransform: "uppercase",
-  borderRadius: theme.radius.large,
-  letterSpacing: "0.08em",
-  fontSize: "0.875rem",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: theme.spacing.md,
-  border: "none",
-  cursor: "pointer",
-  marginTop: theme.spacing.xl,
-};
-
-const ghostButtonStyle: React.CSSProperties = {
-  backgroundColor: "transparent",
-  color: mix(theme.colors.everglade, 80),
-  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-  fontFamily: theme.fonts.headline,
-  fontWeight: 700,
-  fontSize: "0.875rem",
-  borderRadius: theme.radius.large,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: theme.spacing.sm,
-  border: "none",
-  cursor: "pointer",
 };

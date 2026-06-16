@@ -225,7 +225,11 @@ export interface ContactProps {
 export interface FooterProps {
   logoText?: string;
   description?: RichTextSource;
-  socialLinks?: { icon: IconoirIconComponent; href: string; platform?: string }[];
+  socialLinks?: {
+    icon: IconoirIconComponent;
+    href: string;
+    platform?: string;
+  }[];
   quickLinks?: NavItem[];
   legalLinks?: NavItem[];
   newsletterTitle?: string;
@@ -322,6 +326,8 @@ export interface EstimatorOption {
   _key?: string;
   label: string;
   description?: string;
+  /** Optional public asset path used as option artwork in the estimator wizard. */
+  illustration?: string;
   /** Home size midpoint; only read on the question with `drivesSquareFootage`. */
   sqftMidpoint?: number;
   /** Multiplier applied to the running square footage (for stories, complexity, pitch). */
