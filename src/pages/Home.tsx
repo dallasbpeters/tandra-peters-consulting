@@ -171,8 +171,9 @@ export const Home = () => {
       case "beforeAfterSection":
         return "32rem";
       case "certificationsSection":
-      case "socialShareSection":
         return "12rem";
+      case "socialShareSection":
+        return "50px";
       default:
         return null;
     }
@@ -186,8 +187,9 @@ export const Home = () => {
         return "36rem";
       case "statsSection":
       case "certificationsSection":
-      case "socialShareSection":
         return "12rem";
+      case "socialShareSection":
+        return "100px";
       case "servicesSection":
         return "42rem";
       case "serviceAreaMap":
