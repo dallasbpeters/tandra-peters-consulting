@@ -118,7 +118,7 @@
 
 /* Block: site-page-main — routed pages under fixed chrome */
 .site-page-main {
-  --site-padding-inline-start: var(--nav-bar-offset);
+  --site-padding-inline-start: 80px;
 
   box-sizing: border-box;
   padding-top: var(--site-padding-inline-start);
