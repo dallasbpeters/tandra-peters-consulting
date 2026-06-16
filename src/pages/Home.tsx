@@ -178,6 +178,43 @@ export const Home = () => {
     }
   };
 
+  const sectionFallbackMinHeight = (type?: string): string => {
+    switch (type) {
+      case "marqueeSection":
+        return "4rem";
+      case "aboutSection":
+        return "36rem";
+      case "statsSection":
+      case "certificationsSection":
+      case "socialShareSection":
+        return "12rem";
+      case "servicesSection":
+        return "42rem";
+      case "serviceAreaMap":
+        return "28rem";
+      case "videoSection":
+        return "34rem";
+      case "missionSection":
+      case "expertiseSection":
+      case "beforeAfterSection":
+        return "32rem";
+      case "contactBannerSection":
+        return "18rem";
+      case "testimonialsSection":
+      case "faqSection":
+      case "articlesTeaserSection":
+        return "30rem";
+      case "contactSection":
+        return "38rem";
+      default:
+        return "12rem";
+    }
+  };
+
+  const sectionFallback = (type?: string) => (
+    <div aria-hidden="true" style={{ minHeight: sectionFallbackMinHeight(type) }} />
+  );
+
   const renderSection = (section: HomeSection, _index: number) => {
     const sectionData = getSectionData(section);
     switch (section._type) {
@@ -296,9 +333,8 @@ export const Home = () => {
     }
   };
 
-  const builderSectionNodes = builderSections ? (
-    <Suspense fallback={null}>
-      {builderSections.map((section, index) => {
+  const builderSectionNodes = builderSections
+    ? builderSections.map((section, index) => {
         const node = renderSection(section, index);
         if (!node) {
           return null;
@@ -312,15 +348,17 @@ export const Home = () => {
         ) : (
           node
         );
+        const sectionNode = (
+          <Suspense fallback={sectionFallback(section._type)}>{content}</Suspense>
+        );
 
         return isAuthSection(section._type) ? (
-          <GoogleAuthGate key={key}>{content}</GoogleAuthGate>
+          <GoogleAuthGate key={key}>{sectionNode}</GoogleAuthGate>
         ) : (
-          <React.Fragment key={key}>{content}</React.Fragment>
+          <React.Fragment key={key}>{sectionNode}</React.Fragment>
         );
-      })}
-    </Suspense>
-  ) : null;
+      })
+    : null;
 
   return (
     <SitePageChrome>

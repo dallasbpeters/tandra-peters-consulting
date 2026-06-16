@@ -77,6 +77,7 @@ const readLiveVariant = (posthog: ReturnType<typeof usePostHog>): HeroBannerStyl
  */
 export const useHeroBannerVariant = (heroStyle?: HeroProps["heroStyle"]) => {
   const posthog = usePostHog();
+  const forcedVariant = normalizeVariant(heroStyle);
   const hookVariant = useFeatureFlagVariantKey(HERO_BANNER_STYLE_FLAG);
   const syncVariant = readLiveVariant(posthog);
   const hookNormalized = normalizeVariant(hookVariant);
@@ -92,8 +93,8 @@ export const useHeroBannerVariant = (heroStyle?: HeroProps["heroStyle"]) => {
     }
   }, [liveVariant]);
 
-  if (heroStyle) {
-    return { variant: heroStyle, isResolved: true };
+  if (forcedVariant) {
+    return { variant: forcedVariant, isResolved: true };
   }
 
   if (liveVariant) {

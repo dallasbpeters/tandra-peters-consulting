@@ -471,10 +471,10 @@ export const MapBox = ({
             borderRight: `1px solid ${mix(theme.colors.white, 8)}`,
             maxInlineSize: isMobile ? "80vw" : "40vw",
             position: "absolute",
-            top: isMobile ? "10%" : "15%",
+            top: isMobile ? "10%" : "8%",
             left: isMobile ? "5%" : "15%",
             zIndex: 10,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0)",
           }}
           className="service-area-map-copy"
         >

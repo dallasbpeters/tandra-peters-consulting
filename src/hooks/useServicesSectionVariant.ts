@@ -30,12 +30,13 @@ const normalizeVariant = (
  */
 export const useServicesSectionVariant = (servicesStyle?: ServicesStyleVariant) => {
   const posthog = usePostHog();
+  const forcedVariant = normalizeVariant(servicesStyle);
   const hookVariant = useFeatureFlagVariantKey(SERVICES_SECTION_STYLE_FLAG);
   const syncVariant = normalizeVariant(posthog?.getFeatureFlag(SERVICES_SECTION_STYLE_FLAG));
   const flagVariant = normalizeVariant(hookVariant) ?? syncVariant;
 
-  if (servicesStyle) {
-    return { variant: servicesStyle, source: "sanity" as const };
+  if (forcedVariant) {
+    return { variant: forcedVariant, source: "sanity" as const };
   }
 
   if (flagVariant === "typographic-alt") {
