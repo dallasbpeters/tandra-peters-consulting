@@ -31,8 +31,8 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
   disclaimer:
     "This is a rough ballpark only. Every roof is different—your real quote depends on materials, pitch, access, and the condition of the deck once we get up there.",
   baseFee: 1500,
-  baseRatePerSqft: 4.5,
-  rangeSpreadPercent: 15,
+  baseRatePerSqft: 7.5,
+  rangeSpreadPercent: 20,
   currency: "$",
   bannerEyebrow: "Ballpark Pricing · 60 Seconds",
   bannerHeadline: "Estimate Your Roof",
@@ -51,7 +51,7 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
       ],
       {
         helpText:
-          "Roof footprint = house footprint × roof pitch factor. If unsure, pick the range closest to your home's living area.",
+          "Roofers measure in 'squares' (1 square = 100 sq ft of actual roof surface). Your roof surface is larger than your floor area — pitch and overhangs add 10–50%+. If unsure, pick closest to your home's total living area as a starting point.",
         drivesSquareFootage: true,
       },
     ),
@@ -66,14 +66,14 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "Two stories",
           description: "Colonial, two-level home",
-          pricePerSqftAdd: 0.5,
+          pricePerSqftAdd: 1.25,
         },
         {
           label: "Three+ stories",
           description: "Tall narrow home",
-          pricePerSqftAdd: 1,
+          pricePerSqftAdd: 2.5,
         },
-        { label: "Not sure", pricePerSqftAdd: 0.25 },
+        { label: "Not sure", pricePerSqftAdd: 0.5 },
       ],
       {
         helpText:
@@ -91,14 +91,14 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "Average",
           description: "A few gables, dormers, or a porch",
-          pricePerSqftAdd: 1,
+          pricePerSqftAdd: 1.5,
         },
         {
           label: "Complex",
           description: "Many gables, dormers, porches, valleys",
-          pricePerSqftAdd: 2.5,
+          pricePerSqftAdd: 3.5,
         },
-        { label: "Not sure", pricePerSqftAdd: 1 },
+        { label: "Not sure", pricePerSqftAdd: 1.5 },
       ],
       {
         helpText: "More gables, dormers, and porches = more roof surface area and labor.",
@@ -115,14 +115,14 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         {
           label: "Average pitch",
           description: "5/12 to 8/12 — standard",
-          pricePerSqftAdd: 1,
+          pricePerSqftAdd: 1.5,
         },
         {
           label: "Steep",
           description: "9/12 to 12/12+ — needs extra safety",
-          pricePerSqftAdd: 2.5,
+          pricePerSqftAdd: 4.0,
         },
-        { label: "Not sure", pricePerSqftAdd: 0.75 },
+        { label: "Not sure", pricePerSqftAdd: 1.0 },
       ],
       {
         helpText: "Steeper roofs cost more to work on safely.",
@@ -131,23 +131,23 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
     q("What kind of roof are you considering?", [
       {
         label: "Asphalt shingles",
-        description: "Most common, budget-friendly",
+        description: "3-tab, budget-friendly",
         pricePerSqftAdd: 0,
       },
       {
         label: "Architectural / premium shingles",
-        description: "Thicker, longer-lasting",
-        pricePerSqftAdd: 2,
+        description: "Laminated, thicker, longer-lasting — most common replacement",
+        pricePerSqftAdd: 1.5,
       },
       {
         label: "Metal roofing",
-        description: "Durable, energy-efficient",
-        pricePerSqftAdd: 6,
+        description: "Standing seam or exposed-fastener, very durable",
+        pricePerSqftAdd: 9.0,
       },
       {
         label: "Not sure yet",
         description: "I'll help you decide",
-        pricePerSqftAdd: 1,
+        pricePerSqftAdd: 1.5,
       },
     ]),
     q("Are you working through an insurance claim?", [
