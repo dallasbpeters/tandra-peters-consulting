@@ -14,7 +14,7 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { processEstimateSubmission } from "../server/email/estimateSubmission.js";
+import { processEstimateSubmission } from "./email/estimateSubmission.js";
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
