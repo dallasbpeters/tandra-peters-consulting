@@ -41,7 +41,7 @@ export const estimatorIntroLayoutStyle: React.CSSProperties = {
   gap: "1.5rem",
   alignItems: "start",
   justifyItems: "start",
-  minBlockSize: "70vh",
+  minBlockSize: "50vh",
 };
 
 export const estimatorCardLayoutStyle: React.CSSProperties = {
@@ -50,7 +50,7 @@ export const estimatorCardLayoutStyle: React.CSSProperties = {
   gap: "1.5rem",
   alignItems: "start",
   justifyItems: "start",
-  minBlockSize: "70vh",
+  minBlockSize: "50vh",
 };
 
 export const estimatorCardStyle: React.CSSProperties = {
