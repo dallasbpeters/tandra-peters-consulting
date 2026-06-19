@@ -793,6 +793,7 @@ export const Estimator: React.FC<EstimatorProps> = ({
                               key={row.prompt}
                               style={{
                                 gap: theme.spacing.lg,
+                                marginInlineStart: 0,
                                 fontSize: "0.95rem",
                                 color: mix(theme.colors.everglade, 75),
                                 borderBottom: `1px solid ${theme.colors.paperDark}`,
