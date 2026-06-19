@@ -1,39 +1,45 @@
-import { config as loadEnv } from "dotenv";
 import { spawnSync } from "node:child_process";
+import { config as loadEnv } from "dotenv";
 
 import { fetchTandraIntroContent } from "../src/remotion/fetchTandraIntroContent.ts";
 
 loadEnv({ path: ".env.local" });
 
 const mode = process.argv[2] ?? "render";
-const command =
-  mode === "studio"
-    ? ["studio", "src/remotion/index.ts"]
-    : mode === "still"
-      ? [
-          "still",
-          "src/remotion/index.ts",
-          "TandraIntro",
-          "out/tandra-intro-still.png",
-          "--frame=450",
-          "--scale=0.5",
-        ]
-      : ["render", "src/remotion/index.ts", "TandraIntro", "out/tandra-intro.mp4"];
+const stillCommand = [
+  "still",
+  "src/remotion/index.ts",
+  "TandraIntro",
+  "out/tandra-intro-still.png",
+  "--frame=450",
+  "--scale=0.5",
+];
+const renderCommand = [
+  "render",
+  "src/remotion/index.ts",
+  "TandraIntro",
+  "out/tandra-intro.mp4",
+];
+const studioCommand = ["studio", "src/remotion/index.ts"];
+const nonStudioCommand = mode === "still" ? stillCommand : renderCommand;
+const command = mode === "studio" ? studioCommand : nonStudioCommand;
 
 const remotionArgs = ["exec", "remotion", ...command];
 
 if (mode === "studio") {
   console.info(
-    "[video] Studio uses editable defaultProps. Run `pnpm video:sync-copy` to pull Sanity copy, or edit in the props panel.",
+    "[video] Studio uses editable defaultProps. Run `pnpm video:sync-copy` to pull Sanity copy, or edit in the props panel."
   );
 } else {
   const { content, source, documentId } = await fetchTandraIntroContent();
   if (source === "fallback") {
     console.warn(
-      "[video] Using fallback copy — check Sanity publish state and SANITY_API_READ_TOKEN in .env.local.",
+      "[video] Using fallback copy — check Sanity publish state and SANITY_API_READ_TOKEN in .env.local."
     );
   } else {
-    console.info(`[video] Using Sanity copy (${source}${documentId ? `: ${documentId}` : ""}).`);
+    console.info(
+      `[video] Using Sanity copy (${source}${documentId ? `: ${documentId}` : ""}).`
+    );
   }
   remotionArgs.push("--props", JSON.stringify({ content }));
 }

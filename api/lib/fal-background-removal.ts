@@ -4,20 +4,20 @@ import sharp from "sharp";
 
 export type BackgroundRemovalModel = "birefnet-heavy" | "bria" | "ideogram";
 
-type FalImageFile = {
+interface FalImageFile {
   content_type?: string;
   file_name?: string;
   file_size?: number;
   height?: number;
   url?: string;
   width?: number;
-};
+}
 
-type BackgroundRemovalResult = {
+interface BackgroundRemovalResult {
   endpoint: string;
   image: FalImageFile;
   requestId: string;
-};
+}
 
 const fetchBuffer = async (url: string): Promise<Buffer> => {
   const response = await fetch(url);
@@ -30,7 +30,7 @@ const fetchBuffer = async (url: string): Promise<Buffer> => {
 const normalizeRemovedBackground = (
   endpoint: string,
   requestId: string,
-  data: { image?: FalImageFile; images?: FalImageFile[] },
+  data: { image?: FalImageFile; images?: FalImageFile[] }
 ): BackgroundRemovalResult => {
   const image = data.image ?? data.images?.[0];
   if (!image?.url) {
@@ -49,17 +49,20 @@ export const removeBackground = async ({
   model?: BackgroundRemovalModel;
 }): Promise<BackgroundRemovalResult> => {
   if (model === "bria") {
-    const result = await client.subscribe("fal-ai/bria/background/remove" as never, {
-      input: { image_url: imageUrl } as never,
-      logs: true,
-      mode: "polling",
-      pollInterval: 700,
-      startTimeout: 90,
-    });
+    const result = await client.subscribe(
+      "fal-ai/bria/background/remove" as never,
+      {
+        input: { image_url: imageUrl } as never,
+        logs: true,
+        mode: "polling",
+        pollInterval: 700,
+        startTimeout: 90,
+      }
+    );
     return normalizeRemovedBackground(
       "fal-ai/bria/background/remove",
       result.requestId,
-      result.data as { image?: FalImageFile },
+      result.data as { image?: FalImageFile }
     );
   }
 
@@ -80,21 +83,24 @@ export const removeBackground = async ({
     return normalizeRemovedBackground(
       "fal-ai/birefnet",
       result.requestId,
-      result.data as { image?: FalImageFile; images?: FalImageFile[] },
+      result.data as { image?: FalImageFile; images?: FalImageFile[] }
     );
   }
 
-  const result = await client.subscribe("fal-ai/ideogram/remove-background" as never, {
-    input: { image_url: imageUrl } as never,
-    logs: true,
-    mode: "polling",
-    pollInterval: 700,
-    startTimeout: 90,
-  });
+  const result = await client.subscribe(
+    "fal-ai/ideogram/remove-background" as never,
+    {
+      input: { image_url: imageUrl } as never,
+      logs: true,
+      mode: "polling",
+      pollInterval: 700,
+      startTimeout: 90,
+    }
+  );
   return normalizeRemovedBackground(
     "fal-ai/ideogram/remove-background",
     result.requestId,
-    result.data as { image?: FalImageFile },
+    result.data as { image?: FalImageFile }
   );
 };
 
@@ -139,7 +145,7 @@ export const removeSky = async ({
   const meta = await source.metadata();
   const width = meta.width;
   const height = meta.height;
-  if (!width || !height) {
+  if (!(width && height)) {
     throw new Error("Could not read source image dimensions.");
   }
 
@@ -149,7 +155,9 @@ export const removeSky = async ({
     .raw()
     .toBuffer();
 
-  const { data, info } = await source.raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await source
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
   for (let pixel = 0; pixel < info.width * info.height; pixel += 1) {
     const maskValue = maskRaw[pixel] ?? 0;
@@ -166,7 +174,7 @@ export const removeSky = async ({
 
   const outputUrl = await client.storage.upload(
     new Blob([new Uint8Array(pngBuffer)], { type: "image/png" }),
-    { lifecycle: { expiresIn: "7d" } },
+    { lifecycle: { expiresIn: "7d" } }
   );
 
   const outputMeta = await sharp(pngBuffer).metadata();
@@ -187,7 +195,7 @@ export const removeSky = async ({
 
 export const toStudioImage = (
   result: BackgroundRemovalResult,
-  sourceUrl: string,
+  sourceUrl: string
 ): {
   contentType: string;
   fileName: string;
@@ -204,6 +212,6 @@ export const toStudioImage = (
   height: result.image.height,
   prompt: sourceUrl,
   requestId: result.requestId,
-  url: result.image.url!,
+  url: result.image.url ?? "",
   width: result.image.width,
 });

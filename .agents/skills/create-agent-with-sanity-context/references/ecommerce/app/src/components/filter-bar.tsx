@@ -4,13 +4,19 @@ import { Check, ChevronDown, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 
-import { type ProductFiltersInput } from "@/lib/client-tools";
+import type { ProductFiltersInput } from "@/lib/client-tools";
 import { SORT_OPTIONS } from "@/sanity/queries/products";
 
 import type { FILTER_OPTIONS_QUERY_RESULT } from "../../sanity.types";
 
 import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface FilterBarProps {
   filterOptions: FILTER_OPTIONS_QUERY_RESULT;
@@ -38,8 +44,12 @@ export function FilterBar(props: FilterBarProps) {
       color: getArrayParam(searchParams, "color"),
       size: getArrayParam(searchParams, "size"),
       brand: getArrayParam(searchParams, "brand"),
-      minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
-      maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
+      minPrice: searchParams.get("minPrice")
+        ? Number(searchParams.get("minPrice"))
+        : undefined,
+      maxPrice: searchParams.get("maxPrice")
+        ? Number(searchParams.get("maxPrice"))
+        : undefined,
       sort: SORT_OPTIONS.find((s) => s.value === sortParam)?.value,
     };
   }, [searchParams]);
@@ -57,16 +67,24 @@ export function FilterBar(props: FilterBarProps) {
       }
 
       // Single-value params
-      if (merged.minPrice) params.set("minPrice", String(merged.minPrice));
-      if (merged.maxPrice) params.set("maxPrice", String(merged.maxPrice));
-      if (merged.sort) params.set("sort", merged.sort);
+      if (merged.minPrice) {
+        params.set("minPrice", String(merged.minPrice));
+      }
+      if (merged.maxPrice) {
+        params.set("maxPrice", String(merged.maxPrice));
+      }
+      if (merged.sort) {
+        params.set("sort", merged.sort);
+      }
 
       startTransition(() => {
         const query = params.toString();
-        router.push(query ? `/products?${query}` : "/products", { scroll: false });
+        router.push(query ? `/products?${query}` : "/products", {
+          scroll: false,
+        });
       });
     },
-    [router, currentFilters],
+    [router, currentFilters]
   );
 
   // Toggle a value in an array filter
@@ -78,7 +96,7 @@ export function FilterBar(props: FilterBarProps) {
         : [...current, value];
       updateFilters({ [key]: newValues });
     },
-    [currentFilters, updateFilters],
+    [currentFilters, updateFilters]
   );
 
   // Clear a single filter
@@ -93,7 +111,7 @@ export function FilterBar(props: FilterBarProps) {
         updateFilters({ [key]: undefined });
       }
     },
-    [currentFilters, updateFilters],
+    [currentFilters, updateFilters]
   );
 
   // Clear all filters
@@ -107,26 +125,35 @@ export function FilterBar(props: FilterBarProps) {
   const priceRanges = generatePriceRanges(filterOptions.priceRange);
 
   // Build active filter chips (individual items for arrays)
-  const activeFilters = buildActiveFilters(currentFilters, filterOptions, priceRanges);
+  const activeFilters = buildActiveFilters(
+    currentFilters,
+    filterOptions,
+    priceRanges
+  );
 
   return (
-    <div className={`space-y-3 ${isPending ? "pointer-events-none opacity-70" : ""}`}>
+    <div
+      className={`space-y-3 ${isPending ? "pointer-events-none opacity-70" : ""}`}
+    >
       {/* Filter dropdowns */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Category - Multi-select */}
         <MultiSelectDropdown
           label="Category"
-          selected={currentFilters.category || []}
+          onToggle={(value) => toggleArrayFilter("category", value)}
           options={filterOptions.categories
             .filter((cat) => cat.slug)
-            .map((cat) => ({ value: cat.slug!, label: cat.title || cat.slug! }))}
-          onToggle={(value) => toggleArrayFilter("category", value)}
+            .map((cat) => ({
+              value: cat.slug!,
+              label: cat.title || cat.slug!,
+            }))}
+          selected={currentFilters.category || []}
         />
 
         {/* Color - Multi-select */}
         <MultiSelectDropdown
           label="Color"
-          selected={currentFilters.color || []}
+          onToggle={(value) => toggleArrayFilter("color", value)}
           options={filterOptions.colors
             .filter((color) => color.slug)
             .map((color) => ({
@@ -134,34 +161,39 @@ export function FilterBar(props: FilterBarProps) {
               label: color.title || color.slug!,
               color: color.hexValue || undefined,
             }))}
-          onToggle={(value) => toggleArrayFilter("color", value)}
+          selected={currentFilters.color || []}
         />
 
         {/* Size - Multi-select */}
         <MultiSelectDropdown
           label="Size"
-          selected={currentFilters.size || []}
+          onToggle={(value) => toggleArrayFilter("size", value)}
           options={filterOptions.sizes
             .filter((size) => size.code)
             .map((size) => ({ value: size.code!, label: size.code! }))}
-          onToggle={(value) => toggleArrayFilter("size", value)}
+          selected={currentFilters.size || []}
           width="w-[120px]"
         />
 
         {/* Brand - Multi-select */}
         <MultiSelectDropdown
           label="Brand"
-          selected={currentFilters.brand || []}
+          onToggle={(value) => toggleArrayFilter("brand", value)}
           options={filterOptions.brands
             .filter((brand) => brand.slug)
-            .map((brand) => ({ value: brand.slug!, label: brand.title || brand.slug! }))}
-          onToggle={(value) => toggleArrayFilter("brand", value)}
+            .map((brand) => ({
+              value: brand.slug!,
+              label: brand.title || brand.slug!,
+            }))}
+          selected={currentFilters.brand || []}
         />
 
         {/* Price - Single select */}
         <Select
+          onValueChange={(value) =>
+            updateFilters({ maxPrice: value ? Number(value) : undefined })
+          }
           value={currentFilters.maxPrice?.toString() || ""}
-          onValueChange={(value) => updateFilters({ maxPrice: value ? Number(value) : undefined })}
         >
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Price" />
@@ -178,11 +210,11 @@ export function FilterBar(props: FilterBarProps) {
 
         {/* Sort - Single select */}
         <Select
-          value={currentFilters.sort || ""}
           onValueChange={(value) => {
             const validSort = SORT_OPTIONS.find((s) => s.value === value);
             updateFilters({ sort: validSort?.value });
           }}
+          value={currentFilters.sort || ""}
         >
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Sort by" />
@@ -203,10 +235,10 @@ export function FilterBar(props: FilterBarProps) {
         <div className="flex flex-wrap items-center gap-2">
           {activeFilters.map((filter) => (
             <button
+              className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-neutral-700 text-sm transition-colors hover:bg-neutral-200"
               key={`${filter.key}-${filter.value || "all"}`}
-              type="button"
               onClick={() => clearFilter(filter.key, filter.value)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700 transition-colors hover:bg-neutral-200"
+              type="button"
             >
               {filter.label}
 
@@ -215,10 +247,10 @@ export function FilterBar(props: FilterBarProps) {
           ))}
 
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearAllFilters}
             className="text-neutral-500 hover:text-neutral-700"
+            onClick={clearAllFilters}
+            size="sm"
+            variant="ghost"
           >
             Clear all
           </Button>
@@ -230,16 +262,16 @@ export function FilterBar(props: FilterBarProps) {
 
 // Multi-select dropdown component
 interface MultiSelectOption {
-  value: string;
-  label: string;
   color?: string;
+  label: string;
+  value: string;
 }
 
 interface MultiSelectDropdownProps {
   label: string;
-  selected: string[];
-  options: MultiSelectOption[];
   onToggle: (value: string) => void;
+  options: MultiSelectOption[];
+  selected: string[];
   width?: string;
 }
 
@@ -248,16 +280,21 @@ function MultiSelectDropdown(props: MultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const displayText = selected.length > 0 ? `${label} (${selected.length})` : label;
+  const displayText =
+    selected.length > 0 ? `${label} (${selected.length})` : label;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative" ref={containerRef}>
       <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
         className={`flex h-9 ${width} items-center justify-between gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition-colors hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2`}
+        onClick={() => setIsOpen(!isOpen)}
+        type="button"
       >
-        <span className={selected.length > 0 ? "text-neutral-900" : "text-neutral-500"}>
+        <span
+          className={
+            selected.length > 0 ? "text-neutral-900" : "text-neutral-500"
+          }
+        >
           {displayText}
         </span>
 
@@ -267,21 +304,24 @@ function MultiSelectDropdown(props: MultiSelectDropdownProps) {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
 
           {/* Dropdown */}
-          <div className="absolute left-0 top-full z-50 mt-1 max-h-60 min-w-[180px] overflow-auto rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
+          <div className="absolute top-full left-0 z-50 mt-1 max-h-60 min-w-[180px] overflow-auto rounded-md border border-neutral-200 bg-white py-1 shadow-lg">
             {options.map((option) => {
               const isSelected = selected.includes(option.value);
               return (
                 <button
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-neutral-100"
                   key={option.value}
-                  type="button"
                   onClick={() => {
                     onToggle(option.value);
                     setIsOpen(false);
                   }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-neutral-100"
+                  type="button"
                 >
                   <span
                     className={`flex h-4 w-4 items-center justify-center rounded border ${isSelected ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"}`}
@@ -309,62 +349,79 @@ function MultiSelectDropdown(props: MultiSelectDropdownProps) {
 
 interface ActiveFilter {
   key: keyof ProductFiltersInput;
-  value?: string; // For array filters, the specific value
   label: string;
+  value?: string; // For array filters, the specific value
 }
 
 function buildActiveFilters(
   filters: ProductFiltersInput,
   options: FILTER_OPTIONS_QUERY_RESULT,
-  priceRanges: Array<{ value: number; label: string }>,
+  priceRanges: Array<{ value: number; label: string }>
 ): ActiveFilter[] {
   const active: ActiveFilter[] = [];
 
   // Category chips (one per selected category)
   filters.category?.forEach((slug) => {
     const cat = options.categories.find((c) => c.slug === slug);
-    if (cat?.title) active.push({ key: "category", value: slug, label: cat.title });
+    if (cat?.title) {
+      active.push({ key: "category", value: slug, label: cat.title });
+    }
   });
 
   // Color chips
   filters.color?.forEach((slug) => {
     const color = options.colors.find((c) => c.slug === slug);
-    if (color?.title) active.push({ key: "color", value: slug, label: color.title });
+    if (color?.title) {
+      active.push({ key: "color", value: slug, label: color.title });
+    }
   });
 
   // Size chips
   filters.size?.forEach((code) => {
     const size = options.sizes.find((s) => s.code === code);
-    if (size?.code) active.push({ key: "size", value: code, label: `Size ${size.code}` });
+    if (size?.code) {
+      active.push({ key: "size", value: code, label: `Size ${size.code}` });
+    }
   });
 
   // Brand chips
   filters.brand?.forEach((slug) => {
     const brand = options.brands.find((b) => b.slug === slug);
-    if (brand?.title) active.push({ key: "brand", value: slug, label: brand.title });
+    if (brand?.title) {
+      active.push({ key: "brand", value: slug, label: brand.title });
+    }
   });
 
   // Price chip
   if (filters.maxPrice) {
     const range = priceRanges.find((r) => r.value === filters.maxPrice);
-    active.push({ key: "maxPrice", label: range?.label || `Under $${filters.maxPrice}` });
+    active.push({
+      key: "maxPrice",
+      label: range?.label || `Under $${filters.maxPrice}`,
+    });
   }
 
   // Sort chip
   if (filters.sort) {
     const sortOption = SORT_OPTIONS.find((s) => s.value === filters.sort);
-    if (sortOption) active.push({ key: "sort", label: sortOption.label });
+    if (sortOption) {
+      active.push({ key: "sort", label: sortOption.label });
+    }
   }
 
   return active;
 }
 
-function generatePriceRanges(priceRange: FILTER_OPTIONS_QUERY_RESULT["priceRange"]): Array<{
+function generatePriceRanges(
+  priceRange: FILTER_OPTIONS_QUERY_RESULT["priceRange"]
+): Array<{
   value: number;
   label: string;
 }> {
   const max = priceRange.max ?? 500;
-  const thresholds = [50, 100, 150, 200, 300, 500, 1000].filter((t) => t <= max * 1.5);
+  const thresholds = [50, 100, 150, 200, 300, 500, 1000].filter(
+    (t) => t <= max * 1.5
+  );
 
   return thresholds.map((value) => ({
     value,

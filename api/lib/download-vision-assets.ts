@@ -3,9 +3,11 @@ import { createDownload, type Experimental_DownloadFunction } from "ai";
 const httpDownload = createDownload();
 
 /** Decode screenshot data URLs; delegate http/https to the default AI SDK downloader. */
-export const downloadVisionAssets: Experimental_DownloadFunction = async (items) =>
+export const downloadVisionAssets: Experimental_DownloadFunction = async (
+  items
+) =>
   Promise.all(
-    items.map(async (item) => {
+    items.map((item) => {
       if (item.url.protocol === "data:") {
         const href = item.url.href;
         const [meta = "", payload = ""] = href.slice(5).split(",", 2);
@@ -22,5 +24,5 @@ export const downloadVisionAssets: Experimental_DownloadFunction = async (items)
       }
 
       return httpDownload(item);
-    }),
+    })
   );

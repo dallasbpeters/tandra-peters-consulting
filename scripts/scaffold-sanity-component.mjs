@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
@@ -7,8 +7,12 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
+const TRAILING_SEMICOLON = /;$/;
 
-const schemaIndexPath = path.join(repoRoot, "studio-tandra-peters/schemaTypes/index.ts");
+const schemaIndexPath = path.join(
+  repoRoot,
+  "studio-tandra-peters/schemaTypes/index.ts"
+);
 const schemaTypesRoot = path.join(repoRoot, "studio-tandra-peters/schemaTypes");
 const generatedSanityDir = path.join(repoRoot, "src/sanity/generated");
 const generatedComponentsDir = path.join(repoRoot, "src/components/generated");
@@ -32,28 +36,41 @@ const FIELD_TYPE_OPTIONS = [
   "portable-text",
 ];
 
+const RE_CAMEL_BOUNDARY = /([a-z0-9])([A-Z])/g;
+const RE_SEPARATORS = /[-_]+/g;
+const RE_WHITESPACE = /\s+/g;
+const RE_SANITY_IMPORT = /import\s*\{([^}]+)\}\s*from\s*"sanity";/;
+const RE_SCHEMA_TYPES_ARRAY = /export const schemaTypes = \[([\s\S]*?)\];/;
+const RE_MAP_SANITY_HOME_IMPORT =
+  /import\s*\{([\s\S]*?)\}\s*from\s*'\.\.\/sanity\/mapSanityHome'/;
+const RE_DEFINE_TYPE_BLOCK =
+  /defineType\s*\(\s*\{[\s\S]*?name:\s*"([^"]+)"[\s\S]*?title:\s*"([^"]+)"[\s\S]*?type:\s*"([^"]+)"[\s\S]*?\}\s*\)/;
+const RE_LEADING_WHITESPACE = /^\s*/;
+
 const toWords = (value) =>
-  value
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .trim();
+  value.replace(RE_CAMEL_BOUNDARY, "$1 $2").replace(RE_SEPARATORS, " ").trim();
 
 const toTitleCase = (value) =>
   toWords(value)
-    .split(/\s+/)
+    .split(RE_WHITESPACE)
     .filter(Boolean)
     .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
 
 const toCamelCase = (value) => {
-  const parts = toWords(value).toLowerCase().split(/\s+/).filter(Boolean);
+  const parts = toWords(value)
+    .toLowerCase()
+    .split(RE_WHITESPACE)
+    .filter(Boolean);
 
   if (!parts.length) {
     return "";
   }
 
   return parts
-    .map((part, index) => (index === 0 ? part : part[0].toUpperCase() + part.slice(1)))
+    .map((part, index) =>
+      index === 0 ? part : part[0].toUpperCase() + part.slice(1)
+    )
     .join("");
 };
 
@@ -62,7 +79,8 @@ const toPascalCase = (value) => {
   return camel ? camel[0].toUpperCase() + camel.slice(1) : "";
 };
 
-const toConstCase = (value) => toWords(value).replace(/\s+/g, "_").toUpperCase();
+const toConstCase = (value) =>
+  toWords(value).replace(RE_WHITESPACE, "_").toUpperCase();
 
 const indentBlock = (block, indent) =>
   block
@@ -110,7 +128,9 @@ const askNonEmpty = async (rl, prompt, fallback = "") => {
 
 const askFieldType = async (rl) => {
   for (;;) {
-    const answer = (await rl.question(`Field type [${FIELD_TYPE_OPTIONS.join(", ")}]: `))
+    const answer = (
+      await rl.question(`Field type [${FIELD_TYPE_OPTIONS.join(", ")}]: `)
+    )
       .trim()
       .toLowerCase();
 
@@ -123,10 +143,23 @@ const askFieldType = async (rl) => {
 };
 
 const renderSchemaField = (field) => {
-  const lines = ["defineField({", `  name: "${field.name}",`, `  title: "${field.title}",`];
+  const lines = [
+    "defineField({",
+    `  name: "${field.name}",`,
+    `  title: "${field.title}",`,
+  ];
 
   if (
-    ["string", "text", "number", "boolean", "url", "date", "datetime", "image"].includes(field.type)
+    [
+      "string",
+      "text",
+      "number",
+      "boolean",
+      "url",
+      "date",
+      "datetime",
+      "image",
+    ].includes(field.type)
   ) {
     lines.push(`  type: "${field.type}",`);
   }
@@ -155,7 +188,7 @@ const renderSchemaField = (field) => {
   if (field.type === "array-reference") {
     lines.push('  type: "array",');
     lines.push(
-      `  of: [defineArrayMember({ type: "reference", to: [{ type: "${field.referenceTo}" }] })],`,
+      `  of: [defineArrayMember({ type: "reference", to: [{ type: "${field.referenceTo}" }] })],`
     );
   }
 
@@ -175,7 +208,7 @@ const renderSchemaField = (field) => {
 const listSchemaTypeFiles = async (rootDir) => {
   const entries = await readdir(rootDir, { withFileTypes: true });
   const files = await Promise.all(
-    entries.map(async (entry) => {
+    entries.map((entry) => {
       const fullPath = path.join(rootDir, entry.name);
       if (entry.isDirectory()) {
         return listSchemaTypeFiles(fullPath);
@@ -184,7 +217,7 @@ const listSchemaTypeFiles = async (rootDir) => {
         return [fullPath];
       }
       return [];
-    }),
+    })
   );
 
   return files.flat();
@@ -196,9 +229,7 @@ const discoverExistingSchemaTypes = async () => {
 
   for (const filePath of files) {
     const source = await readFile(filePath, "utf8");
-    const match = source.match(
-      /defineType\s*\(\s*\{[\s\S]*?name:\s*"([^"]+)"[\s\S]*?title:\s*"([^"]+)"[\s\S]*?type:\s*"([^"]+)"[\s\S]*?\}\s*\)/,
-    );
+    const match = source.match(RE_DEFINE_TYPE_BLOCK);
 
     if (!match) {
       continue;
@@ -218,6 +249,7 @@ const discoverExistingSchemaTypes = async () => {
   return discovered;
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
 const findMatchingBracket = (source, openIndex) => {
   let depth = 0;
   let quote = null;
@@ -268,7 +300,7 @@ const ensureDefineArrayMemberImport = (source) => {
     return source;
   }
 
-  return source.replace(/import\s*\{([^}]+)\}\s*from\s*"sanity";/, (_match, imports) => {
+  return source.replace(RE_SANITY_IMPORT, (_match, imports) => {
     const parts = imports
       .split(",")
       .map((part) => part.trim())
@@ -299,10 +331,12 @@ const appendFieldsToExistingSchema = (source, fieldBlocks) => {
 
   const closeLineStart = source.lastIndexOf("\n", closeBracketIndex) + 1;
   const closeLine = source.slice(closeLineStart, closeBracketIndex);
-  const closeIndent = closeLine.match(/^\s*/)?.[0] ?? "";
+  const closeIndent = closeLine.match(RE_LEADING_WHITESPACE)?.[0] ?? "";
   const itemIndent = `${closeIndent}  `;
 
-  const fieldSource = fieldBlocks.map((block) => indentBlock(block, itemIndent)).join(",\n\n");
+  const fieldSource = fieldBlocks
+    .map((block) => indentBlock(block, itemIndent))
+    .join(",\n\n");
   const arrayBody = source.slice(openBracketIndex + 1, closeBracketIndex);
   const hasEntries = arrayBody.trim().length > 0;
 
@@ -316,7 +350,9 @@ const appendFieldsToExistingSchema = (source, fieldBlocks) => {
 const ensureHomeQueryBirdcreekProjection = (source, fields) => {
   const homeBlockStart = source.indexOf('"home": *[_id == "homePage"][0]{');
   if (homeBlockStart === -1) {
-    throw new Error("Could not find homePage query block in src/sanity/queries.ts.");
+    throw new Error(
+      "Could not find homePage query block in src/sanity/queries.ts."
+    );
   }
 
   const insertAnchor = source.indexOf("hero {", homeBlockStart);
@@ -326,24 +362,32 @@ const ensureHomeQueryBirdcreekProjection = (source, fields) => {
 
   const linesToInsert = [];
   const hasVimeoField = fields.some((field) =>
-    ["vimeoUrl", "birdcreekVimeoUrl"].includes(field.name),
+    ["vimeoUrl", "birdcreekVimeoUrl"].includes(field.name)
   );
   const hasTitleField = fields.some((field) =>
-    ["title", "birdcreekVideoTitle"].includes(field.name),
+    ["title", "birdcreekVideoTitle"].includes(field.name)
   );
 
   if (
     hasVimeoField &&
-    !source.includes('"birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),')
+    !source.includes(
+      '"birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),'
+    )
   ) {
-    linesToInsert.push('    "birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),');
+    linesToInsert.push(
+      '    "birdcreekVimeoUrl": coalesce(birdcreekVimeoUrl, vimeoUrl),'
+    );
   }
 
   if (
     hasTitleField &&
-    !source.includes('"birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),')
+    !source.includes(
+      '"birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),'
+    )
   ) {
-    linesToInsert.push('    "birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),');
+    linesToInsert.push(
+      '    "birdcreekVideoTitle": coalesce(birdcreekVideoTitle, title),'
+    );
   }
 
   if (!linesToInsert.length) {
@@ -362,7 +406,9 @@ const ensureHomeMapperBirdcreek = (source) => {
   const marker = "export const mapAboutProps =";
   const insertAt = source.indexOf(marker);
   if (insertAt === -1) {
-    throw new Error("Could not find mapAboutProps marker in mapSanityHome.tsx.");
+    throw new Error(
+      "Could not find mapAboutProps marker in mapSanityHome.tsx."
+    );
   }
 
   const functionSource = `export const mapBirdcreekVideoBannerProps = (\n  data: SanityDoc,\n): Partial<{ vimeoUrl: string; title: string }> => {\n  if (!data) {\n    return {};\n  }\n\n  const rawVimeoUrl =\n    typeof data.birdcreekVimeoUrl === "string"\n      ? data.birdcreekVimeoUrl\n      : typeof data.vimeoUrl === "string"\n        ? data.vimeoUrl\n        : undefined;\n\n  const rawTitle =\n    typeof data.birdcreekVideoTitle === "string"\n      ? data.birdcreekVideoTitle\n      : typeof data.title === "string"\n        ? data.title\n        : undefined;\n\n  const vimeoUrl = typeof rawVimeoUrl === "string" ? stegaClean(rawVimeoUrl).trim() : "";\n  const title = typeof rawTitle === "string" ? stegaClean(rawTitle).trim() : "";\n\n  return {\n    ...(vimeoUrl ? { vimeoUrl } : {}),\n    ...(title ? { title } : {}),\n  };\n};\n\n`;
@@ -374,37 +420,40 @@ const ensureHomePageBirdcreekConsumption = (source) => {
   let next = source;
 
   if (!next.includes("mapBirdcreekVideoBannerProps")) {
-    next = next.replace(
-      /import\s*\{([\s\S]*?)\}\s*from\s*'\.\.\/sanity\/mapSanityHome'/,
-      (_match, imports) => {
-        const parsedImports = imports
-          .split(",")
-          .map((part) => part.trim())
-          .filter(Boolean);
-        if (!parsedImports.includes("mapBirdcreekVideoBannerProps")) {
-          parsedImports.splice(2, 0, "mapBirdcreekVideoBannerProps");
-        }
-        return `import { ${parsedImports.join(", ")} } from '../sanity/mapSanityHome'`;
-      },
-    );
+    next = next.replace(RE_MAP_SANITY_HOME_IMPORT, (_match, imports) => {
+      const parsedImports = imports
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (!parsedImports.includes("mapBirdcreekVideoBannerProps")) {
+        parsedImports.splice(2, 0, "mapBirdcreekVideoBannerProps");
+      }
+      return `import { ${parsedImports.join(", ")} } from '../sanity/mapSanityHome'`;
+    });
   }
 
-  if (!next.includes("const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home)")) {
+  if (
+    !next.includes(
+      "const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home)"
+    )
+  ) {
     const anchor =
       "const serviceAreaMap = home?.serviceAreaMap as Record<string, unknown> | undefined\n";
     if (!next.includes(anchor)) {
-      throw new Error("Could not find home serviceAreaMap anchor for mapper insertion.");
+      throw new Error(
+        "Could not find home serviceAreaMap anchor for mapper insertion."
+      );
     }
     next = next.replace(
       anchor,
-      `${anchor}  const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home)\n`,
+      `${anchor}  const birdcreekVideoProps = mapBirdcreekVideoBannerProps(home)\n`
     );
   }
 
   if (next.includes("<BirdcreekVideoBanner />")) {
     next = next.replace(
       "<BirdcreekVideoBanner />",
-      "<BirdcreekVideoBanner {...birdcreekVideoProps} />",
+      "<BirdcreekVideoBanner {...birdcreekVideoProps} />"
     );
   }
 
@@ -413,7 +462,9 @@ const ensureHomePageBirdcreekConsumption = (source) => {
 
 const autoWireHomeBirdcreek = async (fields) => {
   const includesBirdcreekRelatedField = fields.some((field) =>
-    ["vimeoUrl", "birdcreekVimeoUrl", "title", "birdcreekVideoTitle"].includes(field.name),
+    ["vimeoUrl", "birdcreekVimeoUrl", "title", "birdcreekVideoTitle"].includes(
+      field.name
+    )
   );
 
   if (!includesBirdcreekRelatedField) {
@@ -430,7 +481,10 @@ const autoWireHomeBirdcreek = async (fields) => {
     readFile(homePagePath, "utf8"),
   ]);
 
-  const nextQuerySource = ensureHomeQueryBirdcreekProjection(querySource, fields);
+  const nextQuerySource = ensureHomeQueryBirdcreekProjection(
+    querySource,
+    fields
+  );
   const nextMapperSource = ensureHomeMapperBirdcreek(mapperSource);
   const nextHomeSource = ensureHomePageBirdcreekConsumption(homeSource);
 
@@ -503,29 +557,37 @@ const registerSchemaType = async ({ importPath, exportName }) => {
   if (!nextSource.includes(importLine)) {
     const insertAt = nextSource.indexOf("export const schemaTypes = [");
     if (insertAt === -1) {
-      throw new Error("Could not find schemaTypes array in schemaTypes/index.ts");
+      throw new Error(
+        "Could not find schemaTypes array in schemaTypes/index.ts"
+      );
     }
     nextSource = `${nextSource.slice(0, insertAt)}${importLine}\n${nextSource.slice(insertAt)}`;
   }
 
   if (!nextSource.includes(`  ${exportName},`)) {
     nextSource = nextSource.replace(
-      /export const schemaTypes = \[([\s\S]*?)\];/,
-      (_match, body) => `export const schemaTypes = [${body}  ${exportName},\n];`,
+      RE_SCHEMA_TYPES_ARRAY,
+      (_match, body) =>
+        `export const schemaTypes = [${body}  ${exportName},\n];`
     );
   }
 
   await writeFile(schemaIndexPath, nextSource, "utf8");
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
 const main = async () => {
   const rl = createInterface({ input, output });
 
   try {
     console.log("\nSanity component scaffolder");
-    console.log("Create new schema bundles OR extend an existing schema with new fields.\n");
+    console.log(
+      "Create new schema bundles OR extend an existing schema with new fields.\n"
+    );
 
-    const modeInput = (await askNonEmpty(rl, "Mode (create/extend)", "create")).toLowerCase();
+    const modeInput = (
+      await askNonEmpty(rl, "Mode (create/extend)", "create")
+    ).toLowerCase();
     const mode = modeInput === "extend" ? "extend" : "create";
 
     if (mode === "extend") {
@@ -538,19 +600,27 @@ const main = async () => {
       console.log("\nDiscovered schema types:");
       existingTypes.forEach((item, index) => {
         console.log(
-          `${index + 1}. ${item.name} (${item.kind}) — ${item.title} [${item.relativePath}]`,
+          `${index + 1}. ${item.name} (${item.kind}) — ${item.title} [${item.relativePath}]`
         );
       });
 
-      const selection = await askNonEmpty(rl, "Select type by number or type name", "homePage");
+      const selection = await askNonEmpty(
+        rl,
+        "Select type by number or type name",
+        "homePage"
+      );
 
       const selectionNumber = Number(selection);
       const selected = Number.isInteger(selectionNumber)
         ? existingTypes[selectionNumber - 1]
-        : existingTypes.find((item) => item.name === selection || item.title === selection);
+        : existingTypes.find(
+            (item) => item.name === selection || item.title === selection
+          );
 
       if (!selected) {
-        throw new Error(`Could not find schema type for selection: ${selection}`);
+        throw new Error(
+          `Could not find schema type for selection: ${selection}`
+        );
       }
 
       const fields = [];
@@ -558,8 +628,10 @@ const main = async () => {
         const hasFields = fields.length > 0;
         const shouldAdd = await askYesNo(
           rl,
-          hasFields ? "Add another field to this existing schema?" : "Add first new field?",
-          true,
+          hasFields
+            ? "Add another field to this existing schema?"
+            : "Add first new field?",
+          true
         );
 
         if (!shouldAdd) {
@@ -571,7 +643,11 @@ const main = async () => {
         }
 
         const fieldName = toCamelCase(await askNonEmpty(rl, "Field name"));
-        const fieldTitle = await askNonEmpty(rl, "Field title", toTitleCase(fieldName));
+        const fieldTitle = await askNonEmpty(
+          rl,
+          "Field title",
+          toTitleCase(fieldName)
+        );
         const fieldType = await askFieldType(rl);
         const required = await askYesNo(rl, "Required?", false);
 
@@ -583,11 +659,15 @@ const main = async () => {
         };
 
         if (fieldType === "reference" || fieldType === "array-reference") {
-          field.referenceTo = toCamelCase(await askNonEmpty(rl, "Reference target type"));
+          field.referenceTo = toCamelCase(
+            await askNonEmpty(rl, "Reference target type")
+          );
         }
 
         if (fieldType === "slug") {
-          field.slugSource = toCamelCase(await askNonEmpty(rl, "Slug source field", "title"));
+          field.slugSource = toCamelCase(
+            await askNonEmpty(rl, "Slug source field", "title")
+          );
         }
 
         fields.push(field);
@@ -598,13 +678,18 @@ const main = async () => {
 
       if (
         fields.some((field) =>
-          ["array-string", "array-reference", "portable-text"].includes(field.type),
+          ["array-string", "array-reference", "portable-text"].includes(
+            field.type
+          )
         )
       ) {
         schemaSource = ensureDefineArrayMemberImport(schemaSource);
       }
 
-      const updatedSource = appendFieldsToExistingSchema(schemaSource, fieldBlocks);
+      const updatedSource = appendFieldsToExistingSchema(
+        schemaSource,
+        fieldBlocks
+      );
       await writeFile(selected.filePath, updatedSource, "utf8");
 
       let autoWireSummary;
@@ -612,7 +697,7 @@ const main = async () => {
         const shouldAutoWire = await askYesNo(
           rl,
           "Auto-wire matching query + mapper + Home usage for Birdcreek video banner now?",
-          true,
+          true
         );
 
         if (shouldAutoWire) {
@@ -626,26 +711,37 @@ const main = async () => {
       console.log(`- Fields: ${fields.map((field) => field.name).join(", ")}`);
       if (autoWireSummary?.updated) {
         console.log(
-          "- Wiring: Updated src/sanity/queries.ts, src/sanity/mapSanityHome.tsx, src/pages/Home.tsx",
+          "- Wiring: Updated src/sanity/queries.ts, src/sanity/mapSanityHome.tsx, src/pages/Home.tsx"
         );
       } else if (autoWireSummary?.reason) {
         console.log(`- Wiring: Skipped (${autoWireSummary.reason})`);
       }
-      console.log("\nNext: add matching query + mapper wiring where this data is consumed.");
+      console.log(
+        "\nNext: add matching query + mapper wiring where this data is consumed."
+      );
       return;
     }
 
-    console.log("This creates a schema type, GROQ query file, and a React component stub.\n");
+    console.log(
+      "This creates a schema type, GROQ query file, and a React component stub.\n"
+    );
 
-    const componentNameRaw = await askNonEmpty(rl, "Component name (PascalCase)");
+    const componentNameRaw = await askNonEmpty(
+      rl,
+      "Component name (PascalCase)"
+    );
     const componentName = toPascalCase(componentNameRaw);
 
     const defaultTypeName = toCamelCase(componentNameRaw);
     const typeName = toCamelCase(
-      await askNonEmpty(rl, "Sanity type name (camelCase)", defaultTypeName),
+      await askNonEmpty(rl, "Sanity type name (camelCase)", defaultTypeName)
     );
 
-    const schemaTitle = await askNonEmpty(rl, "Schema title", toTitleCase(typeName));
+    const schemaTitle = await askNonEmpty(
+      rl,
+      "Schema title",
+      toTitleCase(typeName)
+    );
 
     const schemaKindAnswer = (
       await askNonEmpty(rl, "Schema kind (document/object)", "document")
@@ -659,7 +755,7 @@ const main = async () => {
       const shouldAdd = await askYesNo(
         rl,
         hasFields ? "Add another field?" : "Add first field?",
-        true,
+        true
       );
 
       if (!shouldAdd) {
@@ -671,7 +767,11 @@ const main = async () => {
       }
 
       const fieldName = toCamelCase(await askNonEmpty(rl, "Field name"));
-      const fieldTitle = await askNonEmpty(rl, "Field title", toTitleCase(fieldName));
+      const fieldTitle = await askNonEmpty(
+        rl,
+        "Field title",
+        toTitleCase(fieldName)
+      );
       const fieldType = await askFieldType(rl);
       const required = await askYesNo(rl, "Required?", false);
 
@@ -683,11 +783,15 @@ const main = async () => {
       };
 
       if (fieldType === "reference" || fieldType === "array-reference") {
-        field.referenceTo = toCamelCase(await askNonEmpty(rl, "Reference target type"));
+        field.referenceTo = toCamelCase(
+          await askNonEmpty(rl, "Reference target type")
+        );
       }
 
       if (fieldType === "slug") {
-        field.slugSource = toCamelCase(await askNonEmpty(rl, "Slug source field", "title"));
+        field.slugSource = toCamelCase(
+          await askNonEmpty(rl, "Slug source field", "title")
+        );
       }
 
       fields.push(field);
@@ -700,13 +804,16 @@ const main = async () => {
     const schemaFilePath = path.join(schemaDir, schemaFileName);
 
     const needsArrayMember = fields.some((field) =>
-      ["array-string", "array-reference", "portable-text"].includes(field.type),
+      ["array-string", "array-reference", "portable-text"].includes(field.type)
     );
 
     const firstStringLikeField =
-      fields.find((field) => ["string", "text", "slug"].includes(field.type))?.name || "_id";
+      fields.find((field) => ["string", "text", "slug"].includes(field.type))
+        ?.name || "_id";
 
-    const schemaFields = fields.map((field) => renderSchemaField(field)).join(",\n\n    ");
+    const schemaFields = fields
+      .map((field) => renderSchemaField(field))
+      .join(",\n\n    ");
 
     const schemaSource = `import { defineField, defineType${needsArrayMember ? ", defineArrayMember" : ""} } from "sanity";\n\nexport const ${exportName} = defineType({\n  name: "${typeName}",\n  title: "${schemaTitle}",\n  type: "${schemaKind}",\n  fields: [\n    ${schemaFields}\n  ],\n  preview: {\n    select: {\n      title: "${firstStringLikeField}",\n    },\n  },\n});\n`;
 
@@ -728,8 +835,13 @@ const main = async () => {
 
     await mkdir(generatedSanityDir, { recursive: true });
 
-    const queryFilePath = path.join(generatedSanityDir, `${typeName}.queries.ts`);
-    const projection = fields.map((field) => `    ${toQueryProjectionLine(field)},`).join("\n");
+    const queryFilePath = path.join(
+      generatedSanityDir,
+      `${typeName}.queries.ts`
+    );
+    const projection = fields
+      .map((field) => `    ${toQueryProjectionLine(field)},`)
+      .join("\n");
     const constPrefix = toConstCase(typeName);
 
     const querySource =
@@ -740,12 +852,18 @@ const main = async () => {
     await writeFile(queryFilePath, querySource, "utf8");
     await ensureFileWithExports(
       path.join(generatedSanityDir, "index.ts"),
-      `export * from "./${typeName}.queries";`,
+      `export * from "./${typeName}.queries";`
     );
 
     await mkdir(generatedComponentsDir, { recursive: true });
-    const componentFilePath = path.join(generatedComponentsDir, `${componentName}.tsx`);
-    const mapperFilePath = path.join(generatedSanityDir, `map${componentName}.ts`);
+    const componentFilePath = path.join(
+      generatedComponentsDir,
+      `${componentName}.tsx`
+    );
+    const mapperFilePath = path.join(
+      generatedSanityDir,
+      `map${componentName}.ts`
+    );
 
     const componentFields = fields
       .map((field) => {
@@ -767,7 +885,7 @@ const main = async () => {
           return `    ...(asBoolean(source.${field.name}) !== undefined ? { ${field.name}: asBoolean(source.${field.name}) } : {}),`;
         }
         if (field.type === "array-string" || field.type === "portable-text") {
-          return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as ${toTypeScriptType(field).replace(/;$/, "")} } : {}),`;
+          return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as ${toTypeScriptType(field).replace(TRAILING_SEMICOLON, "")} } : {}),`;
         }
         if (field.type === "array-reference") {
           return `    ...(Array.isArray(source.${field.name}) ? { ${field.name}: source.${field.name} as Array<{ _id?: string; _type?: string }> } : {}),`;
@@ -787,11 +905,11 @@ const main = async () => {
 
     await ensureFileWithExports(
       path.join(generatedComponentsDir, "index.ts"),
-      `export * from "./${componentName}";`,
+      `export * from "./${componentName}";`
     );
     await ensureFileWithExports(
       path.join(generatedSanityDir, "index.ts"),
-      `export * from "./map${componentName}";`,
+      `export * from "./map${componentName}";`
     );
 
     console.log("\n✅ Scaffold created and registered.");
@@ -800,7 +918,7 @@ const main = async () => {
     console.log(`- Mapper: ${path.relative(repoRoot, mapperFilePath)}`);
     console.log(`- UI:     ${path.relative(repoRoot, componentFilePath)}`);
     console.log(
-      "\nNext: import the generated query/mapper/component where you render this feature.",
+      "\nNext: import the generated query/mapper/component where you render this feature."
     );
   } finally {
     rl.close();

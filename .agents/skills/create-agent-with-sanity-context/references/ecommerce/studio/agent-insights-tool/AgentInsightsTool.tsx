@@ -28,7 +28,7 @@ export function AgentInsightsTool() {
 
   return (
     <Flex height="fill" overflow="hidden">
-      <Card padding={4} style={{ width: 250 }} borderRight height="fill">
+      <Card borderRight height="fill" padding={4} style={{ width: 250 }}>
         <Flex direction="column" gap={4}>
           <Box>
             <Text muted size={1} weight="medium">
@@ -36,7 +36,7 @@ export function AgentInsightsTool() {
             </Text>
           </Box>
 
-          <Stack space={2} flex={1}>
+          <Stack flex={1} space={2}>
             <Button
               icon={DashboardIcon}
               justify="flex-start"
@@ -44,7 +44,11 @@ export function AgentInsightsTool() {
               onClick={() => navigateTo("overview")}
               selected={currentPath === "overview" || !currentPath}
               text="Overview"
-              tone={currentPath === "overview" || !currentPath ? "primary" : undefined}
+              tone={
+                currentPath === "overview" || !currentPath
+                  ? "primary"
+                  : undefined
+              }
             />
 
             <Button
@@ -60,7 +64,7 @@ export function AgentInsightsTool() {
         </Flex>
       </Card>
 
-      <Flex direction="column" flex={1} overflow="hidden" height="fill">
+      <Flex direction="column" flex={1} height="fill" overflow="hidden">
         {renderContent()}
       </Flex>
     </Flex>

@@ -1,31 +1,35 @@
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 import { useCameraContext, useRoofInspection } from "./context";
 import { getModelViewer } from "./modelViewerHotspot";
 import {
   formatVec3,
+  type ModelViewerNav,
   parseMetersTriple,
   projectWorldAxisToCompass,
-  type ModelViewerNav,
   type Vec3,
 } from "./projectWorldToView";
 import "../../styles/roof-inspection-dev-compass.css";
 
 type AxisKey = "x" | "y" | "z";
 
-type AxisDraw = {
-  key: AxisKey;
-  label: string;
+interface AxisDraw {
   color: string;
   dashed: boolean;
-  x2: number;
-  y2: number;
-  opacity: number;
+  key: AxisKey;
+  label: string;
   lx: number;
   ly: number;
-};
+  opacity: number;
+  x2: number;
+  y2: number;
+}
 
-const WORLD_AXES: Record<AxisKey, { world: Vec3; label: string; color: string; field: string }> = {
+const WORLD_AXES: Record<
+  AxisKey,
+  { world: Vec3; label: string; color: string; field: string }
+> = {
   x: {
     world: { x: 1, y: 0, z: 0 },
     label: "+X",
@@ -50,7 +54,7 @@ const buildAxisDraw = (
   mv: ModelViewerNav,
   key: AxisKey,
   dashed: boolean,
-  scale: number,
+  scale: number
 ): AxisDraw => {
   const def = WORLD_AXES[key];
   const proj = projectWorldAxisToCompass(mv, def.world);
@@ -67,16 +71,18 @@ const buildAxisDraw = (
     dashed,
     x2,
     y2,
-    opacity: dashed ? 0.55 + Math.max(0, facing) * 0.35 : 0.65 + Math.max(0, facing) * 0.35,
+    opacity: dashed
+      ? 0.55 + Math.max(0, facing) * 0.35
+      : 0.65 + Math.max(0, facing) * 0.35,
     lx: dir.x * scale * labelOffset,
     ly: dir.y * scale * labelOffset,
   };
 };
 
-type PickSample = {
-  position: Vec3;
+interface PickSample {
   normal: Vec3;
-};
+  position: Vec3;
+}
 
 /**
  * Dev-only overlay: live world-axis compass + Sanity field legend.
@@ -98,7 +104,7 @@ export const DevViewerCompass: React.FC = () => {
           ModelViewerNav & {
             positionAndNormalFromPoint?: (
               x: number,
-              y: number,
+              y: number
             ) => { position: Vec3; normal: Vec3 } | null;
           })
       | null = null;
@@ -161,21 +167,21 @@ export const DevViewerCompass: React.FC = () => {
   const dashedAxes = axes.filter((a) => a.dashed);
 
   return (
-    <div className="ri-dev-compass" aria-hidden="true">
+    <div aria-hidden="true" className="ri-dev-compass">
       <p className="ri-dev-compass__title">World axes (dev)</p>
 
       <svg
+        aria-label="Camera-relative world axis compass"
         className="ri-dev-compass__gizmo"
+        role="img"
         viewBox="-1 -1 2 2"
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        aria-label="Camera-relative world axis compass"
       >
         <circle
           cx="0"
           cy="0"
-          r="0.92"
           fill="none"
+          r="0.92"
           stroke="oklch(100% 0 0 / 0.12)"
           strokeWidth="0.03"
         />
@@ -183,20 +189,20 @@ export const DevViewerCompass: React.FC = () => {
           <g key={`solid-${axis.key}`} opacity={axis.opacity}>
             <line
               className="ri-dev-compass__gizmo-line"
-              x1="0"
-              y1="0"
-              x2={axis.x2}
-              y2={axis.y2}
               stroke={axis.color}
               strokeWidth="0.07"
+              x1="0"
+              x2={axis.x2}
+              y1="0"
+              y2={axis.y2}
             />
             <text
               className="ri-dev-compass__gizmo-label"
-              x={axis.lx}
-              y={axis.ly}
+              dominantBaseline="middle"
               fill={axis.color}
               textAnchor="middle"
-              dominantBaseline="middle"
+              x={axis.lx}
+              y={axis.ly}
             >
               {axis.label}
             </text>
@@ -206,13 +212,13 @@ export const DevViewerCompass: React.FC = () => {
           <g key={`dash-${axis.key}`} opacity={axis.opacity}>
             <line
               className="ri-dev-compass__gizmo-line"
-              x1={-axis.x2 * 0.15}
-              y1={-axis.y2 * 0.15}
-              x2={axis.x2}
-              y2={axis.y2}
               stroke={axis.color}
-              strokeWidth="0.045"
               strokeDasharray="0.08 0.07"
+              strokeWidth="0.045"
+              x1={-axis.x2 * 0.15}
+              x2={axis.x2}
+              y1={-axis.y2 * 0.15}
+              y2={axis.y2}
             />
           </g>
         ))}
@@ -223,7 +229,9 @@ export const DevViewerCompass: React.FC = () => {
           const def = WORLD_AXES[key];
           return (
             <div className="ri-dev-compass__legend-row" key={key}>
-              <span className={`ri-dev-compass__swatch ri-dev-compass__swatch--${key}`} />
+              <span
+                className={`ri-dev-compass__swatch ri-dev-compass__swatch--${key}`}
+              />
               <span>
                 {def.label} → <strong>{def.field.split(" / ")[0]}</strong>
               </span>
@@ -235,7 +243,9 @@ export const DevViewerCompass: React.FC = () => {
           const normField = def.field.split(" / ")[1];
           return (
             <div className="ri-dev-compass__legend-row" key={`n-${key}`}>
-              <span className={`ri-dev-compass__swatch ri-dev-compass__swatch--n${key}`} />
+              <span
+                className={`ri-dev-compass__swatch ri-dev-compass__swatch--n${key}`}
+              />
               <span>
                 {def.label} normal → <strong>{normField}</strong>
               </span>
@@ -276,8 +286,8 @@ export const DevViewerCompass: React.FC = () => {
       ) : null}
 
       <p className="ri-dev-compass__hint">
-        Click the model to sample coords. Solid = position axes; dashed = normal direction (same
-        +X/+Y/+Z frame).
+        Click the model to sample coords. Solid = position axes; dashed = normal
+        direction (same +X/+Y/+Z frame).
       </p>
     </div>
   );

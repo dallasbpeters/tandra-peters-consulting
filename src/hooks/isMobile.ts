@@ -11,10 +11,13 @@ export function useIsMobile(breakpoint = 768) {
       mediaQuery.addEventListener("change", onStoreChange);
       return () => mediaQuery.removeEventListener("change", onStoreChange);
     },
-    [query],
+    [query]
   );
 
-  const getSnapshot = useCallback(() => window.matchMedia(query).matches, [query]);
+  const getSnapshot = useCallback(
+    () => window.matchMedia(query).matches,
+    [query]
+  );
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

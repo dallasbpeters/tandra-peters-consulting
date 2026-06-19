@@ -28,16 +28,16 @@ const PICKER_STYLES = {
   },
 };
 
-type AdColorSwatchProps = {
+interface AdColorSwatchProps {
   /** Accessible name for the trigger button (e.g. "Text color"). */
   label: string;
-  /** Current color as a hex string. */
-  value: string;
   /** Called with the new hex when a preset is picked or typed in. */
   onChange: (hex: string) => void;
   /** Preset swatches shown in the picker; defaults to the brand palette. */
   presets?: string[];
-};
+  /** Current color as a hex string. */
+  value: string;
+}
 
 /**
  * Color swatch button that opens a react-color BlockPicker. The panel is
@@ -61,7 +61,9 @@ export const AdColorSwatch = ({
 
   const handleToggle = () => {
     const button = buttonRef.current;
-    if (!button) return;
+    if (!button) {
+      return;
+    }
     if (open) {
       setOpen(false);
       return;
@@ -73,14 +75,21 @@ export const AdColorSwatch = ({
   // Position once the picker has rendered so we can measure its real height
   // and flip above the trigger if it would run off the bottom of the screen.
   useLayoutEffect(() => {
-    if (!open || !anchor) return;
+    if (!(open && anchor)) {
+      return;
+    }
     const pop = popRef.current;
-    if (!pop) return;
+    if (!pop) {
+      return;
+    }
 
     const height = pop.offsetHeight;
     const left = Math.min(
-      Math.max(anchor.left + anchor.width / 2 - PICKER_WIDTH / 2, VIEWPORT_MARGIN),
-      window.innerWidth - PICKER_WIDTH - VIEWPORT_MARGIN,
+      Math.max(
+        anchor.left + anchor.width / 2 - PICKER_WIDTH / 2,
+        VIEWPORT_MARGIN
+      ),
+      window.innerWidth - PICKER_WIDTH - VIEWPORT_MARGIN
     );
 
     let top = anchor.bottom + ANCHOR_GAP;
@@ -97,17 +106,25 @@ export const AdColorSwatch = ({
   }, [open, anchor]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open) {
+      return;
+    }
 
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target instanceof Node ? event.target : null;
-      if (target && (popRef.current?.contains(target) || buttonRef.current?.contains(target))) {
+      if (
+        target &&
+        (popRef.current?.contains(target) ||
+          buttonRef.current?.contains(target))
+      ) {
         return;
       }
       setOpen(false);
     };
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
     };
 
     window.addEventListener("pointerdown", handlePointerDown);
@@ -121,26 +138,30 @@ export const AdColorSwatch = ({
   return (
     <>
       <button
-        ref={buttonRef}
-        type="button"
-        className={`ad-color-swatch${open ? " is-open" : ""}`}
-        aria-label={label}
         aria-expanded={open}
-        title={label}
+        aria-label={label}
+        className={`ad-color-swatch${open ? "is-open" : ""}`}
         onClick={handleToggle}
+        ref={buttonRef}
+        title={label}
+        type="button"
       >
         <span className="ad-color-swatch-chip" style={{ background: value }} />
       </button>
 
       {open ? (
-        <div className="ad-color-pop" ref={popRef} style={{ left: layout.left, top: layout.top }}>
+        <div
+          className="ad-color-pop"
+          ref={popRef}
+          style={{ left: layout.left, top: layout.top }}
+        >
           <BlockPicker
             color={value}
             colors={presets}
-            width={`${PICKER_WIDTH}px`}
-            triangle={layout.below ? "top" : "hide"}
-            styles={PICKER_STYLES}
             onChange={(color: ColorResult) => onChange(color.hex)}
+            styles={PICKER_STYLES}
+            triangle={layout.below ? "top" : "hide"}
+            width={`${PICKER_WIDTH}px`}
           />
         </div>
       ) : null}

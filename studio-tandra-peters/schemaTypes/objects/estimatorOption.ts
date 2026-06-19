@@ -27,14 +27,16 @@ export const estimatorOptionType = defineType({
       name: "label",
       title: "Label",
       type: "string",
-      description: 'What the visitor sees, e.g. "1,500 – 2,000 sq ft" or "Metal roofing".',
+      description:
+        'What the visitor sees, e.g. "1,500 – 2,000 sq ft" or "Metal roofing".',
       validation: (Rule) => Rule.required().max(120),
     }),
     defineField({
       name: "description",
       title: "Helper text",
       type: "string",
-      description: "Optional small print shown under the label on the option card.",
+      description:
+        "Optional small print shown under the label on the option card.",
     }),
     defineField({
       name: "sqftMidpoint",
@@ -89,12 +91,18 @@ export const estimatorOptionType = defineType({
       flat?: number;
     }) {
       const bits: string[] = [];
-      if (typeof sqft === "number") bits.push(`${sqft.toLocaleString()} sq ft`);
-      if (typeof mult === "number" && mult !== 1) bits.push(`${mult}× roof area`);
-      if (typeof perSqft === "number" && perSqft !== 0)
+      if (typeof sqft === "number") {
+        bits.push(`${sqft.toLocaleString()} sq ft`);
+      }
+      if (typeof mult === "number" && mult !== 1) {
+        bits.push(`${mult}× roof area`);
+      }
+      if (typeof perSqft === "number" && perSqft !== 0) {
         bits.push(`${perSqft > 0 ? "+" : ""}$${perSqft}/sqft`);
-      if (typeof flat === "number" && flat !== 0)
+      }
+      if (typeof flat === "number" && flat !== 0) {
         bits.push(`${flat > 0 ? "+" : ""}$${flat.toLocaleString()}`);
+      }
       return {
         title: title ?? "Untitled option",
         subtitle: bits.length ? bits.join(" · ") : "No price effect",

@@ -1,16 +1,16 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
 import { Menu, Xmark } from "iconoir-react";
-import { motion, AnimatePresence } from "motion/react";
-import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { isInPageHashHref } from "../hooks/useSiteNav";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { NavProps } from "../types";
+import type { NavProps } from "../types";
 import { GoogleAuthGate } from "./GoogleAuthGate";
 import { TransitionLink } from "./TransitionLink";
 
@@ -45,26 +45,27 @@ export const Nav: React.FC<NavProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHome]);
 
-  const handleMobileNavClick = (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!isHome) {
+  const handleMobileNavClick =
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (!isHome) {
+        setIsMobileMenuOpen(false);
+        return;
+      }
+      if (href.startsWith("#") && href !== "#") {
+        e.preventDefault();
+        setIsMobileMenuOpen(false);
+        const id = href.slice(1);
+        window.setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+          window.history.replaceState(null, "", href);
+        }, 200);
+        return;
+      }
       setIsMobileMenuOpen(false);
-      return;
-    }
-    if (href.startsWith("#") && href !== "#") {
-      e.preventDefault();
-      setIsMobileMenuOpen(false);
-      const id = href.slice(1);
-      window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-        window.history.replaceState(null, "", href);
-      }, 200);
-      return;
-    }
-    setIsMobileMenuOpen(false);
-  };
+    };
 
   const handleMobileSectionLinkClose = () => {
     setIsMobileMenuOpen(false);
@@ -92,11 +93,15 @@ export const Nav: React.FC<NavProps> = ({
       transition: "all 0.5s",
       paddingTop: isScrolled ? theme.spacing.lg : theme.spacing.xxl,
       paddingBottom: isScrolled ? theme.spacing.lg : theme.spacing.xxl,
-      backgroundColor: isScrolled
-        ? "rgba(255, 255, 255, 0.8)"
-        : isMobile
-          ? "rgba(255, 255, 255, 1)"
-          : "rgba(255, 255, 255, 0)",
+      backgroundColor: (() => {
+        if (isScrolled) {
+          return "rgba(255, 255, 255, 0.8)";
+        }
+        if (isMobile) {
+          return "rgba(255, 255, 255, 1)";
+        }
+        return "rgba(255, 255, 255, 0)";
+      })(),
       backdropFilter: isScrolled ? "blur(20px)" : "none",
       boxShadow: isScrolled ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)" : "none",
       overflowX: "clip",
@@ -122,11 +127,15 @@ export const Nav: React.FC<NavProps> = ({
       letterSpacing: "0.01em",
       gridArea: "text",
       fontFamily: theme.fonts.headline,
-      color: isScrolled
-        ? theme.colors.everglade
-        : isMobile
-          ? theme.colors.black
-          : theme.colors.white,
+      color: (() => {
+        if (isScrolled) {
+          return theme.colors.everglade;
+        }
+        if (isMobile) {
+          return theme.colors.black;
+        }
+        return theme.colors.white;
+      })(),
       textDecoration: "none",
       whiteSpace: "nowrap",
       overflow: "hidden",
@@ -140,11 +149,15 @@ export const Nav: React.FC<NavProps> = ({
       display: isMobile ? "none" : "block",
       textTransform: "uppercase",
       fontFamily: theme.fonts.headline,
-      color: isScrolled
-        ? theme.colors.everglade
-        : isMobile
-          ? theme.colors.black
-          : theme.colors.purple,
+      color: (() => {
+        if (isScrolled) {
+          return theme.colors.everglade;
+        }
+        if (isMobile) {
+          return theme.colors.black;
+        }
+        return theme.colors.purple;
+      })(),
       whiteSpace: "nowrap",
       overflow: "hidden",
       textOverflow: "ellipsis",
@@ -157,13 +170,21 @@ export const Nav: React.FC<NavProps> = ({
       fontSize: "0.875rem",
       opacity: 0.6,
       textDecoration: "none",
-      color: isScrolled ? theme.colors.black : isMobile ? theme.colors.black : theme.colors.white,
+      color: (() => {
+        if (isScrolled) {
+          return theme.colors.black;
+        }
+        if (isMobile) {
+          return theme.colors.black;
+        }
+        return theme.colors.white;
+      })(),
       transition: "opacity 0.2s",
     },
   };
 
   return (
-    <nav style={styles.nav} className="site-nav-vt">
+    <nav className="site-nav-vt" style={styles.nav}>
       <div
         className={layoutClass.containerWideRow}
         style={{
@@ -177,7 +198,6 @@ export const Nav: React.FC<NavProps> = ({
         }}
       >
         <TransitionLink
-          to="/"
           className="logo-link nav-focusable nav-logo"
           style={{
             textDecoration: "none",
@@ -185,15 +205,24 @@ export const Nav: React.FC<NavProps> = ({
             minWidth: 0,
             marginRight: isMobile ? theme.spacing.xs : theme.spacing.sm,
           }}
+          to="/"
         >
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -20 }}
             style={{ display: "contents" }}
           >
-            <img src={imageSrc} alt="" style={styles.image} height="3rem" width="auto" />
+            <img
+              alt=""
+              height="3rem"
+              src={imageSrc}
+              style={styles.image}
+              width="auto"
+            />
             <span style={styles.logoText}>{logoText}</span>
-            {isMobile ? null : <span style={styles.logoTagline}>{logoTagline}</span>}
+            {isMobile ? null : (
+              <span style={styles.logoTagline}>{logoTagline}</span>
+            )}
           </motion.div>
         </TransitionLink>
 
@@ -213,43 +242,40 @@ export const Nav: React.FC<NavProps> = ({
             {navItems.map((item, i) =>
               isHome && isInPageHashHref(item.href) ? (
                 <motion.a
-                  key={i}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="nav-focusable"
                   href={item.href}
                   initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: i * 0.05,
-                    duration: 0.2,
-                    ease: "easeInOut",
-                  }}
-                  tabIndex={0}
-                  style={styles.navLink}
-                  className="nav-focusable"
+                  key={item.href}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = "1";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.opacity = "0.6";
                   }}
+                  style={styles.navLink}
+                  tabIndex={0}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
                 >
                   {item.name}
                 </motion.a>
               ) : (
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  key={item.href}
+                  style={{ display: "inline-block" }}
                   transition={{
                     delay: isHome ? i * 0.05 : i * 0.1,
                     duration: 0.2,
                     ease: "easeInOut",
                   }}
-                  style={{ display: "inline-block" }}
                 >
                   <TransitionLink
-                    to={offHomeNavTo(item.href)}
-                    viewTransition
-                    style={styles.navLink}
                     className="nav-focusable"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.opacity = "1";
@@ -257,11 +283,14 @@ export const Nav: React.FC<NavProps> = ({
                     onMouseLeave={(e) => {
                       e.currentTarget.style.opacity = "0.6";
                     }}
+                    style={styles.navLink}
+                    to={offHomeNavTo(item.href)}
+                    viewTransition
                   >
                     {item.name}
                   </TransitionLink>
                 </motion.div>
-              ),
+              )
             )}
           </GoogleAuthGate>
         </div>
@@ -276,36 +305,44 @@ export const Nav: React.FC<NavProps> = ({
           }}
         >
           <motion.a
+            animate={{ opacity: 1, scale: 1 }}
+            className="nav-focusable hidden lg:block"
             href={ctaHref}
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={styles.button}
-            className="hidden lg:block nav-focusable"
-            whileHover={{ backgroundColor: "#715eec" }}
             onClick={() =>
               posthog?.capture("nav_cta_clicked", {
                 cta_text: ctaText,
                 location: "desktop",
               })
             }
+            style={styles.button}
+            whileHover={{ backgroundColor: "#715eec" }}
           >
             {ctaText}
           </motion.a>
           <button
-            type="button"
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileMenuOpen}
             aria-controls="site-mobile-nav"
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            className="md-hidden nav-focusable"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             style={{
               display: "none",
               padding: theme.spacing.sm,
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: isScrolled ? "black" : isMobile ? "black" : "white",
+              color: (() => {
+                if (isScrolled) {
+                  return "black";
+                }
+                if (isMobile) {
+                  return "black";
+                }
+                return "white";
+              })(),
             }}
-            className="md-hidden nav-focusable"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            type="button"
           >
             <style>{`
               @media (max-width: 768px) {
@@ -314,9 +351,9 @@ export const Nav: React.FC<NavProps> = ({
               }
             `}</style>
             {isMobileMenuOpen ? (
-              <Xmark width={24} height={24} aria-hidden />
+              <Xmark aria-hidden height={24} width={24} />
             ) : (
-              <Menu width={24} height={24} aria-hidden />
+              <Menu aria-hidden height={24} width={24} />
             )}
           </button>
         </div>
@@ -325,19 +362,19 @@ export const Nav: React.FC<NavProps> = ({
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            id="site-mobile-nav"
+            initial={{ opacity: 0, height: 0 }}
+            style={{
+              overflow: "hidden",
+            }}
             transition={{
               type: "spring",
               mass: 0.5,
               damping: 20,
               stiffness: 300,
             }}
-            style={{
-              overflow: "hidden",
-            }}
-            id="site-mobile-nav"
           >
             <div
               style={{
@@ -347,12 +384,13 @@ export const Nav: React.FC<NavProps> = ({
                 gap: theme.spacing.lg,
               }}
             >
-              {navItems.map((item, i) =>
+              {navItems.map((item, _i) =>
                 isHome && isInPageHashHref(item.href) ? (
                   <a
-                    key={i}
-                    href={item.href}
                     className="nav-focusable"
+                    href={item.href}
+                    key={item.href}
+                    onClick={handleMobileNavClick(item.href)}
                     style={{
                       fontFamily: theme.fonts.headline,
                       fontWeight: 700,
@@ -362,16 +400,14 @@ export const Nav: React.FC<NavProps> = ({
                       textDecoration: "none",
                       color: theme.colors.everglade,
                     }}
-                    onClick={handleMobileNavClick(item.href)}
                   >
                     {item.name}
                   </a>
                 ) : (
                   <TransitionLink
-                    key={i}
-                    to={offHomeNavTo(item.href)}
-                    viewTransition
                     className="nav-focusable"
+                    key={item.href}
+                    onClick={handleMobileSectionLinkClose}
                     style={{
                       fontFamily: theme.fonts.headline,
                       fontWeight: 700,
@@ -381,22 +417,17 @@ export const Nav: React.FC<NavProps> = ({
                       textDecoration: "none",
                       color: theme.colors.everglade,
                     }}
-                    onClick={handleMobileSectionLinkClose}
+                    to={offHomeNavTo(item.href)}
+                    viewTransition
                   >
                     {item.name}
                   </TransitionLink>
-                ),
+                )
               )}
               {isHome ? (
                 <a
-                  href={ctaHref}
                   className="nav-focusable"
-                  style={{
-                    ...styles.button,
-                    fontSize: "0.75rem",
-                    width: "100%",
-                    textAlign: "center",
-                  }}
+                  href={ctaHref}
                   onClick={(e) => {
                     posthog?.capture("nav_cta_clicked", {
                       cta_text: ctaText,
@@ -404,19 +435,18 @@ export const Nav: React.FC<NavProps> = ({
                     });
                     handleMobileNavClick(ctaHref)(e);
                   }}
-                >
-                  {ctaText}
-                </a>
-              ) : (
-                <TransitionLink
-                  to={{ pathname: "/", hash: ctaHref }}
-                  className="nav-focusable"
                   style={{
                     ...styles.button,
                     fontSize: "0.75rem",
                     width: "100%",
                     textAlign: "center",
                   }}
+                >
+                  {ctaText}
+                </a>
+              ) : (
+                <TransitionLink
+                  className="nav-focusable"
                   onClick={() => {
                     posthog?.capture("nav_cta_clicked", {
                       cta_text: ctaText,
@@ -424,6 +454,13 @@ export const Nav: React.FC<NavProps> = ({
                     });
                     handleMobileSectionLinkClose();
                   }}
+                  style={{
+                    ...styles.button,
+                    fontSize: "0.75rem",
+                    width: "100%",
+                    textAlign: "center",
+                  }}
+                  to={{ pathname: "/", hash: ctaHref }}
                 >
                   {ctaText}
                 </TransitionLink>

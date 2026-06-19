@@ -1,11 +1,18 @@
 /** model-viewer world-space helpers for the dev axis compass. */
 
-export type Vec3 = { x: number; y: number; z: number };
+const RE_WHITESPACE = /\s+/;
+const RE_METERS_SUFFIX = /m$/i;
 
-export type ModelViewerNav = {
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface ModelViewerNav {
   getCameraOrbit: () => { theta: number; phi: number; radius: number };
   getCameraTarget: () => Vec3;
-};
+}
 
 const normalize = (v: Vec3): Vec3 => {
   const len = Math.hypot(v.x, v.y, v.z) || 1;
@@ -36,12 +43,12 @@ export const getCameraPosition = (mv: ModelViewerNav): Vec3 => {
   };
 };
 
-export type ViewAxisProjection = {
+export interface ViewAxisProjection {
   /** Screen-plane direction for drawing an arrow in the mini compass (SVG coords). */
   dir: Vec3;
   /** 0–1 how much this axis faces the camera (1 = toward viewer). */
   facing: number;
-};
+}
 
 /**
  * Project a world-space unit axis into the camera view plane for a 2D compass.
@@ -49,7 +56,7 @@ export type ViewAxisProjection = {
  */
 export const projectWorldAxisToCompass = (
   mv: ModelViewerNav,
-  worldAxis: Vec3,
+  worldAxis: Vec3
 ): ViewAxisProjection | null => {
   const cam = getCameraPosition(mv);
   const target = mv.getCameraTarget();
@@ -91,11 +98,12 @@ export const parseMetersTriple = (value: string | undefined): Vec3 | null => {
   if (!value?.trim()) {
     return null;
   }
-  const parts = value.trim().split(/\s+/);
+  const parts = value.trim().split(RE_WHITESPACE);
   if (parts.length < 3) {
     return null;
   }
-  const parse = (part: string) => Number.parseFloat(part.replace(/m$/i, ""));
+  const parse = (part: string) =>
+    Number.parseFloat(part.replace(RE_METERS_SUFFIX, ""));
   const x = parse(parts[0]);
   const y = parse(parts[1]);
   const z = parse(parts[2]);

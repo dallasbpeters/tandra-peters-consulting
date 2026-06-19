@@ -35,7 +35,8 @@ export const emailSignatureType = defineType({
       type: "string",
       title: "Tagline",
       description: "Short line under the name, e.g. service area or promise.",
-      initialValue: "Helping Central Texas homeowners through the roofing process.",
+      initialValue:
+        "Helping Central Texas homeowners through the roofing process.",
     }),
     defineField({
       name: "phone",

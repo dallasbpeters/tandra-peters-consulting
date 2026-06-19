@@ -1,26 +1,34 @@
 import "./ads.vars.css";
-import React, { useEffect, useState } from "react";
-import { AbsoluteFill, Sequence, staticFile, delayRender, continueRender } from "remotion";
-
-import type { CustomCompositionProps, SceneConfig } from "./composition/customSchema";
-
+import type React from "react";
+import { useEffect, useState } from "react";
 import {
-  RvSceneHook,
-  RvSceneSimple,
+  AbsoluteFill,
+  continueRender,
+  delayRender,
+  Sequence,
+  staticFile,
+} from "remotion";
+import {
   RvSceneBenefits,
-  RvSceneIntro,
-  RvSceneLogoAnimation,
-  RvSceneTrust,
   RvSceneCTA,
   RvSceneHelpingTexasHomeowners,
-  SceneStormHook,
+  RvSceneHook,
+  RvSceneIntro,
+  RvSceneLogoAnimation,
+  RvSceneSimple,
+  RvSceneTrust,
   SceneStormBrand,
-  SsSceneImpact,
-  SsSceneUrgency,
-  SsSceneIntro,
-  SsSceneValue,
+  SceneStormHook,
   SsSceneCTA,
+  SsSceneImpact,
+  SsSceneIntro,
+  SsSceneUrgency,
+  SsSceneValue,
 } from "./Clips";
+import type {
+  CustomCompositionProps,
+  SceneConfig,
+} from "./composition/customSchema";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Scene dispatcher — maps a SceneConfig to the correct component
@@ -34,11 +42,11 @@ const renderScene = (scene: SceneConfig): React.ReactNode => {
       const s = scene as Extract<SceneConfig, { type: "simple" }>;
       return (
         <RvSceneSimple
-          headline={s.headline}
-          showPill={s.showPill}
-          pill={s.pill}
-          image={s.image}
           body={s.body}
+          headline={s.headline}
+          image={s.image}
+          pill={s.pill}
+          showPill={s.showPill}
         />
       );
     }
@@ -59,9 +67,9 @@ const renderScene = (scene: SceneConfig): React.ReactNode => {
       return (
         <SsSceneIntro
           {...scene}
-          showProfilePhoto={scene.showProfilePhoto}
           profilePhoto={scene.profilePhoto}
           seed={scene.seed}
+          showProfilePhoto={scene.showProfilePhoto}
         />
       );
     case "value":
@@ -76,6 +84,8 @@ const renderScene = (scene: SceneConfig): React.ReactNode => {
       return <SceneStormHook {...scene} />;
     case "storm-brand":
       return <SceneStormBrand {...scene} />;
+    default:
+      return null;
   }
 };
 
@@ -91,13 +101,21 @@ export const CustomSlots: React.FC<CustomCompositionProps> = ({ scenes }) => {
 
   useEffect(() => {
     const toSrc = (v: string) =>
-      v.startsWith("http://") || v.startsWith("https://") ? v : staticFile(`ads/${v}`);
+      v.startsWith("http://") || v.startsWith("https://")
+        ? v
+        : staticFile(`ads/${v}`);
 
     const srcs: string[] = [];
     for (const s of safeScenes) {
-      if ("image" in s && typeof s.image === "string") srcs.push(toSrc(s.image));
-      const pf = (s as Record<string, unknown>).profilePhoto as { src?: string } | undefined;
-      if (pf?.src) srcs.push(toSrc(pf.src));
+      if ("image" in s && typeof s.image === "string") {
+        srcs.push(toSrc(s.image));
+      }
+      const pf = (s as Record<string, unknown>).profilePhoto as
+        | { src?: string }
+        | undefined;
+      if (pf?.src) {
+        srcs.push(toSrc(pf.src));
+      }
     }
 
     if (srcs.length === 0) {
@@ -108,7 +126,9 @@ export const CustomSlots: React.FC<CustomCompositionProps> = ({ scenes }) => {
     let remaining = srcs.length;
     const tick = () => {
       remaining -= 1;
-      if (remaining <= 0) continueRender(handle);
+      if (remaining <= 0) {
+        continueRender(handle);
+      }
     };
 
     const imgs = srcs.map((src) => {
@@ -119,20 +139,25 @@ export const CustomSlots: React.FC<CustomCompositionProps> = ({ scenes }) => {
       return img;
     });
 
-    return () =>
-      imgs.forEach((img) => {
+    return () => {
+      for (const img of imgs) {
         img.src = "";
-      });
-  }, []);
+      }
+    };
+  }, [safeScenes, handle]);
 
   let offset = 0;
   return (
     <AbsoluteFill style={{ backgroundColor: "var(--color-everglade)" }}>
-      {safeScenes.map((scene, i) => {
+      {safeScenes.map((scene, _i) => {
         const from = offset;
         offset += scene.durationInFrames ?? 180;
         return (
-          <Sequence key={i} from={from} durationInFrames={scene.durationInFrames ?? 180}>
+          <Sequence
+            durationInFrames={scene.durationInFrames ?? 180}
+            from={from}
+            key={scene.type + String(from)}
+          >
             {renderScene(scene)}
           </Sequence>
         );

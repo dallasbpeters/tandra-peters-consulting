@@ -6,7 +6,8 @@ export const normalizeOptionText = (value: string): string =>
 
 export const optionIllustrationFor = (
   questionPrompt: string,
-  optionLabel: string,
+  optionLabel: string
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 ): string | undefined => {
   const prompt = normalizeOptionText(questionPrompt);
   const label = normalizeOptionText(optionLabel);
@@ -22,24 +23,43 @@ export const optionIllustrationFor = (
   }
 
   if (prompt.includes("complex")) {
-    if (label.includes("simple")) return "/estimator/roof-complexity-simple.svg";
-    if (label.includes("average")) return "/estimator/roof-complexity-average.svg";
-    if (label.includes("complex")) return "/estimator/roof-complexity-complex.svg";
+    if (label.includes("simple")) {
+      return "/estimator/roof-complexity-simple.svg";
+    }
+    if (label.includes("average")) {
+      return "/estimator/roof-complexity-average.svg";
+    }
+    if (label.includes("complex")) {
+      return "/estimator/roof-complexity-complex.svg";
+    }
   }
 
   if (prompt.includes("steep") || prompt.includes("pitch")) {
-    if (label.includes("low") || label.includes("walkable")) return "/estimator/roof-pitch-low.svg";
-    if (label.includes("average")) return "/estimator/roof-pitch-average.svg";
-    if (label.includes("steep")) return "/estimator/roof-pitch-steep.svg";
+    if (label.includes("low") || label.includes("walkable")) {
+      return "/estimator/roof-pitch-low.svg";
+    }
+    if (label.includes("average")) {
+      return "/estimator/roof-pitch-average.svg";
+    }
+    if (label.includes("steep")) {
+      return "/estimator/roof-pitch-steep.svg";
+    }
   }
 
-  if (prompt.includes("kind of roof") || prompt.includes("roof are you considering")) {
-    if (label.includes("asphalt")) return "/estimator/roof-material-asphalt.svg";
+  if (
+    prompt.includes("kind of roof") ||
+    prompt.includes("roof are you considering")
+  ) {
+    if (label.includes("asphalt")) {
+      return "/estimator/roof-material-asphalt.svg";
+    }
     if (label.includes("architectural") || label.includes("premium")) {
       return "/estimator/roof-material-premium.svg";
     }
-    if (label.includes("metal")) return "/estimator/roof-material-metal.svg";
+    if (label.includes("metal")) {
+      return "/estimator/roof-material-metal.svg";
+    }
   }
 
-  return undefined;
+  return;
 };

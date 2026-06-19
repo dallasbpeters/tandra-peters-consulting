@@ -54,7 +54,8 @@ export const emailContactType = defineType({
       name: "subscribed",
       type: "boolean",
       title: "Subscribed",
-      description: "Untick to leave this contact out of the email composer's recipient list.",
+      description:
+        "Untick to leave this contact out of the email composer's recipient list.",
       initialValue: true,
     }),
     defineField({

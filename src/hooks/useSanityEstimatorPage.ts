@@ -1,9 +1,7 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useState } from "react";
-
-import type { EstimatorPageDoc } from "../sanity/mapEstimatorPage";
-
 import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
+import type { EstimatorPageDoc } from "../sanity/mapEstimatorPage";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { ESTIMATOR_PAGE_QUERY } from "../sanity/queries";
 
@@ -16,7 +14,10 @@ export const useSanityEstimatorPage = () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<EstimatorPageDoc>(ESTIMATOR_PAGE_QUERY);
-      const result = raw && !isSanityStegaUiActive() ? (stegaClean(raw) as EstimatorPageDoc) : raw;
+      const result =
+        raw && !isSanityStegaUiActive()
+          ? (stegaClean(raw) as EstimatorPageDoc)
+          : raw;
       setPage(result ?? null);
       setError(null);
     } catch (e) {
@@ -27,16 +28,22 @@ export const useSanityEstimatorPage = () => {
   }, []);
 
   useEffect(() => {
-    void refetch();
+    refetch().catch(() => undefined);
   }, [refetch]);
 
   useEffect(() => {
     const onPresentationRefresh = () => {
-      void refetch();
+      refetch().catch(() => undefined);
     };
-    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+    window.addEventListener(
+      SANITY_PRESENTATION_REFRESH_EVENT,
+      onPresentationRefresh
+    );
     return () =>
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        onPresentationRefresh
+      );
   }, [refetch]);
 
   return { page, loading, error, refetch };

@@ -1,13 +1,14 @@
 import { usePostHog } from "@posthog/react";
-import { Facebook, Linkedin, Twitter, Mail, Link } from "iconoir-react";
-import React, { useCallback, useMemo, useState } from "react";
+import { Facebook, Link, Linkedin, Mail, Twitter } from "iconoir-react";
+import type React from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { plainTextFromRich } from "../portableText/plainText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { SocialShareBarProps } from "../types";
+import type { SocialShareBarProps } from "../types";
 import { buildSharePageUrl } from "../utils/siteUrl";
 
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
@@ -21,7 +22,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 
   const pageUrl = useMemo(
     () => buildSharePageUrl(pathname, search, hash),
-    [pathname, search, hash],
+    [pathname, search, hash]
   );
 
   const sharePlain = useMemo(() => {
@@ -49,7 +50,8 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
   const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}&hashtag=roofing`;
 
-  const canWebShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const canWebShare =
+    typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   const handleFacebookShare = useCallback(
     async (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -57,7 +59,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 
       // On phones, prefer the native share sheet so an installed Facebook app
       // opens its composer instead of loading facebook.com in the browser.
-      if (!pageUrl || !isMobile || !canWebShare) {
+      if (!(pageUrl && isMobile && canWebShare)) {
         return;
       }
       event.preventDefault();
@@ -72,11 +74,13 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
         window.open(facebookHref, "_blank", "noopener,noreferrer");
       }
     },
-    [posthog, pageUrl, isMobile, canWebShare, sharePlain, facebookHref],
+    [posthog, pageUrl, isMobile, canWebShare, sharePlain, facebookHref]
   );
 
   const handleCopyLink = useCallback(async () => {
-    if (!pageUrl) return;
+    if (!pageUrl) {
+      return;
+    }
     try {
       await navigator.clipboard.writeText(pageUrl);
       setCopied(true);
@@ -140,7 +144,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const copyButtonLabel = copied ? "Copied" : "Copy link";
 
   return (
-    <section style={sectionStyle} aria-label="Social sharing">
+    <section aria-label="Social sharing" style={sectionStyle}>
       <div
         className={`${layoutClass.containerWide} social-share-inner wa-stack wa-gap-m wa-align-items-start`}
       >
@@ -167,67 +171,78 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
         <p style={{ ...labelStyle, margin: 0 }}>{heading}</p>
         <div className="wa-cluster wa-gap-3xs">
           <a
-            href={pageUrl ? facebookHref : undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={iconButtonStyle}
-            className="social-share-icon"
             aria-label={facebookAriaLabel}
+            className="social-share-icon"
+            href={pageUrl ? facebookHref : undefined}
+            onClick={(event) => {
+              handleFacebookShare(event);
+            }}
+            rel="noopener noreferrer"
+            style={iconButtonStyle}
+            target="_blank"
             title={facebookAriaLabel}
-            onClick={(event) => void handleFacebookShare(event)}
           >
-            <Facebook height={18} strokeWidth={1.75} aria-hidden />
+            <Facebook aria-hidden height={18} strokeWidth={1.75} />
           </a>
           <a
-            href={pageUrl ? linkedInHref : undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={iconButtonStyle}
-            className="social-share-icon"
             aria-label={linkedInAriaLabel}
+            className="social-share-icon"
+            href={pageUrl ? linkedInHref : undefined}
+            onClick={() =>
+              posthog?.capture("social_share_clicked", { platform: "linkedin" })
+            }
+            rel="noopener noreferrer"
+            style={iconButtonStyle}
+            target="_blank"
             title={linkedInAriaLabel}
-            onClick={() => posthog?.capture("social_share_clicked", { platform: "linkedin" })}
           >
-            <Linkedin height={18} strokeWidth={1.75} aria-hidden />
+            <Linkedin aria-hidden height={18} strokeWidth={1.75} />
           </a>
           <a
-            href={pageUrl ? twitterHref : undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={iconButtonStyle}
-            className="social-share-icon"
             aria-label={twitterAriaLabel}
-            title={twitterAriaLabel}
-            onClick={() => posthog?.capture("social_share_clicked", { platform: "twitter" })}
-          >
-            <Twitter height={18} strokeWidth={1.75} aria-hidden />
-          </a>
-          <a
-            href={pageUrl ? mailHref : undefined}
-            style={iconButtonStyle}
             className="social-share-icon"
-            aria-label={emailAriaLabel}
-            title={emailAriaLabel}
-            onClick={() => posthog?.capture("social_share_clicked", { platform: "email" })}
-          >
-            <Mail height={18} strokeWidth={1.75} aria-hidden />
-          </a>
-          <a
-            href={pageUrl ? nextdoorHref : undefined}
-            target="_blank"
+            href={pageUrl ? twitterHref : undefined}
+            onClick={() =>
+              posthog?.capture("social_share_clicked", { platform: "twitter" })
+            }
             rel="noopener noreferrer"
             style={iconButtonStyle}
-            className="social-share-icon"
-            aria-label={nextdoorAriaLabel}
-            title={nextdoorAriaLabel}
-            onClick={() => posthog?.capture("social_share_clicked", { platform: "nextdoor" })}
+            target="_blank"
+            title={twitterAriaLabel}
           >
+            <Twitter aria-hidden height={18} strokeWidth={1.75} />
+          </a>
+          <a
+            aria-label={emailAriaLabel}
+            className="social-share-icon"
+            href={pageUrl ? mailHref : undefined}
+            onClick={() =>
+              posthog?.capture("social_share_clicked", { platform: "email" })
+            }
+            style={iconButtonStyle}
+            title={emailAriaLabel}
+          >
+            <Mail aria-hidden height={18} strokeWidth={1.75} />
+          </a>
+          <a
+            aria-label={nextdoorAriaLabel}
+            className="social-share-icon"
+            href={pageUrl ? nextdoorHref : undefined}
+            onClick={() =>
+              posthog?.capture("social_share_clicked", { platform: "nextdoor" })
+            }
+            rel="noopener noreferrer"
+            style={iconButtonStyle}
+            target="_blank"
+            title={nextdoorAriaLabel}
+          >
+            <span className="sr-only">{nextdoorAriaLabel}</span>
             <svg
-              aria-hidden
-              width="18"
+              aria-hidden="true"
+              fill="none"
               height="18"
               viewBox="0 0 24 24"
-              fill="none"
+              width="18"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
@@ -237,7 +252,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             </svg>
           </a>
           <button
-            type="button"
+            aria-live="polite"
+            className="social-share-icon"
+            disabled={!pageUrl}
             onClick={() => {
               posthog?.capture("social_share_clicked", {
                 platform: "copy_link",
@@ -245,11 +262,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
               handleCopyLink();
             }}
             style={copyButtonStyle}
-            className="social-share-icon"
-            disabled={!pageUrl}
-            aria-live="polite"
+            type="button"
           >
-            <Link height={16} strokeWidth={1.75} aria-hidden />
+            <Link aria-hidden height={16} strokeWidth={1.75} />
             {copyButtonLabel}
           </button>
         </div>

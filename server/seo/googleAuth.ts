@@ -1,4 +1,4 @@
-import { OAuth2Client } from "google-auth-library";
+import { type LoginTicket, OAuth2Client } from "google-auth-library";
 
 type EnvSource = Record<string, string | undefined> | NodeJS.ProcessEnv;
 
@@ -11,11 +11,11 @@ export class DashboardAuthError extends Error {
   }
 }
 
-export type DashboardUser = {
+export interface DashboardUser {
   email: string;
   name?: string;
   picture?: string;
-};
+}
 
 const client = new OAuth2Client();
 
@@ -25,7 +25,8 @@ const envValue = (env: EnvSource | undefined, key: string): string =>
   trim(env?.[key] ?? process.env[key]);
 
 const getConfig = (env?: EnvSource) => {
-  const clientId = envValue(env, "GOOGLE_CLIENT_ID") || envValue(env, "VITE_GOOGLE_CLIENT_ID");
+  const clientId =
+    envValue(env, "GOOGLE_CLIENT_ID") || envValue(env, "VITE_GOOGLE_CLIENT_ID");
   const allowedEmails = envValue(env, "GOOGLE_ALLOWED_EMAILS")
     .split(",")
     .map((value) => value.trim().toLowerCase())
@@ -39,7 +40,9 @@ const getConfig = (env?: EnvSource) => {
   };
 };
 
-const extractBearerToken = (authorizationHeader: string | undefined): string => {
+const extractBearerToken = (
+  authorizationHeader: string | undefined
+): string => {
   const value = trim(authorizationHeader);
   if (!value.toLowerCase().startsWith("bearer ")) {
     throw new DashboardAuthError(401, "Missing bearer token");
@@ -53,7 +56,7 @@ const extractBearerToken = (authorizationHeader: string | undefined): string => 
 
 export const authorizeSeoDashboardRequest = async (
   authorizationHeader: string | undefined,
-  env?: EnvSource,
+  env?: EnvSource
 ): Promise<DashboardUser> => {
   const config = getConfig(env);
 
@@ -62,11 +65,14 @@ export const authorizeSeoDashboardRequest = async (
   }
 
   if (config.allowedEmails.length === 0 && !config.allowedDomain) {
-    throw new DashboardAuthError(500, "Missing dashboard allowlist configuration");
+    throw new DashboardAuthError(
+      500,
+      "Missing dashboard allowlist configuration"
+    );
   }
 
   const idToken = extractBearerToken(authorizationHeader);
-  let ticket;
+  let ticket: LoginTicket;
   try {
     ticket = await client.verifyIdToken({
       idToken,
@@ -75,7 +81,10 @@ export const authorizeSeoDashboardRequest = async (
   } catch {
     // Expired token, rotated signing key ("No pem found"), or bad signature.
     // Surface as 401 so the client clears its stored token and re-prompts sign-in.
-    throw new DashboardAuthError(401, "Google sign-in expired. Please sign in again.");
+    throw new DashboardAuthError(
+      401,
+      "Google sign-in expired. Please sign in again."
+    );
   }
   const payload = ticket.getPayload();
 
@@ -89,18 +98,25 @@ export const authorizeSeoDashboardRequest = async (
   }
 
   const hostedDomain = trim(payload.hd).toLowerCase();
-  const emailAllowed = config.allowedEmails.length > 0 && config.allowedEmails.includes(email);
-  const domainAllowed = Boolean(config.allowedDomain) && hostedDomain === config.allowedDomain;
+  const emailAllowed =
+    config.allowedEmails.length > 0 && config.allowedEmails.includes(email);
+  const domainAllowed =
+    Boolean(config.allowedDomain) && hostedDomain === config.allowedDomain;
 
-  if (config.allowedEmails.length > 0 || config.allowedDomain) {
-    if (!emailAllowed && !domainAllowed) {
-      throw new DashboardAuthError(403, "This Google account is not allowed");
-    }
+  if (
+    (config.allowedEmails.length > 0 || config.allowedDomain) &&
+    !(emailAllowed || domainAllowed)
+  ) {
+    throw new DashboardAuthError(403, "This Google account is not allowed");
   }
 
   return {
     email,
-    name: trim(typeof payload.name === "string" ? payload.name : undefined) || undefined,
-    picture: trim(typeof payload.picture === "string" ? payload.picture : undefined) || undefined,
+    name:
+      trim(typeof payload.name === "string" ? payload.name : undefined) ||
+      undefined,
+    picture:
+      trim(typeof payload.picture === "string" ? payload.picture : undefined) ||
+      undefined,
   };
 };

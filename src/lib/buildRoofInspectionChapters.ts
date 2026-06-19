@@ -1,14 +1,30 @@
-import type { RoofInspectionHotspotData } from "../types";
-
 import { CHAPTERS, type Chapter } from "../components/RoofInspection";
 import { parseHotspotCoords } from "../components/RoofInspection/hotspotCoords";
+import type { RoofInspectionHotspotData } from "../types";
 
-const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+const ROMAN = [
+  "i",
+  "ii",
+  "iii",
+  "iv",
+  "v",
+  "vi",
+  "vii",
+  "viii",
+  "ix",
+  "x",
+  "xi",
+  "xii",
+];
 
-const CHAPTERS_BY_LABEL = new Map(CHAPTERS.map((chapter) => [chapter.label, chapter]));
+const CHAPTERS_BY_LABEL = new Map(
+  CHAPTERS.map((chapter) => [chapter.label, chapter])
+);
 
 /** Map Sanity hotspots into RoofInspection chapters, merging camera presets from CHAPTERS. */
-export const buildRoofInspectionChapters = (hotspots?: RoofInspectionHotspotData[]): Chapter[] => {
+export const buildRoofInspectionChapters = (
+  hotspots?: RoofInspectionHotspotData[]
+): Chapter[] => {
   if (!hotspots?.length) {
     return CHAPTERS;
   }

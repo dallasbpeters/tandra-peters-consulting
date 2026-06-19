@@ -1,84 +1,69 @@
 export type SeoAuditStatus = "good" | "warning" | "critical";
 export type SeoRecommendationPriority = "high" | "medium" | "low";
 
-export type SeoAuditItem = {
+export interface SeoAuditItem {
+  actions: string[];
+  issues: string[];
   path: string;
-  title: string;
   score: number;
   status: SeoAuditStatus;
-  issues: string[];
-  actions: string[];
-  updatedAt?: string;
-};
-
-export type SeoRecommendation = {
   title: string;
+  updatedAt?: string;
+}
+
+export interface SeoRecommendation {
   detail: string;
   priority: SeoRecommendationPriority;
   source: "ai";
-};
+  title: string;
+}
 
-export type SeoTrafficPoint = {
+export interface SeoTrafficPoint {
   date: string;
   pageviews: number;
-};
+}
 
-export type SeoOpportunity = {
-  type: "fix" | "refresh" | "new-content";
-  title: string;
+export interface SeoOpportunity {
   detail: string;
-  target: string;
   impact: "high" | "medium" | "low";
-};
-
-export type SeoTopPage = {
-  path: string;
-  pageviews: number;
-};
-
-export type SeoCategorySummary = {
-  slug: string;
-  label: string;
-  count: number;
-};
-
-export type SeoContentAnalysisItem = {
-  path: string;
+  target: string;
   title: string;
-  categoryLabel: string;
-  score: number;
-  status: SeoAuditStatus;
-  wordCount: number;
-  readingMinutes: number;
-  headingCount: number;
-  listCount: number;
-  internalLinks: number;
-  externalLinks: number;
-  titleLength: number;
-  excerptLength: number;
-  seoDescriptionLength: number;
-  updatedAt?: string;
-  issues: string[];
-  actions: string[];
-};
+  type: "fix" | "refresh" | "new-content";
+}
 
-export type SeoDashboardPayload = {
-  generatedAt: string;
-  sourceStatus: {
-    posthogConnected: boolean;
-    aiConnected: boolean;
-    siteUrl: string;
-    notes: string[];
-  };
-  overview: {
-    technicalScore: number;
-    contentScore: number;
-    opportunities: number;
-    totalPages: number;
-    totalPublishedPosts: number;
-    criticalIssues: number;
-    warningIssues: number;
-  };
+export interface SeoTopPage {
+  pageviews: number;
+  path: string;
+}
+
+export interface SeoCategorySummary {
+  count: number;
+  label: string;
+  slug: string;
+}
+
+export interface SeoContentAnalysisItem {
+  actions: string[];
+  categoryLabel: string;
+  excerptLength: number;
+  externalLinks: number;
+  headingCount: number;
+  internalLinks: number;
+  issues: string[];
+  listCount: number;
+  path: string;
+  readingMinutes: number;
+  score: number;
+  seoDescriptionLength: number;
+  status: SeoAuditStatus;
+  title: string;
+  titleLength: number;
+  updatedAt?: string;
+  wordCount: number;
+}
+
+export interface SeoDashboardPayload {
+  aiSummary: string | null;
   analytics: {
     status: "connected" | "missing_config" | "error";
     connected: boolean;
@@ -93,6 +78,7 @@ export type SeoDashboardPayload = {
     topPages: SeoTopPage[];
     dailyPageviews: SeoTrafficPoint[];
   };
+  audits: SeoAuditItem[];
   content: {
     publishedPosts: number;
     stalePosts: number;
@@ -105,8 +91,22 @@ export type SeoDashboardPayload = {
     categories: SeoCategorySummary[];
   };
   contentAnalyses: SeoContentAnalysisItem[];
-  audits: SeoAuditItem[];
-  recommendations: SeoRecommendation[];
+  generatedAt: string;
   opportunities: SeoOpportunity[];
-  aiSummary: string | null;
-};
+  overview: {
+    technicalScore: number;
+    contentScore: number;
+    opportunities: number;
+    totalPages: number;
+    totalPublishedPosts: number;
+    criticalIssues: number;
+    warningIssues: number;
+  };
+  recommendations: SeoRecommendation[];
+  sourceStatus: {
+    posthogConnected: boolean;
+    aiConnected: boolean;
+    siteUrl: string;
+    notes: string[];
+  };
+}

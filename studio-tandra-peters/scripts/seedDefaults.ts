@@ -29,7 +29,7 @@ export const siteSettingsSeed = {
     [
       "Austin roofing consultant for roof assessments, insurance claim support, and end-to-end project oversight—paired with Birdcreek Roofing for trusted installation across Texas.",
     ],
-    "footer-desc",
+    "footer-desc"
   ),
   footerQuickLinks: [
     { name: "Services", href: "#services" },
@@ -61,7 +61,7 @@ export const articlesPageSeed = {
     [
       "Practical guides on roof replacement, inspections, insurance, and Texas weather—written from a consultant perspective aligned with Birdcreek Roofing’s homeowner-first process.",
     ],
-    "articles-intro",
+    "articles-intro"
   ),
 };
 
@@ -244,7 +244,7 @@ export const homePageSeed = {
       [
         "Work with an Austin-based roofing consultant for roof assessments, insurance guidance, and careful project oversight—backed by Birdcreek Roofing, one of Central Texas’s most trusted installation teams. Voted Best Roofer in Central Texas 7 years in a row.",
       ],
-      "hero-subtitle",
+      "hero-subtitle"
     ),
     ctaText: "Schedule a Free Consultation",
     ctaHref: "#contact",
@@ -268,7 +268,7 @@ export const homePageSeed = {
         "Tandra Peters is an Austin, Texas roofing consultant who translates complex roof science into decisions homeowners can trust. She focuses on what matters for durability, warranty coverage, and long-term value—not quick sales pitches.",
         "As a Birdcreek Roofing consultant, her recommendations sit inside the same company that performs the work—so there is a straight line from advice to professional installation and project management. Her approach is personal and practical, helping homeowners understand what matters now, what can wait, and what will protect their home for the long haul.",
       ],
-      "about-body",
+      "about-body"
     ),
   },
   stats: {
@@ -306,7 +306,7 @@ export const homePageSeed = {
       [
         "From detailed roof inspections and documentation to insurance claim advocacy and on-site project oversight, you get a Birdcreek Roofing consultant who speaks both homeowner and crew—so education, advocacy, and installation stay under one trusted roof.",
       ],
-      "services-section-desc",
+      "services-section-desc"
     ),
     services: [
       {
@@ -318,7 +318,7 @@ export const homePageSeed = {
           [
             "On-site and photo-based review of your roof system: decking, flashing, ventilation, and drainage—documented so you understand what is urgent, what can wait, and what to discuss with insurers or contractors.",
           ],
-          "svc-card-01-desc",
+          "svc-card-01-desc"
         ),
         icon: "search",
       },
@@ -331,7 +331,7 @@ export const homePageSeed = {
           [
             "Help organizing claim paperwork, interpreting adjuster estimates, and advocating for scopes that match real damage—so you are not left under-covered on a major asset.",
           ],
-          "svc-card-02-desc",
+          "svc-card-02-desc"
         ),
         icon: "page",
       },
@@ -344,7 +344,7 @@ export const homePageSeed = {
           [
             "Site visits, quality checkpoints, and clear communication from tear-off through final walkthrough, aligned with Birdcreek Roofing crews so the roof you approved is the roof you receive.",
           ],
-          "svc-card-03-desc",
+          "svc-card-03-desc"
         ),
         icon: "shieldCheck",
       },
@@ -356,7 +356,7 @@ export const homePageSeed = {
         [
           "Direct access to Austin's premier roofing firm, combining Tandra's consultation with Birdcreek's legendary execution.",
         ],
-        "services-birdcreek-advantage-desc",
+        "services-birdcreek-advantage-desc"
       ),
       ctaLabel: "Learn More",
       ctaHref: "https://birdcreekroofing.com",
@@ -370,13 +370,13 @@ export const homePageSeed = {
     tagline: "Our Mission",
     title: blocksFromParagraphs(
       ["The vision we set out with has now impacted over 20,000 homeowners."],
-      "mission-title",
+      "mission-title"
     ),
     description: blocksFromParagraphs(
       [
         "Birdcreek Roofing’s consultant team has earned national recognition for customer care and consistent workmanship. That same service mindset guides every homeowner interaction—whether you are in Austin, elsewhere in Texas, or coordinating a complex project from out of state.",
       ],
-      "mission-desc",
+      "mission-desc"
     ),
     values: [
       {
@@ -388,7 +388,7 @@ export const homePageSeed = {
           [
             "We choose to be generous with the time we invest with our customers, and their homes. We are generous with our team members, in the communities we call home.",
           ],
-          "mission-val-m1-desc",
+          "mission-val-m1-desc"
         ),
       },
       {
@@ -400,7 +400,7 @@ export const homePageSeed = {
           [
             "We choose to be optimistic in how we see every interaction and opportunity. We choose to believe the best in others.",
           ],
-          "mission-val-m2-desc",
+          "mission-val-m2-desc"
         ),
       },
       {
@@ -412,7 +412,7 @@ export const homePageSeed = {
           [
             "We are driven each year to help more Texas homeowners with unparalleled customer service. We are committed to an experience and service that you will want to tell others about.",
           ],
-          "mission-val-m3-desc",
+          "mission-val-m3-desc"
         ),
       },
     ],
@@ -431,7 +431,7 @@ export const homePageSeed = {
           [
             "Guidance on shingle grades, ventilation, flashing details, and when repair versus full replacement is the smarter investment—especially before you file an insurance claim.",
           ],
-          "exp-e1-desc",
+          "exp-e1-desc"
         ),
       },
       {
@@ -443,7 +443,7 @@ export const homePageSeed = {
           [
             "Help comparing standing seam versus exposed-fastener systems, coating longevity, wind ratings, and how metal performs in Texas heat and hail-prone seasons.",
           ],
-          "exp-e2-desc",
+          "exp-e2-desc"
         ),
       },
       {
@@ -455,7 +455,7 @@ export const homePageSeed = {
           [
             "Coordination support for low-slope assemblies, maintenance planning, capital budgets, and contractor scope reviews on larger buildings—not just residential tear-offs.",
           ],
-          "exp-e3-desc",
+          "exp-e3-desc"
         ),
       },
       {
@@ -467,7 +467,7 @@ export const homePageSeed = {
           [
             "Document storm impact, interpret adjuster findings, and build a clear scope of work so repairs restore weather-tight performance—not just cosmetic patches.",
           ],
-          "exp-e4-desc",
+          "exp-e4-desc"
         ),
       },
     ],
@@ -484,7 +484,7 @@ export const homePageSeed = {
       [
         "Straight answers from me—how I work with homeowners, insurance, Birdcreek Roofing, and how to reach out.",
       ],
-      "faq-intro",
+      "faq-intro"
     ),
     items: [
       {
@@ -495,18 +495,19 @@ export const homePageSeed = {
           [
             "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.",
           ],
-          "faq-f1-ans",
+          "faq-f1-ans"
         ),
       },
       {
         _type: "faqItem" as const,
         _key: "f2",
-        question: "How is working with you different from hiring a roofer directly?",
+        question:
+          "How is working with you different from hiring a roofer directly?",
         answer: blocksFromParagraphs(
           [
             "I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.",
           ],
-          "faq-f2-ans",
+          "faq-f2-ans"
         ),
       },
       {
@@ -517,7 +518,7 @@ export const homePageSeed = {
           [
             "Yes. I help with claim advocacy—walking through carrier questions, reading estimates with you, and pushing for fair coverage when it’s appropriate. Outcomes always depend on your policy and carrier, but you won’t be navigating it alone.",
           ],
-          "faq-f3-ans",
+          "faq-f3-ans"
         ),
       },
       {
@@ -528,7 +529,7 @@ export const homePageSeed = {
           [
             "I’m based in Austin and work with homeowners and property owners across the region and much of Texas. If you’re not sure your area is covered, message me through the contact form or call—we can confirm.",
           ],
-          "faq-f4-ans",
+          "faq-f4-ans"
         ),
       },
       {
@@ -539,7 +540,7 @@ export const homePageSeed = {
           [
             "I consult on what I see most at home—especially asphalt shingles and metal—as well as commercial projects and storm or hail damage. Every house is different; I tailor how deep we go to your roof type, its age, and what you’re trying to accomplish.",
           ],
-          "faq-f5-ans",
+          "faq-f5-ans"
         ),
       },
       {
@@ -550,7 +551,7 @@ export const homePageSeed = {
           [
             "Tap Schedule a Free Consultation in the navigation, or scroll to the contact section and send your name, email, what you need, and a short note. You can also call or email me directly—both are on the contact page.",
           ],
-          "faq-f6-ans",
+          "faq-f6-ans"
         ),
       },
       {
@@ -561,7 +562,7 @@ export const homePageSeed = {
           [
             "Birdcreek Roofing is Austin’s premier roofing firm, and they’re my employer. I consult inside that model, so what I share with you lines up with the same crews, warranties, and quality standards we stand behind from assessment through installation.",
           ],
-          "faq-f7-ans",
+          "faq-f7-ans"
         ),
       },
     ],
@@ -571,8 +572,10 @@ export const homePageSeed = {
     eyebrow: "Guides & insights",
     title: "Roofing articles",
     intro: blocksFromParagraphs(
-      ["Latest guides on replacement, insurance, and caring for your Texas roof."],
-      "articles-intro",
+      [
+        "Latest guides on replacement, insurance, and caring for your Texas roof.",
+      ],
+      "articles-intro"
     ),
     viewAllLabel: "View all articles",
     articles: homePageArticleReferences(),
@@ -593,7 +596,7 @@ export const homePageSeed = {
       [
         "Tandra Peters | Birdcreek Roofing consultant in Austin — assessments, insurance help, trusted installation",
       ],
-      "social-share-text",
+      "social-share-text"
     ),
   },
 };
@@ -623,12 +626,12 @@ export const roofInspectionsPageSeed = {
           "The peak. Caps are heavier than field shingles — wind hits hardest here and the ridge is the last line of defence. The slot underneath is the ridge vent: that's how your attic breathes out in summer.",
         watchFor:
           "Lifted or buckling caps after a windstorm. A vent that was painted shut during the last re-roof.",
-        pos3dX: 5.211335,
-        pos3dY: 4.013102,
-        pos3dZ: -3.949578,
-        norm3dX: -0.316228,
+        pos3dX: 5.211_335,
+        pos3dY: 4.013_102,
+        pos3dZ: -3.949_578,
+        norm3dX: -0.316_228,
         norm3dY: 0,
-        norm3dZ: 0.948683,
+        norm3dZ: 0.948_683,
       },
       {
         _key: "ri-field",
@@ -640,12 +643,12 @@ export const roofInspectionsPageSeed = {
           "The main course. Most Texas roofs are architectural asphalt — heavier than three-tab, rated 110+ mph when nailed correctly. What you're looking at is the granular surface that takes the UV hit every summer.",
         watchFor:
           "Bare patches where granules washed into the gutters. Sun age, not always storm damage.",
-        pos3dX: 4.136282,
-        pos3dY: 3.654751,
-        pos3dZ: -3.125723,
-        norm3dX: -0.316228,
+        pos3dX: 4.136_282,
+        pos3dY: 3.654_751,
+        pos3dZ: -3.125_723,
+        norm3dX: -0.316_228,
         norm3dY: 0,
-        norm3dZ: 0.948683,
+        norm3dZ: 0.948_683,
       },
       {
         _key: "ri-underlayment",
@@ -657,9 +660,9 @@ export const roofInspectionsPageSeed = {
           "The layer between shingles and decking — only visible at the cut face or during a tear-off. Synthetic beats old #15 felt: tougher, lighter, won't shred if wind catches it mid-install.",
         watchFor:
           "Whether your installer is using the manufacturer's matched underlayment system. Mix brands and the warranty thins fast.",
-        pos3dX: 4.002597,
-        pos3dY: 3.622813,
-        pos3dZ: -4.374255,
+        pos3dX: 4.002_597,
+        pos3dY: 3.622_813,
+        pos3dZ: -4.374_255,
         norm3dX: 0,
         norm3dY: 1,
         norm3dZ: 0,
@@ -674,12 +677,12 @@ export const roofInspectionsPageSeed = {
           "Plywood or OSB nailed to the rafters. You only see it during a tear-off — and that's the moment to check for soft boards. A soft board telegraphs right through the new roof within a year.",
         watchFor:
           'A contract that includes decking replacement at cost per sheet, not a vague "as needed" line that turns into a surprise.',
-        pos3dX: 4.215053,
-        pos3dY: 3.735961,
-        pos3dZ: -2.873327,
-        norm3dX: -0.416228,
+        pos3dX: 4.215_053,
+        pos3dY: 3.735_961,
+        pos3dZ: -2.873_327,
+        norm3dX: -0.416_228,
         norm3dY: 0,
-        norm3dZ: 0.948683,
+        norm3dZ: 0.948_683,
       },
       {
         _key: "ri-drip",
@@ -691,12 +694,12 @@ export const roofInspectionsPageSeed = {
           "The metal that runs along the eave and rakes, kicking water away from the fascia into the gutter. Code in Texas. Skipped on more cheap re-roofs than I'd like to count.",
         watchFor:
           "Stain lines on the fascia board below — water's been running where it shouldn't.",
-        pos3dX: 2.676776,
-        pos3dY: 3.153818,
-        pos3dZ: -3.459617,
-        norm3dX: -0.936229,
+        pos3dX: 2.676_776,
+        pos3dY: 3.153_818,
+        pos3dZ: -3.459_617,
+        norm3dX: -0.936_229,
         norm3dY: 0,
-        norm3dZ: -0.35139,
+        norm3dZ: -0.351_39,
       },
       {
         _key: "ri-soffit",
@@ -708,9 +711,9 @@ export const roofInspectionsPageSeed = {
           "The boards you see from the driveway — fascia in front, soffit underneath. Soffit vents are how cool air enters the attic; without them the ridge vent has nothing to pull through.",
         watchFor:
           "Painted-over soffit vents, wasp nests at the corners, or wood that gives under a fingernail.",
-        pos3dX: 2.786666,
-        pos3dY: 3.137488,
-        pos3dZ: -4.41213,
+        pos3dX: 2.786_666,
+        pos3dY: 3.137_488,
+        pos3dZ: -4.412_13,
         norm3dX: -1,
         norm3dY: 0,
         norm3dZ: 0,

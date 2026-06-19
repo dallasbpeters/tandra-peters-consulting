@@ -1,11 +1,13 @@
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 
 import {
-  geoMercator,
   geoBounds,
+  geoMercator,
 } from "../node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/index.js";
 
-const data = JSON.parse(readFileSync("./src/components/texasCounties.json", "utf8"));
+const data = JSON.parse(
+  readFileSync("./src/components/texasCounties.json", "utf8")
+);
 
 console.log("Features:", data.features.length);
 
@@ -17,7 +19,7 @@ const projection = geoMercator().fitExtent(
     [16, 16],
     [944, 564],
   ],
-  data,
+  data
 );
 console.log("Scale:", projection.scale());
 console.log("Translate:", projection.translate());

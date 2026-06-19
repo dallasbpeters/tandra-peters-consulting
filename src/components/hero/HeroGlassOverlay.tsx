@@ -1,16 +1,14 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
-import React, { useState } from "react";
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useState } from "react";
 
 import { useIsMobile } from "@/src/hooks/isMobile";
 import { layoutClass } from "@/src/styles/layoutClasses";
-
-import type { HeroProps } from "../../types";
-
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { theme } from "../../theme";
+import type { HeroProps } from "../../types";
 import { GoogleAuthGate } from "../GoogleAuthGate";
 import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
@@ -27,7 +25,9 @@ const optimized = (url: string, w: number) =>
 
 const srcSet = (url: string) =>
   isSanityCdnUrl(url)
-    ? [640, 960, 1280, 1600, 2000].map((w) => `${optimized(url, w)} ${w}w`).join(", ")
+    ? [640, 960, 1280, 1600, 2000]
+        .map((w) => `${optimized(url, w)} ${w}w`)
+        .join(", ")
     : undefined;
 
 /** Direction 4 — Full-bleed hero photo with bottom-left copy block. Nav is rendered separately by NavGlassOverlay. */
@@ -52,7 +52,9 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       placeItems: "end stretch",
       overflow: "hidden",
       paddingTop: theme.spacing.sectionHero,
-      paddingBottom: isMobile ? theme.spacing.sectionLoose : theme.spacing.sectionHero,
+      paddingBottom: isMobile
+        ? theme.spacing.sectionLoose
+        : theme.spacing.sectionHero,
       background: theme.colors.black,
     },
     photo: {
@@ -142,7 +144,8 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       flexWrap: "wrap",
     },
     ctaPrimary: {
-      background: hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
+      background:
+        hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
       color: theme.colors.everglade,
       padding: `${theme.spacing.lg} ${theme.spacing.xxxxxxl}`,
       borderRadius: theme.radius.pill,
@@ -156,7 +159,8 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
     ctaSecondary: {
       border: `1px solid ${hovBtn === "secondary" ? "oklch(100% 0 0 / 0.7)" : "oklch(100% 0 0 / 0.4)"}`,
       color: "oklch(100% 0 0)",
-      background: hovBtn === "secondary" ? "oklch(100% 0 0 / 0.08)" : "transparent",
+      background:
+        hovBtn === "secondary" ? "oklch(100% 0 0 / 0.08)" : "transparent",
       padding: `${theme.spacing.lg} ${theme.spacing.xxxxxxl}`,
       borderRadius: theme.radius.pill,
       fontWeight: 700,
@@ -199,9 +203,10 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
 
   return (
     <section style={styles.section}>
+      {/* biome-ignore lint/correctness/useImageSize: dynamic size fills viewport via CSS */}
       <img
-        aria-hidden="true"
         alt=""
+        aria-hidden="true"
         decoding="async"
         fetchPriority="high"
         sizes="100vw"
@@ -212,7 +217,7 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
       <div style={styles.gradient} />
       <div style={styles.overlay} />
 
-      <div style={styles.copyRow} className={layoutClass.containerWideRow}>
+      <div className={layoutClass.containerWideRow} style={styles.copyRow}>
         <div className="copy-inner" style={styles.copyInner}>
           <div style={styles.copyBlock}>
             {badgeText && (
@@ -235,12 +240,12 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
             {subtitle && (
               <div style={styles.subtitleStyle}>
                 <RichText
-                  value={subtitle}
                   paragraphStyle={{
                     fontSize: "inherit",
                     color: "inherit",
                     lineHeight: "inherit",
                   }}
+                  value={subtitle}
                 />
               </div>
             )}
@@ -249,29 +254,29 @@ export const HeroGlassOverlay: React.FC<HeroProps> = ({
               <div style={styles.ctaRow}>
                 <a
                   href={ctaHref}
-                  style={styles.ctaPrimary}
-                  onMouseEnter={() => setHovBtn("primary")}
-                  onMouseLeave={() => setHovBtn(null)}
                   onClick={() =>
                     posthog?.capture("hero_cta_clicked", {
                       variant: "glass-overlay",
                       cta_text: ctaText,
                     })
                   }
+                  onMouseEnter={() => setHovBtn("primary")}
+                  onMouseLeave={() => setHovBtn(null)}
+                  style={styles.ctaPrimary}
                 >
                   {ctaText}
                 </a>
                 <a
                   href={secondaryCtaHref}
-                  style={styles.ctaSecondary}
-                  onMouseEnter={() => setHovBtn("secondary")}
-                  onMouseLeave={() => setHovBtn(null)}
                   onClick={() =>
                     posthog?.capture("hero_secondary_cta_clicked", {
                       variant: "glass-overlay",
                       cta_text: secondaryCtaText,
                     })
                   }
+                  onMouseEnter={() => setHovBtn("secondary")}
+                  onMouseLeave={() => setHovBtn(null)}
+                  style={styles.ctaSecondary}
                 >
                   {secondaryCtaText}
                 </a>

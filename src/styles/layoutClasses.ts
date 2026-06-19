@@ -9,13 +9,19 @@ export const layoutClass = {
   containerWideRow: "site-container site-container--wide site-container--row",
   containerFull: "site-container site-container--full",
   containerFullRow: "site-container site-container--full site-container--row",
-  containerWideLayered: "site-container site-container--wide site-container--layered",
-  containerWideGridFooter: "site-container site-container--wide site-container--grid-footer",
-  containerWideFooterLegal: "site-container site-container--wide site-container--footer-legal",
-  containerWideContact: "site-container site-container--wide site-container--contact",
+  containerWideLayered:
+    "site-container site-container--wide site-container--layered",
+  containerWideGridFooter:
+    "site-container site-container--wide site-container--grid-footer",
+  containerWideFooterLegal:
+    "site-container site-container--wide site-container--footer-legal",
+  containerWideContact:
+    "site-container site-container--wide site-container--contact",
   containerContactCompact: "site-container site-container--contact-compact",
-  containerWideAboutGrid: "site-container site-container--wide site-container--about-grid",
-  containerWideStatsRow: "site-container site-container--wide site-container--stats-row",
+  containerWideAboutGrid:
+    "site-container site-container--wide site-container--about-grid",
+  containerWideStatsRow:
+    "site-container site-container--wide site-container--stats-row",
   pageMain: "site-page-main",
   pageMainAdDashboard: "site-page-main site-page-main--ad-dashboard",
   pageMainArticle: "site-page-main site-page-main--article",

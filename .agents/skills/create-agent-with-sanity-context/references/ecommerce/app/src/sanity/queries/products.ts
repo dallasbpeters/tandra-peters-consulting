@@ -1,6 +1,6 @@
 import { defineQuery } from "next-sanity";
 
-import { type ProductFiltersInput } from "@/lib/client-tools";
+import type { ProductFiltersInput } from "@/lib/client-tools";
 
 import {
   brandFragment,
@@ -95,7 +95,9 @@ function buildProductFilterConditions(filters: ProductFiltersInput): string[] {
   if (filters.size?.length) {
     // Check if any variant has one of these sizes
     const codes = filters.size.map((s) => `"${s}"`).join(", ");
-    conditions.push(`count(variants[count(sizes[@->code in [${codes}]]) > 0]) > 0`);
+    conditions.push(
+      `count(variants[count(sizes[@->code in [${codes}]]) > 0]) > 0`
+    );
   }
 
   if (filters.minPrice !== undefined) {
@@ -125,7 +127,7 @@ function buildProductSortClause(sort?: ProductFiltersInput["sort"]): string {
 
 export function buildFilteredProductsQuery(
   filters: ProductFiltersInput,
-  pageSize: number = PAGE_SIZE,
+  pageSize: number = PAGE_SIZE
 ): string {
   const conditions = buildProductFilterConditions(filters);
   const sortClause = buildProductSortClause(filters.sort);
@@ -137,7 +139,9 @@ export function buildFilteredProductsQuery(
   `;
 }
 
-export function buildFilteredProductsCountQuery(filters: ProductFiltersInput): string {
+export function buildFilteredProductsCountQuery(
+  filters: ProductFiltersInput
+): string {
   const conditions = buildProductFilterConditions(filters);
   return /* groq */ `count(*[${conditions.join(" && ")}])`;
 }

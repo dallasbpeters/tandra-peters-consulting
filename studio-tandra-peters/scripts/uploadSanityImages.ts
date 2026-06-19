@@ -1,16 +1,15 @@
+import { readFile } from "node:fs/promises";
 import type { SanityClient } from "@sanity/client";
 
-import { readFile } from "node:fs/promises";
-
-export type SanityImageValue = {
+export interface SanityImageValue {
   _type: "image";
   asset: { _type: "reference"; _ref: string };
-};
+}
 
 export const uploadImageFromFile = async (
   client: SanityClient,
   absolutePath: string,
-  filename: string,
+  filename: string
 ): Promise<SanityImageValue> => {
   const buffer = await readFile(absolutePath);
   const asset = await client.assets.upload("image", buffer, { filename });
@@ -23,7 +22,7 @@ export const uploadImageFromFile = async (
 export const uploadImageFromUrl = async (
   client: SanityClient,
   url: string,
-  filename: string,
+  filename: string
 ): Promise<SanityImageValue> => {
   const res = await fetch(url);
   if (!res.ok) {

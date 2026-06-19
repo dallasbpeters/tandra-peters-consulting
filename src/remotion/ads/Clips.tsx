@@ -1,34 +1,36 @@
 import "./ads.vars.css";
 import { loadFont as loadFont2 } from "@remotion/fonts";
-import { loadFont, fontFamily as manrope } from "@remotion/google-fonts/Manrope";
+import {
+  loadFont,
+  fontFamily as manrope,
+} from "@remotion/google-fonts/Manrope";
 import { LightLeak } from "@remotion/light-leaks";
 import { preloadImage } from "@remotion/preload";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import {
   AbsoluteFill,
+  continueRender,
+  delayRender,
   Img,
-  Sequence,
   interpolate,
+  OffthreadVideo,
+  Sequence,
   spring,
   useCurrentFrame,
-  OffthreadVideo,
   useVideoConfig,
-  delayRender,
-  continueRender,
 } from "remotion";
-
-import type { SceneConfig } from "./composition/customSchema";
-import type { RoofValueProps } from "./composition/roofValueSchema";
-import type { StormSpotProps } from "./composition/stormSpotSchema";
-
 import { adsFile, toSrc } from "./adsFile";
 import { BadgeRow } from "./components/BadgeRow";
 import BirdAnimation from "./components/Bird";
 import { FadeWrapper } from "./components/FadeWrapper";
-import LogoAnimation from "./components/GSAPmotion";
+import LogoAnimation from "./components/GsapMotion";
 import Logo from "./components/Logo";
 import { ProfilePhoto } from "./components/ProfilePhoto";
 import RoundedTextBox from "./components/TextBox";
+import type { SceneConfig } from "./composition/customSchema";
+import type { RoofValueProps } from "./composition/roofValueSchema";
+import type { StormSpotProps } from "./composition/stormSpotSchema";
 
 /**
  * Ad composition assets live under `public/ads/` in this repo (kept isolated
@@ -115,7 +117,9 @@ const WipeWrap: React.FC<{
       })
     : 0;
 
-  const clipPath = isExiting ? `inset(0 0 0 ${leftInset}%)` : `inset(0 ${rightInset}% 0 0)`;
+  const clipPath = isExiting
+    ? `inset(0 0 0 ${leftInset}%)`
+    : `inset(0 ${rightInset}% 0 0)`;
 
   return <AbsoluteFill style={{ clipPath }}>{children}</AbsoluteFill>;
 };
@@ -157,7 +161,7 @@ const PunchWrap: React.FC<{
     frame,
     [durationInFrames - exitFrames, durationInFrames],
     [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
@@ -204,7 +208,7 @@ const SlideWrap: React.FC<{
     frame,
     [durationInFrames - exitFrames, durationInFrames],
     [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
@@ -243,11 +247,13 @@ const ShutterWrap: React.FC<{
     frame,
     [durationInFrames - exitFrames, durationInFrames],
     [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
-    <AbsoluteFill style={{ clipPath: `inset(0 0 ${bottomInset}% 0)`, opacity: exitOpacity }}>
+    <AbsoluteFill
+      style={{ clipPath: `inset(0 0 ${bottomInset}% 0)`, opacity: exitOpacity }}
+    >
       {children}
     </AbsoluteFill>
   );
@@ -349,7 +355,11 @@ const SlideUp: React.FC<{
   });
 
   return (
-    <div style={{ transform: `translateY(${translateY}px)`, opacity, ...style }}>{children}</div>
+    <div
+      style={{ transform: `translateY(${translateY}px)`, opacity, ...style }}
+    >
+      {children}
+    </div>
   );
 };
 
@@ -379,7 +389,12 @@ export const ExpandLine: React.FC<{
   color?: string;
   maxWidth?: number;
   height?: number;
-}> = ({ startFrame = 0, color = "var(--color-accent)", maxWidth = 200, height = 5 }) => {
+}> = ({
+  startFrame = 0,
+  color = "var(--color-accent)",
+  maxWidth = 200,
+  height = 5,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -428,10 +443,14 @@ const OverlayBg: React.FC = () => (
 const ImageBg: React.FC<{ image?: string }> = ({ image }) => {
   const src = image ? toSrc(image) : null;
   // delayRender blocks this scene's frames until the image is loaded.
-  const [handle] = useState(() => (src ? delayRender(`ImageBg: ${src}`) : null));
+  const [handle] = useState(() =>
+    src ? delayRender(`ImageBg: ${src}`) : null
+  );
 
   useEffect(() => {
-    if (!src || handle === null) return;
+    if (!src || handle === null) {
+      return;
+    }
     // hint the browser preload cache
     const cleanupHint = preloadImage(src);
     // also block rendering via a real Image load event
@@ -443,9 +462,11 @@ const ImageBg: React.FC<{ image?: string }> = ({ image }) => {
       cleanupHint();
       img.src = "";
     };
-  }, []);
+  }, [src, handle]);
 
-  if (!src) return null;
+  if (!src) {
+    return null;
+  }
   return (
     <AbsoluteFill>
       <Img
@@ -461,12 +482,15 @@ const ImageBg: React.FC<{ image?: string }> = ({ image }) => {
   );
 };
 
-const PaperBg: React.FC = () => <AbsoluteFill style={{ background: "var(--color-paper)" }} />;
+const PaperBg: React.FC = () => (
+  <AbsoluteFill style={{ background: "var(--color-paper)" }} />
+);
 
 const PurpleBg: React.FC = () => (
   <AbsoluteFill
     style={{
-      background: "radial-gradient(ellipse at 60% 30%, #b8b6ff 0%, var(--color-hero-accent) 100%)",
+      background:
+        "radial-gradient(ellipse at 60% 30%, #b8b6ff 0%, var(--color-hero-accent) 100%)",
     }}
   />
 );
@@ -509,10 +533,15 @@ const SceneHook: React.FC<HookProps> = ({ eyebrow, headline, sub, image }) => (
             {eyebrow}
           </span>
         </SlideUp>
-        <ExpandLine startFrame={8} maxWidth={160} height={5} color="var(--color-white)" />
+        <ExpandLine
+          color="var(--color-white)"
+          height={5}
+          maxWidth={160}
+          startFrame={8}
+        />
         <div style={{ marginTop: 36, marginBottom: 48 }}>
           {headline.split("\n").map((line, i) => (
-            <TextWipe key={i} startFrame={20 + i * 10}>
+            <TextWipe key={line} startFrame={20 + i * 10}>
               <div
                 style={{
                   fontFamily: manrope,
@@ -556,9 +585,18 @@ const SceneHook: React.FC<HookProps> = ({ eyebrow, headline, sub, image }) => (
 
 type BenefitsProps = RoofValueProps["benefits"];
 
-const SceneBenefits: React.FC<BenefitsProps> = ({ lead, item1, item2, item3 }) => {
+const SceneBenefits: React.FC<BenefitsProps> = ({
+  lead,
+  item1,
+  item2,
+  item3,
+}) => {
   const items = [item1, item2, item3];
-  const dotColors = ["var(--color-danger)", "var(--color-accent)", "var(--color-everglade-muted)"];
+  const dotColors = [
+    "var(--color-danger)",
+    "var(--color-accent)",
+    "var(--color-everglade-muted)",
+  ];
 
   return (
     <PunchWrap>
@@ -588,10 +626,15 @@ const SceneBenefits: React.FC<BenefitsProps> = ({ lead, item1, item2, item3 }) =
               {lead}
             </span>
           </PunchIn>
-          <ExpandLine startFrame={10} maxWidth={220} height={4} color="var(--color-purple)" />
+          <ExpandLine
+            color="var(--color-purple)"
+            height={4}
+            maxWidth={220}
+            startFrame={10}
+          />
           <div style={{ marginTop: 56 }}>
             {items.map((item, i) => (
-              <SlideUp key={i} startFrame={25 + i * 32}>
+              <SlideUp key={item} startFrame={25 + i * 32}>
                 <div
                   style={{
                     display: "flex",
@@ -650,10 +693,10 @@ const SceneHelpingTexasHomeowners: React.FC<HelpingTexasHomeownersProps> = ({
   <PunchWrap>
     <EvergladeBg />
     <LightLeak
-      style={{ opacity: 0.4 }}
       durationInFrames={shiftDuration}
-      seed={style}
       hueShift={hueshift}
+      seed={style}
+      style={{ opacity: 0.4 }}
     />
     <AbsoluteFill
       style={{
@@ -664,7 +707,12 @@ const SceneHelpingTexasHomeowners: React.FC<HelpingTexasHomeownersProps> = ({
     >
       <div style={{ width: "100%", zIndex: 1 }}>
         <PunchIn startFrame={0}>
-          <ExpandLine startFrame={0} maxWidth={920} height={5} color="var(--color-accent-light)" />
+          <ExpandLine
+            color="var(--color-accent-light)"
+            height={5}
+            maxWidth={920}
+            startFrame={0}
+          />
           <div
             style={{
               fontFamily: manrope,
@@ -695,7 +743,12 @@ const SceneHelpingTexasHomeowners: React.FC<HelpingTexasHomeownersProps> = ({
           >
             {line2}
           </div>
-          <ExpandLine startFrame={10} maxWidth={920} height={5} color="var(--color-accent-light)" />
+          <ExpandLine
+            color="var(--color-accent-light)"
+            height={5}
+            maxWidth={920}
+            startFrame={10}
+          />
         </PunchIn>
         {line3 && (
           <FadeIn startFrame={24}>
@@ -715,10 +768,10 @@ const SceneHelpingTexasHomeowners: React.FC<HelpingTexasHomeownersProps> = ({
             </span>
 
             <ExpandLine
-              startFrame={20}
-              maxWidth={920}
-              height={5}
               color="var(--color-accent-light)"
+              height={5}
+              maxWidth={920}
+              startFrame={20}
             />
           </FadeIn>
         )}
@@ -733,15 +786,21 @@ const SceneHelpingTexasHomeowners: React.FC<HelpingTexasHomeownersProps> = ({
 // Punchy single-headline scene with optional pill subtext.
 // ─────────────────────────────────────────────────────────────────────────────
 
-type SimpleProps = {
-  headline: string;
-  showPill: boolean;
-  pill?: string;
-  image?: string;
+interface SimpleProps {
   body?: string;
-};
+  headline: string;
+  image?: string;
+  pill?: string;
+  showPill: boolean;
+}
 
-const SceneSimple: React.FC<SimpleProps> = ({ headline, showPill, pill, image, body }) => (
+const SceneSimple: React.FC<SimpleProps> = ({
+  headline,
+  showPill,
+  pill,
+  image,
+  body,
+}) => (
   <PunchWrap>
     <ImageBg image={image} />
     <OverlayBg />
@@ -806,7 +865,7 @@ const SceneSimple: React.FC<SimpleProps> = ({ headline, showPill, pill, image, b
       )}
       <SlideUp startFrame={60}>
         <div style={{ marginTop: 400 }}>
-          <Logo width={150} height={150} invert={true} />
+          <Logo height={150} invert={true} width={150} />
         </div>
       </SlideUp>
     </AbsoluteFill>
@@ -842,9 +901,9 @@ const SceneIntro: React.FC<IntroProps> = ({
           <PunchIn startFrame={0}>
             <div style={{ marginBottom: 44 }}>
               <ProfilePhoto
-                width={profilePhoto.width}
                 height={profilePhoto.height}
                 src={profilePhoto.src}
+                width={profilePhoto.width}
               />
             </div>
           </PunchIn>
@@ -880,7 +939,12 @@ const SceneIntro: React.FC<IntroProps> = ({
           </p>
         </FadeIn>
         <SlideUp startFrame={78}>
-          <ExpandLine startFrame={0} maxWidth={140} height={16} color="var(--color-danger)" />
+          <ExpandLine
+            color="var(--color-danger)"
+            height={16}
+            maxWidth={140}
+            startFrame={0}
+          />
           <p
             style={{
               fontFamily: manrope,
@@ -898,7 +962,7 @@ const SceneIntro: React.FC<IntroProps> = ({
         </SlideUp>
         <SlideUp startFrame={115}>
           <div style={{ marginTop: 52 }}>
-            <Logo width={150} height={150} style={{ filter: "invert(1)" }} />
+            <Logo height={150} style={{ filter: "invert(1)" }} width={150} />
           </div>
         </SlideUp>
       </div>
@@ -912,7 +976,9 @@ const SceneIntro: React.FC<IntroProps> = ({
 // Two large lines punch in at staggered frames.
 // ─────────────────────────────────────────────────────────────────────────────
 
-type LogoAnimationProps = { text?: string };
+interface LogoAnimationProps {
+  text?: string;
+}
 
 const SceneLogoAnimation: React.FC<LogoAnimationProps> = () => (
   <AbsoluteFill>
@@ -929,7 +995,12 @@ const SceneLogoAnimation: React.FC<LogoAnimationProps> = () => (
 
 type TrustProps = RoofValueProps["trust"];
 
-const SceneTrust: React.FC<TrustProps> = ({ line1, line2, hueShift, style }) => (
+const SceneTrust: React.FC<TrustProps> = ({
+  line1,
+  line2,
+  hueShift,
+  style,
+}) => (
   <ShutterWrap>
     <PaperBg />
     <AbsoluteFill
@@ -939,7 +1010,7 @@ const SceneTrust: React.FC<TrustProps> = ({ line1, line2, hueShift, style }) => 
         padding: `0 ${H_PAD}px`,
       }}
     >
-      <LightLeak durationInFrames={40} seed={style} hueShift={hueShift} />
+      <LightLeak durationInFrames={40} hueShift={hueShift} seed={style} />
       <div style={{ width: "100%" }}>
         <PunchIn startFrame={12}>
           <div
@@ -970,7 +1041,12 @@ const SceneTrust: React.FC<TrustProps> = ({ line1, line2, hueShift, style }) => 
             {line2}
           </div>
         </PunchIn>
-        <ExpandLine startFrame={80} maxWidth={320} height={6} color="var(--color-hero-accent)" />
+        <ExpandLine
+          color="var(--color-hero-accent)"
+          height={6}
+          maxWidth={320}
+          startFrame={80}
+        />
       </div>
     </AbsoluteFill>
   </ShutterWrap>
@@ -983,7 +1059,14 @@ const SceneTrust: React.FC<TrustProps> = ({ line1, line2, hueShift, style }) => 
 
 type CtaProps = RoofValueProps["cta"] & { badges: RoofValueProps["badges"] };
 
-const SceneCTA: React.FC<CtaProps> = ({ setup, punch, action, badge, byline, badges }) => (
+const SceneCTA: React.FC<CtaProps> = ({
+  setup,
+  punch,
+  action,
+  badge,
+  byline,
+  badges,
+}) => (
   <WipeWrap exitFrames={0}>
     <EvergladeBg />
     <NoiseBackground />
@@ -1012,7 +1095,7 @@ const SceneCTA: React.FC<CtaProps> = ({ setup, punch, action, badge, byline, bad
         </FadeIn>
         <div style={{ marginBottom: 52 }}>
           {punch.split("\n").map((line, i) => (
-            <TextWipe key={i} startFrame={28 + i * 12}>
+            <TextWipe key={line} startFrame={28 + i * 12}>
               <div
                 style={{
                   fontFamily: manrope,
@@ -1063,12 +1146,12 @@ const SceneCTA: React.FC<CtaProps> = ({ setup, punch, action, badge, byline, bad
         </FadeIn>
         <FadeIn startFrame={110}>
           <div style={{ marginBottom: 36 }}>
-            <BadgeRow config={badges} badgeHeight={80} />
+            <BadgeRow badgeHeight={80} config={badges} />
           </div>
         </FadeIn>
         <SlideUp startFrame={120}>
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <Logo width={120} height={120} invert={true} />
+            <Logo height={120} invert={true} width={120} />
             <span
               style={{
                 fontFamily: manrope,
@@ -1091,23 +1174,33 @@ const SceneCTA: React.FC<CtaProps> = ({ setup, punch, action, badge, byline, bad
 // ── SlideUp ───────────────────────────────────────────────────────────────────
 
 const NoiseBackground: React.FC = () => (
-  <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, zIndex: 10 }}>
+  <svg
+    aria-hidden="true"
+    height="100%"
+    style={{ position: "absolute", inset: 0, zIndex: 10 }}
+    width="100%"
+  >
     <filter id="noise-filter">
-      <feTurbulence type="fractalNoise" baseFrequency="1.34" numOctaves={4} stitchTiles="stitch" />
+      <feTurbulence
+        baseFrequency="1.34"
+        numOctaves={4}
+        stitchTiles="stitch"
+        type="fractalNoise"
+      />
       <feColorMatrix type="saturate" values="0" />
       <feComponentTransfer>
-        <feFuncR type="linear" slope={0.52} />
-        <feFuncG type="linear" slope={0.52} />
-        <feFuncB type="linear" slope={0.52} />
-        <feFuncA type="linear" slope={0.34} />
+        <feFuncR slope={0.52} type="linear" />
+        <feFuncG slope={0.52} type="linear" />
+        <feFuncB slope={0.52} type="linear" />
+        <feFuncA slope={0.34} type="linear" />
       </feComponentTransfer>
       <feComponentTransfer>
-        <feFuncR type="linear" slope={1.8} intercept={-0.4} />
-        <feFuncG type="linear" slope={1.8} intercept={-0.4} />
-        <feFuncB type="linear" slope={1.8} intercept={-0.4} />
+        <feFuncR intercept={-0.4} slope={1.8} type="linear" />
+        <feFuncG intercept={-0.4} slope={1.8} type="linear" />
+        <feFuncB intercept={-0.4} slope={1.8} type="linear" />
       </feComponentTransfer>
     </filter>
-    <rect width="100%" height="100%" filter="url(#noise-filter)" />
+    <rect filter="url(#noise-filter)" height="100%" width="100%" />
   </svg>
 );
 
@@ -1116,7 +1209,8 @@ const NoiseBackground: React.FC = () => (
 const EvergladeBackground: React.FC = () => (
   <AbsoluteFill
     style={{
-      background: `radial-gradient(ellipse at 25% 35%, var(--color-everglade-light) 0%, var(--color-everglade) 65%)`,
+      background:
+        "radial-gradient(ellipse at 25% 35%, var(--color-everglade-light) 0%, var(--color-everglade) 65%)",
       backgroundSize: "100% 100%",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
@@ -1141,7 +1235,11 @@ type SsIntroProps = StormSpotProps["intro"] & {
 
 type SsCtaProps = StormSpotProps["cta"] & { badges: StormSpotProps["badges"] };
 
-const SsSceneImpact: React.FC<SsImpactProps> = ({ eyebrow, headline, subline }) => {
+const SsSceneImpact: React.FC<SsImpactProps> = ({
+  eyebrow,
+  headline,
+  subline,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -1241,9 +1339,9 @@ const SsSceneUrgency: React.FC<SsUrgencyProps> = ({ setup, punch }) => (
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
           <OffthreadVideo
+            muted={true}
+            playbackRate={1}
             src={adsFile("House.mp4")}
-            trimBefore={120}
-            trimAfter={600}
             style={{
               width: 600,
               height: 600,
@@ -1251,9 +1349,9 @@ const SsSceneUrgency: React.FC<SsUrgencyProps> = ({ setup, punch }) => (
               marginBlockEnd: 40,
               borderRadius: 16,
             }}
-            playbackRate={1}
+            trimAfter={600}
+            trimBefore={120}
             volume={1}
-            muted={true}
           />
           <div
             style={{
@@ -1300,7 +1398,7 @@ const SsSceneIntro: React.FC<SsIntroProps> = ({
 }) => (
   <FadeWrapper durationInFrames={210} fadeOutFrames={20}>
     <AbsoluteFill style={{ background: "var(--color-hero-accent)" }} />
-    <LightLeak durationInFrames={40} seed={seed} hueShift={hueShift} />
+    <LightLeak durationInFrames={40} hueShift={hueShift} seed={seed} />
     <AbsoluteFill
       style={{
         justifyContent: "center",
@@ -1328,9 +1426,9 @@ const SsSceneIntro: React.FC<SsIntroProps> = ({
         {showProfilePhoto && (
           <SlideUp startFrame={18}>
             <ProfilePhoto
-              width={profilePhoto.width}
               height={profilePhoto.height}
               src={profilePhoto.src}
+              width={profilePhoto.width}
             />
           </SlideUp>
         )}
@@ -1350,7 +1448,12 @@ const SsSceneIntro: React.FC<SsIntroProps> = ({
           </div>
         </SlideUp>
         <div style={{ marginTop: 48 }}>
-          <ExpandLine startFrame={55} color="var(--color-danger)" maxWidth={120} height={6} />
+          <ExpandLine
+            color="var(--color-danger)"
+            height={6}
+            maxWidth={120}
+            startFrame={55}
+          />
         </div>
         <FadeIn startFrame={70}>
           <div
@@ -1385,11 +1488,11 @@ const SsSceneValue: React.FC<SsValueProps> = ({ setup, punch }) => (
       <div style={{ width: "100%" }}>
         <SlideUp startFrame={0}>
           <RoundedTextBox
-            textAlign="left"
-            maxLines={4}
             borderRadius={16}
             horizontalPadding={20}
-            text={setup + "\n" + punch}
+            maxLines={4}
+            text={`${setup}\n${punch}`}
+            textAlign="left"
           />
         </SlideUp>
       </div>
@@ -1397,7 +1500,13 @@ const SsSceneValue: React.FC<SsValueProps> = ({ setup, punch }) => (
   </FadeWrapper>
 );
 
-const SsSceneCTA: React.FC<SsCtaProps> = ({ trust, callout, byline, badge, badges }) => (
+const SsSceneCTA: React.FC<SsCtaProps> = ({
+  trust,
+  callout,
+  byline,
+  badge,
+  badges,
+}) => (
   <FadeWrapper durationInFrames={180} fadeOutFrames={25}>
     <AbsoluteFill style={{ background: "var(--color-paper-dark)" }} />
     <AbsoluteFill
@@ -1423,7 +1532,12 @@ const SsSceneCTA: React.FC<SsCtaProps> = ({ trust, callout, byline, badge, badge
           </div>
         </SlideUp>
         <div style={{ marginTop: 12, marginBottom: 44 }}>
-          <ExpandLine startFrame={30} color="var(--color-purple)" maxWidth={80} height={16} />
+          <ExpandLine
+            color="var(--color-purple)"
+            height={16}
+            maxWidth={80}
+            startFrame={30}
+          />
         </div>
         <SlideUp startFrame={35}>
           <div
@@ -1488,9 +1602,9 @@ const SsSceneCTA: React.FC<SsCtaProps> = ({ trust, callout, byline, badge, badge
             </div>
           </div>
           <div style={{ marginBottom: 36 }}>
-            <BadgeRow config={badges} badgeHeight={80} />
+            <BadgeRow badgeHeight={80} config={badges} />
           </div>
-          <Logo width={200} height={200} invert={false} />
+          <Logo height={200} invert={false} width={200} />
         </FadeIn>
       </div>
     </AbsoluteFill>
@@ -1511,11 +1625,16 @@ export const TandraStormSpot: React.FC<StormSpotProps> = ({
   showProfilePhoto,
   profilePhoto,
 }) => {
-  const src = showProfilePhoto && profilePhoto?.src ? toSrc(profilePhoto.src) : null;
-  const [handle] = useState(() => (src ? delayRender("TandraStormSpot: profile photo") : null));
+  const src =
+    showProfilePhoto && profilePhoto?.src ? toSrc(profilePhoto.src) : null;
+  const [handle] = useState(() =>
+    src ? delayRender("TandraStormSpot: profile photo") : null
+  );
 
   useEffect(() => {
-    if (!src || handle === null) return;
+    if (!src || handle === null) {
+      return;
+    }
     const img = new Image();
     img.onload = () => continueRender(handle);
     img.onerror = () => continueRender(handle);
@@ -1523,23 +1642,27 @@ export const TandraStormSpot: React.FC<StormSpotProps> = ({
     return () => {
       img.src = "";
     };
-  }, []);
+  }, [src, handle]);
 
   return (
     <AbsoluteFill style={{ background: "var(--color-everglade)" }}>
       <Sequence durationInFrames={150}>
         <SsSceneImpact {...impact} />
       </Sequence>
-      <Sequence from={150} durationInFrames={150}>
+      <Sequence durationInFrames={150} from={150}>
         <SsSceneUrgency {...urgency} />
       </Sequence>
-      <Sequence from={300} durationInFrames={210}>
-        <SsSceneIntro {...intro} showProfilePhoto={showProfilePhoto} profilePhoto={profilePhoto} />
+      <Sequence durationInFrames={210} from={300}>
+        <SsSceneIntro
+          {...intro}
+          profilePhoto={profilePhoto}
+          showProfilePhoto={showProfilePhoto}
+        />
       </Sequence>
-      <Sequence from={510} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={510}>
         <SsSceneValue {...value} />
       </Sequence>
-      <Sequence from={690} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={690}>
         <SsSceneCTA {...cta} badges={badges} />
       </Sequence>
     </AbsoluteFill>
@@ -1564,7 +1687,11 @@ export const TandraRoofValue: React.FC<RoofValueProps> = ({
   const [handle] = useState(() => delayRender("TandraRoofValue: scene images"));
 
   useEffect(() => {
-    const srcs = [hook.image, simple.image, intro.showProfilePhoto ? intro.profilePhoto?.src : null]
+    const srcs = [
+      hook.image,
+      simple.image,
+      intro.showProfilePhoto ? intro.profilePhoto?.src : null,
+    ]
       .filter(Boolean)
       .map((s) => toSrc(s as string));
 
@@ -1576,7 +1703,9 @@ export const TandraRoofValue: React.FC<RoofValueProps> = ({
     let remaining = srcs.length;
     const tick = () => {
       remaining -= 1;
-      if (remaining <= 0) continueRender(handle);
+      if (remaining <= 0) {
+        continueRender(handle);
+      }
     };
     const imgs = srcs.map((src) => {
       const img = new Image();
@@ -1585,33 +1714,40 @@ export const TandraRoofValue: React.FC<RoofValueProps> = ({
       img.src = src;
       return img;
     });
-    return () =>
-      imgs.forEach((img) => {
+    return () => {
+      for (const img of imgs) {
         img.src = "";
-      });
-  }, []);
+      }
+    };
+  }, [
+    intro.showProfilePhoto,
+    hook.image,
+    simple.image,
+    intro.profilePhoto?.src,
+    handle,
+  ]);
 
   return (
     <AbsoluteFill style={{ backgroundColor: "var(--color-everglade)" }}>
       <Sequence durationInFrames={180}>
         <SceneHook {...hook} />
       </Sequence>
-      <Sequence from={180} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={180}>
         <SceneSimple {...simple} />
       </Sequence>
-      <Sequence from={360} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={360}>
         <SceneBenefits {...benefits} />
       </Sequence>
-      <Sequence from={540} durationInFrames={210}>
+      <Sequence durationInFrames={210} from={540}>
         <SceneIntro {...intro} />
       </Sequence>
-      <Sequence from={750} durationInFrames={150}>
+      <Sequence durationInFrames={150} from={750}>
         <SceneTrust {...trust} />
       </Sequence>
-      <Sequence from={900} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={900}>
         <SceneCTA {...cta} badges={badges} />
       </Sequence>
-      <Sequence from={1080} durationInFrames={180}>
+      <Sequence durationInFrames={180} from={1080}>
         <SceneLogoAnimation />
       </Sequence>
     </AbsoluteFill>
@@ -1807,13 +1943,19 @@ const SceneStormHook: React.FC<StormHookProps> = ({
               justifyContent: "center",
             }}
           >
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+            <svg
+              aria-hidden="true"
+              fill="none"
+              height="42"
+              viewBox="0 0 24 24"
+              width="42"
+            >
               <path
                 d="M7 17L17 7M17 7H7M17 7V17"
                 stroke="black"
-                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeWidth="2.5"
               />
             </svg>
           </div>
@@ -1912,8 +2054,8 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
             textShadow: "0 4px 32px rgba(0,0,0,0.5)",
           }}
         >
-          {headline.split("\n").map((line, i) => (
-            <div key={i}>{line}</div>
+          {headline.split("\n").map((line) => (
+            <div key={line}>{line}</div>
           ))}
         </div>
 
@@ -2060,19 +2202,19 @@ const SceneStormBrand: React.FC<StormBrandProps> = ({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export {
-  SceneHook as RvSceneHook,
-  SceneSimple as RvSceneSimple,
   SceneBenefits as RvSceneBenefits,
-  SceneIntro as RvSceneIntro,
-  SceneTrust as RvSceneTrust,
   SceneCTA as RvSceneCTA,
-  SceneLogoAnimation as RvSceneLogoAnimation,
-  SsSceneImpact,
   SceneHelpingTexasHomeowners as RvSceneHelpingTexasHomeowners,
-  SceneStormHook,
+  SceneHook as RvSceneHook,
+  SceneIntro as RvSceneIntro,
+  SceneLogoAnimation as RvSceneLogoAnimation,
+  SceneSimple as RvSceneSimple,
   SceneStormBrand,
-  SsSceneUrgency,
-  SsSceneIntro,
-  SsSceneValue,
+  SceneStormHook,
+  SceneTrust as RvSceneTrust,
   SsSceneCTA,
+  SsSceneImpact,
+  SsSceneIntro,
+  SsSceneUrgency,
+  SsSceneValue,
 };

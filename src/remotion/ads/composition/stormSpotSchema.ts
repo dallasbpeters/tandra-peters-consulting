@@ -22,7 +22,9 @@ export const stormSpotSchema = z.object({
     height: z.number().default(100),
     src: z
       .string()
-      .default("https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"),
+      .default(
+        "https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"
+      ),
   }),
 
   /** Scene 2 — Urgency: "If you haven't… now's the time." */

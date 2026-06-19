@@ -1,17 +1,17 @@
 export type FieldType = "text" | "textarea" | "boolean" | "select" | "number";
 
-export type EditorField = {
+export interface EditorField {
   key: string;
   label: string;
-  type: FieldType;
   options?: string[];
-};
+  type: FieldType;
+}
 
-export type EditorSection = {
+export interface EditorSection {
+  fields: EditorField[];
   key: string;
   label: string;
-  fields: EditorField[];
-};
+}
 
 type EditorSchema = EditorSection[];
 
@@ -824,7 +824,9 @@ export function getProp(props: Record<string, unknown>, key: string): unknown {
   const parts = key.split(".");
   let val: unknown = props;
   for (const part of parts) {
-    if (val == null || typeof val !== "object") return undefined;
+    if (val == null || typeof val !== "object") {
+      return;
+    }
     val = (val as Record<string, unknown>)[part];
   }
   return val;
@@ -833,7 +835,7 @@ export function getProp(props: Record<string, unknown>, key: string): unknown {
 export function setProp(
   props: Record<string, unknown>,
   key: string,
-  value: unknown,
+  value: unknown
 ): Record<string, unknown> {
   const parts = key.split(".");
   const result = { ...props };
@@ -852,6 +854,6 @@ export function setProp(
     }
     current = (current as Record<string, unknown>)[part];
   }
-  (current as Record<string, unknown>)[parts[parts.length - 1]] = value;
+  (current as Record<string, unknown>)[parts.at(-1)] = value;
   return result;
 }

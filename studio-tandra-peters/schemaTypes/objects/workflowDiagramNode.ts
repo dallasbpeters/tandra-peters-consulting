@@ -37,13 +37,15 @@ export const workflowDiagramNodeType = defineType({
       name: "posX",
       title: "Canvas position X",
       type: "number",
-      description: "Optional manual X position (pixels) used by the on-page editor.",
+      description:
+        "Optional manual X position (pixels) used by the on-page editor.",
     }),
     defineField({
       name: "posY",
       title: "Canvas position Y",
       type: "number",
-      description: "Optional manual Y position (pixels) used by the on-page editor.",
+      description:
+        "Optional manual Y position (pixels) used by the on-page editor.",
     }),
     defineField({
       name: "subsections",
@@ -55,7 +57,9 @@ export const workflowDiagramNodeType = defineType({
   preview: {
     select: { title: "title", stepId: "stepId" },
     prepare: ({ title, stepId }) => ({
-      title: stepId ? `${stepId}. ${title || "Step"}` : title || "Workflow step",
+      title: stepId
+        ? `${stepId}. ${title || "Step"}`
+        : title || "Workflow step",
     }),
   },
 });

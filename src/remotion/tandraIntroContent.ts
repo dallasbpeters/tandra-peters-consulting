@@ -1,16 +1,9 @@
-export type TandraIntroContent = {
-  storm: {
+export interface TandraIntroContent {
+  closing: {
     kicker: string;
     line1: string;
     line2: string;
-    body: string;
-  };
-  straightAnswers: {
-    kicker: string;
-    line1: string;
-    line2: string;
-    line3: string;
-    quote: string;
+    cta: string;
   };
   inspection: {
     kicker: string;
@@ -32,18 +25,25 @@ export type TandraIntroContent = {
     line2: string;
     items: string[];
   };
-  closing: {
+  storm: {
     kicker: string;
     line1: string;
     line2: string;
-    cta: string;
+    body: string;
   };
-};
+  straightAnswers: {
+    kicker: string;
+    line1: string;
+    line2: string;
+    line3: string;
+    quote: string;
+  };
+}
 
-export type TandraIntroProps = {
-  showCaptions?: boolean;
+export interface TandraIntroProps extends Record<string, unknown> {
   content: TandraIntroContent;
-};
+  showCaptions?: boolean;
+}
 
 export const defaultTandraIntroContent: TandraIntroContent = {
   storm: {
@@ -71,7 +71,12 @@ export const defaultTandraIntroContent: TandraIntroContent = {
     line1: "EXPERIENCE AND PROFESSIONALISM",
     line2: "HIGH-QUALITY MATERIALS",
     line3: "Exceptional Customer Service",
-    items: ["Claim guidance", "Paperwork review", "Birdcreek crews", "Final walkthrough"],
+    items: [
+      "Claim guidance",
+      "Paperwork review",
+      "Birdcreek crews",
+      "Final walkthrough",
+    ],
   },
   proof: {
     kicker: "Built for Austin-area homeowners",
@@ -95,36 +100,46 @@ const stringItems = (value: unknown, fallback: string[]): string[] =>
     ? value.filter((item): item is string => typeof item === "string")
     : fallback;
 
-const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
-  isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback;
+const mergeScene = <T extends Record<string, unknown>>(
+  fallback: T,
+  incoming: unknown
+): T => (isRecord(incoming) ? ({ ...fallback, ...incoming } as T) : fallback);
 
-export const mergeTandraIntroContent = (incoming: unknown): TandraIntroContent => {
+export const mergeTandraIntroContent = (
+  incoming: unknown
+): TandraIntroContent => {
   if (!isRecord(incoming)) {
     return defaultTandraIntroContent;
   }
 
-  const managed = mergeScene(defaultTandraIntroContent.managed, incoming.managed);
+  const managed = mergeScene(
+    defaultTandraIntroContent.managed,
+    incoming.managed
+  );
   const proof = mergeScene(defaultTandraIntroContent.proof, incoming.proof);
 
   return {
     storm: mergeScene(defaultTandraIntroContent.storm, incoming.storm),
     straightAnswers: mergeScene(
       defaultTandraIntroContent.straightAnswers,
-      incoming.straightAnswers,
+      incoming.straightAnswers
     ),
-    inspection: mergeScene(defaultTandraIntroContent.inspection, incoming.inspection),
+    inspection: mergeScene(
+      defaultTandraIntroContent.inspection,
+      incoming.inspection
+    ),
     managed: {
       ...managed,
       items: stringItems(
         isRecord(incoming.managed) ? incoming.managed.items : undefined,
-        defaultTandraIntroContent.managed.items,
+        defaultTandraIntroContent.managed.items
       ),
     },
     proof: {
       ...proof,
       items: stringItems(
         isRecord(incoming.proof) ? incoming.proof.items : undefined,
-        defaultTandraIntroContent.proof.items,
+        defaultTandraIntroContent.proof.items
       ),
     },
     closing: mergeScene(defaultTandraIntroContent.closing, incoming.closing),
@@ -153,14 +168,14 @@ const SCENE_CAPTION_WINDOWS = [
   { scene: "closing", from: 756, to: 898 },
 ] as const;
 
-export type CaptionCue = {
+export interface CaptionCue {
   /** Inclusive start frame. */
   fromFrame: number;
-  /** Exclusive end frame. */
-  toFrame: number;
   /** Readable caption text (already collapsed to a single string). */
   text: string;
-};
+  /** Exclusive end frame. */
+  toFrame: number;
+}
 
 const collapse = (value: string): string => value.replace(/\s+/g, " ").trim();
 
@@ -170,20 +185,24 @@ const sceneCaptionText = (c: TandraIntroContent, scene: string): string => {
       return collapse(`${c.storm.line1} ${c.storm.line2} — ${c.storm.body}`);
     case "straightAnswers":
       return collapse(
-        `${c.straightAnswers.line1} ${c.straightAnswers.line2} ${c.straightAnswers.line3} “${c.straightAnswers.quote}”`,
+        `${c.straightAnswers.line1} ${c.straightAnswers.line2} ${c.straightAnswers.line3} “${c.straightAnswers.quote}”`
       );
     case "inspection":
       return collapse(
-        `${c.inspection.line1} ${c.inspection.line2} ${c.inspection.line3} — ${c.inspection.body}`,
+        `${c.inspection.line1} ${c.inspection.line2} ${c.inspection.line3} — ${c.inspection.body}`
       );
     case "managed":
       return collapse(
-        `${c.managed.line1} ${c.managed.line2} ${c.managed.line3}: ${c.managed.items.join(", ")}`,
+        `${c.managed.line1} ${c.managed.line2} ${c.managed.line3}: ${c.managed.items.join(", ")}`
       );
     case "proof":
-      return collapse(`${c.proof.line1} ${c.proof.line2} ${c.proof.items.join(", ")}`);
+      return collapse(
+        `${c.proof.line1} ${c.proof.line2} ${c.proof.items.join(", ")}`
+      );
     case "closing":
-      return collapse(`${c.closing.line1} ${c.closing.line2} — ${c.closing.cta}`);
+      return collapse(
+        `${c.closing.line1} ${c.closing.line2} — ${c.closing.cta}`
+      );
     default:
       return "";
   }
@@ -200,7 +219,7 @@ export const getCaptionCues = (c: TandraIntroContent): CaptionCue[] =>
 export const captionAtTime = (
   cues: CaptionCue[],
   timeSeconds: number,
-  fps = TANDRA_INTRO_FPS,
+  fps = TANDRA_INTRO_FPS
 ): string => {
   const frame = Math.floor(timeSeconds * fps);
   return captionAtFrame(cues, frame);
@@ -208,7 +227,9 @@ export const captionAtTime = (
 
 /** Caption text active at a given frame, or "" when none. */
 export const captionAtFrame = (cues: CaptionCue[], frame: number): string => {
-  const active = cues.find((cue) => frame >= cue.fromFrame && frame < cue.toFrame);
+  const active = cues.find(
+    (cue) => frame >= cue.fromFrame && frame < cue.toFrame
+  );
   return active ? active.text : "";
 };
 
@@ -229,7 +250,10 @@ const vttTime = (frame: number, fps = TANDRA_INTRO_FPS): string => {
  */
 export const generateVttFromContent = (c: TandraIntroContent): string => {
   const cues = getCaptionCues(c)
-    .map((cue, i) => `${i + 1}\n${vttTime(cue.fromFrame)} --> ${vttTime(cue.toFrame)}\n${cue.text}`)
+    .map(
+      (cue, i) =>
+        `${i + 1}\n${vttTime(cue.fromFrame)} --> ${vttTime(cue.toFrame)}\n${cue.text}`
+    )
     .join("\n\n");
 
   return `WEBVTT\n\n${cues}\n`;

@@ -1,10 +1,8 @@
-import type { CSSProperties, ReactNode } from "react";
-
 import {
   defineSchema,
   EditorProvider,
-  PortableTextEditable,
   type PortableTextBlock,
+  PortableTextEditable,
   type RenderAnnotationFunction,
   type RenderDecoratorFunction,
   type RenderListItemFunction,
@@ -13,34 +11,53 @@ import {
   useEditorSelector,
 } from "@portabletext/editor";
 import { EventListenerPlugin } from "@portabletext/editor/plugins";
-import * as selectors from "@portabletext/editor/selectors";
+import {
+  isActiveAnnotation,
+  isActiveDecorator,
+  isActiveListItem,
+  isActiveStyle,
+} from "@portabletext/editor/selectors";
+import type { CSSProperties, ReactNode } from "react";
 
 import { mix, theme } from "../theme";
 
 const schemaDefinition = defineSchema({
   decorators: [{ name: "strong" }, { name: "em" }],
   annotations: [{ name: "link", fields: [{ name: "href", type: "string" }] }],
-  styles: [{ name: "normal" }, { name: "h2" }, { name: "h3" }, { name: "blockquote" }],
+  styles: [
+    { name: "normal" },
+    { name: "h2" },
+    { name: "h3" },
+    { name: "blockquote" },
+  ],
   lists: [{ name: "bullet" }, { name: "number" }],
   inlineObjects: [],
   blockObjects: [],
 });
 
 const renderDecorator: RenderDecoratorFunction = ({ value, children }) => {
-  if (value === "strong") return <strong>{children}</strong>;
-  if (value === "em") return <em>{children}</em>;
+  if (value === "strong") {
+    return <strong>{children}</strong>;
+  }
+  if (value === "em") {
+    return <em>{children}</em>;
+  }
   return <>{children}</>;
 };
 
 const renderStyle: RenderStyleFunction = ({ value, children }) => {
   if (value === "h2") {
     return (
-      <span style={{ display: "block", fontSize: "1.3rem", fontWeight: 700 }}>{children}</span>
+      <span style={{ display: "block", fontSize: "1.3rem", fontWeight: 700 }}>
+        {children}
+      </span>
     );
   }
   if (value === "h3") {
     return (
-      <span style={{ display: "block", fontSize: "1.1rem", fontWeight: 700 }}>{children}</span>
+      <span style={{ display: "block", fontSize: "1.1rem", fontWeight: 700 }}>
+        {children}
+      </span>
     );
   }
   if (value === "blockquote") {
@@ -74,7 +91,9 @@ const renderListItem: RenderListItemFunction = ({ value, children }) => (
 );
 
 const renderAnnotation: RenderAnnotationFunction = ({ children }) => (
-  <span style={{ color: theme.palette.accent["700"], textDecoration: "underline" }}>
+  <span
+    style={{ color: theme.palette.accent["700"], textDecoration: "underline" }}
+  >
     {children}
   </span>
 );
@@ -116,12 +135,10 @@ const ToolbarButton = ({
   children: ReactNode;
 }) => (
   <button
-    type="button"
-    title={title}
     aria-label={title}
     aria-pressed={active}
-    onMouseDown={(e) => e.preventDefault()}
     onClick={onClick}
+    onMouseDown={(e) => e.preventDefault()}
     style={{
       minWidth: 30,
       height: 30,
@@ -135,6 +152,8 @@ const ToolbarButton = ({
       cursor: "pointer",
       lineHeight: 1,
     }}
+    title={title}
+    type="button"
   >
     {children}
   </button>
@@ -142,14 +161,14 @@ const ToolbarButton = ({
 
 const Toolbar = () => {
   const editor = useEditor();
-  const bold = useEditorSelector(editor, selectors.isActiveDecorator("strong"));
-  const italic = useEditorSelector(editor, selectors.isActiveDecorator("em"));
-  const link = useEditorSelector(editor, selectors.isActiveAnnotation("link"));
-  const h2 = useEditorSelector(editor, selectors.isActiveStyle("h2"));
-  const h3 = useEditorSelector(editor, selectors.isActiveStyle("h3"));
-  const blockquote = useEditorSelector(editor, selectors.isActiveStyle("blockquote"));
-  const bullet = useEditorSelector(editor, selectors.isActiveListItem("bullet"));
-  const number = useEditorSelector(editor, selectors.isActiveListItem("number"));
+  const bold = useEditorSelector(editor, isActiveDecorator("strong"));
+  const italic = useEditorSelector(editor, isActiveDecorator("em"));
+  const link = useEditorSelector(editor, isActiveAnnotation("link"));
+  const h2 = useEditorSelector(editor, isActiveStyle("h2"));
+  const h3 = useEditorSelector(editor, isActiveStyle("h3"));
+  const blockquote = useEditorSelector(editor, isActiveStyle("blockquote"));
+  const bullet = useEditorSelector(editor, isActiveListItem("bullet"));
+  const number = useEditorSelector(editor, isActiveListItem("number"));
 
   const handleLink = () => {
     if (link) {
@@ -159,8 +178,11 @@ const Toolbar = () => {
       });
       return;
     }
+    // biome-ignore lint/suspicious/noAlert: intentional browser prompt for link URL input
     const href = window.prompt("Link URL", "https://");
-    if (!href) return;
+    if (!href) {
+      return;
+    }
     editor.send({
       type: "annotation.toggle",
       annotation: { name: "link", value: { href } },
@@ -171,19 +193,23 @@ const Toolbar = () => {
     <div style={toolbarStyle}>
       <ToolbarButton
         active={bold}
+        onClick={() =>
+          editor.send({ type: "decorator.toggle", decorator: "strong" })
+        }
         title="Bold"
-        onClick={() => editor.send({ type: "decorator.toggle", decorator: "strong" })}
       >
         B
       </ToolbarButton>
       <ToolbarButton
         active={italic}
+        onClick={() =>
+          editor.send({ type: "decorator.toggle", decorator: "em" })
+        }
         title="Italic"
-        onClick={() => editor.send({ type: "decorator.toggle", decorator: "em" })}
       >
         <span style={{ fontStyle: "italic" }}>I</span>
       </ToolbarButton>
-      <ToolbarButton active={link} title="Link" onClick={handleLink}>
+      <ToolbarButton active={link} onClick={handleLink} title="Link">
         Link
       </ToolbarButton>
       <span
@@ -195,22 +221,24 @@ const Toolbar = () => {
       />
       <ToolbarButton
         active={h2}
-        title="Heading"
         onClick={() => editor.send({ type: "style.toggle", style: "h2" })}
+        title="Heading"
       >
         H2
       </ToolbarButton>
       <ToolbarButton
         active={h3}
-        title="Subheading"
         onClick={() => editor.send({ type: "style.toggle", style: "h3" })}
+        title="Subheading"
       >
         H3
       </ToolbarButton>
       <ToolbarButton
         active={blockquote}
+        onClick={() =>
+          editor.send({ type: "style.toggle", style: "blockquote" })
+        }
         title="Quote"
-        onClick={() => editor.send({ type: "style.toggle", style: "blockquote" })}
       >
         &ldquo;
       </ToolbarButton>
@@ -223,15 +251,19 @@ const Toolbar = () => {
       />
       <ToolbarButton
         active={bullet}
+        onClick={() =>
+          editor.send({ type: "list item.toggle", listItem: "bullet" })
+        }
         title="Bulleted list"
-        onClick={() => editor.send({ type: "list item.toggle", listItem: "bullet" })}
       >
         •
       </ToolbarButton>
       <ToolbarButton
         active={number}
+        onClick={() =>
+          editor.send({ type: "list item.toggle", listItem: "number" })
+        }
         title="Numbered list"
-        onClick={() => editor.send({ type: "list item.toggle", listItem: "number" })}
       >
         1.
       </ToolbarButton>
@@ -239,33 +271,41 @@ const Toolbar = () => {
   );
 };
 
-type RichTextEditorProps = {
-  value: PortableTextBlock[];
+interface RichTextEditorProps {
   onChange: (blocks: PortableTextBlock[]) => void;
   placeholder?: string;
-};
+  value: PortableTextBlock[];
+}
 
 /** Styled Portable Text editor that emits Portable Text blocks (matches the email serializer). */
-export const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => (
+export const RichTextEditor = ({
+  value,
+  onChange,
+  placeholder,
+}: RichTextEditorProps) => (
   <EditorProvider initialConfig={{ schemaDefinition, initialValue: value }}>
     <div style={frameStyle}>
       <Toolbar />
       <PortableTextEditable
-        style={editableStyle}
-        renderDecorator={renderDecorator}
-        renderStyle={renderStyle}
-        renderListItem={renderListItem}
         renderAnnotation={renderAnnotation}
+        renderDecorator={renderDecorator}
+        renderListItem={renderListItem}
         renderPlaceholder={() =>
           placeholder ? (
-            <span style={{ color: mix(theme.colors.everglade, 45) }}>{placeholder}</span>
+            <span style={{ color: mix(theme.colors.everglade, 45) }}>
+              {placeholder}
+            </span>
           ) : null
         }
+        renderStyle={renderStyle}
+        style={editableStyle}
       />
     </div>
     <EventListenerPlugin
       on={(event) => {
-        if (event.type === "mutation") onChange(event.value ?? []);
+        if (event.type === "mutation") {
+          onChange(event.value ?? []);
+        }
       }}
     />
   </EditorProvider>

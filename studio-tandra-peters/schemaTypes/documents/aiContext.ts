@@ -47,7 +47,8 @@ export const aiContextType = defineType({
       type: "array",
       of: [defineArrayMember({ type: "string" })],
       options: { sortable: true },
-      description: "Important pages or routes the AI should favor when suggesting internal links.",
+      description:
+        "Important pages or routes the AI should favor when suggesting internal links.",
     }),
   ],
   preview: {

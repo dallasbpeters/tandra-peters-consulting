@@ -7,17 +7,12 @@ import { useColorSchemeValue } from "sanity";
 import { useStudioClient } from "../hooks/useStudioClient";
 import "./sanityImageManagerTool.css";
 
-type SanityImageAsset = {
-  _id: string;
+interface SanityImageAsset {
   _createdAt: string;
+  _id: string;
   altText?: string;
   description?: string;
   extension?: string;
-  mimeType?: string;
-  originalFilename?: string;
-  size?: number;
-  title?: string;
-  url: string;
   metadata?: {
     dimensions?: {
       aspectRatio?: number;
@@ -26,7 +21,8 @@ type SanityImageAsset = {
     };
     lqip?: string;
   };
-  usedBy?: number;
+  mimeType?: string;
+  originalFilename?: string;
   references?: {
     _id: string;
     _type: string;
@@ -34,7 +30,11 @@ type SanityImageAsset = {
     heading?: string;
     title?: string;
   }[];
-};
+  size?: number;
+  title?: string;
+  url: string;
+  usedBy?: number;
+}
 
 const imageAssetListQuery = `*[_type == "sanity.imageAsset" && defined(url)] | order(_createdAt desc)[0...200] {
   _id,
@@ -92,7 +92,7 @@ const imageDimensions = (asset: SanityImageAsset): string => {
   const width = asset.metadata?.dimensions?.width;
   const height = asset.metadata?.dimensions?.height;
 
-  if (!width || !height) {
+  if (!(width && height)) {
     return "Unknown dimensions";
   }
 
@@ -105,7 +105,9 @@ const imageLabel = (asset: SanityImageAsset): string =>
   asset.originalFilename?.trim() ||
   "Untitled image";
 
-const referenceLabel = (reference: NonNullable<SanityImageAsset["references"]>[number]) =>
+const referenceLabel = (
+  reference: NonNullable<SanityImageAsset["references"]>[number]
+) =>
   reference.title?.trim() ||
   reference.heading?.trim() ||
   reference.name?.trim() ||
@@ -143,11 +145,16 @@ export function SanityImageManagerTool() {
     setError(null);
 
     try {
-      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetListQuery);
+      const nextAssets =
+        await client.fetch<SanityImageAsset[]>(imageAssetListQuery);
       setAssets(nextAssets);
       setSelectedAssetId((current) => current ?? nextAssets[0]?._id ?? null);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not load Sanity images.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not load Sanity images."
+      );
     } finally {
       setLoading(false);
     }
@@ -199,14 +206,23 @@ export function SanityImageManagerTool() {
     }
 
     return assets.filter((asset) =>
-      [asset.title, asset.altText, asset.description, asset.originalFilename, asset._id]
+      [
+        asset.title,
+        asset.altText,
+        asset.description,
+        asset.originalFilename,
+        asset._id,
+      ]
         .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(query)),
+        .some((value) => value?.toLowerCase().includes(query))
     );
   }, [assets, search]);
 
   const selectedAsset = useMemo(() => {
-    const asset = assets.find((item) => item._id === selectedAssetId) ?? filteredAssets[0] ?? null;
+    const asset =
+      assets.find((item) => item._id === selectedAssetId) ??
+      filteredAssets[0] ??
+      null;
     if (!asset) {
       return null;
     }
@@ -248,7 +264,9 @@ export function SanityImageManagerTool() {
       setNotice("Image uploaded.");
       clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not upload image.");
+      setError(
+        caught instanceof Error ? caught.message : "Could not upload image."
+      );
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -279,7 +297,11 @@ export function SanityImageManagerTool() {
       setNotice("Image details saved.");
       clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save image details.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not save image details."
+      );
     } finally {
       setSaving(false);
     }
@@ -306,7 +328,7 @@ export function SanityImageManagerTool() {
 
     const label = imageLabel(selectedAsset);
     const confirmed = window.confirm(
-      `Delete "${label}" from Sanity assets? This will fail if Sanity blocks the asset because it is still referenced.`,
+      `Delete "${label}" from Sanity assets? This will fail if Sanity blocks the asset because it is still referenced.`
     );
 
     if (!confirmed) {
@@ -327,7 +349,7 @@ export function SanityImageManagerTool() {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Could not delete the image. Check whether it is still referenced.",
+          : "Could not delete the image. Check whether it is still referenced."
       );
     } finally {
       setSaving(false);
@@ -347,7 +369,11 @@ export function SanityImageManagerTool() {
           <h1>Image Manager</h1>
         </div>
         <div className="sim__actions">
-          <WaButton disabled={loading} onClick={() => void loadAssets()} size="xs">
+          <WaButton
+            disabled={loading}
+            onClick={() => void loadAssets()}
+            size="xs"
+          >
             Refresh
           </WaButton>
           <input
@@ -395,7 +421,11 @@ export function SanityImageManagerTool() {
             {filteredAssets.map((asset) => (
               <WaButton
                 appearance="plain"
-                className={asset._id === selectedAsset?._id ? "sim__tile is-selected" : "sim__tile"}
+                className={
+                  asset._id === selectedAsset?._id
+                    ? "sim__tile is-selected"
+                    : "sim__tile"
+                }
                 key={asset._id}
                 onClick={() => setSelectedAssetId(asset._id)}
                 size="xs"
@@ -439,7 +469,12 @@ export function SanityImageManagerTool() {
                     <WaButton onClick={() => void handleCopyUrl()} size="xs">
                       Copy URL
                     </WaButton>
-                    <WaButton href={selectedAsset.url} rel="noreferrer" size="xs" target="_blank">
+                    <WaButton
+                      href={selectedAsset.url}
+                      rel="noreferrer"
+                      size="xs"
+                      target="_blank"
+                    >
                       Open
                     </WaButton>
                   </div>
@@ -456,7 +491,11 @@ export function SanityImageManagerTool() {
                   </div>
                   <div>
                     <dt>Type</dt>
-                    <dd>{selectedAsset.mimeType ?? selectedAsset.extension ?? "Unknown type"}</dd>
+                    <dd>
+                      {selectedAsset.mimeType ??
+                        selectedAsset.extension ??
+                        "Unknown type"}
+                    </dd>
                   </div>
                   <div>
                     <dt>Uploaded</dt>
@@ -489,7 +528,9 @@ export function SanityImageManagerTool() {
                   />
                   <WaTextarea
                     label="Description"
-                    onInput={(event) => setDraftDescription(getInputValue(event))}
+                    onInput={(event) =>
+                      setDraftDescription(getInputValue(event))
+                    }
                     rows={3}
                     size="xs"
                     value={draftDescription}
@@ -525,7 +566,11 @@ export function SanityImageManagerTool() {
                   </WaButton>
                   <WaButton
                     className="sim__danger"
-                    disabled={saving || referenceLoading || Boolean(selectedAsset.usedBy)}
+                    disabled={
+                      saving ||
+                      referenceLoading ||
+                      Boolean(selectedAsset.usedBy)
+                    }
                     onClick={() => void handleDelete()}
                     size="xs"
                     title={
@@ -541,7 +586,9 @@ export function SanityImageManagerTool() {
             </>
           ) : (
             <div className="sim__empty-detail">
-              {loading ? "Loading image library..." : "Select or upload an image."}
+              {loading
+                ? "Loading image library..."
+                : "Select or upload an image."}
             </div>
           )}
         </section>

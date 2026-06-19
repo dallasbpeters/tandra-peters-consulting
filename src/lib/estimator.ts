@@ -1,4 +1,8 @@
-import type { EstimatorOption, EstimatorPageContent, EstimatorQuestion } from "../types";
+import type {
+  EstimatorOption,
+  EstimatorPageContent,
+  EstimatorQuestion,
+} from "../types";
 
 /**
  * Estimator pricing + content defaults.
@@ -17,7 +21,7 @@ export const ESTIMATOR_DEFAULT_SEO = {
 const q = (
   prompt: string,
   options: EstimatorOption[],
-  extra: Partial<EstimatorQuestion> = {},
+  extra: Partial<EstimatorQuestion> = {}
 ): EstimatorQuestion => ({ prompt, options, ...extra });
 
 /** Sensible starter config so the page is never empty before Tandra edits it. */
@@ -53,7 +57,7 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         helpText:
           "Roofers measure in 'squares' (1 square = 100 sq ft of actual roof surface). Your roof surface is larger than your floor area — pitch and overhangs add 10–50%+. If unsure, pick closest to your home's total living area as a starting point.",
         drivesSquareFootage: true,
-      },
+      }
     ),
     q(
       "How many stories?",
@@ -78,7 +82,7 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
       {
         helpText:
           "Multi-story homes have less roof area per sq ft of living space, but steeper access.",
-      },
+      }
     ),
     q(
       "How complex is your roof?",
@@ -101,8 +105,9 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
         { label: "Not sure", pricePerSqftAdd: 1.5 },
       ],
       {
-        helpText: "More gables, dormers, and porches = more roof surface area and labor.",
-      },
+        helpText:
+          "More gables, dormers, and porches = more roof surface area and labor.",
+      }
     ),
     q(
       "How steep is your roof?",
@@ -126,7 +131,7 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
       ],
       {
         helpText: "Steeper roofs cost more to work on safely.",
-      },
+      }
     ),
     q("What kind of roof are you considering?", [
       {
@@ -136,7 +141,8 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
       },
       {
         label: "Architectural / premium shingles",
-        description: "Laminated, thicker, longer-lasting — most common replacement",
+        description:
+          "Laminated, thicker, longer-lasting — most common replacement",
         pricePerSqftAdd: 1.5,
       },
       {
@@ -164,31 +170,34 @@ export const ESTIMATOR_DEFAULTS: EstimatorPageContent = {
 
 export type EstimatorSelections = Record<string, string>;
 
-export type EstimatorRange = {
-  low: number;
+export interface EstimatorRange {
   high: number;
-  /** Midpoint subtotal before the range spread is applied. */
-  subtotal: number;
+  low: number;
   /** Square footage used for the calculation, if a size question was answered. */
   sqft?: number;
-};
+  /** Midpoint subtotal before the range spread is applied. */
+  subtotal: number;
+}
 
-const findOption = (question: EstimatorQuestion, key: string): EstimatorOption | undefined =>
+const findOption = (
+  question: EstimatorQuestion,
+  key: string
+): EstimatorOption | undefined =>
   question.options.find((o) => (o._key ?? o.label) === key);
 
-export type ComputeEstimateOverrides = {
+export interface ComputeEstimateOverrides {
+  /**
+   * Keys of questions whose multipliers/adders should be skipped in the
+   * calculation (e.g. the home-size question when sqft is overridden).
+   */
+  skipQuestionKeys?: Set<string>;
   /**
    * When an address lookup succeeds, pass the property's total living area
    * here. It replaces the `drivesSquareFootage` question's sqftMidpoint so the
    * calculation uses real data instead of a bucket selection.
    */
   sqft?: number;
-  /**
-   * Keys of questions whose multipliers/adders should be skipped in the
-   * calculation (e.g. the home-size question when sqft is overridden).
-   */
-  skipQuestionKeys?: Set<string>;
-};
+}
 
 /**
  * Compute the estimate range from the answered selections. Returns null until
@@ -198,10 +207,13 @@ export type ComputeEstimateOverrides = {
 export const computeEstimate = (
   content: EstimatorPageContent,
   selections: EstimatorSelections,
-  overrides?: ComputeEstimateOverrides,
+  overrides?: ComputeEstimateOverrides
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 ): EstimatorRange | null => {
   const questions = content.questions ?? [];
-  if (questions.length === 0) return null;
+  if (questions.length === 0) {
+    return null;
+  }
 
   let sqft: number | undefined = overrides?.sqft;
   let ratePerSqft = content.baseRatePerSqft ?? 0;
@@ -209,11 +221,17 @@ export const computeEstimate = (
 
   for (const question of questions) {
     const key = question._key ?? question.prompt;
-    if (overrides?.skipQuestionKeys?.has(key)) continue;
+    if (overrides?.skipQuestionKeys?.has(key)) {
+      continue;
+    }
     const selectedKey = selections[key];
-    if (!selectedKey) continue;
+    if (!selectedKey) {
+      continue;
+    }
     const option = findOption(question, selectedKey);
-    if (!option) continue;
+    if (!option) {
+      continue;
+    }
 
     // Only use sqftMidpoint from the question if no override was provided.
     if (
@@ -230,14 +248,21 @@ export const computeEstimate = (
     ) {
       sqft *= option.sqftMultiplier;
     }
-    if (typeof option.pricePerSqftAdd === "number") ratePerSqft += option.pricePerSqftAdd;
-    if (typeof option.flatAdd === "number") flatTotal += option.flatAdd;
+    if (typeof option.pricePerSqftAdd === "number") {
+      ratePerSqft += option.pricePerSqftAdd;
+    }
+    if (typeof option.flatAdd === "number") {
+      flatTotal += option.flatAdd;
+    }
   }
 
-  if (sqft == null) return null;
+  if (sqft == null) {
+    return null;
+  }
 
   const subtotal = Math.max(0, sqft * ratePerSqft + flatTotal);
-  const spread = Math.min(Math.max(content.rangeSpreadPercent ?? 15, 0), 60) / 100;
+  const spread =
+    Math.min(Math.max(content.rangeSpreadPercent ?? 15, 0), 60) / 100;
   const low = subtotal * (1 - spread);
   const high = subtotal * (1 + spread);
 
@@ -246,9 +271,15 @@ export const computeEstimate = (
 
 /** Round to a tidy figure so the range reads like a ballpark, not a precise bid. */
 const roundToNice = (value: number): number => {
-  if (value <= 0) return 0;
-  if (value < 1000) return Math.round(value / 50) * 50;
-  if (value < 10000) return Math.round(value / 100) * 100;
+  if (value <= 0) {
+    return 0;
+  }
+  if (value < 1000) {
+    return Math.round(value / 50) * 50;
+  }
+  if (value < 10_000) {
+    return Math.round(value / 100) * 100;
+  }
   return Math.round(value / 500) * 500;
 };
 
@@ -261,15 +292,19 @@ export const formatRange = (range: EstimatorRange, currency = "$"): string =>
 /** Human-readable list of the visitor's answers, for the summary + email. */
 export const summarizeSelections = (
   content: EstimatorPageContent,
-  selections: EstimatorSelections,
+  selections: EstimatorSelections
 ): { prompt: string; answer: string }[] => {
   const rows: { prompt: string; answer: string }[] = [];
   for (const question of content.questions ?? []) {
     const key = question._key ?? question.prompt;
     const selectedKey = selections[key];
-    if (!selectedKey) continue;
+    if (!selectedKey) {
+      continue;
+    }
     const option = findOption(question, selectedKey);
-    if (!option) continue;
+    if (!option) {
+      continue;
+    }
     rows.push({ prompt: question.prompt, answer: option.label });
   }
   return rows;

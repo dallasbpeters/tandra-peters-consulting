@@ -1,7 +1,8 @@
 import type { ModelMessage } from "ai";
 
 export const RESPONSE_AGENT_TEXT_MODEL = "llama-3.3-70b-versatile";
-export const RESPONSE_AGENT_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+export const RESPONSE_AGENT_VISION_MODEL =
+  "meta-llama/llama-4-scout-17b-16e-instruct";
 
 const isImagePart = (part: unknown): boolean => {
   if (!part || typeof part !== "object") {
@@ -13,7 +14,9 @@ const isImagePart = (part: unknown): boolean => {
     return true;
   }
 
-  return typed.type === "file" && Boolean(typed.mediaType?.startsWith("image/"));
+  return (
+    typed.type === "file" && Boolean(typed.mediaType?.startsWith("image/"))
+  );
 };
 
 export const conversationHasImages = (messages: ModelMessage[]): boolean =>
@@ -26,4 +29,6 @@ export const conversationHasImages = (messages: ModelMessage[]): boolean =>
   });
 
 export const pickResponseAgentModel = (messages: ModelMessage[]): string =>
-  conversationHasImages(messages) ? RESPONSE_AGENT_VISION_MODEL : RESPONSE_AGENT_TEXT_MODEL;
+  conversationHasImages(messages)
+    ? RESPONSE_AGENT_VISION_MODEL
+    : RESPONSE_AGENT_TEXT_MODEL;

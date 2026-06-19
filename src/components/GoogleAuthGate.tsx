@@ -1,4 +1,4 @@
-import { useEffect, type MouseEvent, type ReactNode } from "react";
+import { type MouseEvent, type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -9,7 +9,11 @@ import {
 } from "../hooks/useGoogleAuthGate";
 import { theme } from "../theme";
 
-export const GoogleAuthGateProvider = ({ children }: { children: ReactNode }) => {
+export const GoogleAuthGateProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const value = useGoogleAuthGateState();
 
   return (
@@ -20,10 +24,10 @@ export const GoogleAuthGateProvider = ({ children }: { children: ReactNode }) =>
   );
 };
 
-type Props = {
+interface Props {
   children?: ReactNode;
   fallback?: ReactNode;
-};
+}
 
 /** Renders children only when the auth gate is off or the user is signed in. */
 export const GoogleAuthGate = ({ children, fallback = null }: Props) => {
@@ -41,11 +45,11 @@ export const GoogleAuthFooterTrigger = () => {
 
   return (
     <button
+      aria-label="Sign in"
+      className="google-auth-gate__footer-trigger"
+      onClick={auth.openSignInModal}
       tabIndex={0}
       type="button"
-      className="google-auth-gate__footer-trigger"
-      aria-label="Sign in"
-      onClick={auth.openSignInModal}
     />
   );
 };
@@ -70,8 +74,7 @@ export const GoogleAuthSignInModal = () => {
   }, [auth]);
 
   if (
-    !auth?.isGateActive ||
-    !auth.isSignInModalOpen ||
+    !(auth?.isGateActive && auth.isSignInModalOpen) ||
     auth.isAuthenticated ||
     typeof document === "undefined"
   ) {
@@ -87,23 +90,31 @@ export const GoogleAuthSignInModal = () => {
   };
 
   return createPortal(
+    // biome-ignore lint/a11y/noStaticElementInteractions: modal backdrop — click/Escape outside to dismiss
     <div
       className="google-auth-gate__modal-backdrop"
-      role="presentation"
       onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          handleBackdropClick();
+        }
+      }}
+      role="presentation"
     >
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stops click propagation to backdrop */}
       <div
-        className="google-auth-gate__modal"
-        role="dialog"
-        aria-modal="true"
         aria-labelledby="google-auth-gate-modal-title"
+        aria-modal="true"
+        className="google-auth-gate__modal"
         onClick={handleDialogClick}
+        onKeyDown={(e) => e.stopPropagation()}
+        role="dialog"
       >
         <button
-          type="button"
-          className="google-auth-gate__modal-close"
           aria-label="Close sign-in"
+          className="google-auth-gate__modal-close"
           onClick={auth.closeSignInModal}
+          type="button"
         >
           ×
         </button>
@@ -132,7 +143,7 @@ export const GoogleAuthSignInModal = () => {
         <div className="google-auth-gate__button">
           <div ref={auth.buttonRef} />
         </div>
-        {!auth.ready ? (
+        {auth.ready ? null : (
           <p
             style={{
               marginTop: theme.spacing.md,
@@ -142,7 +153,7 @@ export const GoogleAuthSignInModal = () => {
           >
             Loading Google sign-in…
           </p>
-        ) : null}
+        )}
         {auth.authError ? (
           <p
             role="alert"
@@ -157,6 +168,6 @@ export const GoogleAuthSignInModal = () => {
         ) : null}
       </div>
     </div>,
-    document.body,
+    document.body
   );
 };

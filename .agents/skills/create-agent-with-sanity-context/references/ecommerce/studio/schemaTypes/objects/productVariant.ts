@@ -35,7 +35,8 @@ export const productVariant = defineType({
       name: "images",
       title: "Variant Images",
       type: "array",
-      description: "Product images for this color variant (first image is the main image)",
+      description:
+        "Product images for this color variant (first image is the main image)",
       of: [
         defineArrayMember({
           type: "image",
@@ -49,7 +50,9 @@ export const productVariant = defineType({
               type: "string",
               description: "Describe the image for accessibility and SEO",
               validation: (rule) =>
-                rule.required().warning("Alt text is important for accessibility"),
+                rule
+                  .required()
+                  .warning("Alt text is important for accessibility"),
             }),
           ],
         }),

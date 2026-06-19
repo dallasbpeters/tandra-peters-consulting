@@ -1,7 +1,7 @@
-type GoogleAuthUser = {
+interface GoogleAuthUser {
   email: string;
   hostedDomain?: string;
-};
+}
 
 const normalize = (value: string): string => value.trim().toLowerCase();
 
@@ -29,7 +29,7 @@ export const parseGoogleIdToken = (token: string): GoogleAuthUser | null => {
 
   const email = typeof payload.email === "string" ? payload.email : "";
   const emailVerified = payload.email_verified === true;
-  if (!email || !emailVerified) {
+  if (!(email && emailVerified)) {
     return null;
   }
 
@@ -40,16 +40,21 @@ export const parseGoogleIdToken = (token: string): GoogleAuthUser | null => {
 };
 
 const readAllowlist = () => {
-  const env = process.env.GOOGLE_ALLOWED_EMAILS ?? process.env.VITE_GOOGLE_ALLOWED_EMAILS ?? "";
+  const env =
+    process.env.GOOGLE_ALLOWED_EMAILS ??
+    process.env.VITE_GOOGLE_ALLOWED_EMAILS ??
+    "";
   const emails = new Set(
     env
       .split(",")
       .map((entry) => normalize(entry))
-      .filter(Boolean),
+      .filter(Boolean)
   );
 
   const domain = normalize(
-    process.env.GOOGLE_ALLOWED_DOMAIN ?? process.env.VITE_GOOGLE_ALLOWED_DOMAIN ?? "",
+    process.env.GOOGLE_ALLOWED_DOMAIN ??
+      process.env.VITE_GOOGLE_ALLOWED_DOMAIN ??
+      ""
   );
 
   return { emails, domain };

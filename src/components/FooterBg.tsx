@@ -1,5 +1,5 @@
-import React from "react";
-import { Shader, Dither, ImageTexture } from "shaders/react";
+import type React from "react";
+import { Dither, ImageTexture, Shader } from "shaders/react";
 
 export default function FooterBg({ style }: { style: React.CSSProperties }) {
   return (
@@ -8,10 +8,10 @@ export default function FooterBg({ style }: { style: React.CSSProperties }) {
           underscore format produces GLSL-reserved `__` uniform names that fail
           to compile on Safari/iOS. */}
       <Dither
-        id="footerDither"
         blendMode="normal-oklch"
         colorA="#050a05"
         colorB="#183A2C"
+        id="footerDither"
         pixelSize={2}
         threshold={0.4}
         transform={{

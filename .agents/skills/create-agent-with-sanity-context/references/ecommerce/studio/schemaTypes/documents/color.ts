@@ -44,7 +44,7 @@ export const color = defineType({
     },
     prepare({ title, hexValue }) {
       return {
-        title: title,
+        title,
         subtitle: hexValue || "No hex value set",
       };
     },

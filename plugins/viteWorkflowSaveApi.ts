@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin } from "vite";
-
 import { createClient } from "@sanity/client";
+import type { Plugin } from "vite";
 
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 
@@ -13,7 +12,8 @@ const WORKFLOW_PAGE_DOCUMENT_ID = "workflowPage";
 
 const VALID_HANDLES = new Set(["top", "right", "bottom", "left"]);
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -38,7 +38,7 @@ const json = (res: ServerResponse, status: number, body: unknown) => {
 };
 
 const parseBearerToken = (header: string | undefined): string | null => {
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!header?.startsWith("Bearer ")) {
     return null;
   }
 
@@ -49,16 +49,18 @@ const normalize = (value: string): string => value.trim().toLowerCase();
 
 const isAllowedGoogleUserFromEnv = (
   user: { email: string; hostedDomain?: string },
-  env: Record<string, string>,
+  env: Record<string, string>
 ): boolean => {
   const emails = new Set(
     (env.GOOGLE_ALLOWED_EMAILS ?? env.VITE_GOOGLE_ALLOWED_EMAILS ?? "")
       .split(",")
       .map((entry) => normalize(entry))
-      .filter(Boolean),
+      .filter(Boolean)
   );
 
-  const domain = normalize(env.GOOGLE_ALLOWED_DOMAIN ?? env.VITE_GOOGLE_ALLOWED_DOMAIN ?? "");
+  const domain = normalize(
+    env.GOOGLE_ALLOWED_DOMAIN ?? env.VITE_GOOGLE_ALLOWED_DOMAIN ?? ""
+  );
 
   if (emails.size === 0 && !domain) {
     return false;
@@ -76,29 +78,30 @@ const isAllowedGoogleUserFromEnv = (
   return false;
 };
 
-const sanitizeString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const sanitizeString = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 const sanitizeNumber = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 
-type InputNode = {
-  stepId?: unknown;
-  title?: unknown;
+interface InputNode {
   body?: unknown;
-  wide?: unknown;
-  subsections?: unknown;
   posX?: unknown;
   posY?: unknown;
-};
+  stepId?: unknown;
+  subsections?: unknown;
+  title?: unknown;
+  wide?: unknown;
+}
 
-type InputEdge = {
+interface InputEdge {
   edgeId?: unknown;
-  sourceStep?: unknown;
-  targetStep?: unknown;
-  sourceHandle?: unknown;
-  targetHandle?: unknown;
   label?: unknown;
-};
+  sourceHandle?: unknown;
+  sourceStep?: unknown;
+  targetHandle?: unknown;
+  targetStep?: unknown;
+}
 
 const sanitizeNodes = (input: unknown) => {
   if (!Array.isArray(input)) {
@@ -110,7 +113,7 @@ const sanitizeNodes = (input: unknown) => {
       const stepId = sanitizeString(node.stepId);
       const title = sanitizeString(node.title);
       const body = sanitizeString(node.body);
-      if (!stepId || !title || !body) {
+      if (!(stepId && title && body)) {
         return null;
       }
 
@@ -124,9 +127,13 @@ const sanitizeNodes = (input: unknown) => {
                 return null;
               }
 
-              const titleValue = sanitizeString((section as Record<string, unknown>).title);
-              const bodyValue = sanitizeString((section as Record<string, unknown>).body);
-              if (!titleValue || !bodyValue) {
+              const titleValue = sanitizeString(
+                (section as Record<string, unknown>).title
+              );
+              const bodyValue = sanitizeString(
+                (section as Record<string, unknown>).body
+              );
+              if (!(titleValue && bodyValue)) {
                 return null;
               }
 
@@ -148,8 +155,8 @@ const sanitizeNodes = (input: unknown) => {
         body,
         wide: node.wide === true,
         ...(subsections.length > 0 ? { subsections } : {}),
-        ...(posX !== null ? { posX } : {}),
-        ...(posY !== null ? { posY } : {}),
+        ...(posX === null ? {} : { posX }),
+        ...(posY === null ? {} : { posY }),
       };
     })
     .filter(Boolean);
@@ -169,11 +176,13 @@ const sanitizeEdges = (input: unknown) => {
       const targetHandle = sanitizeString(edge.targetHandle) || "left";
       const label = sanitizeString(edge.label) || "Connection";
 
-      if (!edgeId || !sourceStep || !targetStep) {
+      if (!(edgeId && sourceStep && targetStep)) {
         return null;
       }
 
-      if (!VALID_HANDLES.has(sourceHandle) || !VALID_HANDLES.has(targetHandle)) {
+      if (
+        !(VALID_HANDLES.has(sourceHandle) && VALID_HANDLES.has(targetHandle))
+      ) {
         return null;
       }
 
@@ -194,6 +203,7 @@ const sanitizeEdges = (input: unknown) => {
 export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
   name: "vite-workflow-save-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== WORKFLOW_SAVE_PATH) {
         next();
@@ -220,7 +230,7 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
       }
 
       const user = parseGoogleIdToken(bearer);
-      if (!user || !isAllowedGoogleUserFromEnv(user, env)) {
+      if (!(user && isAllowedGoogleUserFromEnv(user, env))) {
         json(res, 403, {
           error: "Google account is not authorized for workflow edits.",
         });
@@ -281,7 +291,10 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
       } catch (error) {
         console.error("[vite-workflow-save-api]", error);
         json(res, 500, {
-          error: error instanceof Error ? error.message : "Unexpected workflow save error.",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unexpected workflow save error.",
         });
       }
     });

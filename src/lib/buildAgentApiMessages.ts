@@ -1,26 +1,28 @@
 import type { FileUIPart, ModelMessage, UserModelMessage } from "ai";
 
-export type StoredChatImage = {
-  url: string;
-  mediaType?: string;
+export interface StoredChatImage {
   filename?: string;
-};
+  mediaType?: string;
+  url: string;
+}
 
-type UserMessageInput = {
-  role: "user";
+interface UserMessageInput {
   content: string;
   images?: StoredChatImage[];
-};
+  role: "user";
+}
 
-type AssistantMessageInput = {
-  role: "assistant";
+interface AssistantMessageInput {
   content: string;
-};
+  role: "assistant";
+}
 
 export type ChatMessageForApi = UserMessageInput | AssistantMessageInput;
 
 const isImageFile = (file: FileUIPart): boolean =>
-  Boolean(file.mediaType?.startsWith("image/") || file.url.startsWith("data:image/"));
+  Boolean(
+    file.mediaType?.startsWith("image/") || file.url.startsWith("data:image/")
+  );
 
 export const filePartsToImages = (files: FileUIPart[]): StoredChatImage[] =>
   files.filter(isImageFile).map((file) => ({
@@ -29,7 +31,10 @@ export const filePartsToImages = (files: FileUIPart[]): StoredChatImage[] =>
     filename: file.filename,
   }));
 
-const buildUserContent = (text: string, images: StoredChatImage[]): UserModelMessage["content"] => {
+const buildUserContent = (
+  text: string,
+  images: StoredChatImage[]
+): UserModelMessage["content"] => {
   const trimmed = text.trim();
   const imageParts = images.map((image) => ({
     type: "image" as const,
@@ -40,7 +45,9 @@ const buildUserContent = (text: string, images: StoredChatImage[]): UserModelMes
     return trimmed;
   }
 
-  const parts: Array<{ type: "text"; text: string } | { type: "image"; image: string }> = [];
+  const parts: Array<
+    { type: "text"; text: string } | { type: "image"; image: string }
+  > = [];
 
   parts.push({
     type: "text",
@@ -53,7 +60,9 @@ const buildUserContent = (text: string, images: StoredChatImage[]): UserModelMes
   return parts;
 };
 
-export const buildApiMessages = (messages: ChatMessageForApi[]): ModelMessage[] =>
+export const buildApiMessages = (
+  messages: ChatMessageForApi[]
+): ModelMessage[] =>
   messages.map((message): ModelMessage => {
     if (message.role === "assistant") {
       return { role: "assistant", content: message.content };

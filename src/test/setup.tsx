@@ -11,17 +11,29 @@ import { handlers } from "./handlers";
 // ── Browser API stubs (jsdom doesn't implement these) ─────────────────────────
 if (typeof globalThis.IntersectionObserver === "undefined") {
   globalThis.IntersectionObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    observe() {
+      // noop
+    }
+    unobserve() {
+      // noop
+    }
+    disconnect() {
+      // noop
+    }
   } as unknown as typeof IntersectionObserver;
 }
 
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    observe() {
+      // noop
+    }
+    unobserve() {
+      // noop
+    }
+    disconnect() {
+      // noop
+    }
   } as unknown as typeof ResizeObserver;
 }
 
@@ -104,23 +116,25 @@ vi.mock("@awesome.me/webawesome/dist/react/input/index.js", () => ({
       onChange?.(event);
       onInput?.(event);
     };
+    const parsedMaxLengthFromString =
+      typeof maxlengthProp === "string"
+        ? Number.parseInt(maxlengthProp, 10) || undefined
+        : undefined;
+    const parsedMaxLength =
+      typeof maxlengthProp === "number"
+        ? maxlengthProp
+        : parsedMaxLengthFromString;
 
     return (
       <div>
         {label ? <label htmlFor={fieldId}>{label}</label> : null}
         <input
           id={fieldId}
+          maxLength={parsedMaxLength}
           name={(name as string) ?? fieldId}
+          onChange={handleChange}
           type={type}
           value={(value as string) ?? ""}
-          onChange={handleChange}
-          maxLength={
-            typeof maxlengthProp === "number"
-              ? maxlengthProp
-              : typeof maxlengthProp === "string"
-                ? Number.parseInt(maxlengthProp, 10) || undefined
-                : undefined
-          }
           {...(rest as React.InputHTMLAttributes<HTMLInputElement>)}
         />
       </div>
@@ -163,8 +177,8 @@ vi.mock("@awesome.me/webawesome/dist/react/textarea/index.js", () => ({
         <textarea
           id={fieldId}
           name={(name as string) ?? fieldId}
-          value={(value as string) ?? ""}
           onChange={handleChange}
+          value={(value as string) ?? ""}
           {...(rest as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
         />
       </div>
@@ -194,8 +208,8 @@ vi.mock("@awesome.me/webawesome/dist/react/select/index.js", () => ({
         <select
           id={fieldId}
           name={(name as string) ?? fieldId}
-          value={(value as string) ?? ""}
           onChange={onChange}
+          value={(value as string) ?? ""}
           {...(rest as React.SelectHTMLAttributes<HTMLSelectElement>)}
         >
           {children}
@@ -223,15 +237,15 @@ vi.mock("@awesome.me/webawesome/dist/react/slider/index.js", () => {
       <div>
         {label ? <label htmlFor={fieldId}>{label}</label> : null}
         <input
-          ref={ref}
           id={fieldId}
+          max={max}
+          min={min}
           name={(name as string) ?? fieldId}
+          onChange={onChange}
+          ref={ref}
+          step={step}
           type="range"
           value={value ?? min ?? 0}
-          min={min}
-          max={max}
-          step={step}
-          onChange={onChange}
         />
       </div>
     );
@@ -259,15 +273,15 @@ vi.mock("@awesome.me/webawesome/dist/react/number-input/index.js", () => {
       <div>
         {label ? <label htmlFor={fieldId}>{label}</label> : null}
         <input
-          ref={ref}
           id={fieldId}
+          max={max}
+          min={min}
           name={(name as string) ?? fieldId}
+          onChange={onChange}
+          ref={ref}
+          step={step}
           type="number"
           value={value ?? ""}
-          min={min}
-          max={max}
-          step={step}
-          onChange={onChange}
         />
       </div>
     );
@@ -296,15 +310,18 @@ vi.mock("@awesome.me/webawesome/dist/react/switch/index.js", () => ({
     const fieldId = waFieldId(textLabel, name);
     return (
       <div>
-        {textLabel ? <label htmlFor={fieldId}>{children ?? textLabel}</label> : null}
+        {textLabel ? (
+          <label htmlFor={fieldId}>{children ?? textLabel}</label>
+        ) : null}
         <input
+          aria-checked={Boolean(checked)}
+          aria-label={textLabel}
+          checked={Boolean(checked)}
           id={fieldId}
           name={(name as string) ?? fieldId}
-          type="checkbox"
-          role="switch"
-          checked={Boolean(checked)}
           onChange={onChange}
-          aria-label={textLabel}
+          role="switch"
+          type="checkbox"
         />
       </div>
     );
@@ -330,9 +347,9 @@ vi.mock("@awesome.me/webawesome/dist/react/color-picker/index.js", () => ({
         <input
           id={fieldId}
           name={(name as string) ?? fieldId}
+          onChange={onChange}
           type="color"
           value={value ?? "#000000"}
-          onChange={onChange}
         />
       </div>
     );
@@ -340,26 +357,37 @@ vi.mock("@awesome.me/webawesome/dist/react/color-picker/index.js", () => ({
 }));
 
 vi.mock("@awesome.me/webawesome/dist/react/option/index.js", () => ({
-  default: ({ value, children }: { value?: string; children?: React.ReactNode }) => (
-    <option value={value}>{children}</option>
-  ),
+  default: ({
+    value,
+    children,
+  }: {
+    value?: string;
+    children?: React.ReactNode;
+  }) => <option value={value}>{children}</option>,
 }));
 
 // Mapbox Address Autofill mounts a custom element that crashes jsdom on unmount;
 // render its children (the native address input) directly in tests.
 vi.mock("@mapbox/search-js-react", () => ({
-  AddressAutofill: ({ children }: { children?: React.ReactNode }) => children ?? null,
+  AddressAutofill: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 vi.mock("../components/TransitionLink", () => ({
-  TransitionLink: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
+  TransitionLink: ({
+    children,
+    to,
+  }: {
+    children: React.ReactNode;
+    to: string;
+  }) => <a href={to}>{children}</a>,
 }));
 
 vi.mock("../components/GoogleAuthGate", () => ({
-  GoogleAuthGate: ({ children }: { children?: React.ReactNode }) => children ?? null,
-  GoogleAuthGateProvider: ({ children }: { children?: React.ReactNode }) => children,
+  GoogleAuthGate: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
+  GoogleAuthGateProvider: ({ children }: { children?: React.ReactNode }) =>
+    children,
   GoogleAuthFooterTrigger: () => null,
 }));
 
@@ -377,9 +405,9 @@ vi.mock("@awesome.me/webawesome/dist/react/button/index.js", () => ({
     disabled?: boolean;
   } & Record<string, unknown>) => (
     <button
+      disabled={disabled}
       onClick={onClick}
       type={type ?? "button"}
-      disabled={disabled}
       {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
     >
       {children}

@@ -2,27 +2,27 @@
 
 .sim {
   min-height: 100vh;
-  background: var(--studio-tool-bg);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-bg);
 }
 
 .sim__header {
   display: flex;
+  gap: var(--studio-tool-space-md);
   align-items: center;
   justify-content: space-between;
-  gap: var(--studio-tool-space-md);
   padding: var(--studio-tool-space-lg) 1.5rem;
-  border-bottom: 1px solid var(--studio-tool-border);
   background: var(--studio-tool-surface);
+  border-bottom: 1px solid var(--studio-tool-border);
 }
 
 .sim__header p {
   margin: 0 0 0.25rem;
-  color: var(--studio-tool-accent);
   font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  color: var(--studio-tool-accent);
   text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .sim__header h1 {
@@ -44,28 +44,28 @@
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .sim__alert,
 .sim__notice {
-  margin: var(--studio-tool-space-md) 1.5rem 0;
   padding: 0.85rem var(--studio-tool-space-md);
-  border-radius: var(--studio-tool-radius-md);
+  margin: var(--studio-tool-space-md) 1.5rem 0;
   font-weight: 750;
+  border-radius: var(--studio-tool-radius-md);
 }
 
 .sim__alert {
-  border: 1px solid var(--studio-tool-alert-border);
-  background: var(--studio-tool-alert-bg);
   color: var(--studio-tool-alert-text);
+  background: var(--studio-tool-alert-bg);
+  border: 1px solid var(--studio-tool-alert-border);
 }
 
 .sim__notice {
-  border: 1px solid var(--studio-tool-notice-border);
-  background: var(--studio-tool-notice-bg);
   color: var(--studio-tool-notice-text);
+  background: var(--studio-tool-notice-bg);
+  border: 1px solid var(--studio-tool-notice-border);
 }
 
 .sim__workspace {
@@ -78,9 +78,9 @@
 .sim__library,
 .sim__detail {
   min-width: 0;
+  background: var(--studio-tool-panel);
   border: 1px solid var(--studio-tool-border);
   border-radius: var(--studio-tool-radius-lg);
-  background: var(--studio-tool-panel);
   box-shadow: 0 1.25rem 4rem var(--studio-tool-shadow);
 }
 
@@ -95,10 +95,10 @@
 
 .sim__count {
   padding: 0.7rem var(--studio-tool-space-md);
-  border-bottom: 1px solid var(--studio-tool-border);
-  color: var(--studio-tool-muted);
   font-size: 0.85rem;
   font-weight: 750;
+  color: var(--studio-tool-muted);
+  border-bottom: 1px solid var(--studio-tool-border);
 }
 
 .sim__grid {
@@ -106,18 +106,18 @@
   grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
   gap: 0.7rem;
   max-height: calc(100vh - 14rem);
-  overflow: auto;
   padding: var(--studio-tool-space-md);
+  overflow: auto;
 }
 
 .sim__tile {
-  overflow: hidden;
   width: 100%;
   min-block-size: 60px;
+  overflow: hidden;
+  text-align: left;
+  background: var(--studio-tool-empty-bg);
   border: 1px solid var(--studio-tool-border);
   border-radius: 0.55rem;
-  background: var(--studio-tool-empty-bg);
-  text-align: left;
 }
 
 .sim__tile::part(base) {
@@ -125,9 +125,9 @@
   width: 100%;
   min-height: 0;
   padding: 0;
-  border: 0;
-  background: transparent;
   color: inherit;
+  background: transparent;
+  border: 0;
   transition:
     background-color var(--wa-transition-fast) var(--wa-transition-easing),
     color var(--wa-transition-fast) var(--wa-transition-easing);
@@ -136,8 +136,8 @@
 .sim__tile::part(label) {
   display: grid;
   gap: 0.4rem;
-  width: 100%;
   justify-items: stretch;
+  width: 100%;
   text-align: left;
 }
 
@@ -147,8 +147,8 @@
 }
 
 .sim__tile:not([disabled]):hover::part(base) {
-  background: var(--studio-tool-brand-ring);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-brand-ring);
 }
 
 .sim__tile.is-selected {
@@ -159,24 +159,24 @@
 .sim__tile img {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: var(--studio-tool-radius-sm);
-  background: var(--studio-tool-image-bg);
   object-fit: cover;
+  background: var(--studio-tool-image-bg);
+  border-radius: var(--studio-tool-radius-sm);
 }
 
 .sim__tile span,
 .sim__tile small {
   display: block;
-  overflow: hidden;
   padding-inline: 0.55rem;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sim__tile small {
   padding-bottom: 0.55rem;
-  color: var(--studio-tool-muted);
   font-size: 0.75rem;
+  color: var(--studio-tool-muted);
 }
 
 .sim__tile span {
@@ -213,18 +213,18 @@
   display: block;
   max-width: 100%;
   max-height: calc(100vh - 12rem);
+  object-fit: contain;
   border-radius: 0.5rem;
   box-shadow: 0 1.25rem 4rem var(--studio-tool-shadow);
-  object-fit: contain;
 }
 
 .sim__panel {
   display: grid;
-  align-content: start;
   gap: var(--studio-tool-space-md);
+  align-content: start;
   max-height: calc(100vh - 8rem);
-  overflow: auto;
   padding: var(--studio-tool-space-lg);
+  overflow: auto;
   border-left: 1px solid var(--studio-tool-border);
 }
 
@@ -242,9 +242,9 @@
 
 .sim__summary p {
   margin: 0.3rem 0 0;
-  color: var(--studio-tool-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.75rem;
+  color: var(--studio-tool-muted);
   overflow-wrap: anywhere;
 }
 
@@ -257,24 +257,24 @@
 
 .sim__meta div {
   padding: 0.75rem;
+  background: var(--studio-tool-panel);
   border: 1px solid var(--studio-tool-border);
   border-radius: var(--studio-tool-radius-md);
-  background: var(--studio-tool-panel);
 }
 
 .sim__meta dt {
   margin-bottom: 0.25rem;
-  color: var(--studio-tool-muted);
   font-size: 0.62rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  color: var(--studio-tool-muted);
   text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .sim__meta dd {
   margin: 0;
-  font-weight: 700;
   font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .sim__form {
@@ -299,8 +299,8 @@
 .sim__references ul {
   display: grid;
   gap: 0.5rem;
-  margin: 0;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
@@ -308,9 +308,9 @@
   display: grid;
   gap: 0.2rem;
   padding: 0.65rem;
+  background: var(--studio-tool-surface);
   border: 1px solid var(--studio-tool-border);
   border-radius: 0.4rem;
-  background: var(--studio-tool-surface);
 }
 
 .sim__references span {
@@ -327,8 +327,8 @@
 
 .sim__empty,
 .sim__empty-detail {
-  color: var(--studio-tool-muted);
   font-weight: 800;
+  color: var(--studio-tool-muted);
 }
 
 .sim__empty {
@@ -337,8 +337,8 @@
 
 .sim__empty-detail {
   display: grid;
-  min-height: calc(100vh - 9rem);
   place-items: center;
+  min-height: calc(100vh - 9rem);
 }
 
 @media (width <= 76rem) {
@@ -357,15 +357,15 @@
   }
 
   .sim__panel {
-    border-left: 0;
     border-top: 1px solid var(--studio-tool-border);
+    border-left: 0;
   }
 }
 
 @media (width <= 48rem) {
   .sim__header {
-    align-items: stretch;
     flex-direction: column;
+    align-items: stretch;
   }
 
   .sim__actions,

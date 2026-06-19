@@ -8,24 +8,24 @@ export type PostCategory =
   | "texas-homeowners";
 
 /** Singleton CMS document for /articles (heading, intro, SEO). */
-export type ArticlesPageDoc = {
-  pageTitle?: string | null;
+export interface ArticlesPageDoc {
   intro?: PortableTextBlock[] | null;
-  seoTitle?: string | null;
+  pageTitle?: string | null;
   seoDescription?: string | null;
-};
+  seoTitle?: string | null;
+}
 
-export type PostListItem = {
+export interface PostListItem {
   _id: string;
-  title: string;
-  slug: string;
-  publishedAt?: string;
-  excerpt?: string;
-  category?: PostCategory | string;
-  seoDescription?: string;
   authorName?: string;
+  category?: PostCategory | string;
+  excerpt?: string;
   image?: string;
-};
+  publishedAt?: string;
+  seoDescription?: string;
+  slug: string;
+  title: string;
+}
 
 export type PostDetail = PostListItem & {
   /** Sanity `blockContent` or plain string */

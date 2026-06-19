@@ -4,7 +4,8 @@ const RESPONSE_AGENT_CONFIG: AgentConfig = {
   endpoint: "/api/response-agent",
   agentSlug: "response-agent",
   pageTitle: "Response Agent | Tandra Peters",
-  pageDescription: "Draft on-brand Nextdoor replies from a link, screenshot, or pasted thread.",
+  pageDescription:
+    "Draft on-brand Nextdoor replies from a link, screenshot, or pasted thread.",
   eyebrow: "",
   title: "",
   subtitle: "",
@@ -18,4 +19,6 @@ const RESPONSE_AGENT_CONFIG: AgentConfig = {
   supportsVision: true,
 };
 
-export const ResponseAgentPage = () => <AgentChatPage config={RESPONSE_AGENT_CONFIG} />;
+export const ResponseAgentPage = () => (
+  <AgentChatPage config={RESPONSE_AGENT_CONFIG} />
+);

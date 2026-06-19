@@ -1,6 +1,6 @@
 import { ArrowRight } from "iconoir-react";
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { theme } from "../../theme";
 import { primaryButtonStyle } from "./styles";
@@ -10,8 +10,8 @@ interface EstimatorIntroProps {
     startButtonLabel?: string;
     totalSteps: number;
   };
-  onStart: () => void;
   direction: number;
+  onStart: () => void;
   slideVariants: React.ComponentProps<typeof motion.div>["variants"];
 }
 
@@ -22,23 +22,24 @@ export const EstimatorIntro = ({
   slideVariants,
 }: EstimatorIntroProps) => (
   <motion.div
-    key="intro"
-    custom={direction}
-    variants={slideVariants}
-    initial="enter"
     animate="center"
+    custom={direction}
     exit="exit"
+    initial="enter"
+    key="intro"
     transition={{ duration: 0.3 }}
+    variants={slideVariants}
   >
     <h2 style={cardHeadingStyle}>Ready for a ballpark?</h2>
     <p style={helpStyle}>
-      {content.totalSteps} quick question{content.totalSteps === 1 ? "" : "s"}, about a minute.
+      {content.totalSteps} quick question{content.totalSteps === 1 ? "" : "s"},
+      about a minute.
       {" You'll see an honest price range at the end - no obligation."}
     </p>
 
-    <button type="button" onClick={onStart} style={primaryButtonStyle}>
+    <button onClick={onStart} style={primaryButtonStyle} type="button">
       <span>{content.startButtonLabel ?? "Estimate my roof"}</span>
-      <ArrowRight width={18} height={18} />
+      <ArrowRight height={18} width={18} />
     </button>
   </motion.div>
 );

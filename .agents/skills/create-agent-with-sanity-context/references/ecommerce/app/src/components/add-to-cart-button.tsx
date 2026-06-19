@@ -10,7 +10,7 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({ disabled }: AddToCartButtonProps) {
   return (
-    <Button disabled={disabled} size="lg" className="w-full">
+    <Button className="w-full" disabled={disabled} size="lg">
       <ShoppingBag className="h-4 w-4" />
       Add to Cart
     </Button>

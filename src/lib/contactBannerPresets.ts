@@ -1,6 +1,5 @@
-import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
-
 import { Calculator, HelpCircle, Phone } from "iconoir-react";
+import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
 
 import { mix, theme } from "../theme";
 
@@ -8,48 +7,48 @@ export type ContactBannerCtaIcon = ForwardRefExoticComponent<
   Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>
 >;
 
-export type ContactBannerProps = {
-  eyebrow?: string;
-  headline?: string;
-  phoneLabel?: string;
-  phoneDisplay?: string;
-  phoneTel?: string;
-  /** Defaults to `tel:${phoneTel}` when omitted. */
-  phoneHref?: string;
-  /** Icon inside the CTA pill. Defaults to `Phone`. */
-  ctaIcon?: ContactBannerCtaIcon;
+export interface ContactBannerProps {
+  accentGlowColor?: string;
   /** Accessible name for the outer `<section>`. */
   ariaLabel?: string;
-  /** Accessible name for the CTA link. Defaults to "Call or text {phoneDisplay}". */
-  phoneAriaLabel?: string;
-  className?: string;
   backgroundColor?: string;
-  textColor?: string;
+  className?: string;
+  /** Icon inside the CTA pill. Defaults to `Phone`. */
+  ctaIcon?: ContactBannerCtaIcon;
+  eyebrow?: string;
   eyebrowColor?: string;
   eyebrowColorLight?: string;
-  accentGlowColor?: string;
+  /** Grid line color for the banner background texture. Defaults to a subtle mix of `textColor`. */
+  gridColor?: string;
+  headline?: string;
   iconColor?: string;
-  iconColorLight?: string;
   iconColorDark?: string;
+  iconColorLight?: string;
   iconColorVeryDark?: string;
+  /** Accessible name for the CTA link. Defaults to "Call or text {phoneDisplay}". */
+  phoneAriaLabel?: string;
+  phoneDisplay?: string;
+  /** Defaults to `tel:${phoneTel}` when omitted. */
+  phoneHref?: string;
+  phoneIconBackground?: string;
+  phoneIconHoverBackground?: string;
+  phoneLabel?: string;
   phoneLinkBackground?: string;
   /** CTA pill background on hover/focus. */
   phoneLinkHoverBackground?: string;
-  /** CTA pill box-shadow on hover/focus. */
-  phoneLinkHoverShadow?: string;
-  /** CTA pill focus outline color on hover/focus. */
-  phoneLinkHoverOutline?: string;
-  /** CTA main text (phone number / link title) on hover/focus. Defaults to `textColor`. */
-  phoneLinkHoverTextColor?: string;
   /** CTA label text ("Call or text", etc.) on hover/focus. Defaults to `iconColorLight` or `textColor`. */
   phoneLinkHoverLabelColor?: string;
-  phoneIconBackground?: string;
-  phoneIconHoverBackground?: string;
+  /** CTA pill focus outline color on hover/focus. */
+  phoneLinkHoverOutline?: string;
+  /** CTA pill box-shadow on hover/focus. */
+  phoneLinkHoverShadow?: string;
+  /** CTA main text (phone number / link title) on hover/focus. Defaults to `textColor`. */
+  phoneLinkHoverTextColor?: string;
+  phoneTel?: string;
   pulseColor?: string;
   pulsePingColor?: string;
-  /** Grid line color for the banner background texture. Defaults to a subtle mix of `textColor`. */
-  gridColor?: string;
-};
+  textColor?: string;
+}
 
 export const CONTACT_BANNER_DEFAULT_PHONE_DISPLAY = "(512) 968-3965";
 export const CONTACT_BANNER_DEFAULT_PHONE_TEL = "+15129683965";
@@ -64,6 +63,7 @@ export const CONTACT_BANNER_FREE_INSPECTION: ContactBannerProps = {
   phoneLinkBackground: mix(theme.colors.everglade, 40),
   phoneLinkHoverBackground: mix(theme.colors.black, 60),
   phoneLinkHoverShadow: mix(theme.colors.white, 15),
+  accentGlowColor: theme.colors.black,
 };
 
 /** Homepage → /estimate CTA. Copy is overridden from the estimatorPage CMS doc. */

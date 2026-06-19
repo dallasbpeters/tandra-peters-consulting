@@ -1,24 +1,25 @@
-import type { PortableTextBlock } from "@portabletext/types";
-
-import { createClient } from "@sanity/client";
-import { config } from "dotenv";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-
-import type { PostDetail } from "../../src/types/article";
-
+import type { PortableTextBlock } from "@portabletext/types";
+import { createClient } from "@sanity/client";
+import { config } from "dotenv";
 import { buildArticleFaqProps } from "../../src/article/buildArticleFaq";
+import type { PostDetail } from "../../src/types/article";
 import { blocksFromParagraphs } from "./blocksFromText";
 
 const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 config({ path: resolve(studioRoot, ".env"), quiet: true });
-config({ path: resolve(studioRoot, ".env.local"), override: true, quiet: true });
+config({
+  path: resolve(studioRoot, ".env.local"),
+  override: true,
+  quiet: true,
+});
 
 const token = process.env.SANITY_API_WRITE_TOKEN?.trim();
 if (!token) {
   console.error(
-    "Missing SANITY_API_WRITE_TOKEN. Add it to studio-tandra-peters/.env.local or export it in the shell.",
+    "Missing SANITY_API_WRITE_TOKEN. Add it to studio-tandra-peters/.env.local or export it in the shell."
   );
   process.exit(1);
 }
@@ -33,12 +34,12 @@ const client = createClient({
   useCdn: false,
 });
 
-type SanityFaqItem = {
+interface SanityFaqItem {
   _key: string;
   _type: "faqItem";
-  question: string;
   answer: PortableTextBlock[];
-};
+  question: string;
+}
 
 type PostSeedInput = PostDetail & {
   _id: string;
@@ -66,7 +67,10 @@ const postsQuery = `
   }
 `;
 
-const toBlocks = (value: PortableTextBlock[] | string | null | undefined, keyPrefix: string) => {
+const toBlocks = (
+  value: PortableTextBlock[] | string | null | undefined,
+  keyPrefix: string
+) => {
   if (Array.isArray(value)) {
     return value;
   }
@@ -76,7 +80,8 @@ const toBlocks = (value: PortableTextBlock[] | string | null | undefined, keyPre
 };
 
 const hasAuthoredFaqItems = (post: PostSeedInput) =>
-  Array.isArray(post.faq?.items) && post.faq!.items!.some((item) => item?.question?.trim());
+  Array.isArray(post.faq?.items) &&
+  post.faq?.items?.some((item) => item?.question?.trim());
 
 const toSanityFaq = (post: PostSeedInput) => {
   const faq = buildArticleFaqProps({ ...post, faq: undefined });
@@ -92,20 +97,24 @@ const toSanityFaq = (post: PostSeedInput) => {
   return {
     tagline: faq.tagline ?? "Article FAQ",
     title: faq.title ?? "Common questions homeowners ask next",
-    ...(faq.intro ? { intro: toBlocks(faq.intro, `${post._id}-faq-intro`) ?? [] } : {}),
+    ...(faq.intro
+      ? { intro: toBlocks(faq.intro, `${post._id}-faq-intro`) ?? [] }
+      : {}),
     items,
   };
 };
 
 async function main() {
   const posts = await client.fetch<PostSeedInput[]>(postsQuery);
-  const targets = posts.filter((post) => overwrite || !hasAuthoredFaqItems(post));
+  const targets = posts.filter(
+    (post) => overwrite || !hasAuthoredFaqItems(post)
+  );
 
   if (targets.length === 0) {
     console.log(
       overwrite
         ? "No post documents found to overwrite."
-        : "All post documents already have authored FAQ items. Use --overwrite to replace them.",
+        : "All post documents already have authored FAQ items. Use --overwrite to replace them."
     );
     return;
   }
@@ -123,7 +132,7 @@ async function main() {
   await tx.commit();
 
   console.log(
-    `${overwrite ? "Overwrote" : "Seeded"} FAQ content on ${targets.length} post documents.`,
+    `${overwrite ? "Overwrote" : "Seeded"} FAQ content on ${targets.length} post documents.`
   );
 }
 

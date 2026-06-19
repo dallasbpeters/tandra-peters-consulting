@@ -1,17 +1,15 @@
-import type { CSSProperties } from "react";
-
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
-import React, { useRef } from "react";
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useRef } from "react";
 // Plugins registered once in main.tsx — do not re-register here.
-import { Shader, ChromaFlow, Dither, ImageTexture } from "shaders/react";
-
-import type { HeroProps } from "../../types";
-
+import { ChromaFlow, Dither, ImageTexture, Shader } from "shaders/react";
 import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { theme } from "../../theme";
+import type { HeroProps } from "../../types";
 import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
 const STATS = [
@@ -26,11 +24,11 @@ const optimized = (url: string, w: number) =>
 
 function ShaderEffect({ src, style }: { src: string; style: CSSProperties }) {
   return (
-    <Shader style={style} className="sky">
+    <Shader className="sky" style={style}>
       <ChromaFlow
-        id="idmostv5d9xi2rmvn45"
         baseColor="#ffffff"
         downColor="#ffffff"
+        id="idmostv5d9xi2rmvn45"
         intensity={0.6}
         leftColor="#ffffff"
         momentum={60}
@@ -44,9 +42,9 @@ function ShaderEffect({ src, style }: { src: string; style: CSSProperties }) {
 
       {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
       <Dither
-        id="heroPillDither"
         colorA="#2e73b3"
         colorB="#c3d5e3"
+        id="heroPillDither"
         pattern="bayer8"
         pixelSize={2}
         threshold={{
@@ -120,7 +118,7 @@ export const HeroPillNav: React.FC<HeroProps> = ({
         }
       });
     },
-    { scope: sectionRef },
+    { scope: sectionRef }
   );
 
   const styles: Record<string, CSSProperties> = {
@@ -241,7 +239,9 @@ export const HeroPillNav: React.FC<HeroProps> = ({
     },
     h1: {
       fontFamily: theme.fonts.headline,
-      fontSize: isMobile ? "clamp(3rem, 12vw, 5rem)" : "clamp(4rem, 10vw, 12rem)",
+      fontSize: isMobile
+        ? "clamp(3rem, 12vw, 5rem)"
+        : "clamp(4rem, 10vw, 12rem)",
       fontWeight: 800,
       lineHeight: 0.9,
       letterSpacing: "-0.04em",
@@ -297,19 +297,19 @@ export const HeroPillNav: React.FC<HeroProps> = ({
   const copyEl = subtitle ? (
     <div style={styles.copyText}>
       <RichText
-        value={subtitle}
         paragraphStyle={{
           fontSize: "inherit",
           color: "inherit",
           lineHeight: "inherit",
           textAlign: "center",
         }}
+        value={subtitle}
       />
     </div>
   ) : (
     <p style={styles.copyText}>
-      Our goal is to help Texas homeowners navigate the roof replacement process—making it easier
-      and less stressful from start to finish.
+      Our goal is to help Texas homeowners navigate the roof replacement
+      process—making it easier and less stressful from start to finish.
     </p>
   );
 
@@ -338,7 +338,14 @@ export const HeroPillNav: React.FC<HeroProps> = ({
       )}
       <div style={styles.overlay} />
       {foregroundImage && (
-        <img ref={houseRef} aria-hidden="true" alt="" src={foregroundImage} style={styles.house} />
+        // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+        <img
+          alt=""
+          aria-hidden="true"
+          ref={houseRef}
+          src={foregroundImage}
+          style={styles.house}
+        />
       )}
 
       {isMobile ? (

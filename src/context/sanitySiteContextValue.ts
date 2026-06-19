@@ -2,11 +2,13 @@ import { createContext } from "react";
 
 import type { HomeDocuments } from "../hooks/useSanityHomeContent";
 
-export type SanitySiteContextValue = {
+export interface SanitySiteContextValue {
   data: HomeDocuments | null;
-  loading: boolean;
   error: Error | null;
-  refetch: () => Promise<void>;
-};
+  loading: boolean;
+  refetch: () => void;
+}
 
-export const SanitySiteContext = createContext<SanitySiteContextValue | null>(null);
+export const SanitySiteContext = createContext<SanitySiteContextValue | null>(
+  null
+);

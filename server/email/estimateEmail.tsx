@@ -1,10 +1,9 @@
-import type { CSSProperties } from "react";
-
 /** @jsxRuntime automatic */
 /** @jsxImportSource react */
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
@@ -14,11 +13,11 @@ import {
   Link,
   Preview,
   Row,
-  Column,
   Section,
   Text,
 } from "@react-email/components";
 import { render } from "@react-email/render";
+import type { CSSProperties } from "react";
 
 import type { EmailAssets, EstimateSubmission } from "./types.js";
 
@@ -34,7 +33,8 @@ const colors = {
 
 const main: CSSProperties = {
   backgroundColor: colors.page,
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   margin: 0,
   padding: "24px 0",
 };
@@ -91,10 +91,16 @@ const legal: CSSProperties = {
   margin: "20px 0 0",
 };
 
-const AnswerRows = ({ answers }: { answers: EstimateSubmission["answers"] }) => (
+const WHITESPACE_RE = /\s+/;
+
+const AnswerRows = ({
+  answers,
+}: {
+  answers: EstimateSubmission["answers"];
+}) => (
   <Section style={{ margin: "0 0 8px" }}>
-    {answers.map((row, i) => (
-      <Row key={i}>
+    {answers.map((row) => (
+      <Row key={row.prompt}>
         <Column style={labelCell}>{row.prompt}</Column>
         <Column style={valueCell}>{row.answer}</Column>
       </Row>
@@ -120,7 +126,8 @@ export const EstimateEmail = ({
   variant: Variant;
   scheduleUrl?: string;
 }) => {
-  const firstName = submission.fullName.trim().split(/\s+/)[0] || "there";
+  const firstName =
+    submission.fullName.trim().split(WHITESPACE_RE)[0] || "there";
   const isVisitor = variant === "visitor";
 
   const previewText = isVisitor
@@ -135,9 +142,9 @@ export const EstimateEmail = ({
         <Container style={container}>
           <Section style={{ padding: "24px 36px 0" }}>
             <Img
-              src={assets.headerLogoUrl}
-              height="60"
               alt="Birdcreek Roofing"
+              height="60"
+              src={assets.headerLogoUrl}
               style={{ display: "block" }}
             />
           </Section>
@@ -152,7 +159,9 @@ export const EstimateEmail = ({
                 lineHeight: "28px",
               }}
             >
-              {isVisitor ? `Here's your rough estimate, ${firstName}` : "New estimate lead"}
+              {isVisitor
+                ? `Here's your rough estimate, ${firstName}`
+                : "New estimate lead"}
             </Heading>
             <Text
               style={{
@@ -209,8 +218,12 @@ export const EstimateEmail = ({
                     Schedule a free inspection
                   </Button>
                 </Section>
-                <Hr style={{ borderColor: colors.border, margin: "22px 0 0" }} />
-                <Text style={legal}>— Tandra Peters, Roofing Consultant · Birdcreek Roofing</Text>
+                <Hr
+                  style={{ borderColor: colors.border, margin: "22px 0 0" }}
+                />
+                <Text style={legal}>
+                  — Tandra Peters, Roofing Consultant · Birdcreek Roofing
+                </Text>
               </>
             ) : (
               <>
@@ -222,10 +235,15 @@ export const EstimateEmail = ({
                     Reply to {firstName}
                   </Button>
                 </Section>
-                <Hr style={{ borderColor: colors.border, margin: "22px 0 0" }} />
+                <Hr
+                  style={{ borderColor: colors.border, margin: "22px 0 0" }}
+                />
                 <Text style={legal}>
                   Reach {firstName} at{" "}
-                  <Link href={`mailto:${submission.email}`} style={{ color: colors.accent }}>
+                  <Link
+                    href={`mailto:${submission.email}`}
+                    style={{ color: colors.accent }}
+                  >
                     {submission.email}
                   </Link>
                   . A copy of this estimate was also emailed to them.
@@ -242,8 +260,11 @@ export const EstimateEmail = ({
 export const renderEstimateEmail = (
   submission: EstimateSubmission,
   assets: EmailAssets,
-  variant: Variant,
+  variant: Variant
 ) =>
-  render(<EstimateEmail submission={submission} assets={assets} variant={variant} />, {
-    pretty: false,
-  });
+  render(
+    <EstimateEmail assets={assets} submission={submission} variant={variant} />,
+    {
+      pretty: false,
+    }
+  );

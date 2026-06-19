@@ -1,26 +1,26 @@
-import type { CSSProperties } from "react";
-
 import { NavArrowRight } from "iconoir-react";
 import { motion } from "motion/react";
-
-import type { ArticlesTeaserProps } from "../types";
-
+import type { CSSProperties } from "react";
 import { FALLBACK_ARTICLE_COVER } from "../article/postCoverImage";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
+import type { ArticlesTeaserProps } from "../types";
 import { ArticleCardSharedStyles } from "./ArticleCardSharedStyles";
 import { ArticleGridCard } from "./ArticleGridCard";
 import { TransitionLink } from "./TransitionLink";
 
 const DEFAULT_EYEBROW = "Guides & insights";
 const DEFAULT_TITLE = "Roofing articles";
-const DEFAULT_INTRO = "Latest guides on replacement, insurance, and caring for your Texas roof.";
+const DEFAULT_INTRO =
+  "Latest guides on replacement, insurance, and caring for your Texas roof.";
 const DEFAULT_VIEW_ALL = "View all articles";
 
 const studioUrl =
   import.meta.env.VITE_SANITY_STUDIO_URL?.trim() ||
-  (import.meta.env.PROD ? "https://www.tandra.me/studio" : "http://localhost:3333");
+  (import.meta.env.PROD
+    ? "https://www.tandra.me/studio"
+    : "http://localhost:3333");
 
 export const ArticlesTeaser = ({
   posts,
@@ -68,19 +68,19 @@ export const ArticlesTeaser = ({
 
   return (
     <section
-      id="articles"
-      className={layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby="articles-heading"
+      className={layoutClass.sectionPadded}
+      id="articles"
+      style={sectionStyle}
     >
       <ArticleCardSharedStyles />
       <div className={layoutClass.containerWide}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={headerStyle}
           className="articles-teaser-md-row"
+          initial={{ opacity: 0, y: 20 }}
+          style={headerStyle}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <div style={{ maxWidth: "42rem" }}>
             <span
@@ -124,7 +124,6 @@ export const ArticlesTeaser = ({
           >
             <div style={{ margin: 0, textAlign: "right", width: "100%" }}>
               <RichText
-                value={intro ?? DEFAULT_INTRO}
                 flow="heading"
                 paragraphStyle={{
                   margin: 0,
@@ -132,11 +131,10 @@ export const ArticlesTeaser = ({
                   lineHeight: 1.6,
                   fontSize: "1.1rem",
                 }}
+                value={intro ?? DEFAULT_INTRO}
               />
             </div>
             <TransitionLink
-              to="/articles"
-              viewTransition
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -151,19 +149,41 @@ export const ArticlesTeaser = ({
                 borderBottom: `2px solid ${theme.colors.accent}`,
                 paddingBottom: theme.spacing.micro,
               }}
+              to="/articles"
+              viewTransition
             >
               {viewAllLabel}
-              <NavArrowRight width={16} height={16} strokeWidth={2} aria-hidden />
+              <NavArrowRight
+                aria-hidden
+                height={16}
+                strokeWidth={2}
+                width={16}
+              />
             </TransitionLink>
           </div>
         </motion.div>
 
-        {!hasPosts ? (
+        {hasPosts ? (
+          <div className="articles-cards-grid" style={gridStyle}>
+            {displayPosts.map((p, i) => (
+              <div
+                className="articles-cards-grid-item"
+                key={p._id}
+                style={{ minWidth: 0 }}
+              >
+                <ArticleGridCard
+                  cardIndex={i}
+                  layout={i === 0 ? "featured" : "standard"}
+                  post={p}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
             className="articles-teaser-card"
+            initial={{ opacity: 0, y: 16 }}
             style={{
               ...cardBaseStyle,
               minHeight: "320px",
@@ -171,18 +191,20 @@ export const ArticlesTeaser = ({
               marginLeft: "auto",
               marginRight: "auto",
             }}
+            transition={{ duration: 0.5 }}
           >
             <div
+              aria-hidden
+              className="articles-teaser-card-bg"
               style={{
                 position: "absolute",
                 inset: 0,
               }}
-              className="articles-teaser-card-bg"
-              aria-hidden
             >
+              {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
               <img
-                src={FALLBACK_ARTICLE_COVER}
                 alt=""
+                src={FALLBACK_ARTICLE_COVER}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -213,8 +235,9 @@ export const ArticlesTeaser = ({
                 }}
               >
                 The homepage reads the latest{" "}
-                <strong style={{ color: theme.colors.white }}>post</strong> documents from Sanity.
-                Publish at least one article in Studio, or seed demo posts from the studio project.
+                <strong style={{ color: theme.colors.white }}>post</strong>{" "}
+                documents from Sanity. Publish at least one article in Studio,
+                or seed demo posts from the studio project.
               </p>
               <p
                 style={{
@@ -226,12 +249,12 @@ export const ArticlesTeaser = ({
               >
                 <a
                   href={studioUrl}
-                  target="_blank"
                   rel="noopener noreferrer"
                   style={{
                     color: theme.colors.accentLight,
                     fontWeight: 800,
                   }}
+                  target="_blank"
                 >
                   Open Sanity Studio
                 </a>
@@ -242,24 +265,15 @@ export const ArticlesTeaser = ({
                     <code style={{ color: theme.colors.accentLight }}>
                       studio-tandra-peters
                     </code>{" "}
-                    run <code style={{ color: theme.colors.accentLight }}>pnpm seed:posts</code>
+                    run{" "}
+                    <code style={{ color: theme.colors.accentLight }}>
+                      pnpm seed:posts
+                    </code>
                   </>
                 ) : null}
               </p>
             </div>
           </motion.div>
-        ) : (
-          <div style={gridStyle} className="articles-cards-grid">
-            {displayPosts.map((p, i) => (
-              <div key={p._id} className="articles-cards-grid-item" style={{ minWidth: 0 }}>
-                <ArticleGridCard
-                  post={p}
-                  cardIndex={i}
-                  layout={i === 0 ? "featured" : "standard"}
-                />
-              </div>
-            ))}
-          </div>
         )}
       </div>
     </section>

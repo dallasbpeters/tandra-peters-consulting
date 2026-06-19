@@ -1,9 +1,7 @@
-import React from "react";
-
-import type { HeroProps, NavProps } from "../types";
-
+import type React from "react";
 import { useHeroBannerVariant } from "../hooks/useHeroBannerVariant";
-import { NavDualCTARail } from "./hero/NavDualCTARail";
+import type { HeroProps, NavProps } from "../types";
+import { NavDualCTARail } from "./hero/NavDualCtaRail";
 import { NavGlassOverlay } from "./hero/NavGlassOverlay";
 import { NavPillNav } from "./hero/NavPillNav";
 import { Nav } from "./Nav";
@@ -19,16 +17,19 @@ type NavVariantProps = NavProps & {
  *
  * Drop-in replacement for <Nav> inside SitePageChrome.
  */
-export const NavVariant: React.FC<NavVariantProps> = ({ heroStyle, ...navProps }) => {
+export const NavVariant: React.FC<NavVariantProps> = ({
+  heroStyle,
+  ...navProps
+}) => {
   const { variant, isResolved } = useHeroBannerVariant(heroStyle);
 
   if (!variant) {
     if (!isResolved) {
       return (
         <div
+          aria-hidden
           className="site-nav-vt"
           style={{ minHeight: "4.5rem", visibility: "hidden" }}
-          aria-hidden
         />
       );
     }
@@ -36,9 +37,15 @@ export const NavVariant: React.FC<NavVariantProps> = ({ heroStyle, ...navProps }
     return <Nav {...navProps} />;
   }
 
-  if (variant === "glass-overlay") return <NavGlassOverlay {...navProps} />;
-  if (variant === "dual-cta-rail") return <NavDualCTARail {...navProps} />;
-  if (variant === "dark-floating-pill") return <NavPillNav {...navProps} />;
+  if (variant === "glass-overlay") {
+    return <NavGlassOverlay {...navProps} />;
+  }
+  if (variant === "dual-cta-rail") {
+    return <NavDualCTARail {...navProps} />;
+  }
+  if (variant === "dark-floating-pill") {
+    return <NavPillNav {...navProps} />;
+  }
 
   return <Nav {...navProps} />;
 };

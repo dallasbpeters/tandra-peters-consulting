@@ -8,38 +8,41 @@ const classificationSchema = z.object({
   summary: z
     .string()
     .describe(
-      "A brief factual summary of what the user asked for. Just state the request, no judgment or commentary.",
+      "A brief factual summary of what the user asked for. Just state the request, no judgment or commentary."
     ),
   successRate: z
     .number()
     .describe(
-      "0-100 score: Did the conversation achieve its goal? 100 = user got exactly what they needed, 50 = partially helped, 0 = complete failure.",
+      "0-100 score: Did the conversation achieve its goal? 100 = user got exactly what they needed, 50 = partially helped, 0 = complete failure."
     ),
   agentConfusion: z
     .number()
     .describe(
-      "0-100 score: How much did the agent struggle to respond helpfully? 0 = responded confidently (even if redirecting off-topic questions), 100 = completely lost or gave wrong info. Note: gracefully handling off-topic questions is NOT confusion.",
+      "0-100 score: How much did the agent struggle to respond helpfully? 0 = responded confidently (even if redirecting off-topic questions), 100 = completely lost or gave wrong info. Note: gracefully handling off-topic questions is NOT confusion."
     ),
   userConfusion: z
     .number()
     .describe(
-      "0-100 score: How unclear was the user request? 0 = crystal clear, 100 = completely incomprehensible",
+      "0-100 score: How unclear was the user request? 0 = crystal clear, 100 = completely incomprehensible"
     ),
-  contentGap: z.string().describe("Content that the agent could not find").optional(),
+  contentGap: z
+    .string()
+    .describe("Content that the agent could not find")
+    .optional(),
 });
 
 type ConversationClassification = z.infer<typeof classificationSchema>;
 
 interface ConversationMessage {
-  role: string;
   content: string;
+  role: string;
 }
 
 /**
  * Classifies conversation messages using AI.
  */
 async function classifyMessages(
-  messages: ConversationMessage[],
+  messages: ConversationMessage[]
 ): Promise<ConversationClassification | null> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("ANTHROPIC_API_KEY not set, skipping classification");

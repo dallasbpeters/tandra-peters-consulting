@@ -25,13 +25,19 @@ export const roofValueSchema = z.object({
   }),
   intro: z.object({
     name: z.string().default("I'm Tandra Peters."),
-    tagline: z.string().default("I help Austin-area homeowners navigate\nthe whole process."),
-    detail: z.string().default("First inspection through\nthe final walkthrough."),
+    tagline: z
+      .string()
+      .default("I help Austin-area homeowners navigate\nthe whole process."),
+    detail: z
+      .string()
+      .default("First inspection through\nthe final walkthrough."),
     showProfilePhoto: z.boolean().default(true),
     profilePhoto: z.object({
       src: z
         .string()
-        .default("https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"),
+        .default(
+          "https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"
+        ),
       width: z.number().default(260),
       height: z.number().default(260),
     }),

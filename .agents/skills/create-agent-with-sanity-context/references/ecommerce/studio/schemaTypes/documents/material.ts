@@ -9,7 +9,8 @@ export const material = defineType({
       name: "title",
       title: "Title",
       type: "string",
-      description: 'Material name (e.g., "100% Organic Cotton", "Cotton/Polyester Blend")',
+      description:
+        'Material name (e.g., "100% Organic Cotton", "Cotton/Polyester Blend")',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -39,8 +40,10 @@ export const material = defineType({
     },
     prepare({ title, composition }) {
       return {
-        title: title,
-        subtitle: composition ? composition.substring(0, 50) + "..." : undefined,
+        title,
+        subtitle: composition
+          ? composition.substring(0, 50) + "..."
+          : undefined,
       };
     },
   },

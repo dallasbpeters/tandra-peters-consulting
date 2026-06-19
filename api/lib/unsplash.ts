@@ -6,12 +6,14 @@ const DEFAULT_PER_PAGE = 30;
 
 type EnvLike = Record<string, string | undefined>;
 
-type UnsplashPhoto = {
-  id?: string;
+interface UnsplashPhoto {
   alt_description?: string | null;
   description?: string | null;
-  width?: number;
   height?: number;
+  id?: string;
+  links?: {
+    download_location?: string;
+  };
   updated_at?: string;
   urls?: {
     regular?: string;
@@ -24,30 +26,31 @@ type UnsplashPhoto = {
       html?: string;
     };
   };
-  links?: {
-    download_location?: string;
-  };
-};
-
-type UnsplashSearchResponse = {
-  results?: UnsplashPhoto[];
-};
-
-export type UnsplashImageAsset = {
-  id: string;
-  url: string;
-  label: string;
   width?: number;
-  height?: number;
-  createdAt?: string;
+}
+
+interface UnsplashSearchResponse {
+  results?: UnsplashPhoto[];
+}
+
+export interface UnsplashImageAsset {
   attribution?: string;
   authorName?: string;
   authorUrl?: string;
+  createdAt?: string;
   downloadLocation?: string;
-};
+  height?: number;
+  id: string;
+  label: string;
+  url: string;
+  width?: number;
+}
+
+const NEWLINE_RE = /\r?\n/;
+const QUOTE_TRIM_RE = /^["']|["']$/g;
 
 const parseEnvFile = (contents: string): EnvLike =>
-  contents.split(/\r?\n/).reduce<EnvLike>((env, line) => {
+  contents.split(NEWLINE_RE).reduce<EnvLike>((env, line) => {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) {
       return env;
@@ -60,16 +63,19 @@ const parseEnvFile = (contents: string): EnvLike =>
 
     const key = trimmed.slice(0, separator).trim();
     const rawValue = trimmed.slice(separator + 1).trim();
-    env[key] = rawValue.replace(/^["']|["']$/g, "");
+    env[key] = rawValue.replace(QUOTE_TRIM_RE, "");
     return env;
   }, {});
 
 const readLocalAustinLeadsUnsplashKey = (): string | undefined => {
   try {
-    const envPath = resolve(process.cwd(), "../austin-leads-platform/.env.development.local");
+    const envPath = resolve(
+      process.cwd(),
+      "../austin-leads-platform/.env.development.local"
+    );
     return parseEnvFile(readFileSync(envPath, "utf8")).UNSPLASH_ACCESS_KEY;
   } catch {
-    return undefined;
+    return;
   }
 };
 
@@ -81,7 +87,7 @@ export const readUnsplashAccessKey = (env: EnvLike = process.env): string =>
 
 const toImageAsset = (photo: UnsplashPhoto): UnsplashImageAsset | null => {
   const url = photo.urls?.regular;
-  if (!photo.id || !url) {
+  if (!(photo.id && url)) {
     return null;
   }
 
@@ -140,7 +146,9 @@ export const searchUnsplashImages = async ({
   return (payload.results ?? []).map(toImageAsset).filter(Boolean);
 };
 
-export const parseAllowedUnsplashImageUrl = (raw: string | undefined | null): URL | null => {
+export const parseAllowedUnsplashImageUrl = (
+  raw: string | undefined | null
+): URL | null => {
   if (!raw) {
     return null;
   }
@@ -151,7 +159,10 @@ export const parseAllowedUnsplashImageUrl = (raw: string | undefined | null): UR
       return null;
     }
 
-    if (url.hostname !== "images.unsplash.com" && url.hostname !== "plus.unsplash.com") {
+    if (
+      url.hostname !== "images.unsplash.com" &&
+      url.hostname !== "plus.unsplash.com"
+    ) {
       return null;
     }
 

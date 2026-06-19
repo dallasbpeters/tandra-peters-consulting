@@ -11,13 +11,23 @@ import { theme } from "../src/theme.ts";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outPath = path.join(__dirname, "../src/styles/theme-variables.css");
 
-const toKebab = (key) => key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+const UPPER_CASE_RE = /[A-Z]/g;
+const WHITESPACE_RE = /\s+/g;
+const TRAILING_SEMICOLON_RE = /;$/u;
 
-const normalizeCSSValue = (value) => String(value).replace(/\s+/g, " ").trim().replace(/;$/u, "");
+const toKebab = (key) =>
+  key.replace(UPPER_CASE_RE, (m) => `-${m.toLowerCase()}`);
+
+const normalizeCSSValue = (value) =>
+  String(value)
+    .replace(WHITESPACE_RE, " ")
+    .trim()
+    .replace(TRAILING_SEMICOLON_RE, "");
 
 const tokenLines = (prefix, tokens) =>
   Object.entries(tokens).map(
-    ([key, value]) => `  --theme-${prefix}-${toKebab(key)}: ${normalizeCSSValue(value)};`,
+    ([key, value]) =>
+      `  --theme-${prefix}-${toKebab(key)}: ${normalizeCSSValue(value)};`
   );
 
 const css = `/* Generated from src/theme.ts — do not edit; run pnpm generate:theme-css */

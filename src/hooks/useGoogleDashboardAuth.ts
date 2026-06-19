@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
+  type GoogleAuthUser,
+  getGoogleClientId,
   initializeGoogleIdentity,
   isAllowedGoogleUser,
   parseGoogleJwtPayload,
   subscribeGoogleCredential,
-  type GoogleAuthUser,
 } from "../lib/googleAuthCore";
 
 export type { GoogleAuthUser as GoogleDashboardUser } from "../lib/googleAuthCore";
@@ -56,7 +56,7 @@ export const useGoogleDashboardAuth = () => {
     }
 
     const parsed = parseGoogleJwtPayload(stored);
-    if (!parsed || !isAllowedGoogleUser(parsed)) {
+    if (!(parsed && isAllowedGoogleUser(parsed))) {
       window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
       if (parsed && !isAllowedGoogleUser(parsed)) {
         setAuthError("This Google account is not allowed.");
@@ -96,12 +96,16 @@ export const useGoogleDashboardAuth = () => {
         setReady(true);
       } catch (error) {
         if (!cancelled) {
-          setAuthError(error instanceof Error ? error.message : "Could not load Google sign-in.");
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : "Could not load Google sign-in."
+          );
         }
       }
     };
 
-    void setup();
+    setup();
 
     return () => {
       cancelled = true;
@@ -110,7 +114,9 @@ export const useGoogleDashboardAuth = () => {
   }, [clientId, setTokenFromCredential]);
 
   useEffect(() => {
-    if (!ready || !buttonRef.current || !window.google?.accounts?.id || !clientId) {
+    if (
+      !(ready && buttonRef.current && window.google?.accounts?.id && clientId)
+    ) {
       return;
     }
 

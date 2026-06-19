@@ -1,7 +1,6 @@
 import type { ServerResponse } from "node:http";
-import type { Plugin } from "vite";
-
 import { GET as pluginAnalyticsGet } from "sanity-plugin-ga-dashboard/api";
+import type { Plugin } from "vite";
 
 const ANALYTICS_PATH = "/api/analytics";
 
@@ -11,9 +10,14 @@ const ANALYTICS_PATH = "/api/analytics";
  * does NOT populate `process.env`, so without this the plugin reports
  * "GA_PROPERTY_ID not configured" in local dev.
  */
-const GA_ENV_KEYS = ["GA_PROPERTY_ID", "GA_SERVICE_ACCOUNT_EMAIL", "GA_PRIVATE_KEY"] as const;
+const GA_ENV_KEYS = [
+  "GA_PROPERTY_ID",
+  "GA_SERVICE_ACCOUNT_EMAIL",
+  "GA_PRIVATE_KEY",
+] as const;
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const setCors = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -72,7 +76,7 @@ export const viteAnalyticsApi = (env: Record<string, string> = {}): Plugin => ({
                 }
                 return [[key, value] as [string, string]];
               })
-              .filter((entry): entry is [string, string] => Boolean(entry[1])),
+              .filter((entry): entry is [string, string] => Boolean(entry[1]))
           ),
         });
 
@@ -87,7 +91,9 @@ export const viteAnalyticsApi = (env: Record<string, string> = {}): Plugin => ({
         console.error("[vite-analytics-api]", error);
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ error: "Failed to load analytics dashboard data." }));
+        res.end(
+          JSON.stringify({ error: "Failed to load analytics dashboard data." })
+        );
       }
     });
   },

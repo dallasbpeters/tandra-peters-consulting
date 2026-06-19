@@ -21,16 +21,26 @@ export const mockArticlePost: PostDetail = {
 class IntersectionObserverMock implements IntersectionObserver {
   readonly root: Element | Document | null = null;
   readonly rootMargin = "";
-  readonly thresholds: ReadonlyArray<number> = [];
+  readonly thresholds: readonly number[] = [];
+  private readonly callback: IntersectionObserverCallback;
 
-  constructor(private readonly callback: IntersectionObserverCallback) {}
-
-  observe(target: Element) {
-    this.callback([{ isIntersecting: true, target } as IntersectionObserverEntry], this);
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
   }
 
-  unobserve() {}
-  disconnect() {}
+  observe(target: Element) {
+    this.callback(
+      [{ isIntersecting: true, target } as IntersectionObserverEntry],
+      this
+    );
+  }
+
+  unobserve() {
+    /* noop */
+  }
+  disconnect() {
+    /* noop */
+  }
   takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
@@ -60,8 +70,13 @@ Object.defineProperty(window, "localStorage", {
   },
 });
 
-if (typeof customElements !== "undefined" && !customElements.get("model-viewer")) {
-  class ModelViewerElement extends HTMLElement {}
+if (
+  typeof customElements !== "undefined" &&
+  !customElements.get("model-viewer")
+) {
+  class ModelViewerElement extends HTMLElement {
+    // noop
+  }
   customElements.define("model-viewer", ModelViewerElement);
 }
 
@@ -82,7 +97,9 @@ vi.mock("mapbox-gl", () => {
     off() {
       return this;
     }
-    remove() {}
+    remove() {
+      // noop
+    }
     getCanvas() {
       return document.createElement("canvas");
     }
@@ -90,17 +107,29 @@ vi.mock("mapbox-gl", () => {
       return null;
     }
     getLayer() {
-      return undefined;
+      return;
     }
     getStyle() {
       return { layers: [] };
     }
-    addSource() {}
-    addLayer() {}
-    removeLayer() {}
-    setPaintProperty() {}
-    setFilter() {}
-    fitBounds() {}
+    addSource() {
+      // noop
+    }
+    addLayer() {
+      // noop
+    }
+    removeLayer() {
+      // noop
+    }
+    setPaintProperty() {
+      // noop
+    }
+    setFilter() {
+      // noop
+    }
+    fitBounds() {
+      // noop
+    }
     isStyleLoaded() {
       return true;
     }
@@ -110,8 +139,12 @@ vi.mock("mapbox-gl", () => {
     default: {
       accessToken: "",
       Map: MapboxMapMock,
-      NavigationControl: class {},
-      AttributionControl: class {},
+      NavigationControl: class {
+        // noop
+      },
+      AttributionControl: class {
+        // noop
+      },
       Popup: class {
         setLngLat() {
           return this;
@@ -119,7 +152,9 @@ vi.mock("mapbox-gl", () => {
         setHTML() {
           return this;
         }
-        addTo() {}
+        addTo() {
+          // noop
+        }
       },
       LngLatBounds: class {
         extend() {
@@ -158,21 +193,31 @@ vi.mock("@remotion/player", () => {
   const mockPlayerApi = {
     getCurrentFrame: () => 0,
     isPlaying: () => false,
-    play: () => {},
-    pause: () => {},
-    seekTo: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
+    play: () => {
+      // noop
+    },
+    pause: () => {
+      // noop
+    },
+    seekTo: () => {
+      // noop
+    },
+    addEventListener: () => {
+      // noop
+    },
+    removeEventListener: () => {
+      // noop
+    },
   };
 
-  const MockRemotionPlayer = React.forwardRef<typeof mockPlayerApi>((_props, ref) => {
-    React.useImperativeHandle(ref, () => mockPlayerApi);
-    return (
-      <div role="region" aria-label="Featured video player">
-        Remotion player
-      </div>
-    );
-  });
+  const MockRemotionPlayer = React.forwardRef<typeof mockPlayerApi>(
+    (_props, ref) => {
+      React.useImperativeHandle(ref, () => mockPlayerApi);
+      return (
+        <section aria-label="Featured video player">Remotion player</section>
+      );
+    }
+  );
   MockRemotionPlayer.displayName = "MockRemotionPlayer";
 
   return {
@@ -205,7 +250,9 @@ vi.mock("../hooks/useSanityArticlesIndex", () => ({
     posts: [],
     loading: false,
     error: null,
-    refetch: async () => {},
+    refetch: async () => {
+      // noop
+    },
   }),
 }));
 
@@ -225,7 +272,9 @@ vi.mock("../hooks/useGoogleDashboardAuth", () => ({
     authError: null,
     clientId: "test-client-id",
     buttonRef: { current: null },
-    signOut: () => {},
+    signOut: () => {
+      // noop
+    },
   }),
 }));
 
@@ -234,7 +283,9 @@ vi.mock("../hooks/useSeoDashboard", () => ({
     data: null,
     loading: false,
     error: null,
-    refresh: async () => {},
+    refresh: async () => {
+      // noop
+    },
   }),
 }));
 
@@ -243,7 +294,9 @@ vi.mock("../hooks/useSanityImageAssets", () => ({
     images: [],
     loading: false,
     error: null,
-    refresh: () => {},
+    refresh: () => {
+      // noop
+    },
   }),
 }));
 
@@ -252,6 +305,8 @@ vi.mock("../hooks/useUnsplashImageSearch", () => ({
     images: [],
     loading: false,
     error: null,
-    refresh: () => {},
+    refresh: () => {
+      // noop
+    },
   }),
 }));

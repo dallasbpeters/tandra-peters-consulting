@@ -17,13 +17,17 @@ const h2Style: CSSProperties = {
   color: theme.colors.evergladeMuted,
 };
 
-export const legalSection = (key: string, heading: string, paragraphs: string[]) => (
-  <section key={key} aria-labelledby={`legal-${key}`}>
+export const legalSection = (
+  key: string,
+  heading: string,
+  paragraphs: string[]
+) => (
+  <section aria-labelledby={`legal-${key}`} key={key}>
     <h2 id={`legal-${key}`} style={h2Style}>
       {heading}
     </h2>
-    {paragraphs.map((text, i) => (
-      <p key={i} style={pStyle}>
+    {paragraphs.map((text) => (
+      <p key={text.slice(0, 40)} style={pStyle}>
         {text}
       </p>
     ))}

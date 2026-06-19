@@ -1,13 +1,15 @@
 import { usePostHog } from "@posthog/react";
 import { Page, Search, ShieldCheck } from "iconoir-react";
 import { motion } from "motion/react";
-import React from "react";
-
-import type { BirdcreekAdvantageCard, RichTextSource, ServicesProps } from "../types";
-
+import type React from "react";
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { theme } from "../theme";
+import type {
+  BirdcreekAdvantageCard,
+  RichTextSource,
+  ServicesProps,
+} from "../types";
 
 const PHASE_SUFFIX: Record<string, string> = {
   "01": "INSP",
@@ -43,7 +45,9 @@ const defaultServices: NonNullable<ServicesProps["services"]> = [
   },
 ];
 
-const defaultBirdcreekAdvantage: NonNullable<ServicesProps["birdcreekAdvantage"]> = {
+const defaultBirdcreekAdvantage: NonNullable<
+  ServicesProps["birdcreekAdvantage"]
+> = {
   title: "The Birdcreek Advantage",
   description:
     "Direct access to Austin's premier roofing company, combining Tandra's consultation with Birdcreek's legendary execution.",
@@ -51,21 +55,22 @@ const defaultBirdcreekAdvantage: NonNullable<ServicesProps["birdcreekAdvantage"]
   ctaHref: "https://birdcreekroofing.com",
 };
 
-type ServiceDisplayItem = {
+interface ServiceDisplayItem {
+  description: RichTextSource;
   key: string;
   phase: string;
   title: string;
-  description: RichTextSource;
-};
+}
 
 const formatPhaseLabel = (id: string, index: number): string => {
   const normalizedId = id.padStart(2, "0");
-  const suffix = PHASE_SUFFIX[id] ?? PHASE_SUFFIX[normalizedId] ?? `SVC${index + 1}`;
+  const suffix =
+    PHASE_SUFFIX[id] ?? PHASE_SUFFIX[normalizedId] ?? `SVC${index + 1}`;
   return `PHASE ${normalizedId} // ${suffix}`;
 };
 
 const buildDisplayItems = (
-  services: NonNullable<ServicesProps["services"]>,
+  services: NonNullable<ServicesProps["services"]>
 ): ServiceDisplayItem[] =>
   services.map((service, index) => ({
     key: service.id,
@@ -83,15 +88,15 @@ const MassiveType = () => (
   </div>
 );
 
-type ArtContainerProps = {
+interface ArtContainerProps {
   baseImage: string;
   overlayImage: string;
-};
+}
 
 const ArtContainer = ({ baseImage, overlayImage }: ArtContainerProps) => (
   <div
-    className="services-alt-art"
     aria-hidden="true"
+    className="services-alt-art"
     style={
       {
         "--services-alt-mask-image-base": `url("${baseImage}")`,
@@ -108,9 +113,9 @@ const ArtContainer = ({ baseImage, overlayImage }: ArtContainerProps) => (
   </div>
 );
 
-type BrandBadgeProps = {
+interface BrandBadgeProps {
   isMobile: boolean;
-};
+}
 
 const BrandBadge = ({ isMobile }: BrandBadgeProps) => {
   const style: React.CSSProperties = {
@@ -134,14 +139,19 @@ const BrandBadge = ({ isMobile }: BrandBadgeProps) => {
   return <div style={style}>Birdcreek Roofing</div>;
 };
 
-type ServiceItemProps = {
-  phase: string;
-  title: string;
+interface ServiceItemProps {
   description: RichTextSource;
   isMobile: boolean;
-};
+  phase: string;
+  title: string;
+}
 
-const ServiceItem = ({ phase, title, description, isMobile }: ServiceItemProps) => {
+const ServiceItem = ({
+  phase,
+  title,
+  description,
+  isMobile,
+}: ServiceItemProps) => {
   const itemStyle: React.CSSProperties = {
     textAlign: isMobile ? "left" : "right",
   };
@@ -186,17 +196,17 @@ const ServiceItem = ({ phase, title, description, isMobile }: ServiceItemProps) 
       <div style={metaStyle}>{phase}</div>
       <h2 style={titleStyle}>{title}</h2>
       <div style={descStyle}>
-        <RichText value={description} paragraphStyle={richParagraphStyle} />
+        <RichText paragraphStyle={richParagraphStyle} value={description} />
       </div>
     </article>
   );
 };
 
-type BirdcreekAdvantageItemProps = {
+interface BirdcreekAdvantageItemProps {
   birdcreekAdvantage: BirdcreekAdvantageCard;
   isMobile: boolean;
   onCtaClick: () => void;
-};
+}
 
 const BirdcreekAdvantageItem = ({
   birdcreekAdvantage,
@@ -261,18 +271,21 @@ const BirdcreekAdvantageItem = ({
 
   return (
     <article className="services-alt-item" style={itemStyle}>
-      <div style={metaStyle}>CORE // ADV</div>
+      <div style={metaStyle}>{"CORE // ADV"}</div>
       <h2 style={titleStyle}>{birdcreekAdvantage.title}</h2>
       <div style={descStyle}>
-        <RichText value={birdcreekAdvantage.description} paragraphStyle={richParagraphStyle} />
+        <RichText
+          paragraphStyle={richParagraphStyle}
+          value={birdcreekAdvantage.description}
+        />
       </div>
       <motion.a
-        tabIndex={0}
         href={birdcreekAdvantage.ctaHref}
-        target="_blank"
-        rel="noopener noreferrer"
         onTap={onCtaClick}
+        rel="noopener noreferrer"
         style={ctaStyle}
+        tabIndex={0}
+        target="_blank"
         whileHover={{ scale: 1.05, backgroundColor: theme.colors.accent }}
         whileTap={{ scale: 0.95 }}
       >
@@ -290,8 +303,10 @@ export const ServicesAlt: React.FC<ServicesProps> = ({
   const posthog = usePostHog();
   const isMobile = useIsMobile();
   const displayItems = buildDisplayItems(services);
-  const baseMaskImage = typographicArt?.baseMaskImage ?? DEFAULT_BASE_MASK_IMAGE;
-  const overlayMaskImage = typographicArt?.overlayMaskImage ?? DEFAULT_OVERLAY_MASK_IMAGE;
+  const baseMaskImage =
+    typographicArt?.baseMaskImage ?? DEFAULT_BASE_MASK_IMAGE;
+  const overlayMaskImage =
+    typographicArt?.overlayMaskImage ?? DEFAULT_OVERLAY_MASK_IMAGE;
 
   const handleBirdcreekClick = () => {
     posthog?.capture("birdcreek_link_clicked", {
@@ -340,18 +355,23 @@ export const ServicesAlt: React.FC<ServicesProps> = ({
   };
 
   return (
-    <section id="services" style={sectionStyle} aria-label="Services">
-      {!isMobile && <ArtContainer baseImage={baseMaskImage} overlayImage={overlayMaskImage} />}
+    <section aria-label="Services" id="services" style={sectionStyle}>
+      {!isMobile && (
+        <ArtContainer
+          baseImage={baseMaskImage}
+          overlayImage={overlayMaskImage}
+        />
+      )}
       <div style={uiLayerStyle}>
         <BrandBadge isMobile={isMobile} />
         <div style={clusterStyle}>
           {displayItems.map((service) => (
             <ServiceItem
+              description={service.description}
+              isMobile={isMobile}
               key={service.key}
               phase={service.phase}
               title={service.title}
-              description={service.description}
-              isMobile={isMobile}
             />
           ))}
           <BirdcreekAdvantageItem

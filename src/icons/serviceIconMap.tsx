@@ -1,5 +1,3 @@
-import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
-
 import {
   BadgeCheck,
   Calendar,
@@ -35,8 +33,12 @@ import {
   WarningTriangle,
   Wrench,
 } from "iconoir-react";
+import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from "react";
 
-import { LEGACY_SERVICE_ICON_ALIASES, type ServiceIconKey } from "../sanity/serviceIconMeta";
+import {
+  LEGACY_SERVICE_ICON_ALIASES,
+  type ServiceIconKey,
+} from "../sanity/serviceIconMeta";
 
 export type IconoirIconComponent = ForwardRefExoticComponent<
   Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>
@@ -85,10 +87,13 @@ const SERVICE_ICONS: Record<ServiceIconKey, IconoirIconComponent> = {
   badgeCheck: BadgeCheck,
 };
 
-export const getServiceIconComponent = (key: string | undefined): IconoirIconComponent => {
+export const getServiceIconComponent = (
+  key: string | undefined
+): IconoirIconComponent => {
   if (!key) {
     return Search;
   }
-  const normalized = LEGACY_SERVICE_ICON_ALIASES[key] ?? (key as ServiceIconKey);
+  const normalized =
+    LEGACY_SERVICE_ICON_ALIASES[key] ?? (key as ServiceIconKey);
   return SERVICE_ICONS[normalized] ?? Search;
 };

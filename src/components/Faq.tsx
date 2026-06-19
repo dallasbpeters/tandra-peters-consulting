@@ -1,13 +1,12 @@
 import WaDetails from "@awesome.me/webawesome/dist/react/details/index.js";
 import { usePostHog } from "@posthog/react";
 import { motion } from "motion/react";
-import React, { useEffect, useMemo } from "react";
-
-import type { FaqItem, FaqProps } from "../types";
-
+import type React from "react";
+import { useEffect, useMemo } from "react";
 import { plainTextFromRich } from "../portableText/plainText";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
+import type { FaqItem, FaqProps } from "../types";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
 import { mix, theme } from "../theme";
@@ -19,7 +18,8 @@ const DEFAULT_ITEMS: FaqItem[] = [
       "I help you understand what’s really going on with your roof—what the inspection means, whether repair or replacement makes sense, and how to think about materials, scope, and timing. I focus on clear, practical guidance so you can decide with confidence instead of feeling rushed or confused.",
   },
   {
-    question: "How is working with you different from hiring a roofer directly?",
+    question:
+      "How is working with you different from hiring a roofer directly?",
     answer:
       "I’m a Birdcreek Roofing consultant—I work for Birdcreek, not as a separate outside advisor. So instead of vetting random crews or piecing together bids on your own, you come in through Birdcreek with someone whose job is to explain your roof, your options, and the paperwork in plain language, and to stay involved with oversight while our team handles installation to Birdcreek standards.",
   },
@@ -77,11 +77,13 @@ export const Faq: React.FC<FaqProps> = ({
         },
       })),
     }),
-    [items],
+    [items]
   );
 
   useEffect(() => {
-    if (!includeJsonLd) return;
+    if (!includeJsonLd) {
+      return;
+    }
 
     const script = document.createElement("script");
     script.id = `${JSON_LD_ID}-${sectionId}`;
@@ -95,7 +97,7 @@ export const Faq: React.FC<FaqProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     backgroundColor: backgroundColor ?? theme.colors.paper,
-    paddingTop: paddingTop,
+    paddingTop,
   };
 
   const introStyle: React.CSSProperties = {
@@ -106,17 +108,17 @@ export const Faq: React.FC<FaqProps> = ({
 
   return (
     <section
-      id={sectionId}
-      className={layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby={`${sectionId}-heading`}
+      className={layoutClass.sectionPadded}
+      id={sectionId}
+      style={sectionStyle}
     >
       <div className={layoutClass.containerArticle}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5 }}
+          viewport={{ once: true, margin: "-80px" }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <span
             style={{
@@ -151,7 +153,7 @@ export const Faq: React.FC<FaqProps> = ({
               maxWidth: "42rem",
             }}
           >
-            <RichText value={intro} paragraphStyle={introStyle} />
+            <RichText paragraphStyle={introStyle} value={intro} />
           </div>
         </motion.div>
 
@@ -173,9 +175,8 @@ export const Faq: React.FC<FaqProps> = ({
           {items.map((item: FaqItem, index: number) => (
             <WaDetails
               appearance="outlined"
-              summary={item.question}
-              key={item._key ?? item.question}
               className="faq-details"
+              key={item._key ?? item.question}
               onToggle={(e) => {
                 if ((e.currentTarget as HTMLDetailsElement).open) {
                   posthog?.capture("faq_item_opened", {
@@ -184,16 +185,17 @@ export const Faq: React.FC<FaqProps> = ({
                   });
                 }
               }}
+              summary={item.question}
             >
               <RichText
-                value={item.answer}
+                linkStyle={{ color: theme.colors.accent }}
                 paragraphStyle={{
                   margin: 0,
                   color: "inherit",
                   lineHeight: "inherit",
                   fontSize: "inherit",
                 }}
-                linkStyle={{ color: theme.colors.accent }}
+                value={item.answer}
               />
             </WaDetails>
           ))}

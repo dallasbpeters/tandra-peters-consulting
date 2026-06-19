@@ -3,7 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { fetchTandraIntroContent } from "../remotion/fetchTandraIntroContent";
-import { COMPOSITIONS, getComposition, type CompositionEntry } from "../remotion/registry";
+import {
+  COMPOSITIONS,
+  type CompositionEntry,
+  getComposition,
+} from "../remotion/registry";
 
 /**
  * Standalone, chrome-less preview of any Remotion composition, driven by a
@@ -46,13 +50,16 @@ export const RemotionPreviewPage = () => {
   const entry: CompositionEntry | undefined = getComposition(requestedId);
 
   // Live Sanity copy for CMS-backed compositions (TandraIntro only, today).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [liveProps, setLiveProps] = useState<Record<string, any> | null>(null);
+  const [liveProps, setLiveProps] = useState<Record<string, unknown> | null>(
+    null
+  );
   const [loading, setLoading] = useState(Boolean(entry?.sanityField));
 
   // Edited props received from Studio tool via postMessage.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [editedProps, setEditedProps] = useState<Record<string, any> | null>(null);
+  const [editedProps, setEditedProps] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,10 +75,14 @@ export const RemotionPreviewPage = () => {
           }
         })
         .catch(() => {
-          if (!cancelled) setLiveProps(null);
+          if (!cancelled) {
+            setLiveProps(null);
+          }
         })
         .finally(() => {
-          if (!cancelled) setLoading(false);
+          if (!cancelled) {
+            setLoading(false);
+          }
         });
     } else {
       setLiveProps(null);
@@ -80,7 +91,7 @@ export const RemotionPreviewPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [entry?.id, entry?.sanityField]);
+  }, [entry?.sanityField]);
 
   // Listen for live prop edits from the Studio Videos tool.
   useEffect(() => {
@@ -103,7 +114,9 @@ export const RemotionPreviewPage = () => {
   }, [editedProps, liveProps, entry?.defaultProps, entry?.sanityField]);
 
   const playerStyle = useMemo<React.CSSProperties>(() => {
-    if (!entry) return {};
+    if (!entry) {
+      return {};
+    }
     const isPortrait = entry.height > entry.width;
     return {
       aspectRatio: entry.aspectRatio,
@@ -143,16 +156,16 @@ export const RemotionPreviewPage = () => {
   return (
     <div style={wrapStyle}>
       <Player
-        key={entry.id}
+        acknowledgeRemotionLicense
         component={entry.component}
-        durationInFrames={entry.durationInFrames}
-        compositionWidth={entry.width}
         compositionHeight={entry.height}
+        compositionWidth={entry.width}
+        controls
+        durationInFrames={entry.durationInFrames}
         fps={entry.fps}
         inputProps={inputProps}
-        controls
+        key={entry.id}
         loop
-        acknowledgeRemotionLicense
         style={playerStyle}
       />
     </div>

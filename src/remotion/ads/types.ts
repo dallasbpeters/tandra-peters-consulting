@@ -1,25 +1,25 @@
 export type Direction = "top" | "right" | "bottom" | "left";
 
-export type Chapter = {
-  id: string;
-  num: string;
-  label: string;
-  position: { top: string; left: string };
-  direction: Direction;
+export interface Chapter {
   callout: {
     title?: string;
     body?: string;
     watchFor?: string;
   };
-  position3d?: string;
-  normal3d?: string;
-};
-
-export type View = {
+  direction: Direction;
   id: string;
   label: string;
+  normal3d?: string;
+  num: string;
+  position: { top: string; left: string };
+  position3d?: string;
+}
+
+export interface View {
   cameraOrbit: string;
   cameraTarget: string;
   fieldOfView: string;
+  id: string;
   interpolationDecay?: string;
-};
+  label: string;
+}

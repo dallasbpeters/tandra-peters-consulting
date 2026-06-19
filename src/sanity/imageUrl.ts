@@ -1,14 +1,14 @@
 import { SANITY_DATASET, SANITY_PROJECT_ID } from "./projectDetails";
 
-export type SanityImageTransform = {
-  w?: number;
-  h?: number;
-  fit?: "clip" | "crop" | "fill" | "fillmax" | "max" | "scale" | "min";
-  q?: number;
+export interface SanityImageTransform {
   dpr?: 1 | 2 | 3;
+  fit?: "clip" | "crop" | "fill" | "fillmax" | "max" | "scale" | "min";
   /** Output format. Defaults to webp per Sanity CDN `fm` param. */
   fm?: "webp" | "jpg" | "png" | "pjpg";
-};
+  h?: number;
+  q?: number;
+  w?: number;
+}
 
 const SANITY_CDN_PREFIX = `/images/${SANITY_PROJECT_ID}/${SANITY_DATASET}/`;
 
@@ -26,8 +26,11 @@ export const isSanityCdnUrl = (url: string): boolean => {
 };
 
 /** Append Sanity CDN transform params. Non-Sanity URLs pass through unchanged. */
-export const sanityImageUrl = (url: string, params: SanityImageTransform = {}): string => {
-  if (!url || !isSanityCdnUrl(url)) {
+export const sanityImageUrl = (
+  url: string,
+  params: SanityImageTransform = {}
+): string => {
+  if (!(url && isSanityCdnUrl(url))) {
     return url;
   }
 

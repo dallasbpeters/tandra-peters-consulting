@@ -1,7 +1,9 @@
 import type { PortableTextBlock } from "@portabletext/types";
 
 const isBlockObject = (v: unknown): v is PortableTextBlock =>
-  typeof v === "object" && v !== null && (v as { _type?: string })._type === "block";
+  typeof v === "object" &&
+  v !== null &&
+  (v as { _type?: string })._type === "block";
 
 export const isPortableTextBlocks = (v: unknown): v is PortableTextBlock[] =>
   Array.isArray(v) &&
@@ -15,7 +17,7 @@ export const isPortableTextBlocks = (v: unknown): v is PortableTextBlock[] =>
  * some valid blocks (Studio/API edge cases after schema changes).
  */
 export const coercePortableTextInput = (
-  value: unknown,
+  value: unknown
 ): PortableTextBlock[] | string | undefined => {
   if (typeof value === "string") {
     const t = value.trim();
@@ -23,7 +25,7 @@ export const coercePortableTextInput = (
   }
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return undefined;
+      return;
     }
     if (isPortableTextBlocks(value)) {
       return value;
@@ -32,19 +34,22 @@ export const coercePortableTextInput = (
     if (blocks.length > 0) {
       return blocks;
     }
-    return undefined;
+    return;
   }
   if (isBlockObject(value)) {
     return [value];
   }
-  return undefined;
+  return;
 };
 
 /** True when the value will render non-empty rich text. */
 export const hasPortableTextContent = (value: unknown): boolean =>
   coercePortableTextInput(value) !== undefined;
 
-const legacyParagraphBlock = (_key: string, text: string): PortableTextBlock => ({
+const legacyParagraphBlock = (
+  _key: string,
+  text: string
+): PortableTextBlock => ({
   _type: "block",
   _key,
   style: "normal",
@@ -64,7 +69,7 @@ const legacyParagraphBlock = (_key: string, text: string): PortableTextBlock => 
  */
 export const asRichTextValue = (
   value: unknown,
-  legacyParagraphs?: unknown,
+  legacyParagraphs?: unknown
 ): PortableTextBlock[] | string | undefined => {
   const direct = coercePortableTextInput(value);
   if (direct) {
@@ -72,15 +77,18 @@ export const asRichTextValue = (
   }
   if (Array.isArray(legacyParagraphs) && legacyParagraphs.length > 0) {
     const strings = legacyParagraphs.filter(
-      (x): x is string => typeof x === "string" && x.trim().length > 0,
+      (x): x is string => typeof x === "string" && x.trim().length > 0
     );
     if (strings.length > 0) {
-      return strings.map((text, i) => legacyParagraphBlock(`legacy-${i}`, text));
+      return strings.map((text, i) =>
+        legacyParagraphBlock(`legacy-${i}`, text)
+      );
     }
   }
-  return undefined;
+  return;
 };
 
 /** String or Portable Text blocks (no legacy `paragraphs` merge). */
-export const asOptionalRichText = (value: unknown): PortableTextBlock[] | string | undefined =>
-  coercePortableTextInput(value);
+export const asOptionalRichText = (
+  value: unknown
+): PortableTextBlock[] | string | undefined => coercePortableTextInput(value);

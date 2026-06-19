@@ -29,12 +29,12 @@
 }
 
 .ad-canvas {
-  container-type: inline-size;
   position: relative;
   max-width: 100%;
+  container-type: inline-size;
   overflow: hidden;
-  border-radius: var(--theme-radius-medium);
   touch-action: none;
+  border-radius: var(--theme-radius-medium);
 }
 
 /* ─── Elements ─────────────────────────────────────────────────────────────── */
@@ -89,8 +89,8 @@
 
 .ad-canvas-text {
   width: 100%;
-  white-space: pre-wrap;
   overflow-wrap: break-word;
+  white-space: pre-wrap;
   outline: none;
 }
 
@@ -130,68 +130,68 @@
 
   /* eslint-disable-next-line css/no-invalid-properties */
   height: var(--handle-size);
+  pointer-events: auto;
+  background: white;
   border: calc(1.5px / var(--canvas-scale, 1)) solid #7c5cff;
   border-radius: 50%;
-  background: white;
-  pointer-events: auto;
-  box-shadow: 0 calc(1px / var(--canvas-scale, 1)) calc(4px / var(--canvas-scale, 1))
-    rgb(9 42 29 / 25%);
+  box-shadow: 0 calc(1px / var(--canvas-scale, 1))
+    calc(4px / var(--canvas-scale, 1)) rgb(9 42 29 / 25%);
 }
 
 .ad-canvas-handle--nw {
   top: 0;
   left: 0;
-  transform: translate(-50%, -50%);
   cursor: nwse-resize;
+  transform: translate(-50%, -50%);
 }
 
 .ad-canvas-handle--n {
   top: 0;
   left: 50%;
-  transform: translate(-50%, -50%);
   cursor: ns-resize;
+  transform: translate(-50%, -50%);
 }
 
 .ad-canvas-handle--ne {
   top: 0;
   right: 0;
-  transform: translate(50%, -50%);
   cursor: nesw-resize;
+  transform: translate(50%, -50%);
 }
 
 .ad-canvas-handle--e {
   top: 50%;
   right: 0;
-  transform: translate(50%, -50%);
   cursor: ew-resize;
+  transform: translate(50%, -50%);
 }
 
 .ad-canvas-handle--se {
   right: 0;
   bottom: 0;
-  transform: translate(50%, 50%);
   cursor: nwse-resize;
+  transform: translate(50%, 50%);
 }
 
 .ad-canvas-handle--s {
   bottom: 0;
   left: 50%;
-  transform: translate(-50%, 50%);
   cursor: ns-resize;
+  transform: translate(-50%, 50%);
 }
 
 .ad-canvas-handle--sw {
   bottom: 0;
   left: 0;
-  transform: translate(-50%, 50%);
   cursor: nesw-resize;
+  transform: translate(-50%, 50%);
 }
 
 .ad-canvas-handle--w {
   top: 50%;
   left: 0;
-  transform: translate(-50%, -50%);
   cursor: ew-resize;
+  transform: translate(-50%, -50%);
 }
 
 /* ─── Alignment guides ─────────────────────────────────────────────────────── */
@@ -223,22 +223,22 @@
   display: grid;
   min-width: 11rem;
   padding: 0.3rem;
+  background: var(--studio-panel-raised, #1b2620);
   border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
   border-radius: var(--theme-radius-small, 8px);
-  background: var(--studio-panel-raised, #1b2620);
   box-shadow: var(--shadow-large);
 }
 
 .ad-canvas-menu button {
   padding: 0.45rem 0.65rem;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--studio-text, #edf3ed);
   font: inherit;
   font-size: 0.82rem;
+  color: var(--studio-text, #edf3ed);
   text-align: left;
   cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 6px;
 }
 
 .ad-canvas-menu button:where(:hover) {
@@ -292,43 +292,43 @@
   gap: 0.4rem;
   align-items: center;
   padding: 0.45rem 0.8rem;
-  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
-  border-radius: var(--theme-radius-small, 8px);
-  background: var(--studio-panel-raised, #1b2620);
-  color: var(--studio-text, #edf3ed);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
+  color: var(--studio-text, #edf3ed);
   cursor: pointer;
+  background: var(--studio-panel-raised, #1b2620);
+  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  border-radius: var(--theme-radius-small, 8px);
 }
 
 .ad-canvas-add-btn:hover {
-  border-color: var(--studio-border-strong, rgb(255 255 255 / 18%));
   background: #233029;
+  border-color: var(--studio-border-strong, rgb(255 255 255 / 18%));
 }
 
 /* ─── Context bar ──────────────────────────────────────────────────────────── */
 
 .ad-canvas-context-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 2.9rem;
   padding: 0.35rem 0.75rem;
   overflow-x: auto;
-  border-bottom: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
   background: var(--studio-panel, #141c18);
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  border-bottom: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
 }
 
 .ad-canvas-context-hint {
   margin: 0;
-  color: var(--studio-muted, rgb(237 243 237 / 60%));
   font-size: 0.8rem;
+  color: var(--studio-muted, rgb(237 243 237 / 60%));
   white-space: nowrap;
 }
 
@@ -349,9 +349,9 @@
   margin-inline-end: 0.35rem;
   font-size: 0.78rem;
   font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--studio-text, #edf3ed);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
@@ -366,12 +366,12 @@
   max-width: 10rem;
   height: 2rem;
   padding: 0 0.4rem;
-  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
-  border-radius: 6px;
-  background: var(--studio-panel-raised, #1b2620);
-  color: var(--studio-text, #edf3ed);
   font: inherit;
   font-size: 0.8rem;
+  color: var(--studio-text, #edf3ed);
+  background: var(--studio-panel-raised, #1b2620);
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
 }
 
 .ad-canvas-context-controls input[type="number"] {
@@ -386,34 +386,35 @@
   min-width: 2rem;
   height: 2rem;
   padding: 0 0.5rem;
-  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
-  border-radius: 6px;
-  background: var(--studio-panel-raised, #1b2620);
-  color: var(--studio-text, #edf3ed);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
+  color: var(--studio-text, #edf3ed);
   cursor: pointer;
+  background: var(--studio-panel-raised, #1b2620);
+  border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
+  border-radius: 6px;
 }
 
 .ad-canvas-context-controls button:where(:disabled) {
-  opacity: 0.45;
   cursor: default;
+  opacity: 0.45;
 }
 
-.ad-canvas-context-controls button:where(:hover, :focus-visible):where(:not(:disabled)) {
+.ad-canvas-context-controls
+  button:where(:hover, :focus-visible):where(:not(:disabled)) {
   background: rgb(146 182 97 / 18%);
 }
 
 .ad-canvas-context-controls button:where(.is-active) {
-  border-color: var(--studio-accent, #92b661);
-  background: var(--studio-accent, #92b661);
   color: #0c1210;
+  background: var(--studio-accent, #92b661);
+  border-color: var(--studio-accent, #92b661);
 }
 
 .ad-canvas-context-controls button:where(.is-danger) {
-  border-color: rgb(255 156 138 / 40%);
   color: #ff9c8a;
+  border-color: rgb(255 156 138 / 40%);
 }
 
 .ad-canvas-context-controls button:where(.is-danger):where(:hover) {
@@ -430,10 +431,10 @@
   width: 2rem;
   height: 2rem;
   padding: 0.2rem;
+  cursor: pointer;
+  background: var(--studio-panel-raised, #1b2620);
   border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
   border-radius: 6px;
-  background: var(--studio-panel-raised, #1b2620);
-  cursor: pointer;
 }
 
 .ad-color-swatch:where(:hover, :focus-visible),
@@ -517,9 +518,9 @@
   width: min(90vw, 60rem);
   max-height: 90vh;
   padding: var(--theme-spacing-md, 1rem);
+  background: var(--studio-panel, #141c18);
   border: 1px solid var(--studio-border-strong, rgb(255 255 255 / 18%));
   border-radius: var(--theme-radius-medium, 14px);
-  background: var(--studio-panel, #141c18);
   box-shadow: var(--shadow-large);
 }
 
@@ -528,9 +529,9 @@
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  color: var(--studio-text, #edf3ed);
   font-size: 0.95rem;
   font-weight: 750;
+  color: var(--studio-text, #edf3ed);
 }
 
 .ad-mockup-close {
@@ -539,11 +540,11 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
-  border-radius: 8px;
-  background: var(--studio-panel-raised, #1b2620);
   color: var(--studio-text, #edf3ed);
   cursor: pointer;
+  background: var(--studio-panel-raised, #1b2620);
+  border: 1px solid var(--studio-border, rgb(255 255 255 / 9%));
+  border-radius: 8px;
 }
 
 .ad-mockup-close:hover {
@@ -555,9 +556,9 @@
   width: 100%;
   height: auto;
   max-height: 68vh;
-  border-radius: var(--theme-radius-small, 8px);
   object-fit: contain;
   background: #fff;
+  border-radius: var(--theme-radius-small, 8px);
 }
 
 .ad-mockup-modal .ad-dashboard-export {

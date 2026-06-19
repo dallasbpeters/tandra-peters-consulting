@@ -1,7 +1,4 @@
 import { useEffect, useMemo } from "react";
-
-import type { FaqItem } from "../types";
-
 import { ContactBanner } from "../components/ContactBanner";
 import { Faq } from "../components/Faq";
 import { SitePageChrome } from "../components/SitePageChrome";
@@ -18,36 +15,47 @@ import {
   mapInsuranceClaimsFaqProps,
   mapInsuranceSupplementsFaqProps,
 } from "../sanity/mapSanityInsuranceFaqs";
+import type { FaqItem } from "../types";
 
 const INSURANCE_FAQS_JSON_LD_ID = "insurance-faqs-json-ld";
 
 const resolveFaqSection = (
   cmsProps: ReturnType<typeof mapInsuranceClaimsFaqProps>,
-  defaults: typeof INSURANCE_CLAIMS_FAQ_DEFAULTS,
+  defaults: typeof INSURANCE_CLAIMS_FAQ_DEFAULTS
 ) => ({
   tagline: cmsProps.tagline ?? defaults.tagline,
   title: cmsProps.title ?? defaults.title,
   intro: cmsProps.intro ?? defaults.intro,
-  items: cmsProps.items && cmsProps.items.length > 0 ? cmsProps.items : (defaults.items ?? []),
+  items:
+    cmsProps.items && cmsProps.items.length > 0
+      ? cmsProps.items
+      : (defaults.items ?? []),
 });
 
 export const InsuranceFaqsPage = () => {
   const { page } = useSanityInsuranceFaqsPage();
 
   const claimsFaq = useMemo(
-    () => resolveFaqSection(mapInsuranceClaimsFaqProps(page), INSURANCE_CLAIMS_FAQ_DEFAULTS),
-    [page],
+    () =>
+      resolveFaqSection(
+        mapInsuranceClaimsFaqProps(page),
+        INSURANCE_CLAIMS_FAQ_DEFAULTS
+      ),
+    [page]
   );
 
   const supplementsFaq = useMemo(
     () =>
-      resolveFaqSection(mapInsuranceSupplementsFaqProps(page), INSURANCE_SUPPLEMENTS_FAQ_DEFAULTS),
-    [page],
+      resolveFaqSection(
+        mapInsuranceSupplementsFaqProps(page),
+        INSURANCE_SUPPLEMENTS_FAQ_DEFAULTS
+      ),
+    [page]
   );
 
   const allFaqItems = useMemo(
     () => [...claimsFaq.items, ...supplementsFaq.items] as FaqItem[],
-    [claimsFaq.items, supplementsFaq.items],
+    [claimsFaq.items, supplementsFaq.items]
   );
 
   const faqJsonLd = useMemo(
@@ -63,7 +71,7 @@ export const InsuranceFaqsPage = () => {
         },
       })),
     }),
-    [allFaqItems],
+    [allFaqItems]
   );
 
   useEffect(() => {
@@ -94,23 +102,23 @@ export const InsuranceFaqsPage = () => {
   return (
     <SitePageChrome>
       <Faq
+        backgroundColor="transparent"
+        includeJsonLd={false}
+        intro={claimsFaq.intro}
+        items={claimsFaq.items}
         sectionId="insurance-claims-faq"
         tagline={claimsFaq.tagline}
         title={claimsFaq.title}
-        intro={claimsFaq.intro}
-        items={claimsFaq.items}
-        backgroundColor="transparent"
-        includeJsonLd={false}
       />
       <Faq
-        sectionId="insurance-supplements-faq"
-        tagline={supplementsFaq.tagline}
-        title={supplementsFaq.title}
+        backgroundColor="transparent"
+        includeJsonLd={false}
         intro={supplementsFaq.intro}
         items={supplementsFaq.items}
         paddingTop="0"
-        backgroundColor="transparent"
-        includeJsonLd={false}
+        sectionId="insurance-supplements-faq"
+        tagline={supplementsFaq.tagline}
+        title={supplementsFaq.title}
       />
       <ContactBanner {...CONTACT_BANNER_FREE_INSPECTION} />
     </SitePageChrome>

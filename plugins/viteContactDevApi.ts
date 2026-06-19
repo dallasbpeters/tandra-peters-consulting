@@ -5,7 +5,8 @@ import { processContactSubmission } from "../server/email/contactSubmission.js";
 
 const CONTACT_PATH = "/api/contact";
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -18,7 +19,9 @@ const readBody = (req: IncomingMessage): Promise<Buffer> =>
   });
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
-  if (!buffer.length) return {};
+  if (!buffer.length) {
+    return {};
+  }
   try {
     return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
   } catch {
@@ -62,13 +65,18 @@ export const viteContactDevApi = (env: Record<string, string>): Plugin => ({
       }
 
       try {
-        const result = await processContactSubmission(parseJson(await readBody(req)), {
-          resendApiKey: pick(env, "RESEND_API_KEY"),
-          emailFrom: pick(env, "EMAIL_FROM"),
-          notificationTo: pick(env, "CONTACT_NOTIFICATION_TO"),
-          assetBaseUrl: pick(env, "EMAIL_ASSET_BASE_URL"),
-          sanityWriteToken: pick(env, "SANITY_WRITE_TOKEN") || pick(env, "SANITY_API_WRITE_TOKEN"),
-        });
+        const result = await processContactSubmission(
+          parseJson(await readBody(req)),
+          {
+            resendApiKey: pick(env, "RESEND_API_KEY"),
+            emailFrom: pick(env, "EMAIL_FROM"),
+            notificationTo: pick(env, "CONTACT_NOTIFICATION_TO"),
+            assetBaseUrl: pick(env, "EMAIL_ASSET_BASE_URL"),
+            sanityWriteToken:
+              pick(env, "SANITY_WRITE_TOKEN") ||
+              pick(env, "SANITY_API_WRITE_TOKEN"),
+          }
+        );
         res.statusCode = result.status;
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify(result.body));
@@ -76,7 +84,9 @@ export const viteContactDevApi = (env: Record<string, string>): Plugin => ({
         console.error("[vite-contact-dev-api]", error);
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ ok: false, error: "Unexpected contact API error." }));
+        res.end(
+          JSON.stringify({ ok: false, error: "Unexpected contact API error." })
+        );
       }
     });
   },

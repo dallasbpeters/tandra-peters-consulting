@@ -2,20 +2,26 @@ import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import { AddressAutofill } from "@mapbox/search-js-react";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import { usePostHog } from "@posthog/react";
-import { ArrowLeft, ArrowRight, Check, RefreshDouble, Search, Send } from "iconoir-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  RefreshDouble,
+  Search,
+  Send,
+} from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useMemo, useState } from "react";
-
-import type { EstimatorPageContent } from "../../types";
-
+import type React from "react";
+import { useMemo, useState } from "react";
 import {
   computeEstimate,
+  type EstimatorSelections,
   formatRange,
   summarizeSelections,
-  type EstimatorSelections,
 } from "../../lib/estimator";
 import { layoutClass } from "../../styles/layoutClasses";
 import { mix, theme } from "../../theme";
+import type { EstimatorPageContent } from "../../types";
 import { EstimatorMapBackground } from "./EstimatorMapBackground";
 import { optionIllustrationFor } from "./optionIllustrations";
 import {
@@ -27,16 +33,21 @@ import {
   estimatorOptionClass,
   estimatorOptionStyle,
   estimatorOptionsClass,
+  eyebrow,
   foundStatus,
   foundStatusClass,
   introCardStyle,
-  eyebrow,
 } from "./styles";
 
 const trackGaEstimator = (payload: Record<string, unknown>) => {
-  if (typeof window === "undefined") return;
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-  if (typeof gtag !== "function") return;
+  if (typeof window === "undefined") {
+    return;
+  }
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
+    .gtag;
+  if (typeof gtag !== "function") {
+    return;
+  }
   gtag("event", "estimator", payload);
 };
 
@@ -48,12 +59,16 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type SendStatus = "idle" | "sending" | "sent" | "error";
 type AddressLookupStatus = "idle" | "loading" | "found" | "error";
 
-type EstimatorProps = {
+interface EstimatorProps {
   content: EstimatorPageContent;
   sectionId?: string;
-};
+}
 
-export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "estimator" }) => {
+export const Estimator: React.FC<EstimatorProps> = ({
+  content,
+  sectionId = "estimator",
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
+}) => {
   const posthog = usePostHog();
   const questions = content.questions ?? [];
   const currency = content.currency ?? "$";
@@ -73,7 +88,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [lookupStatus, setLookupStatus] = useState<AddressLookupStatus>("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
-  const [propertyCoords, setPropertyCoords] = useState<[number, number] | null>(null);
+  const [propertyCoords, setPropertyCoords] = useState<[number, number] | null>(
+    null
+  );
 
   // Mapbox
   const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
@@ -81,7 +98,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
   const setMapboxAddress = (
     formattedAddress: string,
     coords: [number, number] | null,
-    source: "mapbox-autofill" | "mapbox-geocoding",
+    source: "mapbox-autofill" | "mapbox-geocoding"
   ) => {
     setAddress(formattedAddress);
     setSelectedAddress(formattedAddress);
@@ -105,7 +122,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     try {
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formattedAddress)}.json?access_token=${mapboxToken}&limit=1&country=US&types=address`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Could not check that address on the map.");
+      if (!res.ok) {
+        throw new Error("Could not check that address on the map.");
+      }
       const data = (await res.json()) as {
         features?: Array<{
           center?: [number, number];
@@ -122,7 +141,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     } catch (err) {
       setLookupStatus("error");
       setLookupError(
-        err instanceof Error ? err.message : "Could not check that address on the map.",
+        err instanceof Error
+          ? err.message
+          : "Could not check that address on the map."
       );
     }
   };
@@ -134,11 +155,11 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
 
   const estimate = useMemo(
     () => (onResults ? computeEstimate(content, selections) : null),
-    [onResults, content, selections],
+    [onResults, content, selections]
   );
   const summary = useMemo(
     () => (onResults ? summarizeSelections(content, selections) : []),
-    [onResults, content, selections],
+    [onResults, content, selections]
   );
 
   const goTo = (next: number, dir: number) => {
@@ -148,7 +169,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
 
   const handleLookup = async () => {
     const trimmed = address.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     await geocodeForMap(trimmed);
   };
 
@@ -180,7 +203,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!estimate) return;
+    if (!estimate) {
+      return;
+    }
     if (!fullName.trim()) {
       setSendError("Please enter your name.");
       return;
@@ -210,7 +235,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
         ok?: boolean;
         error?: string;
       };
-      if (!res.ok || !data.ok) throw new Error(data.error || "Could not send the estimate.");
+      if (!(res.ok && data.ok)) {
+        throw new Error(data.error || "Could not send the estimate.");
+      }
       setSendStatus("sent");
       posthog?.identify(email.trim(), {
         name: fullName.trim(),
@@ -225,7 +252,9 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
       });
     } catch (err) {
       setSendStatus("error");
-      setSendError(err instanceof Error ? err.message : "Could not send the estimate.");
+      setSendError(
+        err instanceof Error ? err.message : "Could not send the estimate."
+      );
       posthog?.captureException(err);
       trackGaEstimator({
         action: "error",
@@ -234,7 +263,8 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
     }
   };
 
-  const progressPct = totalSteps > 0 ? (Math.min(step + 1, totalSteps) / totalSteps) * 100 : 0;
+  const progressPct =
+    totalSteps > 0 ? (Math.min(step + 1, totalSteps) / totalSteps) * 100 : 0;
 
   const headingStyle: React.CSSProperties = {
     fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
@@ -332,72 +362,98 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
 
   return (
     <section
-      id={sectionId}
-      className={layoutClass.sectionPadded}
-      style={{ placeItems: "center", backgroundColor: theme.colors.paper, position: "relative" }}
       aria-labelledby={`${sectionId}-heading`}
+      className={layoutClass.sectionPadded}
+      id={sectionId}
+      style={{
+        placeItems: "center",
+        backgroundColor: theme.colors.paper,
+        position: "relative",
+      }}
     >
       <div className={layoutClass.containerFull}>
-        <div style={{ marginBlock: theme.spacing.xxxxl, maxWidth: "80vw" }}>
-          {content.eyebrow ? <span style={eyebrow}>{content.eyebrow}</span> : null}
+        <div
+          style={{
+            marginBlock: theme.spacing.xxxxl,
+            maxWidth: "80vw",
+            paddingInline: theme.spacing.xxxxxl,
+          }}
+        >
+          {content.eyebrow ? (
+            <span style={eyebrow}>{content.eyebrow}</span>
+          ) : null}
           <h1
             id={`${sectionId}-heading`}
             style={{ ...headingStyle, fontSize: "clamp(2rem, 6vw, 3rem)" }}
           >
             {content.title ?? "What might my roof cost?"}
           </h1>
-          {content.description ? <p style={helpStyle}>{content.description}</p> : null}
+          {content.description ? (
+            <p style={helpStyle}>{content.description}</p>
+          ) : null}
         </div>
         {/* Intro: 2-col with map panel. Questions/results: single card. */}
-        <div className={estimatorCardLayoutClass} style={{ minBlockSize: "50vh" }}>
-          <div data-estimator-card style={step === -1 ? introCardStyle : estimatorCardStyle}>
+        <div
+          className={estimatorCardLayoutClass}
+          style={{ minBlockSize: "50vh", paddingInline: theme.spacing.xxxxxl }}
+        >
+          <div
+            data-estimator-card
+            style={step === -1 ? introCardStyle : estimatorCardStyle}
+          >
             {/* Progress bar (hidden on intro + results) */}
             {step >= 0 && !onResults ? (
               <div
+                aria-valuemax={totalSteps}
+                aria-valuemin={0}
+                aria-valuenow={Math.min(step + 1, totalSteps)}
+                role="progressbar"
                 style={{
                   height: 6,
                   backgroundColor: theme.colors.paperDark,
                   position: "relative",
                 }}
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={totalSteps}
-                aria-valuenow={Math.min(step + 1, totalSteps)}
               >
                 <motion.div
                   animate={{ width: `${progressPct}%` }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
                   style={{
                     height: "100%",
                     backgroundColor: theme.colors.accent,
                   }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
                 />
               </div>
             ) : null}
 
             <div style={{ padding: "clamp(1.5rem, 4vw, 2.75rem)" }}>
-              <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <AnimatePresence custom={direction} initial={false} mode="wait">
                 {/* INTRO */}
                 {step === -1 ? (
                   <motion.div
-                    key="intro"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
                     animate="center"
+                    custom={direction}
                     exit="exit"
+                    initial="enter"
+                    key="intro"
                     transition={{ duration: 0.3 }}
+                    variants={slideVariants}
                   >
                     <p style={cardTextStyle}>
-                      {totalSteps} quick question{totalSteps === 1 ? "" : "s"}, about a minute.
-                      {" You'll see an honest price range at the end—no obligation."}
+                      {totalSteps} quick question{totalSteps === 1 ? "" : "s"},
+                      about a minute.
+                      {
+                        " You'll see an honest price range at the end—no obligation."
+                      }
                     </p>
 
                     {/* Address lookup */}
                     <div style={{ marginTop: theme.spacing.xxl }}>
                       <div className="wa-cluster wa-gap-2xs wa-align-items-end">
                         <div style={{ flex: "1 1 220px" }}>
-                          <label htmlFor="contact-property-address" style={addressLabelStyle}>
+                          <label
+                            htmlFor="contact-property-address"
+                            style={addressLabelStyle}
+                          >
                             Property Address{" "}
                             <span
                               style={{
@@ -411,7 +467,6 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                           {mapboxToken ? (
                             <AddressAutofill
                               accessToken={mapboxToken}
-                              options={{ country: "US", language: "en" }}
                               onRetrieve={(res) => {
                                 const feature = res?.features?.[0] as unknown as
                                   | {
@@ -424,79 +479,107 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                     }
                                   | undefined;
                                 const props = feature?.properties;
-                                const full = props?.full_address || props?.place_name;
-                                const rawCoords = feature?.geometry?.coordinates;
+                                const full =
+                                  props?.full_address || props?.place_name;
+                                const rawCoords =
+                                  feature?.geometry?.coordinates;
                                 const coords =
                                   Array.isArray(rawCoords) &&
                                   typeof rawCoords[0] === "number" &&
                                   typeof rawCoords[1] === "number"
-                                    ? ([rawCoords[0], rawCoords[1]] as [number, number])
+                                    ? ([rawCoords[0], rawCoords[1]] as [
+                                        number,
+                                        number,
+                                      ])
                                     : null;
                                 if (full) {
-                                  setMapboxAddress(full, coords, "mapbox-autofill");
+                                  setMapboxAddress(
+                                    full,
+                                    coords,
+                                    "mapbox-autofill"
+                                  );
                                 }
                               }}
+                              options={{ country: "US", language: "en" }}
                             >
                               <input
-                                id="contact-property-address"
-                                name="property-address"
-                                type="text"
                                 className="contact-address-input"
-                                placeholder="123 Main St, Austin, TX"
-                                value={address}
-                                onChange={(ev) => setAddress(ev.target.value)}
+                                id="contact-property-address"
                                 maxLength={500}
+                                name="property-address"
+                                onChange={(ev) => setAddress(ev.target.value)}
+                                placeholder="123 Main St, Austin, TX"
                                 style={addressInputStyle}
+                                type="text"
+                                value={address}
                               />
                             </AddressAutofill>
                           ) : (
                             <input
-                              id="contact-property-address"
-                              name="property-address"
-                              type="text"
                               className="contact-address-input"
-                              placeholder="123 Main St, Austin, TX"
-                              value={address}
-                              onChange={(ev) => setAddress(ev.target.value)}
+                              id="contact-property-address"
                               maxLength={500}
+                              name="property-address"
+                              onChange={(ev) => setAddress(ev.target.value)}
+                              placeholder="123 Main St, Austin, TX"
                               style={addressInputStyle}
+                              type="text"
+                              value={address}
                             />
                           )}
                         </div>
                         <button
-                          type="button"
-                          onClick={() => void handleLookup()}
-                          disabled={!address.trim() || lookupStatus === "loading"}
+                          disabled={
+                            !address.trim() || lookupStatus === "loading"
+                          }
+                          onClick={() => {
+                            handleLookup();
+                          }}
                           style={{
                             ...ghostButtonStyle,
                             border: `1px solid ${theme.colors.paperDark}`,
                             flexShrink: 0,
                             height: "2.75rem",
-                            opacity: !address.trim() || lookupStatus === "loading" ? 0.5 : 1,
+                            opacity:
+                              !address.trim() || lookupStatus === "loading"
+                                ? 0.5
+                                : 1,
                             cursor:
-                              !address.trim() || lookupStatus === "loading" ? "default" : "pointer",
+                              !address.trim() || lookupStatus === "loading"
+                                ? "default"
+                                : "pointer",
                           }}
+                          type="button"
                         >
-                          <Search width={15} height={15} />
-                          <span>{lookupStatus === "loading" ? "Finding…" : "Find on map"}</span>
+                          <Search height={15} width={15} />
+                          <span>
+                            {lookupStatus === "loading"
+                              ? "Finding…"
+                              : "Find on map"}
+                          </span>
                         </button>
                       </div>
 
                       {lookupStatus === "found" && selectedAddress ? (
                         <div className={foundStatusClass} style={foundStatus}>
                           <Check
-                            width={15}
                             height={15}
                             style={{
                               color: theme.colors.accent,
                               flexShrink: 0,
                               marginTop: "0.15rem",
                             }}
+                            width={15}
                           />
                           <div>
-                            <strong style={{ display: "block" }}>{selectedAddress}</strong>
-                            <span style={{ color: mix(theme.colors.everglade, 60) }}>
-                              Map centered. I’ll still ask for roof size so the range stays honest.
+                            <strong style={{ display: "block" }}>
+                              {selectedAddress}
+                            </strong>
+                            <span
+                              style={{ color: mix(theme.colors.everglade, 60) }}
+                            >
+                              Map centered. I’ll still ask for roof size so the
+                              range stays honest.
                             </span>
                           </div>
                         </div>
@@ -511,14 +594,21 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             color: theme.colors.danger,
                           }}
                         >
-                          {lookupError} You can still answer the questions manually.
+                          {lookupError} You can still answer the questions
+                          manually.
                         </p>
                       ) : null}
                     </div>
 
-                    <button type="button" onClick={start} style={primaryButtonStyle}>
-                      <span>{content.startButtonLabel ?? "Estimate my roof"}</span>
-                      <ArrowRight width={18} height={18} />
+                    <button
+                      onClick={start}
+                      style={primaryButtonStyle}
+                      type="button"
+                    >
+                      <span>
+                        {content.startButtonLabel ?? "Estimate my roof"}
+                      </span>
+                      <ArrowRight height={18} width={18} />
                     </button>
                   </motion.div>
                 ) : null}
@@ -527,18 +617,20 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                 {step >= 0 && !onResults
                   ? (() => {
                       const question = visibleQuestions[step];
-                      if (!question) return null;
+                      if (!question) {
+                        return null;
+                      }
                       const questionKey = question._key ?? question.prompt;
                       const selected = selections[questionKey];
                       return (
                         <motion.div
-                          key={`q-${questionKey}`}
-                          custom={direction}
-                          variants={slideVariants}
-                          initial="enter"
                           animate="center"
+                          custom={direction}
                           exit="exit"
+                          initial="enter"
+                          key={`q-${questionKey}`}
                           transition={{ duration: 0.3 }}
+                          variants={slideVariants}
                         >
                           <p
                             style={{
@@ -566,19 +658,24 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                               } as React.CSSProperties
                             }
                           >
+                            {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic */}
                             {question.options.map((option) => {
                               const optionKey = option._key ?? option.label;
                               const isSelected = selected === optionKey;
                               const illustration =
                                 option.illustration ??
-                                optionIllustrationFor(question.prompt, option.label);
+                                optionIllustrationFor(
+                                  question.prompt,
+                                  option.label
+                                );
                               return (
                                 <button
-                                  type="button"
-                                  key={optionKey}
-                                  className={estimatorOptionClass}
-                                  onClick={() => selectOption(questionKey, optionKey)}
                                   aria-pressed={isSelected}
+                                  className={estimatorOptionClass}
+                                  key={optionKey}
+                                  onClick={() =>
+                                    selectOption(questionKey, optionKey)
+                                  }
                                   style={{
                                     ...estimatorOptionStyle,
                                     borderColor: isSelected
@@ -591,13 +688,15 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                       ? `0 8px 20px ${mix(theme.colors.accent, 18)}`
                                       : "none",
                                   }}
+                                  type="button"
                                 >
                                   {illustration ? (
+                                    // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
                                     <img
-                                      src={illustration}
                                       alt=""
                                       aria-hidden="true"
                                       loading="lazy"
+                                      src={illustration}
                                       style={estimatorOptionArtStyle}
                                     />
                                   ) : null}
@@ -629,11 +728,11 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                           {step >= 0 ? (
                             <div style={{ marginTop: theme.spacing.xxl }}>
                               <button
-                                type="button"
                                 onClick={() => goTo(step - 1, -1)}
                                 style={ghostButtonStyle}
+                                type="button"
                               >
-                                <ArrowLeft width={16} height={16} />
+                                <ArrowLeft height={16} width={16} />
                                 <span>Back</span>
                               </button>
                             </div>
@@ -646,13 +745,13 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                 {/* RESULTS */}
                 {onResults ? (
                   <motion.div
-                    key="results"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
                     animate="center"
+                    custom={direction}
                     exit="exit"
+                    initial="enter"
+                    key="results"
                     transition={{ duration: 0.3 }}
+                    variants={slideVariants}
                   >
                     {estimate ? (
                       <>
@@ -664,7 +763,8 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             color: theme.colors.accent,
                           }}
                         >
-                          {content.resultHeading ?? "Here's roughly what you'll spend"}
+                          {content.resultHeading ??
+                            "Here's roughly what you'll spend"}
                         </p>
                         <p
                           style={{
@@ -689,8 +789,8 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                         >
                           {summary.map((row) => (
                             <li
-                              key={row.prompt}
                               className="wa-split"
+                              key={row.prompt}
                               style={{
                                 gap: theme.spacing.lg,
                                 fontSize: "0.95rem",
@@ -742,11 +842,17 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                               borderRadius: theme.radius.medium,
                             }}
                           >
-                            <Check width={22} height={22} />
-                            <span>Sent! Check your inbox for your estimate.</span>
+                            <Check height={22} width={22} />
+                            <span>
+                              Sent! Check your inbox for your estimate.
+                            </span>
                           </div>
                         ) : (
-                          <form onSubmit={handleEmail}>
+                          // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onKeyDown stops propagation on a native form element
+                          <form
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onSubmit={handleEmail}
+                          >
                             <p
                               style={{
                                 fontFamily: theme.fonts.headline,
@@ -769,20 +875,26 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             >
                               <WaInput
                                 label="Your name"
-                                value={fullName}
-                                required
-                                onInput={(e) =>
-                                  setFullName((e.target as unknown as { value: string }).value)
+                                onChange={(e) =>
+                                  setFullName(
+                                    (e.target as unknown as { value: string })
+                                      .value
+                                  )
                                 }
+                                required
+                                value={fullName}
                               />
                               <WaInput
                                 label="Email"
+                                onChange={(e) =>
+                                  setEmail(
+                                    (e.target as unknown as { value: string })
+                                      .value
+                                  )
+                                }
+                                required
                                 type="email"
                                 value={email}
-                                required
-                                onInput={(e) =>
-                                  setEmail((e.target as unknown as { value: string }).value)
-                                }
                               />
                             </div>
                             {sendError ? (
@@ -799,21 +911,30 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             ) : null}
                             <div className={estimatorFooterClass}>
                               <button
-                                type="submit"
                                 disabled={sendStatus === "sending"}
                                 style={{
                                   ...primaryButtonStyle,
-                                  cursor: sendStatus === "sending" ? "wait" : "pointer",
+                                  cursor:
+                                    sendStatus === "sending"
+                                      ? "wait"
+                                      : "pointer",
                                   opacity: sendStatus === "sending" ? 0.75 : 1,
                                 }}
+                                type="submit"
                               >
                                 <span>
-                                  {sendStatus === "sending" ? "Sending…" : "Email me the estimate"}
+                                  {sendStatus === "sending"
+                                    ? "Sending…"
+                                    : "Email me the estimate"}
                                 </span>
-                                <Send width={18} height={18} />
+                                <Send height={18} width={18} />
                               </button>
-                              <button type="button" onClick={restart} style={ghostButtonStyle}>
-                                <RefreshDouble width={16} height={16} />
+                              <button
+                                onClick={restart}
+                                style={ghostButtonStyle}
+                                type="button"
+                              >
+                                <RefreshDouble height={16} width={16} />
                                 <span>Start over</span>
                               </button>
                             </div>
@@ -824,15 +945,15 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                       <>
                         <h2 style={headingStyle}>Almost there</h2>
                         <p style={helpStyle}>
-                          I need your home size to estimate a range. Jump back and pick a size to
-                          see your ballpark.
+                          I need your home size to estimate a range. Jump back
+                          and pick a size to see your ballpark.
                         </p>
                         <button
-                          type="button"
                           onClick={() => goTo(0, -1)}
                           style={primaryButtonStyle}
+                          type="button"
                         >
-                          <ArrowLeft width={18} height={18} />
+                          <ArrowLeft height={18} width={18} />
                           <span>Back to questions</span>
                         </button>
                       </>
@@ -845,7 +966,11 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
         </div>
       </div>
 
-      <EstimatorMapBackground active mapboxToken={mapboxToken} propertyCoords={propertyCoords} />
+      <EstimatorMapBackground
+        active
+        mapboxToken={mapboxToken}
+        propertyCoords={propertyCoords}
+      />
     </section>
   );
 };

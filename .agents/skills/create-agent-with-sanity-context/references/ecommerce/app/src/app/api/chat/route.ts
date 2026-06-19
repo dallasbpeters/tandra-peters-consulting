@@ -53,18 +53,20 @@ Always use directives for product names so the UI can render them as cards.
 }
 
 interface ChatRequest {
-  messages: UIMessage[];
   documentContext: DocumentContext;
   id: string;
+  messages: UIMessage[];
 }
 
 // The `get_page_screenshot` tool sends screenshots as `data:` URLs, which
 // are not supported by the default downloader. `experimental_download` is used
 // to decode `data:` files for model input. An alternative approach is to upload
 // screenshots first and send an `https://` file URL.
-const downloadDataUrls: Experimental_DownloadFunction = async (items) => {
-  return items.map(({ url }) => {
-    if (url.protocol !== "data:") return null;
+const downloadDataUrls: Experimental_DownloadFunction = async (items) =>
+  items.map(({ url }) => {
+    if (url.protocol !== "data:") {
+      return null;
+    }
 
     const [meta = "", payload = ""] = url.href.slice(5).split(",", 2);
     const mediaType = meta.split(";")[0] || undefined;
@@ -74,10 +76,13 @@ const downloadDataUrls: Experimental_DownloadFunction = async (items) => {
 
     return { data: new Uint8Array(data), mediaType };
   });
-};
 
 export async function POST(req: Request) {
-  const { messages, documentContext, id: chatId }: ChatRequest = await req.json();
+  const {
+    messages,
+    documentContext,
+    id: chatId,
+  }: ChatRequest = await req.json();
 
   if (!process.env.SANITY_CONTEXT_MCP_URL) {
     throw new Error("SANITY_CONTEXT_MCP_URL is not set");
@@ -107,7 +112,7 @@ export async function POST(req: Request) {
       }),
       client.fetch<{ systemPrompt: string | null } | null>(
         `*[_type == "agent.config" && slug.current == $slug][0] { systemPrompt }`,
-        { slug: process.env.AGENT_CONFIG_SLUG || "default" },
+        { slug: process.env.AGENT_CONFIG_SLUG || "default" }
       ),
     ]);
 
@@ -116,8 +121,11 @@ export async function POST(req: Request) {
     if (!agentConfig?.systemPrompt) {
       await mcpClient?.close();
       return Response.json(
-        { error: "Agent config not found or missing system prompt. Create one in Sanity Studio." },
-        { status: 500 },
+        {
+          error:
+            "Agent config not found or missing system prompt. Create one in Sanity Studio.",
+        },
+        { status: 500 }
       );
     }
 
@@ -158,8 +166,13 @@ export async function POST(req: Request) {
     await mcpClient?.close();
 
     return Response.json(
-      { error: error instanceof Error ? error.message : "An unexpected error occurred" },
-      { status: 500 },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      },
+      { status: 500 }
     );
   }
 }

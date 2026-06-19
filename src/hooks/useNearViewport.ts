@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { type RefObject, useEffect, useState } from "react";
 
 /**
  * True once the target element enters (or is within rootMargin of) the viewport.
@@ -6,7 +6,7 @@ import { useEffect, useState, type RefObject } from "react";
  */
 export const useNearViewport = <T extends Element>(
   ref: RefObject<T | null>,
-  rootMargin = "480px 0px",
+  rootMargin = "480px 0px"
 ): boolean => {
   const [isNear, setIsNear] = useState(false);
 
@@ -32,7 +32,7 @@ export const useNearViewport = <T extends Element>(
             observer?.disconnect();
           }
         },
-        { rootMargin },
+        { rootMargin }
       );
 
       observer.observe(node);
@@ -44,7 +44,7 @@ export const useNearViewport = <T extends Element>(
       cancelAnimationFrame(rafId);
       observer?.disconnect();
     };
-  }, [isNear, rootMargin]);
+  }, [isNear, rootMargin, ref.current]);
 
   return isNear;
 };

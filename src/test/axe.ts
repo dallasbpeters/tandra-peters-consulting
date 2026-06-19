@@ -1,14 +1,14 @@
-import axeCore from "axe-core";
-import { axe, type AxeResults, type RunOptions } from "jest-axe";
+import axeCoreLib from "axe-core";
+import { type AxeResults, axe as axeFn, type RunOptions } from "jest-axe";
 
 export type AxeCheckTarget = Element | Document | string;
 
 /** Run axe against a rendered container; fails the test when violations exist. */
 export const runAxe = async (
   container: AxeCheckTarget,
-  options?: RunOptions,
+  options?: RunOptions
 ): Promise<AxeResults> => {
-  const results = await axe(container, {
+  const results = await axeFn(container, {
     rules: {
       // jsdom has no browsing context for same-page hash links in isolated renders
       "link-in-text-block": { enabled: false },
@@ -19,4 +19,6 @@ export const runAxe = async (
   return results;
 };
 
-export { axe, axeCore };
+// Export under stable public names — imported and re-bound to satisfy noExportedImports
+export const axe = axeFn;
+export const axeCore = axeCoreLib;

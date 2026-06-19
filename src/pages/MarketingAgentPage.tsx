@@ -24,4 +24,6 @@ const MARKETING_AGENT_CONFIG: AgentConfig = {
   ] as const,
 };
 
-export const MarketingAgentPage = () => <AgentChatPage config={MARKETING_AGENT_CONFIG} />;
+export const MarketingAgentPage = () => (
+  <AgentChatPage config={MARKETING_AGENT_CONFIG} />
+);

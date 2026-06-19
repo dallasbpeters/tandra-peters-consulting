@@ -1,5 +1,5 @@
 import { NavArrowLeft } from "iconoir-react";
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { TransitionLink } from "../components/TransitionLink";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -7,10 +7,10 @@ import { layoutClass } from "../styles/layoutClasses";
 import { typeStyles } from "../styles/siteTypography";
 import { theme } from "../theme";
 
-type LegalLayoutProps = {
-  title: string;
+interface LegalLayoutProps {
   children: ReactNode;
-};
+  title: string;
+}
 
 export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
   usePageMetadata({
@@ -42,24 +42,25 @@ export const LegalLayout = ({ title, children }: LegalLayoutProps) => {
             }
           `}</style>
         <TransitionLink
-          to="/"
+          aria-label="Back to home page"
           className="legal-back-link"
           style={typeStyles.backLink}
-          aria-label="Back to home page"
+          to="/"
         >
           <NavArrowLeft
-            width={18}
+            aria-hidden
             height={18}
             strokeWidth={2}
-            aria-hidden
             style={{ flexShrink: 0, opacity: 0.85 }}
+            width={18}
           />
           Back
         </TransitionLink>
         <h1 style={typeStyles.legalPageTitle}>{title}</h1>
         <p style={typeStyles.legalMuted}>
-          This page is provided for transparency. It is not legal advice. For questions about your
-          rights or obligations, consult a qualified attorney.
+          This page is provided for transparency. It is not legal advice. For
+          questions about your rights or obligations, consult a qualified
+          attorney.
         </p>
         <div style={typeStyles.legalBody}>{children}</div>
       </article>

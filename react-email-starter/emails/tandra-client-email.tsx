@@ -1,5 +1,3 @@
-import type { ClientEmailContent, EmailAssets } from "../../server/email/types";
-
 import { fetchClientEmail } from "../../server/email/sanity";
 /**
  * Design preview for the client email. The actual template + renderer live in
@@ -8,8 +6,11 @@ import { fetchClientEmail } from "../../server/email/sanity";
  * preview-server static assets.
  */
 import { ClientEmailDocument } from "../../server/email/template";
+import type { ClientEmailContent, EmailAssets } from "../../server/email/types";
 
-const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "";
 
 const assets: EmailAssets = {
   headerLogoUrl: `${baseUrl}/static/BC_Horizontal_Color.png`,
@@ -20,7 +21,7 @@ const assets: EmailAssets = {
 export const TandraClientEmail = async (props: ClientEmailContent) => {
   const live = await fetchClientEmail();
   const content = live ?? props ?? {};
-  return <ClientEmailDocument content={content} assets={assets} />;
+  return <ClientEmailDocument assets={assets} content={content} />;
 };
 
 TandraClientEmail.PreviewProps = {

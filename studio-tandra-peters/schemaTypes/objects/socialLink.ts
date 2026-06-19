@@ -22,7 +22,10 @@ export const socialLinkType = defineType({
       name: "url",
       type: "url",
       validation: (rule) =>
-        rule.required().uri({ allowRelative: false, scheme: ["http", "https", "mailto", "tel"] }),
+        rule.required().uri({
+          allowRelative: false,
+          scheme: ["http", "https", "mailto", "tel"],
+        }),
     }),
   ],
 });

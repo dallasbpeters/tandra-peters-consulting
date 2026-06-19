@@ -1,4 +1,8 @@
-import type { CreativeState, DoorHangerCutout, LogoVariant } from "./adCreative";
+import type {
+  CreativeState,
+  DoorHangerCutout,
+  LogoVariant,
+} from "./adCreative";
 import type { FontPresetId } from "./adCreativeTemplates";
 
 // ─── Element model ────────────────────────────────────────────────────────────
@@ -10,18 +14,18 @@ export type CanvasElementKind = "text" | "image" | "logo" | "rect" | "qr";
 
 export type TextAlign = "left" | "center" | "right";
 
-type CanvasElementBase = {
-  id: string;
-  kind: CanvasElementKind;
-  name: string;
-  x: number;
-  y: number;
-  width: number;
+interface CanvasElementBase {
   /** null = auto height (text and logo elements size to content) */
   height: number | null;
-  opacity: number;
+  id: string;
+  kind: CanvasElementKind;
   locked: boolean;
-};
+  name: string;
+  opacity: number;
+  width: number;
+  x: number;
+  y: number;
+}
 
 export type TextCanvasElement = CanvasElementBase & {
   kind: "text";
@@ -79,10 +83,14 @@ export type CanvasElement =
   | RectCanvasElement
   | QrCanvasElement;
 
-export type CanvasGuide = { axis: "x" | "y"; position: number };
+export interface CanvasGuide {
+  axis: "x" | "y";
+  position: number;
+}
 
 let idCounter = 0;
-export const createElementId = () => `cel-${Date.now().toString(36)}-${idCounter++}`;
+export const createElementId = () =>
+  `cel-${Date.now().toString(36)}-${idCounter++}`;
 
 // Stable ids for elements seeded from creative copy fields so panel edits can
 // keep flowing into the canvas.
@@ -109,7 +117,11 @@ export const CANVAS_FONT_FAMILIES = [
   { label: "Caveat", css: '"Caveat Variable", cursive' },
 ] as const;
 
-type FontPair = { headline: string; body: string; headlineWeight: number };
+interface FontPair {
+  body: string;
+  headline: string;
+  headlineWeight: number;
+}
 
 const FONT_PAIRS: Record<FontPresetId, FontPair> = {
   "brand-serif": {
@@ -141,7 +153,8 @@ export const getFontPair = (id: FontPresetId): FontPair =>
 // ─── Element factories ────────────────────────────────────────────────────────
 
 const baseText = (
-  overrides: Partial<TextCanvasElement> & Pick<TextCanvasElement, "id" | "name" | "text">,
+  overrides: Partial<TextCanvasElement> &
+    Pick<TextCanvasElement, "id" | "name" | "text">
 ): TextCanvasElement => ({
   kind: "text",
   x: 10,
@@ -217,16 +230,16 @@ export const createRectElement = (fill: string): RectCanvasElement => ({
 // (headlineSize etc.) are stored as percentages where 100 = base size.
 
 /** Everything a layout recipe needs to seed its elements. */
-type SeedContext = {
+interface SeedContext {
+  /** Body size multiplier from the template preset (100 → 1). */
+  bs: number;
   creative: CreativeState;
+  /** CTA size multiplier from the template preset (100 → 1). */
+  cs: number;
   fonts: FontPair;
   /** Headline size multiplier from the template preset (100 → 1). */
   hs: number;
-  /** Body size multiplier from the template preset (100 → 1). */
-  bs: number;
-  /** CTA size multiplier from the template preset (100 → 1). */
-  cs: number;
-};
+}
 
 /**
  * Cover-fit photo element with the stable image role id.
@@ -235,7 +248,7 @@ type SeedContext = {
  */
 const seedImageEl = (
   src: string,
-  geo: { x: number; y: number; width: number; height: number },
+  geo: { x: number; y: number; width: number; height: number }
 ): ImageCanvasElement => ({
   id: ROLE_IDS.image,
   kind: "image",
@@ -253,7 +266,7 @@ const seedImageEl = (
  */
 const seedLogoEl = (
   creative: CreativeState,
-  geo: { x: number; y: number; width: number },
+  geo: { x: number; y: number; width: number }
 ): LogoCanvasElement => ({
   id: ROLE_IDS.logo,
   kind: "logo",
@@ -275,7 +288,7 @@ const seedRectEl = (
   name: string,
   geo: { x: number; y: number; width: number; height: number },
   fill: string,
-  opacity = 1,
+  opacity = 1
 ): RectCanvasElement => ({
   id,
   kind: "rect",
@@ -295,14 +308,18 @@ const seedRectEl = (
  */
 const seedFooterEls = (ctx: SeedContext, textX: number): CanvasElement[] => {
   const { creative, fonts } = ctx;
-  const text = [creative.footnote, creative.footnote2].filter(Boolean).join("  ·  ");
-  if (!text) return [];
+  const text = [creative.footnote, creative.footnote2]
+    .filter(Boolean)
+    .join("  ·  ");
+  if (!text) {
+    return [];
+  }
   return [
     seedRectEl(
       ROLE_IDS.footerBar,
       "Footer bar",
       { x: 0, y: 89, width: 100, height: 11 },
-      creative.backgroundColor,
+      creative.backgroundColor
     ),
     baseText({
       id: ROLE_IDS.footnote,
@@ -326,9 +343,14 @@ const seedFooterEls = (ctx: SeedContext, textX: number): CanvasElement[] => {
  * Plain bold phone-number line — the originals don't use a pill.
  * @returns The CTA text element, or `null` when the creative has no CTA copy
  */
-const seedPhoneCta = (ctx: SeedContext, geo: { x: number; y: number; width: number }) => {
+const seedPhoneCta = (
+  ctx: SeedContext,
+  geo: { x: number; y: number; width: number }
+) => {
   const { creative, fonts, cs } = ctx;
-  if (!creative.cta) return null;
+  if (!creative.cta) {
+    return null;
+  }
   return baseText({
     id: ROLE_IDS.cta,
     name: "CTA",
@@ -348,9 +370,14 @@ const seedPhoneCta = (ctx: SeedContext, geo: { x: number; y: number; width: numb
  * serif accent treatment from the originals; paragraphs stay readable.
  * @returns The body text element, or `null` when the creative has no body copy
  */
-const seedBodyCopy = (ctx: SeedContext, geo: { x: number; y: number; width: number }) => {
+const seedBodyCopy = (
+  ctx: SeedContext,
+  geo: { x: number; y: number; width: number }
+) => {
   const { creative, bs } = ctx;
-  if (!creative.body) return null;
+  if (!creative.body) {
+    return null;
+  }
   const isScriptLine = creative.body.length <= 24;
   return baseText({
     id: ROLE_IDS.body,
@@ -363,7 +390,9 @@ const seedBodyCopy = (ctx: SeedContext, geo: { x: number; y: number; width: numb
     fontSize: (isScriptLine ? 7 : 3.4) * bs,
     lineHeight: isScriptLine ? 1.1 : 1.4,
     textAlign: "left",
-    color: isScriptLine ? creative.headlineAccentColor || creative.textColor : creative.textColor,
+    color: isScriptLine
+      ? creative.headlineAccentColor || creative.textColor
+      : creative.textColor,
   });
 };
 
@@ -375,7 +404,7 @@ const seedBodyCopy = (ctx: SeedContext, geo: { x: number; y: number; width: numb
 const seedHeadlineEl = (
   ctx: SeedContext,
   geo: { x: number; y: number; width: number },
-  fontSize: number,
+  fontSize: number
 ): TextCanvasElement =>
   baseText({
     id: ROLE_IDS.headline,
@@ -400,7 +429,9 @@ const seedHeroFooter = (ctx: SeedContext): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 })
+    );
   }
   if (creative.showLogo) {
     elements.push(seedLogoEl(creative, { x: 64, y: 5, width: 30 }));
@@ -409,9 +440,13 @@ const seedHeroFooter = (ctx: SeedContext): CanvasElement[] => {
     elements.push(seedHeadlineEl(ctx, { x: 7, y: 13, width: 70 }, 12.5 * hs));
   }
   const body = seedBodyCopy(ctx, { x: 7, y: 42, width: 60 });
-  if (body) elements.push(body);
+  if (body) {
+    elements.push(body);
+  }
   const cta = seedPhoneCta(ctx, { x: 7, y: 55, width: 60 });
-  if (cta) elements.push(cta);
+  if (cta) {
+    elements.push(cta);
+  }
   elements.push(...seedFooterEls(ctx, 7));
 
   return elements;
@@ -430,11 +465,13 @@ const seedStormSplit = (ctx: SeedContext): CanvasElement[] => {
       ROLE_IDS.panel,
       "Panel",
       { x: 0, y: 0, width: 58, height: 100 },
-      creative.backgroundColor,
-    ),
+      creative.backgroundColor
+    )
   );
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 58, y: 0, width: 42, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 58, y: 0, width: 42, height: 100 })
+    );
   }
   if (creative.showLogo) {
     elements.push(seedLogoEl(creative, { x: 5, y: 5, width: 26 }));
@@ -455,16 +492,20 @@ const seedStormSplit = (ctx: SeedContext): CanvasElement[] => {
         textAlign: "left",
         textTransform: "uppercase",
         color: creative.headlineAccentColor || creative.textColor,
-      }),
+      })
     );
   }
   if (creative.headline) {
     elements.push(seedHeadlineEl(ctx, { x: 5, y: 24, width: 50 }, 9.5 * hs));
   }
   const body = seedBodyCopy(ctx, { x: 5, y: 52, width: 47 });
-  if (body) elements.push(body);
+  if (body) {
+    elements.push(body);
+  }
   const cta = seedPhoneCta(ctx, { x: 5, y: 66, width: 50 });
-  if (cta) elements.push(cta);
+  if (cta) {
+    elements.push(cta);
+  }
   elements.push(...seedFooterEls(ctx, 5));
 
   return elements;
@@ -479,7 +520,9 @@ const seedStormOverlay = (ctx: SeedContext): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 })
+    );
   }
   elements.push(
     seedRectEl(
@@ -487,8 +530,8 @@ const seedStormOverlay = (ctx: SeedContext): CanvasElement[] => {
       "Tint",
       { x: 0, y: 0, width: 100, height: 100 },
       creative.backgroundColor,
-      0.55,
-    ),
+      0.55
+    )
   );
   if (creative.showLogo) {
     elements.push(seedLogoEl(creative, { x: 64, y: 6, width: 30 }));
@@ -497,9 +540,13 @@ const seedStormOverlay = (ctx: SeedContext): CanvasElement[] => {
     elements.push(seedHeadlineEl(ctx, { x: 7, y: 15, width: 64 }, 12 * hs));
   }
   const body = seedBodyCopy(ctx, { x: 7, y: 44, width: 60 });
-  if (body) elements.push(body);
+  if (body) {
+    elements.push(body);
+  }
   const cta = seedPhoneCta(ctx, { x: 7, y: 57, width: 60 });
-  if (cta) elements.push(cta);
+  if (cta) {
+    elements.push(cta);
+  }
   elements.push(...seedFooterEls(ctx, 7));
 
   return elements;
@@ -514,7 +561,9 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 })
+    );
   }
   elements.push(
     seedRectEl(
@@ -522,15 +571,15 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
       "Tint",
       { x: 0, y: 0, width: 100, height: 100 },
       creative.backgroundColor,
-      0.35,
+      0.35
     ),
     seedRectEl(
       ROLE_IDS.panel,
       "Panel fade",
       { x: 0, y: 0, width: 64, height: 100 },
       creative.backgroundColor,
-      0.8,
-    ),
+      0.8
+    )
   );
   if (creative.showLogo) {
     elements.push(seedLogoEl(creative, { x: 6, y: 6, width: 26 }));
@@ -539,11 +588,13 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
   // The original sets the last headline line in the accent color, so split the
   // headline into a white element and an accent element.
   if (creative.headline) {
-    const lines = creative.headline.split("\n").filter((line) => line.trim().length > 0);
+    const lines = creative.headline
+      .split("\n")
+      .filter((line) => line.trim().length > 0);
     const headlineSize = 8.5 * hs;
     if (lines.length >= 2) {
       const leadLines = lines.slice(0, -1);
-      const accentLine = lines[lines.length - 1];
+      const accentLine = lines.at(-1);
       elements.push(
         seedHeadlineEl(
           { ...ctx, creative: { ...creative, headline: leadLines.join("\n") } },
@@ -552,7 +603,7 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
             y: 32,
             width: 58,
           },
-          headlineSize,
+          headlineSize
         ),
         baseText({
           id: ROLE_IDS.headlineAccent,
@@ -568,17 +619,23 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
           textAlign: "left",
           textTransform: "uppercase",
           color: creative.headlineAccentColor || creative.headlineColor,
-        }),
+        })
       );
     } else {
-      elements.push(seedHeadlineEl(ctx, { x: 6, y: 32, width: 58 }, headlineSize));
+      elements.push(
+        seedHeadlineEl(ctx, { x: 6, y: 32, width: 58 }, headlineSize)
+      );
     }
   }
 
   const body = seedBodyCopy(ctx, { x: 6, y: 54, width: 56 });
-  if (body) elements.push(body);
+  if (body) {
+    elements.push(body);
+  }
   const cta = seedPhoneCta(ctx, { x: 6, y: 62, width: 56 });
-  if (cta) elements.push(cta);
+  if (cta) {
+    elements.push(cta);
+  }
   elements.push(...seedFooterEls(ctx, 6));
 
   return elements;
@@ -593,7 +650,9 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
   const elements: CanvasElement[] = [];
 
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 })
+    );
   }
   if (creative.showLogo) {
     elements.push(seedLogoEl(creative, { x: 74, y: 4, width: 22 }));
@@ -613,7 +672,7 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
         letterSpacing: 0.14,
         textTransform: "uppercase",
         color: creative.textColor,
-      }),
+      })
     );
   }
   if (creative.headline) {
@@ -631,7 +690,7 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
         lineHeight: 0.98,
         textTransform: "uppercase",
         color: creative.headlineColor || creative.textColor,
-      }),
+      })
     );
   }
   if (creative.body) {
@@ -649,7 +708,7 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
         fontSize: 7 * bs,
         lineHeight: 1.1,
         color: creative.textColor,
-      }),
+      })
     );
   }
   if (creative.cta) {
@@ -671,7 +730,7 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
         paddingX: 4,
         paddingY: 2.2,
         borderRadius: 1.4,
-      }),
+      })
     );
   }
   elements.push(...seedFooterEls(ctx, 4));
@@ -692,7 +751,10 @@ const seedClassic = (ctx: SeedContext): CanvasElement[] => {
  * always door-hanger-appropriate (the template still drives colors, fonts,
  * copy, and photo).
  */
-const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasElement[] => {
+const seedDoorHanger = (
+  ctx: SeedContext,
+  cutout: DoorHangerCutout
+): CanvasElement[] => {
   const { creative, fonts, hs, bs, cs } = ctx;
   const elements: CanvasElement[] = [];
 
@@ -708,21 +770,24 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
 
   // Clear the knob hole plus a comfortable margin so nothing sits near the
   // cutout. Hole bottom = (centre-from-top + radius) / total height.
-  const holeBottomPct = ((cutout.holeCenterFromTop + cutout.holeDiameter / 2) / heightIn) * 100;
+  const holeBottomPct =
+    ((cutout.holeCenterFromTop + cutout.holeDiameter / 2) / heightIn) * 100;
   const safeTop = holeBottomPct + 6;
 
   // Full-bleed photo with a heavy brand tint keeps the stacked copy legible;
   // without a photo the solid canvas background shows through.
   if (creative.imageUrl) {
-    elements.push(seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 }));
+    elements.push(
+      seedImageEl(creative.imageUrl, { x: 0, y: 0, width: 100, height: 100 })
+    );
     elements.push(
       seedRectEl(
         ROLE_IDS.tint,
         "Tint",
         { x: 0, y: 0, width: 100, height: 100 },
         creative.backgroundColor,
-        0.55,
-      ),
+        0.55
+      )
     );
   }
 
@@ -751,7 +816,7 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
         textAlign: "center",
         textTransform: "uppercase",
         color: creative.headlineAccentColor || creative.textColor,
-      }),
+      })
     );
     y += blockPct(size, 1, 1.1) + 2.5;
   }
@@ -773,7 +838,7 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
         textAlign: "center",
         textTransform: "uppercase",
         color: creative.headlineColor || creative.textColor,
-      }),
+      })
     );
     y += blockPct(size, lineCount(creative.headline), 0.98) + 4;
   }
@@ -795,7 +860,7 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
         lineHeight: 1.25,
         textAlign: "center",
         color: creative.textColor,
-      }),
+      })
     );
     y += blockPct(size, lineCount(creative.body), 1.25) + 4;
   }
@@ -820,19 +885,21 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
         paddingX: 4,
         paddingY: 2.4,
         borderRadius: 1.6,
-      }),
+      })
     );
   }
 
   // Contact band pinned to the bottom, sized up for the print format.
-  const footerText = [creative.footnote, creative.footnote2].filter(Boolean).join("  ·  ");
+  const footerText = [creative.footnote, creative.footnote2]
+    .filter(Boolean)
+    .join("  ·  ");
   if (footerText) {
     elements.push(
       seedRectEl(
         ROLE_IDS.footerBar,
         "Footer bar",
         { x: 0, y: 92, width: 100, height: 8 },
-        creative.backgroundColor,
+        creative.backgroundColor
       ),
       baseText({
         id: ROLE_IDS.footnote,
@@ -848,7 +915,7 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
         textAlign: "center",
         textTransform: "uppercase",
         color: creative.textColor,
-      }),
+      })
     );
   }
 
@@ -870,7 +937,7 @@ const seedDoorHanger = (ctx: SeedContext, cutout: DoorHangerCutout): CanvasEleme
  */
 export const seedCanvasElements = (
   creative: CreativeState,
-  cutout?: DoorHangerCutout,
+  cutout?: DoorHangerCutout
 ): CanvasElement[] => {
   const ctx: SeedContext = {
     creative,
@@ -904,7 +971,7 @@ export const seedCanvasElements = (
 // intentionally NOT synced here (it would revert inline edits).
 export const syncElementsFromCreative = (
   elements: CanvasElement[],
-  creative: CreativeState,
+  creative: CreativeState
 ): CanvasElement[] => {
   let changed = false;
 
@@ -918,7 +985,11 @@ export const syncElementsFromCreative = (
       changed = true;
       return { ...el, src: creative.imageUrl };
     }
-    if (el.kind === "logo" && el.id === ROLE_IDS.logo && el.variant !== creative.logoVariant) {
+    if (
+      el.kind === "logo" &&
+      el.id === ROLE_IDS.logo &&
+      el.variant !== creative.logoVariant
+    ) {
       changed = true;
       return { ...el, variant: creative.logoVariant };
     }
@@ -981,7 +1052,10 @@ export const syncElementsFromCreative = (
 
 export const SNAP_THRESHOLD = 1.2;
 
-type SnapResult = { delta: number; guide: number | null };
+interface SnapResult {
+  delta: number;
+  guide: number | null;
+}
 
 /**
  * Given the moving element's candidate lines (start/center/end) and the static
@@ -991,7 +1065,7 @@ type SnapResult = { delta: number; guide: number | null };
 export const findSnapShift = (
   candidates: number[],
   targets: number[],
-  threshold: number,
+  threshold: number
 ): SnapResult => {
   let best: SnapResult = { delta: 0, guide: null };
   let bestDistance = threshold;
@@ -1013,21 +1087,22 @@ export const findSnapShift = (
 export const collectSnapTargets = (
   elements: CanvasElement[],
   excludeId: string,
-  canvasAspect: number,
+  _canvasAspect: number
 ) => {
   const xTargets = [0, 50, 100];
   const yTargets = [0, 50, 100];
 
   for (const el of elements) {
-    if (el.id === excludeId) continue;
+    if (el.id === excludeId) {
+      continue;
+    }
     xTargets.push(el.x, el.x + el.width / 2, el.x + el.width);
-    if (el.height != null) {
-      yTargets.push(el.y, el.y + el.height / 2, el.y + el.height);
-    } else {
+    if (el.height == null) {
       yTargets.push(el.y);
+    } else {
+      yTargets.push(el.y, el.y + el.height / 2, el.y + el.height);
     }
   }
 
-  void canvasAspect;
   return { xTargets, yTargets };
 };

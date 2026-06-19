@@ -75,9 +75,15 @@ const styles = {
 } satisfies Record<string, CSSProperties>;
 
 const RatingStars = () => (
-  <div style={styles.stars} aria-hidden="true">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <svg key={i} viewBox="0 0 24 24" style={styles.star} fill="#FBBC05">
+  <div aria-hidden="true" style={styles.stars}>
+    {[1, 2, 3, 4, 5].map((position) => (
+      <svg
+        aria-hidden="true"
+        fill="#FBBC05"
+        key={`rating-star-${position}`}
+        style={styles.star}
+        viewBox="0 0 24 24"
+      >
         <path d="M12 2l2.95 6.36 6.99.78-5.2 4.72 1.42 6.86L12 17.77l-6.16 3.95 1.42-6.86-5.2-4.72 6.99-.78L12 2z" />
       </svg>
     ))}
@@ -93,11 +99,11 @@ export const GoogleReviews = () => {
 
   return (
     <section
+      aria-labelledby="reviews-heading"
       style={{
         ...styles.section,
         paddingInline: isMobile ? 0 : theme.spacing.xxl,
       }}
-      aria-labelledby="reviews-heading"
     >
       <div className={layoutClass.containerWide}>
         <div style={styles.header}>
@@ -111,14 +117,16 @@ export const GoogleReviews = () => {
             <div style={styles.ratingMeta}>
               <span style={styles.ratingValue}>4.8</span>
               <RatingStars />
-              <span style={styles.ratingCount}>· {reviews.length} reviews shown</span>
+              <span style={styles.ratingCount}>
+                · {reviews.length} reviews shown
+              </span>
             </div>
           </div>
         </div>
 
         <div style={styles.rows}>
           <MarqueeRow reviews={firstRow} />
-          <MarqueeRow reviews={secondRow} reverse />
+          <MarqueeRow reverse reviews={secondRow} />
         </div>
       </div>
     </section>

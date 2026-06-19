@@ -20,16 +20,21 @@ const readBody = (req: IncomingMessage): Promise<Buffer> =>
 const sendOptions = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key"
+  );
   res.statusCode = 204;
   res.end();
 };
 
-const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) =>
+  (url ?? "").split("?")[0] ?? "";
 
 export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
   name: "vite-fal-dev-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== FAL_PATH) {
         next();
@@ -88,10 +93,14 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
         });
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, X-API-Key"
+        );
         res.end(Buffer.from(await webRes.arrayBuffer()));
       } catch (caught) {
-        const message = caught instanceof Error ? caught.message : String(caught);
+        const message =
+          caught instanceof Error ? caught.message : String(caught);
         res.statusCode = 500;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Content-Type", "application/json");

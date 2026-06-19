@@ -1,11 +1,9 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-
-import type { Review } from "./reviews-data";
-
+import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { theme } from "../../theme";
 import { ReviewModal } from "./review-modal";
 import { Avatar, GoogleMark, Stars } from "./review-parts";
 import { formatReviewDate } from "./review-utils";
+import type { Review } from "./reviews-data";
 
 const styles = {
   card: {
@@ -72,7 +70,7 @@ export const ReviewCard = ({ review }: { review: Review }) => {
     const observer = new ResizeObserver(checkTruncation);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [review.text]);
+  }, []);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -97,15 +95,15 @@ export const ReviewCard = ({ review }: { review: Review }) => {
         <Stars rating={review.rating} />
 
         <div style={styles.footer}>
-          <p ref={textRef} className="review-card__text">
+          <p className="review-card__text" ref={textRef}>
             {review.text}
           </p>
           {showViewMore ? (
             <button
-              type="button"
-              className="review-card__view-more"
               aria-haspopup="dialog"
+              className="review-card__view-more"
               onClick={handleOpenModal}
+              type="button"
             >
               View more
             </button>
@@ -113,7 +111,11 @@ export const ReviewCard = ({ review }: { review: Review }) => {
         </div>
       </article>
 
-      <ReviewModal review={review} isOpen={isModalOpen} onClose={handleCloseModal} />
+      <ReviewModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        review={review}
+      />
     </>
   );
 };

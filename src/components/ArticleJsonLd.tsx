@@ -1,16 +1,14 @@
 import { useEffect } from "react";
-
-import type { PostDetail } from "../types/article";
-
 import { postCoverImageSrc } from "../article/postCoverImage";
+import type { PostDetail } from "../types/article";
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const SCRIPT_ID = "article-json-ld";
 
-type ArticleJsonLdProps = {
-  post: PostDetail;
+interface ArticleJsonLdProps {
   path: string;
-};
+  post: PostDetail;
+}
 
 export const ArticleJsonLd = ({ post, path }: ArticleJsonLdProps) => {
   useEffect(() => {
@@ -18,7 +16,8 @@ export const ArticleJsonLd = ({ post, path }: ArticleJsonLdProps) => {
     const url = `${origin}${path.startsWith("/") ? path : `/${path}`}`;
     const imageUrl = postCoverImageSrc(post.image, { w: 1200, fit: "max" });
     const authorName = post.authorName?.trim() || "Tandra Peters";
-    const description = post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
+    const description =
+      post.seoDescription?.trim() || post.excerpt?.trim() || post.title;
 
     const data = {
       "@context": "https://schema.org",

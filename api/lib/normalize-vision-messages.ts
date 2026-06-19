@@ -1,9 +1,9 @@
 import type { ModelMessage, UserModelMessage } from "ai";
 
-type DecodedImage = {
+interface DecodedImage {
   data: Uint8Array;
   mediaType?: string;
-};
+}
 
 const decodeDataUrl = (value: string): DecodedImage | null => {
   if (!value.startsWith("data:")) {
@@ -19,7 +19,11 @@ const decodeDataUrl = (value: string): DecodedImage | null => {
   return { data, mediaType };
 };
 
-const normalizeImagePart = (part: { type: string; image?: unknown; mediaType?: string }) => {
+const normalizeImagePart = (part: {
+  type: string;
+  image?: unknown;
+  mediaType?: string;
+}) => {
   if (part.type !== "image" || part.image == null) {
     return part;
   }
@@ -59,19 +63,23 @@ const normalizeImagePart = (part: { type: string; image?: unknown; mediaType?: s
 };
 
 const normalizeUserContent = (
-  content: UserModelMessage["content"],
+  content: UserModelMessage["content"]
 ): UserModelMessage["content"] => {
   if (typeof content === "string") {
     return content;
   }
 
   return content.map((part) =>
-    normalizeImagePart(part as { type: string; image?: unknown; mediaType?: string }),
+    normalizeImagePart(
+      part as { type: string; image?: unknown; mediaType?: string }
+    )
   ) as UserModelMessage["content"];
 };
 
 /** Groq vision rejects `data:` URL strings — decode to Uint8Array before generateText. */
-export const normalizeVisionMessages = (messages: ModelMessage[]): ModelMessage[] =>
+export const normalizeVisionMessages = (
+  messages: ModelMessage[]
+): ModelMessage[] =>
   messages.map((message) => {
     if (message.role !== "user") {
       return message;

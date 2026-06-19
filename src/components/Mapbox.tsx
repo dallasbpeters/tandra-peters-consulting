@@ -1,53 +1,58 @@
 import mapboxgl from "mapbox-gl";
 import { useEffect, useMemo, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Shader, ChromaFlow } from "shaders/react";
-
-import type { ServiceAreaMapProps } from "../types";
-
+import { ChromaFlow, Shader } from "shaders/react";
 import { useIsMobile } from "../hooks/isMobile";
 import { useNearViewport } from "../hooks/useNearViewport";
 import { mix, theme } from "../theme";
+import type { ServiceAreaMapProps } from "../types";
 import serviceAreasRaw from "./serviceAreas.json";
 import geoJson from "./texasCounties.json";
 import texasStateOutline from "./texasStateOutline.json";
 
 type ServiceArea = NonNullable<ServiceAreaMapProps["areas"]>[number];
 
-type CountyMeta = {
+interface CountyMeta {
+  city: string | null;
   fips: string;
   key: string | null;
   name: string;
-  city: string | null;
-};
+}
 
 const KEY_TO_FIPS = new Map<string, string>();
 const FIPS_TO_META = new Map<string, CountyMeta>();
 
-(geoJson.counties as CountyMeta[]).forEach((c) => {
+for (const c of geoJson.counties as CountyMeta[]) {
   FIPS_TO_META.set(c.fips, c);
-  if (c.key) KEY_TO_FIPS.set(c.key, c.fips);
-});
+  if (c.key) {
+    KEY_TO_FIPS.set(c.key, c.fips);
+  }
+}
 
 const ALL_SERVICE_FIPS = Array.from(KEY_TO_FIPS.values());
 
 const COUNTY_GEOJSON: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
-  features: (serviceAreasRaw as GeoJSON.FeatureCollection).features.map((feature) => {
-    const geoid = String(feature.properties?.geoid ?? "");
-    const meta = FIPS_TO_META.get(geoid);
-    const label =
-      meta?.city ?? (typeof feature.properties?.name === "string" ? feature.properties.name : "");
-    return {
-      ...feature,
-      id: geoid,
-      properties: {
-        ...feature.properties,
-        fips: geoid,
-        label,
-      },
-    };
-  }),
+  features: (serviceAreasRaw as GeoJSON.FeatureCollection).features.map(
+    (feature) => {
+      const geoid = String(feature.properties?.geoid ?? "");
+      const meta = FIPS_TO_META.get(geoid);
+      const label =
+        meta?.city ??
+        (typeof feature.properties?.name === "string"
+          ? feature.properties.name
+          : "");
+      return {
+        ...feature,
+        id: geoid,
+        properties: {
+          ...feature.properties,
+          fips: geoid,
+          label,
+        },
+      };
+    }
+  ),
 };
 
 const MAP_STYLE = "mapbox://styles/dallasbpeters/cmpp12ft3003f01s8fw2fdari";
@@ -81,38 +86,51 @@ const TX_BOUNDS = new mapboxgl.LngLatBounds([-106.65, 25.84], [-93.51, 36.5]);
 const SERVICE_AREA_PADDING = { top: 48, bottom: 48, left: 48, right: 48 };
 const SERVICE_AREA_MAX_ZOOM = 8;
 
-function boundsFromFeatures(features: GeoJSON.Feature[]): mapboxgl.LngLatBounds | null {
-  if (!features.length) return null;
+function boundsFromFeatures(
+  features: GeoJSON.Feature[]
+): mapboxgl.LngLatBounds | null {
+  if (!features.length) {
+    return null;
+  }
   const bounds = new mapboxgl.LngLatBounds();
-  features.forEach((f) => {
-    extractCoords(f.geometry as GeoJSON.Geometry).forEach(([lng, lat]) =>
-      bounds.extend([lng, lat]),
-    );
-  });
+  for (const f of features) {
+    for (const [lng, lat] of extractCoords(f.geometry as GeoJSON.Geometry)) {
+      bounds.extend([lng, lat]);
+    }
+  }
   return bounds;
 }
 
 function extractCoords(geometry: GeoJSON.Geometry): [number, number][] {
-  if (geometry.type === "Polygon") return geometry.coordinates[0] as [number, number][];
-  if (geometry.type === "MultiPolygon")
+  if (geometry.type === "Polygon") {
+    return geometry.coordinates[0] as [number, number][];
+  }
+  if (geometry.type === "MultiPolygon") {
     return geometry.coordinates.flatMap((p) => p[0]) as [number, number][];
+  }
   return [];
 }
 
 function featureCentroid(geometry: GeoJSON.Geometry): [number, number] {
   const coords = extractCoords(geometry);
-  if (!coords.length) return TX_CENTER;
+  if (!coords.length) {
+    return TX_CENTER;
+  }
   let lng = 0;
   let lat = 0;
-  coords.forEach(([x, y]) => {
+  for (const [x, y] of coords) {
     lng += x;
     lat += y;
-  });
+  }
   return [lng / coords.length, lat / coords.length];
 }
 
 /** Frame the configured service counties — not full Texas (that zooms out too far). */
-function fitServiceCounties(map: mapboxgl.Map, features: GeoJSON.Feature[], duration = 0) {
+function fitServiceCounties(
+  map: mapboxgl.Map,
+  features: GeoJSON.Feature[],
+  duration = 0
+) {
   const bounds = boundsFromFeatures(features);
   if (!bounds) {
     map.fitBounds(TX_BOUNDS, { padding: SERVICE_AREA_PADDING, duration });
@@ -126,9 +144,18 @@ function fitServiceCounties(map: mapboxgl.Map, features: GeoJSON.Feature[], dura
 }
 
 function buildFilter(fipsList: string[]): mapboxgl.FilterSpecification {
-  if (fipsList.length === 0)
-    return ["==", ["literal", false], true] as unknown as mapboxgl.FilterSpecification;
-  return ["in", ["get", "fips"], ["literal", fipsList]] as unknown as mapboxgl.FilterSpecification;
+  if (fipsList.length === 0) {
+    return [
+      "==",
+      ["literal", false],
+      true,
+    ] as unknown as mapboxgl.FilterSpecification;
+  }
+  return [
+    "in",
+    ["get", "fips"],
+    ["literal", fipsList],
+  ] as unknown as mapboxgl.FilterSpecification;
 }
 
 const COUNTY_LABELS_GEOJSON: GeoJSON.FeatureCollection = {
@@ -149,7 +176,9 @@ const COUNTY_LABELS_GEOJSON: GeoJSON.FeatureCollection = {
 function resolveLabelFont(map: mapboxgl.Map): string[] {
   const layers = map.getStyle()?.layers ?? [];
   for (const layer of layers) {
-    if (layer.type !== "symbol") continue;
+    if (layer.type !== "symbol") {
+      continue;
+    }
     const font = layer.layout?.["text-font"];
     if (Array.isArray(font) && font.every((f) => typeof f === "string")) {
       return font as string[];
@@ -170,14 +199,20 @@ function applyBasemapConfig(map: mapboxgl.Map) {
     map.setConfigProperty(BASEMAP_IMPORT_ID, "lightPreset", "dusk");
     map.setConfigProperty(BASEMAP_IMPORT_ID, "show3dObjects", false);
     map.setConfigProperty(BASEMAP_IMPORT_ID, "showAdminBoundaries", true);
-    map.setConfigProperty(BASEMAP_IMPORT_ID, "colorAdminBoundaries", MAP_COLORS.adminBoundary);
+    map.setConfigProperty(
+      BASEMAP_IMPORT_ID,
+      "colorAdminBoundaries",
+      MAP_COLORS.adminBoundary
+    );
   } catch (err) {
     console.warn("[MapBox] Could not adjust Standard basemap config:", err);
   }
 }
 
 function applyCountyPaint(map: mapboxgl.Map) {
-  if (!map.getLayer("counties-fill")) return;
+  if (!map.getLayer("counties-fill")) {
+    return;
+  }
   map.setPaintProperty("counties-fill", "fill-color", MAP_COLORS.fill);
   map.setPaintProperty("counties-fill", "fill-opacity", MAP_COLORS.fillOpacity);
   map.setPaintProperty("counties-fill", "fill-emissive-strength", 1);
@@ -187,17 +222,31 @@ function applyCountyPaint(map: mapboxgl.Map) {
   map.setPaintProperty("counties-boundary", "line-color", MAP_COLORS.boundary);
   map.setPaintProperty("counties-boundary", "line-emissive-strength", 1);
   if (map.getLayer("tx-state-outline")) {
-    map.setPaintProperty("tx-state-outline", "line-color", MAP_COLORS.stateOutline);
-    map.setPaintProperty("tx-state-outline", "line-width", MAP_COLORS.stateOutlineWidth);
+    map.setPaintProperty(
+      "tx-state-outline",
+      "line-color",
+      MAP_COLORS.stateOutline
+    );
+    map.setPaintProperty(
+      "tx-state-outline",
+      "line-width",
+      MAP_COLORS.stateOutlineWidth
+    );
     map.setPaintProperty("tx-state-outline", "line-emissive-strength", 1);
   }
   map.setPaintProperty("counties-labels", "text-color", MAP_COLORS.label);
-  map.setPaintProperty("counties-labels", "text-halo-color", MAP_COLORS.labelHalo);
+  map.setPaintProperty(
+    "counties-labels",
+    "text-halo-color",
+    MAP_COLORS.labelHalo
+  );
   map.setPaintProperty("counties-labels", "text-emissive-strength", 1);
 }
 
 function addBoundaryLayers(map: mapboxgl.Map, fips: string[]) {
-  if (map.getSource("tx-state-outline")) return;
+  if (map.getSource("tx-state-outline")) {
+    return;
+  }
 
   map.addSource("tx-state-outline", {
     type: "geojson",
@@ -318,19 +367,23 @@ export const MapBox = ({
 
   const configuredFips = useMemo(() => {
     const list: string[] = [];
-    areas.forEach((a) => {
+    for (const a of areas) {
       const fips = a?.countyKey ? KEY_TO_FIPS.get(a.countyKey) : undefined;
-      if (fips) list.push(fips);
-    });
+      if (fips) {
+        list.push(fips);
+      }
+    }
     return list.length > 0 ? list : ALL_SERVICE_FIPS;
   }, [areas]);
 
   const fipsToArea = useMemo(() => {
     const m = new Map<string, ServiceArea>();
-    areas.forEach((a) => {
+    for (const a of areas) {
       const fips = a?.countyKey ? KEY_TO_FIPS.get(a.countyKey) : undefined;
-      if (fips) m.set(fips, a);
-    });
+      if (fips) {
+        m.set(fips, a);
+      }
+    }
     return m;
   }, [areas]);
 
@@ -348,7 +401,9 @@ export const MapBox = ({
     }
 
     const container = containerRef.current;
-    if (!container || !mapboxToken) return;
+    if (!(container && mapboxToken)) {
+      return;
+    }
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -365,8 +420,14 @@ export const MapBox = ({
 
     mapRef.current = map;
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
+    map.addControl(
+      new mapboxgl.NavigationControl({ showCompass: false }),
+      "top-right"
+    );
+    map.addControl(
+      new mapboxgl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
 
     const popup = new mapboxgl.Popup({
       closeButton: false,
@@ -377,7 +438,9 @@ export const MapBox = ({
     let countiesReady = false;
 
     const setupCounties = () => {
-      if (countiesReady) return;
+      if (countiesReady) {
+        return;
+      }
       countiesReady = true;
 
       const txFeatures = COUNTY_GEOJSON.features;
@@ -387,12 +450,16 @@ export const MapBox = ({
       addCountyLayers(map, fips);
       txFeaturesRef.current = txFeatures;
 
-      const active = txFeatures.filter((f) => fips.includes(String(f.properties?.fips ?? f.id)));
+      const active = txFeatures.filter((f) =>
+        fips.includes(String(f.properties?.fips ?? f.id))
+      );
       fitServiceCounties(map, active);
 
       map.on("mouseenter", "counties-fill", (e) => {
         map.getCanvas().style.cursor = "pointer";
-        if (!e.features?.length) return;
+        if (!e.features?.length) {
+          return;
+        }
         const fipsCode = String(e.features[0].properties?.fips ?? "");
         const area = fipsToAreaRef.current.get(fipsCode);
         const meta = FIPS_TO_META.get(fipsCode);
@@ -410,18 +477,22 @@ export const MapBox = ({
     };
 
     map.once("style.load", setupCounties);
-    if (map.isStyleLoaded()) setupCounties();
+    if (map.isStyleLoaded()) {
+      setupCounties();
+    }
 
     return () => {
       txFeaturesRef.current = [];
       map.remove();
       mapRef.current = null;
     };
-  }, [isNearViewport, mapboxToken]);
+  }, [isNearViewport]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.getLayer("counties-fill")) return;
+    if (!map?.getLayer("counties-fill")) {
+      return;
+    }
 
     map.setFilter("counties-fill", buildFilter(configuredFips));
     map.setFilter("counties-line", buildFilter(configuredFips));
@@ -455,14 +526,15 @@ export const MapBox = ({
       }}
     >
       <div
+        className="service-area-map-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr",
           minHeight: "580px",
         }}
-        className="service-area-map-grid"
       >
         <div
+          className="service-area-map-copy"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -474,9 +546,10 @@ export const MapBox = ({
             top: isMobile ? "10%" : "8%",
             left: isMobile ? "5%" : "15%",
             zIndex: 10,
-            backgroundColor: isMobile ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0)",
+            backgroundColor: isMobile
+              ? "rgba(0, 0, 0, 0.5)"
+              : "rgba(0, 0, 0, 0)",
           }}
-          className="service-area-map-copy"
         >
           {eyebrow ? (
             <p
@@ -523,16 +596,16 @@ export const MapBox = ({
         </div>
 
         <div
-          ref={containerRef}
-          style={{ minHeight: "20rem", position: "relative" }}
-          role="img"
           aria-label={
             displayAreas.length > 0
               ? `Map of ${displayAreas.length} service ${displayAreas.length === 1 ? "county" : "counties"} in Texas`
               : "Service area map of Texas"
           }
+          ref={containerRef}
+          role="img"
+          style={{ minHeight: "20rem", position: "relative" }}
         >
-          {!mapboxToken ? (
+          {mapboxToken ? null : (
             <div
               style={{
                 position: "absolute",
@@ -547,9 +620,10 @@ export const MapBox = ({
                 background: theme.palette.everglade["900"],
               }}
             >
-              Add <code>VITE_MAPBOX_ACCESS_TOKEN</code> to <code>.env.local</code> to load the map.
+              Add <code>VITE_MAPBOX_ACCESS_TOKEN</code> to{" "}
+              <code>.env.local</code> to load the map.
             </div>
-          ) : null}
+          )}
         </div>
       </div>
       <Shader style={{ position: "absolute", inset: 0, zIndex: 10 }}>
@@ -560,10 +634,10 @@ export const MapBox = ({
             Fort Worth, Waco — making them read paler than the Austin cluster. Brand green
             still appears via the green state outline (MAP_COLORS.stateOutline). */}
         <ChromaFlow
-          id="mapChromaFlow"
           baseColor="#7449d6"
           blendMode="multiply"
           downColor="#7935b5"
+          id="mapChromaFlow"
           intensity={1}
           momentum={19}
           radius={2.5}

@@ -264,7 +264,12 @@ export const ROOF_SCENE_DEFAULTS = {
 
 type SimpleImage = "photo-11.png" | "photo-13.jpeg" | "photo-16.jpg";
 
-const simpleScene = (headline: string, body: string, image: SimpleImage, pill?: string) => ({
+const simpleScene = (
+  headline: string,
+  body: string,
+  image: SimpleImage,
+  pill?: string
+) => ({
   type: "simple" as const,
   durationInFrames: 180,
   headline,
@@ -297,10 +302,18 @@ export const CUSTOM_SLOTS_DEFAULTS = {
     simpleScene(
       "Water Leaks",
       "Look for water stains and discoloration on your ceilings and walls.",
-      "photo-11.png",
+      "photo-11.png"
     ),
-    simpleScene("Cracked Tiles", "Usually after extreme weather conditions.", "photo-13.jpeg"),
-    simpleScene("Missing Shingles", "Sign of wind or storm damage.", "photo-16.jpg"),
+    simpleScene(
+      "Cracked Tiles",
+      "Usually after extreme weather conditions.",
+      "photo-13.jpeg"
+    ),
+    simpleScene(
+      "Missing Shingles",
+      "Sign of wind or storm damage.",
+      "photo-16.jpg"
+    ),
     ctaScene,
     logoAnimationScene,
     {
@@ -332,10 +345,18 @@ export const HELPING_TEXAS_DEFAULTS = {
     simpleScene(
       "Water Leaks",
       "Look for water stains and discoloration on your ceilings and walls.",
-      "photo-11.png",
+      "photo-11.png"
     ),
-    simpleScene("Cracked Tiles", "Usually after extreme weather conditions.", "photo-13.jpeg"),
-    simpleScene("Missing Shingles", "Sign of wind or storm damage.", "photo-16.jpg"),
+    simpleScene(
+      "Cracked Tiles",
+      "Usually after extreme weather conditions.",
+      "photo-13.jpeg"
+    ),
+    simpleScene(
+      "Missing Shingles",
+      "Sign of wind or storm damage.",
+      "photo-16.jpg"
+    ),
     ctaScene,
     logoAnimationScene,
   ],

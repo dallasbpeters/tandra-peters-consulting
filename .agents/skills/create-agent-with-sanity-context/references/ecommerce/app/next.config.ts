@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
 import { config } from "dotenv";
+import type { NextConfig } from "next";
 
 // Load env from parent directory's .env file
 config({ path: "../.env" });

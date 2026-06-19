@@ -1,13 +1,15 @@
-import type { Metadata } from "next/types";
-
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next/types";
 
 import { ProductDetails } from "@/components/product-details";
 import { client } from "@/sanity/lib/client";
 import { PRODUCT_QUERY, PRODUCT_SLUGS_QUERY } from "@/sanity/queries";
 
-import type { PRODUCT_QUERY_RESULT, PRODUCT_SLUGS_QUERY_RESULT } from "../../../../sanity.types";
+import type {
+  PRODUCT_QUERY_RESULT,
+  PRODUCT_SLUGS_QUERY_RESULT,
+} from "../../../../sanity.types";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -20,14 +22,17 @@ type VariantColor = NonNullable<ProductVariant["color"]>;
 type VariantSize = NonNullable<NonNullable<ProductVariant["sizes"]>[number]>;
 
 export async function generateStaticParams() {
-  const products: PRODUCT_SLUGS_QUERY_RESULT = await client.fetch(PRODUCT_SLUGS_QUERY);
+  const products: PRODUCT_SLUGS_QUERY_RESULT =
+    await client.fetch(PRODUCT_SLUGS_QUERY);
   return products.filter((p) => p.slug).map((p) => ({ slug: p.slug! }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await client.fetch(PRODUCT_QUERY, { slug });
-  if (!product) return { title: "Product Not Found" };
+  if (!product) {
+    return { title: "Product Not Found" };
+  }
   return {
     title: `${product.title} | Store`,
     description: product.shortDescription || `Shop ${product.title}`,
@@ -36,35 +41,51 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product: PRODUCT_QUERY_RESULT = await client.fetch(PRODUCT_QUERY, { slug });
+  const product: PRODUCT_QUERY_RESULT = await client.fetch(PRODUCT_QUERY, {
+    slug,
+  });
 
   if (!product) {
     notFound();
   }
 
-  const { title, price, category, shortDescription, features, materials, variants, brand } =
-    product;
+  const {
+    title,
+    price,
+    category,
+    shortDescription,
+    features,
+    materials,
+    variants,
+    brand,
+  } = product;
 
   // Get unique colors and sizes from variants (types inferred from PRODUCT_QUERY_RESULT)
   const colorMap = new Map<string, VariantColor>();
   const sizeMap = new Map<string, VariantSize>();
 
   variants?.forEach((v) => {
-    if (v.color?._id) colorMap.set(v.color._id, v.color);
+    if (v.color?._id) {
+      colorMap.set(v.color._id, v.color);
+    }
     // Each variant now has an array of sizes
     v.sizes?.forEach((size) => {
-      if (size._id) sizeMap.set(size._id, size);
+      if (size._id) {
+        sizeMap.set(size._id, size);
+      }
     });
   });
 
   const colors = [...colorMap.values()];
-  const sizes = [...sizeMap.values()].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+  const sizes = [...sizeMap.values()].sort(
+    (a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 md:py-12">
       {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-neutral-500">
-        <Link href="/products" className="hover:text-neutral-900">
+      <nav className="mb-6 text-neutral-500 text-sm">
+        <Link className="hover:text-neutral-900" href="/products">
           Products
         </Link>
 
@@ -78,15 +99,15 @@ export default async function ProductPage({ params }: Props) {
       </nav>
 
       <ProductDetails
-        title={title}
         brand={brand}
         category={category}
-        shortDescription={shortDescription}
-        price={price}
+        colors={colors}
         features={features}
         materials={materials}
-        colors={colors}
+        price={price}
+        shortDescription={shortDescription}
         sizes={sizes}
+        title={title}
         variants={variants}
       />
     </main>

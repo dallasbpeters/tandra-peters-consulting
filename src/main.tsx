@@ -17,7 +17,10 @@ import "./styles/site-layout.css";
 import { createRoot } from "react-dom/client";
 
 import App from "./App.tsx";
-import { isPosthogEnabled, resolvePosthogClientOptions } from "./posthogClientConfig";
+import {
+  isPosthogEnabled,
+  resolvePosthogClientOptions,
+} from "./posthogClientConfig";
 
 /**
  * After a deploy, tabs opened on the previous build request lazy-route chunks
@@ -29,8 +32,12 @@ import { isPosthogEnabled, resolvePosthogClientOptions } from "./posthogClientCo
  */
 window.addEventListener("vite:preloadError", (event) => {
   const RELOAD_AT_KEY = "vite-preload-error-reloaded-at";
-  const lastReloadAt = Number(window.sessionStorage.getItem(RELOAD_AT_KEY) ?? 0);
-  if (Date.now() - lastReloadAt < 30_000) return;
+  const lastReloadAt = Number(
+    window.sessionStorage.getItem(RELOAD_AT_KEY) ?? 0
+  );
+  if (Date.now() - lastReloadAt < 30_000) {
+    return;
+  }
   window.sessionStorage.setItem(RELOAD_AT_KEY, String(Date.now()));
   event.preventDefault();
   window.location.reload();
@@ -48,17 +55,21 @@ if (posthogToken && isPosthogEnabled()) {
     // useFeatureFlagVariantKey return undefined before /flags loads, which
     // flashes the control nav on off-home routes.
     loaded: () => {
-      if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true") {
+      if (
+        import.meta.env.DEV &&
+        import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true"
+      ) {
         const toolbarReady = posthog.toolbar?.maybeLoadToolbar?.() ?? false;
         console.info("[PostHog] SDK ready", {
           api_host: posthog.config.api_host,
           ui_host: posthog.config.ui_host,
-          toolbar_external_deps: !posthog.config.disable_external_dependency_loading,
+          toolbar_external_deps:
+            !posthog.config.disable_external_dependency_loading,
           toolbar_launch_detected: toolbarReady,
         });
         if (!toolbarReady) {
           console.info(
-            "[PostHog] Toolbar: use Launch toolbar in PostHog for http://localhost:3001 (authorized URL must match this port).",
+            "[PostHog] Toolbar: use Launch toolbar in PostHog for http://localhost:3001 (authorized URL must match this port)."
           );
         }
       }
@@ -66,8 +77,12 @@ if (posthogToken && isPosthogEnabled()) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
+const rootEl = document.getElementById("root");
+if (!rootEl) {
+  throw new Error("Root element #root not found in document.");
+}
+createRoot(rootEl).render(
   <PostHogProvider client={posthog}>
     <App />
-  </PostHogProvider>,
+  </PostHogProvider>
 );

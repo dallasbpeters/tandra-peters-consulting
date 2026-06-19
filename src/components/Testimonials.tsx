@@ -32,8 +32,8 @@ export const Testimonials = () => {
 
   return (
     <div
-      ref={sectionRef}
       id="testimonials"
+      ref={sectionRef}
       style={{
         width: "100%",
         paddingBlock: theme.spacing.xxxxxxl,
@@ -45,7 +45,7 @@ export const Testimonials = () => {
       <div
         className="elfsight-app-942cf3c9-7b21-4e39-92a1-8c5a2aef07b5"
         data-elfsight-app-lazy
-      ></div>
+      />
     </div>
   );
 };

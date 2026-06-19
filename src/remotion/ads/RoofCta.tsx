@@ -1,12 +1,16 @@
 import { fontFamily as manrope } from "@remotion/google-fonts/Manrope";
-import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-
-import type { ParsedRoofScene } from "./composition/roofSceneSchema";
-
+import type React from "react";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { BadgeRow } from "./components/BadgeRow";
 import { FadeWrapper } from "./components/FadeWrapper";
 import Logo from "./components/Logo";
+import type { ParsedRoofScene } from "./composition/roofSceneSchema";
 
 // ─── local animation primitives ───────────────────────────────────────────────
 
@@ -27,7 +31,11 @@ const SlideUp: React.FC<{ children: React.ReactNode; startFrame?: number }> = ({
   const opacity = interpolate(progress, [0, 0.25], [0, 1], {
     extrapolateRight: "clamp",
   });
-  return <div style={{ transform: `translateY(${translateY}px)`, opacity }}>{children}</div>;
+  return (
+    <div style={{ transform: `translateY(${translateY}px)`, opacity }}>
+      {children}
+    </div>
+  );
 };
 
 const FadeIn: React.FC<{ children: React.ReactNode; startFrame?: number }> = ({
@@ -51,7 +59,12 @@ const ExpandLine: React.FC<{
   color?: string;
   maxWidth?: number;
   height?: number;
-}> = ({ startFrame = 0, color = "var(--color-accent)", maxWidth = 200, height = 5 }) => {
+}> = ({
+  startFrame = 0,
+  color = "var(--color-accent)",
+  maxWidth = 200,
+  height = 5,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const progress = spring({
@@ -70,15 +83,17 @@ const ExpandLine: React.FC<{
 const H_PAD = 72;
 const preStyle: React.CSSProperties = { whiteSpace: "pre-line" };
 
-type Props = {
-  cta: ParsedRoofScene["cta"];
+interface Props {
   badges: ParsedRoofScene["badges"];
+  cta: ParsedRoofScene["cta"];
   durationInFrames: number;
-};
+}
 
 export const RoofCTA: React.FC<Props> = ({ cta, badges, durationInFrames }) => {
   const safeDuration =
-    Number.isFinite(durationInFrames) && durationInFrames > 0 ? durationInFrames : 180;
+    Number.isFinite(durationInFrames) && durationInFrames > 0
+      ? durationInFrames
+      : 180;
   return (
     <>
       {/* Solid background — always opaque, covers the 3D canvas immediately */}
@@ -109,7 +124,12 @@ export const RoofCTA: React.FC<Props> = ({ cta, badges, durationInFrames }) => {
               </div>
             </SlideUp>
             <div style={{ marginTop: 12, marginBottom: 44 }}>
-              <ExpandLine startFrame={30} color="var(--color-purple)" maxWidth={80} height={16} />
+              <ExpandLine
+                color="var(--color-purple)"
+                height={16}
+                maxWidth={80}
+                startFrame={30}
+              />
             </div>
             <SlideUp startFrame={35}>
               <div
@@ -174,9 +194,9 @@ export const RoofCTA: React.FC<Props> = ({ cta, badges, durationInFrames }) => {
                 </div>
               </div>
               <div style={{ marginBottom: 36 }}>
-                <BadgeRow config={badges} badgeHeight={80} />
+                <BadgeRow badgeHeight={80} config={badges} />
               </div>
-              <Logo width={200} height={200} invert={false} />
+              <Logo height={200} invert={false} width={200} />
             </FadeIn>
           </div>
         </AbsoluteFill>

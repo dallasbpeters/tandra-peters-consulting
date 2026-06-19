@@ -1,7 +1,4 @@
-import React, { Suspense, lazy } from "react";
-
-import type { TestimonialsProps } from "../types";
-
+import React, { lazy, Suspense } from "react";
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { BirdcreekVideoBanner } from "../components/BirdcreekVideoBanner";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";
@@ -25,13 +22,14 @@ import {
   mapFaqProps,
   mapHeroProps,
   mapMissionProps,
-  mapServicesProps,
   mapServiceAreaMapProps,
+  mapServicesProps,
   mapSocialShareProps,
   mapStatsProps,
   mapTestimonialsProps,
 } from "../sanity/mapSanityHome";
 import { theme } from "../theme";
+import type { TestimonialsProps } from "../types";
 
 const ScrollVelocity = lazy(async () => import("../components/ScrollText"));
 const About = lazy(async () => {
@@ -100,7 +98,9 @@ export const Home = () => {
   const { data, loading, error } = useSanitySite();
   const home = data?.home as Record<string, unknown> | null | undefined;
 
-  const introVideo = home?.tandraIntroVideo as Record<string, unknown> | undefined;
+  const introVideo = home?.tandraIntroVideo as
+    | Record<string, unknown>
+    | undefined;
   const seoTitle =
     typeof home?.seoTitle === "string" && home.seoTitle.trim()
       ? home.seoTitle
@@ -118,7 +118,7 @@ export const Home = () => {
   if (loading && !data) {
     return (
       <main>
-        <section className="home-loading-hero" aria-label="Loading homepage" />
+        <section aria-label="Loading homepage" className="home-loading-hero" />
       </main>
     );
   }
@@ -126,26 +126,36 @@ export const Home = () => {
   if (!home) {
     return (
       <main>
-        <section className="home-loading-hero" aria-label="Homepage unavailable">
-          {import.meta.env.DEV && error ? <p role="alert">{error.message}</p> : null}
+        <section
+          aria-label="Homepage unavailable"
+          className="home-loading-hero"
+        >
+          {import.meta.env.DEV && error ? (
+            <p role="alert">{error.message}</p>
+          ) : null}
         </section>
       </main>
     );
   }
 
-  const introVideoContent = introVideo ? mergeTandraIntroContent(introVideo) : undefined;
+  const introVideoContent = introVideo
+    ? mergeTandraIntroContent(introVideo)
+    : undefined;
   const introVideoThumbnailUrl =
-    typeof introVideo?.thumbnailUrl === "string" && introVideo.thumbnailUrl.trim()
+    typeof introVideo?.thumbnailUrl === "string" &&
+    introVideo.thumbnailUrl.trim()
       ? sanityImageUrl(introVideo.thumbnailUrl.trim(), { w: 1280, fit: "max" })
       : undefined;
 
-  type HomeSection = {
+  interface HomeSection {
     _key?: string;
     _type?: string;
     data?: Record<string, unknown>;
-  };
+  }
 
-  const builderSections = Array.isArray(home?.sections) ? (home.sections as HomeSection[]) : null;
+  const builderSections = Array.isArray(home?.sections)
+    ? (home.sections as HomeSection[])
+    : null;
 
   const isAuthSection = (type?: string) =>
     type === "servicesSection" ||
@@ -214,9 +224,13 @@ export const Home = () => {
   };
 
   const sectionFallback = (type?: string) => (
-    <div aria-hidden="true" style={{ minHeight: sectionFallbackMinHeight(type) }} />
+    <div
+      aria-hidden="true"
+      style={{ minHeight: sectionFallbackMinHeight(type) }}
+    />
   );
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
   const renderSection = (section: HomeSection, _index: number) => {
     const sectionData = getSectionData(section);
     switch (section._type) {
@@ -228,27 +242,33 @@ export const Home = () => {
             ? sectionData.text
             : undefined;
         const direction = sectionData.direction === "left" ? "left" : "right";
-        const velocity = typeof sectionData.velocity === "number" ? sectionData.velocity : 80;
+        const velocity =
+          typeof sectionData.velocity === "number" ? sectionData.velocity : 80;
         return text ? (
           <ScrollVelocity
             direction={direction}
-            velocity={velocity}
-            texts={[{ text }]}
             fontSize="1.2rem"
+            texts={[{ text }]}
+            velocity={velocity}
           />
         ) : null;
       }
       case "birdcreekVideoBannerSection":
-        return <BirdcreekVideoBanner {...mapBirdcreekVideoBannerProps(sectionData)} />;
+        return (
+          <BirdcreekVideoBanner
+            {...mapBirdcreekVideoBannerProps(sectionData)}
+          />
+        );
       case "videoSection": {
         const sectionPosterUrl =
-          typeof sectionData.posterUrl === "string" && sectionData.posterUrl.trim()
+          typeof sectionData.posterUrl === "string" &&
+          sectionData.posterUrl.trim()
             ? sectionData.posterUrl.trim()
             : undefined;
         return introVideoContent ? (
           <FeaturedVideoSection
-            posterUrl={introVideoThumbnailUrl ?? sectionPosterUrl}
             introContent={introVideoContent}
+            posterUrl={introVideoThumbnailUrl ?? sectionPosterUrl}
           />
         ) : null;
       }
@@ -267,7 +287,11 @@ export const Home = () => {
       case "certificationsSection":
         return (
           <Certifications
-            title={typeof sectionData.title === "string" ? sectionData.title : undefined}
+            title={
+              typeof sectionData.title === "string"
+                ? sectionData.title
+                : undefined
+            }
           />
         );
       case "missionSection":
@@ -275,31 +299,31 @@ export const Home = () => {
       case "beforeAfterSection": {
         const asMaybeString = (v: unknown): string | undefined =>
           typeof v === "string" && v.trim() ? v : undefined;
-        const pairs = (sectionData.items as Record<string, unknown>[] | undefined)
-          ?.map((item) => ({
-            id: asMaybeString(item._key),
-            title: asMaybeString(item.title),
-            beforeImage: asMaybeString(item.beforeImage)
-              ? sanityImageUrl(asMaybeString(item.beforeImage)!, {
-                  w: 1200,
-                  fit: "max",
-                })
-              : undefined,
-            afterImage: asMaybeString(item.afterImage)
-              ? sanityImageUrl(asMaybeString(item.afterImage)!, {
-                  w: 1200,
-                  fit: "max",
-                })
-              : undefined,
-            description: asMaybeString(item.description),
-          }))
+        const pairs = (
+          sectionData.items as Record<string, unknown>[] | undefined
+        )
+          ?.map((item) => {
+            const beforeRaw = asMaybeString(item.beforeImage);
+            const afterRaw = asMaybeString(item.afterImage);
+            return {
+              id: asMaybeString(item._key),
+              title: asMaybeString(item.title),
+              beforeImage: beforeRaw
+                ? sanityImageUrl(beforeRaw, { w: 1200, fit: "max" })
+                : undefined,
+              afterImage: afterRaw
+                ? sanityImageUrl(afterRaw, { w: 1200, fit: "max" })
+                : undefined,
+              description: asMaybeString(item.description),
+            };
+          })
           ?.filter((item) => item.beforeImage && item.afterImage);
         return pairs && pairs.length > 0 ? (
           <BeforeAfterSlider
-            imagePairs={pairs}
-            eyebrow={asMaybeString(sectionData.eyebrow)}
-            title={asMaybeString(sectionData.title)}
             description={asOptionalRichText(sectionData.intro)}
+            eyebrow={asMaybeString(sectionData.eyebrow)}
+            imagePairs={pairs}
+            title={asMaybeString(sectionData.title)}
           />
         ) : null;
       }
@@ -319,7 +343,9 @@ export const Home = () => {
         return (
           <ArticlesTeaser
             posts={
-              maxPosts ? (data?.latestPosts ?? []).slice(0, maxPosts) : (data?.latestPosts ?? [])
+              maxPosts
+                ? (data?.latestPosts ?? []).slice(0, maxPosts)
+                : (data?.latestPosts ?? [])
             }
             {...mapArticlesTeaserEditorialProps(sectionData)}
           />
@@ -344,14 +370,20 @@ export const Home = () => {
         const key = section._key ?? `${section._type ?? "section"}-${index}`;
         const deferredMinHeight = deferredSectionMinHeight(section._type);
         const content = deferredMinHeight ? (
-          <DeferUntilVisible minHeight={deferredMinHeight} rootMargin="120px 0px">
+          <DeferUntilVisible
+            key={key}
+            minHeight={deferredMinHeight}
+            rootMargin="120px 0px"
+          >
             {node}
           </DeferUntilVisible>
         ) : (
           node
         );
         const sectionNode = (
-          <Suspense fallback={sectionFallback(section._type)}>{content}</Suspense>
+          <Suspense fallback={sectionFallback(section._type)} key={key}>
+            {content}
+          </Suspense>
         );
 
         return isAuthSection(section._type) ? (
@@ -369,11 +401,6 @@ export const Home = () => {
 
       <Suspense fallback={null}>
         <Band
-          minHeight={8}
-          maxHeight={16}
-          reverse={true}
-          rotate={true}
-          tint={theme.colors.everglade}
           colors={[
             theme.colors.evergladeLight,
             theme.colors.evergladeMuted,
@@ -382,6 +409,11 @@ export const Home = () => {
             theme.colors.purple,
             theme.colors.purple,
           ]}
+          maxHeight={16}
+          minHeight={8}
+          reverse={true}
+          rotate={true}
+          tint={theme.colors.everglade}
         />
       </Suspense>
 

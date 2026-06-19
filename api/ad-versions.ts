@@ -1,6 +1,5 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { createClient } from "@sanity/client";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { isAllowedGoogleUser, parseGoogleIdToken } from "./lib/google-auth.js";
 
@@ -11,16 +10,19 @@ const SANITY_API_VERSION = "2026-05-29";
 const MAX_CONFIG_BYTES = 200_000;
 
 const readWriteToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim() || undefined;
+  process.env.SANITY_WRITE_TOKEN?.trim() ||
+  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
+  undefined;
 
 const parseBearerToken = (header: string | undefined): string | null => {
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!header?.startsWith("Bearer ")) {
     return null;
   }
   return header.slice("Bearer ".length).trim() || null;
 };
 
-const sanitizeString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const sanitizeString = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") {
@@ -40,8 +42,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const user = parseGoogleIdToken(bearer);
-  if (!user || !isAllowedGoogleUser(user)) {
-    res.status(403).json({ error: "Google account is not authorized for ad versions." });
+  if (!(user && isAllowedGoogleUser(user))) {
+    res
+      .status(403)
+      .json({ error: "Google account is not authorized for ad versions." });
     return;
   }
 
@@ -81,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const name = sanitizeString(body.name);
     const config = sanitizeString(body.config);
-    if (!name || !config) {
+    if (!(name && config)) {
       res.status(400).json({ error: "Missing version name or config." });
       return;
     }
@@ -102,7 +106,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     console.error("[api/ad-versions]", error);
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Unexpected ad version error.",
+      error:
+        error instanceof Error ? error.message : "Unexpected ad version error.",
     });
   }
 }

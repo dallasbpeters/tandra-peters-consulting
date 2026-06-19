@@ -1,8 +1,14 @@
 import { useContext, useLayoutEffect } from "react";
-import { UNSAFE_ViewTransitionContext as ViewTransitionContext, useLocation } from "react-router";
+import {
+  useLocation,
+  UNSAFE_ViewTransitionContext as ViewTransitionContext,
+} from "react-router";
+
+const LEADING_HASH_RE = /^#/;
 
 const prefersReducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Ensures footer / in-app navigations land at a sensible scroll position:
@@ -25,7 +31,7 @@ export const RouteScrollManager = () => {
       return;
     }
 
-    const id = hash?.replace(/^#/, "").trim() ?? "";
+    const id = hash?.replace(LEADING_HASH_RE, "").trim() ?? "";
 
     const runScroll = () => {
       if (pathname === "/") {

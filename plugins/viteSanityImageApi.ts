@@ -6,7 +6,8 @@ const SANITY_IMAGE_PATH = "/api/sanity-image";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 
-const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) =>
+  (url ?? "").split("?")[0] ?? "";
 
 const parseAllowedSanityImageUrl = (raw: string | null): URL | null => {
   if (!raw) {
@@ -33,6 +34,7 @@ const parseAllowedSanityImageUrl = (raw: string | null): URL | null => {
 export const viteSanityImageApi = (): Plugin => ({
   name: "vite-sanity-image-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== SANITY_IMAGE_PATH) {
         next();
@@ -57,7 +59,9 @@ export const viteSanityImageApi = (): Plugin => ({
       }
 
       const requestUrl = new URL(req.url ?? SANITY_IMAGE_PATH, "http://dev");
-      const imageUrl = parseAllowedSanityImageUrl(requestUrl.searchParams.get("url"));
+      const imageUrl = parseAllowedSanityImageUrl(
+        requestUrl.searchParams.get("url")
+      );
 
       if (!imageUrl) {
         res.statusCode = 400;
@@ -75,7 +79,8 @@ export const viteSanityImageApi = (): Plugin => ({
           return;
         }
 
-        const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
+        const contentType =
+          upstream.headers.get("content-type") ?? "image/jpeg";
         if (!contentType.startsWith("image/")) {
           res.statusCode = 415;
           res.setHeader("Content-Type", "application/json");
@@ -92,8 +97,9 @@ export const viteSanityImageApi = (): Plugin => ({
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
-            error: error instanceof Error ? error.message : "Could not fetch image.",
-          }),
+            error:
+              error instanceof Error ? error.message : "Could not fetch image.",
+          })
         );
       }
     });

@@ -11,13 +11,14 @@ export default async function HomePage() {
   return (
     <main>
       {/* Hero */}
-      <section className="border-b border-neutral-200 bg-neutral-50 px-4 py-16 text-center md:py-24">
-        <h1 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">
+      <section className="border-neutral-200 border-b bg-neutral-50 px-4 py-16 text-center md:py-24">
+        <h1 className="mx-auto max-w-2xl font-semibold text-3xl tracking-tight md:text-4xl">
           Quality essentials for everyday life
         </h1>
 
         <p className="mx-auto mt-4 max-w-md text-neutral-600">
-          Thoughtfully designed clothing that combines comfort with timeless style.
+          Thoughtfully designed clothing that combines comfort with timeless
+          style.
         </p>
 
         <div className="mt-8">
@@ -29,7 +30,7 @@ export default async function HomePage() {
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-4 py-12 md:py-16">
-        <h2 className="mb-8 text-xl font-semibold">Featured Products</h2>
+        <h2 className="mb-8 font-semibold text-xl">Featured Products</h2>
 
         <ProductGrid products={products} />
       </section>

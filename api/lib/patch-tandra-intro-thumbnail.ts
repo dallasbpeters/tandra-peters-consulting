@@ -14,11 +14,13 @@ export type PatchTandraIntroThumbnailResult =
   | { ok: false; reason: string };
 
 const readSanityWriteToken = (): string | undefined =>
-  process.env.SANITY_API_WRITE_TOKEN?.trim() || process.env.SANITY_WRITE_TOKEN?.trim() || undefined;
+  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
+  process.env.SANITY_WRITE_TOKEN?.trim() ||
+  undefined;
 
 export const patchTandraIntroThumbnail = async (
   image: Buffer,
-  filename: string,
+  filename: string
 ): Promise<PatchTandraIntroThumbnailResult> => {
   const token = readSanityWriteToken();
   if (!token) {
@@ -41,7 +43,7 @@ export const patchTandraIntroThumbnail = async (
     const asset = await client.assets.upload("image", image, { filename });
 
     for (const documentId of HOME_PAGE_DOCUMENT_IDS) {
-      const exists = await client.fetch<boolean>(`count(*[_id == $id]) > 0`, {
+      const exists = await client.fetch<boolean>("count(*[_id == $id]) > 0", {
         id: documentId,
       });
       if (!exists) {
@@ -64,7 +66,10 @@ export const patchTandraIntroThumbnail = async (
 
     return { ok: true, thumbnailUrl: asset.url };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown Sanity thumbnail error.";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown Sanity thumbnail error.";
     console.error("[patch-tandra-intro-thumbnail]", error);
     return { ok: false, reason: message };
   }

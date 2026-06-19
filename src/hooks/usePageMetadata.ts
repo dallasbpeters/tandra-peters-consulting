@@ -3,31 +3,39 @@ import { useLocation } from "react-router-dom";
 
 import { buildSharePageUrl } from "../utils/siteUrl";
 
-type MetaConfig = {
-  title: string;
+interface MetaConfig {
   description: string;
-  type?: "website" | "article";
   robots?: string | null;
-};
+  title: string;
+  type?: "website" | "article";
+}
 
-const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
+const DEFAULT_TITLE =
+  "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
 const DEFAULT_DESCRIPTION =
   "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight — from consultation through installation.";
 
-const ensureMeta = (selector: string, attrs: Record<string, string>): HTMLMetaElement => {
+const ensureMeta = (
+  selector: string,
+  attrs: Record<string, string>
+): HTMLMetaElement => {
   const existing = document.head.querySelector<HTMLMetaElement>(selector);
   if (existing) {
     return existing;
   }
 
   const meta = document.createElement("meta");
-  Object.entries(attrs).forEach(([key, value]) => meta.setAttribute(key, value));
+  for (const [key, value] of Object.entries(attrs)) {
+    meta.setAttribute(key, value);
+  }
   document.head.appendChild(meta);
   return meta;
 };
 
 const ensureCanonical = (): HTMLLinkElement => {
-  const existing = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  const existing = document.head.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]'
+  );
   if (existing) {
     return existing;
   }
@@ -59,7 +67,10 @@ export const usePageMetadata = ({
     ensureMeta('meta[property="og:description"]', {
       property: "og:description",
     }).setAttribute("content", description);
-    ensureMeta('meta[property="og:url"]', { property: "og:url" }).setAttribute("content", url);
+    ensureMeta('meta[property="og:url"]', { property: "og:url" }).setAttribute(
+      "content",
+      url
+    );
     ensureMeta('meta[property="og:type"]', {
       property: "og:type",
     }).setAttribute("content", type);
@@ -70,7 +81,10 @@ export const usePageMetadata = ({
       name: "twitter:description",
     }).setAttribute("content", description);
     if (robots) {
-      ensureMeta('meta[name="robots"]', { name: "robots" }).setAttribute("content", robots);
+      ensureMeta('meta[name="robots"]', { name: "robots" }).setAttribute(
+        "content",
+        robots
+      );
     }
     ensureCanonical().setAttribute("href", url);
 
@@ -86,7 +100,7 @@ export const usePageMetadata = ({
         property: "og:description",
       }).setAttribute(
         "content",
-        "Roof assessments, insurance claim support, and oversight—paired with Birdcreek Roofing across Austin and Texas.",
+        "Roof assessments, insurance claim support, and oversight—paired with Birdcreek Roofing across Austin and Texas."
       );
       ensureMeta('meta[property="og:url"]', {
         property: "og:url",
@@ -101,7 +115,7 @@ export const usePageMetadata = ({
         name: "twitter:description",
       }).setAttribute(
         "content",
-        "Roof assessments, insurance support, and trusted Birdcreek Roofing execution in Texas.",
+        "Roof assessments, insurance support, and trusted Birdcreek Roofing execution in Texas."
       );
       if (robots) {
         ensureMeta('meta[name="robots"]', { name: "robots" }).remove();

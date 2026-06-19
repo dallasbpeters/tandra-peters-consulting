@@ -1,10 +1,10 @@
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { ExpertiseProps } from "../types";
+import type { ExpertiseProps } from "../types";
 
 export const Expertise: React.FC<ExpertiseProps> = ({
   tagline = "Roof types & scenarios",
@@ -74,17 +74,17 @@ export const Expertise: React.FC<ExpertiseProps> = ({
 
   return (
     <section
-      id="expertise"
-      className={layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby="expertise-heading"
+      className={layoutClass.sectionPadded}
+      id="expertise"
+      style={sectionStyle}
     >
       <div className={layoutClass.containerWide}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           style={headerStyle}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <span
             style={{
@@ -114,11 +114,11 @@ export const Expertise: React.FC<ExpertiseProps> = ({
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
           className="expertise-grid"
+          initial="hidden"
+          variants={containerVariants}
+          viewport={{ once: true, margin: "-100px" }}
+          whileInView="visible"
         >
           <style>{`
             .expertise-grid {
@@ -146,30 +146,31 @@ export const Expertise: React.FC<ExpertiseProps> = ({
           `}</style>
           {items.map((item) => (
             <motion.div
-              key={item.id}
-              variants={cardVariants}
-              style={cardStyle}
               className="layout-col-between expertise-card"
+              key={item.id}
+              style={cardStyle}
+              variants={cardVariants}
             >
               {item.image ? (
                 <div
+                  className="expertise-card-bg"
                   style={{
                     position: "absolute",
                     inset: 0,
                     opacity: 0.6,
                     transition: "opacity 0.7s",
                   }}
-                  className="expertise-card-bg"
                 >
+                  {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
                   <img
+                    alt={`${item.title} — roofing consultation context`}
+                    referrerPolicy="no-referrer"
                     src={item.image}
-                    alt={`${item.title} — roofing consultation context photo`}
                     style={{
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
                     }}
-                    referrerPolicy="no-referrer"
                   />
                 </div>
               ) : null}
@@ -197,13 +198,13 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                 >
                   <RichText
                     flow="heading"
-                    value={item.desc}
+                    linkStyle={{ color: theme.colors.accentLight }}
                     paragraphStyle={{
                       color: "inherit",
                       lineHeight: "inherit",
                       fontSize: "inherit",
                     }}
-                    linkStyle={{ color: theme.colors.accentLight }}
+                    value={item.desc}
                   />
                 </div>
               </div>

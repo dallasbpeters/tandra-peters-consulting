@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+import { execFile } from "node:child_process";
+import { createWriteStream } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+import { pipeline } from "node:stream/promises";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { createFalClient } from "@fal-ai/client";
 /**
  * Upload training/txshingle-training.zip to Fal and run flux-lora-fast-training.
@@ -7,13 +14,6 @@ import { createFalClient } from "@fal-ai/client";
  * Requires FAL_KEY in repo-root .env.local
  */
 import { config as loadEnv } from "dotenv";
-import { execFile } from "node:child_process";
-import { createWriteStream } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import { pipeline } from "node:stream/promises";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
@@ -35,7 +35,7 @@ const parseArgs = () => {
     rebuildZip: args.includes("--rebuild"),
     steps: Number.parseInt(
       args.find((arg) => arg.startsWith("--steps="))?.split("=")[1] ?? "1000",
-      10,
+      10
     ),
   };
 };
@@ -57,7 +57,9 @@ const ensureZip = async (rebuildZip) => {
   try {
     await readFile(ZIP_PATH);
   } catch {
-    console.info("[lora] Zip missing — building training/txshingle-training.zip …");
+    console.info(
+      "[lora] Zip missing — building training/txshingle-training.zip …"
+    );
     await execFileAsync("node", [BUILD_SCRIPT], { cwd: ROOT });
   }
 };
@@ -76,14 +78,16 @@ const main = async () => {
   const client = createFalClient({ credentials: falKey });
 
   console.info(
-    `[lora] Uploading ${basename(ZIP_PATH)} (${(zipBuffer.byteLength / 1024 / 1024).toFixed(1)} MB) …`,
+    `[lora] Uploading ${basename(ZIP_PATH)} (${(zipBuffer.byteLength / 1024 / 1024).toFixed(1)} MB) …`
   );
   const imagesDataUrl = await client.storage.upload(
     new Blob([zipBuffer], { type: "application/zip" }),
-    { lifecycle: { expiresIn: "7d" } },
+    { lifecycle: { expiresIn: "7d" } }
   );
 
-  console.info(`[lora] Starting ${ENDPOINT} (trigger: ${TRIGGER_WORD}, steps: ${steps}) …`);
+  console.info(
+    `[lora] Starting ${ENDPOINT} (trigger: ${TRIGGER_WORD}, steps: ${steps}) …`
+  );
   const result = await client.subscribe(ENDPOINT, {
     input: {
       create_masks: false,
@@ -112,7 +116,9 @@ const main = async () => {
   const configUrl = data?.config_file?.url;
 
   if (!loraUrl) {
-    console.error("[lora] Training finished but no diffusers_lora_file.url in response:");
+    console.error(
+      "[lora] Training finished but no diffusers_lora_file.url in response:"
+    );
     console.error(JSON.stringify(data, null, 2));
     process.exit(1);
   }
@@ -120,8 +126,10 @@ const main = async () => {
   await mkdir(OUTPUT_DIR, { recursive: true });
 
   const loraFileName =
-    data.diffusers_lora_file.file_name ?? `txshingle-${result.requestId}.safetensors`;
-  const configFileName = data.config_file?.file_name ?? `txshingle-${result.requestId}-config.json`;
+    data.diffusers_lora_file.file_name ??
+    `txshingle-${result.requestId}.safetensors`;
+  const configFileName =
+    data.config_file?.file_name ?? `txshingle-${result.requestId}-config.json`;
 
   const localLoraPath = join(OUTPUT_DIR, loraFileName);
   const localConfigPath = join(OUTPUT_DIR, configFileName);
@@ -163,7 +171,11 @@ const main = async () => {
     },
   };
 
-  await writeFile(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await writeFile(
+    MANIFEST_PATH,
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8"
+  );
 
   console.info("");
   console.info("[lora] Training complete.");

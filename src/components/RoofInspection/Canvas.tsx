@@ -1,16 +1,16 @@
-import React from "react";
+import type React from "react";
 
 import { mix, theme } from "../../theme";
 
-type CanvasProps = {
+interface CanvasProps {
+  children: React.ReactNode;
   /**
    * Optional italic caption rendered above the diagram with a hairline
    * separator. Preserves the toolbar's orientating text when the tab
    * row itself is parked.
    */
   hint?: string;
-  children: React.ReactNode;
-};
+}
 
 /**
  * Right-hand column of the RoofInspection layout.

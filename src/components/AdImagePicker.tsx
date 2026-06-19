@@ -13,21 +13,23 @@ import { sanityImageUrl } from "../sanity/imageUrl";
 
 type ImageSource = "sanity" | "unsplash";
 
-type AdImagePickerProps = {
+interface AdImagePickerProps {
+  error: string | null;
   images: SanityImageAsset[];
   loading: boolean;
-  error: string | null;
-  selectedImageUrl: string | null;
   onRefresh: () => void;
   onSelect: (image: SanityImageAsset) => void;
-};
+  selectedImageUrl: string | null;
+}
 
-const thumbnailUrl = (url: string) => sanityImageUrl(url, { w: 240, h: 160, fit: "crop" });
+const thumbnailUrl = (url: string) =>
+  sanityImageUrl(url, { w: 240, h: 160, fit: "crop" });
 
-const previewUrl = (url: string) => sanityImageUrl(url, { w: 1200, h: 840, fit: "max" });
+const previewUrl = (url: string) =>
+  sanityImageUrl(url, { w: 1200, h: 840, fit: "max" });
 
 const imageMeta = (image: SanityImageAsset) => {
-  if (!image.width || !image.height) {
+  if (!(image.width && image.height)) {
     return "Image";
   }
 
@@ -60,10 +62,11 @@ export const AdImagePicker = ({
   const currentImages = imageSource === "sanity" ? images : unsplash.images;
   const currentLoading = imageSource === "sanity" ? loading : unsplash.loading;
   const currentError = imageSource === "sanity" ? error : unsplash.error;
-  const currentRefresh = imageSource === "sanity" ? onRefresh : unsplash.refresh;
+  const currentRefresh =
+    imageSource === "sanity" ? onRefresh : unsplash.refresh;
   const selectedImage = useMemo(
     () => currentImages.find((image) => image.url === selectedImageUrl) ?? null,
-    [currentImages, selectedImageUrl],
+    [currentImages, selectedImageUrl]
   );
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
 
@@ -73,7 +76,7 @@ export const AdImagePicker = ({
       selectedImage ??
       currentImages[0] ??
       null,
-    [activeImageId, currentImages, selectedImage],
+    [activeImageId, currentImages, selectedImage]
   );
 
   useEffect(() => {
@@ -86,90 +89,107 @@ export const AdImagePicker = ({
     }
 
     onSelect(activeImage);
-    void popoverRef.current?.hide?.();
+    popoverRef.current?.hide?.();
   };
+
+  const imageCountLabel =
+    imageSource === "sanity"
+      ? `${currentImages.length} photos from the CMS`
+      : `${currentImages.length} photos for "${unsplash.query}"`;
 
   return (
     <div className="ad-image-picker">
       <button
-        id={triggerId}
-        type="button"
-        className="ad-toolbar-menu-trigger ad-image-picker__trigger"
         aria-label="Image library"
+        className="ad-toolbar-menu-trigger ad-image-picker__trigger"
+        id={triggerId}
         title="Image library"
+        type="button"
       >
         {selectedImage ? (
-          <img src={thumbnailUrl(selectedImage.url)} alt="" />
+          // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+          <img alt="" src={thumbnailUrl(selectedImage.url)} />
         ) : (
-          <MediaImage width={16} height={16} />
+          <MediaImage height={16} width={16} />
         )}
         <span>Library</span>
       </button>
 
       <WaPopover
-        ref={popoverRef}
         className="ad-image-picker__popover"
+        distance={10}
         for={triggerId}
         placement="bottom-start"
-        distance={10}
+        ref={popoverRef}
         withoutArrow
       >
         <div className="ad-image-picker__surface">
           <div className="ad-image-picker__topbar">
             <div>
               <strong>
-                {imageSource === "sanity" ? "Sanity image library" : "Unsplash search"}
+                {imageSource === "sanity"
+                  ? "Sanity image library"
+                  : "Unsplash search"}
               </strong>
               <span>
-                {currentLoading
-                  ? "Loading images..."
-                  : imageSource === "sanity"
-                    ? `${currentImages.length} photos from the CMS`
-                    : `${currentImages.length} photos for "${unsplash.query}"`}
+                {currentLoading ? "Loading images..." : imageCountLabel}
               </span>
             </div>
             <WaSwitch
-              className="ad-image-picker__source-toggle"
               checked={imageSource === "unsplash"}
+              className="ad-image-picker__source-toggle"
+              onChange={(event) =>
+                setImageSource(getSwitchChecked(event) ? "unsplash" : "sanity")
+              }
               size="s"
-              onChange={(event) => setImageSource(getSwitchChecked(event) ? "unsplash" : "sanity")}
             >
               Search Unsplash
             </WaSwitch>
-            <button type="button" onClick={currentRefresh} disabled={currentLoading}>
-              <RefreshDouble width={15} height={15} />
+            <button
+              disabled={currentLoading}
+              onClick={currentRefresh}
+              type="button"
+            >
+              <RefreshDouble height={15} width={15} />
               Refresh
             </button>
           </div>
 
           {imageSource === "unsplash" ? (
             <WaInput
+              appearance="outlined"
               className="ad-image-picker__search"
               label="Unsplash search"
-              value={unsplash.query}
-              appearance="outlined"
-              size="s"
-              withClear
               onInput={(event) => unsplash.setQuery(getInputValue(event))}
+              size="s"
+              value={unsplash.query}
+              withClear
             />
           ) : null}
 
-          {currentError ? <p className="ad-dashboard-error">{currentError}</p> : null}
+          {currentError ? (
+            <p className="ad-dashboard-error">{currentError}</p>
+          ) : null}
 
-          {!currentLoading && !currentError && currentImages.length === 0 ? (
+          {!(currentLoading || currentError) && currentImages.length === 0 ? (
             <p className="ad-image-picker__empty">
-              {imageSource === "sanity" ? "No Sanity images found." : "No Unsplash photos found."}
+              {imageSource === "sanity"
+                ? "No Sanity images found."
+                : "No Unsplash photos found."}
             </p>
           ) : null}
 
           {activeImage ? (
             <div className="ad-image-picker__browser">
               <section className="ad-image-picker__preview">
+                {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
                 <img
-                  src={previewUrl(activeImage.url)}
                   alt=""
+                  src={previewUrl(activeImage.url)}
                   style={
-                    activeImage.lqip ? { backgroundImage: `url(${activeImage.lqip})` } : undefined
+                    activeImage.lqip
+                      ? { backgroundImage: `url(${activeImage.lqip})` }
+                      : undefined
                   }
                 />
                 <div>
@@ -179,7 +199,7 @@ export const AdImagePicker = ({
                       ? `${imageMeta(activeImage)} · ${imageAttribution(activeImage)}`
                       : imageMeta(activeImage)}
                   </span>
-                  <button type="button" onClick={handleUseImage}>
+                  <button onClick={handleUseImage} type="button">
                     Use this photo
                   </button>
                 </div>
@@ -188,22 +208,31 @@ export const AdImagePicker = ({
               <div className="ad-image-picker__grid">
                 {currentImages.map((image) => (
                   <button
+                    className={
+                      image.id === activeImage.id ? "is-selected" : undefined
+                    }
                     key={image.id}
-                    type="button"
-                    className={image.id === activeImage.id ? "is-selected" : undefined}
                     onClick={() => setActiveImageId(image.id)}
                     title={`${image.label} (${imageMeta(image)})`}
+                    type="button"
                   >
+                    {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
                     <img
-                      src={thumbnailUrl(image.url)}
                       alt=""
                       loading="lazy"
-                      style={image.lqip ? { backgroundImage: `url(${image.lqip})` } : undefined}
+                      src={thumbnailUrl(image.url)}
+                      style={
+                        image.lqip
+                          ? { backgroundImage: `url(${image.lqip})` }
+                          : undefined
+                      }
                     />
                     <span>
                       <strong>{image.label}</strong>
                       <small>
-                        {imageAttribution(image) ? imageAttribution(image) : imageMeta(image)}
+                        {imageAttribution(image)
+                          ? imageAttribution(image)
+                          : imageMeta(image)}
                       </small>
                     </span>
                   </button>

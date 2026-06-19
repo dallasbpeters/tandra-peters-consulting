@@ -1,13 +1,13 @@
 import { Img, staticFile } from "remotion";
 
-export type BadgesConfig = {
-  show: boolean;
+export interface BadgesConfig {
   gafMasterElite: boolean;
   ikoRoofSelect: boolean;
   rcatMember: boolean;
   rsraCommittee: boolean;
+  show: boolean;
   tamkoPro: boolean;
-};
+}
 
 type BadgeKey = keyof Omit<BadgesConfig, "show">;
 
@@ -32,10 +32,14 @@ export function BadgeRow({
   config: BadgesConfig;
   badgeHeight?: number;
 }) {
-  if (!config.show) return null;
+  if (!config.show) {
+    return null;
+  }
 
   const active = BADGE_KEYS.filter((key) => config[key]);
-  if (active.length === 0) return null;
+  if (active.length === 0) {
+    return null;
+  }
 
   return (
     <div

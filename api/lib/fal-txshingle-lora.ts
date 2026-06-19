@@ -11,10 +11,10 @@ export const TXSHINGLE_LORA_ENDPOINT = "fal-ai/flux-lora";
 export const TXSHINGLE_TRIGGER = "txshingle";
 export const DEFAULT_TXSHINGLE_LORA_SCALE = 0.9;
 
-type TxshingleLoraManifest = {
+interface TxshingleLoraManifest {
   diffusersLoraFile?: { url?: string };
   inference?: { loraUrl?: string };
-};
+}
 
 export const resolveTxshingleLoraUrl = (): string => {
   const fromEnv = process.env.FAL_TXSHINGLE_LORA_URL?.trim();
@@ -23,16 +23,19 @@ export const resolveTxshingleLoraUrl = (): string => {
   }
 
   if (existsSync(MANIFEST_PATH)) {
-    const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as TxshingleLoraManifest;
+    const manifest = JSON.parse(
+      readFileSync(MANIFEST_PATH, "utf8")
+    ) as TxshingleLoraManifest;
     const fromManifest =
-      manifest.diffusersLoraFile?.url?.trim() || manifest.inference?.loraUrl?.trim();
+      manifest.diffusersLoraFile?.url?.trim() ||
+      manifest.inference?.loraUrl?.trim();
     if (fromManifest) {
       return fromManifest;
     }
   }
 
   throw new Error(
-    "txshingle LoRA URL is not configured. Set FAL_TXSHINGLE_LORA_URL or run pnpm lora:train.",
+    "txshingle LoRA URL is not configured. Set FAL_TXSHINGLE_LORA_URL or run pnpm lora:train."
   );
 };
 

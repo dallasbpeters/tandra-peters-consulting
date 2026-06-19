@@ -18,7 +18,9 @@ const badgesSchema = z.object({
 const profilePhotoSchema = z.object({
   src: z
     .string()
-    .default("https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"),
+    .default(
+      "https://ik.imagekit.io/dtunrco/s5XsZe886hARc_iaJT_n2kz1BkFVjRKivgATP9bAOQA.png"
+    ),
   width: z.number().default(260),
   height: z.number().default(260),
 });
@@ -85,8 +87,12 @@ export const sceneSchema = z.discriminatedUnion("type", [
     type: z.literal("intro-1"),
     durationInFrames: z.number().default(210),
     name: z.string().default("I'm Tandra Peters."),
-    tagline: z.string().default("I help Austin-area homeowners navigate\nthe whole process."),
-    detail: z.string().default("First inspection through\nthe final walkthrough."),
+    tagline: z
+      .string()
+      .default("I help Austin-area homeowners navigate\nthe whole process."),
+    detail: z
+      .string()
+      .default("First inspection through\nthe final walkthrough."),
     showProfilePhoto: z.boolean().default(true),
     profilePhoto: profilePhotoSchema,
   }),
@@ -183,7 +189,9 @@ export const sceneSchema = z.discriminatedUnion("type", [
     tagline: z.string().default("I Can Help."),
     pill: z.string().default("FREE INSPECTION"),
     phone: z.string().default("512-968-3965"),
-    bottomBar: z.string().default("AUSTIN ROOFING CLAIMS MADE SIMPLE. CALL TODAY."),
+    bottomBar: z
+      .string()
+      .default("AUSTIN ROOFING CLAIMS MADE SIMPLE. CALL TODAY."),
   }),
 
   z.object({

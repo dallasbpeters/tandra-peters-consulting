@@ -13,7 +13,12 @@ const ERROR_CORRECTION = "M" as const;
  * @param margin - Quiet-zone width in modules (the spec recommends ≥4; 2 reads
  *   fine on screen and keeps the code visually larger).
  */
-export const buildQrSvg = (value: string, fg: string, bg: string, margin = 2): string => {
+export const buildQrSvg = (
+  value: string,
+  fg: string,
+  bg: string,
+  margin = 2
+): string => {
   const qr = qrcode(0, ERROR_CORRECTION);
   // Empty strings throw in the encoder; fall back to a single space.
   qr.addData(value.trim() || " ");
@@ -35,10 +40,15 @@ export const buildQrSvg = (value: string, fg: string, bg: string, margin = 2): s
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">` +
     `<rect width="${size}" height="${size}" fill="${bg}"/>` +
     `<path d="${path}" fill="${fg}"/>` +
-    `</svg>`
+    "</svg>"
   );
 };
 
 /** `data:image/svg+xml,...` URL suitable for an `<img>` `src`. */
-export const buildQrDataUri = (value: string, fg: string, bg: string, margin = 2): string =>
+export const buildQrDataUri = (
+  value: string,
+  fg: string,
+  bg: string,
+  margin = 2
+): string =>
   `data:image/svg+xml,${encodeURIComponent(buildQrSvg(value, fg, bg, margin))}`;

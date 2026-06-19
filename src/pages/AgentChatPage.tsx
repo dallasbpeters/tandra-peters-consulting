@@ -1,8 +1,13 @@
-import type { FileUIPart } from "ai";
-
 import { usePostHog } from "@posthog/react";
+import type { FileUIPart } from "ai";
 import { Check, Copy, Download, Globe } from "iconoir-react";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,34 +26,38 @@ import {
   ConversationScrollButton,
 } from "../components/ai-elements/conversation";
 import {
+  Message,
   MessageAction,
   MessageActions,
-  Message,
   MessageContent,
   MessageResponse,
 } from "../components/ai-elements/message";
 import {
+  PromptInput,
   PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuTrigger,
-  PromptInputActionMenuContent,
   PromptInputActionAddScreenshot,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputBody,
+  PromptInputButton,
+  PromptInputFooter,
+  PromptInputHeader,
   PromptInputSelect,
-  PromptInputSelectTrigger,
-  PromptInputSelectValue,
   PromptInputSelectContent,
   PromptInputSelectItem,
-  PromptInput,
-  PromptInputBody,
-  PromptInputFooter,
+  PromptInputSelectTrigger,
+  PromptInputSelectValue,
   PromptInputSubmit,
-  PromptInputButton,
   PromptInputTextarea,
   PromptInputTools,
   usePromptInputAttachments,
-  PromptInputHeader,
 } from "../components/ai-elements/prompt-input";
-import { Reasoning, ReasoningContent, ReasoningTrigger } from "../components/ai-elements/reasoning";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "../components/ai-elements/reasoning";
 import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/SitePageChrome";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
@@ -61,24 +70,24 @@ import {
 import { mix, theme } from "../theme";
 import "../styles/agent-chat.css";
 
-export type AgentConfig = {
-  endpoint: string;
+export interface AgentConfig {
   agentSlug: string;
-  pageTitle: string;
-  pageDescription: string;
-  eyebrow?: string;
-  title: string;
-  subtitle: string;
+  emptyBody: string;
   emptyIcon: string;
   emptyTitle: string;
-  emptyBody: string;
+  endpoint: string;
+  eyebrow?: string;
   inputPlaceholder: string;
+  pageDescription: string;
+  pageTitle: string;
   starterPrompts: readonly string[];
-  /** When true, assistant text is parsed for <artifact> blocks and rendered with Artifact UI. */
-  useArtifacts?: boolean;
+  subtitle: string;
   /** When true, image attachments are sent to the API (screenshot workflow). */
   supportsVision?: boolean;
-};
+  title: string;
+  /** When true, assistant text is parsed for <artifact> blocks and rendered with Artifact UI. */
+  useArtifacts?: boolean;
+}
 
 type Role = "user" | "assistant";
 
@@ -92,17 +101,17 @@ type ChatPart =
       text: string;
     };
 
-type ChatMessage = {
-  id: string;
-  role: Role;
+interface ChatMessage {
   content: string;
-  parts: ChatPart[];
+  id: string;
   images?: StoredChatImage[];
-};
+  parts: ChatPart[];
+  role: Role;
+}
 
-type Props = {
+interface Props {
   config: AgentConfig;
-};
+}
 
 const CHAT_STORAGE_PREFIX = "agent-chat:v1";
 
@@ -117,45 +126,52 @@ const cardStyle: CSSProperties = {
   placeItems: "center",
 };
 
-type PersistedConversation = {
-  threadId: string;
+interface PersistedConversation {
   messages: ChatMessage[];
+  threadId: string;
   updatedAt: number;
-};
+}
 
 const isChatPart = (value: unknown): value is ChatPart =>
   Boolean(
     value &&
-    typeof value === "object" &&
-    ("type" in value && (value as { type?: unknown }).type === "text"
-      ? typeof (value as { text?: unknown }).text === "string"
-      : "type" in value &&
-        (value as { type?: unknown }).type === "reasoning" &&
-        typeof (value as { text?: unknown }).text === "string"),
+      typeof value === "object" &&
+      ("type" in value && (value as { type?: unknown }).type === "text"
+        ? typeof (value as { text?: unknown }).text === "string"
+        : "type" in value &&
+          (value as { type?: unknown }).type === "reasoning" &&
+          typeof (value as { text?: unknown }).text === "string")
   );
 
 const isChatMessage = (value: unknown): value is ChatMessage =>
   Boolean(
     value &&
-    typeof value === "object" &&
-    typeof (value as { id?: unknown }).id === "string" &&
-    ((value as { role?: unknown }).role === "user" ||
-      (value as { role?: unknown }).role === "assistant") &&
-    typeof (value as { content?: unknown }).content === "string" &&
-    Array.isArray((value as { parts?: unknown }).parts) &&
-    (value as { parts: unknown[] }).parts.every(isChatPart),
+      typeof value === "object" &&
+      typeof (value as { id?: unknown }).id === "string" &&
+      ((value as { role?: unknown }).role === "user" ||
+        (value as { role?: unknown }).role === "assistant") &&
+      typeof (value as { content?: unknown }).content === "string" &&
+      Array.isArray((value as { parts?: unknown }).parts) &&
+      (value as { parts: unknown[] }).parts.every(isChatPart)
   );
 
-const getStorageKey = (agentSlug: string) => `${CHAT_STORAGE_PREFIX}:${agentSlug}`;
+const getStorageKey = (agentSlug: string) =>
+  `${CHAT_STORAGE_PREFIX}:${agentSlug}`;
 
-const PromptInputSubmitGuard = ({ loading, input }: { loading: boolean; input: string }) => {
+const PromptInputSubmitGuard = ({
+  loading,
+  input,
+}: {
+  loading: boolean;
+  input: string;
+}) => {
   const attachments = usePromptInputAttachments();
   const hasContent = input.trim().length > 0 || attachments.files.length > 0;
 
   return (
     <PromptInputSubmit
+      disabled={!(loading || hasContent)}
       status={loading ? "streaming" : "ready"}
-      disabled={!loading && !hasContent}
       variant="ghost"
     />
   );
@@ -196,28 +212,46 @@ const MessageParts = ({
   useArtifacts: boolean;
 }) => {
   const reasoningParts = message.parts.filter(
-    (part): part is Extract<ChatPart, { type: "reasoning" }> => part.type === "reasoning",
+    (part): part is Extract<ChatPart, { type: "reasoning" }> =>
+      part.type === "reasoning"
   );
   const reasoningText = reasoningParts.map((part) => part.text).join("\n\n");
   const hasReasoning = reasoningParts.length > 0;
   const lastPart = message.parts.at(-1);
-  const isReasoningStreaming = isLastMessage && isStreaming && lastPart?.type === "reasoning";
+  const isReasoningStreaming =
+    isLastMessage && isStreaming && lastPart?.type === "reasoning";
 
   return (
     <>
       {hasReasoning && (
-        <Reasoning className="agent-chat__reasoning" isStreaming={isReasoningStreaming}>
+        <Reasoning
+          className="agent-chat__reasoning"
+          isStreaming={isReasoningStreaming}
+        >
           <ReasoningTrigger />
           <ReasoningContent>{reasoningText}</ReasoningContent>
         </Reasoning>
       )}
-      {message.parts.map((part, i) => {
+      {message.parts.map((part) => {
         if (part.type === "text") {
-          if (useArtifacts && message.role === "assistant" && part.text.includes("<artifact")) {
-            return <AgentArtifactMessage key={`${message.id}-${i}`} text={part.text} />;
+          if (
+            useArtifacts &&
+            message.role === "assistant" &&
+            part.text.includes("<artifact")
+          ) {
+            return (
+              <AgentArtifactMessage
+                key={`${message.id}-${part.type}`}
+                text={part.text}
+              />
+            );
           }
 
-          return <MessageResponse key={`${message.id}-${i}`}>{part.text}</MessageResponse>;
+          return (
+            <MessageResponse key={`${message.id}-${part.type}`}>
+              {part.text}
+            </MessageResponse>
+          );
         }
         return null;
       })}
@@ -251,7 +285,9 @@ export const AgentChatPage = ({ config }: Props) => {
   const auth = useGoogleDashboardAuth();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       const raw = window.localStorage.getItem(getStorageKey(config.agentSlug));
@@ -275,29 +311,44 @@ export const AgentChatPage = ({ config }: Props) => {
   }, [config.agentSlug]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!hasHydratedConversation) return;
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (!hasHydratedConversation) {
+      return;
+    }
 
     const payload: PersistedConversation = {
       threadId: threadIdRef.current,
       messages: messages.map((message) =>
-        message.images?.length ? { ...message, images: undefined } : message,
+        message.images?.length ? { ...message, images: undefined } : message
       ),
       updatedAt: Date.now(),
     };
-    window.localStorage.setItem(getStorageKey(config.agentSlug), JSON.stringify(payload));
+    window.localStorage.setItem(
+      getStorageKey(config.agentSlug),
+      JSON.stringify(payload)
+    );
   }, [config.agentSlug, hasHydratedConversation, messages]);
 
   const handleSend = useCallback(
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
     async (text: string, files: FileUIPart[] = []) => {
       const trimmed = text.trim();
-      const attachedImages = config.supportsVision ? filePartsToImages(files) : [];
+      const attachedImages = config.supportsVision
+        ? filePartsToImages(files)
+        : [];
 
-      if (!trimmed && attachedImages.length === 0) return;
-      if (loading || !auth.token) return;
+      if (!trimmed && attachedImages.length === 0) {
+        return;
+      }
+      if (loading || !auth.token) {
+        return;
+      }
 
       const displayContent =
-        trimmed || (attachedImages.length > 0 ? "Screenshot of Nextdoor thread" : "");
+        trimmed ||
+        (attachedImages.length > 0 ? "Screenshot of Nextdoor thread" : "");
 
       const userMsg: ChatMessage = {
         id: crypto.randomUUID(),
@@ -361,7 +412,7 @@ export const AgentChatPage = ({ config }: Props) => {
         setLoading(false);
       }
     },
-    [auth.token, config, loading, messages, posthog],
+    [auth.token, config, loading, messages, posthog]
   );
 
   const handleSuggestion = useCallback(
@@ -372,18 +423,22 @@ export const AgentChatPage = ({ config }: Props) => {
       });
       handleSend(prompt);
     },
-    [config.agentSlug, handleSend, posthog],
+    [config.agentSlug, handleSend, posthog]
   );
 
   const isEmpty = messages.length === 0 && !loading;
 
   const handleCopyMessage = useCallback(async (message: ChatMessage) => {
-    if (!message.content.trim()) return;
+    if (!message.content.trim()) {
+      return;
+    }
 
     const markCopied = () => {
       setCopiedMessageId(message.id);
       setTimeout(() => {
-        setCopiedMessageId((current) => (current === message.id ? null : current));
+        setCopiedMessageId((current) =>
+          current === message.id ? null : current
+        );
       }, 1200);
     };
 
@@ -416,7 +471,9 @@ export const AgentChatPage = ({ config }: Props) => {
 
   const handleDownloadMessage = useCallback(
     (message: ChatMessage) => {
-      if (!message.content.trim()) return;
+      if (!message.content.trim()) {
+        return;
+      }
       try {
         const blob = new Blob([message.content], {
           type: "text/markdown;charset=utf-8",
@@ -434,11 +491,13 @@ export const AgentChatPage = ({ config }: Props) => {
         console.error("[download] failed", err);
       }
     },
-    [config.agentSlug],
+    [config.agentSlug]
   );
 
   useEffect(() => {
-    if (!error) return;
+    if (!error) {
+      return;
+    }
     posthog?.capture("agent_message_error", {
       agent: config.agentSlug,
       error_message: error,
@@ -447,7 +506,9 @@ export const AgentChatPage = ({ config }: Props) => {
 
   useEffect(() => {
     if (statusCode === 401 || statusCode === 403) {
-      auth.signOut("Your Google session expired or this account is not allowed.");
+      auth.signOut(
+        "Your Google session expired or this account is not allowed."
+      );
     }
   }, [auth, statusCode]);
 
@@ -479,8 +540,9 @@ export const AgentChatPage = ({ config }: Props) => {
                   maxWidth: "36rem",
                 }}
               >
-                This route is protected with Google Identity Services and a server-side allowlist.
-                The public site stays untouched; only the dashboard API is gated.
+                This route is protected with Google Identity Services and a
+                server-side allowlist. The public site stays untouched; only the
+                dashboard API is gated.
               </p>
             </div>
             <div ref={auth.buttonRef} />
@@ -494,9 +556,11 @@ export const AgentChatPage = ({ config }: Props) => {
                 {auth.authError}
               </p>
             ) : null}
-            {!auth.ready ? (
-              <p style={{ color: mix(theme.colors.everglade, 60) }}>Loading Google sign-in…</p>
-            ) : null}
+            {auth.ready ? null : (
+              <p style={{ color: mix(theme.colors.everglade, 60) }}>
+                Loading Google sign-in…
+              </p>
+            )}
           </div>
         </section>
       ) : null}
@@ -504,7 +568,9 @@ export const AgentChatPage = ({ config }: Props) => {
       {auth.token ? (
         <div className="agent-chat agent-chat__main">
           <header className="agent-chat__header">
-            <p className="agent-chat__eyebrow">{config.eyebrow ?? "Tandra.me"}</p>
+            <p className="agent-chat__eyebrow">
+              {config.eyebrow ?? "Tandra.me"}
+            </p>
             <h1 className="agent-chat__title">{config.title}</h1>
             <p className="agent-chat__subtitle">{config.subtitle}</p>
           </header>
@@ -516,27 +582,34 @@ export const AgentChatPage = ({ config }: Props) => {
                   <ConversationContent className="agent-chat__conversation-content">
                     {isEmpty ? (
                       <ConversationEmptyState
-                        title={config.emptyTitle}
                         description={config.emptyBody}
                         icon={
-                          <div className="agent-chat__empty-icon" aria-hidden="true">
+                          <div
+                            aria-hidden="true"
+                            className="agent-chat__empty-icon"
+                          >
                             {config.emptyIcon}
                           </div>
                         }
+                        title={config.emptyTitle}
                       >
                         <div className="agent-chat__empty-body">
                           <div className="agent-chat__empty-copy">
-                            <p className="agent-chat__empty-title">{config.emptyTitle}</p>
-                            <p className="agent-chat__empty-description">{config.emptyBody}</p>
+                            <p className="agent-chat__empty-title">
+                              {config.emptyTitle}
+                            </p>
+                            <p className="agent-chat__empty-description">
+                              {config.emptyBody}
+                            </p>
                           </div>
                           <Suggestions>
                             {config.starterPrompts.map((prompt) => (
                               <Suggestion
-                                key={prompt}
-                                suggestion={prompt}
-                                className="agent-chat__suggestion"
-                                onClick={() => handleSuggestion(prompt)}
                                 aria-label={`Start with: ${prompt}`}
+                                className="agent-chat__suggestion"
+                                key={prompt}
+                                onClick={() => handleSuggestion(prompt)}
+                                suggestion={prompt}
                               >
                                 {prompt}
                               </Suggestion>
@@ -545,11 +618,12 @@ export const AgentChatPage = ({ config }: Props) => {
                         </div>
                       </ConversationEmptyState>
                     ) : (
+                      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
                       messages.map((message, index) => (
                         <Message
-                          key={message.id}
-                          from={message.role}
                           className="agent-chat__message-row"
+                          from={message.role}
+                          key={message.id}
                         >
                           <MessageContent
                             className={
@@ -560,48 +634,53 @@ export const AgentChatPage = ({ config }: Props) => {
                           >
                             {message.role === "assistant" ? (
                               <MessageParts
-                                message={message}
                                 isLastMessage={index === messages.length - 1}
                                 isStreaming={loading}
+                                message={message}
                                 useArtifacts={config.useArtifacts ?? false}
                               />
                             ) : (
                               <div className="agent-chat__user-attachments">
                                 {message.images?.map((image) => (
+                                  // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
                                   <img
-                                    key={image.url}
-                                    src={image.url}
                                     alt={
                                       image.filename
                                         ? `Attached screenshot: ${image.filename}`
                                         : "Attached screenshot of Nextdoor thread"
                                     }
                                     className="agent-chat__user-screenshot"
+                                    key={image.url}
+                                    src={image.url}
                                   />
                                 ))}
                                 {message.content ? (
-                                  <p className="agent-chat__user-text">{message.content}</p>
+                                  <p className="agent-chat__user-text">
+                                    {message.content}
+                                  </p>
                                 ) : null}
                               </div>
                             )}
                           </MessageContent>
-                          {message.role === "user" ? (
-                            <>
-                              {auth.user?.picture ? (
-                                <img
-                                  src={auth.user.picture}
-                                  alt=""
-                                  className="agent-chat__avatar"
-                                />
-                              ) : null}
-                            </>
-                          ) : null}
+                          {message.role === "user" &&
+                            (auth.user?.picture ? (
+                              // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+                              <img
+                                alt=""
+                                className="agent-chat__avatar"
+                                src={auth.user.picture}
+                              />
+                            ) : null)}
                           {message.role === "assistant" && (
                             <MessageActions>
                               <MessageAction
                                 aria-label="Copy message"
-                                tooltip={copiedMessageId === message.id ? "Copied" : "Copy answer"}
                                 onClick={() => handleCopyMessage(message)}
+                                tooltip={
+                                  copiedMessageId === message.id
+                                    ? "Copied"
+                                    : "Copy answer"
+                                }
                               >
                                 {copiedMessageId === message.id ? (
                                   <Check className="agent-chat__icon" />
@@ -611,8 +690,8 @@ export const AgentChatPage = ({ config }: Props) => {
                               </MessageAction>
                               <MessageAction
                                 aria-label="Download message"
-                                tooltip="Download as .md"
                                 onClick={() => handleDownloadMessage(message)}
+                                tooltip="Download as .md"
                               >
                                 <Download className="agent-chat__icon" />
                               </MessageAction>
@@ -650,20 +729,20 @@ export const AgentChatPage = ({ config }: Props) => {
 
               <div className="agent-chat__composer-dock">
                 <PromptInput
-                  className="agent-chat__prompt"
-                  onSubmit={({ text, files }) => handleSend(text, files)}
                   aria-label="Chat input"
+                  className="agent-chat__prompt"
                   globalDrop
                   multiple
+                  onSubmit={({ text, files }) => handleSend(text, files)}
                 >
                   <PromptInputAttachmentsHeader />
                   <PromptInputBody>
                     <PromptInputTextarea
-                      value={input}
+                      className="agent-chat__textarea"
+                      disabled={loading}
                       onChange={(event) => setInput(event.target.value)}
                       placeholder={config.inputPlaceholder}
-                      disabled={loading}
-                      className="agent-chat__textarea"
+                      value={input}
                     />
                   </PromptInputBody>
                   <PromptInputFooter>
@@ -695,14 +774,17 @@ export const AgentChatPage = ({ config }: Props) => {
                         </PromptInputSelectTrigger>
                         <PromptInputSelectContent>
                           {models.map((model) => (
-                            <PromptInputSelectItem key={model.id} value={model.id}>
+                            <PromptInputSelectItem
+                              key={model.id}
+                              value={model.id}
+                            >
                               {model.name}
                             </PromptInputSelectItem>
                           ))}
                         </PromptInputSelectContent>
                       </PromptInputSelect>
                     </PromptInputTools>
-                    <PromptInputSubmitGuard loading={loading} input={input} />
+                    <PromptInputSubmitGuard input={input} loading={loading} />
                   </PromptInputFooter>
                 </PromptInput>
               </div>

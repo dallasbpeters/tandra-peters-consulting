@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin } from "vite";
-
 import { createClient } from "@sanity/client";
+import type { Plugin } from "vite";
 
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 
@@ -11,7 +10,8 @@ const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2026-05-29";
 const MAX_CONFIG_BYTES = 200_000;
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -36,7 +36,7 @@ const json = (res: ServerResponse, status: number, body: unknown) => {
 };
 
 const parseBearerToken = (header: string | undefined): string | null => {
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!header?.startsWith("Bearer ")) {
     return null;
   }
   return header.slice("Bearer ".length).trim() || null;
@@ -46,15 +46,17 @@ const normalize = (value: string): string => value.trim().toLowerCase();
 
 const isAllowedGoogleUserFromEnv = (
   user: { email: string; hostedDomain?: string },
-  env: Record<string, string>,
+  env: Record<string, string>
 ): boolean => {
   const emails = new Set(
     (env.GOOGLE_ALLOWED_EMAILS ?? env.VITE_GOOGLE_ALLOWED_EMAILS ?? "")
       .split(",")
       .map((entry) => normalize(entry))
-      .filter(Boolean),
+      .filter(Boolean)
   );
-  const domain = normalize(env.GOOGLE_ALLOWED_DOMAIN ?? env.VITE_GOOGLE_ALLOWED_DOMAIN ?? "");
+  const domain = normalize(
+    env.GOOGLE_ALLOWED_DOMAIN ?? env.VITE_GOOGLE_ALLOWED_DOMAIN ?? ""
+  );
   if (emails.size === 0 && !domain) {
     return false;
   }
@@ -68,11 +70,13 @@ const isAllowedGoogleUserFromEnv = (
   return false;
 };
 
-const sanitizeString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const sanitizeString = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
   name: "vite-ad-versions-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== AD_VERSIONS_PATH) {
         next();
@@ -99,7 +103,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
       }
 
       const user = parseGoogleIdToken(bearer);
-      if (!user || !isAllowedGoogleUserFromEnv(user, env)) {
+      if (!(user && isAllowedGoogleUserFromEnv(user, env))) {
         json(res, 403, {
           error: "Google account is not authorized for ad versions.",
         });
@@ -150,7 +154,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
 
         const name = sanitizeString(body.name);
         const config = sanitizeString(body.config);
-        if (!name || !config) {
+        if (!(name && config)) {
           json(res, 400, { error: "Missing version name or config." });
           return;
         }
@@ -171,7 +175,10 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
       } catch (error) {
         console.error("[vite-ad-versions-api]", error);
         json(res, 500, {
-          error: error instanceof Error ? error.message : "Unexpected ad version error.",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unexpected ad version error.",
         });
       }
     });

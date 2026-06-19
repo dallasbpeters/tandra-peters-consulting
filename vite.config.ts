@@ -1,7 +1,12 @@
+import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
-import { defineConfig, loadEnv, type PluginOption, type ProxyOptions } from "vite";
+import {
+  defineConfig,
+  loadEnv,
+  type PluginOption,
+  type ProxyOptions,
+} from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 import { ogImageComposite } from "./plugins/ogImageComposite";
@@ -19,11 +24,19 @@ import { viteSitemapApi } from "./plugins/viteSitemapApi";
 import { viteUnsplashApi } from "./plugins/viteUnsplashApi";
 import { viteWorkflowSaveApi } from "./plugins/viteWorkflowSaveApi";
 
+const TRAILING_SLASH_RE = /\/$/;
+const CONTACT_API_PATH_RE = /\/api\/contact$/i;
+const API_PATH_RE = /\/api$/i;
+const POSTHOG_CLOUD_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
-  const defaultSiteUrl = mode === "development" ? "http://localhost:3001" : "https://www.tandra.me";
+  const defaultSiteUrl =
+    mode === "development" ? "http://localhost:3001" : "https://www.tandra.me";
   /** Canonical site origin for OG/Twitter meta in `index.html` (`%SITE_URL%`). */
-  const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl).trim().replace(/\/$/, "");
+  const siteUrl = (env.VITE_SITE_URL || defaultSiteUrl)
+    .trim()
+    .replace(TRAILING_SLASH_RE, "");
 
   /**
    * Origin only (e.g. https://www.tandra.me). Strips `/api/contact` if pasted by
@@ -33,17 +46,25 @@ export default defineConfig(({ mode }) => {
    * against `.env.local` (Resend email + Sanity upsert).
    */
   const contactProxyTarget = (() => {
-    const raw = env.VITE_CONTACT_API_URL?.trim().replace(/\/$/, "") ?? "";
-    if (!raw) return "";
-    return raw.replace(/\/api\/contact$/i, "").replace(/\/api$/i, "");
+    const raw =
+      env.VITE_CONTACT_API_URL?.trim().replace(TRAILING_SLASH_RE, "") ?? "";
+    if (!raw) {
+      return "";
+    }
+    return raw.replace(CONTACT_API_PATH_RE, "").replace(API_PATH_RE, "");
   })();
   const useLocalContactApi = !contactProxyTarget;
 
-  const posthogProxyTarget = env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(/\/$/, "") ?? "";
-  const posthogCloudIngestion = /^https:\/\/(us|eu)\.i\.posthog\.com$/i.test(posthogProxyTarget);
-  const enablePosthogDev = env.VITE_ENABLE_POSTHOG_DEV?.trim().toLowerCase() === "true";
+  const posthogProxyTarget =
+    env.VITE_PUBLIC_POSTHOG_HOST?.trim().replace(TRAILING_SLASH_RE, "") ?? "";
+  const posthogCloudIngestion = POSTHOG_CLOUD_RE.test(posthogProxyTarget);
+  const enablePosthogDev =
+    env.VITE_ENABLE_POSTHOG_DEV?.trim().toLowerCase() === "true";
   const usePosthogDevProxy =
-    mode === "development" && enablePosthogDev && posthogProxyTarget && !posthogCloudIngestion;
+    mode === "development" &&
+    enablePosthogDev &&
+    posthogProxyTarget &&
+    !posthogCloudIngestion;
 
   const posthogProxyBase = {
     target: posthogProxyTarget,
@@ -99,7 +120,9 @@ export default defineConfig(({ mode }) => {
     viteEstimateDevApi(env) as unknown as PluginOption,
     viteRenderTandraIntroApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,
-    ...(useLocalContactApi ? [viteContactDevApi(env) as unknown as PluginOption] : []),
+    ...(useLocalContactApi
+      ? [viteContactDevApi(env) as unknown as PluginOption]
+      : []),
     tailwindcss() as unknown as PluginOption,
     react() as unknown as PluginOption,
     {
@@ -126,7 +149,7 @@ export default defineConfig(({ mode }) => {
     plugins,
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "."),
+        "@": path.resolve(import.meta.dirname, "."),
       },
       dedupe: ["three"],
     },

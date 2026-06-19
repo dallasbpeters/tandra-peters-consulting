@@ -1,19 +1,18 @@
 import type { SyntheticEvent } from "react";
 
-type Props = {
-  posterUrl: string;
+interface Props {
   onPress: (event: SyntheticEvent) => void;
-};
+  posterUrl: string;
+}
 
-export const VideoPoster = ({ posterUrl, onPress }: Props) => {
-  return (
-    <button
-      type="button"
-      className="featured-video__poster"
-      aria-label="Play featured video"
-      onClick={onPress}
-    >
-      <img alt="" className="featured-video__poster-image" src={posterUrl} />
-    </button>
-  );
-};
+export const VideoPoster = ({ posterUrl, onPress }: Props) => (
+  <button
+    aria-label="Play featured video"
+    className="featured-video__poster"
+    onClick={onPress}
+    type="button"
+  >
+    {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
+    <img alt="" className="featured-video__poster-image" src={posterUrl} />
+  </button>
+);

@@ -2,8 +2,8 @@ import { Product } from "./product";
 
 interface DocumentProps {
   id: string;
-  type: string;
   isInline: boolean;
+  type: string;
 }
 
 /**
@@ -21,7 +21,9 @@ export function Document(props: DocumentProps) {
   const { id, type, isInline } = props;
 
   // During streaming, props may be incomplete - silently skip
-  if (!id) return null;
+  if (!id) {
+    return null;
+  }
 
   if (type === "product") {
     return <Product id={id} isInline={isInline} />;

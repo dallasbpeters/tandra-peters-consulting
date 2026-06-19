@@ -1,11 +1,18 @@
 import type { Plugin } from "vite";
 
-import { getSeoDashboard, regenerateSeoDashboard } from "../server/seo/dashboardService.js";
-import { DashboardAuthError, authorizeSeoDashboardRequest } from "../server/seo/googleAuth.js";
+import {
+  getSeoDashboard,
+  regenerateSeoDashboard,
+} from "../server/seo/dashboardService.js";
+import {
+  authorizeSeoDashboardRequest,
+  DashboardAuthError,
+} from "../server/seo/googleAuth.js";
 
 const DASHBOARD_PATH = "/api/seo/dashboard";
 
-const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) =>
+  (url ?? "").split("?")[0] ?? "";
 
 const applyCors = (res: {
   setHeader(name: string, value: string): void;
@@ -20,6 +27,7 @@ const applyCors = (res: {
 export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
   name: "vite-seo-dashboard-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== DASHBOARD_PATH) {
         next();
@@ -55,22 +63,33 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
           process.env[key] = env[key].trim();
         }
       }
-      if (!process.env.POSTHOG_PERSONAL_API_KEY && process.env.POSTHOG_PERSONALAPI_KEY) {
-        process.env.POSTHOG_PERSONAL_API_KEY = process.env.POSTHOG_PERSONALAPI_KEY;
+      if (
+        !process.env.POSTHOG_PERSONAL_API_KEY &&
+        process.env.POSTHOG_PERSONALAPI_KEY
+      ) {
+        process.env.POSTHOG_PERSONAL_API_KEY =
+          process.env.POSTHOG_PERSONALAPI_KEY;
       }
 
       try {
         await authorizeSeoDashboardRequest(
-          typeof req.headers.authorization === "string" ? req.headers.authorization : undefined,
-          env,
+          typeof req.headers.authorization === "string"
+            ? req.headers.authorization
+            : undefined,
+          env
         );
-        const requestUrl = new URL(req.url ?? DASHBOARD_PATH, "http://localhost");
+        const requestUrl = new URL(
+          req.url ?? DASHBOARD_PATH,
+          "http://localhost"
+        );
         const regenerate =
           requestUrl.searchParams.get("regenerate") === "1" ||
           requestUrl.searchParams.get("regenerate") === "true" ||
           requestUrl.searchParams.get("refresh") === "1" ||
           requestUrl.searchParams.get("refresh") === "true";
-        const payload = regenerate ? await regenerateSeoDashboard() : await getSeoDashboard();
+        const payload = regenerate
+          ? await regenerateSeoDashboard()
+          : await getSeoDashboard();
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify(payload));
@@ -87,7 +106,7 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
           JSON.stringify({
             error: "Could not build SEO dashboard",
             detail: error instanceof Error ? error.message : "Unknown error",
-          }),
+          })
         );
       }
     });

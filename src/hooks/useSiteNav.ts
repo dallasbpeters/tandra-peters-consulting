@@ -1,4 +1,4 @@
-import { useCallback, type MouseEvent } from "react";
+import { type MouseEvent, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 /** In-page section anchor on the homepage (smooth-scroll), not a routed path. */
@@ -17,30 +17,31 @@ export const useSiteNav = () => {
   }, []);
 
   const handleSectionNavClick = useCallback(
-    (href: string, onAfterNavigate?: () => void) => (event: MouseEvent<HTMLAnchorElement>) => {
-      if (!isHome) {
+    (href: string, onAfterNavigate?: () => void) =>
+      (event: MouseEvent<HTMLAnchorElement>) => {
+        if (!isHome) {
+          onAfterNavigate?.();
+          return;
+        }
+        if (href.startsWith("#") && href !== "#") {
+          event.preventDefault();
+          onAfterNavigate?.();
+          const id = href.slice(1);
+          window.setTimeout(
+            () => {
+              document.getElementById(id)?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              window.history.replaceState(null, "", href);
+            },
+            onAfterNavigate ? 200 : 0
+          );
+          return;
+        }
         onAfterNavigate?.();
-        return;
-      }
-      if (href.startsWith("#") && href !== "#") {
-        event.preventDefault();
-        onAfterNavigate?.();
-        const id = href.slice(1);
-        window.setTimeout(
-          () => {
-            document.getElementById(id)?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-            window.history.replaceState(null, "", href);
-          },
-          onAfterNavigate ? 200 : 0,
-        );
-        return;
-      }
-      onAfterNavigate?.();
-    },
-    [isHome],
+      },
+    [isHome]
   );
 
   return { isHome, resolveNavTo, handleSectionNavClick };

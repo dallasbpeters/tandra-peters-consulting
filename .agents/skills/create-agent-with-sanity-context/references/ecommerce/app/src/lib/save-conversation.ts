@@ -1,10 +1,10 @@
-import { type UIMessage } from "ai";
+import type { UIMessage } from "ai";
 
 import { writeClient } from "@/sanity/lib/write-client";
 
 interface ConversationMessage {
-  role: string;
   content: string;
+  role: string;
 }
 
 interface SaveConversationInput {
@@ -15,7 +15,9 @@ interface SaveConversationInput {
 /**
  * Saves conversation to Sanity for classification using a Sanity Function.
  */
-export async function saveConversation(input: SaveConversationInput): Promise<void> {
+export async function saveConversation(
+  input: SaveConversationInput
+): Promise<void> {
   const { chatId, messages } = input;
 
   // Format messages for storage, filtering out empty ones
@@ -25,7 +27,10 @@ export async function saveConversation(input: SaveConversationInput): Promise<vo
       role: message.role,
       content:
         message.parts
-          ?.filter((part): part is { type: "text"; text: string } => part.type === "text")
+          ?.filter(
+            (part): part is { type: "text"; text: string } =>
+              part.type === "text"
+          )
           .map((part) => part.text)
           .join("\n\n") ?? "",
     }))
@@ -37,6 +42,6 @@ export async function saveConversation(input: SaveConversationInput): Promise<vo
       _id: chatId,
       messages: conversationMessages,
     },
-    { autoGenerateArrayKeys: true },
+    { autoGenerateArrayKeys: true }
   );
 }

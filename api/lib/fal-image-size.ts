@@ -13,9 +13,12 @@ export type FalImageSize = (typeof IMAGE_SIZE_OPTIONS)[number];
 export const FAL_IMAGE_LONG_EDGE_PX = 1800;
 
 export const isFalImageSize = (value: unknown): value is FalImageSize =>
-  typeof value === "string" && (IMAGE_SIZE_OPTIONS as readonly string[]).includes(value);
+  typeof value === "string" &&
+  (IMAGE_SIZE_OPTIONS as readonly string[]).includes(value);
 
-export const pixelsFromImageSize = (imageSize: FalImageSize): { height: number; width: number } => {
+export const pixelsFromImageSize = (
+  imageSize: FalImageSize
+): { height: number; width: number } => {
   switch (imageSize) {
     case "landscape_16_9":
       return {
@@ -37,8 +40,6 @@ export const pixelsFromImageSize = (imageSize: FalImageSize): { height: number; 
         width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
         height: FAL_IMAGE_LONG_EDGE_PX,
       };
-    case "square_hd":
-    case "square":
     default:
       return { width: FAL_IMAGE_LONG_EDGE_PX, height: FAL_IMAGE_LONG_EDGE_PX };
   }
@@ -54,8 +55,6 @@ export const aspectRatioFromImageSize = (imageSize: FalImageSize) => {
       return "9:16";
     case "portrait_4_3":
       return "3:4";
-    case "square":
-    case "square_hd":
     default:
       return "1:1";
   }

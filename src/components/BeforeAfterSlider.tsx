@@ -2,26 +2,26 @@
 
 import type { PortableTextBlock } from "@portabletext/types";
 
-import { motion, AnimatePresence, Variants } from "motion/react";
-import { useState, useRef, useCallback, type CSSProperties } from "react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
+import { type CSSProperties, useCallback, useRef, useState } from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { mix, theme } from "../theme";
 
 interface ImagePair {
+  afterImage?: string;
+  beforeImage?: string;
+  description?: string;
   id?: string;
   title?: string;
-  beforeImage?: string;
-  afterImage?: string;
-  description?: string;
 }
 
 interface BeforeAfterSliderProps {
-  imagePairs: ImagePair[];
-  eyebrow?: string;
-  title?: string;
   description?: PortableTextBlock[] | string;
+  eyebrow?: string;
+  imagePairs: ImagePair[];
+  title?: string;
 }
 
 const styles: Record<string, CSSProperties> = {
@@ -163,7 +163,8 @@ const styles: Record<string, CSSProperties> = {
     position: "absolute",
     inset: 0,
     zIndex: 1,
-    background: "linear-gradient(to top, rgba(11, 13, 20, 0.85), transparent 60%)",
+    background:
+      "linear-gradient(to top, rgba(11, 13, 20, 0.85), transparent 60%)",
   },
   thumbLabel: {
     position: "absolute",
@@ -221,7 +222,9 @@ export function BeforeAfterSlider({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
@@ -231,10 +234,13 @@ export function BeforeAfterSlider({
   const handleMouseDown = () => setIsDragging(true);
   const handleMouseUp = () => setIsDragging(false);
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging) {
+      return;
+    }
     handleMove(e.clientX);
   };
-  const handleTouchMove = (e: React.TouchEvent) => handleMove(e.touches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) =>
+    handleMove(e.touches[0].clientX);
   const handleClick = (e: React.MouseEvent) => handleMove(e.clientX);
 
   const hasHeader = Boolean(eyebrow || title || description);
@@ -243,16 +249,16 @@ export function BeforeAfterSlider({
     <section style={styles.section}>
       {hasHeader ? (
         <motion.header
-          style={styles.header}
           initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
+          style={styles.header}
           transition={{ duration: 0.4, ease: "easeOut" }}
+          viewport={{ once: true, amount: 0.4 }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           {eyebrow ? <p style={styles.eyebrow}>{eyebrow}</p> : null}
           {title ? <h2 style={styles.heading}>{title}</h2> : null}
           {description ? (
-            <RichText value={description} paragraphStyle={styles.description} />
+            <RichText paragraphStyle={styles.description} value={description} />
           ) : null}
         </motion.header>
       ) : null}
@@ -265,22 +271,36 @@ export function BeforeAfterSlider({
           </div>
         </div>
         <div
-          ref={containerRef}
-          style={styles.sliderContainer}
+          aria-label="Before and after comparison slider"
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={sliderPosition}
+          onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") {
+              setSliderPosition((p) => Math.max(0, p - 5));
+            } else if (e.key === "ArrowRight") {
+              setSliderPosition((p) => Math.min(100, p + 5));
+            }
+          }}
           onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
           onTouchMove={handleTouchMove}
-          onClick={handleClick}
+          ref={containerRef}
+          role="slider"
+          style={styles.sliderContainer}
+          tabIndex={0}
         >
           {/* After Image (Background) */}
           <div style={styles.imageLayer}>
+            {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by slider CSS */}
             <img
-              src={selectedPair.afterImage || "/placeholder.svg"}
               alt={`${selectedPair.title} - After`}
-              style={styles.image}
               draggable={false}
+              src={selectedPair.afterImage || "/placeholder.svg"}
+              style={styles.image}
             />
             <div style={{ ...styles.labelBase, right: "1rem" }}>After</div>
           </div>
@@ -293,11 +313,12 @@ export function BeforeAfterSlider({
               clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
             }}
           >
+            {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by slider CSS */}
             <img
-              src={selectedPair.beforeImage || "/placeholder.svg"}
               alt={`${selectedPair.title} - Before`}
-              style={styles.image}
               draggable={false}
+              src={selectedPair.beforeImage || "/placeholder.svg"}
+              style={styles.image}
             />
             <div style={{ ...styles.labelBase, left: "1rem" }}>Before</div>
           </div>
@@ -305,28 +326,29 @@ export function BeforeAfterSlider({
           {/* Slider Handle */}
           <div style={{ ...styles.handle, left: `${sliderPosition}%` }}>
             <motion.div
-              style={styles.handleKnob}
-              initial={{
-                scale: 1,
-                borderColor: theme.colors.evergladeMuted,
-                x: "-50%",
-              }}
               animate={{
                 scale: 1,
                 borderColor: theme.colors.evergladeMuted,
                 x: "-50%",
               }}
+              initial={{
+                scale: 1,
+                borderColor: theme.colors.evergladeMuted,
+                x: "-50%",
+              }}
+              style={styles.handleKnob}
               whileHover={{ scale: 1.05, borderColor: "#9f78e6" }}
             >
               <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
+                aria-hidden="true"
                 fill="none"
+                height="24"
                 stroke={theme.colors.paper}
-                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="24"
               >
                 <path d="M8 6l-4 6 4 6" />
                 <path d="M16 6l4 6-4 6" />
@@ -336,18 +358,16 @@ export function BeforeAfterSlider({
         </div>
 
         {/* Thumbnail Gallery */}
-        <div style={styles.gallery} className="ba-gallery">
+        <div className="ba-gallery" style={styles.gallery}>
           <AnimatePresence>
             {imagePairs.map((pair) => {
               const isSelected = selectedPair.id === pair.id;
               return (
                 <motion.button
-                  variants={thumbButtonVariants}
-                  initial={false}
                   animate="visible"
-                  exit="exit"
-                  whileHover={{ scale: 1.05, borderColor: "#9f78e6" }}
                   className="ba-thumb-button"
+                  exit="exit"
+                  initial={false}
                   key={pair.id}
                   onClick={() => {
                     setSelectedPair(pair);
@@ -356,16 +376,24 @@ export function BeforeAfterSlider({
                   style={{
                     ...styles.thumbButtonBase,
                     blockSize: isMobile ? "75px" : "100px",
-                    boxShadow: isSelected ? `0 0 0 4px ${theme.colors.accent}` : "none",
+                    boxShadow: isSelected
+                      ? `0 0 0 4px ${theme.colors.accent}`
+                      : "none",
                   }}
+                  variants={thumbButtonVariants}
+                  whileHover={{ scale: 1.05, borderColor: "#9f78e6" }}
                 >
+                  {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by slider CSS */}
                   <img
-                    src={pair.afterImage || "/placeholder.svg"}
                     alt=""
-                    style={styles.thumbImage}
                     draggable={false}
+                    src={pair.afterImage || "/placeholder.svg"}
+                    style={styles.thumbImage}
                   />
-                  <div className="ba-thumb-overlay" style={styles.thumbOverlay} />
+                  <div
+                    className="ba-thumb-overlay"
+                    style={styles.thumbOverlay}
+                  />
                   <span style={styles.thumbLabel}>{pair.title}</span>
                 </motion.button>
               );

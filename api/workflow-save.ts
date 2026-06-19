@@ -1,6 +1,5 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { createClient } from "@sanity/client";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { isAllowedGoogleUser, parseGoogleIdToken } from "./lib/google-auth.js";
 
@@ -12,38 +11,41 @@ const WORKFLOW_PAGE_DOCUMENT_ID = "workflowPage";
 const VALID_HANDLES = new Set(["top", "right", "bottom", "left"]);
 
 const readWriteToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim() || undefined;
+  process.env.SANITY_WRITE_TOKEN?.trim() ||
+  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
+  undefined;
 
 const parseBearerToken = (header: string | undefined): string | null => {
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!header?.startsWith("Bearer ")) {
     return null;
   }
   return header.slice("Bearer ".length).trim() || null;
 };
 
-const sanitizeString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const sanitizeString = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 const sanitizeNumber = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 
-type InputNode = {
-  stepId?: unknown;
-  title?: unknown;
+interface InputNode {
   body?: unknown;
-  wide?: unknown;
-  subsections?: unknown;
   posX?: unknown;
   posY?: unknown;
-};
+  stepId?: unknown;
+  subsections?: unknown;
+  title?: unknown;
+  wide?: unknown;
+}
 
-type InputEdge = {
+interface InputEdge {
   edgeId?: unknown;
-  sourceStep?: unknown;
-  targetStep?: unknown;
-  sourceHandle?: unknown;
-  targetHandle?: unknown;
   label?: unknown;
-};
+  sourceHandle?: unknown;
+  sourceStep?: unknown;
+  targetHandle?: unknown;
+  targetStep?: unknown;
+}
 
 const sanitizeNodes = (input: unknown) => {
   if (!Array.isArray(input)) {
@@ -55,7 +57,7 @@ const sanitizeNodes = (input: unknown) => {
       const stepId = sanitizeString(node.stepId);
       const title = sanitizeString(node.title);
       const body = sanitizeString(node.body);
-      if (!stepId || !title || !body) {
+      if (!(stepId && title && body)) {
         return null;
       }
 
@@ -69,9 +71,13 @@ const sanitizeNodes = (input: unknown) => {
                 return null;
               }
 
-              const titleValue = sanitizeString((section as Record<string, unknown>).title);
-              const bodyValue = sanitizeString((section as Record<string, unknown>).body);
-              if (!titleValue || !bodyValue) {
+              const titleValue = sanitizeString(
+                (section as Record<string, unknown>).title
+              );
+              const bodyValue = sanitizeString(
+                (section as Record<string, unknown>).body
+              );
+              if (!(titleValue && bodyValue)) {
                 return null;
               }
 
@@ -93,8 +99,8 @@ const sanitizeNodes = (input: unknown) => {
         body,
         wide: node.wide === true,
         ...(subsections.length > 0 ? { subsections } : {}),
-        ...(posX !== null ? { posX } : {}),
-        ...(posY !== null ? { posY } : {}),
+        ...(posX === null ? {} : { posX }),
+        ...(posY === null ? {} : { posY }),
       };
     })
     .filter(Boolean);
@@ -114,11 +120,13 @@ const sanitizeEdges = (input: unknown) => {
       const targetHandle = sanitizeString(edge.targetHandle) || "left";
       const label = sanitizeString(edge.label) || "Connection";
 
-      if (!edgeId || !sourceStep || !targetStep) {
+      if (!(edgeId && sourceStep && targetStep)) {
         return null;
       }
 
-      if (!VALID_HANDLES.has(sourceHandle) || !VALID_HANDLES.has(targetHandle)) {
+      if (
+        !(VALID_HANDLES.has(sourceHandle) && VALID_HANDLES.has(targetHandle))
+      ) {
         return null;
       }
 
@@ -136,7 +144,10 @@ const sanitizeEdges = (input: unknown) => {
     .filter(Boolean);
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "Method not allowed" });
@@ -150,8 +161,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   const user = parseGoogleIdToken(bearer);
-  if (!user || !isAllowedGoogleUser(user)) {
-    res.status(403).json({ error: "Google account is not authorized for workflow edits." });
+  if (!(user && isAllowedGoogleUser(user))) {
+    res
+      .status(403)
+      .json({ error: "Google account is not authorized for workflow edits." });
     return;
   }
 
@@ -189,11 +202,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       })
       .commit();
 
-    res.status(200).json({ ok: true, nodeCount: nodes.length, edgeCount: edges.length });
+    res
+      .status(200)
+      .json({ ok: true, nodeCount: nodes.length, edgeCount: edges.length });
   } catch (error) {
     console.error("[workflow-save]", error);
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Unexpected workflow save error.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unexpected workflow save error.",
     });
   }
 }

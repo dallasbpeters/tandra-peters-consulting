@@ -1,12 +1,10 @@
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-
-import type { HeroProps, NavItem } from "../types";
-
 import { useSanitySite } from "../context/useSanitySite";
 import { getMainRouteClass } from "../lib/mainRouteClass";
 import { mapFooterProps } from "../sanity/mapSanityHome";
 import { resolveStableNavProps } from "../sanity/stableNavProps";
+import type { HeroProps, NavItem } from "../types";
 import { NavVariant } from "./NavVariant";
 
 const Footer = lazy(async () => {
@@ -33,10 +31,10 @@ const agentNavItems: NavItem[] = [
 
 const resolveHeroStyle = (
   pathname: string,
-  home: Record<string, unknown> | null | undefined,
+  home: Record<string, unknown> | null | undefined
 ): HeroProps["heroStyle"] | undefined => {
   if (pathname !== "/") {
-    return undefined;
+    return;
   }
 
   const hero = home?.hero as { heroStyle?: HeroProps["heroStyle"] } | undefined;
@@ -57,7 +55,11 @@ export const SiteShell = () => {
   const isHome = location.pathname === "/";
 
   const outlet = (
-    <Suspense fallback={isHome ? null : <div aria-hidden style={{ minHeight: "60vh" }} />}>
+    <Suspense
+      fallback={
+        isHome ? null : <div aria-hidden style={{ minHeight: "60vh" }} />
+      }
+    >
       <Outlet />
     </Suspense>
   );
@@ -67,22 +69,26 @@ export const SiteShell = () => {
       {navProps && (
         <NavVariant
           {...navProps}
-          navItems={isAgentRoute ? agentNavItems : navProps.navItems}
           heroStyle={isAgentRoute ? undefined : heroStyle}
+          navItems={isAgentRoute ? agentNavItems : navProps.navItems}
         />
       )}
 
       {isHome ? (
         outlet
       ) : (
-        <main className={`${getMainRouteClass(location.pathname)} site-main-route`}>{outlet}</main>
+        <main
+          className={`${getMainRouteClass(location.pathname)} site-main-route`}
+        >
+          {outlet}
+        </main>
       )}
 
-      {!isAgentRoute ? (
+      {isAgentRoute ? null : (
         <Suspense fallback={null}>
           <Footer {...mapFooterProps(site)} />
         </Suspense>
-      ) : null}
+      )}
     </>
   );
 };

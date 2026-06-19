@@ -65,7 +65,8 @@ export const postType = defineType({
       title: "SEO description",
       type: "text",
       rows: 2,
-      description: "Meta description (~150 characters). Falls back to excerpt if empty.",
+      description:
+        "Meta description (~150 characters). Falls back to excerpt if empty.",
       validation: (rule) => rule.max(200),
     }),
     defineField({
@@ -77,7 +78,8 @@ export const postType = defineType({
     defineGeneratedImage({
       name: "image",
       title: "Cover image",
-      description: "Optional; used on listing cards and social previews when set.",
+      description:
+        "Optional; used on listing cards and social previews when set.",
     }),
     defineField({
       name: "body",

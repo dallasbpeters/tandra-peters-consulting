@@ -50,7 +50,8 @@ export const estimatorPageType = defineType({
       type: "text",
       rows: 3,
       group: "content",
-      description: "Optional sentence beneath the heading, before the wizard starts.",
+      description:
+        "Optional sentence beneath the heading, before the wizard starts.",
     }),
     defineField({
       name: "startButtonLabel",
@@ -65,7 +66,8 @@ export const estimatorPageType = defineType({
       type: "string",
       initialValue: "Here's roughly what you'll spend",
       group: "content",
-      description: "Headline shown above the price range on the results screen.",
+      description:
+        "Headline shown above the price range on the results screen.",
     }),
     defineField({
       name: "disclaimer",
@@ -94,7 +96,8 @@ export const estimatorPageType = defineType({
       type: "number",
       initialValue: 0,
       group: "pricing",
-      description: "Flat amount added to every estimate (e.g. mobilization / minimum job cost).",
+      description:
+        "Flat amount added to every estimate (e.g. mobilization / minimum job cost).",
       validation: (Rule) => Rule.min(0),
     }),
     defineField({
@@ -151,7 +154,8 @@ export const estimatorPageType = defineType({
       title: "SEO title",
       type: "string",
       group: "seo",
-      description: "Browser tab title. Falls back to a built-in default when empty.",
+      description:
+        "Browser tab title. Falls back to a built-in default when empty.",
     }),
     defineField({
       name: "seoDescription",

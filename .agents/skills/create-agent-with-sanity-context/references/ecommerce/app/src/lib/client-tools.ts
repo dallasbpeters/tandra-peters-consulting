@@ -6,22 +6,31 @@ import { z } from "zod";
  * Lightweight context sent with every request.
  */
 export interface DocumentContext {
-  title: string;
   description?: string;
   pathname: string;
+  title: string;
 }
 
 /**
  * Schema for product filter parameters.
  */
 export const productFiltersSchema = z.object({
-  category: z.array(z.string()).optional().describe("Use slug.current from category documents"),
-  color: z.array(z.string()).optional().describe("Use slug.current from color documents"),
+  category: z
+    .array(z.string())
+    .optional()
+    .describe("Use slug.current from category documents"),
+  color: z
+    .array(z.string())
+    .optional()
+    .describe("Use slug.current from color documents"),
   size: z
     .array(z.string())
     .optional()
     .describe('Use code from size documents, e.g. "L" not "Large"'),
-  brand: z.array(z.string()).optional().describe("Use slug.current from brand documents"),
+  brand: z
+    .array(z.string())
+    .optional()
+    .describe("Use slug.current from brand documents"),
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
   sort: z.enum(["price-asc", "price-desc", "newest", "title-asc"]).optional(),
@@ -44,11 +53,13 @@ export const clientTools = {
     inputSchema: z.object({}),
   },
   [CLIENT_TOOL_NAMES.SCREENSHOT]: {
-    description: `Get a visual screenshot. Use when you need to see images, colors, or layout.`,
+    description:
+      "Get a visual screenshot. Use when you need to see images, colors, or layout.",
     inputSchema: z.object({}),
   },
   [CLIENT_TOOL_NAMES.SET_FILTERS]: {
-    description: `Update product listing filters. First use groq_query to get valid filter values (slugs/codes) and confirm products exist.`,
+    description:
+      "Update product listing filters. First use groq_query to get valid filter values (slugs/codes) and confirm products exist.",
     inputSchema: productFiltersSchema,
   },
 } satisfies ToolSet;

@@ -10,12 +10,17 @@ import { handler as falHandler } from "../lib/fal-generate-image.js";
 const addCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key"
+  );
 };
 
 const toWebRequest = (req: VercelRequest): Request => {
   const host = req.headers.host ?? "localhost";
-  const path = req.url?.startsWith("http") ? req.url : `https://${host}${req.url ?? "/"}`;
+  const path = req.url?.startsWith("http")
+    ? req.url
+    : `https://${host}${req.url ?? "/"}`;
   const headerPairs: [string, string][] = [];
   for (const [key, value] of Object.entries(req.headers)) {
     if (value == null) {
@@ -29,12 +34,11 @@ const toWebRequest = (req: VercelRequest): Request => {
       headerPairs.push([key, value]);
     }
   }
-  const body =
-    req.method === "POST" || req.method === "PUT" || req.method === "PATCH"
-      ? typeof req.body === "string"
-        ? req.body
-        : JSON.stringify(req.body ?? {})
-      : undefined;
+  const isBodyMethod =
+    req.method === "POST" || req.method === "PUT" || req.method === "PATCH";
+  const bodyContent =
+    typeof req.body === "string" ? req.body : JSON.stringify(req.body ?? {});
+  const body = isBodyMethod ? bodyContent : undefined;
   return new Request(path, {
     body,
     headers: new Headers(headerPairs),
@@ -46,7 +50,10 @@ const sendWebResponse = async (res: VercelResponse, webRes: Response) => {
   const headers = new Headers(webRes.headers);
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
+  headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key"
+  );
   res.status(webRes.status);
   headers.forEach((value, key) => {
     res.setHeader(key, value);
@@ -54,7 +61,10 @@ const sendWebResponse = async (res: VercelResponse, webRes: Response) => {
   res.send(Buffer.from(await webRes.arrayBuffer()));
 };
 
-export default async function falGenerateImage(req: VercelRequest, res: VercelResponse) {
+export default async function falGenerateImage(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (req.method === "OPTIONS") {
     addCors(res);
     res.status(204).end();

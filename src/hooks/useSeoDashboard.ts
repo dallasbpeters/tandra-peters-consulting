@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { SeoDashboardPayload } from "../types/seo";
 
-type UseSeoDashboardState = {
+interface UseSeoDashboardState {
   data: SeoDashboardPayload | null;
-  loading: boolean;
   error: string | null;
-  statusCode: number | null;
+  loading: boolean;
   refetch: () => Promise<void>;
   regenerate: () => Promise<void>;
-};
+  statusCode: number | null;
+}
 
 type DashboardResponseBody = Partial<SeoDashboardPayload> & {
   error?: string;
@@ -50,19 +50,23 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
       setLoading(true);
       try {
         const response = await fetch(
-          options?.regenerate ? "/api/seo/dashboard?regenerate=1" : "/api/seo/dashboard",
+          options?.regenerate
+            ? "/api/seo/dashboard?regenerate=1"
+            : "/api/seo/dashboard",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
         const raw = await response.text();
         const payload = parseDashboardResponse(raw);
 
         if (!response.ok) {
           setStatusCode(response.status);
-          throw new Error(payload?.detail || payload?.error || "Request failed");
+          throw new Error(
+            payload?.detail || payload?.error || "Request failed"
+          );
         }
 
         if (!payload) {
@@ -76,12 +80,14 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
         if (!statusCode) {
           setStatusCode(null);
         }
-        setError(err instanceof Error ? err.message : "Could not load dashboard");
+        setError(
+          err instanceof Error ? err.message : "Could not load dashboard"
+        );
       } finally {
         setLoading(false);
       }
     },
-    [token, statusCode],
+    [token, statusCode]
   );
 
   const refetch = useCallback(async () => {
@@ -93,7 +99,7 @@ export const useSeoDashboard = (token: string | null): UseSeoDashboardState => {
   }, [fetchDashboard]);
 
   useEffect(() => {
-    void refetch();
+    refetch();
   }, [refetch]);
 
   return { data, loading, error, statusCode, refetch, regenerate };

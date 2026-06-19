@@ -1,13 +1,12 @@
 import { Facebook, Mail } from "iconoir-react";
-import React from "react";
+import type React from "react";
 
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { FooterProps } from "../types";
+import type { FooterProps } from "../types";
 import FooterBg from "./FooterBg";
-import { GoogleAuthFooterTrigger } from "./GoogleAuthGate";
-import { GoogleAuthGate } from "./GoogleAuthGate";
+import { GoogleAuthFooterTrigger, GoogleAuthGate } from "./GoogleAuthGate";
 import { TransitionLink } from "./TransitionLink";
 
 export const Footer: React.FC<FooterProps> = ({
@@ -87,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
   const linklistItemStyle: React.CSSProperties = {
     marginInlineStart: 0,
-  };
+  } as React.CSSProperties;
 
   const bottomBarColorStyle: React.CSSProperties = {
     color: theme.colors.textOnBrand,
@@ -142,27 +141,32 @@ export const Footer: React.FC<FooterProps> = ({
           >
             <RichText
               flow="heading"
-              value={description}
+              linkStyle={{ color: theme.colors.accentLight }}
               paragraphStyle={{
                 color: "inherit",
                 fontSize: "inherit",
                 lineHeight: "inherit",
                 opacity: "inherit",
               }}
-              linkStyle={{ color: theme.colors.accentLight }}
+              value={description}
             />
           </div>
           <div style={{ display: "flex", gap: theme.spacing.xxl }}>
-            {socialLinks.map((social, i) => (
+            {socialLinks.map((social) => (
               <a
-                tabIndex={0}
-                key={i}
-                href={social.href}
-                style={socialLinkStyle}
                 aria-label={social.platform ?? "Visit social profile"}
                 className="social-link layout-flex-center"
+                href={social.href}
+                key={social.href}
+                style={socialLinkStyle}
+                tabIndex={0}
               >
-                <social.icon width={18} height={18} strokeWidth={1.5} aria-hidden />
+                <social.icon
+                  aria-hidden
+                  height={18}
+                  strokeWidth={1.5}
+                  width={18}
+                />
               </a>
             ))}
           </div>
@@ -170,25 +174,25 @@ export const Footer: React.FC<FooterProps> = ({
         <GoogleAuthGate>
           <div className="md-col-3">
             <h2 style={headingStyle}>Quick Links</h2>
-            <ul style={linkListStyle} className="wa-stack wa-gap-2xs">
-              {quickLinks.map((link, i) => (
-                <li style={linklistItemStyle} key={i}>
+            <ul className="wa-stack wa-gap-2xs" style={linkListStyle}>
+              {quickLinks.map((link) => (
+                <li key={link.href} style={linklistItemStyle}>
                   {link.href.startsWith("#") ? (
                     <TransitionLink
+                      className="footer-link"
+                      style={linkStyle}
                       tabIndex={0}
                       to={{ pathname: "/", hash: link.href }}
-                      style={linkStyle}
-                      className="footer-link"
                     >
                       {link.name}
                     </TransitionLink>
                   ) : (
                     <TransitionLink
+                      className="footer-link"
+                      style={linkStyle}
                       tabIndex={0}
                       to={link.href}
                       viewTransition
-                      style={linkStyle}
-                      className="footer-link"
                     >
                       {link.name}
                     </TransitionLink>
@@ -200,14 +204,14 @@ export const Footer: React.FC<FooterProps> = ({
 
           <div className="md-col-3">
             <h2 style={headingStyle}>Legal</h2>
-            <ul style={linkListStyle} className="wa-stack wa-gap-2xs">
-              {legalLinks.map((link, i) => (
-                <li style={linklistItemStyle} key={i}>
+            <ul className="wa-stack wa-gap-2xs" style={linkListStyle}>
+              {legalLinks.map((link) => (
+                <li key={link.href} style={linklistItemStyle}>
                   <TransitionLink
+                    className="footer-link"
+                    style={linkStyle}
                     tabIndex={0}
                     to={link.href}
-                    style={linkStyle}
-                    className="footer-link"
                   >
                     {link.name}
                   </TransitionLink>

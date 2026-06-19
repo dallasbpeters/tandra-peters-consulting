@@ -14,17 +14,17 @@
 // frames, hold, fade out over the last N frames.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from "react";
-import { useCurrentFrame, interpolate } from "remotion";
+import type React from "react";
+import { interpolate, useCurrentFrame } from "remotion";
 
 interface Props {
+  children: React.ReactNode;
   /** Total frame count for this scene (same value you pass to <Sequence durationInFrames>). */
   durationInFrames: number;
   /** How many frames the fade-in lasts. Default: 15 (= 0.5 s at 30 fps). */
   fadeInFrames?: number;
   /** How many frames the fade-out lasts. Default: 15. */
   fadeOutFrames?: number;
-  children: React.ReactNode;
 }
 
 export const FadeWrapper: React.FC<Props> = ({
@@ -47,8 +47,10 @@ export const FadeWrapper: React.FC<Props> = ({
       durationInFrames, // end: fully transparent
     ],
     [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-  return <div style={{ width: "100%", height: "100%", opacity }}>{children}</div>;
+  return (
+    <div style={{ width: "100%", height: "100%", opacity }}>{children}</div>
+  );
 };

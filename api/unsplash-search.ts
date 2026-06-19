@@ -2,10 +2,14 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { readUnsplashAccessKey, searchUnsplashImages } from "./lib/unsplash.js";
 
-const queryValue = (value: string | string[] | undefined): string | undefined =>
-  Array.isArray(value) ? value[0] : value;
+const queryValue = (
+  value: string | string[] | undefined
+): string | undefined => (Array.isArray(value) ? value[0] : value);
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
 
@@ -42,7 +46,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     res.status(200).json({ images });
   } catch (error) {
     res.status(502).json({
-      error: error instanceof Error ? error.message : "Could not search Unsplash.",
+      error:
+        error instanceof Error ? error.message : "Could not search Unsplash.",
     });
   }
 }

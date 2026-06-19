@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { FilterBar } from "@/components/filter-bar";
 import { ProductGrid } from "@/components/product-grid";
 import { ProductPagination } from "@/components/product-pagination";
-import { type ProductFiltersInput } from "@/lib/client-tools";
+import type { ProductFiltersInput } from "@/lib/client-tools";
 import { client } from "@/sanity/lib/client";
 import { FILTER_OPTIONS_QUERY } from "@/sanity/queries/filters";
 import {
@@ -35,8 +35,12 @@ interface ProductsPageProps {
 
 // Convert URL param (string or string[]) to string[] or undefined
 function toArray(value: string | string[] | undefined): string[] | undefined {
-  if (!value) return undefined;
-  if (Array.isArray(value)) return value.length > 0 ? value : undefined;
+  if (!value) {
+    return;
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value : undefined;
+  }
   return [value];
 }
 
@@ -77,11 +81,13 @@ export default async function ProductsPage(props: ProductsPageProps) {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 md:py-12">
       <div className="mb-8">
-        <h1 className="mb-2 text-2xl font-semibold">
-          {activeFilterLabels.length > 0 ? activeFilterLabels.join(" · ") : "All Products"}
+        <h1 className="mb-2 font-semibold text-2xl">
+          {activeFilterLabels.length > 0
+            ? activeFilterLabels.join(" · ")
+            : "All Products"}
         </h1>
 
-        <p className="text-sm text-neutral-500">
+        <p className="text-neutral-500 text-sm">
           {`${totalCount} ${totalCount === 1 ? "product" : "products"}`}
         </p>
       </div>
@@ -100,14 +106,16 @@ export default async function ProductsPage(props: ProductsPageProps) {
         <div className="py-16 text-center">
           <p className="text-neutral-500">No products match your filters.</p>
 
-          <p className="mt-2 text-sm text-neutral-400">
+          <p className="mt-2 text-neutral-400 text-sm">
             Try adjusting or clearing some filters to see more results.
           </p>
         </div>
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && <ProductPagination currentPage={currentPage} totalPages={totalPages} />}
+      {totalPages > 1 && (
+        <ProductPagination currentPage={currentPage} totalPages={totalPages} />
+      )}
     </main>
   );
 }
@@ -117,7 +125,7 @@ export default async function ProductsPage(props: ProductsPageProps) {
  */
 function getActiveFilterLabels(
   filters: ProductFiltersInput,
-  options: FILTER_OPTIONS_QUERY_RESULT,
+  options: FILTER_OPTIONS_QUERY_RESULT
 ): string[] {
   const labels: string[] = [];
 
@@ -125,26 +133,36 @@ function getActiveFilterLabels(
     const names = filters.category
       .map((slug) => options.categories.find((c) => c.slug === slug)?.title)
       .filter(Boolean);
-    if (names.length) labels.push(names.join(", "));
+    if (names.length) {
+      labels.push(names.join(", "));
+    }
   }
 
   if (filters.brand?.length) {
     const names = filters.brand
       .map((slug) => options.brands.find((b) => b.slug === slug)?.title)
       .filter(Boolean);
-    if (names.length) labels.push(names.join(", "));
+    if (names.length) {
+      labels.push(names.join(", "));
+    }
   }
 
   if (filters.color?.length) {
     const names = filters.color
       .map((slug) => options.colors.find((c) => c.slug === slug)?.title)
       .filter(Boolean);
-    if (names.length) labels.push(names.join(", "));
+    if (names.length) {
+      labels.push(names.join(", "));
+    }
   }
 
   if (filters.size?.length) {
-    const codes = filters.size.filter((code) => options.sizes.some((s) => s.code === code));
-    if (codes.length) labels.push(`Size ${codes.join(", ")}`);
+    const codes = filters.size.filter((code) =>
+      options.sizes.some((s) => s.code === code)
+    );
+    if (codes.length) {
+      labels.push(`Size ${codes.join(", ")}`);
+    }
   }
 
   if (filters.maxPrice) {
@@ -158,7 +176,10 @@ function FilterBarSkeleton() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-9 w-35 animate-pulse rounded-md bg-neutral-100" />
+        <div
+          className="h-9 w-35 animate-pulse rounded-md bg-neutral-100"
+          key={i}
+        />
       ))}
     </div>
   );

@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 
 import HomeRoofInspection from "../components/HomeRoofInspection";
 import { SeoStructuredData } from "../components/SeoStructuredData";
@@ -6,8 +6,10 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useSanityRoofInspectionsPage } from "../hooks/useSanityRoofInspectionsPage";
 import { buildRoofInspectionChapters } from "../lib/buildRoofInspectionChapters";
-import { resolveRoofInspectionProps } from "../sanity/mapSanityHome";
-import { mapSocialShareProps } from "../sanity/mapSanityHome";
+import {
+  mapSocialShareProps,
+  resolveRoofInspectionProps,
+} from "../sanity/mapSanityHome";
 import { theme } from "../theme";
 
 const Band = lazy(() => import("../components/Band"));
@@ -31,7 +33,8 @@ export const RoofInspections = () => {
       ? pageData.seoTitle
       : "Tandra Peters | Roofing Consultant | Austin, TX";
   const seoDescription =
-    typeof pageData?.seoDescription === "string" && pageData.seoDescription.trim()
+    typeof pageData?.seoDescription === "string" &&
+    pageData.seoDescription.trim()
       ? pageData.seoDescription
       : "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
   const socialShare = page?.socialShare ?? homeSocialShare ?? undefined;
@@ -41,7 +44,12 @@ export const RoofInspections = () => {
   });
 
   if (loading && !pageData && !homeRoofInspection) {
-    return <section className="home-loading-hero" aria-label="Loading roof install page" />;
+    return (
+      <section
+        aria-label="Loading roof install page"
+        className="home-loading-hero"
+      />
+    );
   }
 
   if (error && import.meta.env.DEV) {
@@ -49,8 +57,9 @@ export const RoofInspections = () => {
   }
 
   const roofInspection = resolveRoofInspectionProps(
-    (pageData?.roofInspection as Record<string, unknown> | undefined) ?? undefined,
-    homeRoofInspection ?? undefined,
+    (pageData?.roofInspection as Record<string, unknown> | undefined) ??
+      undefined,
+    homeRoofInspection ?? undefined
   );
   const chapters = buildRoofInspectionChapters(roofInspection.hotspots);
 
@@ -65,11 +74,6 @@ export const RoofInspections = () => {
       ) : null}
       <Suspense fallback={null}>
         <Band
-          minHeight={8}
-          maxHeight={16}
-          reverse={true}
-          rotate={true}
-          tint={theme.colors.everglade}
           colors={[
             theme.colors.evergladeLight,
             theme.colors.evergladeMuted,
@@ -78,6 +82,11 @@ export const RoofInspections = () => {
             theme.colors.purple,
             theme.colors.purple,
           ]}
+          maxHeight={16}
+          minHeight={8}
+          reverse={true}
+          rotate={true}
+          tint={theme.colors.everglade}
         />
       </Suspense>
 

@@ -1,9 +1,7 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useState } from "react";
-
-import type { InsuranceFaqsPageDoc } from "../sanity/mapSanityInsuranceFaqs";
-
 import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
+import type { InsuranceFaqsPageDoc } from "../sanity/mapSanityInsuranceFaqs";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { INSURANCE_FAQS_PAGE_QUERY } from "../sanity/queries";
 
@@ -15,9 +13,13 @@ export const useSanityInsuranceFaqsPage = () => {
   const refetch = useCallback(async () => {
     try {
       const client = getSanityClient();
-      const raw = await client.fetch<InsuranceFaqsPageDoc | null>(INSURANCE_FAQS_PAGE_QUERY);
+      const raw = await client.fetch<InsuranceFaqsPageDoc | null>(
+        INSURANCE_FAQS_PAGE_QUERY
+      );
       const result =
-        raw && !isSanityStegaUiActive() ? (stegaClean(raw) as InsuranceFaqsPageDoc | null) : raw;
+        raw && !isSanityStegaUiActive()
+          ? (stegaClean(raw) as InsuranceFaqsPageDoc | null)
+          : raw;
       setPage(result ?? null);
       setError(null);
     } catch (e) {
@@ -28,16 +30,22 @@ export const useSanityInsuranceFaqsPage = () => {
   }, []);
 
   useEffect(() => {
-    void refetch();
+    refetch().catch(() => undefined);
   }, [refetch]);
 
   useEffect(() => {
     const onPresentationRefresh = () => {
-      void refetch();
+      refetch().catch(() => undefined);
     };
-    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+    window.addEventListener(
+      SANITY_PRESENTATION_REFRESH_EVENT,
+      onPresentationRefresh
+    );
     return () =>
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        onPresentationRefresh
+      );
   }, [refetch]);
 
   return { page, loading, error, refetch };

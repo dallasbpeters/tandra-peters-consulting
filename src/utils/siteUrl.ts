@@ -1,6 +1,11 @@
+const TRAILING_SLASH_RE = /\/$/;
+
 /** Canonical site origin for JSON-LD, canonical URLs, and OG tags. */
 export const resolveSiteOrigin = (): string => {
-  const fromEnv = import.meta.env.VITE_SITE_URL?.trim().replace(/\/$/, "");
+  const fromEnv = import.meta.env.VITE_SITE_URL?.trim().replace(
+    TRAILING_SLASH_RE,
+    ""
+  );
   if (fromEnv) {
     return fromEnv;
   }
@@ -14,7 +19,11 @@ export const resolveSiteOrigin = (): string => {
  * Public URL to put in share dialogs. Uses `VITE_SITE_URL` + current route so
  * Facebook/LinkedIn/X get a real https link (localhost URLs are rejected or useless).
  */
-export const buildSharePageUrl = (pathname: string, search: string, hash: string): string => {
+export const buildSharePageUrl = (
+  pathname: string,
+  search: string,
+  hash: string
+): string => {
   const origin = resolveSiteOrigin();
   return `${origin}${pathname}${search}${hash}`;
 };

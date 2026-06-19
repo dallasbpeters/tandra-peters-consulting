@@ -1,5 +1,5 @@
 import { Phone } from "iconoir-react";
-import { useMemo, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { useIsMobile } from "../hooks/isMobile";
@@ -12,29 +12,30 @@ import {
 import "../styles/contact-banner.css";
 import { mix, theme } from "../theme";
 
-const isInternalAppHref = (href: string) => href.startsWith("/") && !href.startsWith("//");
+const isInternalAppHref = (href: string) =>
+  href.startsWith("/") && !href.startsWith("//");
 
-type ContactBannerPalette = {
-  cardBackground: string;
-  text: string;
-  eyebrow: string;
-  pulse: string;
-  pulsePing: string;
+interface ContactBannerPalette {
   accentGlow: string;
+  cardBackground: string;
+  eyebrow: string;
+  gridColor: string;
+  phoneIconBackground: string;
+  phoneIconForeground: string;
+  phoneIconHoverBackground: string;
+  phoneLabelColor: string;
   phoneLinkBackground: string;
   phoneLinkHoverBackground: string;
-  phoneLinkHoverShadow: string;
-  phoneLinkHoverOutline: string;
-  phoneLinkHoverTextColor: string;
   phoneLinkHoverLabelColor: string;
-  phoneLinkTextColor: string;
+  phoneLinkHoverOutline: string;
+  phoneLinkHoverShadow: string;
+  phoneLinkHoverTextColor: string;
   phoneLinkLabelColor: string;
-  phoneIconBackground: string;
-  phoneIconHoverBackground: string;
-  phoneIconForeground: string;
-  phoneLabelColor: string;
-  gridColor: string;
-};
+  phoneLinkTextColor: string;
+  pulse: string;
+  pulsePing: string;
+  text: string;
+}
 
 const resolvePalette = ({
   backgroundColor,
@@ -66,19 +67,29 @@ const resolvePalette = ({
     text: textColor ?? theme.colors.white,
     eyebrow: eyebrowColor ?? theme.palette.everglade["500"],
     pulse: pulseColor ?? iconColorDark ?? theme.palette.everglade["700"],
-    pulsePing: pulsePingColor ?? eyebrowColorLight ?? mix(theme.palette.accent["500"], 75),
+    pulsePing:
+      pulsePingColor ??
+      eyebrowColorLight ??
+      mix(theme.palette.accent["500"], 75),
     accentGlow: accentGlowColor ?? theme.palette.accent["300"],
     phoneLinkBackground: phoneLinkBackground ?? mix(theme.colors.everglade, 40),
-    phoneLinkHoverBackground: phoneLinkHoverBackground ?? mix(theme.colors.black, 60),
-    phoneLinkHoverShadow: phoneLinkHoverShadow ?? mix(textColor ?? theme.colors.white, 15),
-    phoneLinkHoverOutline: phoneLinkHoverOutline ?? accentGlowColor ?? theme.palette.accent["300"],
+    phoneLinkHoverBackground:
+      phoneLinkHoverBackground ?? mix(theme.colors.black, 60),
+    phoneLinkHoverShadow:
+      phoneLinkHoverShadow ?? mix(textColor ?? theme.colors.white, 15),
+    phoneLinkHoverOutline:
+      phoneLinkHoverOutline ?? accentGlowColor ?? theme.palette.accent["300"],
     phoneLinkTextColor: resolvedText,
     phoneLinkLabelColor: resolvedLabel,
     phoneLinkHoverTextColor: phoneLinkHoverTextColor ?? resolvedText,
     phoneLinkHoverLabelColor: phoneLinkHoverLabelColor ?? resolvedLabel,
     phoneIconBackground:
-      phoneIconBackground ?? iconColorVeryDark ?? iconColorDark ?? theme.palette.everglade["700"],
-    phoneIconHoverBackground: phoneIconHoverBackground ?? theme.palette.accent["500"],
+      phoneIconBackground ??
+      iconColorVeryDark ??
+      iconColorDark ??
+      theme.palette.everglade["700"],
+    phoneIconHoverBackground:
+      phoneIconHoverBackground ?? theme.palette.accent["500"],
     phoneIconForeground: iconColor ?? theme.colors.white,
     phoneLabelColor: iconColorLight ?? textColor ?? theme.colors.white,
     gridColor: gridColor ?? mix(resolvedText, 5),
@@ -167,7 +178,8 @@ const buildStyles = (palette: ContactBannerPalette, isMobile: boolean) =>
       background: palette.phoneLinkBackground,
       backdropFilter: "blur(16px)",
       border: `1px solid ${mix(palette.text, 10)}`,
-      transition: "background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease",
+      transition:
+        "background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease",
     } satisfies CSSProperties,
     phoneIconCircle: {
       display: "flex",
@@ -283,9 +295,12 @@ export const ContactBanner = ({
       pulseColor,
       pulsePingColor,
       gridColor,
-    ],
+    ]
   );
-  const styles = useMemo(() => buildStyles(palette, isMobile), [palette, isMobile]);
+  const styles = useMemo(
+    () => buildStyles(palette, isMobile),
+    [palette, isMobile]
+  );
   const themeVars = useMemo((): CSSProperties => {
     const vars: Record<string, string> = {
       "--contact-banner-grid-color": palette.gridColor,
@@ -303,7 +318,8 @@ export const ContactBanner = ({
       "--contact-banner-cta-hover-bg": palette.phoneLinkHoverBackground,
       "--contact-banner-cta-hover-shadow": palette.phoneLinkHoverShadow,
       "--contact-banner-cta-focus": palette.phoneLinkHoverOutline,
-      "--contact-banner-cta-hover-label-color": palette.phoneLinkHoverLabelColor,
+      "--contact-banner-cta-hover-label-color":
+        palette.phoneLinkHoverLabelColor,
       "--contact-banner-cta-hover-text-color": palette.phoneLinkHoverTextColor,
     };
     return vars as CSSProperties;
@@ -315,15 +331,15 @@ export const ContactBanner = ({
   const ctaContent: ReactNode = (
     <>
       <span
+        aria-hidden
         className="contact-banner__cta-icon"
         style={{
           ...styles.phoneIconCircle,
           width: phoneCircleSize,
           height: phoneCircleSize,
         }}
-        aria-hidden
       >
-        <CtaIcon width={iconSize} height={iconSize} strokeWidth={1.75} />
+        <CtaIcon height={iconSize} strokeWidth={1.75} width={iconSize} />
       </span>
       <span style={styles.phoneCopyStack}>
         <span style={styles.phoneLabelRow}>
@@ -338,20 +354,22 @@ export const ContactBanner = ({
     </>
   );
 
-  const sectionClassName = ["contact-banner", className].filter(Boolean).join(" ");
+  const sectionClassName = ["contact-banner", className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section
+      aria-label={ariaLabel}
       className={sectionClassName}
       style={{ ...styles.card, ...themeVars }}
-      aria-label={ariaLabel}
     >
       <div className="contact-banner__grid" style={styles.banner}>
         <div style={styles.inner}>
           <div style={styles.brandCluster}>
             <div style={styles.copyStack}>
               <div style={styles.eyebrowRow}>
-                <span className="contact-banner__pulse" aria-hidden />
+                <span aria-hidden className="contact-banner__pulse" />
                 <span style={styles.eyebrowText}>{eyebrow}</span>
               </div>
               <h2 style={styles.headline}>{headline}</h2>
@@ -360,19 +378,19 @@ export const ContactBanner = ({
 
           {isInternalAppHref(resolvedCtaHref) ? (
             <Link
-              className="contact-banner__cta"
-              to={resolvedCtaHref}
-              style={{ ...styles.phoneLink, ...ctaThemeVars }}
               aria-label={resolvedCtaAriaLabel}
+              className="contact-banner__cta"
+              style={{ ...styles.phoneLink, ...ctaThemeVars }}
+              to={resolvedCtaHref}
             >
               {ctaContent}
             </Link>
           ) : (
             <a
+              aria-label={resolvedCtaAriaLabel}
               className="contact-banner__cta"
               href={resolvedCtaHref}
               style={{ ...styles.phoneLink, ...ctaThemeVars }}
-              aria-label={resolvedCtaAriaLabel}
             >
               {ctaContent}
             </a>

@@ -1,9 +1,5 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
-
-import type { PostListItem } from "../types/article";
-
+import type { CSSProperties } from "react";
 import { postCategoryLabel } from "../article/categoryLabels";
 import {
   FALLBACK_ARTICLE_COVER,
@@ -11,6 +7,7 @@ import {
   postCoverImageSrc,
 } from "../article/postCoverImage";
 import { mix, theme } from "../theme";
+import type { PostListItem } from "../types/article";
 import { TransitionLink } from "./TransitionLink";
 
 const cardBaseStyle: CSSProperties = {
@@ -33,14 +30,18 @@ const mainCardStyle: CSSProperties = {
   minHeight: "500px",
 };
 
-export type ArticleGridCardProps = {
-  post: PostListItem;
+export interface ArticleGridCardProps {
   /** Zero-based; displayed as 01, 02, … on the card */
   cardIndex: number;
   layout?: "featured" | "standard";
-};
+  post: PostListItem;
+}
 
-export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: ArticleGridCardProps) => {
+export const ArticleGridCard = ({
+  post,
+  cardIndex,
+  layout = "standard",
+}: ArticleGridCardProps) => {
   const posthog = usePostHog();
   const isMain = layout === "featured";
   const imgSrc =
@@ -53,15 +54,7 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
 
   return (
     <TransitionLink
-      to={`/articles/${post.slug}`}
-      viewTransition
       aria-label={`Read article: ${post.title}`}
-      style={{
-        textDecoration: "none",
-        color: "inherit",
-        display: "block",
-        height: "100%",
-      }}
       onClick={() =>
         posthog?.capture("article_card_clicked", {
           article_slug: post.slug,
@@ -71,21 +64,33 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
           card_index: cardIndex,
         })
       }
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "block",
+        height: "100%",
+      }}
+      to={`/articles/${post.slug}`}
+      viewTransition
     >
-      <div className="articles-teaser-card" style={isMain ? mainCardStyle : cardBaseStyle}>
+      <div
+        className="articles-teaser-card"
+        style={isMain ? mainCardStyle : cardBaseStyle}
+      >
         <div
+          aria-hidden
+          className="articles-teaser-card-bg"
           style={{
             position: "absolute",
             inset: 0,
           }}
-          className="articles-teaser-card-bg"
-          aria-hidden
         >
+          {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
           <img
-            src={imgSrc}
             alt=""
-            loading="lazy"
             decoding="async"
+            loading="lazy"
+            src={imgSrc}
             style={{
               width: "100%",
               opacity: 1,
@@ -173,6 +178,7 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
             {formatArticleCardDate(post.publishedAt)}
           </time>
           <span
+            aria-hidden
             style={{
               color: "rgba(255, 255, 255, 0.35)",
               fontFamily: theme.fonts.headline,
@@ -180,7 +186,6 @@ export const ArticleGridCard = ({ post, cardIndex, layout = "standard" }: Articl
               fontSize: isMain ? "5rem" : "3.5rem",
               lineHeight: 1,
             }}
-            aria-hidden
           >
             {indexLabel}
           </span>

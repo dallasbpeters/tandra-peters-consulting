@@ -20,7 +20,8 @@ export const estimatorQuestionType = defineType({
       name: "prompt",
       title: "Question",
       type: "string",
-      description: 'The question shown to the visitor, e.g. "How big is your home?"',
+      description:
+        'The question shown to the visitor, e.g. "How big is your home?"',
       validation: (Rule) => Rule.required().max(200),
     }),
     defineField({
@@ -73,11 +74,15 @@ export const estimatorQuestionType = defineType({
     }) {
       const count = Array.isArray(options) ? options.length : 0;
       const tags: string[] = [];
-      if (drives) tags.push("drives square footage");
-      if (multiplies) tags.push("multiplies square footage");
+      if (drives) {
+        tags.push("drives square footage");
+      }
+      if (multiplies) {
+        tags.push("multiplies square footage");
+      }
       return {
         title: title ?? "Untitled question",
-        subtitle: `${count} option${count === 1 ? "" : "s"}${tags.length ? " · " + tags.join(" · ") : ""}`,
+        subtitle: `${count} option${count === 1 ? "" : "s"}${tags.length ? ` · ${tags.join(" · ")}` : ""}`,
       };
     },
   },

@@ -6,29 +6,32 @@
  */
 export function Header() {
   return (
-    <header className="border-b border-neutral-200 bg-white">
+    <header className="border-neutral-200 border-b bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <a href="/" className="text-xl font-semibold tracking-tight">
+        <a className="font-semibold text-xl tracking-tight" href="/">
           Store
         </a>
 
         <nav className="flex items-center gap-6">
-          <a href="/products" className="text-sm text-neutral-600 hover:text-neutral-900">
+          <a
+            className="text-neutral-600 text-sm hover:text-neutral-900"
+            href="/products"
+          >
             Products
           </a>
 
-          <button aria-label="Cart" type="button" className="text-neutral-700">
+          <button aria-label="Cart" className="text-neutral-700" type="button">
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
+              aria-hidden
               fill="none"
+              height="20"
               stroke="currentColor"
-              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              aria-hidden
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
               <path d="M3 6h18" />

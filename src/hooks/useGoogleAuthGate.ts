@@ -1,42 +1,43 @@
 import {
   createContext,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type RefObject,
 } from "react";
 
 import {
-  getGoogleClientId,
   GOOGLE_AUTH_STORAGE_KEY,
+  type GoogleAuthUser,
+  getGoogleClientId,
   initializeGoogleIdentity,
   isAllowedGoogleUser,
   isGoogleAuthGateEnabled,
   parseGoogleJwtPayload,
   subscribeGoogleCredential,
-  type GoogleAuthUser,
 } from "../lib/googleAuthCore";
 
-export type GoogleAuthGateContextValue = {
-  isGateActive: boolean;
-  isUnlocked: boolean;
-  isAuthenticated: boolean;
-  isSignInModalOpen: boolean;
-  ready: boolean;
+export interface GoogleAuthGateContextValue {
   authError: string | null;
-  user: GoogleAuthUser | null;
-  token: string | null;
   buttonRef: RefObject<HTMLDivElement | null>;
-  openSignInModal: () => void;
   closeSignInModal: () => void;
-  signOut: () => void;
+  isAuthenticated: boolean;
+  isGateActive: boolean;
+  isSignInModalOpen: boolean;
+  isUnlocked: boolean;
+  openSignInModal: () => void;
   promptSignIn: () => void;
-};
+  ready: boolean;
+  signOut: () => void;
+  token: string | null;
+  user: GoogleAuthUser | null;
+}
 
-export const GoogleAuthGateContext = createContext<GoogleAuthGateContextValue | null>(null);
+export const GoogleAuthGateContext =
+  createContext<GoogleAuthGateContextValue | null>(null);
 
 export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
   const isGateActive = isGoogleAuthGateEnabled();
@@ -102,7 +103,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
     }
 
     const parsed = parseGoogleJwtPayload(stored);
-    if (!parsed || !isAllowedGoogleUser(parsed)) {
+    if (!(parsed && isAllowedGoogleUser(parsed))) {
       window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
       if (parsed && !isAllowedGoogleUser(parsed)) {
         setAuthError("This Google account is not allowed.");
@@ -146,12 +147,16 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
         setReady(true);
       } catch (error) {
         if (!cancelled) {
-          setAuthError(error instanceof Error ? error.message : "Could not load Google sign-in.");
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : "Could not load Google sign-in."
+          );
         }
       }
     };
 
-    void setup();
+    setup();
 
     return () => {
       cancelled = true;
@@ -161,12 +166,14 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
 
   useEffect(() => {
     if (
-      !isGateActive ||
-      !ready ||
-      !isSignInModalOpen ||
-      !buttonRef.current ||
-      !window.google?.accounts?.id ||
-      !clientId
+      !(
+        isGateActive &&
+        ready &&
+        isSignInModalOpen &&
+        buttonRef.current &&
+        window.google?.accounts?.id &&
+        clientId
+      )
     ) {
       return;
     }
@@ -182,7 +189,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
   }, [clientId, isGateActive, isSignInModalOpen, ready]);
 
   const promptSignIn = useCallback(() => {
-    if (!isGateActive || !ready || !window.google?.accounts?.id) {
+    if (!(isGateActive && ready && window.google?.accounts?.id)) {
       return;
     }
 
@@ -190,7 +197,7 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
 
     window.requestAnimationFrame(() => {
       const googleButton = buttonRef.current?.querySelector<HTMLElement>(
-        'div[role="button"], iframe',
+        'div[role="button"], iframe'
       );
       googleButton?.click();
     });
@@ -228,18 +235,20 @@ export const useGoogleAuthGateState = (): GoogleAuthGateContextValue => {
       signOut,
       token,
       user,
-    ],
+    ]
   );
 };
 
 export const useGoogleAuthGate = (): GoogleAuthGateContextValue => {
   const context = useContext(GoogleAuthGateContext);
   if (!context) {
-    throw new Error("useGoogleAuthGate must be used within GoogleAuthGateProvider.");
+    throw new Error(
+      "useGoogleAuthGate must be used within GoogleAuthGateProvider."
+    );
   }
   return context;
 };
 
 /** Safe for components that may render outside the provider (gate reads as inactive). */
-export const useOptionalGoogleAuthGate = (): GoogleAuthGateContextValue | null =>
-  useContext(GoogleAuthGateContext);
+export const useOptionalGoogleAuthGate =
+  (): GoogleAuthGateContextValue | null => useContext(GoogleAuthGateContext);

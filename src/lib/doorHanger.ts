@@ -72,24 +72,23 @@ const keyholePath = (w: number, cutout: DoorHangerCutout): string => {
 export const buildCutoutMaskSvg = (
   cutout: DoorHangerCutout,
   widthIn: number,
-  heightIn: number,
+  heightIn: number
 ): string =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${round(widthIn)} ${round(heightIn)}" preserveAspectRatio="none">` +
   `<path fill="#fff" fill-rule="evenodd" d="${outlinePath(widthIn, heightIn, cutout.topRadius)} ${keyholePath(widthIn, cutout)}"/>` +
-  `</svg>`;
+  "</svg>";
 
 /** `url("data:image/svg+xml,...")` value for CSS `mask-image`. */
 export const buildCutoutMaskDataUri = (
   cutout: DoorHangerCutout,
   widthIn: number,
-  heightIn: number,
+  heightIn: number
 ): string =>
   `url("data:image/svg+xml,${encodeURIComponent(buildCutoutMaskSvg(cutout, widthIn, heightIn))}")`;
 
 // ─── On-door mockup ─────────────────────────────────────────────────────────────
 
-export type DoorMockup = {
-  src: string;
+export interface DoorMockup {
   /** Width the knob/scale measurements were taken at. */
   baselineWidth: number;
   /** Doorknob center as a fraction of the door image (0–1). */
@@ -97,7 +96,8 @@ export type DoorMockup = {
   knobY: number;
   /** Door-face pixels per inch at {@link baselineWidth}. */
   pxPerInch: number;
-};
+  src: string;
+}
 
 /**
  * Default door photo + measured handle position (1024×682). The black lever's
@@ -119,7 +119,7 @@ const traceOutline = (
   y: number,
   w: number,
   h: number,
-  r: number,
+  r: number
 ) => {
   const radius = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -147,16 +147,16 @@ const loadDoorImage = (src: string): Promise<HTMLImageElement> => {
   return doorImagePromise;
 };
 
-export type RenderDoorMockupOptions = {
+export interface RenderDoorMockupOptions {
+  cutout: DoorHangerCutout;
   /** Rectangular design export (opaque PNG, no clip applied). */
   design: HTMLImageElement;
-  cutout: DoorHangerCutout;
-  hangerWidthInches: number;
   hangerHeightInches: number;
+  hangerWidthInches: number;
   mockup?: DoorMockup;
   /** Multiplier over the mockup's measured px/in (1 = as measured). */
   scale?: number;
-};
+}
 
 /**
  * Composites the rectangular design onto the door photo: clips it to the hanger
@@ -179,7 +179,9 @@ export const renderDoorMockup = async ({
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context is unavailable.");
+  if (!ctx) {
+    throw new Error("Canvas 2D context is unavailable.");
+  }
 
   const factor = W / mockup.baselineWidth;
   const hangerPpi = mockup.pxPerInch * factor * scale;
@@ -257,8 +259,11 @@ export const renderDoorMockup = async ({
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error("Could not render the door mockup."));
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Could not render the door mockup."));
+      }
     }, "image/png");
   });
 };

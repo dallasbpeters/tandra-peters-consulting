@@ -30,7 +30,7 @@ export const CookiePolicyPage = () => (
     ]}
     <p style={{ marginBottom: theme.spacing.lg, lineHeight: 1.7 }}>
       For how we handle personal data, see our{" "}
-      <TransitionLink to="/privacy" style={linkStyle}>
+      <TransitionLink style={linkStyle} to="/privacy">
         Privacy Policy
       </TransitionLink>
       .

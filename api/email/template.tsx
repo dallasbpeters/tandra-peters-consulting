@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 /** @jsxRuntime automatic */
 /** @jsxImportSource react */
 import {
@@ -19,11 +17,14 @@ import {
   Text,
 } from "@react-email/components";
 import { render } from "@react-email/render";
-
-import type { ClientEmailContent, EmailAssets, EmailSignature } from "./types.js";
-
+import type { CSSProperties } from "react";
 import { PortableTextToEmail } from "./portableText.js";
 import { sanityImage } from "./sanity.js";
+import type {
+  ClientEmailContent,
+  EmailAssets,
+  EmailSignature,
+} from "./types.js";
 
 const colors = {
   ink: "#0f1f18",
@@ -37,7 +38,8 @@ const colors = {
 
 const main: CSSProperties = {
   backgroundColor: colors.page,
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   margin: 0,
   padding: "24px 0",
 };
@@ -115,26 +117,53 @@ const DEFAULTS = {
   closing: "Talk soon,",
 } as const;
 
-const Signature = ({ signature, assets }: { signature: EmailSignature; assets: EmailAssets }) => {
+const NON_PHONE_CHARS_RE = /[^0-9+]/g;
+const PROTOCOL_RE = /^https?:\/\//;
+
+const Signature = ({
+  signature,
+  assets,
+}: {
+  signature: EmailSignature;
+  assets: EmailAssets;
+}) => {
   const headshotUrl = signature.headshotUrl ?? assets.signatureHeadshotFallback;
 
   const contacts = [
-    signature.phone ? (
-      <Link key="phone" href={`tel:${signature.phone.replace(/[^0-9+]/g, "")}`} style={sigLink}>
-        {signature.phone}
-      </Link>
-    ) : null,
-    signature.email ? (
-      <Link key="email" href={`mailto:${signature.email}`} style={sigLink}>
-        {signature.email}
-      </Link>
-    ) : null,
-    signature.website ? (
-      <Link key="web" href={signature.website} style={sigLink}>
-        {signature.website.replace(/^https?:\/\//, "")}
-      </Link>
-    ) : null,
-  ].filter(Boolean);
+    signature.phone
+      ? {
+          id: "phone",
+          node: (
+            <Link
+              href={`tel:${signature.phone.replace(NON_PHONE_CHARS_RE, "")}`}
+              style={sigLink}
+            >
+              {signature.phone}
+            </Link>
+          ),
+        }
+      : null,
+    signature.email
+      ? {
+          id: "email",
+          node: (
+            <Link href={`mailto:${signature.email}`} style={sigLink}>
+              {signature.email}
+            </Link>
+          ),
+        }
+      : null,
+    signature.website
+      ? {
+          id: "web",
+          node: (
+            <Link href={signature.website} style={sigLink}>
+              {signature.website.replace(PROTOCOL_RE, "")}
+            </Link>
+          ),
+        }
+      : null,
+  ].filter(Boolean) as { id: string; node: React.ReactNode }[];
 
   return (
     <Section>
@@ -142,11 +171,11 @@ const Signature = ({ signature, assets }: { signature: EmailSignature; assets: E
         {headshotUrl ? (
           <Column style={{ width: "64px", verticalAlign: "top" }}>
             <Img
-              src={sanityImage(headshotUrl, { w: 128, h: 128, fit: "crop" })}
-              width="56"
-              height="56"
               alt={signature.name ?? "Headshot"}
+              height="56"
+              src={sanityImage(headshotUrl, { w: 128, h: 128, fit: "crop" })}
               style={{ borderRadius: "50%", display: "block" }}
+              width="56"
             />
           </Column>
         ) : null}
@@ -158,14 +187,23 @@ const Signature = ({ signature, assets }: { signature: EmailSignature; assets: E
         >
           <Text style={sigName}>{signature.name}</Text>
           <Text style={sigRole}>
-            {[signature.jobTitle, signature.company].filter(Boolean).join(" · ")}
+            {[signature.jobTitle, signature.company]
+              .filter(Boolean)
+              .join(" · ")}
           </Text>
-          {signature.tagline ? <Text style={sigTagline}>{signature.tagline}</Text> : null}
+          {signature.tagline ? (
+            <Text style={sigTagline}>{signature.tagline}</Text>
+          ) : null}
           {contacts.length ? (
             <Text style={sigContact}>
-              {contacts.map((node, i) => (
-                <span key={i}>
-                  {i > 0 ? <span style={{ color: colors.border }}> &nbsp;|&nbsp; </span> : null}
+              {contacts.map(({ id, node }, i) => (
+                <span key={id}>
+                  {i > 0 ? (
+                    <span style={{ color: colors.border }}>
+                      {" "}
+                      &nbsp;|&nbsp;{" "}
+                    </span>
+                  ) : null}
                   {node}
                 </span>
               ))}
@@ -211,9 +249,9 @@ export const ClientEmailDocument = ({
         <Container style={container}>
           <Section style={{ padding: "24px 36px 0" }}>
             <Img
-              src={assets.headerLogoUrl}
-              height="60"
               alt="Birdcreek Roofing"
+              height="60"
+              src={assets.headerLogoUrl}
               style={{ display: "block" }}
             />
           </Section>
@@ -238,13 +276,16 @@ export const ClientEmailDocument = ({
             ) : (
               <>
                 <Text style={greetingStyle}>
-                  Thank you for letting me take a look at your roof. I&apos;ve put together a clear
-                  summary of what I found, along with photos and my honest recommendation for next
-                  steps — no pressure, just the facts you need to make a confident decision.
+                  Thank you for letting me take a look at your roof. I&apos;ve
+                  put together a clear summary of what I found, along with
+                  photos and my honest recommendation for next steps — no
+                  pressure, just the facts you need to make a confident
+                  decision.
                 </Text>
                 <Text style={greetingStyle}>
-                  Take a look whenever you have a few minutes, and reply to this email with any
-                  questions. I&apos;m happy to walk through it with you.
+                  Take a look whenever you have a few minutes, and reply to this
+                  email with any questions. I&apos;m happy to walk through it
+                  with you.
                 </Text>
               </>
             )}
@@ -259,11 +300,12 @@ export const ClientEmailDocument = ({
 
             <Hr style={{ borderColor: colors.border, margin: "12px 0 20px" }} />
 
-            <Signature signature={signature} assets={assets} />
+            <Signature assets={assets} signature={signature} />
 
             <Text style={legal}>
-              You&apos;re receiving this because you requested a roof inspection or consultation
-              with Birdcreek Roofing. If this reached you by mistake, just reply and let me know.
+              You&apos;re receiving this because you requested a roof inspection
+              or consultation with Birdcreek Roofing. If this reached you by
+              mistake, just reply and let me know.
             </Text>
           </Section>
         </Container>
@@ -273,7 +315,10 @@ export const ClientEmailDocument = ({
 };
 
 /** Render the client email to an HTML string for preview or sending. */
-export const renderClientEmail = (content: ClientEmailContent, assets: EmailAssets) =>
-  render(<ClientEmailDocument content={content} assets={assets} />, {
+export const renderClientEmail = (
+  content: ClientEmailContent,
+  assets: EmailAssets
+) =>
+  render(<ClientEmailDocument assets={assets} content={content} />, {
     pretty: false,
   });

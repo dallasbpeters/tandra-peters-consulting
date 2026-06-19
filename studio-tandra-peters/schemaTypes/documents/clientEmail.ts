@@ -49,7 +49,8 @@ export const clientEmailType = defineType({
       type: "url",
       title: "Button link",
       initialValue: "https://www.tandra.me",
-      validation: (Rule) => Rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
+      validation: (Rule) =>
+        Rule.uri({ scheme: ["http", "https", "mailto", "tel"] }),
     }),
     defineField({
       name: "closing",
@@ -68,6 +69,9 @@ export const clientEmailType = defineType({
   ],
   preview: {
     select: { title: "subject" },
-    prepare: ({ title }) => ({ title: title || "Client email", subtitle: "Email" }),
+    prepare: ({ title }) => ({
+      title: title || "Client email",
+      subtitle: "Email",
+    }),
   },
 });

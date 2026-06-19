@@ -1,9 +1,9 @@
-export type GoogleAuthUser = {
+export interface GoogleAuthUser {
   email: string;
+  hostedDomain?: string;
   name?: string;
   picture?: string;
-  hostedDomain?: string;
-};
+}
 
 /** Shared with dashboard routes — one sign-in covers both. */
 export const GOOGLE_AUTH_STORAGE_KEY = "tandra:seo-dashboard:google-id-token";
@@ -27,7 +27,9 @@ export const getGoogleAllowlistConfig = () => {
     }
   }
 
-  const domain = normalizeEmail(import.meta.env.VITE_GOOGLE_ALLOWED_DOMAIN?.trim() ?? "");
+  const domain = normalizeEmail(
+    import.meta.env.VITE_GOOGLE_ALLOWED_DOMAIN?.trim() ?? ""
+  );
 
   return { emails, domain };
 };
@@ -84,16 +86,22 @@ export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
 
 export const loadGoogleIdentityScript = (): Promise<void> =>
   new Promise((resolve, reject) => {
-    const existing = document.getElementById(GOOGLE_SCRIPT_ID) as HTMLScriptElement | null;
+    const existing = document.getElementById(
+      GOOGLE_SCRIPT_ID
+    ) as HTMLScriptElement | null;
     if (existing) {
       if (window.google?.accounts?.id) {
         resolve();
         return;
       }
       existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Failed to load Google script")), {
-        once: true,
-      });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load Google script")),
+        {
+          once: true,
+        }
+      );
       return;
     }
 
@@ -107,7 +115,9 @@ export const loadGoogleIdentityScript = (): Promise<void> =>
     document.head.appendChild(script);
   });
 
-export const subscribeGoogleCredential = (handler: GoogleCredentialHandler): (() => void) => {
+export const subscribeGoogleCredential = (
+  handler: GoogleCredentialHandler
+): (() => void) => {
   googleCredentialHandlers.add(handler);
   return () => {
     googleCredentialHandlers.delete(handler);
@@ -132,9 +142,9 @@ export const initializeGoogleIdentity = (clientId: string): Promise<void> => {
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: (response) => {
-          googleCredentialHandlers.forEach((handler) => {
+          for (const handler of googleCredentialHandlers) {
             handler(response.credential ?? null);
-          });
+          }
         },
         auto_select: false,
       });
@@ -147,8 +157,10 @@ export const initializeGoogleIdentity = (clientId: string): Promise<void> => {
   return googleIdentityInitializePromise;
 };
 
-export const getGoogleClientId = (): string => import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? "";
+export const getGoogleClientId = (): string =>
+  import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? "";
 
 /** When false, gated sections render without sign-in. Set `VITE_GOOGLE_AUTH_GATE_ENABLED=true` to enable. */
 export const isGoogleAuthGateEnabled = (): boolean =>
-  import.meta.env.VITE_GOOGLE_AUTH_GATE_ENABLED?.trim().toLowerCase() === "true";
+  import.meta.env.VITE_GOOGLE_AUTH_GATE_ENABLED?.trim().toLowerCase() ===
+  "true";

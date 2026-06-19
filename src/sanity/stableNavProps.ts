@@ -7,7 +7,12 @@ const CACHE_KEY = "tandra:nav-props";
 let memoryCache: Partial<NavProps> | null = null;
 
 const isCompleteNavProps = (props: Partial<NavProps>): props is NavProps =>
-  Boolean(props.ctaText && props.ctaHref && props.navItems && props.navItems.length > 0);
+  Boolean(
+    props.ctaText &&
+      props.ctaHref &&
+      props.navItems &&
+      props.navItems.length > 0
+  );
 
 const readSessionCache = (): Partial<NavProps> | null => {
   if (typeof window === "undefined") {
@@ -43,7 +48,7 @@ const writeCache = (props: NavProps) => {
 
 /** Last known Sanity nav props — avoids default CTA / link flash while site settings load. */
 export const resolveStableNavProps = (
-  site: Record<string, unknown> | null | undefined,
+  site: Record<string, unknown> | null | undefined
 ): NavProps | null => {
   if (site) {
     const mapped = mapNavProps(site);

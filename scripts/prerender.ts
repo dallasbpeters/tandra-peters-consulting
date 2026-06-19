@@ -16,23 +16,37 @@
  * Run via tsx (see package.json `build` / `build:vercel`). Network failures to
  * Sanity are non-fatal: static routes are still prerendered.
  */
-import { createClient } from "@sanity/client";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createClient } from "@sanity/client";
 
 import {
   BUSINESS,
-  PERSON,
-  SERVICES,
-  SERVICE_AREAS,
   buildLocalBusinessSchema,
   buildPersonSchema,
   normalizeOrigin,
+  PERSON,
+  SERVICE_AREAS,
+  SERVICES,
 } from "../server/seo/businessInfo.js";
 
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const distDir = path.join(repoRoot, "dist");
+
+// Module-level regex constants (avoids re-compilation on every call).
+const RE_WHITESPACE = /\s+/g;
+const RE_TITLE_TAG = /<title>[\s\S]*?<\/title>/;
+const RE_META_DESCRIPTION = /<meta name="description"[\s\S]*?\/>/;
+const RE_LINK_CANONICAL = /<link rel="canonical"[^>]*\/>/;
+const RE_OG_TITLE = /<meta property="og:title"[^>]*\/>/;
+const RE_OG_DESCRIPTION = /<meta property="og:description"[\s\S]*?\/>/;
+const RE_OG_URL = /<meta property="og:url"[^>]*\/>/;
+const RE_TWITTER_TITLE = /<meta name="twitter:title"[^>]*\/>/;
+const RE_TWITTER_DESCRIPTION = /<meta name="twitter:description"[\s\S]*?\/>/;
+const RE_DIV_ROOT = /<div id="root"><\/div>/;
+const RE_LEADING_SLASH = /^\//;
 
 const ORIGIN = normalizeOrigin(process.env.VITE_SITE_URL);
 
@@ -54,10 +68,16 @@ const escapeAttr = (value: string): string => escapeHtml(value);
 
 /** Minimal Portable Text → plain text (build script can't use browser deps). */
 const portableToPlain = (blocks: unknown): string => {
-  if (typeof blocks === "string") return blocks;
-  if (!Array.isArray(blocks)) return "";
+  if (typeof blocks === "string") {
+    return blocks;
+  }
+  if (!Array.isArray(blocks)) {
+    return "";
+  }
   return blocks
-    .filter((b): b is { _type?: string; children?: { text?: string }[] } => Boolean(b))
+    .filter((b): b is { _type?: string; children?: { text?: string }[] } =>
+      Boolean(b)
+    )
     .filter((b) => b._type === "block")
     .map((b) => (b.children ?? []).map((c) => c.text ?? "").join(""))
     .join("\n\n")
@@ -65,7 +85,7 @@ const portableToPlain = (blocks: unknown): string => {
 };
 
 const truncate = (value: string, max: number): string => {
-  const clean = value.replace(/\s+/g, " ").trim();
+  const clean = value.replace(RE_WHITESPACE, " ").trim();
   return clean.length <= max ? clean : `${clean.slice(0, max - 1).trimEnd()}…`;
 };
 
@@ -74,38 +94,42 @@ type Jsonable = Record<string, unknown>;
 const jsonLdTag = (data: Jsonable): string =>
   `<script type="application/ld+json">${JSON.stringify(data).replaceAll("</", "<\\/")}</script>`;
 
-type PageMeta = {
+interface PageMeta {
+  /** Server-rendered, human/agent-readable body injected into #root. */
+  bodyHtml: string;
+  description: string;
+  jsonLd: Jsonable[];
   /** Route path, e.g. "/" or "/articles/foo". */
   route: string;
   title: string;
-  description: string;
-  jsonLd: Jsonable[];
-  /** Server-rendered, human/agent-readable body injected into #root. */
-  bodyHtml: string;
-};
+}
 
-type PostDoc = {
+interface PostDoc {
+  _updatedAt?: string;
+  authorName?: string;
+  body?: unknown;
+  category?: string;
+  excerpt?: string;
+  image?: string;
+  publishedAt?: string;
+  seoDescription?: string;
   slug?: string;
   title?: string;
-  excerpt?: string;
-  seoDescription?: string;
-  authorName?: string;
-  category?: string;
-  publishedAt?: string;
-  _updatedAt?: string;
-  image?: string;
-  body?: unknown;
-};
+}
 
-type FaqItem = { question?: string; answer?: unknown };
+interface FaqItem {
+  answer?: unknown;
+  question?: string;
+}
 
-type HomeDoc = {
-  seoTitle?: string;
-  seoDescription?: string;
+interface HomeDoc {
   faqItems?: FaqItem[];
-};
+  seoDescription?: string;
+  seoTitle?: string;
+}
 
-const DEFAULT_TITLE = "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
+const DEFAULT_TITLE =
+  "Tandra Peters | Birdcreek Roofing Consultant | Austin, TX";
 const DEFAULT_DESCRIPTION =
   "Birdcreek Roofing consultant in Austin for roof assessments, insurance claim advocacy, and project oversight—one team from consultation through Texas installation.";
 
@@ -120,19 +144,19 @@ const fetchSanity = async (): Promise<{
         `*[_type == "post" && defined(slug.current)] | order(publishedAt desc){
           "slug": slug.current, title, excerpt, seoDescription, authorName,
           category, publishedAt, _updatedAt, "image": image.asset->url, body
-        }`,
+        }`
       ),
       client.fetch<HomeDoc | null>(
         `*[_type == "homePage"][0]{
           seoTitle, seoDescription, "faqItems": faq.items[]{question, answer}
-        }`,
+        }`
       ),
     ]);
     return { posts: posts ?? [], home: home ?? null };
   } catch (error) {
     console.warn(
       "[prerender] Sanity fetch failed; prerendering static routes only.",
-      error instanceof Error ? error.message : error,
+      error instanceof Error ? error.message : error
     );
     return { posts: [], home: null };
   }
@@ -145,7 +169,9 @@ const faqPageSchema = (items: FaqItem[]): Jsonable | null => {
       a: portableToPlain(item.answer),
     }))
     .filter((entry) => entry.q && entry.a);
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    return null;
+  }
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -158,15 +184,21 @@ const faqPageSchema = (items: FaqItem[]): Jsonable | null => {
 };
 
 const homePage = (home: HomeDoc | null): PageMeta => {
-  const jsonLd: Jsonable[] = [buildLocalBusinessSchema(ORIGIN), buildPersonSchema(ORIGIN)];
+  const jsonLd: Jsonable[] = [
+    buildLocalBusinessSchema(ORIGIN),
+    buildPersonSchema(ORIGIN),
+  ];
   const faq = home?.faqItems ? faqPageSchema(home.faqItems) : null;
-  if (faq) jsonLd.push(faq);
+  if (faq) {
+    jsonLd.push(faq);
+  }
 
   const serviceList = SERVICES.map(
-    (s) => `<li><strong>${escapeHtml(s.name)}:</strong> ${escapeHtml(s.description)}</li>`,
+    (s) =>
+      `<li><strong>${escapeHtml(s.name)}:</strong> ${escapeHtml(s.description)}</li>`
   ).join("");
   const areaList = SERVICE_AREAS.map(
-    (a) => `<li>${escapeHtml(a.city)} (${escapeHtml(a.county)})</li>`,
+    (a) => `<li>${escapeHtml(a.city)} (${escapeHtml(a.county)})</li>`
   ).join("");
 
   return {
@@ -191,10 +223,12 @@ const articlesIndexPage = (posts: PostDoc[]): PageMeta => {
   const items = posts
     .map((post) => {
       const slug = post.slug?.trim();
-      if (!slug) return "";
+      if (!slug) {
+        return "";
+      }
       const desc = post.seoDescription || post.excerpt || "";
       return `<li><a href="/articles/${escapeAttr(slug)}">${escapeHtml(
-        post.title ?? slug,
+        post.title ?? slug
       )}</a>${desc ? ` — ${escapeHtml(truncate(desc, 200))}` : ""}</li>`;
     })
     .filter(Boolean)
@@ -220,9 +254,14 @@ const articlesIndexPage = (posts: PostDoc[]): PageMeta => {
 
 const articlePage = (post: PostDoc): PageMeta | null => {
   const slug = post.slug?.trim();
-  if (!slug) return null;
+  if (!slug) {
+    return null;
+  }
   const url = `${ORIGIN}/articles/${slug}`;
-  const description = truncate(post.seoDescription || post.excerpt || post.title || "", 200);
+  const description = truncate(
+    post.seoDescription || post.excerpt || post.title || "",
+    200
+  );
   const bodyText = portableToPlain(post.body);
 
   const articleSchema: Jsonable = {
@@ -283,38 +322,38 @@ const renderHtml = (template: string, page: PageMeta): string => {
   let html = template;
 
   // <title>
-  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+  html = html.replace(RE_TITLE_TAG, `<title>${title}</title>`);
 
   // meta description
   html = html.replace(
-    /<meta name="description"[\s\S]*?\/>/,
-    `<meta name="description" content="${description}" />`,
+    RE_META_DESCRIPTION,
+    `<meta name="description" content="${description}" />`
   );
 
   // canonical (template already had %SITE_URL%/ replaced at build by html-site-url)
   html = html.replace(
-    /<link rel="canonical"[^>]*\/>/,
-    `<link rel="canonical" href="${escapeAttr(canonical)}" />`,
+    RE_LINK_CANONICAL,
+    `<link rel="canonical" href="${escapeAttr(canonical)}" />`
   );
 
   // OG / Twitter title + description + url (keep images as-is)
   html = html
-    .replace(/<meta property="og:title"[^>]*\/>/, `<meta property="og:title" content="${title}" />`)
+    .replace(RE_OG_TITLE, `<meta property="og:title" content="${title}" />`)
     .replace(
-      /<meta property="og:description"[\s\S]*?\/>/,
-      `<meta property="og:description" content="${description}" />`,
+      RE_OG_DESCRIPTION,
+      `<meta property="og:description" content="${description}" />`
     )
     .replace(
-      /<meta property="og:url"[^>]*\/>/,
-      `<meta property="og:url" content="${escapeAttr(canonical)}" />`,
+      RE_OG_URL,
+      `<meta property="og:url" content="${escapeAttr(canonical)}" />`
     )
     .replace(
-      /<meta name="twitter:title"[^>]*\/>/,
-      `<meta name="twitter:title" content="${title}" />`,
+      RE_TWITTER_TITLE,
+      `<meta name="twitter:title" content="${title}" />`
     )
     .replace(
-      /<meta name="twitter:description"[\s\S]*?\/>/,
-      `<meta name="twitter:description" content="${description}" />`,
+      RE_TWITTER_DESCRIPTION,
+      `<meta name="twitter:description" content="${description}" />`
     );
 
   // JSON-LD before </head>
@@ -325,8 +364,8 @@ const renderHtml = (template: string, page: PageMeta): string => {
   // Wrapped in `hidden` so browsers never paint the unstyled bare HTML while JS
   // is loading, but non-JS parsers (AI/bot crawlers) can still read it in the DOM.
   html = html.replace(
-    /<div id="root"><\/div>/,
-    `<div id="root"><div hidden aria-hidden="true">${page.bodyHtml}</div></div>`,
+    RE_DIV_ROOT,
+    `<div id="root"><div hidden aria-hidden="true">${page.bodyHtml}</div></div>`
   );
 
   return html;
@@ -334,7 +373,10 @@ const renderHtml = (template: string, page: PageMeta): string => {
 
 const writeRoute = async (route: string, html: string): Promise<void> => {
   // "/" → dist/index.html ; "/articles" → dist/articles/index.html
-  const rel = route === "/" ? "index.html" : `${route.replace(/^\//, "")}/index.html`;
+  const rel =
+    route === "/"
+      ? "index.html"
+      : `${route.replace(RE_LEADING_SLASH, "")}/index.html`;
   const outPath = path.join(distDir, rel);
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, html, "utf8");
@@ -362,20 +404,30 @@ const buildLlmsTxt = (posts: PostDoc[]): string => {
   }
   lines.push("");
   lines.push("## Key pages");
-  lines.push(`- [Home](${ORIGIN}/): Overview of roofing consultation services.`);
-  lines.push(`- [Articles](${ORIGIN}/articles): Roofing guides for Texas homeowners.`);
   lines.push(
-    `- [Insurance FAQs](${ORIGIN}/insurance-faqs): Roof insurance claim questions answered.`,
+    `- [Home](${ORIGIN}/): Overview of roofing consultation services.`
   );
-  lines.push(`- [Roof inspection](${ORIGIN}/roof-inspection): What a roof inspection covers.`);
+  lines.push(
+    `- [Articles](${ORIGIN}/articles): Roofing guides for Texas homeowners.`
+  );
+  lines.push(
+    `- [Insurance FAQs](${ORIGIN}/insurance-faqs): Roof insurance claim questions answered.`
+  );
+  lines.push(
+    `- [Roof inspection](${ORIGIN}/roof-inspection): What a roof inspection covers.`
+  );
   lines.push("");
   if (posts.length > 0) {
     lines.push("## Articles");
     for (const post of posts) {
       const slug = post.slug?.trim();
-      if (!slug || !post.title) continue;
+      if (!(slug && post.title)) {
+        continue;
+      }
       const desc = truncate(post.seoDescription || post.excerpt || "", 160);
-      lines.push(`- [${post.title}](${ORIGIN}/articles/${slug})${desc ? `: ${desc}` : ""}`);
+      lines.push(
+        `- [${post.title}](${ORIGIN}/articles/${slug})${desc ? `: ${desc}` : ""}`
+      );
     }
     lines.push("");
   }
@@ -388,7 +440,9 @@ const main = async (): Promise<void> => {
   try {
     template = await readFile(templatePath, "utf8");
   } catch {
-    console.error(`[prerender] ${templatePath} not found. Run \`vite build\` first.`);
+    console.error(
+      `[prerender] ${templatePath} not found. Run \`vite build\` first.`
+    );
     process.exitCode = 1;
     return;
   }
@@ -398,7 +452,9 @@ const main = async (): Promise<void> => {
   const pages: PageMeta[] = [homePage(home), articlesIndexPage(posts)];
   for (const post of posts) {
     const page = articlePage(post);
-    if (page) pages.push(page);
+    if (page) {
+      pages.push(page);
+    }
   }
 
   let count = 0;
@@ -409,7 +465,9 @@ const main = async (): Promise<void> => {
 
   await writeFile(path.join(distDir, "llms.txt"), buildLlmsTxt(posts), "utf8");
 
-  console.log(`[prerender] Wrote ${count} static route(s) and llms.txt for origin ${ORIGIN}.`);
+  console.log(
+    `[prerender] Wrote ${count} static route(s) and llms.txt for origin ${ORIGIN}.`
+  );
 };
 
-void main();
+main();

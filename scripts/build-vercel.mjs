@@ -18,8 +18,12 @@ const run = (command, args, cwd = repoRoot) => {
   } catch (error) {
     const stderr = error.stderr?.toString?.().trim();
     const stdout = error.stdout?.toString?.().trim();
-    if (stderr) console.error(stderr);
-    if (stdout) console.error(stdout);
+    if (stderr) {
+      console.error(stderr);
+    }
+    if (stdout) {
+      console.error(stdout);
+    }
     throw error;
   }
 };
@@ -34,14 +38,30 @@ run("pnpm", ["exec", "vite", "build"]);
 run("pnpm", ["exec", "tsx", "scripts/prerender.ts"]);
 
 if (!existsSync(path.join(studioDir, "node_modules", "styled-components"))) {
-  run("pnpm", ["--dir", "studio-tandra-peters", "install", "--frozen-lockfile"]);
+  run("pnpm", [
+    "--dir",
+    "studio-tandra-peters",
+    "install",
+    "--frozen-lockfile",
+  ]);
 }
 
-run("pnpm", ["--dir", "studio-tandra-peters", "exec", "sanity", "build", "../.studio-dist", "-y"]);
+run("pnpm", [
+  "--dir",
+  "studio-tandra-peters",
+  "exec",
+  "sanity",
+  "build",
+  "../.studio-dist",
+  "-y",
+]);
 
 mkdirSync(path.join(distDir, "studio"), { recursive: true });
 
-cpSync(path.join(studioTempDir, "index.html"), path.join(distDir, "studio", "index.html"));
+cpSync(
+  path.join(studioTempDir, "index.html"),
+  path.join(distDir, "studio", "index.html")
+);
 
 if (existsSync(path.join(studioTempDir, "static"))) {
   cpSync(path.join(studioTempDir, "static"), path.join(distDir, "static"), {
@@ -58,7 +78,9 @@ if (existsSync(path.join(studioTempDir, "vendor"))) {
 rmSync(studioTempDir, { recursive: true, force: true });
 
 if (process.env.SKIP_REMOTION_SNAPSHOT === "1") {
-  console.log("[build:vercel] Skipping Remotion sandbox snapshot (SKIP_REMOTION_SNAPSHOT=1).");
+  console.log(
+    "[build:vercel] Skipping Remotion sandbox snapshot (SKIP_REMOTION_SNAPSHOT=1)."
+  );
 } else {
   console.log("[build:vercel] Creating Remotion sandbox snapshot...");
   run("node", ["scripts/create-remotion-snapshot.mjs"]);

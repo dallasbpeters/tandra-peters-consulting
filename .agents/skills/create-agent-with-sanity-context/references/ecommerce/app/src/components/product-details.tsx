@@ -18,15 +18,15 @@ type Color = NonNullable<ProductVariant["color"]>;
 type Size = NonNullable<NonNullable<ProductVariant["sizes"]>[number]>;
 
 interface ProductDetailsProps {
-  title: Product["title"];
   brand: Product["brand"];
   category: Product["category"];
-  shortDescription: Product["shortDescription"];
-  price: Product["price"];
+  colors: Color[];
   features: Product["features"];
   materials: Product["materials"];
-  colors: Color[];
+  price: Product["price"];
+  shortDescription: Product["shortDescription"];
   sizes: Size[];
+  title: Product["title"];
   variants: Product["variants"];
 }
 
@@ -45,13 +45,15 @@ export function ProductDetails({
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const hasDiscount = price?.compareAtPrice && price.compareAtPrice > (price.amount ?? 0);
+  const hasDiscount =
+    price?.compareAtPrice && price.compareAtPrice > (price.amount ?? 0);
 
   // Determine if selection is required and complete
   const needsColor = colors.length > 0;
   const needsSize = sizes.length > 0;
   const selectionComplete =
-    (!needsColor || selectedColor !== null) && (!needsSize || selectedSize !== null);
+    (!needsColor || selectedColor !== null) &&
+    (!needsSize || selectedSize !== null);
 
   // Get selected variant details for display/chatbot context
   const selectedColorName = colors.find((c) => c._id === selectedColor)?.title;
@@ -71,7 +73,9 @@ export function ProductDetails({
     }
     // Find the variant for the selected color and get its available sizes
     const variant = variants?.find((v) => v.color?._id === selectedColor);
-    if (!variant?.sizes) return new Set<string>();
+    if (!variant?.sizes) {
+      return new Set<string>();
+    }
     return new Set(variant.sizes.map((s) => s._id));
   }, [selectedColor, variants, sizes]);
 
@@ -80,7 +84,9 @@ export function ProductDetails({
     setSelectedColor(colorId);
     // Check if currently selected size is available for the NEW color
     const newVariant = variants?.find((v) => v.color?._id === colorId);
-    const newAvailableSizeIds = new Set(newVariant?.sizes?.map((s) => s._id) ?? []);
+    const newAvailableSizeIds = new Set(
+      newVariant?.sizes?.map((s) => s._id) ?? []
+    );
     if (selectedSize && !newAvailableSizeIds.has(selectedSize)) {
       setSelectedSize(null);
     }
@@ -92,20 +98,22 @@ export function ProductDetails({
       <div className="relative aspect-3/4 overflow-hidden rounded-lg bg-neutral-100">
         {currentImage?.asset?.url ? (
           <Image
-            src={urlFor(currentImage).width(800).height(1067).url()}
             alt={currentImage.alt || title || "Product image"}
-            fill
-            className="object-cover"
-            priority
-            placeholder={currentImage.asset.metadata?.lqip ? "blur" : "empty"}
             blurDataURL={currentImage.asset.metadata?.lqip || undefined}
+            className="object-cover"
+            fill
+            placeholder={currentImage.asset.metadata?.lqip ? "blur" : "empty"}
+            priority
+            src={urlFor(currentImage).width(800).height(1067).url()}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-neutral-400">No image</div>
+          <div className="flex h-full items-center justify-center text-neutral-400">
+            No image
+          </div>
         )}
 
         {hasDiscount && (
-          <Badge className="absolute left-3 top-3" variant="destructive">
+          <Badge className="absolute top-3 left-3" variant="destructive">
             Sale
           </Badge>
         )}
@@ -114,7 +122,7 @@ export function ProductDetails({
       {/* Details */}
       <div className="flex flex-col">
         {(brand?.title || category?.title) && (
-          <p className="text-sm text-neutral-500">
+          <p className="text-neutral-500 text-sm">
             {brand?.title}
 
             {brand?.title && category?.title && " · "}
@@ -123,11 +131,13 @@ export function ProductDetails({
           </p>
         )}
 
-        <h1 className="mt-1 text-2xl font-semibold md:text-3xl">{title}</h1>
+        <h1 className="mt-1 font-semibold text-2xl md:text-3xl">{title}</h1>
 
         {/* Price */}
         <div className="mt-4 flex items-center gap-3">
-          <span className="text-xl font-medium">{formatPrice(price?.amount)}</span>
+          <span className="font-medium text-xl">
+            {formatPrice(price?.amount)}
+          </span>
 
           {hasDiscount && (
             <span className="text-lg text-neutral-500 line-through">
@@ -136,30 +146,35 @@ export function ProductDetails({
           )}
         </div>
 
-        {shortDescription && <p className="mt-4 text-neutral-600">{shortDescription}</p>}
+        {shortDescription && (
+          <p className="mt-4 text-neutral-600">{shortDescription}</p>
+        )}
 
         {/* Colors */}
         {needsColor && (
           <div className="mt-6">
-            <p className="text-sm font-medium">
+            <p className="font-medium text-sm">
               Color
               {selectedColorName && (
-                <span className="font-normal text-neutral-500"> — {selectedColorName}</span>
+                <span className="font-normal text-neutral-500">
+                  {" "}
+                  — {selectedColorName}
+                </span>
               )}
             </p>
 
             <div className="mt-2 flex flex-wrap gap-2">
               {colors.map((color) => (
                 <button
-                  key={color._id}
-                  type="button"
-                  onClick={() => handleColorChange(color._id)}
                   className={cn(
                     "rounded-md border px-3 py-1.5 text-sm transition-colors",
                     selectedColor === color._id
                       ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-200 hover:border-neutral-400",
+                      : "border-neutral-200 hover:border-neutral-400"
                   )}
+                  key={color._id}
+                  onClick={() => handleColorChange(color._id)}
+                  type="button"
                 >
                   {color.title}
                 </button>
@@ -171,10 +186,13 @@ export function ProductDetails({
         {/* Sizes */}
         {needsSize && (
           <div className="mt-6">
-            <p className="text-sm font-medium">
+            <p className="font-medium text-sm">
               Size
               {selectedSizeCode && (
-                <span className="font-normal text-neutral-500"> — {selectedSizeCode}</span>
+                <span className="font-normal text-neutral-500">
+                  {" "}
+                  — {selectedSizeCode}
+                </span>
               )}
             </p>
 
@@ -185,21 +203,23 @@ export function ProductDetails({
 
                 return (
                   <button
-                    key={size._id}
-                    type="button"
-                    onClick={() => isAvailable && setSelectedSize(size._id)}
-                    disabled={!isAvailable}
                     className={cn(
                       "flex h-10 w-10 items-center justify-center rounded-md border text-sm transition-colors",
                       isSelected
                         ? "border-neutral-900 bg-neutral-900 text-white"
                         : isAvailable
                           ? "border-neutral-200 hover:border-neutral-400"
-                          : "cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300 line-through",
+                          : "cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300 line-through"
                     )}
+                    disabled={!isAvailable}
+                    key={size._id}
+                    onClick={() => isAvailable && setSelectedSize(size._id)}
                     title={
-                      isAvailable ? `Select size ${size.code}` : `Size ${size.code} unavailable`
+                      isAvailable
+                        ? `Select size ${size.code}`
+                        : `Size ${size.code} unavailable`
                     }
+                    type="button"
                   >
                     {size.code}
                   </button>
@@ -210,7 +230,7 @@ export function ProductDetails({
             {selectedColor &&
               !availableSizeIds.has(selectedSize ?? "") &&
               sizes.some((s) => !availableSizeIds.has(s._id)) && (
-                <p className="mt-2 text-xs text-neutral-500">
+                <p className="mt-2 text-neutral-500 text-xs">
                   Some sizes are unavailable for this color
                 </p>
               )}
@@ -220,11 +240,13 @@ export function ProductDetails({
         {/* Add to Cart */}
         <div className="mt-8">
           {!selectionComplete && (needsColor || needsSize) && (
-            <p className="mb-2 text-sm text-neutral-500">
+            <p className="mb-2 text-neutral-500 text-sm">
               {[
                 "Please select ",
                 needsColor && !selectedColor ? "a color" : "",
-                needsColor && !selectedColor && needsSize && !selectedSize ? " and " : "",
+                needsColor && !selectedColor && needsSize && !selectedSize
+                  ? " and "
+                  : "",
                 needsSize && !selectedSize ? "a size" : "",
               ].join("")}
             </p>
@@ -235,10 +257,10 @@ export function ProductDetails({
 
         {/* Features */}
         {features && features.length > 0 && (
-          <div className="mt-8 border-t border-neutral-200 pt-6">
-            <p className="text-sm font-medium">Features</p>
+          <div className="mt-8 border-neutral-200 border-t pt-6">
+            <p className="font-medium text-sm">Features</p>
 
-            <ul className="mt-2 space-y-1 text-sm text-neutral-600">
+            <ul className="mt-2 space-y-1 text-neutral-600 text-sm">
               {features.map((feature) => (
                 <li key={feature}>• {feature}</li>
               ))}
@@ -249,9 +271,9 @@ export function ProductDetails({
         {/* Materials */}
         {materials && materials.length > 0 && (
           <div className="mt-6">
-            <p className="text-sm font-medium">Materials</p>
+            <p className="font-medium text-sm">Materials</p>
 
-            <p className="mt-1 text-sm text-neutral-600">
+            <p className="mt-1 text-neutral-600 text-sm">
               {materials.map((m) => m.title).join(", ")}
             </p>
           </div>

@@ -8,12 +8,12 @@ import {
   STORM_SPOT_DEFAULTS,
 } from "./adDefaults";
 import { TandraRoofValue, TandraStormSpot } from "./Clips";
+import { CustomSlots } from "./CustomComposition";
 import { customCompositionSchema } from "./composition/customSchema";
 import { roofSceneSchema } from "./composition/roofSceneSchema";
 import { roofValueSchema } from "./composition/roofValueSchema";
 import { stormSpotSchema } from "./composition/stormSpotSchema";
 import { calculateMetadata } from "./customCalculateMetadata";
-import { CustomSlots } from "./CustomComposition";
 import { RoofScene } from "./RoofScene";
 import { roofSceneCalculateMetadata } from "./roofSceneCalculateMetadata";
 
@@ -29,55 +29,55 @@ import { roofSceneCalculateMetadata } from "./roofSceneCalculateMetadata";
 export const AdsCompositions = () => (
   <>
     <Composition
-      id="RoofScene"
-      component={RoofScene}
-      schema={roofSceneSchema}
       calculateMetadata={roofSceneCalculateMetadata}
-      width={1080}
-      height={1350}
+      component={RoofScene}
       defaultProps={ROOF_SCENE_DEFAULTS}
+      height={1350}
+      id="RoofScene"
+      schema={roofSceneSchema}
+      width={1080}
     />
     <Composition
-      id="TandraRoofValue"
       component={TandraRoofValue}
-      schema={roofValueSchema}
       defaultProps={ROOF_VALUE_DEFAULTS}
       durationInFrames={1260}
       fps={30}
-      width={1080}
       height={1350}
+      id="TandraRoofValue"
+      schema={roofValueSchema}
+      width={1080}
     />
     <Composition
-      id="TandraStormSpot"
       component={TandraStormSpot}
-      schema={stormSpotSchema}
       defaultProps={STORM_SPOT_DEFAULTS}
       durationInFrames={870}
       fps={30}
-      width={1080}
       height={1350}
+      id="TandraStormSpot"
+      schema={stormSpotSchema}
+      width={1080}
     />
     <Composition
-      id="CustomSlots"
-      component={CustomSlots}
-      schema={customCompositionSchema}
       calculateMetadata={calculateMetadata}
+      component={CustomSlots}
       defaultProps={CUSTOM_SLOTS_DEFAULTS}
-      fps={30}
-      width={1080}
-      height={1350}
       durationInFrames={750}
+      fps={30}
+      height={1350}
+      id="CustomSlots"
+      schema={customCompositionSchema}
+      width={1080}
     />
     <Composition
-      id="HelpingTexasHomeowners"
-      component={CustomSlots}
-      schema={customCompositionSchema}
       calculateMetadata={calculateMetadata}
+      component={CustomSlots}
       defaultProps={HELPING_TEXAS_DEFAULTS}
-      fps={30}
-      width={1080}
-      height={1350}
       durationInFrames={750}
+      fps={30}
+      height={1350}
+      id="HelpingTexasHomeowners"
+      schema={customCompositionSchema}
+      width={1080}
     />
   </>
 );

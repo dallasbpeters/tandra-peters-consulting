@@ -94,9 +94,9 @@ export const ArticlePage = () => {
             This article may have moved or is not published yet.
           </p>
           <TransitionLink
+            style={{ color: theme.colors.everglade, fontWeight: 800 }}
             to="/articles"
             viewTransition
-            style={{ color: theme.colors.everglade, fontWeight: 800 }}
           >
             ← All articles
           </TransitionLink>
@@ -111,11 +111,9 @@ export const ArticlePage = () => {
   return (
     <SitePageChrome>
       <ArticleRichTextLinkStyles />
-      <ArticleJsonLd post={post} path={path} />
+      <ArticleJsonLd path={path} post={post} />
       <article className={layoutClass.containerArticle}>
         <TransitionLink
-          to="/articles"
-          viewTransition
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -129,8 +127,10 @@ export const ArticlePage = () => {
             color: theme.colors.everglade,
             textDecoration: "none",
           }}
+          to="/articles"
+          viewTransition
         >
-          <NavArrowLeft width={16} height={16} strokeWidth={2} aria-hidden />
+          <NavArrowLeft aria-hidden height={16} strokeWidth={2} width={16} />
           All articles
         </TransitionLink>
         <div style={{ marginBottom: theme.spacing.sm }}>
@@ -159,7 +159,9 @@ export const ArticlePage = () => {
             marginBottom: theme.spacing.xxxxl,
           }}
         >
-          <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+          <time dateTime={post.publishedAt}>
+            {formatDate(post.publishedAt)}
+          </time>
           {post.authorName ? (
             <>
               {" · "}
@@ -177,9 +179,10 @@ export const ArticlePage = () => {
               backgroundColor: theme.colors.paperDark,
             }}
           >
+            {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
             <img
-              src={postCoverImageSrc(post.image, { w: 1200, fit: "max" })}
               alt=""
+              src={postCoverImageSrc(post.image, { w: 1200, fit: "max" })}
               style={{
                 width: "100%",
                 aspectRatio: "5/3",
@@ -200,13 +203,6 @@ export const ArticlePage = () => {
         >
           <RichText
             className="article-rich-text"
-            value={post.body}
-            paragraphStyle={{
-              marginBottom: theme.spacing.xl,
-              color: "inherit",
-              lineHeight: "inherit",
-              fontSize: "inherit",
-            }}
             heading2Style={{
               fontFamily: theme.fonts.headline,
               fontSize: "1.25rem",
@@ -227,22 +223,33 @@ export const ArticlePage = () => {
               paddingInline: ".25em",
               backgroundColor: theme.palette.blue[100],
             }}
+            paragraphStyle={{
+              marginBottom: theme.spacing.xl,
+              color: "inherit",
+              lineHeight: "inherit",
+              fontSize: "inherit",
+            }}
+            value={post.body}
           />
         </div>
       </article>
       <Faq {...articleFaqProps} paddingTop="0" />
       <SocialShareBar
         heading="Know someone who could benefit from this article?"
-        shareText={post.excerpt?.trim() ? `${post.title} — ${post.excerpt.trim()}` : post.title}
+        shareText={
+          post.excerpt?.trim()
+            ? `${post.title} — ${post.excerpt.trim()}`
+            : post.title
+        }
       />
       <ContactSmall
-        title="Get a free consultation."
-        serviceOptions={CONTACT_SERVICE_OPTIONS}
         formLabels={{
           name: "Your Name",
           email: "Your Email",
           message: "Your Message",
         }}
+        serviceOptions={CONTACT_SERVICE_OPTIONS}
+        title="Get a free consultation."
       />
     </SitePageChrome>
   );

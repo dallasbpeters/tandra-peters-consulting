@@ -1,4 +1,7 @@
-const trimHost = (value: string | undefined): string => (value ?? "").trim().replace(/\/$/, "");
+const TRAILING_SLASH_RE = /\/$/;
+
+const trimHost = (value: string | undefined): string =>
+  (value ?? "").trim().replace(TRAILING_SLASH_RE, "");
 
 const CLOUD_INGESTION_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
 const TOOLBAR_PARAMS_KEY = "_postHogToolbarParams";
@@ -16,7 +19,8 @@ export const hasToolbarLaunchIntent = (): boolean => {
     return true;
   }
 
-  const projectToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
+  const projectToken =
+    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim();
   if (!projectToken) {
     return false;
   }
@@ -34,9 +38,14 @@ export const hasToolbarLaunchIntent = (): boolean => {
 };
 
 export const isPosthogEnabled = (): boolean => {
-  const hasToken = Boolean(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim());
+  const hasToken = Boolean(
+    import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?.trim()
+  );
 
-  return hasToken && (import.meta.env.PROD || import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true");
+  return (
+    hasToken &&
+    (import.meta.env.PROD || import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true")
+  );
 };
 
 /**
@@ -58,25 +67,31 @@ export const resolvePosthogClientOptions = (): {
     import.meta.env.DEV && import.meta.env.VITE_ENABLE_POSTHOG_DEV === "true";
   const toolbarLaunch = hasToolbarLaunchIntent();
 
-  const configuredHost = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) || US_CLOUD_INGEST;
+  const configuredHost =
+    trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_HOST) || US_CLOUD_INGEST;
   const isCloudIngestion = CLOUD_INGESTION_RE.test(configuredHost);
 
   // Dev + toolbar: talk to PostHog cloud directly so toolbar assets hit us-assets.posthog.com
   // instead of the first-party proxy (custom region breaks asset routing).
-  const useDevCloudDirect = devCaptureEnabled || (import.meta.env.DEV && toolbarLaunch);
+  const useDevCloudDirect =
+    devCaptureEnabled || (import.meta.env.DEV && toolbarLaunch);
   const useDevSameOrigin =
-    import.meta.env.DEV && configuredHost && !isCloudIngestion && !useDevCloudDirect;
+    import.meta.env.DEV &&
+    configuredHost &&
+    !isCloudIngestion &&
+    !useDevCloudDirect;
 
-  const api_host = useDevCloudDirect
-    ? US_CLOUD_INGEST
-    : useDevSameOrigin
-      ? window.location.origin
-      : configuredHost;
+  const api_host_fallback = useDevSameOrigin
+    ? window.location.origin
+    : configuredHost;
+  const api_host = useDevCloudDirect ? US_CLOUD_INGEST : api_host_fallback;
 
   const uiFromEnv = trimHost(import.meta.env.VITE_PUBLIC_POSTHOG_UI_HOST);
-  const ui_host =
-    uiFromEnv ||
-    (useDevCloudDirect || (!isCloudIngestion && configuredHost) ? US_CLOUD_UI : undefined);
+  const uiFallback =
+    useDevCloudDirect || (!isCloudIngestion && configuredHost)
+      ? US_CLOUD_UI
+      : undefined;
+  const ui_host = uiFromEnv || uiFallback;
 
   const allowToolbarAssets = devCaptureEnabled || toolbarLaunch;
 

@@ -1,19 +1,19 @@
 import type { CSSProperties, ReactElement } from "react";
 
 export interface BandProps {
-  colors?: string[];
-  tint?: string;
-  minHeight?: number;
-  maxHeight?: number;
-  rotate?: boolean;
-  scrollStart?: number;
-  scrollEnd?: number;
-  reverse?: boolean;
-  autoAnimate?: boolean;
-  speed?: number;
   amplitude?: number;
+  autoAnimate?: boolean;
   className?: string;
+  colors?: string[];
+  maxHeight?: number;
+  minHeight?: number;
+  reverse?: boolean;
+  rotate?: boolean;
+  scrollEnd?: number;
+  scrollStart?: number;
+  speed?: number;
   style?: CSSProperties;
+  tint?: string;
 }
 
 declare function Band(props: BandProps): ReactElement;

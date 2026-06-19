@@ -1,9 +1,9 @@
-import { addBundleToSandbox, createSandbox } from "@remotion/vercel";
-import { put } from "@vercel/blob";
-import { config as loadEnv } from "dotenv";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { addBundleToSandbox, createSandbox } from "@remotion/vercel";
+import { put } from "@vercel/blob";
+import { config as loadEnv } from "dotenv";
 
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const bundleDir = path.join(repoRoot, ".remotion");
@@ -16,7 +16,7 @@ const getSnapshotBlobKey = () =>
 const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
 if (!blobToken) {
   console.error(
-    "[create-remotion-snapshot] BLOB_READ_WRITE_TOKEN is required. Attach a Vercel Blob store to the project, then redeploy or add the token to .env.local for local builds.",
+    "[create-remotion-snapshot] BLOB_READ_WRITE_TOKEN is required. Attach a Vercel Blob store to the project, then redeploy or add the token to .env.local for local builds."
   );
   process.exit(1);
 }
@@ -54,7 +54,11 @@ try {
     token: blobToken,
   });
 
-  console.log(`[create-remotion-snapshot] Snapshot saved (${snapshotId}) → ${blobKey}`);
+  console.log(
+    `[create-remotion-snapshot] Snapshot saved (${snapshotId}) → ${blobKey}`
+  );
 } finally {
-  await sandbox.stop().catch(() => {});
+  await sandbox.stop().catch(() => {
+    /* noop */
+  });
 }

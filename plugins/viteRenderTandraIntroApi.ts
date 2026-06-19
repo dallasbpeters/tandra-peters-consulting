@@ -5,7 +5,8 @@ import renderTandraIntro from "../api/render-tandra-intro.js";
 
 const RENDER_PATH = "/api/render-tandra-intro";
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -18,7 +19,9 @@ const readBody = (req: IncomingMessage): Promise<Buffer> =>
   });
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
-  if (!buffer.length) return {};
+  if (!buffer.length) {
+    return {};
+  }
   try {
     return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
   } catch {
@@ -31,7 +34,9 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
  * so the Studio can render against the local site origin instead of relying on
  * the deployed `/api/render-tandra-intro` URL.
  */
-export const viteRenderTandraIntroApi = (env: Record<string, string>): Plugin => ({
+export const viteRenderTandraIntroApi = (
+  env: Record<string, string>
+): Plugin => ({
   name: "vite-render-tandra-intro-api",
   configureServer(server) {
     for (const key of [
@@ -57,7 +62,7 @@ export const viteRenderTandraIntroApi = (env: Record<string, string>): Plugin =>
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
       res.setHeader(
         "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, x-force-render, x-render-secret",
+        "Content-Type, Authorization, x-force-render, x-render-secret"
       );
 
       if (req.method === "OPTIONS") {
@@ -84,7 +89,8 @@ export const viteRenderTandraIntroApi = (env: Record<string, string>): Plugin =>
               }
             : {}),
         };
-        const query = new URL(req.url ?? RENDER_PATH, "http://localhost").searchParams;
+        const query = new URL(req.url ?? RENDER_PATH, "http://localhost")
+          .searchParams;
 
         const devRes = {
           setHeader(name: string, value: string | number | readonly string[]) {
@@ -115,7 +121,7 @@ export const viteRenderTandraIntroApi = (env: Record<string, string>): Plugin =>
             query: Object.fromEntries(query.entries()),
             body,
           } as never,
-          devRes as never,
+          devRes as never
         );
       } catch (error) {
         console.error("[vite-render-tandra-intro-api]", error);

@@ -1,13 +1,13 @@
 import { defineField } from "sanity";
 
-type GeneratedImageOpts = {
+interface GeneratedImageOpts {
+  description?: string;
   name: string;
   title?: string;
-  description?: string;
   /** Use Sanity image rules, e.g. `(rule) => rule.required()` */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validation?: (rule: any) => any;
-};
+}
 
 export const defineGeneratedImage = (opts: GeneratedImageOpts) =>
   defineField({

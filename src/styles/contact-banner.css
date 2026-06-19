@@ -3,12 +3,20 @@
 .contact-banner__grid::before {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(to right, var(--contact-banner-grid-color) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--contact-banner-grid-color) 1px, transparent 1px);
-  background-size: 16px 16px;
   pointer-events: none;
   content: "";
+  background-image:
+    linear-gradient(
+      to right,
+      var(--contact-banner-grid-color) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      var(--contact-banner-grid-color) 1px,
+      transparent 1px
+    );
+  background-size: 16px 16px;
 }
 
 .contact-banner__grid::after {
@@ -17,11 +25,11 @@
   left: 20%;
   width: min(500px, 70vw);
   height: min(500px, 70vw);
-  border-radius: 50%;
-  background: var(--contact-banner-accent-glow);
-  filter: blur(120px);
   pointer-events: none;
   content: "";
+  background: var(--contact-banner-accent-glow);
+  border-radius: 50%;
+  filter: blur(120px);
 }
 
 .contact-banner__pulse {
@@ -35,13 +43,13 @@
 .contact-banner__pulse::after {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
   content: "";
+  border-radius: 50%;
 }
 
 .contact-banner__pulse::before {
-  animation: contact-banner-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
   background: var(--contact-banner-pulse-ping);
+  animation: contact-banner-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .contact-banner__pulse::after {
@@ -72,12 +80,13 @@
 .contact-banner__cta:hover,
 .contact-banner__cta:focus-visible {
   /* eslint-disable-next-line css/no-important */
+  outline: 2px solid var(--contact-banner-cta-focus);
+  outline-offset: 3px;
+  /* eslint-disable-next-line css/no-important */
   background: var(--contact-banner-cta-hover-bg) !important;
 
   /* eslint-disable-next-line css/no-important */
   box-shadow: 0 8px 32px 0 var(--contact-banner-cta-hover-shadow) !important;
-  outline: 2px solid var(--contact-banner-cta-focus);
-  outline-offset: 3px;
 }
 
 .contact-banner__cta:hover .contact-banner__cta-label,
@@ -92,6 +101,6 @@
 
 .contact-banner__cta:hover .contact-banner__cta-icon,
 .contact-banner__cta:focus-visible .contact-banner__cta-icon {
-  transform: scale(1.05);
   background-color: var(--contact-banner-icon-hover-bg);
+  transform: scale(1.05);
 }

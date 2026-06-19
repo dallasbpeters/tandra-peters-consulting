@@ -1,8 +1,5 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import type { PostListItem } from "../types/article";
-
 import {
   getSanityClient,
   isSanityPresentationPreviewActive,
@@ -10,6 +7,7 @@ import {
 } from "../sanity/client";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
+import type { PostListItem } from "../types/article";
 
 const isPostListItem = (v: unknown): v is PostListItem => {
   if (!v || typeof v !== "object") {
@@ -32,22 +30,24 @@ const filterResolvedPosts = (v: unknown): PostListItem[] => {
 };
 
 const homeArticleTeaser = (
-  home: Record<string, unknown> | null | undefined,
+  home: Record<string, unknown> | null | undefined
 ): Record<string, unknown> | undefined => {
   const sections = home?.sections;
   if (!Array.isArray(sections)) {
-    return undefined;
+    return;
   }
   const section = sections.find(
     (item): item is { _type?: string; data?: Record<string, unknown> } =>
       Boolean(item) &&
       typeof item === "object" &&
-      (item as { _type?: unknown })._type === "articlesTeaserSection",
+      (item as { _type?: unknown })._type === "articlesTeaserSection"
   );
   return section?.data;
 };
 
-const teaserMaxPosts = (home: Record<string, unknown> | null | undefined): number => {
+const teaserMaxPosts = (
+  home: Record<string, unknown> | null | undefined
+): number => {
   const teaser = homeArticleTeaser(home);
   const raw = teaser?.maxPosts;
   if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -59,13 +59,14 @@ const teaserMaxPosts = (home: Record<string, unknown> | null | undefined): numbe
 /** Curated list when set; otherwise newest posts. Always capped by `articlesTeaser.maxPosts`. */
 const resolveHomeArticleCards = (
   latestFromQuery: PostListItem[] | null | undefined,
-  home: Record<string, unknown> | null | undefined,
+  home: Record<string, unknown> | null | undefined
 ): PostListItem[] => {
   const n = teaserMaxPosts(home);
   const teaser = homeArticleTeaser(home);
   const fromArticles = filterResolvedPosts(teaser?.articlesResolved);
   const fromLegacy = filterResolvedPosts(teaser?.legacyFeaturedResolved);
-  const manual = fromArticles.length > 0 ? fromArticles : fromLegacy.length > 0 ? fromLegacy : [];
+  const manualFromLegacy = fromLegacy.length > 0 ? fromLegacy : [];
+  const manual = fromArticles.length > 0 ? fromArticles : manualFromLegacy;
 
   if (manual.length > 0) {
     return manual.slice(0, n);
@@ -75,11 +76,11 @@ const resolveHomeArticleCards = (
   return list.slice(0, n);
 };
 
-export type HomeDocuments = {
+export interface HomeDocuments {
   home: Record<string, unknown> | null;
-  site: Record<string, unknown> | null;
   latestPosts: PostListItem[];
-};
+  site: Record<string, unknown> | null;
+}
 
 const PRESENTATION_REFETCH_MS = 450;
 
@@ -97,14 +98,14 @@ const readCache = (): HomeDocuments | null => {
 const writeCache = (data: HomeDocuments): void => {
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch (_) {
+  } catch {
     // sessionStorage may be unavailable (private browsing, quota exceeded)
   }
 };
 
 const debounce = <Args extends unknown[]>(
   fn: (...args: Args) => void,
-  waitMs: number,
+  waitMs: number
 ): ((...args: Args) => void) & { cancel: () => void } => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -170,12 +171,12 @@ export const useSanityHomeContent = () => {
   const scheduleRefetch = useMemo(
     () =>
       debounce(() => {
-        void refetchNowRef.current();
+        refetchNowRef.current().catch(() => undefined);
       }, PRESENTATION_REFETCH_MS),
-    [],
+    []
   );
 
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(() => {
     scheduleRefetch();
   }, [scheduleRefetch]);
 
@@ -183,7 +184,7 @@ export const useSanityHomeContent = () => {
     () => () => {
       scheduleRefetch.cancel();
     },
-    [scheduleRefetch],
+    [scheduleRefetch]
   );
 
   useEffect(() => {
@@ -208,7 +209,7 @@ export const useSanityHomeContent = () => {
         }
       }
     };
-    void run();
+    run().catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -220,7 +221,10 @@ export const useSanityHomeContent = () => {
     };
     window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
     return () => {
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        handleRefresh
+      );
     };
   }, [scheduleRefetch]);
 
@@ -233,7 +237,11 @@ export const useSanityHomeContent = () => {
 
     const client = getSanityClient();
     const subscription = client
-      .listen('*[_id in ["homePage", "drafts.homePage"]]', {}, { includeResult: false })
+      .listen(
+        '*[_id in ["homePage", "drafts.homePage"]]',
+        {},
+        { includeResult: false }
+      )
       .subscribe(() => {
         scheduleRefetch();
       });

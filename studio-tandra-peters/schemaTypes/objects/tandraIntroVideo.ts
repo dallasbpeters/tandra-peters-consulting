@@ -18,7 +18,8 @@ export const tandraIntroVideoType = defineType({
   name: "tandraIntroVideo",
   title: "Tandra intro video",
   type: "object",
-  description: "Editable copy and render output for the 30-second Remotion intro video.",
+  description:
+    "Editable copy and render output for the 30-second Remotion intro video.",
   groups: [
     { name: "storm", title: "Opening", default: true },
     { name: "straightAnswers", title: "Straight answers" },
@@ -35,7 +36,8 @@ export const tandraIntroVideoType = defineType({
       title: "Show captions",
       type: "boolean",
       initialValue: false,
-      description: "Toggle the subtitle overlay in the rendered video and preview.",
+      description:
+        "Toggle the subtitle overlay in the rendered video and preview.",
     }),
     defineField({
       name: "thumbnail",
@@ -43,7 +45,8 @@ export const tandraIntroVideoType = defineType({
       type: "image",
       group: "media",
       options: { hotspot: true },
-      description: "Poster image shown before the Remotion player or rendered MP4 starts.",
+      description:
+        "Poster image shown before the Remotion player or rendered MP4 starts.",
     }),
     defineField({
       name: "storm",
@@ -52,7 +55,12 @@ export const tandraIntroVideoType = defineType({
       group: "storm",
       fields: [
         ...lineFields,
-        defineField({ name: "body", title: "Body copy", type: "text", rows: 3 }),
+        defineField({
+          name: "body",
+          title: "Body copy",
+          type: "text",
+          rows: 3,
+        }),
       ],
     }),
     defineField({
@@ -74,7 +82,12 @@ export const tandraIntroVideoType = defineType({
       fields: [
         ...lineFields,
         defineField({ name: "line3", title: "Line 3", type: "string" }),
-        defineField({ name: "body", title: "Body copy", type: "text", rows: 3 }),
+        defineField({
+          name: "body",
+          title: "Body copy",
+          type: "text",
+          rows: 3,
+        }),
       ],
     }),
     defineField({

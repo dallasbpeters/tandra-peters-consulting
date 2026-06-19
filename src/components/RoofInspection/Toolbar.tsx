@@ -11,16 +11,16 @@ import { motion } from "motion/react";
  * the `<RoofInspection.Toolbar />` line in the page is commented out). Restore
  * it to surface view-switching controls to users.
  */
-import React from "react";
+import type React from "react";
 
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
 import { useCameraContext } from "./context";
 
-type ToolbarProps = {
+interface ToolbarProps {
   /** Instructional copy shown to the right of the tabs. */
   hint?: string;
-};
+}
 
 const hairline = mix(theme.colors.everglade, 18);
 const mutedText = theme.palette.everglade["700"];
@@ -95,27 +95,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <div
-      className="roof-toolbar wa-gap-2xl"
-      style={wrapperStyle}
-      role="toolbar"
       aria-label="Diagram view options"
+      className="roof-toolbar wa-gap-2xl"
+      role="toolbar"
+      style={wrapperStyle}
     >
-      <div className="roof-tab-group" style={tabGroupStyle} role="tablist">
+      <div className="roof-tab-group" role="tablist" style={tabGroupStyle}>
         {views.map((view) => {
           const isActive = activeViewId === view.id;
           return (
             <motion.button
-              key={view.id}
-              role="tab"
-              aria-selected={isActive}
-              style={tabStyle}
-              onTap={() => setActiveViewId(view.id)}
-              variants={variants}
-              initial="initial"
               animate={isActive ? "active" : "initial"}
+              aria-selected={isActive}
+              initial="initial"
+              key={view.id}
+              onTap={() => setActiveViewId(view.id)}
+              role="tab"
+              style={tabStyle}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              variants={variants}
               whileHover="hover"
               whileTap="tap"
-              transition={{ duration: 0.18, ease: "easeOut" }}
             >
               {view.label}
             </motion.button>

@@ -1,14 +1,12 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
 import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useState } from "react";
-
-import type { NavProps } from "../../types";
-
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
+import type { NavProps } from "../../types";
 import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
@@ -25,6 +23,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   ],
   ctaText = "Book Consult",
   ctaHref = "#contact",
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }) => {
   const posthog = usePostHog();
   const isMobile = useIsMobile(1400);
@@ -44,6 +43,10 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   const leftLinks = navItems.slice(0, mid);
   const rightLinks = navItems.slice(mid);
 
+  const ctaBackground = glassed
+    ? theme.colors.heroAccent
+    : theme.colors.everglade;
+
   const styles: Record<string, CSSProperties> = {
     nav: {
       position: "fixed",
@@ -51,9 +54,14 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       left: 0,
       right: 0,
       zIndex: 50,
-      background: glassed || menuOpen ? theme.colors.everglade : mix(theme.colors.white, 50),
+      background:
+        glassed || menuOpen
+          ? theme.colors.everglade
+          : mix(theme.colors.white, 50),
       backdropFilter: glassed || menuOpen ? "blur(20px) saturate(1.3)" : "none",
-      borderBottom: glassed ? "1px solid oklch(100% 0 0 / 0.08)" : "1px solid transparent",
+      borderBottom: glassed
+        ? "1px solid oklch(100% 0 0 / 0.08)"
+        : "1px solid transparent",
       transition: "background 0.35s, backdrop-filter 0.35s, border-color 0.35s",
     },
     navInner: {
@@ -125,11 +133,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       display: isMobile ? "none" : "block",
     },
     cta: {
-      background: hovBtn
-        ? theme.colors.accent
-        : glassed
-          ? theme.colors.heroAccent
-          : theme.colors.everglade,
+      background: hovBtn ? theme.colors.accent : ctaBackground,
       color: theme.colors.white,
       padding: `${theme.spacing.sm} ${theme.spacing.insetXl}`,
       borderRadius: theme.radius.pill,
@@ -189,10 +193,18 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   };
 
   return (
-    <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
+    <nav
+      aria-label="Site navigation"
+      className="site-nav-vt"
+      style={styles.nav}
+    >
       <div style={styles.navInner}>
         {/* Centered logo */}
-        <TransitionLink to="/" className="logo" style={{ ...styles.logo, textDecoration: "none" }}>
+        <TransitionLink
+          className="logo"
+          style={{ ...styles.logo, textDecoration: "none" }}
+          to="/"
+        >
           <span style={styles.logoText}>{logoText}</span>
           <span style={styles.logoTagline}>{logoTagline}</span>
         </TransitionLink>
@@ -200,22 +212,22 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
           <div style={styles.linkGroupLeft}>
             {leftLinks.map((item) => (
               <SiteNavLink
-                key={item.name}
                 href={item.href}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
+                key={item.name}
                 onMouseEnter={() => setHovLink(item.name)}
                 onMouseLeave={() => setHovLink(null)}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
               >
                 {item.name}
               </SiteNavLink>
             ))}
             {rightLinks.map((item) => (
               <SiteNavLink
-                key={item.name}
                 href={item.href}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
+                key={item.name}
                 onMouseEnter={() => setHovLink(item.name)}
                 onMouseLeave={() => setHovLink(null)}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
               >
                 {item.name}
               </SiteNavLink>
@@ -227,15 +239,15 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
         <div style={styles.linkGroupRight}>
           <SiteNavLink
             href={ctaHref}
-            style={styles.cta}
-            onMouseEnter={() => setHovBtn(true)}
-            onMouseLeave={() => setHovBtn(false)}
             onClick={() =>
               posthog?.capture("nav_cta_clicked", {
                 variant: "glass-overlay",
                 cta_text: ctaText,
               })
             }
+            onMouseEnter={() => setHovBtn(true)}
+            onMouseLeave={() => setHovBtn(false)}
+            style={styles.cta}
           >
             {ctaText}
           </SiteNavLink>
@@ -243,16 +255,16 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
         <GoogleAuthGate>
           {/* Hamburger — mobile only */}
           <button
-            type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            style={styles.hamburger}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             onClick={() => setMenuOpen(!menuOpen)}
+            style={styles.hamburger}
+            type="button"
           >
             {menuOpen ? (
-              <Xmark width={24} height={24} aria-hidden />
+              <Xmark aria-hidden height={24} width={24} />
             ) : (
-              <Menu width={24} height={24} aria-hidden />
+              <Menu aria-hidden height={24} width={24} />
             )}
           </button>
         </GoogleAuthGate>
@@ -262,31 +274,30 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }}
+            style={styles.mobileMenu}
             transition={{
               type: "spring",
               mass: 0.5,
               damping: 20,
               stiffness: 300,
             }}
-            style={styles.mobileMenu}
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
                 <SiteNavLink
-                  key={item.name}
                   href={item.href}
-                  style={styles.mobileLink}
+                  key={item.name}
                   onClick={() => setMenuOpen(false)}
+                  style={styles.mobileLink}
                 >
                   {item.name}
                 </SiteNavLink>
               ))}
               <SiteNavLink
                 href={ctaHref}
-                style={styles.mobileCta}
                 onClick={() => {
                   posthog?.capture("nav_cta_clicked", {
                     variant: "glass-overlay",
@@ -295,6 +306,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
                   });
                   setMenuOpen(false);
                 }}
+                style={styles.mobileCta}
               >
                 {ctaText}
               </SiteNavLink>

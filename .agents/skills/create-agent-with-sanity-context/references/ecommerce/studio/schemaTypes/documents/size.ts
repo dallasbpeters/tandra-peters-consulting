@@ -43,7 +43,8 @@ export const size = defineType({
     prepare({ title, code, sortOrder }) {
       return {
         title: `${code} - ${title}`,
-        subtitle: sortOrder !== undefined ? `Sort order: ${sortOrder}` : undefined,
+        subtitle:
+          sortOrder === undefined ? undefined : `Sort order: ${sortOrder}`,
       };
     },
   },

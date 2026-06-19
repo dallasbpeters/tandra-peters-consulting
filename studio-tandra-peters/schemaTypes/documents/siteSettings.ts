@@ -12,18 +12,27 @@ export const siteSettingsType = defineType({
       type: "string",
       title: "Nav logo text",
     }),
-    defineField({ name: "navLogoTagline", type: "string", title: "Nav logo tagline" }),
+    defineField({
+      name: "navLogoTagline",
+      type: "string",
+      title: "Nav logo tagline",
+    }),
     defineGeneratedImage({
       name: "navLogoImage",
       title: "Nav logo image",
-      description: "Sanity image asset (upload or AI). Shown beside logo text in the nav.",
+      description:
+        "Sanity image asset (upload or AI). Shown beside logo text in the nav.",
     }),
     defineField({
       name: "navItems",
       type: "array",
       of: [{ type: "navLink" }],
     }),
-    defineField({ name: "navCtaText", type: "string", title: "Nav primary CTA text" }),
+    defineField({
+      name: "navCtaText",
+      type: "string",
+      title: "Nav primary CTA text",
+    }),
     defineField({
       name: "navCtaHref",
       type: "string",
@@ -34,7 +43,8 @@ export const siteSettingsType = defineType({
       name: "navSecondaryCtaText",
       type: "string",
       title: "Nav secondary CTA text",
-      description: "Used by the dual-CTA rail nav variant (e.g. Explore Services).",
+      description:
+        "Used by the dual-CTA rail nav variant (e.g. Explore Services).",
     }),
     defineField({
       name: "navSecondaryCtaHref",

@@ -12,7 +12,7 @@ export const agentConversation = defineType({
     },
     prepare({ title, successRate }) {
       return {
-        title: title,
+        title,
         subtitle: `${successRate || 0}% success rate`,
       };
     },

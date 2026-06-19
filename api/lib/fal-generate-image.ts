@@ -54,7 +54,7 @@ type ImageToImageEndpoint =
   | "fal-ai/flux-2-pro/edit"
   | "fal-ai/qwen-image/image-to-image";
 
-type ImageModelConfig = {
+interface ImageModelConfig {
   imageEndpoint?: ImageToImageEndpoint;
   imageInputKind?: "imageUrl" | "imageUrls";
   inputKind: "aspectRatio" | "imageSize" | "seedream";
@@ -68,7 +68,7 @@ type ImageModelConfig = {
   supportsImageReference?: boolean;
   supportsReferenceStrength?: boolean;
   supportsWebp?: boolean;
-};
+}
 
 const IMAGE_TO_IMAGE_ENDPOINTS_WITH_STRENGTH = new Set<ImageToImageEndpoint>([
   "fal-ai/flux/dev/image-to-image",
@@ -170,44 +170,46 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
   },
 };
 
-const isBackgroundRemovalModel = (value: unknown): value is BackgroundRemovalModel =>
+const isBackgroundRemovalModel = (
+  value: unknown
+): value is BackgroundRemovalModel =>
   value === "ideogram" || value === "bria" || value === "birefnet-heavy";
 
-type FalGenerateImageBody = {
+interface FalGenerateImageBody {
   backgroundRemovalModel?: unknown;
+  enhancePrompt?: unknown;
+  imageSize?: unknown;
+  loraScale?: unknown;
   mode?: unknown;
   model?: unknown;
-  imageSize?: unknown;
   numImages?: unknown;
   outputFormat?: unknown;
   prompt?: unknown;
-  referenceImageUrl?: unknown;
   referenceAdherence?: unknown;
-  seriesVariations?: unknown;
+  referenceImageUrl?: unknown;
   seed?: unknown;
-  enhancePrompt?: unknown;
+  seriesVariations?: unknown;
   strength?: unknown;
-  loraScale?: unknown;
-};
+}
 
-type FalImage = {
+interface FalImage {
   content_type?: string;
   file_name?: string;
   file_size?: number;
   height?: number;
   url?: string;
   width?: number;
-};
+}
 
-type FalImageOutput = {
+interface FalImageOutput {
   has_nsfw_concepts?: boolean[];
   images?: FalImage[];
   prompt?: string;
   seed?: number;
   timings?: unknown;
-};
+}
 
-type NormalizedJob = {
+interface NormalizedJob {
   appliedLoraScale?: number;
   appliedReferenceAdherence?: number;
   appliedStrength?: number;
@@ -216,7 +218,7 @@ type NormalizedJob = {
   loraUrl?: string;
   prompt: string;
   variation?: string;
-};
+}
 
 const jsonResponse = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
@@ -240,26 +242,35 @@ const normalizeModel = (value: unknown): FalModel => {
   return "fal-ai/flux/schnell";
 };
 
-const clampInteger = (value: unknown, fallback: number, min: number, max: number) => {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim()
-        ? Number(value)
-        : NaN;
+const clampInteger = (
+  value: unknown,
+  fallback: number,
+  min: number,
+  max: number
+) => {
+  let numeric: number;
+  if (typeof value === "number") {
+    numeric = value;
+  } else if (typeof value === "string" && value.trim()) {
+    numeric = Number(value);
+  } else {
+    numeric = Number.NaN;
+  }
   if (!Number.isFinite(numeric)) {
     return fallback;
   }
   return Math.min(max, Math.max(min, Math.round(numeric)));
 };
 
-const clampNumber = (value: unknown, fallback: number, min: number, max: number) => {
-  const numeric =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim()
-        ? Number(value)
-        : NaN;
+const clampNumber = (
+  value: unknown,
+  fallback: number,
+  min: number,
+  max: number
+) => {
+  const numericFromString =
+    typeof value === "string" && value.trim() ? Number(value) : Number.NaN;
+  const numeric = typeof value === "number" ? value : numericFromString;
   if (!Number.isFinite(numeric)) {
     return fallback;
   }
@@ -330,6 +341,8 @@ const buildTextInput = ({
       break;
     case "none":
       break;
+    default:
+      break;
   }
 
   return input;
@@ -350,10 +363,20 @@ const resolveReferenceStrength = ({
   const defaultStrength = DEFAULT_IMG2IMG_STRENGTH[strengthEndpoint];
 
   if (body.referenceAdherence != null) {
-    const appliedReferenceAdherence = clampNumber(body.referenceAdherence, 0.35, 0.05, 1);
+    const appliedReferenceAdherence = clampNumber(
+      body.referenceAdherence,
+      0.35,
+      0.05,
+      1
+    );
     return {
       appliedReferenceAdherence,
-      appliedStrength: clampNumber(1 - appliedReferenceAdherence, defaultStrength, 0.01, 1),
+      appliedStrength: clampNumber(
+        1 - appliedReferenceAdherence,
+        defaultStrength,
+        0.01,
+        1
+      ),
     };
   }
 
@@ -411,7 +434,9 @@ const buildImageInput = ({
       image_url: referenceImageUrl,
       num_inference_steps: 30,
       output_format: format,
-      strength: strength ?? DEFAULT_IMG2IMG_STRENGTH["fal-ai/qwen-image/image-to-image"],
+      strength:
+        strength ??
+        DEFAULT_IMG2IMG_STRENGTH["fal-ai/qwen-image/image-to-image"],
     };
   }
 
@@ -422,15 +447,17 @@ const buildImageInput = ({
     image_url: referenceImageUrl,
     num_inference_steps: 40,
     output_format: format,
-    strength: strength ?? DEFAULT_IMG2IMG_STRENGTH["fal-ai/flux/dev/image-to-image"],
+    strength:
+      strength ?? DEFAULT_IMG2IMG_STRENGTH["fal-ai/flux/dev/image-to-image"],
   };
 };
 
+const RE_BULLET_PREFIX = /^\s*[-*•]\s+/;
+const RE_NUMBERED_PREFIX = /^\s*\d+[).|:\s-]+\s*/;
+const RE_NEWLINE = /\r?\n/;
+
 const normalizeSeriesVariationLine = (line: string): string =>
-  line
-    .replace(/^\s*[-*•]\s+/, "")
-    .replace(/^\s*\d+[).|:\s-]+\s*/, "")
-    .trim();
+  line.replace(RE_BULLET_PREFIX, "").replace(RE_NUMBERED_PREFIX, "").trim();
 
 const parseSeriesVariations = (value: unknown): string[] => {
   const normalize = (lines: string[]) =>
@@ -441,13 +468,15 @@ const parseSeriesVariations = (value: unknown): string[] => {
 
   if (Array.isArray(value)) {
     return normalize(
-      value.filter((item): item is string => typeof item === "string").map((item) => item.trim()),
+      value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
     );
   }
   if (typeof value !== "string") {
     return [];
   }
-  return normalize(value.split(/\r?\n/).map((line) => line.trim()));
+  return normalize(value.split(RE_NEWLINE).map((line) => line.trim()));
 };
 
 const buildSeriesPrompt = (basePrompt: string, variation: string) =>
@@ -475,26 +504,38 @@ const normalizeJobs = (body: FalGenerateImageBody): NormalizedJob[] => {
 
   const model = normalizeModel(body.model);
   const modelConfig = IMAGE_MODEL_CONFIGS[model];
-  const imageSize = isFalImageSize(body.imageSize) ? body.imageSize : "landscape_4_3";
+  const imageSize = isFalImageSize(body.imageSize)
+    ? body.imageSize
+    : "landscape_4_3";
   const numImages = clampInteger(body.numImages, 1, 1, 4);
   const outputFormat = normalizeOutputFormat(body.outputFormat, model);
   const referenceImageUrl =
-    typeof body.referenceImageUrl === "string" ? body.referenceImageUrl.trim() : "";
+    typeof body.referenceImageUrl === "string"
+      ? body.referenceImageUrl.trim()
+      : "";
   const seed =
-    body.seed === "" || body.seed == null ? undefined : clampInteger(body.seed, 0, 0, 2147483647);
+    body.seed === "" || body.seed == null
+      ? undefined
+      : clampInteger(body.seed, 0, 0, 2_147_483_647);
   const enhancePrompt = body.enhancePrompt !== false;
-  const variations = body.mode === "series" ? parseSeriesVariations(body.seriesVariations) : [];
+  const variations =
+    body.mode === "series" ? parseSeriesVariations(body.seriesVariations) : [];
   const promptJobs = buildPromptJobs(prompt, variations);
 
   if (model === TXSHINGLE_LORA_ENDPOINT) {
     if (referenceImageUrl) {
       throw new Error(
-        "txshingle LoRA is text-to-image only. Clear the Sanity reference image or choose another model.",
+        "txshingle LoRA is text-to-image only. Clear the Sanity reference image or choose another model."
       );
     }
 
     const loraUrl = resolveTxshingleLoraUrl();
-    const loraScale = clampNumber(body.loraScale, DEFAULT_TXSHINGLE_LORA_SCALE, 0.25, 1.5);
+    const loraScale = clampNumber(
+      body.loraScale,
+      DEFAULT_TXSHINGLE_LORA_SCALE,
+      0.25,
+      1.5
+    );
 
     return promptJobs.map((job) => ({
       appliedLoraScale: loraScale,
@@ -518,14 +559,15 @@ const normalizeJobs = (body: FalGenerateImageBody): NormalizedJob[] => {
     if (referenceImageUrl) {
       const endpoint: ImageToImageEndpoint =
         modelConfig.imageEndpoint ?? "fal-ai/flux/dev/image-to-image";
-      const { appliedReferenceAdherence, appliedStrength } = resolveReferenceStrength({
-        body,
-        endpoint,
-      });
+      const { appliedReferenceAdherence, appliedStrength } =
+        resolveReferenceStrength({
+          body,
+          endpoint,
+        });
       const preparedReferenceUrl = prepareReferenceImageUrl(
         referenceImageUrl,
         endpoint,
-        pixelsFromImageSize(imageSize),
+        pixelsFromImageSize(imageSize)
       );
       return {
         appliedReferenceAdherence,
@@ -575,7 +617,8 @@ export const handler = async (request: Request): Promise<Response> => {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Key",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-API-Key",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Origin": "*",
       },
@@ -587,7 +630,10 @@ export const handler = async (request: Request): Promise<Response> => {
   }
 
   if (!falKey?.trim()) {
-    return jsonResponse({ error: "Fal API is not configured. Set FAL_KEY." }, 500);
+    return jsonResponse(
+      { error: "Fal API is not configured. Set FAL_KEY." },
+      500
+    );
   }
 
   try {
@@ -596,7 +642,9 @@ export const handler = async (request: Request): Promise<Response> => {
 
     if (body.mode === "remove-bg" || body.mode === "remove-sky") {
       const imageUrl =
-        typeof body.referenceImageUrl === "string" ? body.referenceImageUrl.trim() : "";
+        typeof body.referenceImageUrl === "string"
+          ? body.referenceImageUrl.trim()
+          : "";
       if (!imageUrl) {
         return jsonResponse(
           {
@@ -605,7 +653,7 @@ export const handler = async (request: Request): Promise<Response> => {
                 ? "referenceImageUrl is required for sky removal."
                 : "referenceImageUrl is required for background removal.",
           },
-          400,
+          400
         );
       }
 
@@ -626,13 +674,14 @@ export const handler = async (request: Request): Promise<Response> => {
           images: [studioImage],
           jobs: [
             {
-              backgroundRemovalModel: body.mode === "remove-bg" ? removalModel : undefined,
+              backgroundRemovalModel:
+                body.mode === "remove-bg" ? removalModel : undefined,
               endpoint: removalResult.endpoint,
               requestId: removalResult.requestId,
             },
           ],
         },
-        200,
+        200
       );
     }
 
@@ -647,18 +696,20 @@ export const handler = async (request: Request): Promise<Response> => {
           startTimeout: 90,
         });
         return { job, result };
-      }),
+      })
     );
     const images = results.flatMap(({ job, result }) => {
       const data = result.data as FalImageOutput;
       return (
         data.images
-          ?.filter((image): image is Required<Pick<FalImage, "url">> & FalImage =>
-            Boolean(image.url),
+          ?.filter(
+            (image): image is Required<Pick<FalImage, "url">> & FalImage =>
+              Boolean(image.url)
           )
           .map((image, index) => ({
             contentType: image.content_type ?? "image/png",
-            fileName: image.file_name ?? `fal-${result.requestId}-${index + 1}.png`,
+            fileName:
+              image.file_name ?? `fal-${result.requestId}-${index + 1}.png`,
             fileSize: image.file_size,
             height: image.height,
             prompt: data.prompt ?? job.prompt,
@@ -688,7 +739,7 @@ export const handler = async (request: Request): Promise<Response> => {
           variation: job.variation,
         })),
       },
-      200,
+      200
     );
   } catch (caught) {
     return jsonResponse({ error: normalizeFalError(caught) }, 500);

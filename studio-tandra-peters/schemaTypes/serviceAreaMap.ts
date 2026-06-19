@@ -50,30 +50,40 @@ export const serviceAreaMapType = defineType({
               name: "countyKey",
               title: "County key",
               type: "string",
-              description: 'Matches GeoJSON feature.properties.id (e.g. "travis", "bexar")',
+              description:
+                'Matches GeoJSON feature.properties.id (e.g. "travis", "bexar")',
               validation: (Rule) => Rule.required(),
             }),
             defineField({
               name: "displayName",
               title: "Display name",
               type: "string",
-              description: 'Shown in the map tooltip (e.g. "Travis County — Austin")',
+              description:
+                'Shown in the map tooltip (e.g. "Travis County — Austin")',
               validation: (Rule) => Rule.required(),
             }),
             defineField({
               name: "clientCount",
               title: "Client count",
               type: "number",
-              description: "Drives the choropleth colour scale — higher = darker green",
+              description:
+                "Drives the choropleth colour scale — higher = darker green",
               validation: (Rule) => Rule.required().min(0).integer(),
             }),
           ],
           preview: {
             select: { title: "displayName", subtitle: "clientCount" },
-            prepare({ title, subtitle }: { title?: string; subtitle?: number }) {
+            prepare({
+              title,
+              subtitle,
+            }: {
+              title?: string;
+              subtitle?: number;
+            }) {
               return {
                 title: title ?? "Unnamed area",
-                subtitle: subtitle != null ? `${subtitle} clients` : "No count set",
+                subtitle:
+                  subtitle == null ? "No count set" : `${subtitle} clients`,
               };
             },
           },

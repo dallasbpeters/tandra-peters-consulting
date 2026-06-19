@@ -1,13 +1,13 @@
 import { usePostHog } from "@posthog/react";
 import { ArrowDownRight, Page, Search, ShieldCheck } from "iconoir-react";
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { ServicesProps } from "../types";
+import type { ServicesProps } from "../types";
 import BirdcreekLogo from "./BirdCreekLogo";
 
 export const Services: React.FC<ServicesProps> = ({
@@ -99,18 +99,18 @@ export const Services: React.FC<ServicesProps> = ({
 
   return (
     <section
-      id="services"
-      className={layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby="services-heading"
+      className={layoutClass.sectionPadded}
+      id="services"
+      style={sectionStyle}
     >
       <div className={layoutClass.containerWide}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={headerStyle}
           className="layout-col-between wa-align-items-start wa-gap-2xl md-row-end"
+          initial={{ opacity: 0, y: 20 }}
+          style={headerStyle}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <style>{`
             .services-grid { display: grid; grid-template-columns: 1fr; gap: var(--wa-space-s); }
@@ -162,184 +162,202 @@ export const Services: React.FC<ServicesProps> = ({
             }}
           >
             <RichText
-              value={description}
               paragraphStyle={{
                 color: "inherit",
                 lineHeight: "inherit",
                 fontSize: "inherit",
               }}
+              value={description}
             />
           </div>
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
           className="services-grid"
+          initial="hidden"
+          variants={containerVariants}
+          viewport={{ once: true, margin: "-100px" }}
+          whileInView="visible"
         >
-          {services.map((service, i) => {
-            const isMain = i === 0;
-            return (
-              <motion.div
-                key={service.id}
-                variants={cardVariants}
-                style={isMain ? mainCardStyle : secondaryCardStyle}
-                className={`${isMain ? "services-span-8" : "services-span-4"} group layout-col-between`}
-              >
-                {isMain && service.image && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      opacity: 0.2,
-                      transition: "opacity 0.7s",
-                    }}
-                    className="group-hover-opacity"
-                  >
-                    <style>{`
+          {
+            // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
+            services.map((service, i) => {
+              const isMain = i === 0;
+              return (
+                <motion.div
+                  className={`${isMain ? "services-span-8" : "services-span-4"} group layout-col-between`}
+                  key={service.id}
+                  style={isMain ? mainCardStyle : secondaryCardStyle}
+                  variants={cardVariants}
+                >
+                  {isMain && service.image && (
+                    <div
+                      className="group-hover-opacity"
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        opacity: 0.2,
+                        transition: "opacity 0.7s",
+                      }}
+                    >
+                      <style>{`
                       .group:hover .group-hover-opacity { opacity: 0.3 !important; }
                       .group:hover .group-hover-scale { transform: scale(1.1) !important; }
                       .group:hover .group-hover-rotate { transform: rotate(45deg) !important; }
                     `}</style>
-                    <img
-                      src={service.image}
-                      alt={service.title}
+                      {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
+                      <img
+                        alt={service.title}
+                        referrerPolicy="no-referrer"
+                        src={service.image}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div style={{ position: "relative", zIndex: 10 }}>
+                    <div
+                      className={
+                        isMain ? "group-hover-scale" : "group-hover-bg-accent"
+                      }
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
+                        width: isMain ? "4rem" : "3rem",
+                        height: isMain ? "4rem" : "3rem",
+                        backgroundColor: isMain
+                          ? theme.colors.accentLight
+                          : theme.palette.coral["400"],
+                        borderRadius: theme.radius.pill,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: "2.5rem",
+                        transition: "all 0.5s",
                       }}
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                )}
-                <div style={{ position: "relative", zIndex: 10 }}>
-                  <div
-                    style={{
-                      width: isMain ? "4rem" : "3rem",
-                      height: isMain ? "4rem" : "3rem",
-                      backgroundColor: isMain
-                        ? theme.colors.accentLight
-                        : theme.palette.coral["400"],
-                      borderRadius: theme.radius.pill,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "2.5rem",
-                      transition: "all 0.5s",
-                    }}
-                    className={isMain ? "group-hover-scale" : "group-hover-bg-accent"}
-                  >
-                    {!isMain && (
-                      <style>{`
+                    >
+                      {!isMain && (
+                        <style>{`
                         .group:hover .group-hover-bg-accent { background-color: ${theme.colors.accentLight} !important; }
                         .group:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 11px 11px -5px rgba(0, 0, 0, 0.04) !important; }
                       `}</style>
-                    )}
-                    <service.icon
-                      width={isMain ? 36 : 28}
-                      height={isMain ? 36 : 28}
-                      style={{ color: theme.colors.white }}
-                    />
+                      )}
+                      <service.icon
+                        height={isMain ? 36 : 28}
+                        style={{ color: theme.colors.white }}
+                        width={isMain ? 36 : 28}
+                      />
+                    </div>
+                    <h3
+                      style={{
+                        color: theme.colors.white,
+                        fontSize: isMain
+                          ? "clamp(2rem, 5vw, 3.75rem)"
+                          : "1.875rem",
+                        lineHeight: isMain ? 1 : 1.25,
+                        marginBottom: "1.5rem",
+                        fontFamily: theme.fonts.headline,
+                        fontWeight: 800,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {service.title}
+                    </h3>
+                    <div
+                      style={{
+                        color: theme.colors.white,
+                        maxWidth: isMain ? "28rem" : "none",
+                        lineHeight: 1.6,
+                        fontSize: isMain ? "1rem" : "1.1rem",
+                      }}
+                    >
+                      <RichText
+                        flow="heading"
+                        linkStyle={{
+                          color: isMain
+                            ? theme.colors.accentLight
+                            : theme.colors.accent,
+                        }}
+                        paragraphStyle={{
+                          color: "inherit",
+                          lineHeight: "inherit",
+                          fontSize: "inherit",
+                        }}
+                        value={service.description}
+                      />
+                    </div>
                   </div>
-                  <h3
-                    style={{
-                      color: theme.colors.white,
-                      fontSize: isMain ? "clamp(2rem, 5vw, 3.75rem)" : "1.875rem",
-                      lineHeight: isMain ? 1 : 1.25,
-                      marginBottom: "1.5rem",
-                      fontFamily: theme.fonts.headline,
-                      fontWeight: 800,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {service.title}
-                  </h3>
                   <div
                     style={{
-                      color: theme.colors.white,
-                      maxWidth: isMain ? "28rem" : "none",
-                      lineHeight: 1.6,
-                      fontSize: isMain ? "1rem" : "1.1rem",
+                      position: "relative",
+                      zIndex: 10,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-end",
                     }}
                   >
-                    <RichText
-                      flow="heading"
-                      value={service.description}
-                      paragraphStyle={{
-                        color: "inherit",
-                        lineHeight: "inherit",
-                        fontSize: "inherit",
+                    <span
+                      style={{
+                        color: `contrast-color(${theme.colors.black})`,
+                        fontFamily: theme.fonts.headline,
+                        fontWeight: 900,
+                        fontSize: isMain ? "6rem" : "3.75rem",
+                        lineHeight: 1,
                       }}
-                      linkStyle={{
-                        color: isMain ? theme.colors.accentLight : theme.colors.accent,
+                    >
+                      {service.id}
+                    </span>
+                    <button
+                      aria-label={`Go to contact — ${service.title}`}
+                      className={isMain ? "group-hover-rotate" : ""}
+                      onClick={() => {
+                        posthog?.capture("service_cta_clicked", {
+                          service_title: service.title,
+                          service_id: service.id,
+                        });
+                        window.location.href = "#contact";
                       }}
-                    />
+                      onMouseEnter={(e) => {
+                        if (!isMain) {
+                          e.currentTarget.style.color = theme.colors.everglade;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isMain) {
+                          e.currentTarget.style.color = "rgba(0, 26, 16, 0.4)";
+                        }
+                      }}
+                      style={{
+                        backgroundColor: isMain
+                          ? "rgba(255, 255, 255, 0.1)"
+                          : "transparent",
+                        color: isMain
+                          ? theme.colors.white
+                          : "rgba(0, 26, 16, 0.4)",
+                        padding: isMain ? "1.5rem" : "0",
+                        borderRadius: theme.radius.pill,
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "all 0.3s",
+                      }}
+                      type="button"
+                    >
+                      <ArrowDownRight
+                        aria-hidden
+                        height={isMain ? 32 : 24}
+                        strokeWidth={2.2}
+                        width={isMain ? 32 : 24}
+                      />
+                    </button>
                   </div>
-                </div>
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 10,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: `contrast-color(${theme.colors.black})`,
-                      fontFamily: theme.fonts.headline,
-                      fontWeight: 900,
-                      fontSize: isMain ? "6rem" : "3.75rem",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {service.id}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Go to contact — ${service.title}`}
-                    onClick={() => {
-                      posthog?.capture("service_cta_clicked", {
-                        service_title: service.title,
-                        service_id: service.id,
-                      });
-                      window.location.href = "#contact";
-                    }}
-                    style={{
-                      backgroundColor: isMain ? "rgba(255, 255, 255, 0.1)" : "transparent",
-                      color: isMain ? theme.colors.white : "rgba(0, 26, 16, 0.4)",
-                      padding: isMain ? "1.5rem" : "0",
-                      borderRadius: theme.radius.pill,
-                      border: "none",
-                      cursor: "pointer",
-                      transition: "all 0.3s",
-                    }}
-                    className={isMain ? "group-hover-rotate" : ""}
-                    onMouseEnter={(e) =>
-                      !isMain && (e.currentTarget.style.color = theme.colors.everglade)
-                    }
-                    onMouseLeave={(e) =>
-                      !isMain && (e.currentTarget.style.color = "rgba(0, 26, 16, 0.4)")
-                    }
-                  >
-                    <ArrowDownRight
-                      width={isMain ? 32 : 24}
-                      height={isMain ? 32 : 24}
-                      strokeWidth={2.2}
-                      aria-hidden
-                    />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })
+          }
 
           <motion.div
-            variants={cardVariants}
+            className="services-span-8 group-advantage"
             style={{
               backgroundColor: theme.palette.gold["100"],
               borderRadius: theme.radius.medium,
@@ -351,7 +369,7 @@ export const Services: React.FC<ServicesProps> = ({
               gap: "1rem",
               transition: "all 0.7s",
             }}
-            className="services-span-8 group-advantage"
+            variants={cardVariants}
           >
             <style>{`
               .group-advantage:hover { background-color: ${theme.colors.everglade} !important; }
@@ -395,22 +413,19 @@ export const Services: React.FC<ServicesProps> = ({
                 }}
               >
                 <RichText
-                  value={birdcreekAdvantage.description}
                   paragraphStyle={{
                     color: "inherit",
                     lineHeight: "inherit",
                     fontSize: "inherit",
                   }}
+                  value={birdcreekAdvantage.description}
                 />
               </div>
             </div>
 
             <a
-              href={birdcreekAdvantage.ctaHref}
-              tabIndex={0}
-              target="_blank"
-              rel="noopener noreferrer"
               className="group-advantage-cta"
+              href={birdcreekAdvantage.ctaHref}
               onClick={() =>
                 posthog?.capture("birdcreek_link_clicked", {
                   cta_label: birdcreekAdvantage.ctaLabel,
@@ -418,6 +433,7 @@ export const Services: React.FC<ServicesProps> = ({
                   services_variant: "control",
                 })
               }
+              rel="noopener noreferrer"
               style={{
                 backgroundColor: theme.colors.everglade,
                 color: theme.colors.white,
@@ -434,6 +450,8 @@ export const Services: React.FC<ServicesProps> = ({
                 textDecoration: "none",
                 display: "inline-block",
               }}
+              tabIndex={0}
+              target="_blank"
             >
               {birdcreekAdvantage.ctaLabel}
             </a>

@@ -1,7 +1,10 @@
 import { useIsMobile } from "../hooks/isMobile";
 import { theme } from "../theme";
 
-const DEFAULT_EMBED_URL = "https://player.vimeo.com/video/834503838?h=f049c62156";
+const DEFAULT_EMBED_URL =
+  "https://player.vimeo.com/video/834503838?h=f049c62156";
+
+const VIMEO_URL_RE = /vimeo\.com\/(?:video\/)?(\d+)/i;
 
 const toVimeoEmbedUrl = (rawUrl?: string): string => {
   if (typeof rawUrl !== "string" || !rawUrl.trim()) {
@@ -14,7 +17,7 @@ const toVimeoEmbedUrl = (rawUrl?: string): string => {
     return trimmed;
   }
 
-  const match = trimmed.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  const match = trimmed.match(VIMEO_URL_RE);
   if (match?.[1]) {
     return `https://player.vimeo.com/video/${match[1]}`;
   }
@@ -22,12 +25,15 @@ const toVimeoEmbedUrl = (rawUrl?: string): string => {
   return DEFAULT_EMBED_URL;
 };
 
-type BirdcreekVideoBannerProps = {
-  vimeoUrl?: string;
+interface BirdcreekVideoBannerProps {
   title?: string;
-};
+  vimeoUrl?: string;
+}
 
-export const BirdcreekVideoBanner = ({ vimeoUrl, title }: BirdcreekVideoBannerProps) => {
+export const BirdcreekVideoBanner = ({
+  vimeoUrl,
+  title,
+}: BirdcreekVideoBannerProps) => {
   const embedUrl = toVimeoEmbedUrl(vimeoUrl);
 
   const isMobile = useIsMobile(1100);
@@ -60,7 +66,7 @@ export const BirdcreekVideoBanner = ({ vimeoUrl, title }: BirdcreekVideoBannerPr
     margin: 0,
     color: theme.colors.paper,
     textAlign: "center",
-    fontSize: `clamp(1.5rem, 3vw, 2.5rem)`,
+    fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
     fontWeight: 700,
     lineHeight: 1.2,
   };
@@ -72,15 +78,17 @@ export const BirdcreekVideoBanner = ({ vimeoUrl, title }: BirdcreekVideoBannerPr
         padding: isMobile ? `${theme.spacing.xxxxl}` : containerStyle.padding,
       }}
     >
-      {typeof title === "string" && title.trim() ? <h2 style={titleStyle}>{title}</h2> : null}
+      {typeof title === "string" && title.trim() ? (
+        <h2 style={titleStyle}>{title}</h2>
+      ) : null}
       <iframe
-        title="vimeo-player"
-        src={embedUrl}
-        style={iframeStyle}
-        referrerPolicy="strict-origin-when-cross-origin"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
         allowFullScreen
-      ></iframe>
+        referrerPolicy="strict-origin-when-cross-origin"
+        src={embedUrl}
+        style={iframeStyle}
+        title="vimeo-player"
+      />
     </div>
   );
 };

@@ -23,9 +23,16 @@ export const remapWorkflowEdgesForVerticalStack = (edges: Edge[]): Edge[] =>
     };
   });
 
-const estimatedNodeHeight = (node: Node<WorkflowNodeData>, fallback: number) => {
-  if (node.measured?.height) return node.measured.height;
-  if (node.height) return node.height;
+const estimatedNodeHeight = (
+  node: Node<WorkflowNodeData>,
+  fallback: number
+) => {
+  if (node.measured?.height) {
+    return node.measured.height;
+  }
+  if (node.height) {
+    return node.height;
+  }
   return node.data.wide ? fallback * 2.4 : fallback;
 };
 
@@ -35,7 +42,7 @@ const mobileStackedNodeX = () => WORKFLOW_MOBILE_HORIZONTAL_PAD;
 export const estimateMobileStackedNodes = (
   nodes: Node<WorkflowNodeData>[],
   originY: number,
-  estimatedRowHeight: number,
+  estimatedRowHeight: number
 ): Node<WorkflowNodeData>[] => {
   let y = originY;
   return sortByStep(nodes).map((node) => {
@@ -52,9 +59,9 @@ export const estimateMobileStackedNodes = (
 /** Reflow stack using measured widths/heights and center within the canvas. */
 export const measureMobileStackedNodes = (
   nodes: Node<WorkflowNodeData>[],
-  canvasWidth: number,
+  _canvasWidth: number,
   originY: number,
-  fallbackRowHeight: number,
+  fallbackRowHeight: number
 ): Node<WorkflowNodeData>[] => {
   let y = originY;
 
@@ -69,12 +76,16 @@ export const measureMobileStackedNodes = (
 
 export const mobileStackPositionsChanged = (
   current: Node<WorkflowNodeData>[],
-  next: Node<WorkflowNodeData>[],
+  next: Node<WorkflowNodeData>[]
 ) => {
   const currentById = new Map(current.map((node) => [node.id, node]));
   return next.some((node) => {
     const prev = currentById.get(node.id);
-    if (!prev) return true;
-    return prev.position.x !== node.position.x || prev.position.y !== node.position.y;
+    if (!prev) {
+      return true;
+    }
+    return (
+      prev.position.x !== node.position.x || prev.position.y !== node.position.y
+    );
   });
 };

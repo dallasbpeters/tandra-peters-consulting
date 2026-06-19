@@ -63,7 +63,8 @@ export const workflowDiagramEdgeType = defineType({
     },
     prepare: ({ label, sourceStep, targetStep }) => ({
       title: label || "Connection",
-      subtitle: sourceStep && targetStep ? `${sourceStep} → ${targetStep}` : undefined,
+      subtitle:
+        sourceStep && targetStep ? `${sourceStep} → ${targetStep}` : undefined,
     }),
   },
 });

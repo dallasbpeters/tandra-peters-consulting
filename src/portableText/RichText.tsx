@@ -1,13 +1,15 @@
-import type { PortableTextBlock } from "@portabletext/types";
-
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
-import { useMemo, type CSSProperties, type ReactNode } from "react";
+import type { PortableTextBlock } from "@portabletext/types";
+import { type CSSProperties, type ReactNode, useMemo } from "react";
 
 import { theme } from "../theme";
 import { coercePortableTextInput } from "./value";
 
 /** Strip zero-width and invisible unicode chars that pollute SplitText word splitting. */
-const cleanText = (text: string): string => text.replace(/[\u200B-\u200D\uFEFF\u2060-\u206F]/g, "");
+const cleanText = (text: string): string =>
+  text.replace(/[\u200B-\u200D\uFEFF\u2060-\u206F]/g, "");
+
+const EXTERNAL_LINK_RE = /^https?:\/\//i;
 
 /** Deep-clean all text spans in a PortableText block array. */
 const sanitizeBlocks = (blocks: PortableTextBlock[]): PortableTextBlock[] =>
@@ -21,22 +23,22 @@ const sanitizeBlocks = (blocks: PortableTextBlock[]): PortableTextBlock[] =>
 
 export type RichTextValue = PortableTextBlock[] | string | undefined | null;
 
-export type RichTextProps = {
-  value: RichTextValue;
+export interface RichTextProps {
+  blockquoteStyle?: CSSProperties;
+  className?: string;
   /**
    * `heading`: block nodes render as `div`/`span` flows (no `<p>`), for use inside
    * `role="heading"` regions or tight card layouts.
    */
   flow?: "default" | "heading";
-  /** Applied to normal paragraphs (and string fallback). */
-  paragraphStyle?: CSSProperties;
   heading2Style?: CSSProperties;
   heading3Style?: CSSProperties;
-  blockquoteStyle?: CSSProperties;
-  listStyle?: CSSProperties;
   linkStyle?: CSSProperties;
-  className?: string;
-};
+  listStyle?: CSSProperties;
+  /** Applied to normal paragraphs (and string fallback). */
+  paragraphStyle?: CSSProperties;
+  value: RichTextValue;
+}
 
 export const RichText = ({
   value,
@@ -56,21 +58,39 @@ export const RichText = ({
       block: {
         normal: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...paragraphStyle }}>{children}</div>
+            <div
+              style={{ margin: `0 0 ${theme.spacing.sm}`, ...paragraphStyle }}
+            >
+              {children}
+            </div>
           ) : (
-            <p style={{ margin: `0 0 ${theme.spacing.lg}`, ...paragraphStyle }}>{children}</p>
+            <p style={{ margin: `0 0 ${theme.spacing.lg}`, ...paragraphStyle }}>
+              {children}
+            </p>
           ),
         h2: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading2Style }}>{children}</div>
+            <div
+              style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading2Style }}
+            >
+              {children}
+            </div>
           ) : (
-            <h2 style={{ margin: `0 0 ${theme.spacing.md}`, ...heading2Style }}>{children}</h2>
+            <h2 style={{ margin: `0 0 ${theme.spacing.md}`, ...heading2Style }}>
+              {children}
+            </h2>
           ),
         h3: ({ children }) =>
           isHeadingFlow ? (
-            <div style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}>{children}</div>
+            <div
+              style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}
+            >
+              {children}
+            </div>
           ) : (
-            <h3 style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}>{children}</h3>
+            <h3 style={{ margin: `0 0 ${theme.spacing.sm}`, ...heading3Style }}>
+              {children}
+            </h3>
           ),
         blockquote: ({ children }) =>
           isHeadingFlow ? (
@@ -124,18 +144,24 @@ export const RichText = ({
         ),
       },
       listItem: {
-        bullet: ({ children }) => <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>,
-        number: ({ children }) => <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>,
+        bullet: ({ children }) => (
+          <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>
+        ),
+        number: ({ children }) => (
+          <li style={{ marginBottom: theme.spacing.sm }}>{children}</li>
+        ),
       },
       marks: {
-        strong: ({ children }) => <strong>{cleanText(String(children))}</strong>,
+        strong: ({ children }) => (
+          <strong>{cleanText(String(children))}</strong>
+        ),
         em: ({ children }) => <em>{cleanText(String(children))}</em>,
         link: ({ value: linkValue, children }) => {
           const href = linkValue?.href;
           if (!href) {
             return <>{cleanText(String(children))}</>;
           }
-          const isExternal = /^https?:\/\//i.test(href);
+          const isExternal = EXTERNAL_LINK_RE.test(href);
           return (
             <a
               href={href}
@@ -145,7 +171,9 @@ export const RichText = ({
                 textUnderlineOffset: "2px",
                 ...linkStyle,
               }}
-              {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              {...(isExternal
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
             >
               {cleanText(String(children))}
             </a>
@@ -163,7 +191,7 @@ export const RichText = ({
       blockquoteStyle,
       listStyle,
       linkStyle,
-    ],
+    ]
   );
 
   if (value == null) {
@@ -179,7 +207,10 @@ export const RichText = ({
     const stringMargin = isHeadingFlow ? "0 0 0.5rem" : "0 0 1rem";
     const StringTag = isHeadingFlow ? "div" : "p";
     return (
-      <StringTag className={className} style={{ margin: stringMargin, ...paragraphStyle }}>
+      <StringTag
+        className={className}
+        style={{ margin: stringMargin, ...paragraphStyle }}
+      >
         {cleanText(normalized)}
       </StringTag>
     );
@@ -193,7 +224,7 @@ export const RichText = ({
 
   return (
     <div className={className} style={{ overflowWrap: "anywhere" }}>
-      <PortableText value={sanitized} components={components} />
+      <PortableText components={components} value={sanitized} />
     </div>
   );
 };

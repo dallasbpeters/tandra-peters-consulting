@@ -3,14 +3,15 @@ import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import { usePostHog } from "@posthog/react";
 import { Mail, Phone, Send } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useState } from "react";
-import { Shader, LinearGradient, WaveDistortion, Dither } from "shaders/react";
+import type React from "react";
+import { useState } from "react";
+import { Dither, LinearGradient, Shader, WaveDistortion } from "shaders/react";
 
 import { layoutClass } from "../styles/layoutClasses";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
 import { mix, theme } from "../theme";
-import { ContactProps } from "../types";
+import type { ContactProps } from "../types";
 import { TransitionLink } from "./TransitionLink";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
@@ -18,14 +19,16 @@ const CONTACT_API_PATH = "/api/contact";
 
 /** Compact form has no service picker; API requires `serviceInterest` + `message`. */
 const COMPACT_DEFAULT_SERVICE = "shingle-roofing";
-const COMPACT_DEFAULT_MESSAGE = "Please contact me using the email and phone provided.";
+const COMPACT_DEFAULT_MESSAGE =
+  "Please contact me using the email and phone provided.";
 
 const trackGaContactForm = (payload: Record<string, unknown>) => {
   if (typeof window === "undefined") {
     return;
   }
 
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
+    .gtag;
   if (typeof gtag !== "function") {
     return;
   }
@@ -42,9 +45,9 @@ export const ContactSmall = ({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "sending" | "success" | "error">(
-    "idle",
-  );
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
 
@@ -57,7 +60,9 @@ export const ContactSmall = ({
 
     if (!consentToContact) {
       setSubmitStatus("error");
-      setErrorMessage("Please confirm you agree to be contacted before sending your message.");
+      setErrorMessage(
+        "Please confirm you agree to be contacted before sending your message."
+      );
       return;
     }
 
@@ -86,12 +91,17 @@ export const ContactSmall = ({
       }
       const vercelFnError = res.headers.get("x-vercel-error");
       const contentType = res.headers.get("content-type") ?? "";
-      if (!res.ok || !data.ok) {
+      if (!(res.ok && data.ok)) {
         setSubmitStatus("error");
         const fromApi =
-          typeof data.error === "string" && data.error.trim() ? data.error.trim() : "";
+          typeof data.error === "string" && data.error.trim()
+            ? data.error.trim()
+            : "";
+        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
         const byStatus = (() => {
-          if (fromApi) return "";
+          if (fromApi) {
+            return "";
+          }
           if (res.status === 404) {
             return "Contact form endpoint was not found. On local dev, set VITE_CONTACT_API_URL in .env.local to your live site (Vite will proxy /api) or run `vercel dev`.";
           }
@@ -111,7 +121,9 @@ export const ContactSmall = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
+            (res.status >= 500 ||
+              vercelFnError ||
+              contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -152,7 +164,7 @@ export const ContactSmall = ({
       posthog?.captureException(err);
       setSubmitStatus("error");
       setErrorMessage(
-        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api/contact to production.",
+        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api/contact to production."
       );
     }
   };
@@ -217,7 +229,11 @@ export const ContactSmall = ({
   const submitLabel = formLabels?.button ?? "Send";
 
   return (
-    <section id="contact" style={sectionStyle} aria-labelledby="contact-small-heading">
+    <section
+      aria-labelledby="contact-small-heading"
+      id="contact"
+      style={sectionStyle}
+    >
       <div className={layoutClass.containerContactCompact}>
         <style>{`
           .contact-form-field::placeholder {
@@ -236,10 +252,10 @@ export const ContactSmall = ({
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
           style={formCardStyle}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <h2 id="contact-small-heading" style={headingStyle}>
             {title}
@@ -247,8 +263,8 @@ export const ContactSmall = ({
 
           {submitStatus === "success" ? (
             <div
-              role="status"
               aria-live="polite"
+              role="status"
               style={{
                 fontSize: "0.875rem",
                 lineHeight: 1.5,
@@ -258,24 +274,22 @@ export const ContactSmall = ({
               Thanks — your message was sent. We’ll be in touch soon.
             </div>
           ) : (
+            // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onKeyDown stops propagation on a native form element
             <form
+              noValidate
+              onKeyDown={(e) => e.stopPropagation()}
+              onSubmit={handleSubmit}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: theme.spacing.xxl,
               }}
-              onSubmit={handleSubmit}
-              onKeyDown={(e) => e.stopPropagation()}
-              noValidate
             >
               <input
-                type="text"
-                name="_hp"
-                value={honeypot}
-                onChange={(ev) => setHoneypot(ev.target.value)}
-                tabIndex={-1}
-                autoComplete="off"
                 aria-hidden
+                autoComplete="off"
+                name="_hp"
+                onChange={(ev) => setHoneypot(ev.target.value)}
                 style={{
                   position: "absolute",
                   width: 1,
@@ -287,82 +301,86 @@ export const ContactSmall = ({
                   whiteSpace: "nowrap",
                   border: 0,
                 }}
-              />
-
-              <WaInput
-                label={nameLabel}
-                id="contact-small-full-name"
-                name="full-name"
+                tabIndex={-1}
                 type="text"
-                className="contact-form-field"
-                placeholder="John Doe"
-                value={fullName}
-                onChange={(ev) => setFullName(ev.target.value)}
-                required
-                autocomplete="name"
+                value={honeypot}
               />
 
               <WaInput
-                label={emailLabel}
-                id="contact-small-email"
-                name="email"
-                type="email"
+                autocomplete="name"
                 className="contact-form-field"
-                placeholder="john@example.com"
-                value={visitorEmail}
-                onChange={(ev) => setVisitorEmail(ev.target.value)}
+                id="contact-small-full-name"
+                label={nameLabel}
+                name="full-name"
+                onChange={(ev) => setFullName(ev.target.value)}
+                placeholder="John Doe"
                 required
+                type="text"
+                value={fullName}
+              />
+
+              <WaInput
                 autocomplete="email"
+                className="contact-form-field"
+                id="contact-small-email"
+                label={emailLabel}
+                name="email"
+                onChange={(ev) => setVisitorEmail(ev.target.value)}
+                placeholder="john@example.com"
+                required
+                type="email"
+                value={visitorEmail}
               >
                 <Mail
-                  slot="start"
-                  style={{ marginInlineEnd: theme.spacing.sm }}
+                  aria-hidden
                   color="var(--wa-color-brand)"
                   height={16}
+                  slot="start"
+                  style={{ marginInlineEnd: theme.spacing.sm }}
                   width={16}
-                  aria-hidden
                 />
               </WaInput>
 
               <WaInput
-                id="contact-small-phone"
-                name="phone"
-                label="Phone Number"
-                type="tel"
-                className="contact-form-field"
-                placeholder="(512) 555-0100"
-                value={phoneNumber}
-                onChange={(ev) => setPhoneNumber(ev.target.value)}
                 autocomplete="tel"
+                className="contact-form-field"
+                id="contact-small-phone"
+                label="Phone Number"
+                name="phone"
+                onChange={(ev) => setPhoneNumber(ev.target.value)}
+                placeholder="(512) 555-0100"
+                type="tel"
+                value={phoneNumber}
                 withLabel={true}
               >
                 <Phone
-                  slot="start"
-                  style={{ marginInlineEnd: theme.spacing.sm }}
+                  aria-hidden
                   color="var(--wa-color-brand)"
                   height={16}
+                  slot="start"
+                  style={{ marginInlineEnd: theme.spacing.sm }}
                   width={16}
-                  aria-hidden
                 />
               </WaInput>
 
               <div style={consentRowStyle}>
                 <input
-                  type="checkbox"
-                  id="contact-small-consent"
-                  checked={consentToContact}
-                  onChange={(ev) => setConsentToContact(ev.target.checked)}
-                  style={checkboxStyle}
-                  required
                   aria-labelledby="contact-small-consent-desc"
+                  checked={consentToContact}
+                  id="contact-small-consent"
+                  onChange={(ev) => setConsentToContact(ev.target.checked)}
+                  required
+                  style={checkboxStyle}
+                  type="checkbox"
                 />
                 <p id="contact-small-consent-desc">
-                  I agree to be contacted about my inquiry by email, phone, or SMS. I have read the{" "}
-                  <TransitionLink to="/privacy" style={consentLinkStyle}>
+                  I agree to be contacted about my inquiry by email, phone, or
+                  SMS. I have read the{" "}
+                  <TransitionLink style={consentLinkStyle} to="/privacy">
                     Privacy Policy
                   </TransitionLink>{" "}
                   and{" "}
-                  <TransitionLink to="/terms" style={consentLinkStyle}>
+                  <TransitionLink style={consentLinkStyle} to="/terms">
                     Terms of Service
                   </TransitionLink>
                   .
@@ -372,10 +390,9 @@ export const ContactSmall = ({
               <AnimatePresence>
                 {errorMessage ? (
                   <motion.div
-                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, x: -10 }}
                     role="alert"
                     style={{
                       fontSize: "0.875rem",
@@ -385,6 +402,7 @@ export const ContactSmall = ({
                       backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
                       color: theme.colors.danger,
                     }}
+                    transition={{ duration: 0.3 }}
                   >
                     {errorMessage}
                   </motion.div>
@@ -392,7 +410,7 @@ export const ContactSmall = ({
               </AnimatePresence>
 
               <button
-                type="submit"
+                className="send-btn"
                 disabled={submitStatus === "sending"}
                 style={{
                   backgroundColor: theme.colors.everglade,
@@ -414,14 +432,16 @@ export const ContactSmall = ({
                   transition: "all 0.3s",
                   opacity: submitStatus === "sending" ? 0.75 : 1,
                 }}
-                className="send-btn"
+                type="submit"
               >
-                <span>{submitStatus === "sending" ? "Sending…" : submitLabel}</span>
+                <span>
+                  {submitStatus === "sending" ? "Sending…" : submitLabel}
+                </span>
                 <Send
-                  width={18}
-                  height={18}
                   className="send-icon"
+                  height={18}
                   style={{ transition: "transform 0.3s" }}
+                  width={18}
                 />
               </button>
             </form>
@@ -431,7 +451,6 @@ export const ContactSmall = ({
       <Shader style={shaderStyle}>
         {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
         <LinearGradient
-          id="contactGradient"
           colorA="#6c66de"
           colorB="#298f07"
           colorSpace="oklab"
@@ -440,6 +459,7 @@ export const ContactSmall = ({
 
             y: 0.81,
           }}
+          id="contactGradient"
           start={{
             x: 0.18,
 
@@ -448,15 +468,20 @@ export const ContactSmall = ({
         />
 
         <WaveDistortion
-          id="contactWave"
           angle={81}
           frequency={0.9}
+          id="contactWave"
           speed={0.7}
           strength={0.75}
           transform={{ scale: 1.84 }}
         />
 
-        <Dither id="contactDither" blendMode="colorDodge" colorMode="source" pattern="bayer8" />
+        <Dither
+          blendMode="colorDodge"
+          colorMode="source"
+          id="contactDither"
+          pattern="bayer8"
+        />
       </Shader>
     </section>
   );

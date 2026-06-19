@@ -1,14 +1,14 @@
-import { useRef, type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 
 import { useNearViewport } from "../hooks/useNearViewport";
 
-type DeferUntilVisibleProps = {
+interface DeferUntilVisibleProps {
   children: ReactNode;
+  className?: string;
   /** Reserved space before the section mounts (avoids layout shift). */
   minHeight?: string | number;
   rootMargin?: string;
-  className?: string;
-};
+}
 
 /**
  * Mounts children only when the placeholder nears the viewport so lazy chunks,
@@ -24,7 +24,7 @@ export const DeferUntilVisible = ({
   const isNear = useNearViewport(ref, rootMargin);
 
   return (
-    <div ref={ref} className={className} style={{ minHeight }}>
+    <div className={className} ref={ref} style={{ minHeight }}>
       {isNear ? children : null}
     </div>
   );

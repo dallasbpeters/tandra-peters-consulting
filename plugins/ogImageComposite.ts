@@ -1,9 +1,8 @@
-import type { Connect, Plugin } from "vite";
-
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { fileURLToPath } from "url";
+import type { Connect, Plugin } from "vite";
 
 const pluginDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(pluginDir, "..");
@@ -26,8 +25,11 @@ const hexToRgb = (hex: string) => {
   const normalized = hex.replace("#", "");
   const value = Number.parseInt(normalized, 16);
   return {
+    // biome-ignore lint/suspicious/noBitwiseOperators: color channel math
     r: (value >> 16) & 255,
+    // biome-ignore lint/suspicious/noBitwiseOperators: color channel math
     g: (value >> 8) & 255,
+    // biome-ignore lint/suspicious/noBitwiseOperators: color channel math
     b: value & 255,
   };
 };
@@ -78,7 +80,11 @@ const buildCardSvg = (w: number, h: number) => {
 </svg>`;
 };
 
-async function renderSharePng(root: string, w: number, h: number): Promise<Buffer | null> {
+async function renderSharePng(
+  root: string,
+  w: number,
+  h: number
+): Promise<Buffer | null> {
   const backgroundImagePath = path.join(root, "public", backgroundImageName);
   if (!fs.existsSync(backgroundImagePath)) {
     return null;

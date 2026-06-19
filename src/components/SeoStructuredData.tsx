@@ -1,12 +1,18 @@
 import { useEffect } from "react";
 
-import { buildLocalBusinessSchema, buildPersonSchema } from "../../server/seo/businessInfo";
+import {
+  buildLocalBusinessSchema,
+  buildPersonSchema,
+} from "../../server/seo/businessInfo";
 import { resolveSiteOrigin } from "../utils/siteUrl";
 
 const BUSINESS_SCRIPT_ID = "professional-service-json-ld";
 const PERSON_SCRIPT_ID = "person-json-ld";
 
-const injectJsonLd = (id: string, data: Record<string, unknown>): HTMLScriptElement => {
+const injectJsonLd = (
+  id: string,
+  data: Record<string, unknown>
+): HTMLScriptElement => {
   const script = document.createElement("script");
   script.id = id;
   script.type = "application/ld+json";
@@ -28,7 +34,9 @@ export const SeoStructuredData = () => {
     const scripts: HTMLScriptElement[] = [];
 
     if (!document.getElementById(BUSINESS_SCRIPT_ID)) {
-      scripts.push(injectJsonLd(BUSINESS_SCRIPT_ID, buildLocalBusinessSchema(origin)));
+      scripts.push(
+        injectJsonLd(BUSINESS_SCRIPT_ID, buildLocalBusinessSchema(origin))
+      );
     }
     if (!document.getElementById(PERSON_SCRIPT_ID)) {
       scripts.push(injectJsonLd(PERSON_SCRIPT_ID, buildPersonSchema(origin)));

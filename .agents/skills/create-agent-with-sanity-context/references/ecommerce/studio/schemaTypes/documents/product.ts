@@ -45,10 +45,15 @@ export const product = defineType({
       title: "Short Description",
       type: "text",
       rows: 2,
-      description: "Brief description for product listings (max 200 characters)",
+      description:
+        "Brief description for product listings (max 200 characters)",
       group: "content",
       validation: (rule) =>
-        rule.max(200).warning("Keep short descriptions under 200 characters for best display"),
+        rule
+          .max(200)
+          .warning(
+            "Keep short descriptions under 200 characters for best display"
+          ),
     }),
     defineField({
       name: "description",
@@ -127,14 +132,16 @@ export const product = defineType({
       title: "Care Instructions",
       type: "text",
       rows: 3,
-      description: 'Washing and care information (e.g., "Machine wash cold, tumble dry low")',
+      description:
+        'Washing and care information (e.g., "Machine wash cold, tumble dry low")',
       group: "details",
     }),
     defineField({
       name: "tags",
       title: "Tags",
       type: "array",
-      description: 'Search tags for discovery (e.g., "casual", "summer", "basics", "comfortable")',
+      description:
+        'Search tags for discovery (e.g., "casual", "summer", "basics", "comfortable")',
       group: "details",
       of: [{ type: "string" }],
       options: {
@@ -195,9 +202,9 @@ export const product = defineType({
     },
     prepare({ title, sku, category, brand, media }) {
       return {
-        title: title,
+        title,
         subtitle: `${brand || "No brand"} | ${sku || "No SKU"} | ${category || "Uncategorized"}`,
-        media: media,
+        media,
       };
     },
   },

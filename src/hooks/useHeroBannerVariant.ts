@@ -20,7 +20,7 @@ let memoryCache: HeroBannerStyle | undefined;
 
 const readSessionCache = (): HeroBannerStyle | undefined => {
   if (typeof window === "undefined") {
-    return undefined;
+    return;
   }
 
   try {
@@ -32,7 +32,7 @@ const readSessionCache = (): HeroBannerStyle | undefined => {
     // sessionStorage unavailable
   }
 
-  return undefined;
+  return;
 };
 
 const writeSessionCache = (variant: HeroBannerStyle) => {
@@ -50,20 +50,25 @@ const writeSessionCache = (variant: HeroBannerStyle) => {
 };
 
 const normalizeVariant = (
-  value: string | boolean | undefined | null,
+  value: string | boolean | undefined | null
 ): HeroBannerStyle | undefined => {
   if (value === undefined || value === null || value === false) {
-    return undefined;
+    return;
   }
 
-  if (typeof value === "string" && VALID_VARIANTS.has(value as HeroBannerStyle)) {
+  if (
+    typeof value === "string" &&
+    VALID_VARIANTS.has(value as HeroBannerStyle)
+  ) {
     return value as HeroBannerStyle;
   }
 
-  return undefined;
+  return;
 };
 
-const readLiveVariant = (posthog: ReturnType<typeof usePostHog>): HeroBannerStyle | undefined =>
+const readLiveVariant = (
+  posthog: ReturnType<typeof usePostHog>
+): HeroBannerStyle | undefined =>
   normalizeVariant(posthog.getFeatureFlag(HERO_BANNER_STYLE_FLAG));
 
 /**

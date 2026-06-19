@@ -8,7 +8,10 @@ import { GET as pluginAnalyticsGet } from "sanity-plugin-ga-dashboard/api";
  */
 const ENV_ALLOWED_ORIGINS = "GA_DASHBOARD_ALLOWED_ORIGINS";
 
-const LOCAL_ALLOWED_ORIGINS = ["http://localhost:3333", "http://127.0.0.1:3333"];
+const LOCAL_ALLOWED_ORIGINS = [
+  "http://localhost:3333",
+  "http://127.0.0.1:3333",
+];
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -27,7 +30,7 @@ const parseAllowedOrigins = (): string[] => {
 const resolveCorsOrigin = (origin: string | undefined): string | undefined => {
   const allowedOrigins = parseAllowedOrigins();
   if (!origin) {
-    return undefined;
+    return;
   }
   return allowedOrigins.includes(origin) ? origin : undefined;
 };
@@ -55,7 +58,9 @@ const applyCors = (res: VercelResponse, origin: string | undefined) => {
 const toWebRequest = (req: VercelRequest): Request => {
   const host = req.headers.host ?? "localhost";
   const rawPath = req.url ?? "/";
-  const path = rawPath.startsWith("http") ? rawPath : `https://${host}${rawPath}`;
+  const path = rawPath.startsWith("http")
+    ? rawPath
+    : `https://${host}${rawPath}`;
 
   const headerPairs: [string, string][] = [];
   for (const [key, value] of Object.entries(req.headers)) {
@@ -82,7 +87,7 @@ const toWebRequest = (req: VercelRequest): Request => {
 const sendWebResponse = async (
   res: VercelResponse,
   webResponse: Response,
-  origin: string | undefined,
+  origin: string | undefined
 ) => {
   res.status(webResponse.status);
 
@@ -94,7 +99,10 @@ const sendWebResponse = async (
   res.send(Buffer.from(await webResponse.arrayBuffer()));
 };
 
-export default async function analyticsHandler(req: VercelRequest, res: VercelResponse) {
+export default async function analyticsHandler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   const origin = req.headers.origin as string | undefined;
 
   if (!isAllowedOrigin(origin)) {

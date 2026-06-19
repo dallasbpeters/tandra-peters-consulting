@@ -27,7 +27,8 @@ export const adCreativeVersionType = defineType({
       title: "Creative configuration (JSON)",
       type: "text",
       rows: 12,
-      description: "Serialized ad creative state. Edited from the Ad Builder, not here.",
+      description:
+        "Serialized ad creative state. Edited from the Ad Builder, not here.",
       validation: (rule) => rule.required(),
     }),
   ],

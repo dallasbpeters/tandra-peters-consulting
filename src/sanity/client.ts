@@ -1,6 +1,10 @@
 import { createClient, type SanityClient } from "@sanity/client";
 
-import { SANITY_API_VERSION, SANITY_DATASET, SANITY_PROJECT_ID } from "./projectDetails";
+import {
+  SANITY_API_VERSION,
+  SANITY_DATASET,
+  SANITY_PROJECT_ID,
+} from "./projectDetails";
 
 const fallbackStudioUrl = import.meta.env.PROD
   ? "https://www.tandra.me/studio"
@@ -22,13 +26,17 @@ const presentationPerspectiveFromUrl = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
-  return new URLSearchParams(window.location.search).has("sanity-preview-perspective");
+  return new URLSearchParams(window.location.search).has(
+    "sanity-preview-perspective"
+  );
 };
 
 const stegaEnabled = (): boolean => {
   if (
     import.meta.env.VITE_SANITY_STEGA === "true" &&
-    (import.meta.env.DEV || isEmbeddedPreview() || presentationPerspectiveFromUrl())
+    (import.meta.env.DEV ||
+      isEmbeddedPreview() ||
+      presentationPerspectiveFromUrl())
   ) {
     return true;
   }
@@ -48,14 +56,15 @@ export const isSanityPresentationPreviewActive = (): boolean =>
  */
 export const isSanityDraftPreviewActive = (): boolean =>
   isSanityPresentationPreviewActive() ||
-  (import.meta.env.DEV && Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
+  (import.meta.env.DEV &&
+    Boolean(import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim()));
 
 const useDraftsPerspective = isSanityDraftPreviewActive;
 
 /** Viewer token for draft reads — only used together with `perspective: "drafts"`. */
 const readTokenWhenDrafts = (drafts: boolean): string | undefined => {
   if (!drafts) {
-    return undefined;
+    return;
   }
   const t = import.meta.env.VITE_SANITY_API_READ_TOKEN?.trim();
   return t || undefined;
@@ -73,13 +82,15 @@ export const getSanityClient = (): SanityClient => {
   if (import.meta.env.DEV && drafts && !token && !warnedMissingPreviewToken) {
     warnedMissingPreviewToken = true;
     console.warn(
-      "[Sanity] Presentation preview needs VITE_SANITY_API_READ_TOKEN (Viewer token) to load draft content.",
+      "[Sanity] Presentation preview needs VITE_SANITY_API_READ_TOKEN (Viewer token) to load draft content."
     );
   }
   const stega = stegaEnabled();
   const cacheKey = `${drafts ? "drafts" : "pub"}:${stega ? "stega" : "plain"}`;
   const cached = clientCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
   const client = createClient({
     projectId: SANITY_PROJECT_ID,

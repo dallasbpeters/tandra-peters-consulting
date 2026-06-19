@@ -1,5 +1,9 @@
 import type { ContactLeadSubmission, EmailAssets } from "./types.js";
 
+const RE_NEWLINE = /\r?\n/;
+const RE_NON_PHONE_CHARS = /[^0-9+]/g;
+const WHITESPACE_RE = /\s+/;
+
 const escapeHtml = (value: string): string =>
   value
     .replaceAll("&", "&amp;")
@@ -8,11 +12,14 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeAttr = (value: string): string => escapeHtml(value).replaceAll("`", "&#96;");
+const escapeAttr = (value: string): string =>
+  escapeHtml(value).replaceAll("`", "&#96;");
 
 const formatTimestamp = (iso?: string): string => {
   const date = iso ? new Date(iso) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toLocaleString("en-US");
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toLocaleString("en-US");
+  }
   return date.toLocaleString("en-US", {
     dateStyle: "long",
     timeStyle: "short",
@@ -22,13 +29,15 @@ const formatTimestamp = (iso?: string): string => {
 
 const messageHtml = (message: string): string =>
   message
-    .split(/\r?\n/)
+    .split(RE_NEWLINE)
     .map((line) => (line ? escapeHtml(line) : "&nbsp;"))
     .join("<br />");
 
 const maybeField = (label: string, value?: string): string => {
   const v = value?.trim();
-  if (!v) return "";
+  if (!v) {
+    return "";
+  }
   return `<section>
     <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6b62;padding:0 0 4px;margin:0;">${escapeHtml(label)}</p>
     <p style="font-size:15px;line-height:24px;color:#1a2b22;margin:0 0 18px;">${escapeHtml(v)}</p>
@@ -37,13 +46,13 @@ const maybeField = (label: string, value?: string): string => {
 
 export const renderContactLeadEmail = (
   submission: ContactLeadSubmission,
-  assets: EmailAssets,
+  assets: EmailAssets
 ): string => {
   const name = submission.fullName.trim() || "Website visitor";
   const service = submission.serviceLabel?.trim();
   const phone = submission.phoneNumber?.trim();
   const address = submission.propertyAddress?.trim();
-  const firstName = name.split(/\s+/)[0] || "there";
+  const firstName = name.split(WHITESPACE_RE)[0] || "there";
 
   return `<!doctype html>
 <html>
@@ -77,7 +86,7 @@ export const renderContactLeadEmail = (
                   phone
                     ? `<section>
                          <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6b62;padding:0 0 4px;margin:0;">Phone</p>
-                         <p style="font-size:15px;line-height:24px;color:#1a2b22;margin:0 0 18px;"><a href="tel:${escapeAttr(phone.replace(/[^0-9+]/g, ""))}" style="color:#3a7d5d;text-decoration:none;">${escapeHtml(phone)}</a></p>
+                         <p style="font-size:15px;line-height:24px;color:#1a2b22;margin:0 0 18px;"><a href="tel:${escapeAttr(phone.replace(RE_NON_PHONE_CHARS, ""))}" style="color:#3a7d5d;text-decoration:none;">${escapeHtml(phone)}</a></p>
                        </section>`
                     : ""
                 }

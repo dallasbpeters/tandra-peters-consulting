@@ -3,14 +3,15 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitText from "gsap/SplitText";
 import { motion } from "motion/react";
-import React, { useEffect, useMemo, useRef } from "react";
+import type React from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { asRichTextValue } from "../portableText/value";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { AboutProps } from "../types";
+import type { AboutProps } from "../types";
 
 // Plugins registered once in main.tsx — do not re-register here.
 
@@ -24,16 +25,27 @@ const ABOUT_STACKED_BREAKPOINT = 1224;
 
 const cssUrl = (url: string) => `url("${url.replace(/"/g, '\\"')}")`;
 
-export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, imageSrc, title }) => {
+export const About: React.FC<AboutProps> = ({
+  badgeText,
+  badgeSubtext,
+  body,
+  imageSrc,
+  title,
+}) => {
   const isMobile = useIsMobile(ABOUT_MOBILE_BREAKPOINT);
   const isStacked = useIsMobile(ABOUT_STACKED_BREAKPOINT);
   const sectionRef = useRef<HTMLElement>(null);
-  const richBody = useMemo(() => asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS), [body]);
+  const richBody = useMemo(
+    () => asRichTextValue(body, DEFAULT_ABOUT_PARAGRAPHS),
+    [body]
+  );
   /* Scroll-scrub: per-line word fade + gradient clip stay paired so scrub reverses cleanly. */
   useGSAP(
     () => {
       const trigger = sectionRef.current?.querySelector(".about-body-text");
-      if (!trigger) return;
+      if (!trigger) {
+        return;
+      }
 
       const split = SplitText.create(".about-body-copy p", {
         type: "lines",
@@ -61,22 +73,22 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
 
       // Pair each line's words + clip-path at the same timeline slot so reverse
       // scroll cannot leave a visible gradient strip after words fade out.
-      split.lines.forEach((line) => {
+      for (const line of split.lines) {
         tl.fromTo(
           line,
           { clipPath: "inset(0 100% 0 0)" },
           {
             clipPath: "inset(0 0% 0 0)",
-          },
+          }
         );
-      });
+      }
 
       const refreshAfterFonts = () => {
         ScrollTrigger.refresh();
       };
 
       if (document.fonts?.ready) {
-        void document.fonts.ready.then(refreshAfterFonts);
+        document.fonts.ready.then(refreshAfterFonts);
       } else {
         refreshAfterFonts();
       }
@@ -87,12 +99,12 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
         split.revert();
       };
     },
-    { scope: sectionRef, dependencies: [badgeSubtext, badgeText, body] },
+    { scope: sectionRef, dependencies: [badgeSubtext, badgeText, body] }
   );
 
   useEffect(() => {
     ScrollTrigger.refresh();
-  }, [isMobile, isStacked]);
+  }, []);
 
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.paper,
@@ -108,6 +120,8 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
   const tandraPhoto = cssUrl(imageSrc ?? "/tandra.webp");
   const stackedPhotoBackdrop = `linear-gradient(45deg, ${theme.colors.black}, ${theme.colors.paper})`;
 
+  const unstackedBackgroundSize = isMobile ? "contain" : "cover";
+
   const imagewrapperStyle: React.CSSProperties = {
     position: "relative",
     overflow: "clip",
@@ -115,9 +129,11 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
     width: isStacked ? 200 : 400,
     borderRadius: isStacked ? theme.radius.pill : 0,
     zIndex: 10,
-    backgroundImage: isStacked ? `${tandraPhoto}, ${stackedPhotoBackdrop}` : tandraPhoto,
+    backgroundImage: isStacked
+      ? `${tandraPhoto}, ${stackedPhotoBackdrop}`
+      : tandraPhoto,
     // First layer = photo (top); second = gradient fill behind it in the pill.
-    backgroundSize: isStacked ? "contain" : isMobile ? "contain" : "cover",
+    backgroundSize: isStacked ? "contain" : unstackedBackgroundSize,
     backgroundPosition: isStacked ? "60% 0, center" : "60% 0",
     backgroundRepeat: "no-repeat",
   };
@@ -172,7 +188,7 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
   const badgeParts = [badgeText, badgeSubtext].filter(Boolean) as string[];
   const eyebrow = badgeParts.length
     ? badgeParts.map((part, i) => (
-        <span key={i}>
+        <span key={part}>
           {part}
           {i < badgeParts.length - 1 ? <span> · </span> : null}
         </span>
@@ -181,33 +197,33 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
 
   return (
     <section
-      ref={sectionRef}
-      id="about-tandra"
-      className={isMobile ? "content-section" : layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby="about-heading"
+      className={isMobile ? "content-section" : layoutClass.sectionPadded}
+      id="about-tandra"
+      ref={sectionRef}
+      style={sectionStyle}
     >
       <div
         className={`${layoutClass.containerWideAboutGrid} lg-grid`}
         style={paragraphWrapperStyle}
       >
         <div className="about-card about-bio-card" style={cardStyle}>
-          <div style={imagewrapperStyle} aria-hidden="true" />
+          <div aria-hidden="true" style={imagewrapperStyle} />
           {/* Text body — GSAP targets all text inside .about-body-text */}
           <div className="about-body-text" style={bodyTextStyle}>
             {eyebrow ? <p style={eyebrowStyle}>{eyebrow}</p> : null}
             <motion.h2
-              variants={headingVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ amount: 0.3 }}
               id="about-heading"
+              initial="hidden"
               style={titleStyle}
+              variants={headingVariants}
+              viewport={{ amount: 0.3 }}
+              whileInView="visible"
             >
               {title ?? "Hi, I'm Tandra."}
             </motion.h2>
             <div className="about-body-copy">
-              <RichText value={richBody} paragraphStyle={pStyle} />
+              <RichText paragraphStyle={pStyle} value={richBody} />
             </div>
           </div>
         </div>

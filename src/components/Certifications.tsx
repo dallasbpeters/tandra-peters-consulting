@@ -1,9 +1,7 @@
-import React from "react";
-
-import type { CertificationsProps } from "../types";
-
+import type React from "react";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
+import type { CertificationsProps } from "../types";
 
 const defaultCertifications: CertificationsProps["certifications"] = [
   { name: "Roofing Solar Alliance", image: "/roofing-soloar-alliance.png" },
@@ -26,21 +24,21 @@ export const Certifications: React.FC<CertificationsProps> = ({
 
   return (
     <section
-      id="certifications"
       className={`${layoutClass.containerWide} certifications`}
+      id="certifications"
       style={sectionStyle}
     >
       <div className="certifications__logos">
         {certifications.map((certification) => (
           <img
-            key={certification.name}
-            className="certifications__logo"
-            src={certification.image}
             alt={certification.name}
-            width={160}
-            height={68}
-            loading="lazy"
+            className="certifications__logo"
             decoding="async"
+            height={68}
+            key={certification.name}
+            loading="lazy"
+            src={certification.image}
+            width={160}
           />
         ))}
       </div>

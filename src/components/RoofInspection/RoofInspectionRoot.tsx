@@ -1,22 +1,21 @@
-import React, { useMemo, useState } from "react";
-
+import type React from "react";
+import { useMemo, useState } from "react";
+import { CameraContext, RoofInspectionContext } from "./context";
 import type { Chapter, View } from "./types";
 
-import { CameraContext, RoofInspectionContext } from "./context";
-
-export type RoofInspectionProps = {
+export interface RoofInspectionProps {
   /** Inspection checkpoint data, typically `CHAPTERS` from `data.ts` or mapped from Sanity. */
   chapters: Chapter[];
-  /** Camera presets for the toolbar tabs, typically `VIEWS` from `data.ts`. */
-  views: View[];
-  /** ID of the view selected on first render. Defaults to `views[0].id`. */
-  defaultViewId?: string;
   /**
    * Compound sub-components: `Rail`, `Canvas`, `Toolbar`, `Diagram`, `Hotspot`.
    * Consumed through dot notation: `<RoofInspection.Rail />`.
    */
   children: React.ReactNode;
-};
+  /** ID of the view selected on first render. Defaults to `views[0].id`. */
+  defaultViewId?: string;
+  /** Camera presets for the toolbar tabs, typically `VIEWS` from `data.ts`. */
+  views: View[];
+}
 
 /**
  * Root component of the compound `RoofInspection` feature.
@@ -29,11 +28,13 @@ export const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
 }) => {
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [focusChapterId, setFocusChapterId] = useState<string | null>(null);
-  const [activeViewId, setActiveViewId] = useState<string>(defaultViewId ?? views[0]?.id ?? "");
+  const [activeViewId, setActiveViewId] = useState<string>(
+    defaultViewId ?? views[0]?.id ?? ""
+  );
 
   const chapterValue = useMemo(
     () => ({ chapters, activeChapterId, setActiveChapterId }),
-    [chapters, activeChapterId],
+    [chapters, activeChapterId]
   );
 
   const cameraValue = useMemo(
@@ -45,7 +46,7 @@ export const RoofInspectionRoot: React.FC<RoofInspectionProps> = ({
       focusChapterId,
       setFocusChapterId,
     }),
-    [chapters, views, activeViewId, focusChapterId],
+    [chapters, views, activeViewId, focusChapterId]
   );
 
   return (

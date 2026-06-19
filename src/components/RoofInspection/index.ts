@@ -1,3 +1,4 @@
-export { RoofInspection } from "./RoofInspection";
+// biome-ignore lint/performance/noBarrelFile: intentional public API index for the RoofInspection module
 export { CHAPTERS, VIEWS } from "./data";
-export type { Chapter, View, CalloutContent, Direction } from "./types";
+export { RoofInspection } from "./RoofInspection";
+export type { CalloutContent, Chapter, Direction, View } from "./types";

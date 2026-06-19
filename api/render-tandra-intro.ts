@@ -16,8 +16,9 @@
  * Build: `pnpm build:vercel` bundles Remotion and creates a sandbox snapshot per
  * deployment (see scripts/create-remotion-snapshot.mjs).
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import type { Sandbox } from "@vercel/sandbox";
+
+import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 import {
   addBundleToSandbox,
@@ -26,24 +27,35 @@ import {
   renderStillOnVercel,
   uploadToVercelBlob,
 } from "@remotion/vercel";
-import { execSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { Sandbox } from "@vercel/sandbox";
 
-import { AD_COMPOSITION_DEFAULTS, isAdCompositionId } from "./lib/ad-composition-defaults.js";
+import {
+  AD_COMPOSITION_DEFAULTS,
+  isAdCompositionId,
+} from "./lib/ad-composition-defaults.js";
 import { fetchTandraIntroContent } from "./lib/fetch-tandra-intro-content.js";
 import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.js";
 import { patchTandraIntroThumbnail } from "./lib/patch-tandra-intro-thumbnail.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
 const DEFAULT_COMPOSITION_ID = "TandraIntro";
+
+const _RE_CAMEL_BOUNDARY = /([a-z0-9])([A-Z])/g;
+const _RE_NON_SLUG_CHARS = /[^a-z0-9]+/g;
+const _RE_SLUG_EDGE_DASHES = /(^-|-$)/g;
+const _RE_TIMESTAMP_PUNCT = /[:.]/g;
 const LOCAL_BUNDLE_DIR = ".remotion";
 const RENDER_PIPELINE_VERSION = "tandra-intro-render-v2";
 
 const resolveCompositionId = (req: VercelRequest): string => {
-  const fromQuery = queryValue(req.query.compositionId) ?? queryValue(req.query.id);
+  const fromQuery =
+    queryValue(req.query.compositionId) ?? queryValue(req.query.id);
   const fromBody =
     req.body && typeof req.body === "object"
-      ? ((req.body as Record<string, unknown>).compositionId as string | undefined)
+      ? ((req.body as Record<string, unknown>).compositionId as
+          | string
+          | undefined)
       : undefined;
   const raw = (fromBody ?? fromQuery ?? DEFAULT_COMPOSITION_ID).trim();
   return raw || DEFAULT_COMPOSITION_ID;
@@ -63,15 +75,21 @@ const getPosterFrame = (req: VercelRequest): number => {
   const fromQuery = queryValue(req.query.posterFrame);
   const fromBody =
     req.body && typeof req.body === "object"
-      ? ((req.body as Record<string, unknown>).posterFrame as number | undefined)
+      ? ((req.body as Record<string, unknown>).posterFrame as
+          | number
+          | undefined)
       : undefined;
 
   const raw = fromBody ?? fromQuery;
   if (typeof raw === "string") {
     const parsed = Number.parseInt(raw, 10);
-    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
   }
-  if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) return raw;
+  if (typeof raw === "number" && Number.isFinite(raw) && raw >= 0) {
+    return raw;
+  }
   return 150;
 };
 
@@ -96,12 +114,12 @@ const isAuthorized = (req: VercelRequest): boolean => {
 
 const parseOrigin = (value: string | undefined): string | undefined => {
   if (!value) {
-    return undefined;
+    return;
   }
   try {
     return new URL(value).origin;
   } catch {
-    return undefined;
+    return;
   }
 };
 
@@ -113,7 +131,9 @@ const trustedRenderOrigins = (): Set<string> => {
     process.env.SANITY_STUDIO_PREVIEW_URL,
     process.env.SANITY_STUDIO_RENDER_API_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
-    process.env.VERCEL_BRANCH_URL ? `https://${process.env.VERCEL_BRANCH_URL}` : undefined,
+    process.env.VERCEL_BRANCH_URL
+      ? `https://${process.env.VERCEL_BRANCH_URL}`
+      : undefined,
   ];
 
   for (const candidate of candidates) {
@@ -134,18 +154,21 @@ const trustedRenderOrigins = (): Set<string> => {
 };
 
 const isTrustedBrowserOrigin = (req: VercelRequest): boolean => {
-  const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+  const origin =
+    typeof req.headers.origin === "string" ? req.headers.origin : undefined;
   if (!origin) {
     return false;
   }
   return trustedRenderOrigins().has(origin);
 };
 
-const queryValue = (value: string | string[] | undefined): string | undefined =>
-  Array.isArray(value) ? value[0] : value;
+const queryValue = (
+  value: string | string[] | undefined
+): string | undefined => (Array.isArray(value) ? value[0] : value);
 
 const shouldForceRender = (req: VercelRequest): boolean =>
-  queryValue(req.query.force)?.toLowerCase() === "true" || req.headers["x-force-render"] === "true";
+  queryValue(req.query.force)?.toLowerCase() === "true" ||
+  req.headers["x-force-render"] === "true";
 
 const getRenderBundleFingerprint = (): string =>
   process.env.VERCEL_GIT_COMMIT_SHA?.trim() ||
@@ -153,7 +176,10 @@ const getRenderBundleFingerprint = (): string =>
   process.env.REMOTION_RENDER_FINGERPRINT?.trim() ||
   "local";
 
-const hashRenderArtifact = (args: { compositionId: string; contentHash: string }): string =>
+const hashRenderArtifact = (args: {
+  compositionId: string;
+  contentHash: string;
+}): string =>
   createHash("sha256")
     .update(
       JSON.stringify({
@@ -161,7 +187,7 @@ const hashRenderArtifact = (args: { compositionId: string; contentHash: string }
         compositionId: args.compositionId,
         contentHash: args.contentHash,
         bundle: getRenderBundleFingerprint(),
-      }),
+      })
     )
     .digest("hex");
 
@@ -177,11 +203,15 @@ const applyCors = (res: VercelResponse): void => {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, x-force-render, x-render-secret",
+    "Content-Type, Authorization, x-force-render, x-render-secret"
   );
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   applyCors(res);
 
   if (req.method === "OPTIONS") {
@@ -203,7 +233,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!blobToken) {
     res.status(500).json({
-      error: "BLOB_READ_WRITE_TOKEN is not configured. Attach a Vercel Blob store to this project.",
+      error:
+        "BLOB_READ_WRITE_TOKEN is not configured. Attach a Vercel Blob store to this project.",
     });
     return;
   }
@@ -219,7 +250,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       ? await restoreRemotionSnapshot()
       : await createSandbox({
           onProgress: ({ progress, message }) => {
-            console.log(`[render-video] ${message} (${Math.round(progress * 100)}%)`);
+            console.log(
+              `[render-video] ${message} (${Math.round(progress * 100)}%)`
+            );
           },
         });
     if (!onVercel) {
@@ -230,8 +263,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return sb;
   };
 
-  const logRenderProgress = (update: { stage: string; overallProgress: number }): void => {
-    console.log(`[render-video] ${update.stage} ${Math.round(update.overallProgress * 100)}%`);
+  const logRenderProgress = (update: {
+    stage: string;
+    overallProgress: number;
+  }): void => {
+    console.log(
+      `[render-video] ${update.stage} ${Math.round(update.overallProgress * 100)}%`
+    );
   };
 
   // Compositions that render three.js / WebGL (RoofScene's GLB roof) need a GPU-
@@ -277,7 +315,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         imageFormat: "png",
         onProgress: (update) => {
           console.log(
-            `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`,
+            `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`
           );
         },
       });
@@ -285,7 +323,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       const image = await sandbox.readFileToBuffer({ path: sandboxFilePath });
       if (!image) {
         throw new Error(
-          "Poster render finished but the image file could not be read from the sandbox.",
+          "Poster render finished but the image file could not be read from the sandbox."
         );
       }
 
@@ -334,7 +372,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         access: "public",
       });
 
-      res.status(200).json({ url, size, compositionId, copySource: "defaults" });
+      res
+        .status(200)
+        .json({ url, size, compositionId, copySource: "defaults" });
       return;
     }
 
@@ -397,7 +437,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     let sanityError: string | undefined;
     if (sanityPatch.ok === false) {
       sanityError = sanityPatch.reason;
-      console.warn(`[render-video] Render succeeded but Sanity was not updated: ${sanityError}`);
+      console.warn(
+        `[render-video] Render succeeded but Sanity was not updated: ${sanityError}`
+      );
     }
 
     let posterUrl: string | undefined;
@@ -405,46 +447,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     let thumbnailUpdated = false;
     if (compositionId === DEFAULT_COMPOSITION_ID) {
       try {
-        const { sandboxFilePath: posterSandboxFilePath, contentType: posterContentType } =
-          await renderStillOnVercel({
-            sandbox,
-            compositionId,
-            inputProps: { content, showCaptions },
-            frame: getPosterFrame(req),
-            imageFormat: "png",
-            onProgress: (update) => {
-              console.log(
-                `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`,
-              );
-            },
-          });
+        const {
+          sandboxFilePath: posterSandboxFilePath,
+          contentType: posterContentType,
+        } = await renderStillOnVercel({
+          sandbox,
+          compositionId,
+          inputProps: { content, showCaptions },
+          frame: getPosterFrame(req),
+          imageFormat: "png",
+          onProgress: (update) => {
+            console.log(
+              `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`
+            );
+          },
+        });
 
         const posterImage = await sandbox.readFileToBuffer({
           path: posterSandboxFilePath,
         });
         if (!posterImage) {
           throw new Error(
-            "Poster render finished but the image file could not be read from the sandbox.",
+            "Poster render finished but the image file could not be read from the sandbox."
           );
         }
 
         const stamp = new Date().toISOString().replace(/[:.]/g, "-");
         const filename = `${blobSlug}-${stamp}.png`;
-        const posterPatch = await patchTandraIntroThumbnail(posterImage, filename);
+        const posterPatch = await patchTandraIntroThumbnail(
+          posterImage,
+          filename
+        );
         if (posterPatch.ok === false) {
           throw new Error(posterPatch.reason);
         }
 
         posterUrl = posterPatch.thumbnailUrl;
         thumbnailUpdated = true;
-        const artifactPatch = await patchTandraIntroRenderedVideo(url, contentHash, artifactHash);
+        const artifactPatch = await patchTandraIntroRenderedVideo(
+          url,
+          contentHash,
+          artifactHash
+        );
         if (artifactPatch.ok === false) {
           throw new Error(artifactPatch.reason);
         }
         console.log(`[render-video] Poster captured (${posterContentType}).`);
       } catch (error) {
-        posterError = error instanceof Error ? error.message : "Unknown poster render error.";
-        console.warn(`[render-video] Render succeeded but poster was not updated: ${posterError}`);
+        posterError =
+          error instanceof Error
+            ? error.message
+            : "Unknown poster render error.";
+        console.warn(
+          `[render-video] Render succeeded but poster was not updated: ${posterError}`
+        );
       }
     }
 
@@ -465,9 +521,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   } catch (error) {
     console.error("[render-video]", error);
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Remotion render failed unexpectedly.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Remotion render failed unexpectedly.",
     });
   } finally {
-    await sandbox?.stop().catch(() => {});
+    await sandbox?.stop().catch(() => {
+      /* noop */
+    });
   }
 }

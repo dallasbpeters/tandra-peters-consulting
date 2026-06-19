@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
-
 import { loadFont } from "@remotion/google-fonts/HankenGrotesk";
+import type { ReactNode } from "react";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "300", "500", "700", "800"],
@@ -16,10 +15,12 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-
-import type { CaptionCue, TandraIntroContent, TandraIntroProps } from "./tandraIntroContent";
-
 import { theme } from "../theme";
+import type {
+  CaptionCue,
+  TandraIntroContent,
+  TandraIntroProps,
+} from "./tandraIntroContent";
 import { getCaptionCues } from "./tandraIntroContent";
 
 const colors = {
@@ -108,9 +109,9 @@ const Kicker = ({
       className="kicker"
       style={{
         alignItems: "center",
-        color: color,
+        color,
         display: "flex",
-        fontFamily: fontFamily,
+        fontFamily,
         fontSize: 25,
         fontWeight: 800,
         gap: 24,
@@ -346,7 +347,7 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
           style={{
             bottom: 104,
             color: colors.paperDark,
-            fontFamily: fontFamily,
+            fontFamily,
             fontSize: 44,
             fontWeight: 300,
             left: 128,
@@ -363,7 +364,11 @@ const StormScene = ({ content }: { content: TandraIntroContent["storm"] }) => {
   );
 };
 
-const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straightAnswers"] }) => {
+const StraightAnswersScene = ({
+  content,
+}: {
+  content: TandraIntroContent["straightAnswers"];
+}) => {
   const { reveal } = useScene(150, 180);
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
@@ -398,7 +403,7 @@ const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straig
             alignSelf: "end",
             borderLeft: `2px solid ${colors.paperDark}`,
             color: colors.everglade,
-            fontFamily: fontFamily,
+            fontFamily,
             fontSize: 74,
             lineHeight: 1.08,
             paddingLeft: 56,
@@ -412,12 +417,16 @@ const StraightAnswersScene = ({ content }: { content: TandraIntroContent["straig
   );
 };
 
-const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"] }) => {
+const InspectionScene = ({
+  content,
+}: {
+  content: TandraIntroContent["inspection"];
+}) => {
   const { reveal } = useScene(300, 180);
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
-      <ImagePanel from={300} side="right" src="roof.png" opacity={0.52} />
+      <ImagePanel from={300} opacity={0.52} side="right" src="roof.png" />
       <div
         style={{
           alignItems: "center",
@@ -446,7 +455,7 @@ const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"
           <p
             style={{
               color: colors.paper,
-              fontFamily: fontFamily,
+              fontFamily,
               fontSize: 40,
               fontWeight: 300,
               lineHeight: 1.38,
@@ -464,7 +473,11 @@ const InspectionScene = ({ content }: { content: TandraIntroContent["inspection"
   );
 };
 
-const ManagedScene = ({ content }: { content: TandraIntroContent["managed"] }) => {
+const ManagedScene = ({
+  content,
+}: {
+  content: TandraIntroContent["managed"];
+}) => {
   const { reveal } = useScene(450, 210);
   const frame = useCurrentFrame();
   const rule = interpolate(frame, [464, 520], [0, 1], {
@@ -508,11 +521,16 @@ const ManagedScene = ({ content }: { content: TandraIntroContent["managed"] }) =
           }}
         >
           {content.items.map((item, index) => {
-            const itemOpacity = interpolate(frame, [522 + index * 10, 540 + index * 10], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: ease,
-            });
+            const itemOpacity = interpolate(
+              frame,
+              [522 + index * 10, 540 + index * 10],
+              [0, 1],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: ease,
+              }
+            );
             return (
               <div
                 key={item}
@@ -546,7 +564,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
   return (
     <AbsoluteFill style={{ opacity: reveal }}>
       <PageTexture />
-      <ImagePip from={630} src="tandra.png" opacity={1} />
+      <ImagePip from={630} opacity={1} src="tandra.png" />
       <div
         style={{
           padding: `${theme.spacing.sectionWide} ${theme.spacing.sectionHero}`,
@@ -568,7 +586,7 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
             bottom: 96,
             color: colors.paperDark,
             display: "flex",
-            fontFamily: fontFamily,
+            fontFamily,
             fontSize: 34,
             fontWeight: 700,
             gap: 34,
@@ -579,7 +597,10 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
           }}
         >
           {content.items.map((item, index) => (
-            <span key={item} style={index === 1 ? { color: colors.accentLight } : undefined}>
+            <span
+              key={item}
+              style={index === 1 ? { color: colors.accentLight } : undefined}
+            >
               {item}
             </span>
           ))}
@@ -589,7 +610,11 @@ const ProofScene = ({ content }: { content: TandraIntroContent["proof"] }) => {
   );
 };
 
-const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) => {
+const ClosingScene = ({
+  content,
+}: {
+  content: TandraIntroContent["closing"];
+}) => {
   const { reveal } = useScene(750, 150);
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
@@ -629,7 +654,7 @@ const ClosingScene = ({ content }: { content: TandraIntroContent["closing"] }) =
           style={{
             backgroundColor: colors.everglade,
             color: colors.paper,
-            fontFamily: fontFamily,
+            fontFamily,
             fontSize: 34,
             fontWeight: 800,
             letterSpacing: "0.1em",
@@ -657,7 +682,9 @@ const CAPTION_FADE = 8;
  */
 const Captions = ({ cues }: { cues: CaptionCue[] }) => {
   const frame = useCurrentFrame();
-  const active = cues.find((cue) => frame >= cue.fromFrame && frame < cue.toFrame);
+  const active = cues.find(
+    (cue) => frame >= cue.fromFrame && frame < cue.toFrame
+  );
   if (!active) {
     return null;
   }
@@ -671,7 +698,7 @@ const Captions = ({ cues }: { cues: CaptionCue[] }) => {
       active.toFrame,
     ],
     [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease }
   );
 
   return (
@@ -689,7 +716,7 @@ const Captions = ({ cues }: { cues: CaptionCue[] }) => {
           backgroundColor: "rgba(3, 16, 11, 0.82)",
           borderRadius: 14,
           color: colors.white,
-          fontFamily: fontFamily,
+          fontFamily,
           fontSize: 38,
           fontWeight: 600,
           lineHeight: 1.3,
@@ -707,7 +734,10 @@ const Captions = ({ cues }: { cues: CaptionCue[] }) => {
   );
 };
 
-export const TandraIntro = ({ content, showCaptions = true }: TandraIntroProps) => {
+export const TandraIntro = ({
+  content,
+  showCaptions = true,
+}: TandraIntroProps) => {
   const captionCues = getCaptionCues(content);
   return (
     <AbsoluteFill style={{ backgroundColor: colors.black }}>

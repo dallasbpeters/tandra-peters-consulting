@@ -16,33 +16,36 @@ import {
   Xmark,
 } from "iconoir-react";
 import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
-
-import type { CreativeState, LogoVariant, PlatformPreset, PlatformShape } from "../lib/adCreative";
-
 import {
   CANVAS_FONT_FAMILIES,
-  SNAP_THRESHOLD,
+  type CanvasElement,
+  type CanvasGuide,
   collectSnapTargets,
   createElementId,
   createQrElement,
   createRectElement,
   createTextElement,
   findSnapShift,
+  SNAP_THRESHOLD,
   seedCanvasElements,
   syncElementsFromCreative,
-  type CanvasElement,
-  type CanvasGuide,
   type TextCanvasElement,
 } from "../lib/adCanvasDoc";
+import type {
+  CreativeState,
+  LogoVariant,
+  PlatformPreset,
+  PlatformShape,
+} from "../lib/adCreative";
 import { formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
 import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/doorHanger";
 import { buildQrDataUri } from "../lib/qrCode";
@@ -50,6 +53,8 @@ import { AdColorSwatch } from "./AdColorSwatch";
 import "../styles/ad-canvas.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const TRAILING_NEWLINES_RE = /\n+$/;
 
 const LOGO_SOURCES: Record<LogoVariant, string> = {
   "horizontal-white": "/BC_Horizontal_White.svg",
@@ -70,20 +75,38 @@ const TOUCH_DRAG_DEAD_ZONE = 8;
 
 type HandleId = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
-const FIXED_HEIGHT_HANDLES: HandleId[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+const FIXED_HEIGHT_HANDLES: HandleId[] = [
+  "nw",
+  "n",
+  "ne",
+  "e",
+  "se",
+  "s",
+  "sw",
+  "w",
+];
 const AUTO_HEIGHT_HANDLES: HandleId[] = ["nw", "ne", "se", "sw", "e", "w"];
 
-type ContextMenuState = { x: number; y: number; elementId: string };
+interface ContextMenuState {
+  elementId: string;
+  x: number;
+  y: number;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getPreviewBaseWidth = (shape: PlatformShape) => {
-  if (shape === "wide") return "56rem";
-  if (shape === "tall") return "28rem";
+  if (shape === "wide") {
+    return "56rem";
+  }
+  if (shape === "tall") {
+    return "28rem";
+  }
   return "44rem";
 };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const toCanvasImageUrl = (url: string) => {
   try {
@@ -97,7 +120,8 @@ const toCanvasImageUrl = (url: string) => {
     }
     if (
       parsed.protocol === "https:" &&
-      (parsed.hostname === "images.unsplash.com" || parsed.hostname === "plus.unsplash.com")
+      (parsed.hostname === "images.unsplash.com" ||
+        parsed.hostname === "plus.unsplash.com")
     ) {
       return `/api/unsplash-image?url=${encodeURIComponent(url)}`;
     }
@@ -123,7 +147,7 @@ const exportCanvasNode = async (
   exportWidth: number,
   exportHeight: number,
   backgroundColor: string,
-  stripMask = false,
+  stripMask = false
 ): Promise<Blob> => {
   if (document.fonts) {
     await document.fonts.ready;
@@ -153,7 +177,10 @@ const exportCanvasNode = async (
       throw new Error("The ad canvas is not ready yet.");
     }
 
-    const pixelRatio = Math.min(exportWidth / previewWidth, exportHeight / previewHeight);
+    const pixelRatio = Math.min(
+      exportWidth / previewWidth,
+      exportHeight / previewHeight
+    );
 
     const blob = await toBlob(node, {
       backgroundColor,
@@ -168,7 +195,9 @@ const exportCanvasNode = async (
       width: previewWidth,
     });
 
-    if (!blob) throw new Error("Could not export PNG.");
+    if (!blob) {
+      throw new Error("Could not export PNG.");
+    }
 
     return blob;
   } finally {
@@ -196,23 +225,32 @@ const blobToImage = (blob: Blob): Promise<HTMLImageElement> =>
   });
 
 const isEditableTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  if (target.isContentEditable) {
+    return true;
+  }
   const tag = target.tagName;
-  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag.startsWith("WA-");
+  return (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    tag.startsWith("WA-")
+  );
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-type AdCanvasEditorProps = {
+interface AdCanvasEditorProps {
   creative: CreativeState;
   selectedPlatform: PlatformPreset;
   selectedPlatformShape: PlatformShape;
-  /** Menus rendered at the start of the toolbar (format/design/image/brand). */
-  toolbarStart?: React.ReactNode;
   /** Menus rendered after the toolbar actions (account). */
   toolbarEnd?: React.ReactNode;
-};
+  /** Menus rendered at the start of the toolbar (format/design/image/brand). */
+  toolbarStart?: React.ReactNode;
+}
 
 export const AdCanvasEditor = ({
   creative,
@@ -220,16 +258,17 @@ export const AdCanvasEditor = ({
   selectedPlatformShape,
   toolbarStart,
   toolbarEnd,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }: AdCanvasEditorProps) => {
   const posthog = usePostHog();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const nodesRef = useRef<Record<string, HTMLDivElement | null>>({});
+  const nodesRef = useRef<Record<string, HTMLElement | null>>({});
   const editRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [elements, setElements] = useState<CanvasElement[]>(() =>
-    seedCanvasElements(creative, selectedPlatform.cutout),
+    seedCanvasElements(creative, selectedPlatform.cutout)
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -246,15 +285,18 @@ export const AdCanvasEditor = ({
   elementsRef.current = elements;
 
   const exportPixelSize = useMemo(
-    () => getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
-    [creative.adWidth, creative.adHeight, creative.unit],
+    () =>
+      getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
+    [creative.adWidth, creative.adHeight, creative.unit]
   );
 
   // ── Re-seed when template or platform changes ────────────────────────────
   const seedKey = `${creative.templateId}|${creative.platformId}|${creative.layout}|${creative.fontPresetId}`;
   const prevSeedKey = useRef(seedKey);
   useEffect(() => {
-    if (prevSeedKey.current === seedKey) return;
+    if (prevSeedKey.current === seedKey) {
+      return;
+    }
     prevSeedKey.current = seedKey;
     setElements(seedCanvasElements(creative, selectedPlatform.cutout));
     setSelectedId(null);
@@ -271,7 +313,9 @@ export const AdCanvasEditor = ({
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
     const canvas = canvasRef.current;
-    if (!viewport || !canvas) return undefined;
+    if (!(viewport && canvas)) {
+      return;
+    }
 
     let frame = 0;
 
@@ -290,12 +334,21 @@ export const AdCanvasEditor = ({
         const canvasWidth = canvas.offsetWidth;
         const canvasHeight = canvas.offsetHeight;
 
-        if (availableWidth <= 0 || availableHeight <= 0 || canvasWidth <= 0 || canvasHeight <= 0) {
+        if (
+          availableWidth <= 0 ||
+          availableHeight <= 0 ||
+          canvasWidth <= 0 ||
+          canvasHeight <= 0
+        ) {
           setPreviewScale(1);
           return;
         }
 
-        const nextScale = Math.min(1, availableWidth / canvasWidth, availableHeight / canvasHeight);
+        const nextScale = Math.min(
+          1,
+          availableWidth / canvasWidth,
+          availableHeight / canvasHeight
+        );
         setPreviewScale(Number.parseFloat(Math.max(0.1, nextScale).toFixed(3)));
       });
     };
@@ -309,14 +362,19 @@ export const AdCanvasEditor = ({
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
     };
-  }, [exportPixelSize.height, exportPixelSize.width, selectedPlatformShape]);
+  }, []);
 
   // ── Element updates ───────────────────────────────────────────────────────
-  const patchElement = useCallback((id: string, patch: Partial<CanvasElement>) => {
-    setElements((prev) =>
-      prev.map((el) => (el.id === id ? ({ ...el, ...patch } as CanvasElement) : el)),
-    );
-  }, []);
+  const patchElement = useCallback(
+    (id: string, patch: Partial<CanvasElement>) => {
+      setElements((prev) =>
+        prev.map((el) =>
+          el.id === id ? ({ ...el, ...patch } as CanvasElement) : el
+        )
+      );
+    },
+    []
+  );
 
   const removeElement = useCallback((id: string) => {
     setElements((prev) => prev.filter((el) => el.id !== id));
@@ -328,7 +386,9 @@ export const AdCanvasEditor = ({
   const duplicateElement = useCallback((id: string) => {
     setElements((prev) => {
       const source = prev.find((el) => el.id === id);
-      if (!source) return prev;
+      if (!source) {
+        return prev;
+      }
       const copy: CanvasElement = {
         ...source,
         id: createElementId(),
@@ -343,25 +403,29 @@ export const AdCanvasEditor = ({
     setMenu(null);
   }, []);
 
-  const moveLayer = useCallback((id: string, action: "forward" | "backward" | "front" | "back") => {
-    setElements((prev) => {
-      const index = prev.findIndex((el) => el.id === id);
-      if (index < 0) return prev;
-      const next = [...prev];
-      const [el] = next.splice(index, 1);
-      const target =
-        action === "front"
-          ? next.length
-          : action === "back"
-            ? 0
-            : action === "forward"
-              ? Math.min(next.length, index + 1)
-              : Math.max(0, index - 1);
-      next.splice(target, 0, el);
-      return next;
-    });
-    setMenu(null);
-  }, []);
+  const moveLayer = useCallback(
+    (id: string, action: "forward" | "backward" | "front" | "back") => {
+      setElements((prev) => {
+        const index = prev.findIndex((el) => el.id === id);
+        if (index < 0) {
+          return prev;
+        }
+        const next = [...prev];
+        const [el] = next.splice(index, 1);
+        const targetWhenNotFrontOrBack =
+          action === "forward"
+            ? Math.min(next.length, index + 1)
+            : Math.max(0, index - 1);
+        const targetWhenNotFront =
+          action === "back" ? 0 : targetWhenNotFrontOrBack;
+        const target = action === "front" ? next.length : targetWhenNotFront;
+        next.splice(target, 0, el);
+        return next;
+      });
+      setMenu(null);
+    },
+    []
+  );
 
   // ── Inline text editing ───────────────────────────────────────────────────
   const beginEdit = useCallback((id: string) => {
@@ -370,9 +434,13 @@ export const AdCanvasEditor = ({
   }, []);
 
   useEffect(() => {
-    if (!editingId) return;
+    if (!editingId) {
+      return;
+    }
     const node = editRef.current;
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     node.focus();
     const range = document.createRange();
     range.selectNodeContents(node);
@@ -384,7 +452,7 @@ export const AdCanvasEditor = ({
   const commitEdit = useCallback(() => {
     const node = editRef.current;
     if (node && editingId) {
-      const text = node.innerText.replace(/\n+$/, "");
+      const text = node.innerText.replace(TRAILING_NEWLINES_RE, "");
       patchElement(editingId, { text });
     }
     setEditingId(null);
@@ -399,21 +467,31 @@ export const AdCanvasEditor = ({
   // ── Drag to move ──────────────────────────────────────────────────────────
   const startMove = useCallback(
     (event: ReactPointerEvent, id: string) => {
-      if (event.button !== 0) return;
-      if (editingId === id) return;
+      if (event.button !== 0) {
+        return;
+      }
+      if (editingId === id) {
+        return;
+      }
       const canvas = canvasRef.current;
       const el = elementsRef.current.find((item) => item.id === id);
-      if (!canvas || !el) return;
+      if (!(canvas && el)) {
+        return;
+      }
 
       event.preventDefault();
       event.stopPropagation();
       setSelectedId(id);
       setMenu(null);
-      if (editingId) commitEdit();
+      if (editingId) {
+        commitEdit();
+      }
 
       const isTouch = event.pointerType === "touch";
       // Locked elements can't drag, but touch still needs the long-press menu.
-      if (el.locked && !isTouch) return;
+      if (el.locked && !isTouch) {
+        return;
+      }
 
       const rect = canvas.getBoundingClientRect();
       const startX = event.clientX;
@@ -422,7 +500,7 @@ export const AdCanvasEditor = ({
       const { xTargets, yTargets } = collectSnapTargets(
         elementsRef.current,
         id,
-        rect.height / rect.width,
+        rect.height / rect.width
       );
 
       // Touch: the element doesn't move inside the dead zone, so a long-press
@@ -444,15 +522,22 @@ export const AdCanvasEditor = ({
         }
       };
 
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
       const onMove = (move: PointerEvent) => {
-        if (longPressFired) return;
+        if (longPressFired) {
+          return;
+        }
         const dxPx = move.clientX - startX;
         const dyPx = move.clientY - startY;
 
         if (!dragging) {
-          if (Math.hypot(dxPx, dyPx) < TOUCH_DRAG_DEAD_ZONE) return;
+          if (Math.hypot(dxPx, dyPx) < TOUCH_DRAG_DEAD_ZONE) {
+            return;
+          }
           cancelLongPress();
-          if (el.locked) return;
+          if (el.locked) {
+            return;
+          }
           dragging = true;
         }
 
@@ -464,17 +549,19 @@ export const AdCanvasEditor = ({
         const node = nodesRef.current[id];
         const heightPct =
           origin.height ??
-          (node && canvas.offsetHeight > 0 ? (node.offsetHeight / canvas.offsetHeight) * 100 : 0);
+          (node && canvas.offsetHeight > 0
+            ? (node.offsetHeight / canvas.offsetHeight) * 100
+            : 0);
 
         const xSnap = findSnapShift(
           [nx, nx + origin.width / 2, nx + origin.width],
           xTargets,
-          SNAP_THRESHOLD,
+          SNAP_THRESHOLD
         );
         const ySnap = findSnapShift(
           [ny, ny + heightPct / 2, ny + heightPct],
           yTargets,
-          SNAP_THRESHOLD,
+          SNAP_THRESHOLD
         );
         nx += xSnap.delta;
         ny += ySnap.delta;
@@ -483,8 +570,12 @@ export const AdCanvasEditor = ({
         ny = clamp(ny, -heightPct + 2, 98);
 
         const nextGuides: CanvasGuide[] = [];
-        if (xSnap.guide != null) nextGuides.push({ axis: "x", position: xSnap.guide });
-        if (ySnap.guide != null) nextGuides.push({ axis: "y", position: ySnap.guide });
+        if (xSnap.guide != null) {
+          nextGuides.push({ axis: "x", position: xSnap.guide });
+        }
+        if (ySnap.guide != null) {
+          nextGuides.push({ axis: "y", position: ySnap.guide });
+        }
 
         patchElement(id, { x: nx, y: ny });
         setGuides(nextGuides);
@@ -502,16 +593,20 @@ export const AdCanvasEditor = ({
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onUp);
     },
-    [commitEdit, editingId, openMenuAt, patchElement],
+    [commitEdit, editingId, openMenuAt, patchElement]
   );
 
   // ── Resize via handles ────────────────────────────────────────────────────
   const startResize = useCallback(
     (event: ReactPointerEvent, id: string, handle: HandleId) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0) {
+        return;
+      }
       const canvas = canvasRef.current;
       const el = elementsRef.current.find((item) => item.id === id);
-      if (!canvas || !el || el.locked) return;
+      if (!(canvas && el) || el.locked) {
+        return;
+      }
 
       event.preventDefault();
       event.stopPropagation();
@@ -532,13 +627,18 @@ export const AdCanvasEditor = ({
       const north = handle.includes("n");
       const south = handle.includes("s");
 
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
       const onMove = (move: PointerEvent) => {
         const dx = ((move.clientX - startX) / rect.width) * 100;
         const dy = ((move.clientY - startY) / rect.height) * 100;
 
         let width = origin.width;
-        if (east) width = origin.width + dx;
-        if (west) width = origin.width - dx;
+        if (east) {
+          width = origin.width + dx;
+        }
+        if (west) {
+          width = origin.width - dx;
+        }
         width = Math.max(MIN_ELEMENT_WIDTH, width);
 
         let height = origin.height;
@@ -546,26 +646,34 @@ export const AdCanvasEditor = ({
           if (isCorner) {
             height = origin.height * (width / origin.width);
           } else {
-            if (south) height = origin.height + dy;
-            if (north) height = origin.height - dy;
+            if (south) {
+              height = origin.height + dy;
+            }
+            if (north) {
+              height = origin.height - dy;
+            }
           }
           height = Math.max(MIN_ELEMENT_HEIGHT, height);
         }
 
         let x = origin.x;
         let y = origin.y;
-        if (west) x = origin.x + (origin.width - width);
+        if (west) {
+          x = origin.x + (origin.width - width);
+        }
         if (north && origin.height != null && height != null) {
           y = origin.y + (origin.height - height);
         }
 
         const patch: Partial<CanvasElement> = { x, y, width };
-        if (height != null) patch.height = height;
+        if (height != null) {
+          patch.height = height;
+        }
         if (el.kind === "text" && isCorner) {
           (patch as Partial<TextCanvasElement>).fontSize = clamp(
             origin.fontSize * (width / origin.width),
             MIN_FONT_SIZE,
-            MAX_FONT_SIZE,
+            MAX_FONT_SIZE
           );
         }
 
@@ -579,7 +687,7 @@ export const AdCanvasEditor = ({
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp, { once: true });
     },
-    [patchElement],
+    [patchElement]
   );
 
   // ── Context menu ──────────────────────────────────────────────────────────
@@ -589,13 +697,20 @@ export const AdCanvasEditor = ({
       event.stopPropagation();
       openMenuAt(event.clientX, event.clientY, id);
     },
-    [openMenuAt],
+    [openMenuAt]
   );
 
   useEffect(() => {
-    if (!menu) return undefined;
+    if (!menu) {
+      return;
+    }
     const close = (event: MouseEvent) => {
-      if (event.target instanceof HTMLElement && event.target.closest(".ad-canvas-menu")) return;
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest(".ad-canvas-menu")
+      ) {
+        return;
+      }
       setMenu(null);
     };
     window.addEventListener("pointerdown", close);
@@ -606,7 +721,9 @@ export const AdCanvasEditor = ({
   // push it off the bottom/right on small screens.
   useLayoutEffect(() => {
     const node = menuRef.current;
-    if (!menu || !node) return;
+    if (!(menu && node)) {
+      return;
+    }
     const rect = node.getBoundingClientRect();
     const margin = 8;
     node.style.left = `${clamp(menu.x, margin, Math.max(margin, window.innerWidth - rect.width - margin))}px`;
@@ -615,6 +732,7 @@ export const AdCanvasEditor = ({
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (menu) {
@@ -629,10 +747,16 @@ export const AdCanvasEditor = ({
         return;
       }
 
-      if (isEditableTarget(event.target)) return;
-      if (!selectedId) return;
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+      if (!selectedId) {
+        return;
+      }
       const selected = elementsRef.current.find((el) => el.id === selectedId);
-      if (!selected) return;
+      if (!selected) {
+        return;
+      }
 
       if (event.key === "Delete" || event.key === "Backspace") {
         if (!selected.locked) {
@@ -728,7 +852,7 @@ export const AdCanvasEditor = ({
         exportPixelSize.width,
         exportPixelSize.height,
         creative.backgroundColor,
-        true,
+        true
       );
       downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
       posthog?.capture("ad_creative_exported", {
@@ -738,7 +862,9 @@ export const AdCanvasEditor = ({
         editor: "canvas",
       });
     } catch (error) {
-      setExportError(error instanceof Error ? error.message : "Could not export PNG.");
+      setExportError(
+        error instanceof Error ? error.message : "Could not export PNG."
+      );
     } finally {
       setExporting(false);
     }
@@ -754,7 +880,9 @@ export const AdCanvasEditor = ({
   const handlePreviewOnDoor = useCallback(async () => {
     const canvas = canvasRef.current;
     const cutoutSpec = selectedPlatform.cutout;
-    if (!canvas || !cutoutSpec) return;
+    if (!(canvas && cutoutSpec)) {
+      return;
+    }
 
     setSelectedId(null);
     setEditingId(null);
@@ -768,7 +896,7 @@ export const AdCanvasEditor = ({
         exportPixelSize.width,
         exportPixelSize.height,
         creative.backgroundColor,
-        true,
+        true
       );
       const design = await blobToImage(blob);
       const mockupBlob = await renderDoorMockup({
@@ -778,14 +906,20 @@ export const AdCanvasEditor = ({
         hangerHeightInches: selectedPlatform.height,
       });
       setMockupUrl((previous) => {
-        if (previous) URL.revokeObjectURL(previous);
+        if (previous) {
+          URL.revokeObjectURL(previous);
+        }
         return URL.createObjectURL(mockupBlob);
       });
       posthog?.capture("ad_door_mockup_generated", {
         platform: selectedPlatform.id,
       });
     } catch (error) {
-      setMockupError(error instanceof Error ? error.message : "Could not build the door mockup.");
+      setMockupError(
+        error instanceof Error
+          ? error.message
+          : "Could not build the door mockup."
+      );
     } finally {
       setMockupBusy(false);
     }
@@ -802,7 +936,9 @@ export const AdCanvasEditor = ({
 
   const closeMockup = useCallback(() => {
     setMockupUrl((previous) => {
-      if (previous) URL.revokeObjectURL(previous);
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
       return null;
     });
     setMockupError(null);
@@ -810,9 +946,11 @@ export const AdCanvasEditor = ({
 
   useEffect(
     () => () => {
-      if (mockupUrl) URL.revokeObjectURL(mockupUrl);
+      if (mockupUrl) {
+        URL.revokeObjectURL(mockupUrl);
+      }
     },
-    [mockupUrl],
+    [mockupUrl]
   );
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -825,7 +963,11 @@ export const AdCanvasEditor = ({
     background: creative.backgroundColor,
   };
   if (cutout) {
-    const maskUri = buildCutoutMaskDataUri(cutout, selectedPlatform.width, selectedPlatform.height);
+    const maskUri = buildCutoutMaskDataUri(
+      cutout,
+      selectedPlatform.width,
+      selectedPlatform.height
+    );
     // The die-cut silhouette defines the corners + knob hole; drop the rounded
     // canvas frame so the mask isn't clipped twice.
     canvasStyle.borderRadius = 0;
@@ -848,19 +990,20 @@ export const AdCanvasEditor = ({
       top: `${el.y}%`,
       width: `${el.width}%`,
     };
-    if (el.height != null) {
-      style.height = `${el.height}%`;
-    } else {
+    if (el.height == null) {
       const node = nodesRef.current[el.id];
       const canvas = canvasRef.current;
       if (node && canvas && canvas.offsetHeight > 0) {
         style.height = `${(node.offsetHeight / canvas.offsetHeight) * 100}%`;
       }
+    } else {
+      style.height = `${el.height}%`;
     }
     return style;
   };
 
   // ── Render: elements ──────────────────────────────────────────────────────
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
   const renderElement = (el: CanvasElement, index: number) => {
     const isEditing = el.id === editingId;
 
@@ -868,7 +1011,7 @@ export const AdCanvasEditor = ({
       left: `${el.x}%`,
       top: `${el.y}%`,
       width: `${el.width}%`,
-      height: el.height != null ? `${el.height}%` : "auto",
+      height: el.height == null ? "auto" : `${el.height}%`,
       opacity: el.opacity,
       zIndex: index + 1,
     };
@@ -891,35 +1034,49 @@ export const AdCanvasEditor = ({
         borderRadius: `${el.borderRadius}cqw`,
       };
       inner = (
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: element becomes role="textbox" when isEditing; onBlur is undefined when not editing
+        // biome-ignore lint/a11y/noStaticElementInteractions: element becomes role="textbox" when isEditing; onBlur is undefined when not editing
+        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-multiline is only set when role="textbox" is also active
         <div
-          className={`ad-canvas-text${isEditing ? " is-editing" : ""}`}
-          style={textStyle}
+          aria-multiline={isEditing ? "true" : undefined}
+          className={`ad-canvas-text${isEditing ? "is-editing" : ""}`}
           contentEditable={isEditing}
-          suppressContentEditableWarning
-          ref={isEditing ? editRef : undefined}
           onBlur={isEditing ? commitEdit : undefined}
+          ref={isEditing ? editRef : undefined}
+          role={isEditing ? "textbox" : undefined}
+          style={textStyle}
+          suppressContentEditableWarning
         >
           {el.text}
         </div>
       );
     } else if (el.kind === "image") {
       inner = (
+        // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
         <img
-          src={toCanvasImageUrl(el.src)}
           alt=""
           draggable={false}
+          src={toCanvasImageUrl(el.src)}
           style={{ objectFit: el.objectFit }}
         />
       );
     } else if (el.kind === "logo") {
-      inner = <img src={LOGO_SOURCES[el.variant]} alt="Birdcreek Roofing" draggable={false} />;
+      inner = (
+        // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
+        <img
+          alt="Birdcreek Roofing"
+          draggable={false}
+          src={LOGO_SOURCES[el.variant]}
+        />
+      );
     } else if (el.kind === "qr") {
       inner = (
+        // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
         <img
-          className="ad-canvas-qr"
-          src={buildQrDataUri(el.value, el.fgColor, el.bgColor)}
           alt={`QR code linking to ${el.value}`}
+          className="ad-canvas-qr"
           draggable={false}
+          src={buildQrDataUri(el.value, el.fgColor, el.bgColor)}
         />
       );
     } else {
@@ -932,29 +1089,37 @@ export const AdCanvasEditor = ({
     }
 
     return (
-      <div
+      <button
+        aria-label={el.name}
+        className={`ad-canvas-el${el.locked ? "is-locked" : ""}${isEditing ? "is-editing" : ""}`}
         key={el.id}
+        onContextMenu={(event) => openMenu(event, el.id)}
+        onDoubleClick={el.kind === "text" ? () => beginEdit(el.id) : undefined}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && el.kind === "text") {
+            beginEdit(el.id);
+          }
+        }}
+        onPointerDown={(event) => startMove(event, el.id)}
         ref={(node) => {
           nodesRef.current[el.id] = node;
         }}
-        className={`ad-canvas-el${el.locked ? " is-locked" : ""}${isEditing ? " is-editing" : ""}`}
         style={style}
-        onPointerDown={(event) => startMove(event, el.id)}
-        onDoubleClick={el.kind === "text" ? () => beginEdit(el.id) : undefined}
-        onContextMenu={(event) => openMenu(event, el.id)}
+        type="button"
       >
         {inner}
-      </div>
+      </button>
     );
   };
 
   // ── Render: context bar controls ──────────────────────────────────────────
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
   const renderContextBar = () => {
     if (!selected) {
       return (
         <p className="ad-canvas-context-hint whitespace-pre-wrap">
-          Select an element to edit it — drag to move, handles to resize, double-click text to edit,
-          right-click for more.
+          Select an element to edit it — drag to move, handles to resize,
+          double-click text to edit, right-click for more.
         </p>
       );
     }
@@ -966,11 +1131,13 @@ export const AdCanvasEditor = ({
         {selected.kind === "text" ? (
           <>
             <select
-              name="ad-font-family"
-              id="ad-font-family"
               aria-label="Font family"
+              id="ad-font-family"
+              name="ad-font-family"
+              onChange={(event) =>
+                patchElement(selected.id, { fontFamily: event.target.value })
+              }
               value={selected.fontFamily}
-              onChange={(event) => patchElement(selected.id, { fontFamily: event.target.value })}
             >
               {CANVAS_FONT_FAMILIES.map((font) => (
                 <option key={font.css} value={font.css}>
@@ -979,14 +1146,11 @@ export const AdCanvasEditor = ({
               ))}
             </select>
             <input
-              name="ad-font-size"
-              id="ad-font-size"
               aria-label="Font size"
-              type="number"
-              min={MIN_FONT_SIZE}
+              id="ad-font-size"
               max={MAX_FONT_SIZE}
-              step={0.2}
-              value={Number.parseFloat(selected.fontSize.toFixed(1))}
+              min={MIN_FONT_SIZE}
+              name="ad-font-size"
               onChange={(event) => {
                 const value = Number.parseFloat(event.target.value);
                 if (Number.isFinite(value)) {
@@ -995,58 +1159,68 @@ export const AdCanvasEditor = ({
                   });
                 }
               }}
+              step={0.2}
+              type="number"
+              value={Number.parseFloat(selected.fontSize.toFixed(1))}
             />
             <AdColorSwatch
               label="Text color"
-              value={selected.color}
               onChange={(hex) => patchElement(selected.id, { color: hex })}
+              value={selected.color}
             />
             <button
-              type="button"
-              className={selected.fontWeight >= 700 ? "is-active" : ""}
               aria-label="Bold"
+              className={selected.fontWeight >= 700 ? "is-active" : ""}
               onClick={() =>
                 patchElement(selected.id, {
                   fontWeight: selected.fontWeight >= 700 ? 400 : 750,
                 })
               }
+              type="button"
             >
               B
             </button>
             <button
-              type="button"
-              className={selected.fontStyle === "italic" ? "is-active" : ""}
               aria-label="Italic"
+              className={selected.fontStyle === "italic" ? "is-active" : ""}
               onClick={() =>
                 patchElement(selected.id, {
-                  fontStyle: selected.fontStyle === "italic" ? "normal" : "italic",
+                  fontStyle:
+                    selected.fontStyle === "italic" ? "normal" : "italic",
                 })
               }
+              type="button"
             >
               I
             </button>
             <button
-              type="button"
-              className={selected.textTransform === "uppercase" ? "is-active" : ""}
               aria-label="Uppercase"
+              className={
+                selected.textTransform === "uppercase" ? "is-active" : ""
+              }
               onClick={() =>
                 patchElement(selected.id, {
-                  textTransform: selected.textTransform === "uppercase" ? "none" : "uppercase",
+                  textTransform:
+                    selected.textTransform === "uppercase"
+                      ? "none"
+                      : "uppercase",
                 })
               }
+              type="button"
             >
               AA
             </button>
             <select
-              name="ad-text-align"
-              id="ad-text-align"
               aria-label="Text align"
-              value={selected.textAlign}
+              id="ad-text-align"
+              name="ad-text-align"
               onChange={(event) =>
                 patchElement(selected.id, {
-                  textAlign: event.target.value as TextCanvasElement["textAlign"],
+                  textAlign: event.target
+                    .value as TextCanvasElement["textAlign"],
                 })
               }
+              value={selected.textAlign}
             >
               <option value="left">Left</option>
               <option value="center">Center</option>
@@ -1054,14 +1228,14 @@ export const AdCanvasEditor = ({
             </select>
             <AdColorSwatch
               label="Background color"
-              value={selected.background ?? "#000000"}
               onChange={(hex) => patchElement(selected.id, { background: hex })}
+              value={selected.background ?? "#000000"}
             />
             <button
-              type="button"
               aria-label="Clear background"
               disabled={!selected.background}
               onClick={() => patchElement(selected.id, { background: null })}
+              type="button"
             >
               No fill
             </button>
@@ -1070,12 +1244,12 @@ export const AdCanvasEditor = ({
 
         {selected.kind === "image" ? (
           <button
-            type="button"
             onClick={() =>
               patchElement(selected.id, {
                 objectFit: selected.objectFit === "cover" ? "contain" : "cover",
               })
             }
+            type="button"
           >
             Fit: {selected.objectFit}
           </button>
@@ -1085,18 +1259,15 @@ export const AdCanvasEditor = ({
           <>
             <AdColorSwatch
               label="Fill color"
-              value={selected.fill}
               onChange={(hex) => patchElement(selected.id, { fill: hex })}
+              value={selected.fill}
             />
             <input
-              name="ad-border-radius"
-              id="ad-border-radius"
               aria-label="Corner radius"
-              type="number"
-              min={0}
+              id="ad-border-radius"
               max={20}
-              step={0.5}
-              value={selected.borderRadius}
+              min={0}
+              name="ad-border-radius"
               onChange={(event) => {
                 const value = Number.parseFloat(event.target.value);
                 if (Number.isFinite(value)) {
@@ -1105,6 +1276,9 @@ export const AdCanvasEditor = ({
                   });
                 }
               }}
+              step={0.5}
+              type="number"
+              value={selected.borderRadius}
             />
           </>
         ) : null}
@@ -1112,40 +1286,42 @@ export const AdCanvasEditor = ({
         {selected.kind === "qr" ? (
           <>
             <input
-              name="ad-qr-value"
-              id="ad-qr-value"
-              className="ad-canvas-qr-input"
-              type="text"
-              inputMode="url"
               aria-label="QR code link"
+              className="ad-canvas-qr-input"
+              id="ad-qr-value"
+              inputMode="url"
+              name="ad-qr-value"
+              onChange={(event) =>
+                patchElement(selected.id, { value: event.target.value })
+              }
               placeholder="https://..."
+              type="text"
               value={selected.value}
-              onChange={(event) => patchElement(selected.id, { value: event.target.value })}
             />
             <AdColorSwatch
               label="QR color"
-              value={selected.fgColor}
               onChange={(hex) => patchElement(selected.id, { fgColor: hex })}
+              value={selected.fgColor}
             />
             <AdColorSwatch
               label="QR background"
-              value={selected.bgColor}
               onChange={(hex) => patchElement(selected.id, { bgColor: hex })}
+              value={selected.bgColor}
             />
           </>
         ) : null}
 
         {selected.kind === "logo" ? (
           <select
-            name="ad-logo-variant"
-            id="ad-logo-variant"
             aria-label="Logo variant"
-            value={selected.variant}
+            id="ad-logo-variant"
+            name="ad-logo-variant"
             onChange={(event) =>
               patchElement(selected.id, {
                 variant: event.target.value as LogoVariant,
               })
             }
+            value={selected.variant}
           >
             <option value="horizontal-white">Horizontal (white)</option>
             <option value="vertical-white">Vertical (white)</option>
@@ -1155,85 +1331,108 @@ export const AdCanvasEditor = ({
         <label className="ad-canvas-opacity">
           <span>Opacity</span>
           <input
-            name="ad-opacity"
             id="ad-opacity"
-            type="range"
-            min={10}
             max={100}
-            value={Math.round(selected.opacity * 100)}
+            min={10}
+            name="ad-opacity"
             onChange={(event) =>
               patchElement(selected.id, {
                 opacity: Number.parseInt(event.target.value, 10) / 100,
               })
             }
+            type="range"
+            value={Math.round(selected.opacity * 100)}
           />
         </label>
 
         <span className="ad-canvas-context-spacer" />
 
-        <div className="ad-canvas-layer-group" role="group" aria-label="Layer order">
+        <fieldset aria-label="Layer order" className="ad-canvas-layer-group">
           <button
-            type="button"
             aria-label="Bring forward"
-            title="Bring forward"
             onClick={() => moveLayer(selected.id, "forward")}
+            title="Bring forward"
+            type="button"
           >
-            <ArrowUp width={15} height={15} />
+            <ArrowUp height={15} width={15} />
           </button>
           <button
-            type="button"
             aria-label="Send backward"
-            title="Send backward"
             onClick={() => moveLayer(selected.id, "backward")}
+            title="Send backward"
+            type="button"
           >
-            <ArrowDown width={15} height={15} />
+            <ArrowDown height={15} width={15} />
           </button>
           <button
-            type="button"
             aria-label="Bring to front"
-            title="Bring to front"
             onClick={() => moveLayer(selected.id, "front")}
+            title="Bring to front"
+            type="button"
           >
-            <FastArrowUp width={15} height={15} />
+            <FastArrowUp height={15} width={15} />
           </button>
           <button
-            type="button"
             aria-label="Send to back"
-            title="Send to back"
             onClick={() => moveLayer(selected.id, "back")}
+            title="Send to back"
+            type="button"
           >
-            <FastArrowDown width={15} height={15} />
+            <FastArrowDown height={15} width={15} />
           </button>
-        </div>
+        </fieldset>
 
         <button
-          type="button"
           aria-label={selected.locked ? "Unlock" : "Lock"}
           className={selected.locked ? "is-active" : ""}
-          onClick={() => patchElement(selected.id, { locked: !selected.locked })}
+          onClick={() =>
+            patchElement(selected.id, { locked: !selected.locked })
+          }
+          type="button"
         >
-          <Lock width={15} height={15} />
-        </button>
-        <button type="button" aria-label="Duplicate" onClick={() => duplicateElement(selected.id)}>
-          <Copy width={15} height={15} />
+          <Lock height={15} width={15} />
         </button>
         <button
+          aria-label="Duplicate"
+          onClick={() => duplicateElement(selected.id)}
           type="button"
+        >
+          <Copy height={15} width={15} />
+        </button>
+        <button
           aria-label="Delete"
           className="is-danger"
           onClick={() => removeElement(selected.id)}
+          type="button"
         >
-          <Trash width={15} height={15} />
+          <Trash height={15} width={15} />
         </button>
       </div>
     );
   };
 
-  const handles = selected
-    ? selected.height != null
-      ? FIXED_HEIGHT_HANDLES
-      : AUTO_HEIGHT_HANDLES
-    : [];
+  const selectedHandles =
+    selected?.height == null ? AUTO_HEIGHT_HANDLES : FIXED_HEIGHT_HANDLES;
+  const handles = selected ? selectedHandles : [];
+
+  const mockupContent = mockupUrl ? (
+    <>
+      {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
+      <img
+        alt="The door hanger design shown hanging on a real door"
+        className="ad-mockup-image"
+        src={mockupUrl}
+      />
+      <a
+        className="ad-dashboard-export"
+        download={`tandra-door-hanger-mockup-${Date.now()}.png`}
+        href={mockupUrl}
+      >
+        <Download height={18} width={18} />
+        Download mockup
+      </a>
+    </>
+  ) : null;
 
   return (
     <section className="ad-dashboard-stage">
@@ -1242,43 +1441,55 @@ export const AdCanvasEditor = ({
         <div className="ad-dashboard-toolbar-meta">
           <strong>{selectedPlatform.label}</strong>
           <span>
-            {formatAdDimensions(creative.adWidth, creative.adHeight, creative.unit)}
+            {formatAdDimensions(
+              creative.adWidth,
+              creative.adHeight,
+              creative.unit
+            )}
             {creative.unit === "in"
               ? ` · ${exportPixelSize.width} x ${exportPixelSize.height}px export`
               : null}
           </span>
         </div>
         <div className="ad-canvas-toolbar-actions">
-          <button type="button" className="ad-canvas-add-btn" onClick={addText}>
-            <Text width={16} height={16} />
+          <button className="ad-canvas-add-btn" onClick={addText} type="button">
+            <Text height={16} width={16} />
             Text
           </button>
-          <button type="button" className="ad-canvas-add-btn" onClick={addShape}>
-            <PlusSquare width={16} height={16} />
+          <button
+            className="ad-canvas-add-btn"
+            onClick={addShape}
+            type="button"
+          >
+            <PlusSquare height={16} width={16} />
             Shape
           </button>
-          <button type="button" className="ad-canvas-add-btn" onClick={addQr}>
-            <QrCode width={16} height={16} />
+          <button className="ad-canvas-add-btn" onClick={addQr} type="button">
+            <QrCode height={16} width={16} />
             QR code
           </button>
           {cutout ? (
             <button
-              type="button"
               className="ad-canvas-add-btn"
-              onClick={() => void handlePreviewOnDoor()}
               disabled={mockupBusy}
+              onClick={() => {
+                handlePreviewOnDoor();
+              }}
+              type="button"
             >
-              <Eye width={16} height={16} />
+              <Eye height={16} width={16} />
               {mockupBusy ? "Rendering..." : "Preview on door"}
             </button>
           ) : null}
           <button
-            type="button"
             className="ad-dashboard-export"
-            onClick={() => void handleExport()}
             disabled={exporting}
+            onClick={() => {
+              handleExport();
+            }}
+            type="button"
           >
-            <Download width={18} height={18} />
+            <Download height={18} width={18} />
             {exporting ? "Exporting..." : "Export PNG"}
           </button>
           {toolbarEnd}
@@ -1288,31 +1499,38 @@ export const AdCanvasEditor = ({
       <div className="ad-canvas-context-bar">{renderContextBar()}</div>
 
       {exportError ? (
-        <p className="ad-dashboard-error ad-dashboard-export-error">{exportError}</p>
+        <p className="ad-dashboard-error ad-dashboard-export-error">
+          {exportError}
+        </p>
       ) : null}
 
-      <div className="ad-dashboard-preview-wrap ad-canvas-viewport" ref={viewportRef}>
+      <div
+        className="ad-dashboard-preview-wrap ad-canvas-viewport"
+        ref={viewportRef}
+      >
         <div className="ad-canvas-frame" style={frameStyle}>
           <div
             className="ad-canvas"
-            ref={canvasRef}
-            style={canvasStyle}
             onPointerDown={(event) => {
               if (event.target === event.currentTarget) {
                 setSelectedId(null);
                 setMenu(null);
-                if (editingId) commitEdit();
+                if (editingId) {
+                  commitEdit();
+                }
               }
             }}
+            ref={canvasRef}
+            style={canvasStyle}
           >
             {elements.map(renderElement)}
           </div>
 
-          <div className="ad-canvas-overlay" aria-hidden>
-            {guides.map((guide, index) => (
+          <div aria-hidden className="ad-canvas-overlay">
+            {guides.map((guide) => (
               <div
-                key={`${guide.axis}-${guide.position}-${index}`}
                 className={`ad-canvas-guide ad-canvas-guide--${guide.axis}`}
+                key={`${guide.axis}-${guide.position}`}
                 style={
                   guide.axis === "x"
                     ? { left: `${guide.position}%` }
@@ -1323,18 +1541,20 @@ export const AdCanvasEditor = ({
 
             {selected ? (
               <div
-                className={`ad-canvas-selection${selected.locked ? " is-locked" : ""}`}
+                className={`ad-canvas-selection${selected.locked ? "is-locked" : ""}`}
                 style={getSelectionStyle(selected)}
               >
-                {!selected.locked
-                  ? handles.map((handle) => (
+                {selected.locked
+                  ? null
+                  : handles.map((handle) => (
                       <div
-                        key={handle}
                         className={`ad-canvas-handle ad-canvas-handle--${handle}`}
-                        onPointerDown={(event) => startResize(event, selected.id, handle)}
+                        key={handle}
+                        onPointerDown={(event) =>
+                          startResize(event, selected.id, handle)
+                        }
                       />
-                    ))
-                  : null}
+                    ))}
               </div>
             ) : null}
           </div>
@@ -1343,51 +1563,77 @@ export const AdCanvasEditor = ({
 
       {menu ? (
         <div
-          ref={menuRef}
           className="ad-canvas-menu"
-          style={{ left: menu.x, top: menu.y }}
+          ref={menuRef}
           role="menu"
+          style={{ left: menu.x, top: menu.y }}
         >
           {(() => {
             const el = elements.find((item) => item.id === menu.elementId);
-            if (!el) return null;
+            if (!el) {
+              return null;
+            }
             return (
               <>
                 {el.kind === "text" ? (
-                  <button type="button" role="menuitem" onClick={() => beginEdit(el.id)}>
+                  <button
+                    onClick={() => beginEdit(el.id)}
+                    role="menuitem"
+                    type="button"
+                  >
                     Edit text
                   </button>
                 ) : null}
-                <button type="button" role="menuitem" onClick={() => duplicateElement(el.id)}>
+                <button
+                  onClick={() => duplicateElement(el.id)}
+                  role="menuitem"
+                  type="button"
+                >
                   Duplicate
                 </button>
-                <button type="button" role="menuitem" onClick={() => moveLayer(el.id, "forward")}>
+                <button
+                  onClick={() => moveLayer(el.id, "forward")}
+                  role="menuitem"
+                  type="button"
+                >
                   Bring forward
                 </button>
-                <button type="button" role="menuitem" onClick={() => moveLayer(el.id, "backward")}>
+                <button
+                  onClick={() => moveLayer(el.id, "backward")}
+                  role="menuitem"
+                  type="button"
+                >
                   Send backward
                 </button>
-                <button type="button" role="menuitem" onClick={() => moveLayer(el.id, "front")}>
+                <button
+                  onClick={() => moveLayer(el.id, "front")}
+                  role="menuitem"
+                  type="button"
+                >
                   Bring to front
                 </button>
-                <button type="button" role="menuitem" onClick={() => moveLayer(el.id, "back")}>
+                <button
+                  onClick={() => moveLayer(el.id, "back")}
+                  role="menuitem"
+                  type="button"
+                >
                   Send to back
                 </button>
                 <button
-                  type="button"
-                  role="menuitem"
                   onClick={() => {
                     patchElement(el.id, { locked: !el.locked });
                     setMenu(null);
                   }}
+                  role="menuitem"
+                  type="button"
                 >
                   {el.locked ? "Unlock" : "Lock"}
                 </button>
                 <button
-                  type="button"
-                  role="menuitem"
                   className="is-danger"
                   onClick={() => removeElement(el.id)}
+                  role="menuitem"
+                  type="button"
                 >
                   Delete
                 </button>
@@ -1398,44 +1644,42 @@ export const AdCanvasEditor = ({
       ) : null}
 
       {mockupUrl || mockupError ? (
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: modal backdrop — click outside to dismiss is a standard modal pattern
         <div
-          className="ad-mockup-backdrop"
-          role="dialog"
-          aria-modal="true"
           aria-label="Door hanger mockup"
+          aria-modal="true"
+          className="ad-mockup-backdrop"
           onClick={closeMockup}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              closeMockup();
+            }
+          }}
+          role="dialog"
         >
-          <div className="ad-mockup-modal" onClick={(event) => event.stopPropagation()}>
+          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stops click propagation to backdrop */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation to backdrop */}
+          <div
+            className="ad-mockup-modal"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <div className="ad-mockup-head">
               <strong>Door hanger preview</strong>
               <button
-                type="button"
+                aria-label="Close preview"
                 className="ad-mockup-close"
                 onClick={closeMockup}
-                aria-label="Close preview"
+                type="button"
               >
-                <Xmark width={18} height={18} />
+                <Xmark height={18} width={18} />
               </button>
             </div>
             {mockupError ? (
               <p className="ad-dashboard-error">{mockupError}</p>
-            ) : mockupUrl ? (
-              <>
-                <img
-                  className="ad-mockup-image"
-                  src={mockupUrl}
-                  alt="The door hanger design shown hanging on a real door"
-                />
-                <a
-                  className="ad-dashboard-export"
-                  href={mockupUrl}
-                  download={`tandra-door-hanger-mockup-${Date.now()}.png`}
-                >
-                  <Download width={18} height={18} />
-                  Download mockup
-                </a>
-              </>
-            ) : null}
+            ) : (
+              mockupContent
+            )}
           </div>
         </div>
       ) : null}

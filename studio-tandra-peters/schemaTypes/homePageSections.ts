@@ -47,7 +47,8 @@ export const roofInspectionSectionType = defineType({
     defineGeneratedImage({
       name: "diagramImage",
       title: "Diagram image",
-      description: "Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.",
+      description:
+        "Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.",
     }),
     defineField({
       name: "hotspots",
@@ -68,17 +69,30 @@ export const heroSectionType = defineType({
   fields: [
     defineField({ name: "badge", type: "string", title: "Badge text" }),
     defineField({ name: "titleLine1", type: "string", title: "Title line 1" }),
-    defineField({ name: "titleLine2", type: "string", title: "Title line 2 (muted accent)" }),
+    defineField({
+      name: "titleLine2",
+      type: "string",
+      title: "Title line 2 (muted accent)",
+    }),
     defineField({
       name: "subtitle",
       title: "Subtitle",
       type: "blockContent",
-      description: "Supporting paragraph under the headline (bold, links, lists).",
+      description:
+        "Supporting paragraph under the headline (bold, links, lists).",
     }),
     defineField({ name: "ctaText", type: "string" }),
     defineField({ name: "ctaHref", type: "string", initialValue: "#contact" }),
-    defineField({ name: "secondaryCtaText", type: "string", initialValue: "Explore Services" }),
-    defineField({ name: "secondaryCtaHref", type: "string", initialValue: "#services" }),
+    defineField({
+      name: "secondaryCtaText",
+      type: "string",
+      initialValue: "Explore Services",
+    }),
+    defineField({
+      name: "secondaryCtaHref",
+      type: "string",
+      initialValue: "#services",
+    }),
     defineGeneratedImage({
       name: "backgroundImage",
       title: "Background image",
@@ -111,7 +125,10 @@ export const heroSectionType = defineType({
             title: "Glass Overlay Nav — centered logo, transparent→glass nav",
             value: "glass-overlay",
           },
-          { title: "Dual CTA Rail — opaque sticky rail with two CTAs", value: "dual-cta-rail" },
+          {
+            title: "Dual CTA Rail — opaque sticky rail with two CTAs",
+            value: "dual-cta-rail",
+          },
           {
             title: "Dark Floating Pill Nav — pill nav, full-bleed photo",
             value: "dark-floating-pill",
@@ -142,7 +159,8 @@ export const videoSectionType = defineType({
       name: "posterUrl",
       type: "image",
       title: "Poster image",
-      description: "Sanity image asset (upload, Media Library, or Generate with AI).",
+      description:
+        "Sanity image asset (upload, Media Library, or Generate with AI).",
     }),
   ],
 });
@@ -181,11 +199,27 @@ export const contactBannerSectionType = defineType({
     defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
     defineField({ name: "headline", title: "Headline", type: "string" }),
     defineField({ name: "phoneLabel", title: "Label", type: "string" }),
-    defineField({ name: "phoneDisplay", title: "Phone / button text", type: "string" }),
-    defineField({ name: "phoneTel", title: "Phone number (tel)", type: "string" }),
+    defineField({
+      name: "phoneDisplay",
+      title: "Phone / button text",
+      type: "string",
+    }),
+    defineField({
+      name: "phoneTel",
+      title: "Phone number (tel)",
+      type: "string",
+    }),
     defineField({ name: "phoneHref", title: "CTA href", type: "string" }),
-    defineField({ name: "phoneAriaLabel", title: "CTA aria label", type: "string" }),
-    defineField({ name: "ariaLabel", title: "Section aria label", type: "string" }),
+    defineField({
+      name: "phoneAriaLabel",
+      title: "CTA aria label",
+      type: "string",
+    }),
+    defineField({
+      name: "ariaLabel",
+      title: "Section aria label",
+      type: "string",
+    }),
     defineField({
       name: "ctaIcon",
       title: "CTA icon",
@@ -285,7 +319,8 @@ export const statsSectionType = defineType({
       name: "title",
       type: "string",
       title: "Heading",
-      description: "Short label shown beside the numbers (e.g. Birdcreek Roofing in Austin).",
+      description:
+        "Short label shown beside the numbers (e.g. Birdcreek Roofing in Austin).",
     }),
     defineField({
       name: "items",
@@ -343,7 +378,10 @@ export const servicesSectionType = defineType({
         list: [
           { title: "— Use PostHog experiment (default) —", value: "" },
           { title: "Control — Services grid", value: "control" },
-          { title: "Typographic alt — full-bleed layout", value: "typographic-alt" },
+          {
+            title: "Typographic alt — full-bleed layout",
+            value: "typographic-alt",
+          },
         ],
         layout: "radio",
       },
@@ -367,7 +405,7 @@ export const servicesSectionType = defineType({
   ],
   preview: {
     prepare: ({}) => ({
-      title: `Services`,
+      title: "Services",
     }),
   },
 });
@@ -484,7 +522,7 @@ export const socialShareSectionType = defineType({
   ],
   preview: {
     prepare: ({}) => ({
-      title: `Social share bar`,
+      title: "Social share bar",
     }),
   },
 });
@@ -498,7 +536,8 @@ export const beforeAfterPairType = defineType({
       name: "title",
       title: "Title",
       type: "string",
-      description: 'Short label shown under the pair (e.g. "Hail damage repair, North Austin").',
+      description:
+        'Short label shown under the pair (e.g. "Hail damage repair, North Austin").',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -617,14 +656,17 @@ export const articlesTeaserSectionType = defineType({
       type: "boolean",
       hidden: true,
       deprecated: {
-        reason: "No longer used — the articles block is always shown when posts exist.",
+        reason:
+          "No longer used — the articles block is always shown when posts exist.",
       },
     }),
     defineField({
       name: "featuredPosts",
       type: "array",
       hidden: true,
-      deprecated: { reason: "No longer used — remove when convenient (optional)." },
+      deprecated: {
+        reason: "No longer used — remove when convenient (optional).",
+      },
       of: [{ type: "reference", to: [{ type: "post" }] }],
     }),
   ],

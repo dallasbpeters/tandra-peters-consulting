@@ -1,7 +1,5 @@
 /* Shared design tokens + WebAwesome tuning for Studio image tools */
 .studio-tool {
-  color-scheme: light;
-
   --studio-tool-accent: #7d4c35;
   --studio-tool-alert-bg: #fff1ee;
   --studio-tool-alert-border: rgb(142 40 30 / 24%);
@@ -82,11 +80,11 @@
   --wa-transition-fast: 120ms;
   --wa-transition-normal: 160ms;
   --wa-transition-slow: 220ms;
+  
+  color-scheme: light;
 }
 
 .studio-tool--dark {
-  color-scheme: dark;
-
   --studio-tool-accent: #a8afd5;
   --studio-tool-alert-bg: #351510;
   --studio-tool-alert-border: rgb(255 134 106 / 32%);
@@ -124,12 +122,12 @@
   --wa-color-brand-on-normal: #08110d;
   --wa-color-brand-on-quiet: #dad8ef;
   --wa-shadow-m: 0 1rem 2.5rem rgb(0 0 0 / 36%);
+
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   .studio-tool:not(.studio-tool--light) {
-    color-scheme: dark;
-
     --studio-tool-accent: #a8afd5;
     --studio-tool-alert-bg: #351510;
     --studio-tool-alert-border: rgb(255 134 106 / 32%);
@@ -167,6 +165,8 @@
     --wa-color-brand-on-normal: #080911;
     --wa-color-brand-on-quiet: #d9d8ef;
     --wa-shadow-m: 0 1rem 2.5rem rgb(0 0 0 / 36%);
+
+    color-scheme: dark;
   }
 }
 
@@ -189,9 +189,9 @@
 .studio-tool wa-number-input::part(base),
 .studio-tool wa-select::part(combobox),
 .studio-tool wa-textarea::part(base) {
-  border-color: var(--studio-tool-border-strong);
-  background: var(--studio-tool-empty-bg);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-empty-bg);
+  border-color: var(--studio-tool-border-strong);
 }
 
 .studio-tool wa-textarea::part(base) {
@@ -210,8 +210,8 @@
 .studio-tool wa-number-input::part(input),
 .studio-tool wa-select::part(display-input),
 .studio-tool wa-textarea::part(textarea) {
-  color: var(--studio-tool-text);
   font-size: var(--wa-font-size-m);
+  color: var(--studio-tool-text);
 }
 
 .studio-tool wa-input::part(input)::placeholder,
@@ -220,26 +220,26 @@
 }
 
 .studio-tool wa-number-input::part(stepper) {
-  border-color: var(--studio-tool-border);
   color: var(--studio-tool-muted-strong);
+  border-color: var(--studio-tool-border);
 }
 
 .studio-tool wa-select::part(listbox) {
-  border-color: var(--studio-tool-border-strong);
-  background: var(--studio-tool-panel);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-panel);
+  border-color: var(--studio-tool-border-strong);
   box-shadow: var(--wa-shadow-m);
 }
 
 .studio-tool wa-option::part(base) {
-  background: var(--studio-tool-panel);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-panel);
 }
 
 .studio-tool wa-option:hover::part(base),
 .studio-tool wa-option[aria-selected="true"]::part(base) {
-  background: var(--studio-tool-brand-ring);
   color: var(--studio-tool-text);
+  background: var(--studio-tool-brand-ring);
 }
 
 .studio-tool wa-select::part(expand-icon),
@@ -248,13 +248,13 @@
 }
 
 .studio-tool wa-checkbox::part(control) {
-  border-color: var(--studio-tool-border-strong);
   background: var(--studio-tool-empty-bg);
+  border-color: var(--studio-tool-border-strong);
 }
 
 .studio-tool wa-checkbox[checked]::part(control) {
-  border-color: var(--studio-tool-brand);
   background: var(--studio-tool-brand);
+  border-color: var(--studio-tool-brand);
 }
 
 .studio-tool wa-slider::part(track) {
@@ -271,10 +271,10 @@
 }
 
 .studio-tool wa-button:not(.sim__asset-tile, .fis__asset-tile)::part(base) {
-  border-color: var(--studio-tool-border-strong);
-  background: var(--studio-tool-empty-bg);
-  color: var(--studio-tool-text);
   font-weight: 800;
+  color: var(--studio-tool-text);
+  background: var(--studio-tool-empty-bg);
+  border-color: var(--studio-tool-border-strong);
   transition:
     background-color var(--wa-transition-fast) var(--wa-transition-easing),
     border-color var(--wa-transition-fast) var(--wa-transition-easing),
@@ -282,30 +282,37 @@
     box-shadow var(--wa-transition-fast) var(--wa-transition-easing);
 }
 
-.studio-tool wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):hover::part(base) {
-  border-color: var(--studio-tool-brand);
-  background: var(--studio-tool-brand-ring);
+.studio-tool
+  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):hover::part(
+    base
+  ) {
   color: var(--studio-tool-text);
+  background: var(--studio-tool-brand-ring);
+  border-color: var(--studio-tool-brand);
 }
 
 .studio-tool
-  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):focus-visible::part(base) {
+  wa-button:not(
+    .sim__asset-tile,
+    .fis__asset-tile,
+    [disabled]
+  ):focus-visible::part(base) {
   border-color: var(--studio-tool-brand);
   box-shadow: 0 0 0 2px var(--studio-tool-brand-ring);
 }
 
 .studio-tool wa-button[variant="brand"]::part(base),
 .studio-tool wa-button[appearance="filled"]::part(base) {
-  border-color: var(--studio-tool-brand);
-  background: var(--studio-tool-brand);
   color: var(--wa-color-brand-on-normal);
+  background: var(--studio-tool-brand);
+  border-color: var(--studio-tool-brand);
 }
 
 .studio-tool wa-button[variant="brand"]:not([disabled]):hover::part(base),
 .studio-tool wa-button[appearance="filled"]:not([disabled]):hover::part(base) {
-  border-color: var(--wa-color-brand-border-loud);
-  background: var(--wa-color-brand-fill-loud);
   color: var(--wa-color-brand-on-loud);
+  background: var(--wa-color-brand-fill-loud);
+  border-color: var(--wa-color-brand-border-loud);
 }
 
 .studio-tool wa-textarea::part(textarea) {

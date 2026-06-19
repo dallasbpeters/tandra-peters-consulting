@@ -1,16 +1,16 @@
 import { Img } from "remotion";
 
 interface ProfilePhotoProps {
-  width: number;
   height: number;
   src: string;
+  width: number;
 }
 
 export function ProfilePhoto({ width, height, src }: ProfilePhotoProps) {
   return (
     <Img
-      src={src}
       alt="Profile Photo"
+      src={src}
       style={{
         width,
         height,

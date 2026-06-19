@@ -1,11 +1,11 @@
 import { ArrowLeft } from "iconoir-react";
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import type { EstimatorSelections } from "../../lib/estimator";
 
 import { mix, theme } from "../../theme";
-import { EstimatorQuestion as EstimatorQuestionType } from "../../types";
+import type { EstimatorQuestion as EstimatorQuestionType } from "../../types";
 import { optionIllustrationFor } from "./optionIllustrations";
 import {
   estimatorOptionArtStyle,
@@ -16,15 +16,15 @@ import {
 } from "./styles";
 
 interface EstimatorQuestionProps {
+  direction: number;
+  onBack: () => void;
+  onSelect: (questionKey: string, optionKey: string) => void;
   question: EstimatorQuestionType;
+  selections: EstimatorSelections;
+  showBack: boolean;
+  slideVariants: React.ComponentProps<typeof motion.div>["variants"];
   step: number;
   totalSteps: number;
-  selections: EstimatorSelections;
-  onSelect: (questionKey: string, optionKey: string) => void;
-  onBack: () => void;
-  direction: number;
-  slideVariants: React.ComponentProps<typeof motion.div>["variants"];
-  showBack: boolean;
 }
 
 export const EstimatorQuestion = ({
@@ -43,13 +43,13 @@ export const EstimatorQuestion = ({
 
   return (
     <motion.div
-      key={`q-${questionKey}`}
-      custom={direction}
-      variants={slideVariants}
-      initial="enter"
       animate="center"
+      custom={direction}
       exit="exit"
+      initial="enter"
+      key={`q-${questionKey}`}
       transition={{ duration: 0.3 }}
+      variants={slideVariants}
     >
       <p style={stepLabelStyle}>
         Question {step + 1} of {totalSteps}
@@ -60,34 +60,45 @@ export const EstimatorQuestion = ({
       <div
         className={estimatorOptionsClass}
         style={
-          { "--min-column-size": "16rem", marginTop: theme.spacing.xxl } as React.CSSProperties
+          {
+            "--min-column-size": "16rem",
+            marginTop: theme.spacing.xxl,
+          } as React.CSSProperties
         }
       >
         {question.options.map((option) => {
           const optionKey = option._key ?? option.label;
           const isSelected = selected === optionKey;
           const illustration =
-            option.illustration ?? optionIllustrationFor(question.prompt, option.label);
+            option.illustration ??
+            optionIllustrationFor(question.prompt, option.label);
           return (
             <button
-              type="button"
-              key={optionKey}
-              className={estimatorOptionClass}
-              onClick={() => onSelect(questionKey, optionKey)}
               aria-pressed={isSelected}
+              className={estimatorOptionClass}
+              key={optionKey}
+              onClick={() => onSelect(questionKey, optionKey)}
               style={{
                 ...estimatorOptionStyle,
-                borderColor: isSelected ? theme.colors.accent : theme.colors.paperDark,
-                backgroundColor: isSelected ? mix(theme.colors.accent, 8) : theme.colors.paper,
-                boxShadow: isSelected ? `0 8px 20px ${mix(theme.colors.accent, 18)}` : "none",
+                borderColor: isSelected
+                  ? theme.colors.accent
+                  : theme.colors.paperDark,
+                backgroundColor: isSelected
+                  ? mix(theme.colors.accent, 8)
+                  : theme.colors.paper,
+                boxShadow: isSelected
+                  ? `0 8px 20px ${mix(theme.colors.accent, 18)}`
+                  : "none",
               }}
+              type="button"
             >
               {illustration ? (
+                // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
                 <img
-                  src={illustration}
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
+                  src={illustration}
                   style={estimatorOptionArtStyle}
                 />
               ) : null}
@@ -102,8 +113,8 @@ export const EstimatorQuestion = ({
 
       {showBack && (
         <div style={{ marginTop: theme.spacing.xxl }}>
-          <button type="button" onClick={onBack} style={ghostButtonStyle}>
-            <ArrowLeft width={16} height={16} />
+          <button onClick={onBack} style={ghostButtonStyle} type="button">
+            <ArrowLeft height={16} width={16} />
             <span>Back</span>
           </button>
         </div>

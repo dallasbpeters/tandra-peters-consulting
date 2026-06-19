@@ -45,10 +45,12 @@ const contactDraftId = (email: string): string => {
  */
 export const upsertContactLead = async (
   token: string,
-  submission: ContactLeadSubmission,
+  submission: ContactLeadSubmission
 ): Promise<void> => {
   const email = submission.email.trim().toLowerCase();
-  if (!email) return;
+  if (!email) {
+    return;
+  }
 
   const id = contactDraftId(email);
   const now = submission.submittedAt || new Date().toISOString();
@@ -70,9 +72,15 @@ export const upsertContactLead = async (
           fullName: submission.fullName,
           email,
           lastContactedAt: now,
-          ...(submission.phoneNumber ? { phoneNumber: submission.phoneNumber } : {}),
-          ...(submission.propertyAddress ? { propertyAddress: submission.propertyAddress } : {}),
-          ...(submission.serviceLabel ? { serviceInterest: submission.serviceLabel } : {}),
+          ...(submission.phoneNumber
+            ? { phoneNumber: submission.phoneNumber }
+            : {}),
+          ...(submission.propertyAddress
+            ? { propertyAddress: submission.propertyAddress }
+            : {}),
+          ...(submission.serviceLabel
+            ? { serviceInterest: submission.serviceLabel }
+            : {}),
           ...(submission.message ? { latestMessage: submission.message } : {}),
         })
         .setIfMissing({
@@ -80,7 +88,7 @@ export const upsertContactLead = async (
           source: "Website contact form",
           subscribed: true,
         })
-        .inc({ submissionCount: 1 }),
+        .inc({ submissionCount: 1 })
     )
     .commit();
 };
@@ -94,15 +102,17 @@ const CONTACTS_QUERY = `*[_type == "emailContact" && subscribed != false && defi
 /** List subscribed contacts as composer recipients. */
 export const listEmailContacts = async (
   token: string,
-  options: { search?: string } = {},
+  options: { search?: string } = {}
 ): Promise<EmailRecipient[]> => {
   const rows =
-    await client(token).fetch<{ id: string; name?: string; email?: string }[]>(CONTACTS_QUERY);
+    await client(token).fetch<{ id: string; name?: string; email?: string }[]>(
+      CONTACTS_QUERY
+    );
 
   const recipients = rows
     .filter(
       (r): r is { id: string; name?: string; email: string } =>
-        typeof r.email === "string" && r.email.includes("@"),
+        typeof r.email === "string" && r.email.includes("@")
     )
     .map((r) => ({
       id: r.id,
@@ -111,9 +121,11 @@ export const listEmailContacts = async (
     }));
 
   const search = options.search?.trim().toLowerCase();
-  if (!search) return recipients;
+  if (!search) {
+    return recipients;
+  }
   return recipients.filter(
-    (r) => r.name.toLowerCase().includes(search) || r.email.includes(search),
+    (r) => r.name.toLowerCase().includes(search) || r.email.includes(search)
   );
 };
 
@@ -124,12 +136,16 @@ export const listEmailContacts = async (
  */
 export const mergeRecipients = (
   attio: EmailRecipient[],
-  sanity: EmailRecipient[],
+  sanity: EmailRecipient[]
 ): EmailRecipient[] => {
   const byEmail = new Map<string, EmailRecipient>();
-  for (const r of sanity) byEmail.set(r.email, r);
-  for (const r of attio) byEmail.set(r.email, r);
+  for (const r of sanity) {
+    byEmail.set(r.email, r);
+  }
+  for (const r of attio) {
+    byEmail.set(r.email, r);
+  }
   return [...byEmail.values()].sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
   );
 };

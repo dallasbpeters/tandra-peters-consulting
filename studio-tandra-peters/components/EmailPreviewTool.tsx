@@ -8,7 +8,8 @@ import { useColorSchemeValue } from "sanity";
  * default http://localhost:3000). Override with SANITY_STUDIO_EMAIL_PREVIEW_URL.
  */
 const PREVIEW_BASE =
-  process.env.SANITY_STUDIO_EMAIL_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  process.env.SANITY_STUDIO_EMAIL_PREVIEW_URL?.replace(/\/$/, "") ||
+  "http://localhost:3000";
 
 // react-email serves a single template at /preview/<filename without extension>.
 const PREVIEW_URL = `${PREVIEW_BASE}/preview/tandra-client-email`;
@@ -35,13 +36,20 @@ export function EmailPreviewTool() {
           lineHeight: 1.5,
         }}
       >
-        Live render of the client email. Publish content under <strong>Emails</strong>, then
-        refresh. Needs the email preview server running (<code>pnpm dev:email</code>).
+        Live render of the client email. Publish content under{" "}
+        <strong>Emails</strong>, then refresh. Needs the email preview server
+        running (<code>pnpm dev:email</code>).
       </div>
       <iframe
-        title="Client email preview"
         src={PREVIEW_URL}
-        style={{ border: "none", flex: 1, width: "100%", minHeight: 0, display: "block" }}
+        style={{
+          border: "none",
+          flex: 1,
+          width: "100%",
+          minHeight: 0,
+          display: "block",
+        }}
+        title="Client email preview"
       />
     </div>
   );

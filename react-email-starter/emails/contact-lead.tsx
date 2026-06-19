@@ -1,5 +1,3 @@
-import type { ContactLeadSubmission, EmailAssets } from "../../server/email/types";
-
 /**
  * Design preview for the contact-form lead notification. The actual template +
  * renderer live in `server/email/contactLead.tsx` (single source of truth,
@@ -7,8 +5,14 @@ import type { ContactLeadSubmission, EmailAssets } from "../../server/email/type
  * and preview-server static assets.
  */
 import { ContactLeadEmail } from "../../server/email/contactLead";
+import type {
+  ContactLeadSubmission,
+  EmailAssets,
+} from "../../server/email/types";
 
-const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "";
 
 const assets: EmailAssets = {
   headerLogoUrl: `${baseUrl}/static/BC_Horizontal_Color.png`,
@@ -16,7 +20,7 @@ const assets: EmailAssets = {
 };
 
 export const ContactLead = (submission: ContactLeadSubmission) => (
-  <ContactLeadEmail submission={submission} assets={assets} />
+  <ContactLeadEmail assets={assets} submission={submission} />
 );
 
 ContactLead.PreviewProps = {

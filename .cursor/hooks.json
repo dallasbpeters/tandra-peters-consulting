@@ -4,6 +4,12 @@
     "afterFileEdit": [
       {
         "command": ".cursor/hooks/format-on-edit.sh"
+      },
+      {
+        "command": "pnpm run fix"
+      },
+      {
+        "command": "pnpm run fix --skip=correctness/noUnusedImports"
       }
     ]
   }

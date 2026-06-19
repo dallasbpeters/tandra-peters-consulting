@@ -70,7 +70,7 @@ export default function Band(props) {
     scrollYProgress,
     [scrollStart, scrollEnd],
     reverse ? [minHeight, maxHeight] : [maxHeight, minHeight],
-    { ease: (t) => t * t * (3 - 2 * t) },
+    { ease: (t) => t * t * (3 - 2 * t) }
   );
 
   const offsetSpring = useSpring(0, { stiffness: 30, damping: 15 });
@@ -81,7 +81,8 @@ export default function Band(props) {
       rectRef.current = event.currentTarget.getBoundingClientRect();
     }
 
-    const x = ((event.clientX - rectRef.current.left) / rectRef.current.width) * 100;
+    const x =
+      ((event.clientX - rectRef.current.left) / rectRef.current.width) * 100;
     offsetSpring.set((x - 50) * 0.5);
   }
 
@@ -105,8 +106,8 @@ export default function Band(props) {
 
     return (
       <div
-        ref={ref}
         className={className}
+        ref={ref}
         style={{
           position: "relative",
           width: "100%",
@@ -117,7 +118,7 @@ export default function Band(props) {
       >
         {bands.map((band, index) => (
           <motion.div
-            key={index}
+            key={band.opacity}
             style={{
               position: "relative",
               width: "100%",
@@ -145,22 +146,30 @@ export default function Band(props) {
   const autoOffset = autoAnimate ? Math.sin(time * speed) * amplitude : 0;
 
   const stopPositions = palette.map((_, index) =>
-    Math.max(0, Math.min(100, index * step + mouseOffset + autoOffset)),
+    Math.max(0, Math.min(100, index * step + mouseOffset + autoOffset))
   );
 
-  const customProperties = stopPositions.reduce((accumulator, position, index) => {
-    accumulator[`--stop${index}`] = `${position}%`;
-    return accumulator;
-  }, {});
+  const customProperties = stopPositions.reduce(
+    (accumulator, position, index) => {
+      accumulator[`--stop${index}`] = `${position}%`;
+      return accumulator;
+    },
+    {}
+  );
 
-  const transitionValue = stopPositions.map((_, index) => `--stop${index} 1s ease-out`).join(", ");
+  const transitionValue = stopPositions
+    .map((_, index) => `--stop${index} 1s ease-out`)
+    .join(", ");
 
   const gradientBg = `linear-gradient(90deg, ${palette.map((color, index) => `${color} var(--stop${index})`).join(", ")})`;
 
   return (
     <div
-      ref={ref}
+      aria-hidden="true"
       className={className}
+      onMouseLeave={onMouseLeave}
+      onMouseMove={onMouseMove}
+      ref={ref}
       style={{
         position: "relative",
         width: "100%",
@@ -168,12 +177,10 @@ export default function Band(props) {
         background: palette[0],
         ...style,
       }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
     >
       {bands.map((band, index) => (
         <motion.div
-          key={index}
+          key={band.opacity}
           style={{
             position: "relative",
             width: "100%",

@@ -438,4 +438,5 @@ export const POST_BY_SLUG_QUERY = groq`*[_type == "post" && slug.current == $slu
   "image": image.asset->url
 }`;
 
+// biome-ignore lint/performance/noBarrelFile: shared query index
 export * from "./generated";

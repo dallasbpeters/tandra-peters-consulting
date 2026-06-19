@@ -1,13 +1,13 @@
 import { usePostHog } from "@posthog/react";
 import { motion, type Variants } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../sanity/imageUrl";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { HeroProps } from "../types";
+import type { HeroProps } from "../types";
 import { GoogleAuthGate } from "./GoogleAuthGate";
 import { DEFAULT_HERO_EYEBROW } from "./hero/heroConstants";
 
@@ -23,7 +23,7 @@ const optimizedHeroImageUrl = (url: string, width: number): string => {
 
 const heroImageSrcSet = (url: string): string | undefined => {
   if (!isSanityCdnUrl(url)) {
-    return undefined;
+    return;
   }
 
   return [640, 960, 1280, 1600, 2000]
@@ -155,9 +155,10 @@ export const Hero: React.FC<HeroProps> = ({
 
   return (
     <section className="wa-cluster" style={sectionStyle}>
+      {/* biome-ignore lint/correctness/useImageSize: dynamic size fills viewport via CSS */}
       <img
-        aria-hidden="true"
         alt=""
+        aria-hidden="true"
         decoding="async"
         fetchPriority="high"
         sizes="100vw"
@@ -167,12 +168,12 @@ export const Hero: React.FC<HeroProps> = ({
       />
       <div className={layoutClass.containerWideLayered}>
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
           animate="visible"
+          initial="hidden"
           style={{ maxWidth: "56rem" }}
+          variants={containerVariants}
         >
-          <motion.div variants={itemVariants} style={badgeStyle}>
+          <motion.div style={badgeStyle} variants={itemVariants}>
             <span
               style={{
                 fontSize: "11px",
@@ -185,12 +186,11 @@ export const Hero: React.FC<HeroProps> = ({
               {badgeText}
             </span>
           </motion.div>
-          <motion.h1 variants={itemVariants} style={h1Style}>
+          <motion.h1 style={h1Style} variants={itemVariants}>
             {title}
           </motion.h1>
-          <motion.div variants={itemVariants} style={pStyle}>
+          <motion.div style={pStyle} variants={itemVariants}>
             <RichText
-              value={subtitle}
               paragraphStyle={{
                 fontSize: "inherit",
                 color: "inherit",
@@ -199,17 +199,18 @@ export const Hero: React.FC<HeroProps> = ({
                 lineHeight: "inherit",
                 fontWeight: "inherit",
               }}
+              value={subtitle}
             />
           </motion.div>
           <GoogleAuthGate>
             <motion.div
-              variants={itemVariants}
+              className="sm-row"
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: theme.spacing.lg,
               }}
-              className="sm-row"
+              variants={itemVariants}
             >
               <style>{`
                 @media (min-width: 640px) {
@@ -218,31 +219,36 @@ export const Hero: React.FC<HeroProps> = ({
               `}</style>
               <a
                 href={ctaHref}
-                style={buttonPrimaryStyle}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.1)")}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
                 onClick={() =>
                   posthog?.capture("hero_cta_clicked", {
                     cta_text: ctaText,
                     cta_href: ctaHref,
                   })
                 }
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.filter = "brightness(1.1)")
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+                style={buttonPrimaryStyle}
               >
                 {ctaText}
               </a>
               <a
                 href={secondaryCtaHref}
-                style={buttonSecondaryStyle}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)")
-                }
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 onClick={() =>
                   posthog?.capture("hero_secondary_cta_clicked", {
                     cta_text: secondaryCtaText,
                     cta_href: secondaryCtaHref,
                   })
                 }
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(255, 255, 255, 0.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+                style={buttonSecondaryStyle}
               >
                 {secondaryCtaText}
               </a>

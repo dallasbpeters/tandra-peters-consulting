@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-import type { Chapter, Direction } from "./types";
-
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
 import { useRoofInspection } from "./context";
 import { syncModelViewerHotspot } from "./modelViewerHotspot";
+import type { Chapter, Direction } from "./types";
 
-type HotspotProps = {
+interface HotspotProps {
   /** The inspection chapter this dot represents. */
   chapter: Chapter;
-};
+}
 
 const CALLOUT_W_PX = 272; // 17rem @ 16px base
 const GAP = 12; // px gap between dot edge and card edge
@@ -37,8 +36,18 @@ const clearSharedClose = () => {
   }
 };
 
-type ScreenRect = { top: number; left: number; width: number; height: number };
-type CardPos = { top: number; left: number; width: number; maxHeight: number };
+interface ScreenRect {
+  height: number;
+  left: number;
+  top: number;
+  width: number;
+}
+interface CardPos {
+  left: number;
+  maxHeight: number;
+  top: number;
+  width: number;
+}
 
 const getTopSafeInset = () => {
   const nav = document.querySelector(".site-nav-vt");
@@ -61,7 +70,11 @@ const getTopSafeInset = () => {
  * @returns Viewport-relative `top` / `left` values clamped to `MARGIN` px
  *   inset from every viewport edge.
  */
-const getCardPos = (dot: ScreenRect, direction: Direction, cardH: number): CardPos => {
+const getCardPos = (
+  dot: ScreenRect,
+  direction: Direction,
+  cardH: number
+): CardPos => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const topInset = getTopSafeInset();
@@ -85,7 +98,10 @@ const getCardPos = (dot: ScreenRect, direction: Direction, cardH: number): CardP
       left = dot.left + dot.width / 2 - width / 2;
       break;
     case "bottom":
-      maxHeight = Math.max(MIN_CALLOUT_H_PX, vh - (dot.top + dot.height + GAP) - MARGIN);
+      maxHeight = Math.max(
+        MIN_CALLOUT_H_PX,
+        vh - (dot.top + dot.height + GAP) - MARGIN
+      );
       maxHeight = Math.min(maxHeight, maxViewportHeight);
       renderH = Math.min(estH, maxHeight);
       top = dot.top + dot.height + GAP;
@@ -98,6 +114,8 @@ const getCardPos = (dot: ScreenRect, direction: Direction, cardH: number): CardP
     case "left":
       top = dot.top + dot.height / 2 - renderH / 2;
       left = dot.left - GAP - width;
+      break;
+    default:
       break;
   }
 
@@ -140,7 +158,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   // Ref to the slotted wrapper div — what model-viewer actually positions
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Ref to the rendered callout aside so we can measure its real height
-  const cardRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [cardPos, setCardPos] = useState<CardPos | null>(null);
 
   const scheduleClose = () => {
@@ -155,7 +173,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   // Attribute edits alone do not move dots — call updateHotspot (or remount).
   useEffect(() => {
     const el = wrapperRef.current;
-    if (!el || !chapter.position3d) {
+    if (!(el && chapter.position3d)) {
       return;
     }
 
@@ -166,7 +184,11 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
       el.removeAttribute("data-normal");
     }
 
-    syncModelViewerHotspot(`hotspot-${chapter.id}`, chapter.position3d, chapter.normal3d);
+    syncModelViewerHotspot(
+      `hotspot-${chapter.id}`,
+      chapter.position3d,
+      chapter.normal3d
+    );
   }, [chapter.id, chapter.position3d, chapter.normal3d]);
 
   const is3d = Boolean(chapter.position3d);
@@ -182,7 +204,9 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
 
     const measure = () => {
       const el = wrapperRef.current;
-      if (!el) return;
+      if (!el) {
+        return;
+      }
       const dot = el.getBoundingClientRect();
       // Use the card's real height if already rendered, otherwise 0 (getCardPos will use estimate)
       const cardH = cardRef.current?.getBoundingClientRect().height ?? 0;
@@ -224,7 +248,9 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const handleCardEnter = clearSharedClose;
   const handleCardLeave = scheduleClose;
 
-  if (!is3d) return null;
+  if (!is3d) {
+    return null;
+  }
 
   const wrapperStyle: React.CSSProperties = {
     position: "relative",
@@ -333,15 +359,16 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     <>
       <div ref={wrapperRef} style={wrapperStyle} {...slotProps}>
         <button
-          className="layout-flex-center"
-          style={buttonStyle}
-          aria-label={`${chapter.label} — point ${chapter.id}`}
           aria-expanded={isOpen}
+          aria-label={`${chapter.label} — point ${chapter.id}`}
+          className="layout-flex-center"
           onClick={handleClick}
           onMouseEnter={handleDotEnter}
           onMouseLeave={handleDotLeave}
+          style={buttonStyle}
+          type="button"
         >
-          <span style={dotStyle} aria-hidden="true" />
+          <span aria-hidden="true" style={dotStyle} />
           <span style={numStyle}>{chapter.id}</span>
         </button>
       </div>
@@ -350,14 +377,15 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
           while the mouse travels from the dot into the card. */}
       {isOpen &&
         createPortal(
-          <aside
-            ref={cardRef}
-            style={cardStyle}
-            className="stage__hotspot-callout"
-            role="dialog"
+          // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onMouseEnter/Leave keep callout card open while cursor travels from trigger to card
+          <div
             aria-label={chapter.callout.title}
+            className="stage__hotspot-callout"
             onMouseEnter={handleCardEnter}
             onMouseLeave={handleCardLeave}
+            ref={cardRef}
+            role="dialog"
+            style={cardStyle}
           >
             <p style={cardNumStyle}>{chapter.id}.</p>
             <h3 style={cardTitleStyle}>{chapter.callout.title}</h3>
@@ -368,8 +396,8 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
                 <p style={cardWatchStyle}>{chapter.callout.watchFor}</p>
               </>
             )}
-          </aside>,
-          document.body,
+          </div>,
+          document.body
         )}
     </>
   );

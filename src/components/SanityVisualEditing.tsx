@@ -4,9 +4,16 @@ import type {
   HistoryRefresh,
   HistoryUpdate,
 } from "@sanity/visual-editing";
-
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useContext } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { SanitySiteContext } from "../context/sanitySiteContextValue";
@@ -61,8 +68,12 @@ const VisualEditing = lazy(async () => {
 const suppressStegaErrors = () => {
   const original = console.error;
   console.error = (...args: Parameters<typeof console.error>) => {
-    if (typeof args[0] === "string" && args[0].includes("Failed to decode stega for string"))
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("Failed to decode stega for string")
+    ) {
       return;
+    }
     original.apply(console, args);
   };
   return () => {
@@ -75,7 +86,9 @@ export const SanityVisualEditing = () => {
   const refetch = ctx?.refetch ?? noop;
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
-  const [onHistoryNavigate, setOnHistoryNavigate] = useState<HistoryAdapterNavigate | undefined>();
+  const [onHistoryNavigate, setOnHistoryNavigate] = useState<
+    HistoryAdapterNavigate | undefined
+  >();
 
   useEffect(() => suppressStegaErrors(), []);
 
@@ -101,7 +114,7 @@ export const SanityVisualEditing = () => {
         }
       },
     }),
-    [],
+    []
   );
 
   /**
@@ -112,9 +125,10 @@ export const SanityVisualEditing = () => {
   const refresh = useCallback(
     (_payload: HistoryRefresh) => {
       dispatchSanityPresentationRefresh();
-      return refetch();
+      refetch();
+      return Promise.resolve();
     },
-    [refetch],
+    [refetch]
   );
 
   const location = useLocation();
@@ -134,7 +148,7 @@ export const SanityVisualEditing = () => {
 
   return (
     <Suspense fallback={null}>
-      <VisualEditing portal history={history} refresh={refresh} />
+      <VisualEditing history={history} portal refresh={refresh} />
     </Suspense>
   );
 };

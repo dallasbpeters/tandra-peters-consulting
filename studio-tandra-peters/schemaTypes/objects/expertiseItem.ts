@@ -7,8 +7,16 @@ export const expertiseItemType = defineType({
   title: "Expertise item",
   type: "object",
   fields: [
-    defineField({ name: "id", type: "string", validation: (r) => r.required() }),
-    defineField({ name: "title", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "id",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "title",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "desc",
       title: "Description",

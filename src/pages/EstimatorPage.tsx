@@ -19,7 +19,9 @@ export const EstimatorPage = () => {
       ...cms,
       // Questions only override when the CMS actually has some.
       questions:
-        cms.questions && cms.questions.length > 0 ? cms.questions : ESTIMATOR_DEFAULTS.questions,
+        cms.questions && cms.questions.length > 0
+          ? cms.questions
+          : ESTIMATOR_DEFAULTS.questions,
     };
   }, [page]);
 

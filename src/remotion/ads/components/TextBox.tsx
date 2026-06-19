@@ -1,18 +1,18 @@
 import "../ads.vars.css";
-import type { TextAlign } from "@remotion/rounded-text-box";
 
 import { loadFont } from "@remotion/google-fonts/Manrope";
 import { fitTextOnNLines, measureText } from "@remotion/layout-utils";
+import type { TextAlign } from "@remotion/rounded-text-box";
 import { createRoundedTextBox } from "@remotion/rounded-text-box";
 import React, { useEffect, useState } from "react";
 
-type Props = {
-  readonly textAlign: TextAlign;
-  readonly maxLines: number;
+interface Props {
   readonly borderRadius: number;
   readonly horizontalPadding: number;
+  readonly maxLines: number;
   readonly text: string;
-};
+  readonly textAlign: TextAlign;
+}
 
 const fontWeight = "700";
 const boxWidth = 1000;
@@ -53,7 +53,7 @@ const RoundedTextBoxInner: React.FC<Props> = ({
       letterSpacing: "normal",
       textTransform: "none",
       validateFontIsLoaded: true,
-    }),
+    })
   );
   const { d, boundingBox } = createRoundedTextBox({
     textMeasurements,
@@ -73,7 +73,7 @@ const RoundedTextBoxInner: React.FC<Props> = ({
       paddingRight: horizontalPadding,
       color: "black",
     }),
-    [fontSize, textAlign, horizontalPadding],
+    [fontSize, textAlign, horizontalPadding]
   );
 
   return (
@@ -86,19 +86,20 @@ const RoundedTextBoxInner: React.FC<Props> = ({
       }}
     >
       <svg
-        viewBox={boundingBox.viewBox}
+        aria-hidden="true"
         style={{
           position: "absolute",
           width: boundingBox.width,
           height: boundingBox.height,
           overflow: "visible",
         }}
+        viewBox={boundingBox.viewBox}
       >
-        <path fill="var(--color-purple)" d={d} />
+        <path d={d} fill="var(--color-purple)" />
       </svg>
       <div style={{ position: "relative" }}>
-        {lines.map((line, i) => (
-          <div key={i} style={lineStyle}>
+        {lines.map((line) => (
+          <div key={line} style={lineStyle}>
             {line}
           </div>
         ))}
@@ -118,7 +119,7 @@ export default function RoundedTextBox(props: Props) {
       .catch((err) => {
         console.error(err);
       });
-  }, [fontsLoaded]);
+  }, []);
 
   if (!fontsLoaded) {
     return null;

@@ -1,17 +1,17 @@
 import { Box, Card, Flex, Heading, Stack, Text } from "@sanity/ui";
 
 interface ViewLayoutProps {
-  title: string;
-  description: string;
-  children: React.ReactNode;
   border?: boolean;
+  children: React.ReactNode;
+  description: string;
+  title: string;
 }
 
 export function ViewLayout(props: ViewLayoutProps) {
   const { title, description, children, border } = props;
 
   return (
-    <Flex direction="column" height="fill" overflow="auto" gap={2}>
+    <Flex direction="column" gap={2} height="fill" overflow="auto">
       <Card padding={5}>
         <Stack space={4}>
           <Heading>{title}</Heading>
@@ -20,8 +20,8 @@ export function ViewLayout(props: ViewLayoutProps) {
         </Stack>
       </Card>
 
-      <Box paddingX={5} flex={1}>
-        <Card border={border} radius={3} overflow="hidden">
+      <Box flex={1} paddingX={5}>
+        <Card border={border} overflow="hidden" radius={3}>
           {children}
         </Card>
 

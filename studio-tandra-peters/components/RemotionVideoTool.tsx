@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColorSchemeValue } from "sanity";
-
-import type { EditorField, EditorSection } from "../../src/remotion/ads/editSchemas";
-import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
-
 import {
   CUSTOM_SLOTS_DEFAULTS,
   HELPING_TEXAS_DEFAULTS,
@@ -11,13 +7,21 @@ import {
   ROOF_VALUE_DEFAULTS,
   STORM_SPOT_DEFAULTS,
 } from "../../src/remotion/ads/adDefaults";
-import { SCHEMAS, getProp, setProp } from "../../src/remotion/ads/editSchemas";
+import type {
+  EditorField,
+  EditorSection,
+} from "../../src/remotion/ads/editSchemas";
+import { getProp, SCHEMAS, setProp } from "../../src/remotion/ads/editSchemas";
+import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
 import { defaultTandraIntroContent } from "../../src/remotion/tandraIntroContent";
 import { useStudioClient } from "../hooks/useStudioClient";
 
 // ── helpers (inline to avoid pulling fetchTandraIntroContent which uses import.meta.env) ──
 
-const mergeScene = <T extends Record<string, unknown>>(fallback: T, incoming: unknown): T =>
+const mergeScene = <T extends Record<string, unknown>>(
+  fallback: T,
+  incoming: unknown
+): T =>
   incoming && typeof incoming === "object" && !Array.isArray(incoming)
     ? ({ ...fallback, ...incoming } as T)
     : fallback;
@@ -29,7 +33,7 @@ const stringItems = (value: unknown, fallback: string[]): string[] =>
 
 const mergeIntroContent = (
   raw: Record<string, unknown>,
-  defaults: typeof defaultTandraIntroContent,
+  defaults: typeof defaultTandraIntroContent
 ): TandraIntroContent => {
   const managed = mergeScene(defaults.managed, raw.managed);
   const proof = mergeScene(defaults.proof, raw.proof);
@@ -41,14 +45,14 @@ const mergeIntroContent = (
       ...managed,
       items: stringItems(
         (raw.managed as Record<string, unknown> | undefined)?.items,
-        defaults.managed.items,
+        defaults.managed.items
       ),
     },
     proof: {
       ...proof,
       items: stringItems(
         (raw.proof as Record<string, unknown> | undefined)?.items,
-        defaults.proof.items,
+        defaults.proof.items
       ),
     },
     closing: mergeScene(defaults.closing, raw.closing),
@@ -66,13 +70,13 @@ const mergeIntroContent = (
  * Configure the SPA origin with SANITY_STUDIO_PREVIEW_URL (defaults to localhost:3001).
  */
 
-type CompositionMeta = {
+interface CompositionMeta {
+  cms: boolean;
+  description: string;
   id: string;
   label: string;
-  description: string;
   orientation: "landscape" | "portrait";
-  cms: boolean;
-};
+}
 
 const COMPOSITIONS: CompositionMeta[] = [
   {
@@ -113,9 +117,12 @@ const COMPOSITIONS: CompositionMeta[] = [
 ];
 
 const PREVIEW_BASE =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") || "http://localhost:3001";
-const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
-const RENDER_SECRET = process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
+  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") ||
+  "http://localhost:3001";
+const RENDER_BASE =
+  process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
+const RENDER_SECRET =
+  process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_PROPS: Record<string, any> = {
@@ -127,16 +134,18 @@ const DEFAULT_PROPS: Record<string, any> = {
   TandraIntro: { showCaptions: false, content: defaultTandraIntroContent },
 };
 
-const isStructuredRoofSceneDoc = (doc: Record<string, unknown> | null | undefined): boolean =>
+const isStructuredRoofSceneDoc = (
+  doc: Record<string, unknown> | null | undefined
+): boolean =>
   Boolean(
     doc &&
-    (Array.isArray(doc.chapters) ||
-      typeof doc.showCallouts === "boolean" ||
-      typeof doc.showProgress === "boolean" ||
-      typeof doc.fov === "number" ||
-      typeof doc.introSecs === "number" ||
-      doc.cta ||
-      doc.badges),
+      (Array.isArray(doc.chapters) ||
+        typeof doc.showCallouts === "boolean" ||
+        typeof doc.showProgress === "boolean" ||
+        typeof doc.fov === "number" ||
+        typeof doc.introSecs === "number" ||
+        doc.cta ||
+        doc.badges)
   );
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {
@@ -171,7 +180,7 @@ export function RemotionVideoTool() {
 
   const active = useMemo(
     () => COMPOSITIONS.find((c) => c.id === activeId) ?? COMPOSITIONS[0],
-    [activeId],
+    [activeId]
   );
 
   const previewUrl = `${PREVIEW_BASE}/remotion-preview?id=${encodeURIComponent(active.id)}`;
@@ -180,18 +189,20 @@ export function RemotionVideoTool() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formProps, setFormProps] = useState<Record<string, any>>(() =>
-    DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {},
+    DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {}
   );
 
   useEffect(() => {
     // Start with defaults — will be refined below as data becomes available.
-    const defaults = DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {};
+    const defaults = DEFAULT_PROPS[activeId]
+      ? { ...DEFAULT_PROPS[activeId] }
+      : {};
     if (activeId === "TandraIntro") {
       // Load actual copy from the home page's tandraIntroVideo field so the editor
       // shows what's currently published, then overlay any saved settings on top.
       client
         .fetch<{ tandraIntroVideo?: Record<string, unknown> } | null>(
-          `*[_id == "homePage"][0]{ tandraIntroVideo }`,
+          `*[_id == "homePage"][0]{ tandraIntroVideo }`
         )
         .then((doc) => {
           const base = doc?.tandraIntroVideo
@@ -200,12 +211,17 @@ export function RemotionVideoTool() {
                   typeof doc.tandraIntroVideo.showCaptions === "boolean"
                     ? doc.tandraIntroVideo.showCaptions
                     : false,
-                content: mergeIntroContent(doc.tandraIntroVideo, defaultTandraIntroContent),
+                content: mergeIntroContent(
+                  doc.tandraIntroVideo,
+                  defaultTandraIntroContent
+                ),
               }
             : defaults;
           // Now overlay saved settings if they exist.
           client
-            .fetch<{ props?: string } | null>(`*[_id == "tandraIntroSettings"][0]{ props }`)
+            .fetch<{ props?: string } | null>(
+              `*[_id == "tandraIntroSettings"][0]{ props }`
+            )
             .then((settingsDoc) => {
               if (settingsDoc?.props) {
                 try {
@@ -231,10 +247,20 @@ export function RemotionVideoTool() {
       }
       if (activeId === "RoofScene") {
         client
-          .fetch<Record<string, unknown> | null>(`*[_id == "roofSceneSettings"][0]`)
+          .fetch<Record<string, unknown> | null>(
+            `*[_id == "roofSceneSettings"][0]`
+          )
           .then((doc) => {
             if (doc && isStructuredRoofSceneDoc(doc)) {
-              const { _createdAt, _id, _rev, _type, _updatedAt, props, ...structured } = doc;
+              const {
+                _createdAt,
+                _id,
+                _rev,
+                _type,
+                _updatedAt,
+                props,
+                ...structured
+              } = doc;
               setFormProps({ ...defaults, ...structured });
               return;
             }
@@ -254,7 +280,9 @@ export function RemotionVideoTool() {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client
-        .fetch<{ props?: string } | null>(`*[_id == "${schemaName}"][0]{ props }`)
+        .fetch<{ props?: string } | null>(
+          `*[_id == "${schemaName}"][0]{ props }`
+        )
         .then((doc) => {
           if (doc?.props) {
             try {
@@ -280,7 +308,7 @@ export function RemotionVideoTool() {
     const timer = setTimeout(() => {
       iframeRef.current?.contentWindow?.postMessage(
         { type: "remotion:updateProps", props: formProps },
-        "*",
+        "*"
       );
     }, 100);
     return () => clearTimeout(timer);
@@ -292,7 +320,9 @@ export function RemotionVideoTool() {
 
   const onSave = useCallback(async () => {
     const schemaName = COMPOSITION_TO_SCHEMA[activeId];
-    if (!schemaName) return;
+    if (!schemaName) {
+      return;
+    }
     setSaveState({ status: "saving" });
     try {
       await client.createOrReplace(
@@ -307,7 +337,7 @@ export function RemotionVideoTool() {
               _id: schemaName,
               _type: schemaName,
               props: JSON.stringify(formProps),
-            },
+            }
       );
       setSaveState({ status: "saved" });
     } catch (error) {
@@ -321,21 +351,26 @@ export function RemotionVideoTool() {
   const onRender = useCallback(async () => {
     setRender({ status: "rendering" });
     try {
-      const response = await fetch(`${RENDER_BASE}/api/render-tandra-intro?force=true`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(RENDER_SECRET ? { "x-render-secret": RENDER_SECRET } : {}),
-        },
-        body: JSON.stringify({ compositionId: active.id }),
-      });
+      const response = await fetch(
+        `${RENDER_BASE}/api/render-tandra-intro?force=true`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(RENDER_SECRET ? { "x-render-secret": RENDER_SECRET } : {}),
+          },
+          body: JSON.stringify({ compositionId: active.id }),
+        }
+      );
       const payload = (await response.json().catch(() => ({}))) as {
         url?: string;
         skipped?: boolean;
         error?: string;
       };
       if (!response.ok) {
-        throw new Error(payload.error || `Render failed (HTTP ${response.status}).`);
+        throw new Error(
+          payload.error || `Render failed (HTTP ${response.status}).`
+        );
       }
       if (payload.skipped) {
         setRender({ status: "done", url: payload.url ?? "", skipped: true });
@@ -347,7 +382,8 @@ export function RemotionVideoTool() {
     } catch (error) {
       setRender({
         status: "error",
-        message: error instanceof Error ? error.message : "Unexpected render error.",
+        message:
+          error instanceof Error ? error.message : "Unexpected render error.",
       });
     }
   }, [active.id]);
@@ -377,7 +413,14 @@ export function RemotionVideoTool() {
       };
 
   return (
-    <div style={{ display: "flex", height: "100%", background: colors.bg, color: colors.text }}>
+    <div
+      style={{
+        display: "flex",
+        height: "100%",
+        background: colors.bg,
+        color: colors.text,
+      }}
+    >
       {/* Sidebar: composition picker */}
       <aside
         style={{
@@ -406,7 +449,6 @@ export function RemotionVideoTool() {
             return (
               <button
                 key={c.id}
-                type="button"
                 onClick={() => {
                   setActiveId(c.id);
                   setRender({ status: "idle" });
@@ -421,6 +463,7 @@ export function RemotionVideoTool() {
                   padding: "0.625rem 0.75rem",
                   width: "100%",
                 }}
+                type="button"
               >
                 <div
                   style={{
@@ -438,7 +481,9 @@ export function RemotionVideoTool() {
                         fontSize: "0.625rem",
                         padding: "1px 6px",
                         borderRadius: 999,
-                        background: isActive ? "rgba(255,255,255,0.18)" : colors.border,
+                        background: isActive
+                          ? "rgba(255,255,255,0.18)"
+                          : colors.border,
                         color: isActive ? colors.activeText : colors.subtle,
                       }}
                     >
@@ -463,7 +508,14 @@ export function RemotionVideoTool() {
       </aside>
 
       {/* Preview area */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -474,24 +526,36 @@ export function RemotionVideoTool() {
             borderBottom: `1px solid ${colors.border}`,
           }}
         >
-          <div style={{ fontSize: "0.8125rem", color: colors.subtle, lineHeight: 1.5 }}>
+          <div
+            style={{
+              fontSize: "0.8125rem",
+              color: colors.subtle,
+              lineHeight: 1.5,
+            }}
+          >
             <strong style={{ color: colors.text }}>{active.label}</strong> —{" "}
             {schema.length > 0
               ? "Edit copy in the right panel — changes update live via message channel."
               : "Shows Sanity copy (edit the Home page video fields in the main Studio and refresh)."}{" "}
             Preview origin: <code>{PREVIEW_BASE}</code>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flex: "0 0 auto",
+            }}
+          >
             <SaveStatus
-              state={saveState}
               colors={colors}
               onDismiss={() => setSaveState({ status: "idle" })}
+              state={saveState}
             />
             {schema.length > 0 && (
               <button
-                type="button"
-                onClick={onSave}
                 disabled={saveState.status === "saving"}
+                onClick={onSave}
                 style={{
                   cursor: saveState.status === "saving" ? "wait" : "pointer",
                   borderRadius: 8,
@@ -503,15 +567,15 @@ export function RemotionVideoTool() {
                   padding: "0.5rem 1rem",
                   opacity: saveState.status === "saving" ? 0.7 : 1,
                 }}
+                type="button"
               >
                 {saveState.status === "saving" ? "Saving…" : "Save to Sanity"}
               </button>
             )}
-            <RenderStatus state={render} colors={colors} />
+            <RenderStatus colors={colors} state={render} />
             <button
-              type="button"
-              onClick={onRender}
               disabled={render.status === "rendering"}
+              onClick={onRender}
               style={{
                 cursor: render.status === "rendering" ? "wait" : "pointer",
                 borderRadius: 8,
@@ -523,6 +587,7 @@ export function RemotionVideoTool() {
                 padding: "0.5rem 1rem",
                 opacity: render.status === "rendering" ? 0.7 : 1,
               }}
+              type="button"
             >
               {render.status === "rendering" ? "Rendering…" : "Render MP4"}
             </button>
@@ -539,9 +604,8 @@ export function RemotionVideoTool() {
           }}
         >
           <iframe
-            ref={iframeRef}
             key={active.id}
-            title={`${active.label} preview`}
+            ref={iframeRef}
             src={previewUrl}
             style={{
               border: "none",
@@ -549,6 +613,7 @@ export function RemotionVideoTool() {
               height: "100%",
               display: "block",
             }}
+            title={`${active.label} preview`}
           />
         </div>
       </div>
@@ -580,12 +645,12 @@ export function RemotionVideoTool() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {schema.map((section) => (
               <EditorSection
+                colors={colors}
                 key={section.key}
-                section={section}
+                onChange={onFieldChange}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 props={formProps as any}
-                onChange={onFieldChange}
-                colors={colors}
+                section={section}
               />
             ))}
           </div>
@@ -620,7 +685,6 @@ function EditorSection({
       }}
     >
       <button
-        type="button"
         onClick={() => setCollapsed((v) => !v)}
         style={{
           width: "100%",
@@ -636,21 +700,29 @@ function EditorSection({
           justifyContent: "space-between",
           alignItems: "center",
         }}
+        type="button"
       >
         {section.label}
-        <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>{collapsed ? "▸" : "▾"}</span>
+        <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>
+          {collapsed ? "▸" : "▾"}
+        </span>
       </button>
       {!collapsed && (
         <div
-          style={{ padding: "0.5rem 0.75rem", display: "flex", flexDirection: "column", gap: 10 }}
+          style={{
+            padding: "0.5rem 0.75rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
         >
           {section.fields.map((field) => (
             <EditorFieldRow
-              key={field.key}
-              field={field}
-              value={getProp(props, field.key)}
-              onChange={(v) => onChange(field.key, v)}
               colors={colors}
+              field={field}
+              key={field.key}
+              onChange={(v) => onChange(field.key, v)}
+              value={getProp(props, field.key)}
             />
           ))}
         </div>
@@ -699,10 +771,10 @@ function EditorFieldRow({
         <div>
           <label style={labelStyle}>{field.label}</label>
           <input
-            type="text"
-            style={inputStyle}
-            value={typeof value === "string" ? value : ""}
             onChange={(e) => onChange(e.target.value)}
+            style={inputStyle}
+            type="text"
+            value={typeof value === "string" ? value : ""}
           />
         </div>
       );
@@ -712,9 +784,9 @@ function EditorFieldRow({
         <div>
           <label style={labelStyle}>{field.label}</label>
           <textarea
+            onChange={(e) => onChange(e.target.value)}
             style={{ ...inputStyle, minHeight: 60, resize: "vertical" }}
             value={typeof value === "string" ? value : ""}
-            onChange={(e) => onChange(e.target.value)}
           />
         </div>
       );
@@ -723,11 +795,16 @@ function EditorFieldRow({
       return (
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input
-            type="checkbox"
-            id={`field-${field.key}`}
             checked={value === true}
+            id={`field-${field.key}`}
             onChange={(e) => onChange(e.target.checked)}
-            style={{ accentColor: "#10533a", width: 16, height: 16, cursor: "pointer" }}
+            style={{
+              accentColor: "#10533a",
+              width: 16,
+              height: 16,
+              cursor: "pointer",
+            }}
+            type="checkbox"
           />
           <label
             htmlFor={`field-${field.key}`}
@@ -743,9 +820,9 @@ function EditorFieldRow({
         <div>
           <label style={labelStyle}>{field.label}</label>
           <select
+            onChange={(e) => onChange(e.target.value)}
             style={inputStyle}
             value={typeof value === "string" ? value : ""}
-            onChange={(e) => onChange(e.target.value)}
           >
             {field.options?.map((opt) => (
               <option key={opt} value={opt}>
@@ -761,10 +838,10 @@ function EditorFieldRow({
         <div>
           <label style={labelStyle}>{field.label}</label>
           <input
-            type="number"
-            style={inputStyle}
-            value={typeof value === "number" ? value : 0}
             onChange={(e) => onChange(Number(e.target.value))}
+            style={inputStyle}
+            type="number"
+            value={typeof value === "number" ? value : 0}
           />
         </div>
       );
@@ -785,19 +862,30 @@ function SaveStatus({
   colors: { subtle: string; text: string };
   onDismiss: () => void;
 }) {
-  if (state.status === "idle") return null;
+  if (state.status === "idle") {
+    return null;
+  }
   if (state.status === "saving") {
-    return <span style={{ fontSize: "0.75rem", color: colors.subtle }}>Saving…</span>;
+    return (
+      <span style={{ fontSize: "0.75rem", color: colors.subtle }}>Saving…</span>
+    );
   }
   if (state.status === "error") {
     return (
-      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>{state.message}</span>
+      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>
+        {state.message}
+      </span>
     );
   }
   return (
     <span
-      style={{ fontSize: "0.75rem", color: "#69a758", fontWeight: 600, cursor: "pointer" }}
       onClick={onDismiss}
+      style={{
+        fontSize: "0.75rem",
+        color: "#69a758",
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
     >
       ✓ Saved
     </span>
@@ -811,7 +899,9 @@ function RenderStatus({
   state: RenderState;
   colors: { subtle: string; text: string };
 }) {
-  if (state.status === "idle") return null;
+  if (state.status === "idle") {
+    return null;
+  }
   if (state.status === "rendering") {
     return (
       <span style={{ fontSize: "0.75rem", color: colors.subtle }}>
@@ -821,7 +911,9 @@ function RenderStatus({
   }
   if (state.status === "error") {
     return (
-      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>{state.message}</span>
+      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>
+        {state.message}
+      </span>
     );
   }
   if (state.skipped) {
@@ -834,9 +926,9 @@ function RenderStatus({
   return (
     <a
       href={state.url}
-      target="_blank"
       rel="noreferrer"
       style={{ fontSize: "0.75rem", color: "#69a758", fontWeight: 600 }}
+      target="_blank"
     >
       Done — open MP4 ↗
     </a>

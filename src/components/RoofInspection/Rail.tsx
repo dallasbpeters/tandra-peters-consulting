@@ -1,16 +1,16 @@
-import React from "react";
+import type React from "react";
 
 import { theme } from "../../theme";
 import { useCameraContext, useRoofInspection } from "./context";
 
-type RailProps = {
+interface RailProps {
   /** Small label above the headline, e.g. `"Tandra Peters · Roof Basics"`. */
   kicker?: string;
-  /** Section headline — accepts a React node so callers can use emphasis markup. */
-  title: React.ReactNode;
   /** One-sentence introduction shown beneath the title. */
   lede: string;
-};
+  /** Section headline — accepts a React node so callers can use emphasis markup. */
+  title: React.ReactNode;
+}
 
 const mutedText = theme.palette.everglade["700"];
 
@@ -122,7 +122,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
       <div className="stage__rail-header">
         {kicker ? (
           <div className="wa-cluster" style={kickerStyle}>
-            <span style={kickerRuleStyle} aria-hidden="true" />
+            <span aria-hidden="true" style={kickerRuleStyle} />
             <span>{kicker}</span>
           </div>
         ) : null}
@@ -132,21 +132,24 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
       </div>
 
       <div className="stage__rail-nav">
-        <ol style={listStyle} role="list">
+        <ol style={listStyle}>
           {chapters.map((chapter) => {
             const isActive = activeChapterId === chapter.id;
             return (
               <li key={chapter.id} style={listItemStyle}>
                 <button
+                  aria-pressed={isActive}
                   className="layout-chapter-btn"
-                  style={getChapterButtonStyle(isActive)}
                   data-active={isActive}
                   onClick={() => {
                     const next = isActive ? null : chapter.id;
                     setActiveChapterId(next);
-                    if (next) setFocusChapterId(next);
+                    if (next) {
+                      setFocusChapterId(next);
+                    }
                   }}
-                  aria-pressed={isActive}
+                  style={getChapterButtonStyle(isActive)}
+                  type="button"
                 >
                   <span style={numStyle}>{chapter.id}</span>
                   <span>{chapter.label}</span>

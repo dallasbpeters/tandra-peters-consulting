@@ -9,12 +9,10 @@ export function ChatButton() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+    <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end">
       {/* Chat Window */}
       <div
-        className={`
-          mb-4 h-[500px] w-[380px] transition-all duration-300 ease-out origin-bottom-right
-          ${isOpen ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"}
+        className={`mb-4 h-[500px] w-[380px] origin-bottom-right transition-all duration-300 ease-out ${isOpen ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"}
         `}
       >
         <Chat onClose={() => setIsOpen(false)} />
@@ -22,9 +20,9 @@ export function ChatButton() {
 
       {/* Toggle Button */}
       <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-lg transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl active:scale-95"
+        onClick={() => setIsOpen(!isOpen)}
+        type="button"
       >
         <div className="relative h-6 w-6">
           <MessageCircle

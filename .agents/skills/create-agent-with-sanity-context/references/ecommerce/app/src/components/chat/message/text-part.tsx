@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { Document } from "./document";
 
 interface TextPartProps {
-  text: string;
   isUser: boolean;
+  text: string;
 }
 
 /**
@@ -26,7 +26,9 @@ type ExtendedComponents = Components & {
 export function TextPart(props: TextPartProps) {
   const { text, isUser } = props;
 
-  if (!text.trim()) return null;
+  if (!text.trim()) {
+    return null;
+  }
 
   const components: ExtendedComponents = {
     Document,
@@ -37,19 +39,26 @@ export function TextPart(props: TextPartProps) {
       const isInternal = href.startsWith("/");
       const className = cn(
         "underline",
-        isUser ? "text-white/90 hover:text-white" : "text-blue-600 hover:text-blue-700",
+        isUser
+          ? "text-white/90 hover:text-white"
+          : "text-blue-600 hover:text-blue-700"
       );
 
       if (isInternal) {
         return (
-          <Link href={href} className={className}>
+          <Link className={className} href={href}>
             {children}
           </Link>
         );
       }
 
       return (
-        <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        <a
+          className={className}
+          href={href}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
           {children}
         </a>
       );
@@ -64,7 +73,10 @@ export function TextPart(props: TextPartProps) {
   };
 
   return (
-    <ReactMarkdown remarkPlugins={[remarkAgentDirectives]} components={components}>
+    <ReactMarkdown
+      components={components}
+      remarkPlugins={[remarkAgentDirectives]}
+    >
       {text}
     </ReactMarkdown>
   );

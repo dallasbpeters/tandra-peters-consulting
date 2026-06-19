@@ -1,10 +1,8 @@
-import React from "react";
-
-import type { HeroProps } from "../types";
-
+import type React from "react";
 import { useHeroBannerVariant } from "../hooks/useHeroBannerVariant";
+import type { HeroProps } from "../types";
 import { Hero } from "./Hero";
-import { HeroDualCTARail } from "./hero/HeroDualCTARail";
+import { HeroDualCTARail } from "./hero/HeroDualCtaRail";
 import { HeroGlassOverlay } from "./hero/HeroGlassOverlay";
 import { HeroPillNav } from "./hero/HeroPillNav";
 
@@ -25,9 +23,15 @@ import { HeroPillNav } from "./hero/HeroPillNav";
 export const HeroVariant: React.FC<HeroProps> = ({ heroStyle, ...props }) => {
   const { variant } = useHeroBannerVariant(heroStyle);
 
-  if (variant === "glass-overlay") return <HeroGlassOverlay {...props} />;
-  if (variant === "dual-cta-rail") return <HeroDualCTARail {...props} />;
-  if (variant === "dark-floating-pill") return <HeroPillNav {...props} />;
+  if (variant === "glass-overlay") {
+    return <HeroGlassOverlay {...props} />;
+  }
+  if (variant === "dual-cta-rail") {
+    return <HeroDualCTARail {...props} />;
+  }
+  if (variant === "dark-floating-pill") {
+    return <HeroPillNav {...props} />;
+  }
 
   // control — always the safe fallback
   return <Hero {...props} />;

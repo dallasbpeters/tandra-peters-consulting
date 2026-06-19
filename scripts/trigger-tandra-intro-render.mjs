@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 /**
  * POST /api/render-tandra-intro on production by default.
  *
@@ -7,8 +9,6 @@
  *   pnpm video:render:vercel -- --url https://www.tandra.me
  */
 import { config as loadEnv } from "dotenv";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 loadEnv({ path: path.join(repoRoot, ".env.local") });
@@ -44,10 +44,12 @@ try {
 if (!response.ok) {
   console.error(
     `[video:render:vercel] Failed (${response.status}) after ${Math.round((Date.now() - started) / 1000)}s:`,
-    payload,
+    payload
   );
   process.exit(1);
 }
 
-console.log(`[video:render:vercel] Done in ${Math.round((Date.now() - started) / 1000)}s`);
+console.log(
+  `[video:render:vercel] Done in ${Math.round((Date.now() - started) / 1000)}s`
+);
 console.log(JSON.stringify(payload, null, 2));

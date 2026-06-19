@@ -71,7 +71,8 @@ export const workflowPageType = defineType({
       name: "layoutNodeWidth",
       title: "Node width (layout)",
       type: "number",
-      description: "Horizontal cell size used to place columns (pixels). Not the CSS card width.",
+      description:
+        "Horizontal cell size used to place columns (pixels). Not the CSS card width.",
       initialValue: 496,
     }),
     defineField({
@@ -99,7 +100,8 @@ export const workflowPageType = defineType({
       name: "layoutFinalRowExtraOffset",
       title: "Final row extra offset",
       type: "number",
-      description: "Extra vertical offset below row 3 for the wide final step (pixels).",
+      description:
+        "Extra vertical offset below row 3 for the wide final step (pixels).",
       initialValue: 24,
     }),
     defineField({

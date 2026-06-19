@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-type SitePageChromeProps = {
+interface SitePageChromeProps {
   children: ReactNode;
-};
+}
 
 /**
  * Page content pass-through — the single <main> landmark (and its

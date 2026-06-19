@@ -1,14 +1,12 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
 import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useState } from "react";
-
-import type { NavProps } from "../../types";
-
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import type { NavProps } from "../../types";
 import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
@@ -28,6 +26,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",
   secondaryCtaHref = "#services",
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }) => {
   const posthog = usePostHog();
   const isMobile = useIsMobile(1300);
@@ -54,14 +53,18 @@ export const NavDualCTARail: React.FC<NavProps> = ({
       zIndex: 100,
       background: theme.colors.paper,
       borderBottom: `1px solid ${theme.colors.paperDark}`,
-      boxShadow: compact ? "0 2px 16px oklch(25.66% 0.046 163.60 / 0.06)" : "none",
+      boxShadow: compact
+        ? "0 2px 16px oklch(25.66% 0.046 163.60 / 0.06)"
+        : "none",
       transition: "box-shadow 0.25s",
     },
     navInner: {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: isMobile ? `0 ${theme.spacing.xl}` : `0 ${theme.spacing.xxxxxxxxl}`,
+      padding: isMobile
+        ? `0 ${theme.spacing.xl}`
+        : `0 ${theme.spacing.xxxxxxxxl}`,
       height: compact ? "4.5rem" : "5rem",
       transition: "height 0.25s",
     },
@@ -214,11 +217,19 @@ export const NavDualCTARail: React.FC<NavProps> = ({
   };
 
   return (
-    <nav aria-label="Site navigation" className="site-nav-vt" style={styles.nav}>
+    <nav
+      aria-label="Site navigation"
+      className="site-nav-vt"
+      style={styles.nav}
+    >
       <div style={styles.navInner}>
         {/* Logo */}
-        <TransitionLink to="/" style={{ ...styles.logoGroup, textDecoration: "none" }}>
-          <img src={imageSrc} alt="Tandra Peters" style={styles.logoImage} />
+        <TransitionLink
+          style={{ ...styles.logoGroup, textDecoration: "none" }}
+          to="/"
+        >
+          {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
+          <img alt="Tandra Peters" src={imageSrc} style={styles.logoImage} />
           <div>
             <div style={styles.logoText}>{logoText}</div>
             <div style={styles.logoTagline}>{logoTagline}</div>
@@ -229,11 +240,11 @@ export const NavDualCTARail: React.FC<NavProps> = ({
           <div style={styles.linkGroup}>
             {navItems.map((item) => (
               <SiteNavLink
-                key={item.name}
                 href={item.href}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
+                key={item.name}
                 onMouseEnter={() => setHovLink(item.name)}
                 onMouseLeave={() => setHovLink(null)}
+                style={hovLink === item.name ? styles.linkHover : styles.link}
               >
                 {item.name}
               </SiteNavLink>
@@ -246,9 +257,6 @@ export const NavDualCTARail: React.FC<NavProps> = ({
           <GoogleAuthGate>
             <SiteNavLink
               href={secondaryCtaHref}
-              style={styles.ctaSecondary}
-              onMouseEnter={() => setHovSecondary(true)}
-              onMouseLeave={() => setHovSecondary(false)}
               onClick={() =>
                 posthog?.capture("nav_cta_clicked", {
                   variant: "dual-cta-rail",
@@ -256,15 +264,15 @@ export const NavDualCTARail: React.FC<NavProps> = ({
                   position: "secondary",
                 })
               }
+              onMouseEnter={() => setHovSecondary(true)}
+              onMouseLeave={() => setHovSecondary(false)}
+              style={styles.ctaSecondary}
             >
               {secondaryCtaText}
             </SiteNavLink>
           </GoogleAuthGate>
           <SiteNavLink
             href={ctaHref}
-            style={styles.ctaPrimary}
-            onMouseEnter={() => setHovPrimary(true)}
-            onMouseLeave={() => setHovPrimary(false)}
             onClick={() =>
               posthog?.capture("nav_cta_clicked", {
                 variant: "dual-cta-rail",
@@ -272,6 +280,9 @@ export const NavDualCTARail: React.FC<NavProps> = ({
                 position: "primary",
               })
             }
+            onMouseEnter={() => setHovPrimary(true)}
+            onMouseLeave={() => setHovPrimary(false)}
+            style={styles.ctaPrimary}
           >
             {ctaText} <span style={styles.ctaArrow}>→</span>
           </SiteNavLink>
@@ -280,16 +291,16 @@ export const NavDualCTARail: React.FC<NavProps> = ({
         {/* Hamburger */}
         <GoogleAuthGate>
           <button
-            type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            style={styles.hamburger}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             onClick={() => setMenuOpen(!menuOpen)}
+            style={styles.hamburger}
+            type="button"
           >
             {menuOpen ? (
-              <Xmark width={24} height={24} aria-hidden />
+              <Xmark aria-hidden height={24} width={24} />
             ) : (
-              <Menu width={24} height={24} aria-hidden />
+              <Menu aria-hidden height={24} width={24} />
             )}
           </button>
         </GoogleAuthGate>
@@ -299,31 +310,30 @@ export const NavDualCTARail: React.FC<NavProps> = ({
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }}
+            style={styles.mobileMenu}
             transition={{
               type: "spring",
               mass: 0.5,
               damping: 20,
               stiffness: 300,
             }}
-            style={styles.mobileMenu}
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
                 <SiteNavLink
-                  key={item.name}
                   href={item.href}
-                  style={styles.mobileLink}
+                  key={item.name}
                   onClick={() => setMenuOpen(false)}
+                  style={styles.mobileLink}
                 >
                   {item.name}
                 </SiteNavLink>
               ))}
               <SiteNavLink
                 href={ctaHref}
-                style={styles.mobileCta}
                 onClick={() => {
                   posthog?.capture("nav_cta_clicked", {
                     variant: "dual-cta-rail",
@@ -332,6 +342,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
                   });
                   setMenuOpen(false);
                 }}
+                style={styles.mobileCta}
               >
                 {ctaText}
               </SiteNavLink>

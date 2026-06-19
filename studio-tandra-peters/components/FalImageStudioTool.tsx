@@ -45,12 +45,9 @@ type FalImageSize =
   | "landscape_4_3"
   | "landscape_16_9";
 
-type SanityImageAsset = {
+interface SanityImageAsset {
   _id: string;
   altText?: string;
-  originalFilename?: string;
-  title?: string;
-  url: string;
   metadata?: {
     dimensions?: {
       height?: number;
@@ -58,9 +55,12 @@ type SanityImageAsset = {
     };
     lqip?: string;
   };
-};
+  originalFilename?: string;
+  title?: string;
+  url: string;
+}
 
-type FalGeneratedImage = {
+interface FalGeneratedImage {
   contentType: string;
   fileName: string;
   fileSize?: number;
@@ -70,7 +70,7 @@ type FalGeneratedImage = {
   url: string;
   variation?: string;
   width?: number;
-};
+}
 
 type FalGenerateResponse =
   | {
@@ -233,7 +233,9 @@ const MODEL_OPTIONS: {
 
 const FAL_IMAGE_LONG_EDGE_PX = 1800;
 
-const falImagePixelSize = (imageSize: FalImageSize): { height: number; width: number } => {
+const falImagePixelSize = (
+  imageSize: FalImageSize
+): { height: number; width: number } => {
   switch (imageSize) {
     case "landscape_16_9":
       return {
@@ -255,8 +257,6 @@ const falImagePixelSize = (imageSize: FalImageSize): { height: number; width: nu
         width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
         height: FAL_IMAGE_LONG_EDGE_PX,
       };
-    case "square_hd":
-    case "square":
     default:
       return { width: FAL_IMAGE_LONG_EDGE_PX, height: FAL_IMAGE_LONG_EDGE_PX };
   }
@@ -270,13 +270,26 @@ const formatFalSizeLabel = (imageSize: FalImageSize, name: string): string => {
 const SIZE_OPTIONS: { id: FalImageSize; label: string }[] = [
   { id: "square_hd", label: formatFalSizeLabel("square_hd", "Square HD") },
   { id: "square", label: formatFalSizeLabel("square", "Square") },
-  { id: "landscape_4_3", label: formatFalSizeLabel("landscape_4_3", "Landscape 4:3") },
-  { id: "landscape_16_9", label: formatFalSizeLabel("landscape_16_9", "Landscape 16:9") },
-  { id: "portrait_4_3", label: formatFalSizeLabel("portrait_4_3", "Portrait 4:3") },
-  { id: "portrait_16_9", label: formatFalSizeLabel("portrait_16_9", "Portrait 16:9") },
+  {
+    id: "landscape_4_3",
+    label: formatFalSizeLabel("landscape_4_3", "Landscape 4:3"),
+  },
+  {
+    id: "landscape_16_9",
+    label: formatFalSizeLabel("landscape_16_9", "Landscape 16:9"),
+  },
+  {
+    id: "portrait_4_3",
+    label: formatFalSizeLabel("portrait_4_3", "Portrait 4:3"),
+  },
+  {
+    id: "portrait_16_9",
+    label: formatFalSizeLabel("portrait_16_9", "Portrait 16:9"),
+  },
 ];
 
-const DEFAULT_PROMPT = `Casual smartphone photo of a real one-story house on a Central Texas suburban street, asphalt shingle roof and gutters taking up most of the frame, shot from the sidewalk at a slight angle — not centered, not symmetrical. Flat midday light or thin overcast, normal exposure with no HDR glow. Lived-in details: uneven grass, a parked SUV partly in frame, mailbox, oak tree branches cutting into the sky, neighbor roofline at the edge. Looks like a homeowner snapped it before calling a roofer — documentary, unstaged, imperfect framing. Not real estate listing photography, not magazine, not golden hour, not aerial, no text or logos.`;
+const DEFAULT_PROMPT =
+  "Casual smartphone photo of a real one-story house on a Central Texas suburban street, asphalt shingle roof and gutters taking up most of the frame, shot from the sidewalk at a slight angle — not centered, not symmetrical. Flat midday light or thin overcast, normal exposure with no HDR glow. Lived-in details: uneven grass, a parked SUV partly in frame, mailbox, oak tree branches cutting into the sky, neighbor roofline at the edge. Looks like a homeowner snapped it before calling a roofer — documentary, unstaged, imperfect framing. Not real estate listing photography, not magazine, not golden hour, not aerial, no text or logos.";
 
 const SERIES_DIRECTION_PLACEHOLDER = `One full creative direction per line — scene, angle, subject, and mood (not just a headline).
 
@@ -332,12 +345,18 @@ const fileSize = (bytes?: number): string => {
   return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${units[unit]}`;
 };
 
-const imageDimensions = (image: FalGeneratedImage | SanityImageAsset): string => {
+const imageDimensions = (
+  image: FalGeneratedImage | SanityImageAsset
+): string => {
   const width =
-    "url" in image && "contentType" in image ? image.width : image.metadata?.dimensions?.width;
+    "url" in image && "contentType" in image
+      ? image.width
+      : image.metadata?.dimensions?.width;
   const height =
-    "url" in image && "contentType" in image ? image.height : image.metadata?.dimensions?.height;
-  if (!width || !height) {
+    "url" in image && "contentType" in image
+      ? image.height
+      : image.metadata?.dimensions?.height;
+  if (!(width && height)) {
     return "Unknown dimensions";
   }
   return `${width} x ${height}`;
@@ -354,7 +373,12 @@ const safeFilename = (value: string, fallback: string): string => {
 
 // ── Crop tool ─────────────────────────────────────────────────────────────────
 
-type CropRect = { x: number; y: number; w: number; h: number };
+interface CropRect {
+  h: number;
+  w: number;
+  x: number;
+  y: number;
+}
 type DragHandle = "body" | "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 
 const ASPECT_RATIOS: Record<string, number | null> = {
@@ -387,7 +411,12 @@ function CropModal({
   const [blobSrc, setBlobSrc] = useState<string | null>(null);
   const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
   const [, forceUpdate] = useState(0);
-  const [crop, setCrop] = useState<CropRect>({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
+  const [crop, setCrop] = useState<CropRect>({
+    x: 0.1,
+    y: 0.1,
+    w: 0.8,
+    h: 0.8,
+  });
   const [aspectKey, setAspectKey] = useState("Free");
   const [cropFormat, setCropFormat] = useState<"png" | "jpeg" | "webp">("png");
   const [applying, setApplying] = useState(false);
@@ -405,17 +434,23 @@ function CropModal({
     fetch(imageUrl)
       .then((r) => r.blob())
       .then((blob) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         const url = URL.createObjectURL(blob);
         blobUrlRef.current = url;
         setBlobSrc(url);
       })
       .catch(() => {
-        if (!cancelled) setLoadError(true);
+        if (!cancelled) {
+          setLoadError(true);
+        }
       });
     return () => {
       cancelled = true;
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
     };
   }, [imageUrl]);
 
@@ -428,7 +463,9 @@ function CropModal({
   };
 
   const applyAspect = (rect: CropRect, ratio: number | null): CropRect => {
-    if (!ratio || !naturalSize.w) return rect;
+    if (!(ratio && naturalSize.w)) {
+      return rect;
+    }
     const { x, y, w } = rect;
     const h = clamp((w * naturalSize.w) / (ratio * naturalSize.h), 0.02, 1 - y);
     return { x, y, w, h };
@@ -437,7 +474,9 @@ function CropModal({
   const getDisplayRect = () => {
     const img = imgRef.current;
     const con = containerRef.current;
-    if (!img || !con) return null;
+    if (!(img && con)) {
+      return null;
+    }
     const r = img.getBoundingClientRect();
     const c = con.getBoundingClientRect();
     const ox = r.left - c.left,
@@ -457,11 +496,18 @@ function CropModal({
   const onPointerDown = (e: React.PointerEvent, handle: DragHandle) => {
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    drag.current = { handle, startX: e.clientX, startY: e.clientY, startCrop: { ...crop } };
+    drag.current = {
+      handle,
+      startX: e.clientX,
+      startY: e.clientY,
+      startCrop: { ...crop },
+    };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!drag.current || !imgRef.current) return;
+    if (!(drag.current && imgRef.current)) {
+      return;
+    }
     const r = imgRef.current.getBoundingClientRect();
     const dx = (e.clientX - drag.current.startX) / r.width;
     const dy = (e.clientY - drag.current.startY) / r.height;
@@ -473,12 +519,16 @@ function CropModal({
       x = clamp(x + dx, 0, 1 - w);
       y = clamp(y + dy, 0, 1 - h);
     } else {
-      if (handle.includes("e")) w = clamp(w + dx, 0.05, 1 - x);
+      if (handle.includes("e")) {
+        w = clamp(w + dx, 0.05, 1 - x);
+      }
       if (handle.includes("w")) {
         x = clamp(x + dx, 0, x + w - 0.05);
         w = startCrop.x + startCrop.w - x;
       }
-      if (handle.includes("s")) h = clamp(h + dy, 0.05, 1 - y);
+      if (handle.includes("s")) {
+        h = clamp(h + dy, 0.05, 1 - y);
+      }
       if (handle.includes("n")) {
         y = clamp(y + dy, 0, y + h - 0.05);
         h = startCrop.y + startCrop.h - y;
@@ -498,7 +548,9 @@ function CropModal({
   };
 
   const handleApply = async () => {
-    if (!blobSrc) return;
+    if (!blobSrc) {
+      return;
+    }
     setApplying(true);
     try {
       const img = await new Promise<HTMLImageElement>((res, rej) => {
@@ -520,10 +572,14 @@ function CropModal({
         0,
         0,
         canvas.width,
-        canvas.height,
+        canvas.height
       );
       const mime =
-        cropFormat === "jpeg" ? "image/jpeg" : cropFormat === "webp" ? "image/webp" : "image/png";
+        cropFormat === "jpeg"
+          ? "image/jpeg"
+          : cropFormat === "webp"
+            ? "image/webp"
+            : "image/png";
       const ext = cropFormat === "jpeg" ? "jpg" : cropFormat;
       await new Promise<void>((res, rej) => {
         canvas.toBlob(
@@ -536,7 +592,7 @@ function CropModal({
             res();
           },
           mime,
-          0.92,
+          0.92
         );
       });
     } finally {
@@ -552,27 +608,49 @@ function CropModal({
     { id: "nw", style: { top: -5, left: -5, cursor: "nw-resize" } },
     {
       id: "n",
-      style: { top: -5, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+      style: {
+        top: -5,
+        left: "50%",
+        transform: "translateX(-50%)",
+        cursor: "ns-resize",
+      },
     },
     { id: "ne", style: { top: -5, right: -5, cursor: "ne-resize" } },
     {
       id: "e",
-      style: { top: "50%", right: -5, transform: "translateY(-50%)", cursor: "ew-resize" },
+      style: {
+        top: "50%",
+        right: -5,
+        transform: "translateY(-50%)",
+        cursor: "ew-resize",
+      },
     },
     { id: "se", style: { bottom: -5, right: -5, cursor: "se-resize" } },
     {
       id: "s",
-      style: { bottom: -5, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+      style: {
+        bottom: -5,
+        left: "50%",
+        transform: "translateX(-50%)",
+        cursor: "ns-resize",
+      },
     },
     { id: "sw", style: { bottom: -5, left: -5, cursor: "sw-resize" } },
     {
       id: "w",
-      style: { top: "50%", left: -5, transform: "translateY(-50%)", cursor: "ew-resize" },
+      style: {
+        top: "50%",
+        left: -5,
+        transform: "translateY(-50%)",
+        cursor: "ew-resize",
+      },
     },
   ];
 
   return (
     <div
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
       style={{
         position: "fixed",
         inset: 0,
@@ -585,8 +663,6 @@ function CropModal({
         gap: "1rem",
         padding: "1.5rem",
       }}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
     >
       {/* Header */}
       <div
@@ -617,13 +693,17 @@ function CropModal({
           </span>
         )}
         <select
-          value={aspectKey}
           onChange={(e) => {
             const k = e.target.value;
             setAspectKey(k);
             setCrop((c) => applyAspect(c, ASPECT_RATIOS[k] ?? null));
           }}
-          style={{ fontSize: "0.75rem", padding: "0.25rem 0.5rem", borderRadius: 4 }}
+          style={{
+            fontSize: "0.75rem",
+            padding: "0.25rem 0.5rem",
+            borderRadius: 4,
+          }}
+          value={aspectKey}
         >
           {Object.keys(ASPECT_RATIOS).map((k) => (
             <option key={k} value={k}>
@@ -632,9 +712,15 @@ function CropModal({
           ))}
         </select>
         <select
+          onChange={(e) =>
+            setCropFormat(e.target.value as "png" | "jpeg" | "webp")
+          }
+          style={{
+            fontSize: "0.75rem",
+            padding: "0.25rem 0.5rem",
+            borderRadius: 4,
+          }}
           value={cropFormat}
-          onChange={(e) => setCropFormat(e.target.value as "png" | "jpeg" | "webp")}
-          style={{ fontSize: "0.75rem", padding: "0.25rem 0.5rem", borderRadius: 4 }}
         >
           <option value="png">PNG</option>
           <option value="jpeg">JPEG</option>
@@ -659,15 +745,14 @@ function CropModal({
       >
         {loadError ? (
           <span style={{ color: "#f88" }}>Could not load image.</span>
-        ) : !blobSrc ? (
-          <span style={{ color: "rgba(255,255,255,0.5)" }}>Loading…</span>
-        ) : (
+        ) : blobSrc ? (
           <>
             <img
+              alt=""
+              draggable={false}
+              onLoad={onImgLoad}
               ref={imgRef}
               src={blobSrc}
-              alt=""
-              onLoad={onImgLoad}
               style={{
                 maxWidth: "100%",
                 maxHeight: "100%",
@@ -675,7 +760,6 @@ function CropModal({
                 userSelect: "none",
                 pointerEvents: "none",
               }}
-              draggable={false}
             />
             {dr && (
               <>
@@ -778,12 +862,14 @@ function CropModal({
               </>
             )}
           </>
+        ) : (
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>Loading…</span>
         )}
       </div>
 
       {/* Footer */}
       <div style={{ display: "flex", gap: "0.75rem" }}>
-        <WaButton size="xs" onClick={onClose}>
+        <WaButton onClick={onClose} size="xs">
           Cancel
         </WaButton>
         <WaButton
@@ -800,12 +886,15 @@ function CropModal({
   );
 }
 
-type ReferenceAdherenceSliderProps = {
+interface ReferenceAdherenceSliderProps {
   onValueChange: (value: number) => void;
   value: number;
-};
+}
 
-const ReferenceAdherenceSlider = ({ onValueChange, value }: ReferenceAdherenceSliderProps) => {
+const ReferenceAdherenceSlider = ({
+  onValueChange,
+  value,
+}: ReferenceAdherenceSliderProps) => {
   const sliderRef = useRef<WaSliderElement | null>(null);
 
   useEffect(() => {
@@ -833,9 +922,17 @@ const ReferenceAdherenceSlider = ({ onValueChange, value }: ReferenceAdherenceSl
     <div className="fis__control-group">
       <label>Reference adherence</label>
       <p className="fis__control-hint">
-        Higher keeps more of the reference photo. Lower lets the prompt reshape the scene.
+        Higher keeps more of the reference photo. Lower lets the prompt reshape
+        the scene.
       </p>
-      <WaSlider max={1} min={0.05} ref={sliderRef} size="xs" step={0.01} value={value} />
+      <WaSlider
+        max={1}
+        min={0.05}
+        ref={sliderRef}
+        size="xs"
+        step={0.01}
+        value={value}
+      />
       <span>{value.toFixed(2)}</span>
     </div>
   );
@@ -869,10 +966,17 @@ const LoraScaleSlider = ({
     <div className="fis__control-group">
       <label>LoRA strength</label>
       <p className="fis__control-hint">
-        How strongly the txshingle granule texture applies. Lower for subtle blends; higher for
-        obvious shingle detail.
+        How strongly the txshingle granule texture applies. Lower for subtle
+        blends; higher for obvious shingle detail.
       </p>
-      <WaSlider max={1.5} min={0.25} ref={sliderRef} size="xs" step={0.05} value={value} />
+      <WaSlider
+        max={1.5}
+        min={0.25}
+        ref={sliderRef}
+        size="xs"
+        step={0.05}
+        value={value}
+      />
       <span>{value.toFixed(2)}</span>
     </div>
   );
@@ -888,7 +992,9 @@ export function FalImageStudioTool() {
   const [model, setModel] = useState<FalModelId>("fal-ai/flux/schnell");
   const [imageSize, setImageSize] = useState<FalImageSize>("landscape_4_3");
   const [numImages, setNumImages] = useState(2);
-  const [outputFormat, setOutputFormat] = useState<"jpeg" | "png" | "webp">("png");
+  const [outputFormat, setOutputFormat] = useState<"jpeg" | "png" | "webp">(
+    "png"
+  );
   const [enhancePrompt, setEnhancePrompt] = useState(true);
   const [seed, setSeed] = useState("");
   const [referenceAdherence, setReferenceAdherence] = useState(0.35);
@@ -904,19 +1010,32 @@ export function FalImageStudioTool() {
   const [savingUrl, setSavingUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [result, setResult] = useState<Extract<FalGenerateResponse, { ok: true }> | null>(null);
-  const [cropTarget, setCropTarget] = useState<{ url: string; label: string } | null>(null);
+  const [result, setResult] = useState<Extract<
+    FalGenerateResponse,
+    { ok: true }
+  > | null>(null);
+  const [cropTarget, setCropTarget] = useState<{
+    url: string;
+    label: string;
+  } | null>(null);
 
   const loadAssets = useCallback(async () => {
     setLoadingAssets(true);
     try {
-      const nextAssets = await client.fetch<SanityImageAsset[]>(imageAssetQuery);
+      const nextAssets =
+        await client.fetch<SanityImageAsset[]>(imageAssetQuery);
       setAssets(nextAssets);
       setSelectedAssetId((current) =>
-        current && nextAssets.some((asset) => asset._id === current) ? current : null,
+        current && nextAssets.some((asset) => asset._id === current)
+          ? current
+          : null
       );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not load Sanity images.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not load Sanity images."
+      );
     } finally {
       setLoadingAssets(false);
     }
@@ -927,8 +1046,9 @@ export function FalImageStudioTool() {
   }, [loadAssets]);
 
   const selectedModel = useMemo(
-    () => MODEL_OPTIONS.find((option) => option.id === model) ?? MODEL_OPTIONS[0],
-    [model],
+    () =>
+      MODEL_OPTIONS.find((option) => option.id === model) ?? MODEL_OPTIONS[0],
+    [model]
   );
 
   useEffect(() => {
@@ -945,23 +1065,28 @@ export function FalImageStudioTool() {
     return assets.filter((asset) =>
       [asset.title, asset.altText, asset.originalFilename, asset._id]
         .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(query)),
+        .some((value) => value?.toLowerCase().includes(query))
     );
   }, [assetSearch, assets]);
 
   const selectedAsset = useMemo(
     () => assets.find((asset) => asset._id === selectedAssetId) ?? null,
-    [assets, selectedAssetId],
+    [assets, selectedAssetId]
   );
   const isTxshingleLoraModel = model === "fal-ai/flux-lora";
   const usesReferenceImage = Boolean(
     !isTxshingleLoraModel &&
-    selectedAsset &&
-    (mode === "image" || mode === "series" || mode === "remove-bg" || mode === "remove-sky"),
+      selectedAsset &&
+      (mode === "image" ||
+        mode === "series" ||
+        mode === "remove-bg" ||
+        mode === "remove-sky")
   );
   const isBackgroundRemovalMode = mode === "remove-bg" || mode === "remove-sky";
   const supportsReferenceStrength = Boolean(
-    usesReferenceImage && !isBackgroundRemovalMode && selectedModel.id !== "fal-ai/flux-2-pro",
+    usesReferenceImage &&
+      !isBackgroundRemovalMode &&
+      selectedModel.id !== "fal-ai/flux-2-pro"
   );
 
   const referenceModelNote = useMemo(() => {
@@ -993,13 +1118,14 @@ export function FalImageStudioTool() {
             ? "Select a Sanity image to remove the sky."
             : mode === "remove-bg"
               ? "Select a Sanity image to remove its background."
-              : "Select a Sanity image to use as the reference.",
+              : "Select a Sanity image to use as the reference."
         );
       }
 
       const response = await fetch(falStudioApiEndpoint, {
         body: JSON.stringify({
-          backgroundRemovalModel: mode === "remove-bg" ? backgroundRemovalModel : undefined,
+          backgroundRemovalModel:
+            mode === "remove-bg" ? backgroundRemovalModel : undefined,
           enhancePrompt,
           imageSize,
           mode,
@@ -1008,31 +1134,48 @@ export function FalImageStudioTool() {
           outputFormat: isBackgroundRemovalMode ? "png" : outputFormat,
           prompt,
           referenceImageUrl:
-            isBackgroundRemovalMode || usesReferenceImage ? selectedAsset?.url : undefined,
+            isBackgroundRemovalMode || usesReferenceImage
+              ? selectedAsset?.url
+              : undefined,
           seed: seed.trim(),
           loraScale: isTxshingleLoraModel ? loraScale : undefined,
-          referenceAdherence: supportsReferenceStrength ? referenceAdherence : undefined,
+          referenceAdherence: supportsReferenceStrength
+            ? referenceAdherence
+            : undefined,
           seriesVariations,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const body = (await response.json().catch(() => ({}))) as FalGenerateResponse;
-      if (!response.ok || !("ok" in body) || body.ok !== true) {
+      const body = (await response
+        .json()
+        .catch(() => ({}))) as FalGenerateResponse;
+      if (!(response.ok && "ok" in body) || body.ok !== true) {
         const message = "error" in body ? body.error : undefined;
-        throw new Error(message || `Fal request failed with ${response.status}.`);
+        throw new Error(
+          message || `Fal request failed with ${response.status}.`
+        );
       }
       setResult(body);
-      setNotice(`Generated ${body.images.length} image${body.images.length === 1 ? "" : "s"}.`);
+      setNotice(
+        `Generated ${body.images.length} image${body.images.length === 1 ? "" : "s"}.`
+      );
       clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not generate images with Fal.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not generate images with Fal."
+      );
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleSaveToSanity = async (image: FalGeneratedImage, index: number) => {
+  const handleSaveToSanity = async (
+    image: FalGeneratedImage,
+    index: number
+  ) => {
     setSavingUrl(image.url);
     setError(null);
     setNotice(null);
@@ -1040,7 +1183,9 @@ export function FalImageStudioTool() {
     try {
       const response = await fetch(image.url);
       if (!response.ok) {
-        throw new Error(`Could not download generated image (${response.status}).`);
+        throw new Error(
+          `Could not download generated image (${response.status}).`
+        );
       }
       const blob = await response.blob();
       const extension =
@@ -1065,7 +1210,11 @@ export function FalImageStudioTool() {
       setNotice("Saved generated image to Sanity assets.");
       clearNotice();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save generated image.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not save generated image."
+      );
     } finally {
       setSavingUrl(null);
     }
@@ -1090,7 +1239,11 @@ export function FalImageStudioTool() {
       await loadAssets();
       setCropTarget(null);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save cropped image.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not save cropped image."
+      );
       throw caught;
     }
   };
@@ -1112,15 +1265,15 @@ export function FalImageStudioTool() {
           <CropModal
             imageUrl={cropTarget.url}
             label={cropTarget.label}
-            onSave={handleCropSave}
             onClose={() => setCropTarget(null)}
+            onSave={handleCropSave}
           />
         )}
         <WaButton
           appearance="filled"
           disabled={
             generating ||
-            (!isBackgroundRemovalMode && !prompt.trim()) ||
+            !(isBackgroundRemovalMode || prompt.trim()) ||
             (isBackgroundRemovalMode && !selectedAsset)
           }
           onClick={() => void handleGenerate()}
@@ -1149,10 +1302,12 @@ export function FalImageStudioTool() {
           <div className="fis__control-group">
             <WaSelect
               label="Mode"
+              onInput={(event) =>
+                setMode(getSelectValue(event) as GenerateMode)
+              }
               size="xs"
               value={mode}
               withClear={false}
-              onInput={(event) => setMode(getSelectValue(event) as GenerateMode)}
             >
               <WaOption value="text">Text to image</WaOption>
               <WaOption value="image">Image to image</WaOption>
@@ -1165,9 +1320,10 @@ export function FalImageStudioTool() {
           {mode === "remove-sky" ? (
             <div className="fis__control-group">
               <p className="fis__control-hint">
-                <strong>EVF-SAM2</strong> segments only the sky and clouds, then composites a
-                transparent PNG while keeping the house, roof, trees, and yard intact. Best for
-                exterior roofing photos where BiRefNet eats into the structure.
+                <strong>EVF-SAM2</strong> segments only the sky and clouds, then
+                composites a transparent PNG while keeping the house, roof,
+                trees, and yard intact. Best for exterior roofing photos where
+                BiRefNet eats into the structure.
               </p>
             </div>
           ) : null}
@@ -1178,35 +1334,44 @@ export function FalImageStudioTool() {
                 label="Background removal model"
                 name="backgroundRemovalModel"
                 onInput={(event) =>
-                  setBackgroundRemovalModel(getSelectValue(event) as BackgroundRemovalModel)
+                  setBackgroundRemovalModel(
+                    getSelectValue(event) as BackgroundRemovalModel
+                  )
                 }
                 size="xs"
                 value={backgroundRemovalModel}
                 withClear={false}
               >
-                <WaOption value="ideogram">Ideogram — clean edges (recommended)</WaOption>
-                <WaOption value="bria">Bria RMBG 2.0 — commercial-safe matting</WaOption>
-                <WaOption value="birefnet-heavy">BiRefNet Heavy — legacy fallback</WaOption>
+                <WaOption value="ideogram">
+                  Ideogram — clean edges (recommended)
+                </WaOption>
+                <WaOption value="bria">
+                  Bria RMBG 2.0 — commercial-safe matting
+                </WaOption>
+                <WaOption value="birefnet-heavy">
+                  BiRefNet Heavy — legacy fallback
+                </WaOption>
               </WaSelect>
               <p className="fis__control-hint">
-                Removes everything behind the main subject. For house photos where you only want the
-                sky gone, use <strong>Remove sky</strong> instead.
+                Removes everything behind the main subject. For house photos
+                where you only want the sky gone, use{" "}
+                <strong>Remove sky</strong> instead.
               </p>
             </div>
           ) : null}
 
-          {!isBackgroundRemovalMode ? (
+          {isBackgroundRemovalMode ? null : (
             <div className="fis__control-group">
               <WaTextarea
-                label="Prompt"
                 className="fis__prompt"
+                label="Prompt"
                 onInput={(event) => setPrompt(getInputValue(event))}
                 rows={10}
                 size="xs"
                 value={prompt}
               />
             </div>
-          ) : null}
+          )}
 
           {mode === "series" ? (
             <div className="fis__control-group">
@@ -1220,9 +1385,10 @@ export function FalImageStudioTool() {
                 value={seriesVariations}
               />
               <span>
-                One line per image (up to 12). Write scene, camera angle, roof detail, and mood —
-                not ad headlines. The base prompt above stays shared; each line steers one Fal job.
-                Optional reference image applies to every variation.
+                One line per image (up to 12). Write scene, camera angle, roof
+                detail, and mood — not ad headlines. The base prompt above stays
+                shared; each line steers one Fal job. Optional reference image
+                applies to every variation.
               </span>
             </div>
           ) : null}
@@ -1233,10 +1399,12 @@ export function FalImageStudioTool() {
                 <WaSelect
                   label="Model"
                   name="model"
+                  onInput={(event) =>
+                    setModel(getSelectValue(event) as FalModelId)
+                  }
                   size="xs"
                   value={model}
                   withClear={false}
-                  onInput={(event) => setModel(getSelectValue(event) as FalModelId)}
                 >
                   {MODEL_OPTIONS.map((option) => (
                     <WaOption key={option.id} value={option.id}>
@@ -1251,10 +1419,12 @@ export function FalImageStudioTool() {
                 <WaSelect
                   label="Size"
                   name="size"
+                  onInput={(event) =>
+                    setImageSize(getSelectValue(event) as FalImageSize)
+                  }
                   size="xs"
                   value={imageSize}
                   withClear={false}
-                  onInput={(event) => setImageSize(getSelectValue(event) as FalImageSize)}
                 >
                   {SIZE_OPTIONS.map((option) => (
                     <WaOption key={option.id} value={option.id}>
@@ -1266,27 +1436,29 @@ export function FalImageStudioTool() {
 
               <div className="fis__control-group">
                 <WaNumberInput
-                  size="xs"
-                  name="count"
                   label="Count"
                   max={4}
                   min={1}
+                  name="count"
                   onInput={(event) => setNumImages(getNumberInputValue(event))}
+                  size="xs"
                   value={String(numImages)}
                 />
               </div>
 
               <div className="fis__control-group">
                 <WaSelect
+                  disabled={usesReferenceImage}
                   label="Format"
                   name="format"
+                  onInput={(event) =>
+                    setOutputFormat(
+                      getSelectValue(event) as "jpeg" | "png" | "webp"
+                    )
+                  }
                   size="xs"
-                  disabled={usesReferenceImage}
                   value={outputFormat}
                   withClear={false}
-                  onInput={(event) =>
-                    setOutputFormat(getSelectValue(event) as "jpeg" | "png" | "webp")
-                  }
                 >
                   <WaOption value="png">PNG</WaOption>
                   <WaOption value="jpeg">JPEG</WaOption>
@@ -1298,12 +1470,12 @@ export function FalImageStudioTool() {
 
               <div className="fis__control-group">
                 <WaInput
-                  size="xs"
-                  name="seed"
-                  label="Seed"
                   inputMode="numeric"
+                  label="Seed"
+                  name="seed"
                   onInput={(event) => setSeed(getInputValue(event))}
                   placeholder="Random"
+                  size="xs"
                   type="text"
                   value={seed}
                 />
@@ -1315,7 +1487,9 @@ export function FalImageStudioTool() {
             <LoraScaleSlider onValueChange={setLoraScale} value={loraScale} />
           ) : null}
 
-          {usesReferenceImage && !isBackgroundRemovalMode && supportsReferenceStrength ? (
+          {usesReferenceImage &&
+          !isBackgroundRemovalMode &&
+          supportsReferenceStrength ? (
             <ReferenceAdherenceSlider
               onValueChange={setReferenceAdherence}
               value={referenceAdherence}
@@ -1326,8 +1500,9 @@ export function FalImageStudioTool() {
           !isBackgroundRemovalMode &&
           selectedModel.id === "fal-ai/flux-2-pro" ? (
             <p className="fis__control-hint">
-              Flux 2 Pro Edit follows your prompt but does not expose a reference-strength control.
-              Use Flux Dev or Qwen for adjustable blending.
+              Flux 2 Pro Edit follows your prompt but does not expose a
+              reference-strength control. Use Flux Dev or Qwen for adjustable
+              blending.
             </p>
           ) : null}
 
@@ -1349,21 +1524,28 @@ export function FalImageStudioTool() {
               <p>Sanity assets</p>
               <strong>Optional reference image</strong>
             </div>
-            <WaButton disabled={loadingAssets} onClick={() => void loadAssets()} size="xs">
+            <WaButton
+              disabled={loadingAssets}
+              onClick={() => void loadAssets()}
+              size="xs"
+            >
               Refresh
             </WaButton>
           </div>
           <WaInput
-            size="xs"
             onInput={(event) => setAssetSearch(getInputValue(event))}
             placeholder="Search images"
+            size="xs"
             type="search"
             value={assetSearch}
           />
 
           {selectedAsset ? (
             <div className="fis__selected-reference">
-              <img alt="" src={`${selectedAsset.url}?w=720&h=480&fit=crop&fm=webp`} />
+              <img
+                alt=""
+                src={`${selectedAsset.url}?w=720&h=480&fit=crop&fm=webp`}
+              />
               <strong>{imageLabel(selectedAsset)}</strong>
               <span>
                 {imageDimensions(selectedAsset)}
@@ -1371,7 +1553,10 @@ export function FalImageStudioTool() {
               </span>
               <WaButton
                 onClick={() =>
-                  setCropTarget({ url: selectedAsset.url, label: imageLabel(selectedAsset) })
+                  setCropTarget({
+                    url: selectedAsset.url,
+                    label: imageLabel(selectedAsset),
+                  })
                 }
                 size="xs"
               >
@@ -1388,12 +1573,16 @@ export function FalImageStudioTool() {
               <WaButton
                 appearance="plain"
                 className={
-                  asset._id === selectedAssetId ? "fis__asset-tile is-selected" : "fis__asset-tile"
+                  asset._id === selectedAssetId
+                    ? "fis__asset-tile is-selected"
+                    : "fis__asset-tile"
                 }
                 key={asset._id}
                 onClick={() => {
                   setSelectedAssetId(asset._id);
-                  setMode((current) => (current === "series" ? "series" : "image"));
+                  setMode((current) =>
+                    current === "series" ? "series" : "image"
+                  );
                 }}
                 size="xs"
                 title={imageLabel(asset)}
@@ -1425,20 +1614,26 @@ export function FalImageStudioTool() {
                 <div>
                   <strong>{result.images.length} generated images</strong>
                   <span>
-                    {result.jobs.length} Fal job{result.jobs.length === 1 ? "" : "s"}
-                    {result.jobs[0]?.appliedStrength != null
-                      ? ` · transform ${result.jobs[0].appliedStrength.toFixed(2)} (adherence ${result.jobs[0].appliedReferenceAdherence?.toFixed(2) ?? "—"})`
-                      : ""}
+                    {result.jobs.length} Fal job
+                    {result.jobs.length === 1 ? "" : "s"}
+                    {result.jobs[0]?.appliedStrength == null
+                      ? ""
+                      : ` · transform ${result.jobs[0].appliedStrength.toFixed(2)} (adherence ${result.jobs[0].appliedReferenceAdherence?.toFixed(2) ?? "—"})`}
                   </span>
                 </div>
               </div>
 
               <div className="fis__image-grid">
                 {result.images.map((image, index) => (
-                  <article className="fis__image-card" key={`${image.url}-${index}`}>
+                  <article
+                    className="fis__image-card"
+                    key={`${image.url}-${index}`}
+                  >
                     <img alt="" src={image.url} />
                     <div>
-                      <strong>{image.variation || imageDimensions(image)}</strong>
+                      <strong>
+                        {image.variation || imageDimensions(image)}
+                      </strong>
                       <span>{fileSize(image.fileSize)}</span>
                     </div>
                     {image.variation ? <p>{imageDimensions(image)}</p> : null}
@@ -1449,20 +1644,30 @@ export function FalImageStudioTool() {
                         size="xs"
                         variant="brand"
                       >
-                        {savingUrl === image.url ? "Saving..." : "Save to Sanity"}
+                        {savingUrl === image.url
+                          ? "Saving..."
+                          : "Save to Sanity"}
                       </WaButton>
                       <WaButton
-                        size="xs"
                         onClick={() =>
                           setCropTarget({
                             url: image.url,
-                            label: image.variation || image.fileName || `Image ${index + 1}`,
+                            label:
+                              image.variation ||
+                              image.fileName ||
+                              `Image ${index + 1}`,
                           })
                         }
+                        size="xs"
                       >
                         Crop
                       </WaButton>
-                      <WaButton href={image.url} rel="noreferrer" size="xs" target="_blank">
+                      <WaButton
+                        href={image.url}
+                        rel="noreferrer"
+                        size="xs"
+                        target="_blank"
+                      >
                         Open
                       </WaButton>
                     </div>
@@ -1472,8 +1677,9 @@ export function FalImageStudioTool() {
             </>
           ) : (
             <div className="fis__empty">
-              Generate roofing campaign images, create a prompt series, or select a Sanity image for
-              image-to-image and reference-based series.
+              Generate roofing campaign images, create a prompt series, or
+              select a Sanity image for image-to-image and reference-based
+              series.
             </div>
           )}
         </section>

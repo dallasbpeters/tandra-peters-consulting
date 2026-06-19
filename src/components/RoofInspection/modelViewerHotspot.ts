@@ -14,7 +14,7 @@ export const getModelViewer = (): ModelViewerWithHotspots | null =>
 export const syncModelViewerHotspot = (
   slotName: string,
   position3d: string,
-  normal3d?: string,
+  normal3d?: string
 ): void => {
   const mv = getModelViewer();
   if (!mv?.updateHotspot) {

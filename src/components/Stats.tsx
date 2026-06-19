@@ -1,10 +1,10 @@
-import { HomeUser, Hammer, Home } from "iconoir-react";
+import { Hammer, Home, HomeUser } from "iconoir-react";
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { Stat, StatsProps } from "../types";
+import type { Stat, StatsProps } from "../types";
 
 const defaultStatItems: Stat[] = [
   { name: "Customers", value: "24,999", icon: HomeUser },
@@ -65,27 +65,27 @@ export const Stats: React.FC<StatsProps> = ({
       <div className={`${layoutClass.containerWideStatsRow} md-row`}>
         <motion.span
           initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
           style={labelStyle}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, x: 0 }}
         >
           {title}
         </motion.span>
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
           className="wa-cluster wa-align-items-start wa-gap-2xl"
+          initial="hidden"
           style={{ transition: "all 0.5s" }}
+          variants={containerVariants}
+          viewport={{ once: true }}
+          whileInView="visible"
         >
           {items.map((stat, i) => (
             <motion.div
+              className="wa-cluster wa-gap-xs"
               key={stat.rowKey ?? `${stat.name}-${stat.value}-${i}`}
               variants={itemVariants}
-              className="wa-cluster wa-gap-xs"
             >
-              <stat.icon color={theme.colors.purple} width={48} height={48} />
+              <stat.icon color={theme.colors.purple} height={48} width={48} />
               <div className="wa-stack wa-align-items-start">
                 <span style={statsValueStyle}>{stat.value}</span>
                 <span style={statsTextStyle}>{stat.name}</span>

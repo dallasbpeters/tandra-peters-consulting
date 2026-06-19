@@ -45,9 +45,11 @@ export const category = defineType({
       grandparentTitle: "parent.parent.title",
     },
     prepare({ title, parentTitle, grandparentTitle }) {
-      const path = [grandparentTitle, parentTitle, title].filter(Boolean).join(" > ");
+      const path = [grandparentTitle, parentTitle, title]
+        .filter(Boolean)
+        .join(" > ");
       return {
-        title: title,
+        title,
         subtitle: parentTitle ? path : "Top-level category",
       };
     },

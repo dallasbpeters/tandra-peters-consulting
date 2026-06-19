@@ -1,10 +1,12 @@
+import { type RenderOptions, render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
-
-import { render, type RenderOptions } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { GoogleAuthGateProvider } from "../components/GoogleAuthGate";
-import { SanitySiteContext, type SanitySiteContextValue } from "../context/sanitySiteContextValue";
+import {
+  SanitySiteContext,
+  type SanitySiteContextValue,
+} from "../context/sanitySiteContextValue";
 
 export const mockSanitySiteValue: SanitySiteContextValue = {
   data: {
@@ -14,19 +16,26 @@ export const mockSanitySiteValue: SanitySiteContextValue = {
   },
   loading: false,
   error: null,
-  refetch: async () => {},
+  refetch: async () => {
+    /* noop */
+  },
 };
 
-type SiteProviderOptions = {
+interface SiteProviderOptions {
   route?: string;
   sanity?: SanitySiteContextValue;
-};
+}
 
-const createSiteWrapper = ({ route = "/", sanity = mockSanitySiteValue }: SiteProviderOptions) => {
+const createSiteWrapper = ({
+  route = "/",
+  sanity = mockSanitySiteValue,
+}: SiteProviderOptions) => {
   const SiteTestWrapper = ({ children }: { children: ReactNode }) => (
     <MemoryRouter initialEntries={[route]}>
       <GoogleAuthGateProvider>
-        <SanitySiteContext.Provider value={sanity}>{children}</SanitySiteContext.Provider>
+        <SanitySiteContext.Provider value={sanity}>
+          {children}
+        </SanitySiteContext.Provider>
       </GoogleAuthGateProvider>
     </MemoryRouter>
   );
@@ -38,7 +47,7 @@ const createSiteWrapper = ({ route = "/", sanity = mockSanitySiteValue }: SitePr
 export const renderWithRouter = (
   ui: ReactElement,
   route = "/",
-  options?: Omit<RenderOptions, "wrapper">,
+  options?: Omit<RenderOptions, "wrapper">
 ) => {
   const RouterTestWrapper = ({ children }: { children: ReactNode }) => (
     <MemoryRouter initialEntries={[route]}>
@@ -59,5 +68,5 @@ export const renderWithSiteProviders = (
     route = "/",
     sanity = mockSanitySiteValue,
     ...options
-  }: SiteProviderOptions & RenderOptions = {},
+  }: SiteProviderOptions & RenderOptions = {}
 ) => render(ui, { wrapper: createSiteWrapper({ route, sanity }), ...options });

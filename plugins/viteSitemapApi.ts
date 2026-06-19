@@ -4,7 +4,8 @@ import { generateSitemapXml } from "../server/seo/sitemapService.js";
 
 const SITEMAP_PATH = "/sitemap.xml";
 
-const pathnameOnly = (url: string | undefined) => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined) =>
+  (url ?? "").split("?")[0] ?? "";
 
 export const viteSitemapApi = (env: Record<string, string>): Plugin => ({
   name: "vite-sitemap-api",
@@ -35,7 +36,7 @@ export const viteSitemapApi = (env: Record<string, string>): Plugin => ({
           JSON.stringify({
             error: "Could not generate sitemap",
             detail: error instanceof Error ? error.message : "Unknown error",
-          }),
+          })
         );
       }
     });

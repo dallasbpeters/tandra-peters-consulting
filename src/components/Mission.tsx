@@ -1,10 +1,10 @@
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
-import { MissionProps } from "../types";
+import type { MissionProps } from "../types";
 
 export const Mission: React.FC<MissionProps> = ({
   tagline = "Our Mission",
@@ -79,18 +79,18 @@ export const Mission: React.FC<MissionProps> = ({
 
   return (
     <section
-      id="mission"
-      className={layoutClass.sectionPadded}
-      style={sectionStyle}
       aria-labelledby="mission-heading"
+      className={layoutClass.sectionPadded}
+      id="mission"
+      style={sectionStyle}
     >
       <div className={layoutClass.containerWide}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={headerStyle}
           className="layout-col-between wa-align-items-end wa-gap-4xl md-row-end"
+          initial={{ opacity: 0, y: 20 }}
+          style={headerStyle}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1, y: 0 }}
         >
           <style>{`
             @media (min-width: 768px) {
@@ -115,10 +115,8 @@ export const Mission: React.FC<MissionProps> = ({
             >
               {tagline}
             </span>
-            <div
+            <h2
               id="mission-heading"
-              role="heading"
-              aria-level={2}
               style={{
                 fontSize: "clamp(3rem, 10vw, 4rem)",
                 lineHeight: 1,
@@ -129,7 +127,6 @@ export const Mission: React.FC<MissionProps> = ({
             >
               <RichText
                 flow="heading"
-                value={title}
                 paragraphStyle={{
                   fontFamily: "inherit",
                   fontSize: "inherit",
@@ -137,8 +134,9 @@ export const Mission: React.FC<MissionProps> = ({
                   fontWeight: "inherit",
                   color: "inherit",
                 }}
+                value={title}
               />
-            </div>
+            </h2>
           </div>
           <div
             style={{
@@ -149,22 +147,22 @@ export const Mission: React.FC<MissionProps> = ({
             }}
           >
             <RichText
-              value={description}
               paragraphStyle={{
                 color: "inherit",
                 lineHeight: "inherit",
                 fontSize: "inherit",
               }}
+              value={description}
             />
           </div>
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
           className="mission-grid"
+          initial="hidden"
+          variants={containerVariants}
+          viewport={{ once: true, margin: "-100px" }}
+          whileInView="visible"
         >
           <style>{`
             .mission-grid {
@@ -193,31 +191,32 @@ export const Mission: React.FC<MissionProps> = ({
             const isMain = i === 0;
             return (
               <motion.div
-                key={service.id}
-                variants={cardVariants}
-                style={isMain ? mainCardStyle : secondaryCardStyle}
                 className="layout-col-between mission-grid-item mission-card"
+                key={service.id}
+                style={isMain ? mainCardStyle : secondaryCardStyle}
+                variants={cardVariants}
               >
                 {service.image ? (
                   <div
+                    aria-hidden
+                    className="mission-card-bg"
                     style={{
                       position: "absolute",
                       inset: 0,
                       opacity: 0.5,
                       transition: "opacity 0.7s",
                     }}
-                    className="mission-card-bg"
-                    aria-hidden
                   >
+                    {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
                     <img
-                      src={service.image}
                       alt=""
+                      referrerPolicy="no-referrer"
+                      src={service.image}
                       style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
                       }}
-                      referrerPolicy="no-referrer"
                     />
                   </div>
                 ) : null}
@@ -246,14 +245,14 @@ export const Mission: React.FC<MissionProps> = ({
                   >
                     <RichText
                       flow="heading"
-                      value={service.description}
+                      linkStyle={{ color: theme.colors.accentLight }}
                       paragraphStyle={{
                         color: "inherit",
                         lineHeight: "inherit",
                         fontSize: "inherit",
                         fontWeight: "inherit",
                       }}
-                      linkStyle={{ color: theme.colors.accentLight }}
+                      value={service.description}
                     />
                   </div>
                 </div>

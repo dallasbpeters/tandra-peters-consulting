@@ -1,14 +1,12 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
 import { Menu, Xmark } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useEffect, useState } from "react";
-
-import type { NavProps } from "../../types";
-
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "../../hooks/isMobile";
 import { theme } from "../../theme";
+import type { NavProps } from "../../types";
 import { GoogleAuthGate } from "../GoogleAuthGate";
 import { SiteNavLink } from "../nav/SiteNavLink";
 import { TransitionLink } from "../TransitionLink";
@@ -63,7 +61,9 @@ export const NavPillNav: React.FC<NavProps> = ({
         : "oklch(18.97% 0.008 107.13 / 0.75)",
       backdropFilter: "blur(24px) saturate(1.5)",
       border: "1px solid oklch(100% 0 0 / 0.1)",
-      boxShadow: scrolled ? "0 8px 32px oklch(0% 0 0 / 0.35)" : "0 4px 16px oklch(0% 0 0 / 0.2)",
+      boxShadow: scrolled
+        ? "0 8px 32px oklch(0% 0 0 / 0.35)"
+        : "0 4px 16px oklch(0% 0 0 / 0.2)",
       whiteSpace: "nowrap",
       transition: "top 0.3s, height 0.3s, background 0.3s, box-shadow 0.3s",
     },
@@ -213,27 +213,31 @@ export const NavPillNav: React.FC<NavProps> = ({
         className={isMobile ? undefined : "site-nav-vt"}
         style={styles.pill}
       >
-        <TransitionLink to="/" style={styles.pillLogo}>
+        <TransitionLink style={styles.pillLogo} to="/">
           {logoText}
         </TransitionLink>
         <GoogleAuthGate>
           <div style={styles.pillDivider} />
           {navItems.map((item) => (
             <SiteNavLink
-              key={item.name}
               href={item.href}
-              style={hovLink === item.name ? styles.pillLinkHover : styles.pillLink}
+              key={item.name}
               onMouseEnter={() => setHovLink(item.name)}
               onMouseLeave={() => setHovLink(null)}
+              style={
+                hovLink === item.name ? styles.pillLinkHover : styles.pillLink
+              }
             >
               {item.name}
             </SiteNavLink>
           ))}
           <SiteNavLink
             href={createLink}
-            style={hovLink === "Creative" ? styles.pillLinkHover : styles.pillLink}
             onMouseEnter={() => setHovLink("Creative")}
             onMouseLeave={() => setHovLink(null)}
+            style={
+              hovLink === "Creative" ? styles.pillLinkHover : styles.pillLink
+            }
           >
             Creative
           </SiteNavLink>
@@ -241,15 +245,15 @@ export const NavPillNav: React.FC<NavProps> = ({
         <SiteNavLink
           className="pill-cta"
           href={ctaHref}
-          style={styles.pillCta}
-          onMouseEnter={() => setHovBtn(true)}
-          onMouseLeave={() => setHovBtn(false)}
           onClick={() =>
             posthog?.capture("nav_cta_clicked", {
               variant: "dark-floating-pill",
               cta_text: ctaText,
             })
           }
+          onMouseEnter={() => setHovBtn(true)}
+          onMouseLeave={() => setHovBtn(false)}
+          style={styles.pillCta}
         >
           {ctaText}
         </SiteNavLink>
@@ -264,7 +268,6 @@ export const NavPillNav: React.FC<NavProps> = ({
         <span style={styles.mobileBarLogo}>{logoText}</span>
         <SiteNavLink
           href={ctaHref}
-          style={styles.mobileCta}
           onClick={() =>
             posthog?.capture("nav_cta_clicked", {
               variant: "dark-floating-pill",
@@ -272,20 +275,21 @@ export const NavPillNav: React.FC<NavProps> = ({
               location: "mobile",
             })
           }
+          style={styles.mobileCta}
         >
           {ctaText}
         </SiteNavLink>
         <button
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
-          style={styles.hamburger}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           onClick={() => setMenuOpen(!menuOpen)}
+          style={styles.hamburger}
+          type="button"
         >
           {menuOpen ? (
-            <Xmark width={22} height={22} aria-hidden />
+            <Xmark aria-hidden height={22} width={22} />
           ) : (
-            <Menu width={22} height={22} aria-hidden />
+            <Menu aria-hidden height={22} width={22} />
           )}
         </button>
       </nav>
@@ -294,26 +298,25 @@ export const NavPillNav: React.FC<NavProps> = ({
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, y: -8 }}
             style={styles.mobileMenu}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           >
             <div style={styles.mobileMenuInner}>
               {navItems.map((item) => (
                 <SiteNavLink
-                  key={item.name}
                   href={item.href}
-                  style={styles.mobileLink}
+                  key={item.name}
                   onClick={() => setMenuOpen(false)}
+                  style={styles.mobileLink}
                 >
                   {item.name}
                 </SiteNavLink>
               ))}
               <SiteNavLink
                 href={ctaHref}
-                style={styles.mobileCtaFull}
                 onClick={() => {
                   posthog?.capture("nav_cta_clicked", {
                     variant: "dark-floating-pill",
@@ -322,6 +325,7 @@ export const NavPillNav: React.FC<NavProps> = ({
                   });
                   setMenuOpen(false);
                 }}
+                style={styles.mobileCtaFull}
               >
                 {ctaText}
               </SiteNavLink>

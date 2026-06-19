@@ -5,7 +5,11 @@ export const faqItemType = defineType({
   title: "FAQ item",
   type: "object",
   fields: [
-    defineField({ name: "question", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "question",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "answer",
       title: "Answer",

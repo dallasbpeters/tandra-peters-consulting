@@ -6,14 +6,20 @@
  * Sanity document. Google-auth gated (same allowlist as the SEO dashboard).
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-
-import type { ClientEmailContent, EmailAssets } from "../../server/email/types.js";
-
 import { fetchClientEmail } from "../../server/email/sanity.js";
 import { renderClientEmail } from "../../server/email/template.js";
-import { DashboardAuthError, authorizeSeoDashboardRequest } from "../../server/seo/googleAuth.js";
+import type {
+  ClientEmailContent,
+  EmailAssets,
+} from "../../server/email/types.js";
+import {
+  authorizeSeoDashboardRequest,
+  DashboardAuthError,
+} from "../../server/seo/googleAuth.js";
 
-const ASSET_BASE = (process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me").replace(/\/$/, "");
+const ASSET_BASE = (
+  process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me"
+).replace(/\/$/, "");
 
 const apiAssets: EmailAssets = {
   headerLogoUrl: `${ASSET_BASE}/BC_Horizontal_Color.png`,
@@ -28,7 +34,9 @@ const applyCors = (res: VercelResponse) => {
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
-  if (raw == null) return {};
+  if (raw == null) {
+    return {};
+  }
   if (typeof raw === "string") {
     try {
       return JSON.parse(raw) as Record<string, unknown>;
@@ -36,11 +44,16 @@ const parseBody = (req: VercelRequest): Record<string, unknown> => {
       return {};
     }
   }
-  if (typeof raw === "object") return raw as Record<string, unknown>;
+  if (typeof raw === "object") {
+    return raw as Record<string, unknown>;
+  }
   return {};
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   applyCors(res);
 
   if (req.method === "OPTIONS") {

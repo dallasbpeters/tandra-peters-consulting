@@ -1,7 +1,8 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { ThreeCanvas } from "@remotion/three";
-import React, { Suspense, useLayoutEffect, useRef } from "react";
-import * as THREE from "three";
+import type React from "react";
+import { Suspense, useLayoutEffect, useRef } from "react";
+import { PerspectiveCamera, Vector3 } from "three";
 
 // Suppress THREE.Clock deprecation warning emitted by @react-three/fiber internals.
 // Remove once R3F ships a version that uses THREE.Timer instead.
@@ -11,28 +12,32 @@ console.warn = (...args: unknown[]) => {
     typeof args[0] === "string" &&
     args[0].includes("THREE.Clock") &&
     args[0].includes("deprecated")
-  )
+  ) {
     return;
+  }
   _warn(...args);
 };
+
 import { useGLTF } from "@react-three/drei";
-import { loadFont, fontFamily } from "@remotion/google-fonts/InstrumentSerif";
+import { fontFamily, loadFont } from "@remotion/google-fonts/InstrumentSerif";
 import {
   AbsoluteFill,
-  Sequence,
   interpolate,
+  Sequence,
   spring,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-
-import type { CameraConfig, ParsedRoofScene, RoofSceneProps } from "./composition/roofSceneSchema";
-
 import { CHAPTERS } from "./chapters";
 import Logo from "./components/Logo";
+import type {
+  CameraConfig,
+  ParsedRoofScene,
+  RoofSceneProps,
+} from "./composition/roofSceneSchema";
 import { roofSceneSchema } from "./composition/roofSceneSchema";
-import { RoofCTA } from "./RoofCTA";
+import { RoofCTA } from "./RoofCta";
 import { Model } from "./RoofModel";
 
 loadFont("normal", {
@@ -46,20 +51,26 @@ loadFont("normal", {
 //  polar     : 0 = directly above, 90 = side-on, 180 = below      [degrees]
 //  radius    : distance from target                                 [world units]
 
-const sphericalToCartesian = (cam: CameraConfig): { pos: THREE.Vector3; target: THREE.Vector3 } => {
+const sphericalToCartesian = (
+  cam: CameraConfig
+): { pos: Vector3; target: Vector3 } => {
   const az = (cam.azimuthal * Math.PI) / 180;
   const po = (cam.polar * Math.PI) / 180;
-  const target = new THREE.Vector3(cam.targetX, cam.targetY, cam.targetZ);
-  const pos = new THREE.Vector3(
+  const target = new Vector3(cam.targetX, cam.targetY, cam.targetZ);
+  const pos = new Vector3(
     target.x + cam.radius * Math.sin(po) * Math.sin(az),
     target.y + cam.radius * Math.cos(po),
-    target.z + cam.radius * Math.sin(po) * Math.cos(az),
+    target.z + cam.radius * Math.sin(po) * Math.cos(az)
   );
   return { pos, target };
 };
 
 // Interpolate two CameraConfigs linearly (spring drives the t value)
-const lerpCam = (a: CameraConfig, b: CameraConfig, t: number): CameraConfig => ({
+const lerpCam = (
+  a: CameraConfig,
+  b: CameraConfig,
+  t: number
+): CameraConfig => ({
   azimuthal: a.azimuthal + (b.azimuthal - a.azimuthal) * t,
   polar: a.polar + (b.polar - a.polar) * t,
   radius: a.radius + (b.radius - a.radius) * t,
@@ -72,11 +83,11 @@ const lerpCam = (a: CameraConfig, b: CameraConfig, t: number): CameraConfig => (
 // Returns the spring-blended camera config for a given frame.
 // Used by both CameraRig (inside canvas) and hotspot projection (DOM layer).
 
-type ChapterState = {
-  blendedCam: CameraConfig;
+interface ChapterState {
   activeIdx: number;
+  blendedCam: CameraConfig;
   chapterFrame: number;
-};
+}
 
 const computeCameraState = (
   frame: number,
@@ -84,10 +95,12 @@ const computeCameraState = (
   introFrames: number,
   chapters: ParsedRoofScene["chapters"],
   springStiffness: number,
-  springDamping: number,
+  springDamping: number
 ): ChapterState | null => {
   const activeChs = chapters.filter((c) => !c.skip);
-  if (activeChs.length === 0) return null;
+  if (activeChs.length === 0) {
+    return null;
+  }
 
   const compositionFrame = Math.max(0, frame - introFrames);
   let accumulated = 0;
@@ -96,7 +109,9 @@ const computeCameraState = (
 
   for (let i = 0; i < activeChs.length; i++) {
     const ch = activeChs[i];
-    if (!ch) break;
+    if (!ch) {
+      break;
+    }
     const dur = Math.round(ch.durationSecs * fps);
     if (compositionFrame < accumulated + dur) {
       idx = i;
@@ -116,7 +131,9 @@ const computeCameraState = (
 
   const fromCam = activeChs[Math.max(0, idx - 1)]?.camera;
   const toCam = activeChs[idx]?.camera;
-  if (!fromCam || !toCam) return null;
+  if (!(fromCam && toCam)) {
+    return null;
+  }
 
   return {
     blendedCam: idx === 0 ? toCam : lerpCam(fromCam, toCam, progress),
@@ -129,24 +146,28 @@ const computeCameraState = (
 // Creates a throwaway PerspectiveCamera (deterministic, OK in Remotion rendering)
 // to project a world-space point to pixel coordinates.
 
-type ScreenPoint = { x: number; y: number; visible: boolean };
+interface ScreenPoint {
+  visible: boolean;
+  x: number;
+  y: number;
+}
 
 const projectToScreen = (
   worldPos: { x: number; y: number; z: number },
   cam: CameraConfig,
   fovDeg: number,
   width: number,
-  height: number,
+  height: number
 ): ScreenPoint => {
   const { pos, target } = sphericalToCartesian(cam);
   const aspect = width / height;
-  const tempCam = new THREE.PerspectiveCamera(fovDeg, aspect, 0.1, 300);
+  const tempCam = new PerspectiveCamera(fovDeg, aspect, 0.1, 300);
   tempCam.position.copy(pos);
   tempCam.lookAt(target);
   tempCam.updateMatrixWorld();
   tempCam.updateProjectionMatrix();
 
-  const vec = new THREE.Vector3(worldPos.x, worldPos.y, worldPos.z);
+  const vec = new Vector3(worldPos.x, worldPos.y, worldPos.z);
   vec.project(tempCam);
 
   return {
@@ -158,14 +179,14 @@ const projectToScreen = (
 
 // ─── camera rig ──────────────────────────────────────────────────────────────
 
-type CameraRigProps = {
-  frame: number;
-  fps: number;
-  introFrames: number;
+interface CameraRigProps {
   chapters: ParsedRoofScene["chapters"];
-  springStiffness: number;
+  fps: number;
+  frame: number;
+  introFrames: number;
   springDamping: number;
-};
+  springStiffness: number;
+}
 
 const CameraRig: React.FC<CameraRigProps> = (props) => {
   const { camera, invalidate } = useThree();
@@ -182,16 +203,25 @@ const CameraRig: React.FC<CameraRigProps> = (props) => {
 
   // Apply camera state from the latest ref values.
   const applyCurrent = () => {
-    const { frame, fps, introFrames, chapters, springStiffness, springDamping } = ref.current;
-    const state = computeCameraState(
+    const {
       frame,
       fps,
       introFrames,
       chapters,
       springStiffness,
       springDamping,
+    } = ref.current;
+    const state = computeCameraState(
+      frame,
+      fps,
+      introFrames,
+      chapters,
+      springStiffness,
+      springDamping
     );
-    if (state) applyCamera(state);
+    if (state) {
+      applyCamera(state);
+    }
   };
 
   // Run on every render (catches prop changes while paused —
@@ -223,9 +253,14 @@ const HotspotDot: React.FC<{
 }> = ({ screen, num, globalFrame, introFrames }) => {
   const DOT = 62;
 
-  const opacity = interpolate(globalFrame, [introFrames, introFrames + 18], [0, 1], {
-    extrapolateRight: "clamp",
-  });
+  const opacity = interpolate(
+    globalFrame,
+    [introFrames, introFrames + 18],
+    [0, 1],
+    {
+      extrapolateRight: "clamp",
+    }
+  );
 
   const t1 = (globalFrame % PULSE) / PULSE;
   const ring1Scale = interpolate(t1, [0, 1], [1, 2.4]);
@@ -235,7 +270,9 @@ const HotspotDot: React.FC<{
   const ring2Scale = interpolate(t2, [0, 1], [1, 2.4]);
   const ring2Opacity = interpolate(t2, [0, 0.55, 1], [0.75, 0, 0]);
 
-  if (!screen.visible) return null;
+  if (!screen.visible) {
+    return null;
+  }
 
   return (
     <div
@@ -303,12 +340,12 @@ const HotspotDot: React.FC<{
 
 // ─── callout card ─────────────────────────────────────────────────────────────
 
-type ResolvedCallout = {
+interface ResolvedCallout {
+  body: string;
   num: string;
   title: string;
-  body: string;
   watchFor: string;
-};
+}
 
 /**
  * Merge editable callout copy (props) over the static CHAPTERS fallback.
@@ -316,7 +353,7 @@ type ResolvedCallout = {
  */
 const resolveCallout = (
   globalIdx: number,
-  cfg: ParsedRoofScene["chapters"][number] | undefined,
+  cfg: ParsedRoofScene["chapters"][number] | undefined
 ): ResolvedCallout => {
   const base = CHAPTERS[globalIdx];
   const override = cfg?.callout;
@@ -453,7 +490,9 @@ const ProgressHeader: React.FC<{
   let activeIdx = 0;
   for (let i = 0; i < activeChs.length; i++) {
     const ch = activeChs[i];
-    if (!ch) break;
+    if (!ch) {
+      break;
+    }
     const dur = Math.round(ch.durationSecs * 30);
     if (compositionFrame < accumulated + dur) {
       activeIdx = i;
@@ -487,14 +526,15 @@ const ProgressHeader: React.FC<{
         Roof Anatomy
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {activeChs.map((_, i) => (
+        {activeChs.map((ch, i) => (
           <div
-            key={i}
+            key={ch.callout?.num ?? i}
             style={{
               width: i === activeIdx ? 38 : 12,
               height: 8,
               borderRadius: 2,
-              backgroundColor: i <= activeIdx ? "var(--color-purple-dark)" : "#2a4437",
+              backgroundColor:
+                i <= activeIdx ? "var(--color-purple-dark)" : "#2a4437",
             }}
           />
         ))}
@@ -510,35 +550,50 @@ let stableProps = fallbackProps;
 
 export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
   const parsed = roofSceneSchema.safeParse(rawProps);
-  const props = parsed.success ? (stableProps = parsed.data) : stableProps;
+  if (parsed.success) {
+    stableProps = parsed.data;
+  }
+  const props = stableProps;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
 
   const introFrames = Math.round(props.introSecs * fps);
 
   // Build Sequence layout for active chapters
-  type Seq = { from: number; duration: number; chapterIdx: number };
+  interface Seq {
+    chapterIdx: number;
+    duration: number;
+    from: number;
+  }
   const sequences: Seq[] = [];
   let cursor = introFrames;
   CHAPTERS.forEach((_, globalIdx) => {
     const chCfg = props.chapters[globalIdx];
-    if (!chCfg || chCfg.skip) return;
+    if (!chCfg || chCfg.skip) {
+      return;
+    }
     const dur = Math.round(chCfg.durationSecs * fps);
     sequences.push({ from: cursor, duration: dur, chapterIdx: globalIdx });
     cursor += dur;
   });
   const ctaFrom = cursor;
   const ctaDuration = Math.round(
-    (Number.isFinite(props.cta?.durationSecs) ? props.cta.durationSecs : 6) * fps,
+    (Number.isFinite(props.cta?.durationSecs) ? props.cta.durationSecs : 6) *
+      fps
   );
 
   // Fade the veil out over ~500 ms (15 frames) at the end of the intro period
   const FADE_FRAMES = Math.round(0.5 * fps);
   const fadeStart = Math.max(0, introFrames - FADE_FRAMES);
-  const introFade = interpolate(frame, [fadeStart, Math.max(introFrames, fadeStart + 1)], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const introFade = interpolate(
+    frame,
+    [fadeStart, Math.max(introFrames, fadeStart + 1)],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
   // Compute current camera state for hotspot projection (same math as CameraRig)
   const camState = computeCameraState(
@@ -547,7 +602,7 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
     introFrames,
     props.chapters,
     props.springStiffness,
-    props.springDamping,
+    props.springDamping
   );
 
   // Active chapter only — find global index and project its hotspot
@@ -556,14 +611,24 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
     cfg: ParsedRoofScene["chapters"][number];
   }[] = [];
   props.chapters.forEach((cfg, globalIdx) => {
-    if (!cfg.skip) activeEntries.push({ globalIdx, cfg });
+    if (!cfg.skip) {
+      activeEntries.push({ globalIdx, cfg });
+    }
   });
   const activeEntry = camState ? activeEntries[camState.activeIdx] : null;
   const activeHotspotScreen =
     camState && activeEntry
-      ? projectToScreen(activeEntry.cfg.hotspot, camState.blendedCam, props.fov, width, height)
+      ? projectToScreen(
+          activeEntry.cfg.hotspot,
+          camState.blendedCam,
+          props.fov,
+          width,
+          height
+        )
       : null;
-  const activeCallout = activeEntry ? resolveCallout(activeEntry.globalIdx, activeEntry.cfg) : null;
+  const activeCallout = activeEntry
+    ? resolveCallout(activeEntry.globalIdx, activeEntry.cfg)
+    : null;
 
   return (
     <AbsoluteFill
@@ -574,31 +639,35 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
     >
       {/* ── 3-D canvas ──────────────────────────────────────── */}
       <ThreeCanvas
-        shadows="percentage"
-        width={width}
-        height={height}
-        style={{ width, height }}
-        dpr={[1, 2]}
         camera={{ fov: props.fov, near: 0.1, far: 300 }}
+        dpr={[1, 2]}
+        height={height}
+        shadows="percentage"
+        style={{ width, height }}
+        width={width}
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.75} />
           <directionalLight
-            position={[12, 80, 50]}
-            intensity={5.5}
             castShadow
+            intensity={5.5}
+            position={[12, 80, 50]}
             shadow-mapSize={[2048, 2048]}
           />
-          <directionalLight position={[-30, 8, 8]} intensity={1.6} color="#9acfe0" />
-          <pointLight position={[0, -3, 10]} intensity={0.3} color="#f3a61e" />
+          <directionalLight
+            color="#9acfe0"
+            intensity={1.6}
+            position={[-30, 8, 8]}
+          />
+          <pointLight color="#f3a61e" intensity={0.3} position={[0, -3, 10]} />
 
           <CameraRig
-            frame={frame}
-            fps={fps}
-            introFrames={introFrames}
             chapters={props.chapters}
-            springStiffness={props.springStiffness}
+            fps={fps}
+            frame={frame}
+            introFrames={introFrames}
             springDamping={props.springDamping}
+            springStiffness={props.springStiffness}
           />
 
           <Model />
@@ -613,7 +682,6 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
         }}
       >
         <Logo
-          width={150}
           height={150}
           style={{
             position: "absolute",
@@ -621,6 +689,7 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
             left: 68,
             filter: "invert(1)",
           }}
+          width={150}
         />
         <div style={{ position: "absolute", bottom: "6%", left: 68 }}>
           <div
@@ -640,27 +709,37 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
       {/* ── pulsing hotspot dot (active chapter only) ────────── */}
       {activeHotspotScreen && activeCallout && frame > introFrames && (
         <HotspotDot
-          screen={activeHotspotScreen}
-          num={activeCallout.num}
           globalFrame={frame}
           introFrames={introFrames}
           isActive
+          num={activeCallout.num}
+          screen={activeHotspotScreen}
         />
       )}
       {/* ── progress dots ────────────────────────────────────── */}
       {props.showProgress && (
-        <ProgressHeader frame={frame} introFrames={introFrames} chapters={props.chapters} />
+        <ProgressHeader
+          chapters={props.chapters}
+          frame={frame}
+          introFrames={introFrames}
+        />
       )}
       {/* ── callout cards (one Sequence per active chapter) ──── */}
       {props.showCallouts &&
         sequences.map(({ from, duration, chapterIdx }) => (
-          <Sequence key={chapterIdx} from={from} durationInFrames={duration}>
-            <Callout callout={resolveCallout(chapterIdx, props.chapters[chapterIdx])} />
+          <Sequence durationInFrames={duration} from={from} key={chapterIdx}>
+            <Callout
+              callout={resolveCallout(chapterIdx, props.chapters[chapterIdx])}
+            />
           </Sequence>
         ))}
       {/* ── CTA ──────────────────────────────────────────────── */}
-      <Sequence from={ctaFrom} durationInFrames={ctaDuration} layout="none">
-        <RoofCTA cta={props.cta} badges={props.badges} durationInFrames={ctaDuration} />
+      <Sequence durationInFrames={ctaDuration} from={ctaFrom} layout="none">
+        <RoofCTA
+          badges={props.badges}
+          cta={props.cta}
+          durationInFrames={ctaDuration}
+        />
       </Sequence>
     </AbsoluteFill>
   );

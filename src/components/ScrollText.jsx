@@ -19,7 +19,9 @@ function useElementWidth(ref) {
 
   useLayoutEffect(() => {
     const updateWidth = () => {
-      if (!ref.current) return;
+      if (!ref.current) {
+        return;
+      }
       setWidth(ref.current.offsetWidth);
     };
 
@@ -38,18 +40,26 @@ function wrap(min, max, value) {
 }
 
 function renderOptionalIcon(iconName, fontSize) {
-  if (!iconName || typeof iconName !== "string") return null;
+  if (!iconName || typeof iconName !== "string") {
+    return null;
+  }
 
-  const iconSize = typeof fontSize === "number" ? fontSize : Number.parseFloat(fontSize) || 18;
+  const iconSize =
+    typeof fontSize === "number" ? fontSize : Number.parseFloat(fontSize) || 18;
   const normalized = iconName.trim();
-  const isTexasFlag = ["TexasFlag", "texasFlag", "texas-flag", "tx-flag"].includes(normalized);
+  const isTexasFlag = [
+    "TexasFlag",
+    "texasFlag",
+    "texas-flag",
+    "tx-flag",
+  ].includes(normalized);
 
   if (isTexasFlag) {
     return (
       <TexasFlag
-        width={Math.round(iconSize * 1.5)}
         height={iconSize}
         style={{ marginRight: 10, flexShrink: 0 }}
+        width={Math.round(iconSize * 1.5)}
       />
     );
   }
@@ -58,7 +68,7 @@ function renderOptionalIcon(iconName, fontSize) {
 }
 
 function renderTexasFlag(textColor, fontSize) {
-  return <TexasFlag color={textColor} width={fontSize} height={fontSize} />;
+  return <TexasFlag color={textColor} height={fontSize} width={fontSize} />;
 }
 
 function VelocityText(props) {
@@ -87,10 +97,12 @@ function VelocityText(props) {
     smoothVelocity,
     velocityMapping.input,
     velocityMapping.output,
-    { clamp: false },
+    { clamp: false }
   );
   const x = useTransform(baseX, (value) => {
-    if (copyWidth === 0) return `${startPosition}px`;
+    if (copyWidth === 0) {
+      return `${startPosition}px`;
+    }
     const wrapped = wrap(-copyWidth, 0, value);
     return `${wrapped + startPosition}px`;
   });
@@ -109,8 +121,10 @@ function VelocityText(props) {
       scrollDirectionRef.current = baseDirection;
     }
 
-    const moveBy = scrollDirectionRef.current * Math.abs(baseVelocity) * (delta / 1000);
-    const additional = scrollDirectionRef.current * Math.abs(moveBy) * Math.abs(velocityValue);
+    const moveBy =
+      scrollDirectionRef.current * Math.abs(baseVelocity) * (delta / 1000);
+    const additional =
+      scrollDirectionRef.current * Math.abs(moveBy) * Math.abs(velocityValue);
     baseX.set(baseX.get() + moveBy + additional);
   });
 
@@ -138,9 +152,11 @@ function VelocityText(props) {
         }}
       >
         {children}
-        {showIcon ? renderOptionalIcon(icon, resolvedTextColor, fontSize) : null}
+        {showIcon
+          ? renderOptionalIcon(icon, resolvedTextColor, fontSize)
+          : null}
         {showFlag ? renderTexasFlag(resolvedTextColor, fontSize) : null}
-      </span>,
+      </span>
     );
   }
 
@@ -169,7 +185,10 @@ function VelocityText(props) {
 
 export default function ScrollVelocity(props) {
   const {
-    texts = [{ text: "Texas Solar and Roofing Pros" }, { text: "Texas Solar and Roofing Pros" }],
+    texts = [
+      { text: "Texas Solar and Roofing Pros" },
+      { text: "Texas Solar and Roofing Pros" },
+    ],
     showIcon = false,
     velocity = 100,
     direction = "left",
@@ -195,9 +214,9 @@ export default function ScrollVelocity(props) {
 
   return (
     <section
-      role="marquee"
       aria-label="Service Areas"
       data-sanity-stega="false"
+      role="marquee"
       style={{
         width: "100%",
         height: 80,
@@ -212,23 +231,27 @@ export default function ScrollVelocity(props) {
     >
       {texts.map((item, index) => {
         const textContent = typeof item === "string" ? item : item?.text;
-        const itemIcon = showFlag ? "TexasFlag" : typeof item === "string" ? undefined : item?.icon;
-        const rowMultiplier = index % 2 !== 0 ? -1 : 1;
+        const itemIconFromItem =
+          typeof item === "string" ? undefined : item?.icon;
+        const itemIcon = showFlag ? "TexasFlag" : itemIconFromItem;
+        const rowMultiplier = index % 2 === 0 ? 1 : -1;
         const finalVelocity = velocity * directionMultiplier * rowMultiplier;
 
         return (
           <VelocityText
-            key={index}
             baseVelocity={finalVelocity}
-            startPosition={startPosition}
             damping={damping}
-            stiffness={stiffness}
-            numCopies={numCopies}
-            velocityMapping={velocityMapping}
             fontSize={fontSize}
-            textColor={textColor}
-            showIcon={showIcon}
             icon={itemIcon}
+            key={
+              typeof item === "string" ? item : (item?.text ?? String(index))
+            }
+            numCopies={numCopies}
+            showIcon={showIcon}
+            startPosition={startPosition}
+            stiffness={stiffness}
+            textColor={textColor}
+            velocityMapping={velocityMapping}
           >
             {textContent || ""}&nbsp;
           </VelocityText>

@@ -1,5 +1,3 @@
-import type { CSSProperties, ReactNode } from "react";
-
 /** @jsxRuntime automatic */
 /** @jsxImportSource react */
 import {
@@ -17,8 +15,12 @@ import {
   Text,
 } from "@react-email/components";
 import { render } from "@react-email/render";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { ContactLeadSubmission, EmailAssets } from "./types.js";
+
+const RE_NEWLINE = /\r?\n/;
+const RE_WHITESPACE = /\s+/;
 
 const colors = {
   ink: "#0f1f18",
@@ -32,7 +34,8 @@ const colors = {
 
 const main: CSSProperties = {
   backgroundColor: colors.page,
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   margin: 0,
   padding: "24px 0",
 };
@@ -96,18 +99,21 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
 
 /** Split a freeform message into lines so newlines survive across email clients. */
 const messageLines = (message: string): ReactNode[] => {
-  const lines = message.split(/\r?\n/);
-  return lines.map((line, i) => (
-    <span key={i}>
+  const raw = message.split(RE_NEWLINE);
+  const last = raw.length - 1;
+  return Array.from(raw.entries()).map(([n, line]) => (
+    <span key={`msg-${n}-${line.slice(0, 20)}`}>
       {line || "\u00a0"}
-      {i < lines.length - 1 ? <br /> : null}
+      {n < last ? <br /> : null}
     </span>
   ));
 };
 
 const formatTimestamp = (iso?: string): string => {
   const date = iso ? new Date(iso) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toLocaleString("en-US");
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toLocaleString("en-US");
+  }
   return date.toLocaleString("en-US", {
     dateStyle: "long",
     timeStyle: "short",
@@ -132,7 +138,7 @@ export const ContactLeadEmail = ({
   const phone = submission.phoneNumber?.trim();
   const address = submission.propertyAddress?.trim();
   const replyHref = `mailto:${submission.email}?subject=${encodeURIComponent(
-    "Re: your roofing inquiry",
+    "Re: your roofing inquiry"
   )}`;
 
   return (
@@ -143,9 +149,9 @@ export const ContactLeadEmail = ({
         <Container style={container}>
           <Section style={{ padding: "24px 36px 0" }}>
             <Img
-              src={assets.headerLogoUrl}
-              height="60"
               alt="Birdcreek Roofing"
+              height="60"
+              src={assets.headerLogoUrl}
               style={{ display: "block" }}
             />
           </Section>
@@ -169,7 +175,8 @@ export const ContactLeadEmail = ({
                 margin: "0 0 22px",
               }}
             >
-              Submitted via the website contact form on {formatTimestamp(submission.submittedAt)}.
+              Submitted via the website contact form on{" "}
+              {formatTimestamp(submission.submittedAt)}.
             </Text>
 
             <Field label="Name">{name}</Field>
@@ -180,25 +187,30 @@ export const ContactLeadEmail = ({
             </Field>
             {phone ? (
               <Field label="Phone">
-                <Link href={`tel:${phone.replace(/[^0-9+]/g, "")}`} style={linkStyle}>
+                <Link
+                  href={`tel:${phone.replace(/[^0-9+]/g, "")}`}
+                  style={linkStyle}
+                >
                   {phone}
                 </Link>
               </Field>
             ) : null}
             {service ? <Field label="Service interest">{service}</Field> : null}
-            {address ? <Field label="Property / address">{address}</Field> : null}
+            {address ? (
+              <Field label="Property / address">{address}</Field>
+            ) : null}
             <Field label="Message">{messageLines(submission.message)}</Field>
 
             <Section style={{ margin: "8px 0 4px" }}>
               <Button href={replyHref} style={buttonStyle}>
-                Reply to {name.split(/\s+/)[0]}
+                Reply to {name.split(RE_WHITESPACE)[0]}
               </Button>
             </Section>
 
             <Hr style={{ borderColor: colors.border, margin: "22px 0 0" }} />
             <Text style={legal}>
-              The visitor confirmed consent to be contacted by email, phone, or SMS. Reply directly
-              to this email to reach them.
+              The visitor confirmed consent to be contacted by email, phone, or
+              SMS. Reply directly to this email to reach them.
             </Text>
           </Section>
         </Container>
@@ -208,7 +220,10 @@ export const ContactLeadEmail = ({
 };
 
 /** Render the contact-lead notification email to an HTML string for sending. */
-export const renderContactLeadEmail = (submission: ContactLeadSubmission, assets: EmailAssets) =>
-  render(<ContactLeadEmail submission={submission} assets={assets} />, {
+export const renderContactLeadEmail = (
+  submission: ContactLeadSubmission,
+  assets: EmailAssets
+) =>
+  render(<ContactLeadEmail assets={assets} submission={submission} />, {
     pretty: false,
   });

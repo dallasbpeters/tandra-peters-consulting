@@ -10,7 +10,7 @@ export const restoreRemotionSnapshot = async (): Promise<Sandbox> => {
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!blobToken) {
     throw new Error(
-      "BLOB_READ_WRITE_TOKEN is not set. Attach a Vercel Blob store to this project.",
+      "BLOB_READ_WRITE_TOKEN is not set. Attach a Vercel Blob store to this project."
     );
   }
 
@@ -21,7 +21,7 @@ export const restoreRemotionSnapshot = async (): Promise<Sandbox> => {
 
   if (!blob) {
     throw new Error(
-      "No Remotion sandbox snapshot found for this deployment. Redeploy so the build runs create-remotion-snapshot.",
+      "No Remotion sandbox snapshot found for this deployment. Redeploy so the build runs create-remotion-snapshot."
     );
   }
 
@@ -31,7 +31,7 @@ export const restoreRemotionSnapshot = async (): Promise<Sandbox> => {
 
   if (!snapshotId) {
     throw new Error(
-      "Remotion sandbox snapshot metadata is invalid. Redeploy to recreate the snapshot.",
+      "Remotion sandbox snapshot metadata is invalid. Redeploy to recreate the snapshot."
     );
   }
 

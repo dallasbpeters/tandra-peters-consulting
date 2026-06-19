@@ -1,24 +1,26 @@
-import type { SanityClient } from "@sanity/client";
-
 import {
+  type AssistFieldActionProps,
   assist,
   defineAssistFieldAction,
   defineAssistFieldActionGroup,
   defineFieldActionDivider,
   isType,
   useUserInput,
-  type AssistFieldActionProps,
 } from "@sanity/assist";
+import type { SanityClient } from "@sanity/client";
 import { contextPlugin } from "@sanity/context/studio";
 import { StarFilledIcon } from "@sanity/icons";
 import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
-import { defineConfig } from "sanity";
-import { type SchemaType } from "sanity";
+import { defineConfig, type SchemaType } from "sanity";
+import {
+  defineDocuments,
+  defineLocations,
+  presentationTool,
+} from "sanity/presentation";
+import { structureTool } from "sanity/structure";
 import { googleAnalyticsPlugin } from "sanity-plugin-ga-dashboard";
 import { iconPicker } from "sanity-plugin-icon-picker";
-import { defineDocuments, defineLocations, presentationTool } from "sanity/presentation";
-import { structureTool } from "sanity/structure";
 
 import {
   LazyEmailPreviewTool,
@@ -34,15 +36,18 @@ import { studioFlags } from "./studioFlags";
 // @sanity/client's TransformTargetDocument omits _type and initialValues from the
 // createIfNotExists variant in its TypeScript types, but the Sanity API accepts them.
 // Without _type the API cannot create a draft when none exists yet.
-type TransformTargetCreateIfNotExists = {
-  operation: "createIfNotExists";
+interface TransformTargetCreateIfNotExists {
   _id: string;
   _type?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialValues?: Record<string, any>;
-};
+  operation: "createIfNotExists";
+}
 
-const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "");
+const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(
+  /\/$/,
+  ""
+);
 const isLocalPreviewOrigin =
   configuredPreviewOrigin?.startsWith("http://localhost") ||
   configuredPreviewOrigin?.startsWith("http://127.0.0.1");
@@ -51,25 +56,28 @@ const previewOrigin =
   process.env.NODE_ENV === "production" && isLocalPreviewOrigin
     ? "https://www.tandra.me"
     : configuredPreviewOrigin ||
-      (process.env.NODE_ENV === "production" ? "https://www.tandra.me" : "http://localhost:3001");
+      (process.env.NODE_ENV === "production"
+        ? "https://www.tandra.me"
+        : "http://localhost:3001");
 
 const gaApiUrl =
-  process.env.SANITY_STUDIO_GA_API_URL?.replace(/\/$/, "") || `${previewOrigin}/api/analytics`;
+  process.env.SANITY_STUDIO_GA_API_URL?.replace(/\/$/, "") ||
+  `${previewOrigin}/api/analytics`;
 
 const BRAND_TONE_CONTEXT_ID = "assist-context-brand-tone";
 const CUSTOM_AI_CONTEXT_ID = "aiContext";
 
-type PortableTextChild = {
+interface PortableTextChild {
   _type?: string;
   text?: string;
-};
+}
 
-type PortableTextBlockLike = {
+interface PortableTextBlockLike {
   _type?: string;
   children?: PortableTextChild[];
-};
+}
 
-type BrandToneContextPayload = {
+interface BrandToneContextPayload {
   assistContext?: {
     title?: string;
     context?: PortableTextBlockLike[];
@@ -80,9 +88,11 @@ type BrandToneContextPayload = {
     guardrails?: string[];
     targetKeywords?: string[];
   } | null;
-};
+}
 
-const blocksToPlainText = (blocks: PortableTextBlockLike[] | undefined): string => {
+const blocksToPlainText = (
+  blocks: PortableTextBlockLike[] | undefined
+): string => {
   if (!Array.isArray(blocks)) {
     return "";
   }
@@ -90,11 +100,14 @@ const blocksToPlainText = (blocks: PortableTextBlockLike[] | undefined): string 
     .map((block) =>
       Array.isArray(block.children)
         ? block.children
-            .filter((child) => child?._type === "span" && typeof child.text === "string")
+            .filter(
+              (child) =>
+                child?._type === "span" && typeof child.text === "string"
+            )
             .map((child) => child.text?.trim())
             .filter(Boolean)
             .join("")
-        : "",
+        : ""
     )
     .filter(Boolean)
     .join("\n\n")
@@ -106,7 +119,9 @@ const isPortableTextField = (schemaType: SchemaType): boolean => {
     return false;
   }
   const members = "of" in schemaType ? schemaType.of : undefined;
-  return Array.isArray(members) && members.some((member) => isType(member, "block"));
+  return (
+    Array.isArray(members) && members.some((member) => isType(member, "block"))
+  );
 };
 
 const isRewriteableField = (schemaType: SchemaType): boolean => {
@@ -173,7 +188,7 @@ const loadBrandToneContext = async (client: SanityClient): Promise<string> => {
     {
       assistId: BRAND_TONE_CONTEXT_ID,
       customId: CUSTOM_AI_CONTEXT_ID,
-    },
+    }
   );
 
   const assistText = blocksToPlainText(data?.assistContext?.context);
@@ -183,7 +198,9 @@ const loadBrandToneContext = async (client: SanityClient): Promise<string> => {
     custom?.businessPriorities?.length
       ? `Business priorities:\n- ${custom.businessPriorities.join("\n- ")}`
       : "",
-    custom?.guardrails?.length ? `Guardrails:\n- ${custom.guardrails.join("\n- ")}` : "",
+    custom?.guardrails?.length
+      ? `Guardrails:\n- ${custom.guardrails.join("\n- ")}`
+      : "",
     custom?.targetKeywords?.length
       ? `Important phrases to use naturally when relevant:\n- ${custom.targetKeywords.join("\n- ")}`
       : "",
@@ -221,7 +238,7 @@ const createBrandVoiceAction = (
   title: string,
   goal: string,
   props: AssistFieldActionProps,
-  client: SanityClient,
+  client: SanityClient
 ) =>
   defineAssistFieldAction({
     title,
@@ -253,7 +270,7 @@ const createDocumentBrandVoiceAction = (
   title: string,
   goal: string,
   props: AssistFieldActionProps,
-  client: SanityClient,
+  client: SanityClient
 ) =>
   defineAssistFieldAction({
     title,
@@ -294,7 +311,7 @@ const brandVoiceFieldActions = {
     } = props;
     const client = useStudioClient({ apiVersion: "vX" });
     const getUserInput = useUserInput();
-    const pathKey = JSON.stringify(path);
+    const _pathKey = JSON.stringify(path);
 
     return useMemo(() => {
       if (actionType === "field" && !isRewriteableField(schemaType)) {
@@ -321,19 +338,19 @@ const brandVoiceFieldActions = {
                 "Rewrite document in brand voice",
                 "Rewrite the document so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning of each text-bearing field.",
                 actionProps,
-                client,
+                client
               ),
               createDocumentBrandVoiceAction(
                 "Warm up document tone",
                 "Make the document warmer, more human, and more conversational without sounding salesy or over-polished.",
                 actionProps,
-                client,
+                client
               ),
               createDocumentBrandVoiceAction(
                 "Tighten document for clarity",
                 "Make the document clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.",
                 actionProps,
-                client,
+                client
               ),
               defineFieldActionDivider(),
               defineAssistFieldAction({
@@ -387,25 +404,25 @@ const brandVoiceFieldActions = {
               "Rewrite in brand voice",
               "Rewrite this content so it sounds unmistakably like the Tandra/Birdcreek brand voice while preserving the original meaning.",
               actionProps,
-              client,
+              client
             ),
             createBrandVoiceAction(
               "Warm up the tone",
               "Make this content warmer, more human, and more conversational without sounding salesy or over-polished.",
               actionProps,
-              client,
+              client
             ),
             createBrandVoiceAction(
               "Tighten for clarity",
               "Make this content clearer and tighter. Remove fluff, sharpen the language, and keep it practical and easy to trust.",
               actionProps,
-              client,
+              client
             ),
             createBrandVoiceAction(
               "Strengthen trust",
               "Rewrite this content to feel more reassuring, credible, and confidence-building for homeowners while staying grounded in the original facts.",
               actionProps,
-              client,
+              client
             ),
             defineFieldActionDivider(),
             defineAssistFieldAction({
@@ -460,7 +477,6 @@ const brandVoiceFieldActions = {
       getDocumentValue,
       getUserInput,
       path,
-      pathKey,
       schemaId,
       schemaType,
     ]);
@@ -526,16 +542,22 @@ export default defineConfig({
             resolve: {
               mainDocuments: defineDocuments([
                 { route: "/", filter: `_type == "homePage"` },
-                { route: "/roof-inspections", filter: `_id == "roofInspectionsPage"` },
+                {
+                  route: "/roof-inspections",
+                  filter: `_id == "roofInspectionsPage"`,
+                },
                 { route: "/articles", filter: `_id == "articlesPage"` },
                 { route: "/workflow", filter: `_id == "workflowPage"` },
-                { route: "/insurance-faqs", filter: `_id == "insuranceFaqsPage"` },
+                {
+                  route: "/insurance-faqs",
+                  filter: `_id == "insuranceFaqsPage"`,
+                },
                 {
                   route: "/articles/:slug",
                   resolve: ({ params }) => {
                     const slug = params.slug?.trim();
                     if (!slug) {
-                      return undefined;
+                      return;
                     }
                     return {
                       filter: `_type == "post" && slug.current == $slug`,
@@ -557,7 +579,9 @@ export default defineConfig({
                 roofInspectionsPage: defineLocations({
                   select: { id: "_id" },
                   resolve: () => ({
-                    locations: [{ title: "Roof inspections", href: "/roof-inspections" }],
+                    locations: [
+                      { title: "Roof inspections", href: "/roof-inspections" },
+                    ],
                   }),
                 }),
                 siteSettings: defineLocations({
@@ -580,19 +604,24 @@ export default defineConfig({
                 workflowPage: defineLocations({
                   select: { id: "_id" },
                   resolve: () => ({
-                    locations: [{ title: "Insurance workflow", href: "/workflow" }],
+                    locations: [
+                      { title: "Insurance workflow", href: "/workflow" },
+                    ],
                   }),
                 }),
                 insuranceFaqsPage: defineLocations({
                   select: { id: "_id" },
                   resolve: () => ({
-                    locations: [{ title: "Insurance FAQs", href: "/insurance-faqs" }],
+                    locations: [
+                      { title: "Insurance FAQs", href: "/insurance-faqs" },
+                    ],
                   }),
                 }),
                 post: defineLocations({
                   select: { title: "title", slug: "slug.current" },
                   resolve: (doc) => {
-                    const slug = typeof doc?.slug === "string" ? doc.slug.trim() : "";
+                    const slug =
+                      typeof doc?.slug === "string" ? doc.slug.trim() : "";
                     const title =
                       typeof doc?.title === "string" && doc.title.trim()
                         ? doc.title.trim()

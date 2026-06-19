@@ -12,17 +12,24 @@ import WaPopover from "@awesome.me/webawesome/dist/react/popover/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import WaSwitch from "@awesome.me/webawesome/dist/react/switch/index.js";
 import { usePostHog } from "@posthog/react";
-import { LogOut, MediaImage, Palette, Page, FloppyDisk, Trash, Upload, User } from "iconoir-react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-
-import type {
-  AdUnit,
-  CreativeState,
-  LogoVariant,
-  PlatformPreset,
-  PlatformShape,
-} from "../lib/adCreative";
-
+import {
+  FloppyDisk,
+  LogOut,
+  MediaImage,
+  Page,
+  Palette,
+  Trash,
+  Upload,
+  User,
+} from "iconoir-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AdCanvasEditor } from "../components/AdCanvasEditor";
 import { AdColorSwatch } from "../components/AdColorSwatch";
 import { AdImagePicker } from "../components/AdImagePicker";
@@ -30,9 +37,27 @@ import { SitePageChrome } from "../components/SitePageChrome";
 import { useAdVersions } from "../hooks/useAdVersions";
 import { useGoogleDashboardAuth } from "../hooks/useGoogleDashboardAuth";
 import { usePageMetadata } from "../hooks/usePageMetadata";
-import { useSanityImageAssets, type SanityImageAsset } from "../hooks/useSanityImageAssets";
-import { BRAND_SWATCHES, formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
-import { AD_TEMPLATES, applyAdTemplatePreset, type FontPresetId } from "../lib/adCreativeTemplates";
+import {
+  type SanityImageAsset,
+  useSanityImageAssets,
+} from "../hooks/useSanityImageAssets";
+import type {
+  AdUnit,
+  CreativeState,
+  LogoVariant,
+  PlatformPreset,
+  PlatformShape,
+} from "../lib/adCreative";
+import {
+  BRAND_SWATCHES,
+  formatAdDimensions,
+  getExportPixelSize,
+} from "../lib/adCreative";
+import {
+  AD_TEMPLATES,
+  applyAdTemplatePreset,
+  type FontPresetId,
+} from "../lib/adCreativeTemplates";
 import "../styles/ad-dashboard.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -142,13 +167,13 @@ const LOGO_VARIANTS: ReadonlyArray<{
   },
 ] as const;
 
-type FontPreset = {
+interface FontPreset {
+  bodyFamily: string;
+  headlineFamily: string;
+  headlineWeight: number;
   id: FontPresetId;
   label: string;
-  headlineFamily: string;
-  bodyFamily: string;
-  headlineWeight: number;
-};
+}
 
 const FONT_PRESETS: readonly FontPreset[] = [
   {
@@ -200,16 +225,20 @@ const clampDimension = (value: number, unit: AdUnit) => {
   const max = unit === "px" ? DIMENSION_MAX_PX : DIMENSION_MAX_IN;
   const step = unit === "px" ? 1 : 0.125;
   const clamped = clampNumber(value, min, max);
-  return unit === "px" ? Math.round(clamped) : Math.round(clamped / step) * step;
+  return unit === "px"
+    ? Math.round(clamped)
+    : Math.round(clamped / step) * step;
 };
 
 const convertDimensionsForUnit = (
   width: number,
   height: number,
   fromUnit: AdUnit,
-  toUnit: AdUnit,
+  toUnit: AdUnit
 ) => {
-  if (fromUnit === toUnit) return { width, height };
+  if (fromUnit === toUnit) {
+    return { width, height };
+  }
   if (toUnit === "in") {
     return {
       width: clampDimension(width / PRINT_DPI, "in"),
@@ -225,22 +254,33 @@ const convertDimensionsForUnit = (
 const formatIntegerDisplay = (value: number) => String(Math.round(value));
 
 const formatDimensionDisplay = (value: number, unit: AdUnit) =>
-  unit === "px" ? formatIntegerDisplay(value) : Number.parseFloat(value.toFixed(3)).toString();
+  unit === "px"
+    ? formatIntegerDisplay(value)
+    : Number.parseFloat(value.toFixed(3)).toString();
 
 const getSelectedPlatform = (platformId: string) =>
   PLATFORM_PRESETS.find((p) => p.id === platformId) ?? PLATFORM_PRESETS[0];
 
-const getPlatformUnit = (platform: PlatformPreset): AdUnit => platform.unit ?? "px";
+const getPlatformUnit = (platform: PlatformPreset): AdUnit =>
+  platform.unit ?? "px";
 
-const getPlatformShape = (platform: Pick<PlatformPreset, "width" | "height">): PlatformShape => {
+const getPlatformShape = (
+  platform: Pick<PlatformPreset, "width" | "height">
+): PlatformShape => {
   const ratio = platform.width / platform.height;
-  if (ratio < 0.78) return "tall";
-  if (ratio > 1.35) return "wide";
+  if (ratio < 0.78) {
+    return "tall";
+  }
+  if (ratio > 1.35) {
+    return "wide";
+  }
   return "square";
 };
 
 const revokeObjectUrl = (url: string | null) => {
-  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
 };
 
 // ─── Version persistence helpers ──────────────────────────────────────────────
@@ -304,15 +344,19 @@ const DEFAULT_CREATIVE: CreativeState = {
 
 // ─── Small field components ───────────────────────────────────────────────────
 
-type AdColorPickerFieldProps = {
+interface AdColorPickerFieldProps {
   label: string;
-  value: string;
   onValueChange: (value: string) => void;
-};
+  value: string;
+}
 
-const AdColorPickerField = ({ label, value, onValueChange }: AdColorPickerFieldProps) => (
+const AdColorPickerField = ({
+  label,
+  value,
+  onValueChange,
+}: AdColorPickerFieldProps) => (
   <div className="ad-dashboard-color-field">
-    <AdColorSwatch label={label} value={value} onChange={onValueChange} />
+    <AdColorSwatch label={label} onChange={onValueChange} value={value} />
     <span className="ad-dashboard-color-field-label">{label}</span>
   </div>
 );
@@ -321,19 +365,23 @@ const useDraftNumberInput = (
   safeValue: number,
   formatDisplay: (value: number) => string,
   clampValue: (value: number) => number,
-  onValueChange: (value: number) => void,
+  onValueChange: (value: number) => void
 ) => {
   const inputRef = useRef<WaNumberInputElement | null>(null);
   const isFocusedRef = useRef(false);
   const [draftValue, setDraftValue] = useState(() => formatDisplay(safeValue));
 
   useEffect(() => {
-    if (!isFocusedRef.current) setDraftValue(formatDisplay(safeValue));
+    if (!isFocusedRef.current) {
+      setDraftValue(formatDisplay(safeValue));
+    }
   }, [formatDisplay, safeValue]);
 
   useEffect(() => {
     const input = inputRef.current;
-    if (!input) return;
+    if (!input) {
+      return;
+    }
 
     const handleFocus = () => {
       isFocusedRef.current = true;
@@ -343,7 +391,9 @@ const useDraftNumberInput = (
       const raw = input.value ?? "";
       setDraftValue(raw);
       const parsed = Number(raw);
-      if (Number.isFinite(parsed)) onValueChange(clampValue(parsed));
+      if (Number.isFinite(parsed)) {
+        onValueChange(clampValue(parsed));
+      }
     };
 
     const handleBlur = () => {
@@ -373,12 +423,12 @@ const useDraftNumberInput = (
   return { inputRef, draftValue };
 };
 
-type AdDimensionNumberFieldProps = {
+interface AdDimensionNumberFieldProps {
   label: string;
-  value: number;
-  unit: AdUnit;
   onValueChange: (value: number) => void;
-};
+  unit: AdUnit;
+  value: number;
+}
 
 const AdDimensionNumberField = ({
   label,
@@ -392,39 +442,42 @@ const AdDimensionNumberField = ({
   const step = unit === "px" ? 1 : 0.125;
   const formatDisplay = useCallback(
     (nextValue: number) => formatDimensionDisplay(nextValue, unit),
-    [unit],
+    [unit]
   );
-  const clampValue = useCallback((nextValue: number) => clampDimension(nextValue, unit), [unit]);
+  const clampValue = useCallback(
+    (nextValue: number) => clampDimension(nextValue, unit),
+    [unit]
+  );
   const { inputRef, draftValue } = useDraftNumberInput(
     safeValue,
     formatDisplay,
     clampValue,
-    onValueChange,
+    onValueChange
   );
 
   return (
     <WaNumberInput
-      ref={inputRef}
-      label={label}
-      value={draftValue}
-      min={min}
-      max={max}
-      step={step}
-      inputmode={unit === "px" ? "numeric" : "decimal"}
       appearance="outlined"
+      inputmode={unit === "px" ? "numeric" : "decimal"}
+      label={label}
+      max={max}
+      min={min}
+      ref={inputRef}
       size="xs"
+      step={step}
+      value={draftValue}
     />
   );
 };
 
-type AdUnitFieldProps = {
-  unit: AdUnit;
-  width: number;
+interface AdUnitFieldProps {
   height: number;
+  onHeightChange: (height: number) => void;
   onUnitChange: (unit: AdUnit) => void;
   onWidthChange: (width: number) => void;
-  onHeightChange: (height: number) => void;
-};
+  unit: AdUnit;
+  width: number;
+}
 
 const AdUnitField = ({
   unit,
@@ -438,10 +491,12 @@ const AdUnitField = ({
     <div className="ad-dashboard-unit-toggle">
       <span className={unit === "in" ? "is-active" : undefined}>in</span>
       <WaSwitch
-        className="ad-dashboard-unit-switch"
         checked={unit === "px"}
+        className="ad-dashboard-unit-switch"
+        onChange={(event) =>
+          onUnitChange(getSwitchChecked(event) ? "px" : "in")
+        }
         size="xs"
-        onChange={(event) => onUnitChange(getSwitchChecked(event) ? "px" : "in")}
       >
         px
       </WaSwitch>
@@ -449,15 +504,15 @@ const AdUnitField = ({
     <div className="ad-dashboard-unit-dimensions">
       <AdDimensionNumberField
         label={`Width (${unit})`}
-        value={width}
-        unit={unit}
         onValueChange={onWidthChange}
+        unit={unit}
+        value={width}
       />
       <AdDimensionNumberField
         label={`Height (${unit})`}
-        value={height}
-        unit={unit}
         onValueChange={onHeightChange}
+        unit={unit}
+        value={height}
       />
     </div>
   </div>
@@ -465,33 +520,38 @@ const AdUnitField = ({
 
 // ─── Toolbar menu ─────────────────────────────────────────────────────────────
 
-type ToolbarMenuProps = {
+interface ToolbarMenuProps {
+  children: React.ReactNode;
+  hideLabel?: boolean;
   icon: React.ReactNode;
   label: string;
-  hideLabel?: boolean;
-  children: React.ReactNode;
-};
+}
 
-const ToolbarMenu = ({ icon, label, hideLabel, children }: ToolbarMenuProps) => {
+const ToolbarMenu = ({
+  icon,
+  label,
+  hideLabel,
+  children,
+}: ToolbarMenuProps) => {
   const triggerId = useId().replaceAll(":", "-");
 
   return (
     <div className="ad-toolbar-menu">
       <button
-        id={triggerId}
-        type="button"
-        className="ad-toolbar-menu-trigger"
         aria-label={label}
+        className="ad-toolbar-menu-trigger"
+        id={triggerId}
         title={label}
+        type="button"
       >
         {icon}
         {hideLabel ? null : <span>{label}</span>}
       </button>
       <WaPopover
         className="ad-toolbar-popover"
+        distance={10}
         for={triggerId}
         placement="bottom-start"
-        distance={10}
         withoutArrow
       >
         <div className="ad-toolbar-popover-surface">{children}</div>
@@ -502,26 +562,32 @@ const ToolbarMenu = ({ icon, label, hideLabel, children }: ToolbarMenuProps) => 
 
 // ─── Auth panel ───────────────────────────────────────────────────────────────
 
-const AuthPanel = ({ auth }: { auth: ReturnType<typeof useGoogleDashboardAuth> }) => (
+const AuthPanel = ({
+  auth,
+}: {
+  auth: ReturnType<typeof useGoogleDashboardAuth>;
+}) => (
   <section className="ad-dashboard-auth">
     <div>
       <p className="ad-dashboard-eyebrow">Google gated</p>
       <h1>Sign in to build ad creative.</h1>
       <p>
-        This dashboard is restricted to allowed Google accounts and does not expose the creative
-        tools on the public site.
+        This dashboard is restricted to allowed Google accounts and does not
+        expose the creative tools on the public site.
       </p>
     </div>
-    {!auth.clientId ? (
+    {auth.clientId ? (
+      <>
+        <div ref={auth.buttonRef} />
+        {auth.ready ? null : <p>Loading Google sign-in...</p>}
+        {auth.authError ? (
+          <p className="ad-dashboard-error">{auth.authError}</p>
+        ) : null}
+      </>
+    ) : (
       <p className="ad-dashboard-error">
         Add <code>VITE_GOOGLE_CLIENT_ID</code> to enable Google sign-in.
       </p>
-    ) : (
-      <>
-        <div ref={auth.buttonRef} />
-        {!auth.ready ? <p>Loading Google sign-in...</p> : null}
-        {auth.authError ? <p className="ad-dashboard-error">{auth.authError}</p> : null}
-      </>
     )}
   </section>
 );
@@ -540,24 +606,27 @@ export const AdDashboardPage = () => {
 
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
-    [creative.platformId],
+    [creative.platformId]
   );
   const exportPixelSize = useMemo(
-    () => getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
-    [creative.adWidth, creative.adHeight, creative.unit],
+    () =>
+      getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
+    [creative.adWidth, creative.adHeight, creative.unit]
   );
   const selectedPlatformShape = getPlatformShape({
     width: exportPixelSize.width,
     height: exportPixelSize.height,
   });
   const selectedTemplate = useMemo(
-    () => AD_TEMPLATES.find((t) => t.id === creative.templateId) ?? AD_TEMPLATES[0],
-    [creative.templateId],
+    () =>
+      AD_TEMPLATES.find((t) => t.id === creative.templateId) ?? AD_TEMPLATES[0],
+    [creative.templateId]
   );
 
   usePageMetadata({
     title: "Ad Builder | Tandra Peters",
-    description: "Internal advertising dashboard for creating brand-aligned platform ad images.",
+    description:
+      "Internal advertising dashboard for creating brand-aligned platform ad images.",
     robots: "noindex, nofollow",
   });
 
@@ -569,14 +638,14 @@ export const AdDashboardPage = () => {
     () => () => {
       revokeObjectUrl(creative.imageUrl);
     },
-    [creative.imageUrl],
+    [creative.imageUrl]
   );
 
   const updateCreative = useCallback(
     <K extends keyof CreativeState>(key: K, value: CreativeState[K]) => {
       setCreative((current) => ({ ...current, [key]: value }));
     },
-    [],
+    []
   );
 
   const handlePlatformChange = useCallback((platformId: string) => {
@@ -595,12 +664,14 @@ export const AdDashboardPage = () => {
 
   const handleUnitChange = useCallback((nextUnit: AdUnit) => {
     setCreative((current) => {
-      if (current.unit === nextUnit) return current;
+      if (current.unit === nextUnit) {
+        return current;
+      }
       const dimensions = convertDimensionsForUnit(
         current.adWidth,
         current.adHeight,
         current.unit,
-        nextUnit,
+        nextUnit
       );
       return {
         ...current,
@@ -611,20 +682,25 @@ export const AdDashboardPage = () => {
     });
   }, []);
 
-  const handleImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setCreative((current) => {
-      revokeObjectUrl(current.imageUrl);
-      return {
-        ...current,
-        imageFile: file,
-        imageUrl: url,
-        imageName: file.name,
-      };
-    });
-  }, []);
+  const handleImageChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      setCreative((current) => {
+        revokeObjectUrl(current.imageUrl);
+        return {
+          ...current,
+          imageFile: file,
+          imageUrl: url,
+          imageName: file.name,
+        };
+      });
+    },
+    []
+  );
 
   const handleImageRemove = useCallback(() => {
     setCreative((current) => {
@@ -634,7 +710,8 @@ export const AdDashboardPage = () => {
   }, []);
 
   const handleTemplateChange = useCallback((templateId: string) => {
-    const template = AD_TEMPLATES.find((t) => t.id === templateId) ?? AD_TEMPLATES[0];
+    const template =
+      AD_TEMPLATES.find((t) => t.id === templateId) ?? AD_TEMPLATES[0];
     setCreative((current) => applyAdTemplatePreset(current, template));
   }, []);
 
@@ -651,7 +728,9 @@ export const AdDashboardPage = () => {
   }, []);
 
   const handleSaveVersion = useCallback(async () => {
-    if (!auth.token) return;
+    if (!auth.token) {
+      return;
+    }
     setVersionBusy(true);
     setVersionStatus(null);
     try {
@@ -672,7 +751,11 @@ export const AdDashboardPage = () => {
       setVersionStatus("Version saved.");
       versions.refresh();
     } catch (saveError) {
-      setVersionStatus(saveError instanceof Error ? saveError.message : "Could not save version.");
+      setVersionStatus(
+        saveError instanceof Error
+          ? saveError.message
+          : "Could not save version."
+      );
     } finally {
       setVersionBusy(false);
     }
@@ -681,9 +764,13 @@ export const AdDashboardPage = () => {
   const handleSelectVersion = useCallback(
     (id: string) => {
       setSelectedVersionId(id);
-      if (!id) return;
+      if (!id) {
+        return;
+      }
       const match = versions.versions.find((version) => version.id === id);
-      if (!match) return;
+      if (!match) {
+        return;
+      }
       try {
         setCreative((current) => {
           revokeObjectUrl(current.imageUrl);
@@ -694,11 +781,13 @@ export const AdDashboardPage = () => {
         setVersionStatus("Could not load that version.");
       }
     },
-    [versions.versions],
+    [versions.versions]
   );
 
   const handleDeleteVersion = useCallback(async () => {
-    if (!auth.token || !selectedVersionId) return;
+    if (!(auth.token && selectedVersionId)) {
+      return;
+    }
     setVersionBusy(true);
     setVersionStatus(null);
     try {
@@ -718,7 +807,9 @@ export const AdDashboardPage = () => {
       versions.refresh();
     } catch (deleteError) {
       setVersionStatus(
-        deleteError instanceof Error ? deleteError.message : "Could not delete version.",
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Could not delete version."
       );
     } finally {
       setVersionBusy(false);
@@ -727,41 +818,45 @@ export const AdDashboardPage = () => {
 
   const toolbarMenus = (
     <div className="ad-toolbar-menus">
-      <ToolbarMenu icon={<Page width={16} height={16} />} label="Format">
+      <ToolbarMenu icon={<Page height={16} width={16} />} label="Format">
         <WaSelect
-          name="platform"
-          label="Platform"
-          value={creative.platformId}
           appearance="outlined"
-          size="xs"
+          label="Platform"
+          name="platform"
           onChange={(event) => handlePlatformChange(getSelectValue(event))}
+          size="xs"
+          value={creative.platformId}
         >
           {PLATFORM_PRESETS.map((platform) => (
             <WaOption key={platform.id} value={platform.id}>
               {platform.label} ·{" "}
-              {formatAdDimensions(platform.width, platform.height, getPlatformUnit(platform))} ·{" "}
-              {platform.helper}
+              {formatAdDimensions(
+                platform.width,
+                platform.height,
+                getPlatformUnit(platform)
+              )}{" "}
+              · {platform.helper}
             </WaOption>
           ))}
         </WaSelect>
         <AdUnitField
-          unit={creative.unit}
-          width={creative.adWidth}
           height={creative.adHeight}
+          onHeightChange={(adHeight) => updateCreative("adHeight", adHeight)}
           onUnitChange={handleUnitChange}
           onWidthChange={(adWidth) => updateCreative("adWidth", adWidth)}
-          onHeightChange={(adHeight) => updateCreative("adHeight", adHeight)}
+          unit={creative.unit}
+          width={creative.adWidth}
         />
       </ToolbarMenu>
 
-      <ToolbarMenu icon={<MediaImage width={16} height={16} />} label="Design">
+      <ToolbarMenu icon={<MediaImage height={16} width={16} />} label="Design">
         <WaSelect
-          name="template"
-          label="Design"
-          value={creative.templateId}
           appearance="outlined"
-          size="xs"
+          label="Design"
+          name="template"
           onChange={(event) => handleTemplateChange(getSelectValue(event))}
+          size="xs"
+          value={creative.templateId}
         >
           {AD_TEMPLATES.map((template) => (
             <WaOption key={template.id} value={template.id}>
@@ -770,17 +865,25 @@ export const AdDashboardPage = () => {
           ))}
         </WaSelect>
         {selectedTemplate.thumbnail ? (
-          <img className="ad-dashboard-template-preview" src={selectedTemplate.thumbnail} alt="" />
+          // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+          <img
+            alt=""
+            className="ad-dashboard-template-preview"
+            src={selectedTemplate.thumbnail}
+          />
         ) : null}
         <WaSelect
-          name="fontPreset"
-          label="Font"
-          value={creative.fontPresetId}
           appearance="outlined"
-          size="xs"
+          label="Font"
+          name="fontPreset"
           onChange={(event) =>
-            updateCreative("fontPresetId", getSelectValue(event) as FontPresetId)
+            updateCreative(
+              "fontPresetId",
+              getSelectValue(event) as FontPresetId
+            )
           }
+          size="xs"
+          value={creative.fontPresetId}
         >
           {FONT_PRESETS.map((fontPreset) => (
             <WaOption key={fontPreset.id} value={fontPreset.id}>
@@ -789,58 +892,69 @@ export const AdDashboardPage = () => {
           ))}
         </WaSelect>
         <p className="ad-dashboard-rhythm-hint">
-          Picking a new Design or Font reseeds the canvas. Text, sizing, and styling all happen
-          directly on the canvas.
+          Picking a new Design or Font reseeds the canvas. Text, sizing, and
+          styling all happen directly on the canvas.
         </p>
       </ToolbarMenu>
 
-      <ToolbarMenu icon={<Upload width={16} height={16} />} label="Image">
+      <ToolbarMenu icon={<Upload height={16} width={16} />} label="Image">
         <label className="ad-dashboard-upload">
           <input
-            name="ad-image-upload"
-            id="ad-image-upload"
-            type="file"
             accept="image/*"
+            id="ad-image-upload"
+            name="ad-image-upload"
             onChange={handleImageChange}
+            type="file"
           />
-          <MediaImage width={22} height={22} />
-          <span>{creative.imageName ?? "Choose roof, project, or portrait photo"}</span>
+          <MediaImage height={22} width={22} />
+          <span>
+            {creative.imageName ?? "Choose roof, project, or portrait photo"}
+          </span>
         </label>
         {creative.imageUrl ? (
-          <button type="button" className="ad-dashboard-remove-image" onClick={handleImageRemove}>
-            <Trash width={16} height={16} />
+          <button
+            className="ad-dashboard-remove-image"
+            onClick={handleImageRemove}
+            type="button"
+          >
+            <Trash height={16} width={16} />
             Remove current image
           </button>
         ) : null}
       </ToolbarMenu>
 
       <AdImagePicker
+        error={imageLibrary.error}
         images={imageLibrary.images}
         loading={imageLibrary.loading}
-        error={imageLibrary.error}
-        selectedImageUrl={creative.imageUrl}
         onRefresh={imageLibrary.refresh}
         onSelect={handleSanityImageSelect}
+        selectedImageUrl={creative.imageUrl}
       />
 
-      <ToolbarMenu icon={<Palette width={16} height={16} />} label="Brand">
+      <ToolbarMenu icon={<Palette height={16} width={16} />} label="Brand">
         <WaSwitch
           checked={creative.showLogo}
+          onChange={(event) =>
+            updateCreative("showLogo", getSwitchChecked(event))
+          }
           size="xs"
-          onChange={(event) => updateCreative("showLogo", getSwitchChecked(event))}
         >
           Show Birdcreek logo
         </WaSwitch>
         {creative.showLogo ? (
           <WaSelect
-            name="logoVariant"
-            label="Logo lockup"
-            value={creative.logoVariant}
             appearance="outlined"
-            size="xs"
+            label="Logo lockup"
+            name="logoVariant"
             onChange={(event) =>
-              updateCreative("logoVariant", getSelectValue(event) as LogoVariant)
+              updateCreative(
+                "logoVariant",
+                getSelectValue(event) as LogoVariant
+              )
             }
+            size="xs"
+            value={creative.logoVariant}
           >
             {LOGO_VARIANTS.map((logo) => (
               <WaOption key={logo.id} value={logo.id}>
@@ -855,15 +969,16 @@ export const AdDashboardPage = () => {
           {BRAND_SWATCHES.map((swatch) => (
             <button
               key={`${swatch.label}-${swatch.value}`}
-              type="button"
-              style={{ backgroundColor: swatch.value }}
               onClick={() =>
                 setCreative((current) => ({
                   ...current,
                   backgroundColor: swatch.value,
-                  textColor: swatch.value === "#F6F2EA" ? "#092A1D" : current.textColor,
+                  textColor:
+                    swatch.value === "#F6F2EA" ? "#092A1D" : current.textColor,
                 }))
               }
+              style={{ backgroundColor: swatch.value }}
+              type="button"
             >
               <span>{swatch.label}</span>
             </button>
@@ -874,12 +989,11 @@ export const AdDashboardPage = () => {
         <div className="ad-dashboard-color-grid">
           <AdColorPickerField
             label="Bg"
-            value={creative.backgroundColor}
             onValueChange={(value) => updateCreative("backgroundColor", value)}
+            value={creative.backgroundColor}
           />
           <AdColorPickerField
             label="Accent"
-            value={creative.headlineAccentColor}
             onValueChange={(value) =>
               setCreative((current) => ({
                 ...current,
@@ -887,32 +1001,36 @@ export const AdDashboardPage = () => {
                 accentColor: value,
               }))
             }
+            value={creative.headlineAccentColor}
           />
         </div>
       </ToolbarMenu>
 
-      <ToolbarMenu icon={<FloppyDisk width={16} height={16} />} label="Versions">
+      <ToolbarMenu
+        icon={<FloppyDisk height={16} width={16} />}
+        label="Versions"
+      >
         <WaButton
           appearance="filled"
-          variant="brand"
-          size="small"
           loading={versionBusy}
           onClick={() => {
-            void handleSaveVersion();
+            handleSaveVersion();
           }}
+          size="small"
+          variant="brand"
         >
-          <FloppyDisk slot="start" width={15} height={15} />
+          <FloppyDisk height={15} slot="start" width={15} />
           Save version
         </WaButton>
 
         <WaSelect
-          name="adVersion"
-          label="Saved versions"
-          placeholder={versions.loading ? "Loading…" : "Choose a version"}
-          value={selectedVersionId}
           appearance="outlined"
-          size="xs"
+          label="Saved versions"
+          name="adVersion"
           onChange={(event) => handleSelectVersion(getSelectValue(event))}
+          placeholder={versions.loading ? "Loading…" : "Choose a version"}
+          size="xs"
+          value={selectedVersionId}
         >
           {versions.versions.map((version) => (
             <WaOption key={version.id} value={version.id}>
@@ -923,43 +1041,51 @@ export const AdDashboardPage = () => {
 
         <WaButton
           appearance="outlined"
-          variant="danger"
-          size="small"
           disabled={!selectedVersionId || versionBusy}
           onClick={() => {
-            void handleDeleteVersion();
+            handleDeleteVersion();
           }}
+          size="small"
+          variant="danger"
         >
-          <Trash slot="start" width={15} height={15} />
+          <Trash height={15} slot="start" width={15} />
           Delete version
         </WaButton>
 
-        {versions.error ? <p className="ad-dashboard-error">{versions.error}</p> : null}
-        {versionStatus ? <p className="ad-toolbar-popover-label">{versionStatus}</p> : null}
+        {versions.error ? (
+          <p className="ad-dashboard-error">{versions.error}</p>
+        ) : null}
+        {versionStatus ? (
+          <p className="ad-toolbar-popover-label">{versionStatus}</p>
+        ) : null}
       </ToolbarMenu>
     </div>
   );
 
   const accountMenu = (
     <ToolbarMenu
+      hideLabel
       icon={
         auth.user?.picture ? (
-          <img className="ad-toolbar-avatar" src={auth.user.picture} alt="" />
+          // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+          <img alt="" className="ad-toolbar-avatar" src={auth.user.picture} />
         ) : (
-          <User width={16} height={16} />
+          <User height={16} width={16} />
         )
       }
       label="Account"
-      hideLabel
     >
       <div className="ad-dashboard-user">
-        {auth.user?.picture ? <img src={auth.user.picture} alt="" /> : null}
+        {auth.user?.picture ? (
+          // biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS
+          <img alt="" src={auth.user.picture} />
+        ) : null}
         <div>
           <strong>{auth.user?.name ?? auth.user?.email}</strong>
           <span>{auth.user?.email}</span>
         </div>
-        <button type="button" onClick={() => auth.signOut()}>
-          <LogOut width={15} height={15} />
+        <button onClick={() => auth.signOut()} type="button">
+          <LogOut height={15} width={15} />
           Sign out
         </button>
       </div>
@@ -971,15 +1097,15 @@ export const AdDashboardPage = () => {
   return (
     <SitePageChrome>
       <div className="ad-dashboard-shell wa-dark">
-        {!auth.token ? <AuthPanel auth={auth} /> : null}
+        {auth.token ? null : <AuthPanel auth={auth} />}
 
         {auth.token ? (
           <AdCanvasEditor
             creative={creative}
             selectedPlatform={selectedPlatform}
             selectedPlatformShape={selectedPlatformShape}
-            toolbarStart={toolbarMenus}
             toolbarEnd={accountMenu}
+            toolbarStart={toolbarMenus}
           />
         ) : null}
       </div>

@@ -6,34 +6,34 @@ import { AddressAutofill } from "@mapbox/search-js-react";
 import { usePostHog } from "@posthog/react";
 import { stegaClean } from "@sanity/client/stega";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
-import { motion } from "motion/react";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 
 import { CONTACT_SERVICE_OPTIONS } from "../../contactServiceOptions";
 import { layoutClass } from "../styles/layoutClasses";
 import { mix, theme } from "../theme";
-import { ContactProps } from "../types";
+import type { ContactProps } from "../types";
 import { TransitionLink } from "./TransitionLink";
 
 /** Relative path so production stays same-origin; Vite can proxy `/api` in dev (see vite.config). */
 export const CONTACT_API_PATH = "/api/contact";
 
 const isInvisibleTextCodePoint = (codePoint: number): boolean =>
-  codePoint === 0x034f ||
-  codePoint === 0x061c ||
-  codePoint === 0x115f ||
-  codePoint === 0x1160 ||
-  codePoint === 0x17b4 ||
-  codePoint === 0x17b5 ||
-  codePoint === 0x180e ||
-  (codePoint >= 0x200b && codePoint <= 0x200f) ||
-  (codePoint >= 0x202a && codePoint <= 0x202e) ||
-  (codePoint >= 0x2060 && codePoint <= 0x206f) ||
-  codePoint === 0x3164 ||
-  codePoint === 0xfeff ||
-  codePoint === 0xffa0;
+  codePoint === 0x03_4f ||
+  codePoint === 0x06_1c ||
+  codePoint === 0x11_5f ||
+  codePoint === 0x11_60 ||
+  codePoint === 0x17_b4 ||
+  codePoint === 0x17_b5 ||
+  codePoint === 0x18_0e ||
+  (codePoint >= 0x20_0b && codePoint <= 0x20_0f) ||
+  (codePoint >= 0x20_2a && codePoint <= 0x20_2e) ||
+  (codePoint >= 0x20_60 && codePoint <= 0x20_6f) ||
+  codePoint === 0x31_64 ||
+  codePoint === 0xfe_ff ||
+  codePoint === 0xff_a0;
 
 const stripInvisibleText = (value: string): string =>
   Array.from(value)
@@ -71,7 +71,8 @@ const trackGaContactForm = (payload: Record<string, unknown>) => {
     return;
   }
 
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
+    .gtag;
   if (typeof gtag !== "function") {
     return;
   }
@@ -96,9 +97,9 @@ export const Contact = ({
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [consentToContact, setConsentToContact] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "sending" | "success" | "error">(
-    "idle",
-  );
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const posthog = usePostHog();
   const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
@@ -108,6 +109,7 @@ export const Contact = ({
   const cleanedPhone = cleanPlainText(phone);
   const cleanedLocation = cleanPlainText(location);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (submitStatus === "sending") {
@@ -117,7 +119,9 @@ export const Contact = ({
 
     if (!consentToContact) {
       setSubmitStatus("error");
-      setErrorMessage("Please confirm you agree to be contacted before sending your message.");
+      setErrorMessage(
+        "Please confirm you agree to be contacted before sending your message."
+      );
       return;
     }
 
@@ -147,12 +151,17 @@ export const Contact = ({
       }
       const vercelFnError = res.headers.get("x-vercel-error");
       const contentType = res.headers.get("content-type") ?? "";
-      if (!res.ok || !data.ok) {
+      if (!(res.ok && data.ok)) {
         setSubmitStatus("error");
         const fromApi =
-          typeof data.error === "string" && data.error.trim() ? data.error.trim() : "";
+          typeof data.error === "string" && data.error.trim()
+            ? data.error.trim()
+            : "";
+        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
         const byStatus = (() => {
-          if (fromApi) return "";
+          if (fromApi) {
+            return "";
+          }
           if (res.status === 404) {
             return "Contact form endpoint was not found. On local dev, set VITE_CONTACT_API_URL in .env.local to your live site (Vite will proxy /api) or run `vercel dev`.";
           }
@@ -172,7 +181,9 @@ export const Contact = ({
             !fromApi &&
             rawText &&
             !rawText.trim().startsWith("{") &&
-            (res.status >= 500 || vercelFnError || contentType.includes("text/html"))
+            (res.status >= 500 ||
+              vercelFnError ||
+              contentType.includes("text/html"))
           ) {
             return vercelFnError === "FUNCTION_INVOCATION_FAILED"
               ? "Contact form server failed to run on Vercel (check Functions logs after deploy). If this persists, confirm api/contact.ts builds and redeploy."
@@ -215,7 +226,7 @@ export const Contact = ({
       posthog?.captureException(err);
       setSubmitStatus("error");
       setErrorMessage(
-        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api/contact to production.",
+        "Network or CORS error. Use the same URL as your deployed site, or run `vercel dev`. For `pnpm dev`, set VITE_CONTACT_API_URL in .env.local so Vite can proxy /api/contact to production."
       );
     }
   };
@@ -324,10 +335,10 @@ export const Contact = ({
 
   return (
     <section
-      id="contact"
-      className={`${layoutClass.sectionPadded} contact-section`}
-      style={sectionStyle}
       aria-labelledby="contact-heading"
+      className={`${layoutClass.sectionPadded} contact-section`}
+      id="contact"
+      style={sectionStyle}
     >
       <div className={`${layoutClass.containerWideContact} lg-grid-12`}>
         <style>{`
@@ -377,11 +388,11 @@ export const Contact = ({
           }
         `}</style>
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
           className="lg-col-6"
+          initial={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1 }}
         >
           <span
             style={{
@@ -397,8 +408,8 @@ export const Contact = ({
             {cleanedTagline}
           </span>
           <h2
-            id="contact-heading"
             className="contact-heading"
+            id="contact-heading"
             style={{
               lineHeight: 1,
               marginBottom: theme.spacing.xxxxxxxxl,
@@ -415,8 +426,8 @@ export const Contact = ({
               gap: theme.spacing.lg,
             }}
           >
-            <div style={infoItemStyle} className="contact-group">
-              <div style={iconWrapperStyle} className="icon-wrapper">
+            <div className="contact-group" style={infoItemStyle}>
+              <div className="icon-wrapper" style={iconWrapperStyle}>
                 <Mail style={{ color: "inherit" }} />
               </div>
               <div>
@@ -426,8 +437,8 @@ export const Contact = ({
                 </a>
               </div>
             </div>
-            <div style={infoItemStyle} className="contact-group">
-              <div style={iconWrapperStyle} className="icon-wrapper">
+            <div className="contact-group" style={infoItemStyle}>
+              <div className="icon-wrapper" style={iconWrapperStyle}>
                 <Phone style={{ color: "inherit" }} />
               </div>
               <div>
@@ -437,8 +448,8 @@ export const Contact = ({
                 </a>
               </div>
             </div>
-            <div style={infoItemStyle} className="contact-group">
-              <div style={iconWrapperStyle} className="icon-wrapper">
+            <div className="contact-group" style={infoItemStyle}>
+              <div className="icon-wrapper" style={iconWrapperStyle}>
                 <MapPin style={{ color: "inherit" }} />
               </div>
               <div>
@@ -450,17 +461,17 @@ export const Contact = ({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          style={formCardStyle}
           className="lg-col-6"
+          initial={{ opacity: 0 }}
+          style={formCardStyle}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          whileInView={{ opacity: 1 }}
         >
           {submitStatus === "success" ? (
             <div
-              role="status"
               aria-live="polite"
+              role="status"
               style={{
                 fontSize: "0.875rem",
                 lineHeight: 1.5,
@@ -470,24 +481,22 @@ export const Contact = ({
               Thanks — your message was sent. We’ll be in touch soon.
             </div>
           ) : (
+            // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onKeyDown stops propagation on a native form element
             <form
+              noValidate
+              onKeyDown={(e) => e.stopPropagation()}
+              onSubmit={handleSubmit}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: theme.spacing.xxxxl,
               }}
-              onSubmit={handleSubmit}
-              onKeyDown={(e) => e.stopPropagation()}
-              noValidate
             >
               <input
-                type="text"
-                name="_hp"
-                value={honeypot}
-                onChange={(ev) => setHoneypot(ev.target.value)}
-                tabIndex={-1}
-                autoComplete="off"
                 aria-hidden
+                autoComplete="off"
+                name="_hp"
+                onChange={(ev) => setHoneypot(ev.target.value)}
                 style={{
                   position: "absolute",
                   width: 1,
@@ -499,73 +508,79 @@ export const Contact = ({
                   whiteSpace: "nowrap",
                   border: 0,
                 }}
+                tabIndex={-1}
+                type="text"
+                value={honeypot}
               />
               <div
+                className="md-grid-2"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr",
                   gap: theme.spacing.xxxxl,
                 }}
-                className="md-grid-2"
               >
                 <WaInput
-                  label={nameLabel}
-                  id="contact-full-name"
-                  name="full-name"
-                  type="text"
-                  className="contact-form-field"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(ev) => setFullName(eventStringValue(ev))}
-                  required
                   autocomplete="name"
+                  className="contact-form-field"
+                  id="contact-full-name"
+                  label={nameLabel}
+                  name="full-name"
+                  onChange={(ev) => setFullName(eventStringValue(ev))}
+                  placeholder="John Doe"
+                  required
+                  type="text"
+                  value={fullName}
                 />
 
                 <WaInput
-                  label={emailLabel}
-                  id="contact-email"
-                  name="email"
-                  type="email"
-                  className="contact-form-field"
-                  placeholder="john@example.com"
-                  value={visitorEmail}
-                  onChange={(ev) => setVisitorEmail(eventStringValue(ev))}
-                  required
                   autocomplete="email"
+                  className="contact-form-field"
+                  id="contact-email"
+                  label={emailLabel}
+                  name="email"
+                  onChange={(ev) => setVisitorEmail(eventStringValue(ev))}
+                  placeholder="john@example.com"
+                  required
+                  type="email"
+                  value={visitorEmail}
                 >
                   <Mail
-                    slot="start"
-                    style={{ marginInlineEnd: theme.spacing.sm }}
                     color="var(--wa-color-brand)"
                     height={16}
-                    width={16}
                     name="email"
+                    slot="start"
+                    style={{ marginInlineEnd: theme.spacing.sm }}
+                    width={16}
                   />
                 </WaInput>
               </div>
               <WaInput
-                id="contact-phone"
-                name="phone"
-                label="Phone Number"
-                type="tel"
-                className="contact-form-field"
-                placeholder="(512) 555-0100"
-                value={phoneNumber}
-                onChange={(ev) => setPhoneNumber(eventStringValue(ev))}
                 autocomplete="tel"
+                className="contact-form-field"
+                id="contact-phone"
+                label="Phone Number"
+                name="phone"
+                onChange={(ev) => setPhoneNumber(eventStringValue(ev))}
+                placeholder="(512) 555-0100"
+                type="tel"
+                value={phoneNumber}
                 withLabel={true}
               >
                 <Phone
-                  slot="start"
-                  style={{ marginInlineEnd: theme.spacing.sm }}
                   color="var(--wa-color-brand)"
                   height={16}
-                  width={16}
                   name="phone"
-                ></Phone>
+                  slot="start"
+                  style={{ marginInlineEnd: theme.spacing.sm }}
+                  width={16}
+                />
               </WaInput>
               <div>
-                <label htmlFor="contact-property-address" style={addressLabelStyle}>
+                <label
+                  htmlFor="contact-property-address"
+                  style={addressLabelStyle}
+                >
                   {propertyLabel}{" "}
                   <span
                     style={{
@@ -579,55 +594,57 @@ export const Contact = ({
                 {mapboxToken ? (
                   <AddressAutofill
                     accessToken={mapboxToken}
-                    options={{ country: "US", language: "en" }}
                     onRetrieve={(res) => {
                       const props = res?.features?.[0]?.properties as
                         | { full_address?: string; place_name?: string }
                         | undefined;
                       const full = props?.full_address || props?.place_name;
-                      if (full) setPropertyAddress(full);
+                      if (full) {
+                        setPropertyAddress(full);
+                      }
                     }}
+                    options={{ country: "US", language: "en" }}
                   >
                     <input
-                      id="contact-property-address"
-                      name="property-address"
-                      type="text"
-                      className="contact-address-input"
-                      placeholder="123 Main St, Austin, TX"
-                      value={propertyAddress}
-                      onChange={(ev) => setPropertyAddress(ev.target.value)}
                       autoComplete="address-line1"
+                      className="contact-address-input"
+                      id="contact-property-address"
                       maxLength={500}
+                      name="property-address"
+                      onChange={(ev) => setPropertyAddress(ev.target.value)}
+                      placeholder="123 Main St, Austin, TX"
                       style={addressInputStyle}
+                      type="text"
+                      value={propertyAddress}
                     />
                   </AddressAutofill>
                 ) : (
                   <input
-                    id="contact-property-address"
-                    name="property-address"
-                    type="text"
-                    className="contact-address-input"
-                    placeholder="123 Main St, Austin, TX"
-                    value={propertyAddress}
-                    onChange={(ev) => setPropertyAddress(ev.target.value)}
                     autoComplete="street-address"
+                    className="contact-address-input"
+                    id="contact-property-address"
                     maxLength={500}
+                    name="property-address"
+                    onChange={(ev) => setPropertyAddress(ev.target.value)}
+                    placeholder="123 Main St, Austin, TX"
                     style={addressInputStyle}
+                    type="text"
+                    value={propertyAddress}
                   />
                 )}
               </div>
               <WaSelect
-                name="service-interest"
-                label={serviceLabel}
-                value={serviceInterest}
                 appearance="outlined"
+                label={serviceLabel}
+                name="service-interest"
+                onChange={(e) => setServiceInterest(eventStringValue(e))}
                 placeholder="Select a service..."
                 size="m"
+                value={serviceInterest}
                 withClear
-                onChange={(e) => setServiceInterest(eventStringValue(e))}
               >
                 {serviceOptions.map((opt) => (
-                  <WaOption key={opt.value} value={opt.value} id={opt.value}>
+                  <WaOption id={opt.value} key={opt.value} value={opt.value}>
                     {opt.label}
                   </WaOption>
                 ))}
@@ -635,35 +652,36 @@ export const Contact = ({
 
               <WaTextarea
                 aria-label={messageLabel}
-                label={messageLabel}
-                id="contact-message"
-                name="message"
-                rows={4}
                 className="contact-form-field"
-                style={{ resize: "none", minHeight: "6rem" }}
-                placeholder="Tell us about your roofing needs..."
-                value={message}
-                onChange={(ev) => setMessage(eventStringValue(ev))}
-                required
+                id="contact-message"
+                label={messageLabel}
                 maxlength={8000}
+                name="message"
+                onChange={(ev) => setMessage(eventStringValue(ev))}
+                placeholder="Tell us about your roofing needs..."
+                required
+                rows={4}
+                style={{ resize: "none", minHeight: "6rem" }}
+                value={message}
               />
               <div style={consentRowStyle}>
                 <input
-                  type="checkbox"
-                  id="contact-consent"
-                  checked={consentToContact}
-                  onChange={(ev) => setConsentToContact(ev.target.checked)}
-                  style={checkboxStyle}
-                  required
                   aria-labelledby="contact-consent-desc"
+                  checked={consentToContact}
+                  id="contact-consent"
+                  onChange={(ev) => setConsentToContact(ev.target.checked)}
+                  required
+                  style={checkboxStyle}
+                  type="checkbox"
                 />
                 <p id="contact-consent-desc">
-                  I agree to be contacted about my inquiry by email, phone, or SMS. I have read the{" "}
-                  <TransitionLink to="/privacy" style={consentLinkStyle}>
+                  I agree to be contacted about my inquiry by email, phone, or
+                  SMS. I have read the{" "}
+                  <TransitionLink style={consentLinkStyle} to="/privacy">
                     Privacy Policy
                   </TransitionLink>{" "}
                   and{" "}
-                  <TransitionLink to="/terms" style={consentLinkStyle}>
+                  <TransitionLink style={consentLinkStyle} to="/terms">
                     Terms of Service
                   </TransitionLink>
                   .
@@ -672,10 +690,9 @@ export const Contact = ({
               <AnimatePresence>
                 {errorMessage ? (
                   <motion.div
-                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, x: -10 }}
                     style={{
                       fontSize: "0.875rem",
                       lineHeight: 1.5,
@@ -684,13 +701,14 @@ export const Contact = ({
                       backgroundColor: `color-mix(in srgb, ${theme.colors.danger} 10%, transparent)`,
                       color: theme.colors.danger,
                     }}
+                    transition={{ duration: 0.3 }}
                   >
                     {errorMessage}
                   </motion.div>
                 ) : null}
               </AnimatePresence>
               <button
-                type="submit"
+                className="send-btn"
                 disabled={submitStatus === "sending"}
                 style={{
                   backgroundColor: theme.colors.everglade,
@@ -712,14 +730,16 @@ export const Contact = ({
                   transition: "all 0.3s",
                   opacity: submitStatus === "sending" ? 0.75 : 1,
                 }}
-                className="send-btn"
+                type="submit"
               >
-                <span>{submitStatus === "sending" ? "Sending…" : submitLabel}</span>
+                <span>
+                  {submitStatus === "sending" ? "Sending…" : submitLabel}
+                </span>
                 <Send
-                  width={18}
-                  height={18}
                   className="send-icon"
+                  height={18}
                   style={{ transition: "transform 0.3s" }}
+                  width={18}
                 />
               </button>
             </form>

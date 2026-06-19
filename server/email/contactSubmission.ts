@@ -8,11 +8,9 @@
  * entry points; this module is request-agnostic.
  */
 import { Resend } from "resend";
-
-import type { ContactLeadSubmission, EmailAssets } from "./types.js";
-
 import { renderContactLeadEmail } from "./contactLead.js";
 import { upsertContactLead } from "./contactsStore.js";
+import type { ContactLeadSubmission, EmailAssets } from "./types.js";
 
 const CONTACT_SERVICE_ROWS = [
   { value: "shingle-roofing", label: "Shingle Roofing" },
@@ -25,34 +23,40 @@ const CONTACT_SERVICE_ROWS = [
   },
 ] as const;
 
-const SERVICE_VALUE_SET = new Set<string>(CONTACT_SERVICE_ROWS.map((o) => o.value));
-const isValidContactServiceValue = (v: string): boolean => SERVICE_VALUE_SET.has(v);
+const SERVICE_VALUE_SET = new Set<string>(
+  CONTACT_SERVICE_ROWS.map((o) => o.value)
+);
+const isValidContactServiceValue = (v: string): boolean =>
+  SERVICE_VALUE_SET.has(v);
 const contactServiceLabel = (value: string): string | null =>
   CONTACT_SERVICE_ROWS.find((o) => o.value === value)?.label ?? null;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TRAILING_SLASH_RE = /\/$/;
 const DEFAULT_NOTIFICATION_TO = "tandra@birdcreekroofing.com";
 
 /** Runtime configuration sourced from env by each entry point. */
-export type ContactEnv = {
-  resendApiKey?: string;
+export interface ContactEnv {
+  /** Base URL for the email logo (defaults to https://www.tandra.me). */
+  assetBaseUrl?: string;
   emailFrom?: string;
   /** Raw comma-separated CONTACT_NOTIFICATION_TO value. */
   notificationTo?: string;
-  /** Base URL for the email logo (defaults to https://www.tandra.me). */
-  assetBaseUrl?: string;
+  resendApiKey?: string;
   /** Sanity write token; when set, the submitter is saved to the contact list. */
   sanityWriteToken?: string;
-};
+}
 
-export type ContactResult = {
-  status: number;
+export interface ContactResult {
   body: { ok: boolean; error?: string };
-};
+  status: number;
+}
 
 const parseNotificationRecipients = (raw?: string): string[] => {
   const trimmed = raw?.trim();
-  if (!trimmed) return [DEFAULT_NOTIFICATION_TO];
+  if (!trimmed) {
+    return [DEFAULT_NOTIFICATION_TO];
+  }
   const list = trimmed
     .split(",")
     .map((s) => s.trim().toLowerCase())
@@ -60,7 +64,8 @@ const parseNotificationRecipients = (raw?: string): string[] => {
   return list.length > 0 ? list : [DEFAULT_NOTIFICATION_TO];
 };
 
-const str = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const str = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 /**
  * Validate, email, and persist a contact-form submission. Returns the HTTP
@@ -68,15 +73,18 @@ const str = (value: unknown): string => (typeof value === "string" ? value.trim(
  */
 export const processContactSubmission = async (
   body: Record<string, unknown>,
-  env: ContactEnv,
+  env: ContactEnv
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 ): Promise<ContactResult> => {
   // Honeypot: silently accept bot submissions.
   const honeypot = str(body._hp) || str(body.company);
-  if (honeypot) return { status: 200, body: { ok: true } };
+  if (honeypot) {
+    return { status: 200, body: { ok: true } };
+  }
 
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
-  if (!apiKey || !from) {
+  if (!(apiKey && from)) {
     return {
       status: 503,
       body: { ok: false, error: "Service not configured" },
@@ -106,7 +114,7 @@ export const processContactSubmission = async (
       body: { ok: false, error: "Please enter your name." },
     };
   }
-  if (!email || !EMAIL_RE.test(email) || email.length > 320) {
+  if (!(email && EMAIL_RE.test(email)) || email.length > 320) {
     return {
       status: 400,
       body: { ok: false, error: "Please enter a valid email." },
@@ -148,7 +156,10 @@ export const processContactSubmission = async (
     submittedAt: new Date().toISOString(),
   };
 
-  const base = (env.assetBaseUrl?.trim() || "https://www.tandra.me").replace(/\/$/, "");
+  const base = (env.assetBaseUrl?.trim() || "https://www.tandra.me").replace(
+    TRAILING_SLASH_RE,
+    ""
+  );
   const assets: EmailAssets = {
     headerLogoUrl: `${base}/BC_Horizontal_Color.png`,
     signatureLogoFallback: `${base}/BC_Horizontal_Color.png`,
@@ -172,7 +183,8 @@ export const processContactSubmission = async (
       status: 502,
       body: {
         ok: false,
-        error: "Could not send your message. Try again later or contact us by phone or email.",
+        error:
+          "Could not send your message. Try again later or contact us by phone or email.",
       },
     };
   }
@@ -192,7 +204,9 @@ export const processContactSubmission = async (
       console.error("[contact] contact upsert failed", err);
     }
   } else {
-    console.warn("[contact] SANITY_WRITE_TOKEN not set — contact not saved to Sanity");
+    console.warn(
+      "[contact] SANITY_WRITE_TOKEN not set — contact not saved to Sanity"
+    );
   }
 
   return { status: 200, body: { ok: true } };

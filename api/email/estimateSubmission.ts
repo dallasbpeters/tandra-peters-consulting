@@ -8,34 +8,39 @@
  * points; this module is request-agnostic.
  */
 import { Resend } from "resend";
-
-import type { ContactLeadSubmission, EmailAssets, EstimateSubmission } from "./types.js";
-
 import { upsertContactLead } from "./contactsStore.js";
 import { renderEstimateEmail } from "./estimateEmail.js";
+import type {
+  ContactLeadSubmission,
+  EmailAssets,
+  EstimateSubmission,
+} from "./types.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TRAILING_SLASH_RE = /\/$/;
 const DEFAULT_NOTIFICATION_TO = "tandra@birdcreekroofing.com";
 
-export type EstimateEnv = {
-  resendApiKey?: string;
+export interface EstimateEnv {
+  /** Base URL for the email logo (defaults to https://www.tandra.me). */
+  assetBaseUrl?: string;
   emailFrom?: string;
   /** Raw comma-separated CONTACT_NOTIFICATION_TO value. */
   notificationTo?: string;
-  /** Base URL for the email logo (defaults to https://www.tandra.me). */
-  assetBaseUrl?: string;
+  resendApiKey?: string;
   /** Sanity write token; when set, the visitor is saved to the contact list. */
   sanityWriteToken?: string;
-};
+}
 
-export type EstimateResult = {
-  status: number;
+export interface EstimateResult {
   body: { ok: boolean; error?: string };
-};
+  status: number;
+}
 
 const parseNotificationRecipients = (raw?: string): string[] => {
   const trimmed = raw?.trim();
-  if (!trimmed) return [DEFAULT_NOTIFICATION_TO];
+  if (!trimmed) {
+    return [DEFAULT_NOTIFICATION_TO];
+  }
   const list = trimmed
     .split(",")
     .map((s) => s.trim().toLowerCase())
@@ -43,12 +48,15 @@ const parseNotificationRecipients = (raw?: string): string[] => {
   return list.length > 0 ? list : [DEFAULT_NOTIFICATION_TO];
 };
 
-const str = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const str = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 const num = (value: unknown): number =>
   typeof value === "number" && Number.isFinite(value) ? value : 0;
 
 const parseAnswers = (value: unknown): { prompt: string; answer: string }[] => {
-  if (!Array.isArray(value)) return [];
+  if (!Array.isArray(value)) {
+    return [];
+  }
   return value
     .map((row) => {
       const r = row as Record<string, unknown>;
@@ -64,15 +72,17 @@ const parseAnswers = (value: unknown): { prompt: string; answer: string }[] => {
  */
 export const processEstimateSubmission = async (
   body: Record<string, unknown>,
-  env: EstimateEnv,
+  env: EstimateEnv
 ): Promise<EstimateResult> => {
   // Honeypot: silently accept bot submissions.
   const honeypot = str(body._hp) || str(body.company);
-  if (honeypot) return { status: 200, body: { ok: true } };
+  if (honeypot) {
+    return { status: 200, body: { ok: true } };
+  }
 
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
-  if (!apiKey || !from) {
+  if (!(apiKey && from)) {
     return {
       status: 503,
       body: { ok: false, error: "Service not configured" },
@@ -90,7 +100,7 @@ export const processEstimateSubmission = async (
       body: { ok: false, error: "Please enter your name." },
     };
   }
-  if (!email || !EMAIL_RE.test(email) || email.length > 320) {
+  if (!(email && EMAIL_RE.test(email)) || email.length > 320) {
     return {
       status: 400,
       body: { ok: false, error: "Please enter a valid email." },
@@ -112,12 +122,17 @@ export const processEstimateSubmission = async (
     rangeDisplay,
     lowEstimate: num(body.lowEstimate),
     highEstimate: num(body.highEstimate),
-    ...(num(body.squareFootage) ? { squareFootage: num(body.squareFootage) } : {}),
+    ...(num(body.squareFootage)
+      ? { squareFootage: num(body.squareFootage) }
+      : {}),
     answers,
     submittedAt: new Date().toISOString(),
   };
 
-  const base = (env.assetBaseUrl?.trim() || "https://www.tandra.me").replace(/\/$/, "");
+  const base = (env.assetBaseUrl?.trim() || "https://www.tandra.me").replace(
+    TRAILING_SLASH_RE,
+    ""
+  );
   const assets: EmailAssets = {
     headerLogoUrl: `${base}/BC_Horizontal_Color.png`,
     signatureLogoFallback: `${base}/BC_Horizontal_Color.png`,
@@ -158,7 +173,9 @@ export const processEstimateSubmission = async (
       subject: `New estimate lead · ${fullName} · ${rangeDisplay}`,
       html: leadHtml,
     });
-    if (leadResult.error) console.error("[estimate] Resend lead error", leadResult.error);
+    if (leadResult.error) {
+      console.error("[estimate] Resend lead error", leadResult.error);
+    }
   } catch (err) {
     console.error("[estimate] lead notification failed", err);
   }
@@ -184,7 +201,9 @@ export const processEstimateSubmission = async (
       console.error("[estimate] contact upsert failed", err);
     }
   } else {
-    console.warn("[estimate] SANITY_WRITE_TOKEN not set — lead not saved to Sanity");
+    console.warn(
+      "[estimate] SANITY_WRITE_TOKEN not set — lead not saved to Sanity"
+    );
   }
 
   return { status: 200, body: { ok: true } };

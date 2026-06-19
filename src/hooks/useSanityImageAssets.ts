@@ -3,23 +3,20 @@ import { useEffect, useState } from "react";
 import { getSanityClient } from "../sanity/client";
 import { SANITY_IMAGE_LIBRARY_QUERY } from "../sanity/queries";
 
-export type SanityImageAsset = {
-  id: string;
-  url: string;
-  label: string;
-  width?: number;
-  height?: number;
-  lqip?: string;
+export interface SanityImageAsset {
   createdAt?: string;
-};
+  height?: number;
+  id: string;
+  label: string;
+  lqip?: string;
+  url: string;
+  width?: number;
+}
 
-type SanityImageAssetResult = {
-  _id?: string;
+interface SanityImageAssetResult {
   _createdAt?: string;
-  originalFilename?: string;
-  title?: string;
+  _id?: string;
   altText?: string;
-  url?: string;
   metadata?: {
     lqip?: string;
     dimensions?: {
@@ -27,10 +24,15 @@ type SanityImageAssetResult = {
       height?: number;
     };
   };
-};
+  originalFilename?: string;
+  title?: string;
+  url?: string;
+}
 
-const toImageAsset = (asset: SanityImageAssetResult): SanityImageAsset | null => {
-  if (!asset._id || !asset.url) {
+const toImageAsset = (
+  asset: SanityImageAssetResult
+): SanityImageAsset | null => {
+  if (!(asset._id && asset.url)) {
     return null;
   }
 
@@ -53,7 +55,7 @@ export const useSanityImageAssets = () => {
   const [images, setImages] = useState<SanityImageAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
+  const [_reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +66,9 @@ export const useSanityImageAssets = () => {
 
       try {
         const client = getSanityClient();
-        const result = await client.fetch<SanityImageAssetResult[]>(SANITY_IMAGE_LIBRARY_QUERY);
+        const result = await client.fetch<SanityImageAssetResult[]>(
+          SANITY_IMAGE_LIBRARY_QUERY
+        );
         if (cancelled) {
           return;
         }
@@ -73,7 +77,9 @@ export const useSanityImageAssets = () => {
       } catch (loadError) {
         if (!cancelled) {
           setError(
-            loadError instanceof Error ? loadError.message : "Could not load Sanity images.",
+            loadError instanceof Error
+              ? loadError.message
+              : "Could not load Sanity images."
           );
         }
       } finally {
@@ -83,12 +89,12 @@ export const useSanityImageAssets = () => {
       }
     };
 
-    void loadImages();
+    loadImages();
 
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, []);
 
   return {
     error,

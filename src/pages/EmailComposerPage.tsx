@@ -2,14 +2,21 @@ import type { PortableTextBlock } from "@portabletext/editor";
 
 import { usePostHog } from "@posthog/react";
 import {
-  Mail,
-  SendDiagonal,
-  Search,
-  WarningTriangle,
   CheckCircle,
   FloppyDisk,
+  Mail,
+  Search,
+  SendDiagonal,
+  WarningTriangle,
 } from "iconoir-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { RichTextEditor } from "../components/RichTextEditor";
 import { SitePageChrome } from "../components/SitePageChrome";
@@ -23,40 +30,44 @@ const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2026-05-29";
 
-type Recipient = { id: string; name: string; email: string };
+interface Recipient {
+  email: string;
+  id: string;
+  name: string;
+}
 
-type EmailSignature = {
-  name?: string;
-  jobTitle?: string;
+interface EmailSignature {
   company?: string;
-  tagline?: string;
-  phone?: string;
   email?: string;
-  website?: string;
   headshotUrl?: string;
+  jobTitle?: string;
   logoUrl?: string;
-};
+  name?: string;
+  phone?: string;
+  tagline?: string;
+  website?: string;
+}
 
-type EmailContent = {
-  subject?: string;
-  previewText?: string;
-  greeting?: string;
+interface EmailContent {
   body?: PortableTextBlock[];
+  closing?: string;
   ctaLabel?: string;
   ctaUrl?: string;
-  closing?: string;
+  greeting?: string;
+  previewText?: string;
   signature?: EmailSignature | null;
-};
+  subject?: string;
+}
 
-type FormState = {
-  subject: string;
-  previewText: string;
-  greeting: string;
+interface FormState {
   body: PortableTextBlock[];
+  closing: string;
   ctaLabel: string;
   ctaUrl: string;
-  closing: string;
-};
+  greeting: string;
+  previewText: string;
+  subject: string;
+}
 
 const EMPTY_FORM: FormState = {
   subject: "",
@@ -82,7 +93,9 @@ const fetchPublishedEmail = async (): Promise<EmailContent | null> => {
     `?query=${encodeURIComponent(PUBLISHED_QUERY)}`;
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return null;
+    }
     const json = (await res.json()) as { result?: EmailContent | null };
     return json.result ?? null;
   } catch {
@@ -129,20 +142,32 @@ const primaryButton = (disabled: boolean): CSSProperties => ({
   border: "none",
   borderRadius: theme.radius.pill,
   padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-  backgroundColor: disabled ? mix(theme.colors.everglade, 30) : theme.palette.accent["600"],
+  backgroundColor: disabled
+    ? mix(theme.colors.everglade, 30)
+    : theme.palette.accent["600"],
   color: theme.colors.white,
   fontWeight: 700,
   fontSize: "0.95rem",
   cursor: disabled ? "not-allowed" : "pointer",
 });
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
   <div style={fieldStyle}>
-    <label style={labelStyle}>{label}</label>
-    {children}
+    {/* biome-ignore lint/a11y/noLabelWithoutControl: children contains the associated control; biome can't see through the ReactNode prop */}
+    <label style={labelStyle}>
+      {label}
+      {children}
+    </label>
   </div>
 );
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 export const EmailComposerPage = () => {
   const posthog = usePostHog();
   const auth = useGoogleDashboardAuth();
@@ -186,11 +211,15 @@ export const EmailComposerPage = () => {
 
   // Prefill the form from the published Sanity email once signed in.
   useEffect(() => {
-    if (!auth.token || defaultsLoaded) return;
+    if (!auth.token || defaultsLoaded) {
+      return;
+    }
     let cancelled = false;
-    void (async () => {
+    (async () => {
       const content = await fetchPublishedEmail();
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       if (content) {
         setForm({
           subject: content.subject ?? "",
@@ -221,19 +250,22 @@ export const EmailComposerPage = () => {
       closing: form.closing,
       signature,
     }),
-    [form, signature],
+    [form, signature]
   );
 
   const handleField = useCallback(
-    (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev) => ({ ...prev, [key]: e.target.value }));
-    },
-    [],
+    (key: keyof FormState) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setForm((prev) => ({ ...prev, [key]: e.target.value }));
+      },
+    []
   );
 
   // Load contacts from the CRM when signed in.
   const loadRecipients = useCallback(async () => {
-    if (!auth.token) return;
+    if (!auth.token) {
+      return;
+    }
     setRecipientsLoading(true);
     setRecipientsError(null);
     try {
@@ -252,21 +284,29 @@ export const EmailComposerPage = () => {
       }
       setRecipients(json.recipients ?? []);
     } catch (err) {
-      setRecipientsError(err instanceof Error ? err.message : "Could not load contacts.");
+      setRecipientsError(
+        err instanceof Error ? err.message : "Could not load contacts."
+      );
     } finally {
       setRecipientsLoading(false);
     }
   }, [auth.token, auth.signOut]);
 
   useEffect(() => {
-    if (auth.token) void loadRecipients();
+    if (auth.token) {
+      loadRecipients();
+    }
   }, [auth.token, loadRecipients]);
 
   // Debounced live preview render.
   const renderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!auth.token || !defaultsLoaded) return;
-    if (renderTimer.current) clearTimeout(renderTimer.current);
+    if (!(auth.token && defaultsLoaded)) {
+      return;
+    }
+    if (renderTimer.current) {
+      clearTimeout(renderTimer.current);
+    }
     renderTimer.current = setTimeout(async () => {
       try {
         const res = await fetch("/api/email/render", {
@@ -280,26 +320,35 @@ export const EmailComposerPage = () => {
         const json = (await res.json()) as { html?: string; error?: string };
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
-            auth.signOut("Your session expired or this account is not allowed.");
+            auth.signOut(
+              "Your session expired or this account is not allowed."
+            );
           }
           throw new Error(json.error || "Could not render preview.");
         }
         setPreviewHtml(json.html ?? "");
         setPreviewError(null);
       } catch (err) {
-        setPreviewError(err instanceof Error ? err.message : "Could not render preview.");
+        setPreviewError(
+          err instanceof Error ? err.message : "Could not render preview."
+        );
       }
     }, 500);
     return () => {
-      if (renderTimer.current) clearTimeout(renderTimer.current);
+      if (renderTimer.current) {
+        clearTimeout(renderTimer.current);
+      }
     };
   }, [auth.token, auth.signOut, content, defaultsLoaded]);
 
   const filteredRecipients = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return recipients;
+    if (!q) {
+      return recipients;
+    }
     return recipients.filter(
-      (r) => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q),
+      (r) =>
+        r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
     );
   }, [recipients, search]);
 
@@ -318,7 +367,9 @@ export const EmailComposerPage = () => {
   }, []);
 
   const handleSend = useCallback(async () => {
-    if (!auth.token || selectedList.length === 0) return;
+    if (!auth.token || selectedList.length === 0) {
+      return;
+    }
     setSending(true);
     setSendResult(null);
     try {
@@ -345,7 +396,9 @@ export const EmailComposerPage = () => {
       const sentCount = json.sent?.length ?? 0;
       setSendResult({ sent: sentCount, failed: json.failed?.length ?? 0 });
       posthog?.capture("email_composer_sent", { count: sentCount });
-      if (sentCount > 0) setSelected({});
+      if (sentCount > 0) {
+        setSelected({});
+      }
     } catch (err) {
       setSendResult({
         sent: 0,
@@ -358,7 +411,9 @@ export const EmailComposerPage = () => {
   }, [auth.token, auth.signOut, content, posthog, selectedList]);
 
   const handleSaveDefault = useCallback(async () => {
-    if (!auth.token) return;
+    if (!auth.token) {
+      return;
+    }
     setSavingDefault(true);
     setSaveResult(null);
     try {
@@ -371,7 +426,7 @@ export const EmailComposerPage = () => {
         body: JSON.stringify({ content }),
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !json.ok) {
+      if (!(res.ok && json.ok)) {
         if (res.status === 401 || res.status === 403) {
           auth.signOut("Your session expired or this account is not allowed.");
         }
@@ -391,7 +446,10 @@ export const EmailComposerPage = () => {
 
   return (
     <SitePageChrome>
-      <div className={layoutClass.containerWide} style={{ display: "grid", gap: theme.spacing.xl }}>
+      <div
+        className={layoutClass.containerWide}
+        style={{ display: "grid", gap: theme.spacing.xl }}
+      >
         <div
           style={{
             display: "flex",
@@ -399,7 +457,7 @@ export const EmailComposerPage = () => {
             gap: theme.spacing.md,
           }}
         >
-          <Mail width={26} height={26} color={theme.palette.accent["600"]} />
+          <Mail color={theme.palette.accent["600"]} height={26} width={26} />
           <h1
             style={{
               fontSize: "1.6rem",
@@ -410,8 +468,7 @@ export const EmailComposerPage = () => {
             Email composer
           </h1>
         </div>
-
-        {!auth.clientId ? (
+        {auth.clientId ? null : (
           <section
             style={{
               ...cardStyle,
@@ -426,7 +483,7 @@ export const EmailComposerPage = () => {
                 color: theme.palette.coral["800"],
               }}
             >
-              <WarningTriangle width={20} height={20} />
+              <WarningTriangle height={20} width={20} />
               <strong>Google auth is not configured</strong>
             </div>
             <p
@@ -435,11 +492,11 @@ export const EmailComposerPage = () => {
                 lineHeight: 1.6,
               }}
             >
-              Add <code>VITE_GOOGLE_CLIENT_ID</code> so the composer can render the sign-in button.
+              Add <code>VITE_GOOGLE_CLIENT_ID</code> so the composer can render
+              the sign-in button.
             </p>
           </section>
-        ) : null}
-
+        )}
         {auth.clientId && !auth.token ? (
           <section style={cardStyle}>
             <div
@@ -466,27 +523,33 @@ export const EmailComposerPage = () => {
                     maxWidth: "36rem",
                   }}
                 >
-                  This tool is gated with Google Identity Services and a server-side allowlist.
+                  This tool is gated with Google Identity Services and a
+                  server-side allowlist.
                 </p>
               </div>
               <div ref={auth.buttonRef} />
               {auth.authError ? (
-                <p style={{ color: theme.palette.coral["800"], lineHeight: 1.6 }}>
+                <p
+                  style={{ color: theme.palette.coral["800"], lineHeight: 1.6 }}
+                >
                   {auth.authError}
                 </p>
               ) : null}
-              {!auth.ready ? (
-                <p style={{ color: mix(theme.colors.everglade, 60) }}>Loading Google sign-in…</p>
-              ) : null}
+              {auth.ready ? null : (
+                <p style={{ color: mix(theme.colors.everglade, 60) }}>
+                  Loading Google sign-in…
+                </p>
+              )}
             </div>
           </section>
         ) : null}
-
         {auth.token ? (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) minmax(0, 1fr)",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : "minmax(0, 1fr) minmax(0, 1fr)",
               gap: theme.spacing.xl,
               alignItems: "start",
               marginBlockEnd: theme.spacing.xxxl,
@@ -507,31 +570,31 @@ export const EmailComposerPage = () => {
 
                 <Field label="Subject">
                   <input
+                    onChange={handleField("subject")}
                     style={inputStyle}
                     value={form.subject}
-                    onChange={handleField("subject")}
                   />
                 </Field>
                 <Field label="Inbox preview text">
                   <input
+                    onChange={handleField("previewText")}
                     style={inputStyle}
                     value={form.previewText}
-                    onChange={handleField("previewText")}
                   />
                 </Field>
                 <Field label="Greeting">
                   <input
+                    onChange={handleField("greeting")}
                     style={inputStyle}
                     value={form.greeting}
-                    onChange={handleField("greeting")}
                   />
                 </Field>
                 <Field label="Body">
                   <RichTextEditor
                     key={defaultsLoaded ? "ready" : "loading"}
-                    value={form.body}
                     onChange={(body) => setForm((prev) => ({ ...prev, body }))}
                     placeholder="Write your message…"
+                    value={form.body}
                   />
                 </Field>
                 <div
@@ -543,24 +606,24 @@ export const EmailComposerPage = () => {
                 >
                   <Field label="Button label">
                     <input
+                      onChange={handleField("ctaLabel")}
                       style={inputStyle}
                       value={form.ctaLabel}
-                      onChange={handleField("ctaLabel")}
                     />
                   </Field>
                   <Field label="Button link">
                     <input
+                      onChange={handleField("ctaUrl")}
                       style={inputStyle}
                       value={form.ctaUrl}
-                      onChange={handleField("ctaUrl")}
                     />
                   </Field>
                 </div>
                 <Field label="Closing">
                   <input
+                    onChange={handleField("closing")}
                     style={inputStyle}
                     value={form.closing}
-                    onChange={handleField("closing")}
                   />
                 </Field>
                 <p
@@ -570,8 +633,8 @@ export const EmailComposerPage = () => {
                     margin: `0 0 ${theme.spacing.lg}`,
                   }}
                 >
-                  Signature is pulled from the published email in Studio. Edit it there to change
-                  the headshot, logo, or contact details.
+                  Signature is pulled from the published email in Studio. Edit
+                  it there to change the headshot, logo, or contact details.
                 </p>
 
                 <div
@@ -585,9 +648,10 @@ export const EmailComposerPage = () => {
                   }}
                 >
                   <button
-                    type="button"
-                    onClick={() => void handleSaveDefault()}
                     disabled={savingDefault || !defaultsLoaded}
+                    onClick={() => {
+                      handleSaveDefault();
+                    }}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -599,28 +663,47 @@ export const EmailComposerPage = () => {
                       color: theme.colors.everglade,
                       fontWeight: 700,
                       fontSize: "0.9rem",
-                      cursor: savingDefault || !defaultsLoaded ? "not-allowed" : "pointer",
+                      cursor:
+                        savingDefault || !defaultsLoaded
+                          ? "not-allowed"
+                          : "pointer",
                       opacity: savingDefault || !defaultsLoaded ? 0.6 : 1,
                     }}
+                    type="button"
                   >
-                    <FloppyDisk width={16} height={16} />
+                    <FloppyDisk height={16} width={16} />
                     {savingDefault ? "Saving…" : "Save as default"}
                   </button>
 
-                  {saveResult ? (
-                    saveResult.ok ? (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: theme.spacing.sm,
-                          color: theme.palette.accent["700"],
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        <CheckCircle width={16} height={16} /> Saved to Studio
-                      </span>
-                    ) : (
+                  {(() => {
+                    if (!saveResult) {
+                      return (
+                        <span
+                          style={{
+                            fontSize: "0.8rem",
+                            color: mix(theme.colors.everglade, 55),
+                          }}
+                        >
+                          Updates the published default for everyone.
+                        </span>
+                      );
+                    }
+                    if (saveResult.ok) {
+                      return (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: theme.spacing.sm,
+                            color: theme.palette.accent["700"],
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          <CheckCircle height={16} width={16} /> Saved to Studio
+                        </span>
+                      );
+                    }
+                    return (
                       <span
                         style={{
                           display: "inline-flex",
@@ -630,19 +713,11 @@ export const EmailComposerPage = () => {
                           fontSize: "0.85rem",
                         }}
                       >
-                        <WarningTriangle width={16} height={16} /> {saveResult.error}
+                        <WarningTriangle height={16} width={16} />{" "}
+                        {saveResult.error}
                       </span>
-                    )
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: "0.8rem",
-                        color: mix(theme.colors.everglade, 55),
-                      }}
-                    >
-                      Updates the published default for everyone.
-                    </span>
-                  )}
+                    );
+                  })()}
                 </div>
               </section>
 
@@ -675,8 +750,9 @@ export const EmailComposerPage = () => {
                     </span>
                   </h2>
                   <button
-                    type="button"
-                    onClick={() => void loadRecipients()}
+                    onClick={() => {
+                      loadRecipients();
+                    }}
                     style={{
                       border: `1px solid ${mix(theme.colors.everglade, 16)}`,
                       borderRadius: theme.radius.pill,
@@ -687,6 +763,7 @@ export const EmailComposerPage = () => {
                       fontSize: "0.85rem",
                       cursor: "pointer",
                     }}
+                    type="button"
                   >
                     Refresh
                   </button>
@@ -699,104 +776,117 @@ export const EmailComposerPage = () => {
                   }}
                 >
                   <Search
-                    width={16}
-                    height={16}
                     color={mix(theme.colors.everglade, 50)}
+                    height={16}
                     style={{
                       position: "absolute",
                       left: 12,
                       top: "50%",
                       transform: "translateY(-50%)",
                     }}
+                    width={16}
                   />
                   <input
-                    style={{ ...inputStyle, paddingLeft: 36 }}
-                    placeholder="Search contacts…"
-                    value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search contacts…"
+                    style={{ ...inputStyle, paddingLeft: 36 }}
+                    value={search}
                   />
                 </div>
 
-                {recipientsError ? (
-                  <p
-                    style={{
-                      color: theme.palette.coral["800"],
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
-                    {recipientsError}
-                  </p>
-                ) : recipientsLoading ? (
-                  <p
-                    style={{
-                      color: mix(theme.colors.everglade, 60),
-                      margin: 0,
-                    }}
-                  >
-                    Loading contacts…
-                  </p>
-                ) : filteredRecipients.length === 0 ? (
-                  <p
-                    style={{
-                      color: mix(theme.colors.everglade, 60),
-                      margin: 0,
-                    }}
-                  >
-                    No contacts found.
-                  </p>
-                ) : (
-                  <div
-                    style={{
-                      maxHeight: 260,
-                      overflowY: "auto",
-                      border: `1px solid ${mix(theme.colors.everglade, 12)}`,
-                      borderRadius: theme.radius.medium,
-                    }}
-                  >
-                    {filteredRecipients.map((r) => {
-                      const checked = Boolean(selected[r.email]);
-                      return (
-                        <label
-                          key={r.email}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: theme.spacing.md,
-                            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                            borderBottom: `1px solid ${mix(theme.colors.everglade, 8)}`,
-                            cursor: "pointer",
-                            backgroundColor: checked ? theme.palette.accent["100"] : "transparent",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleRecipient(r)}
-                          />
-                          <span style={{ display: "grid" }}>
-                            <span
-                              style={{
-                                color: theme.colors.everglade,
-                                fontWeight: 600,
-                              }}
-                            >
-                              {r.name}
+                {(() => {
+                  if (recipientsError) {
+                    return (
+                      <p
+                        style={{
+                          color: theme.palette.coral["800"],
+                          lineHeight: 1.6,
+                          margin: 0,
+                        }}
+                      >
+                        {recipientsError}
+                      </p>
+                    );
+                  }
+                  if (recipientsLoading) {
+                    return (
+                      <p
+                        style={{
+                          color: mix(theme.colors.everglade, 60),
+                          margin: 0,
+                        }}
+                      >
+                        Loading contacts…
+                      </p>
+                    );
+                  }
+                  if (filteredRecipients.length === 0) {
+                    return (
+                      <p
+                        style={{
+                          color: mix(theme.colors.everglade, 60),
+                          margin: 0,
+                        }}
+                      >
+                        No contacts found.
+                      </p>
+                    );
+                  }
+                  return (
+                    <div
+                      style={{
+                        maxHeight: 260,
+                        overflowY: "auto",
+                        border: `1px solid ${mix(theme.colors.everglade, 12)}`,
+                        borderRadius: theme.radius.medium,
+                      }}
+                    >
+                      {filteredRecipients.map((r) => {
+                        const checked = Boolean(selected[r.email]);
+                        return (
+                          <label
+                            key={r.email}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: theme.spacing.md,
+                              padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+                              borderBottom: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                              cursor: "pointer",
+                              backgroundColor: checked
+                                ? theme.palette.accent["100"]
+                                : "transparent",
+                            }}
+                          >
+                            <input
+                              checked={checked}
+                              onChange={() => toggleRecipient(r)}
+                              type="checkbox"
+                            />
+                            <span style={{ display: "grid" }}>
+                              <span
+                                style={{
+                                  color: theme.colors.everglade,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {r.name}
+                              </span>
+                              <span
+                                style={{
+                                  color: mix(theme.colors.everglade, 55),
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                {r.email}
+                              </span>
                             </span>
-                            <span
-                              style={{
-                                color: mix(theme.colors.everglade, 55),
-                                fontSize: "0.85rem",
-                              }}
-                            >
-                              {r.email}
-                            </span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
 
                 <div
                   style={{
@@ -808,42 +898,52 @@ export const EmailComposerPage = () => {
                   }}
                 >
                   <button
-                    type="button"
-                    onClick={() => void handleSend()}
                     disabled={sending || selectedList.length === 0}
+                    onClick={() => {
+                      handleSend();
+                    }}
                     style={primaryButton(sending || selectedList.length === 0)}
+                    type="button"
                   >
-                    <SendDiagonal width={18} height={18} />
-                    {sending
-                      ? "Sending…"
-                      : `Send to ${selectedList.length || ""} ${selectedList.length === 1 ? "contact" : "contacts"}`}
+                    <SendDiagonal height={18} width={18} />
+                    {(() => {
+                      if (sending) {
+                        return "Sending…";
+                      }
+                      const contactWord =
+                        selectedList.length === 1 ? "contact" : "contacts";
+                      return `Send to ${selectedList.length || ""} ${contactWord}`;
+                    })()}
                   </button>
 
-                  {sendResult ? (
-                    sendResult.error ? (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: theme.spacing.sm,
-                          color: theme.palette.coral["800"],
-                        }}
-                      >
-                        <WarningTriangle width={16} height={16} /> {sendResult.error}
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: theme.spacing.sm,
-                          color: theme.palette.accent["700"],
-                        }}
-                      >
-                        <CheckCircle width={16} height={16} /> Sent {sendResult.sent}
-                        {sendResult.failed ? ` · ${sendResult.failed} failed` : ""}
-                      </span>
-                    )
+                  {sendResult?.error ? (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: theme.spacing.sm,
+                        color: theme.palette.coral["800"],
+                      }}
+                    >
+                      <WarningTriangle height={16} width={16} />{" "}
+                      {sendResult.error}
+                    </span>
+                  ) : null}
+                  {sendResult && !sendResult.error ? (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: theme.spacing.sm,
+                        color: theme.palette.accent["700"],
+                      }}
+                    >
+                      <CheckCircle height={16} width={16} /> Sent{" "}
+                      {sendResult.sent}
+                      {sendResult.failed > 0
+                        ? ` · ${sendResult.failed} failed`
+                        : ""}
+                    </span>
                   ) : null}
                 </div>
               </section>
@@ -866,7 +966,9 @@ export const EmailComposerPage = () => {
                   padding: `${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.md}`,
                 }}
               >
-                <span style={{ ...labelStyle, marginBottom: 0 }}>Live preview</span>
+                <span style={{ ...labelStyle, marginBottom: 0 }}>
+                  Live preview
+                </span>
                 {previewError ? (
                   <span
                     style={{
@@ -879,7 +981,6 @@ export const EmailComposerPage = () => {
                 ) : null}
               </div>
               <iframe
-                title="Email preview"
                 srcDoc={previewHtml}
                 style={{
                   width: "100%",
@@ -889,10 +990,12 @@ export const EmailComposerPage = () => {
                   backgroundColor: "#f3f5f4",
                   display: "block",
                 }}
+                title="Email preview"
               />
             </section>
           </div>
         ) : null}
+        ;
       </div>
     </SitePageChrome>
   );

@@ -3,16 +3,16 @@ import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { isInPageHashHref, useSiteNav } from "../../hooks/useSiteNav";
 import { TransitionLink } from "../TransitionLink";
 
-type SiteNavLinkProps = {
-  href: string;
+interface SiteNavLinkProps {
   children: ReactNode;
-  style?: CSSProperties;
   className?: string;
-  viewTransition?: boolean;
+  href: string;
   onClick?: () => void;
   onMouseEnter?: (event: MouseEvent<HTMLAnchorElement>) => void;
   onMouseLeave?: (event: MouseEvent<HTMLAnchorElement>) => void;
-};
+  style?: CSSProperties;
+  viewTransition?: boolean;
+}
 
 /** Resolves #section links to home + hash off-page; smooth-scrolls on the homepage. */
 export const SiteNavLink = ({
@@ -30,12 +30,12 @@ export const SiteNavLink = ({
   if (isHome && isInPageHashHref(href)) {
     return (
       <a
-        href={href}
-        style={style}
         className={className}
+        href={href}
         onClick={handleSectionNavClick(href, onClick)}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        style={style}
       >
         {children}
       </a>
@@ -45,13 +45,13 @@ export const SiteNavLink = ({
   if (isInPageHashHref(href) || href.startsWith("/")) {
     return (
       <TransitionLink
-        to={resolveNavTo(href)}
-        viewTransition={viewTransition}
-        style={style}
         className={className}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        style={style}
+        to={resolveNavTo(href)}
+        viewTransition={viewTransition}
       >
         {children}
       </TransitionLink>
@@ -60,12 +60,12 @@ export const SiteNavLink = ({
 
   return (
     <a
-      href={href}
-      style={style}
       className={className}
+      href={href}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      style={style}
     >
       {children}
     </a>

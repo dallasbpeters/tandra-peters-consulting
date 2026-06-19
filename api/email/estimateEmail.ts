@@ -10,7 +10,10 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeAttr = (value: string): string => escapeHtml(value).replaceAll("`", "&#96;");
+const escapeAttr = (value: string): string =>
+  escapeHtml(value).replaceAll("`", "&#96;");
+
+const WHITESPACE_RE = /\s+/;
 
 const answerRows = (answers: EstimateSubmission["answers"]): string =>
   answers
@@ -19,16 +22,17 @@ const answerRows = (answers: EstimateSubmission["answers"]): string =>
         `<tr>
           <td style="font-size:13px;color:#5b6b62;padding:8px 0;border-bottom:1px solid #e4e8e6;">${escapeHtml(row.prompt)}</td>
           <td style="font-size:13px;font-weight:700;color:#1a2b22;text-align:right;padding:8px 0;border-bottom:1px solid #e4e8e6;">${escapeHtml(row.answer)}</td>
-        </tr>`,
+        </tr>`
     )
     .join("");
 
 export const renderEstimateEmail = (
   submission: EstimateSubmission,
   assets: EmailAssets,
-  variant: Variant,
+  variant: Variant
 ): string => {
-  const firstName = submission.fullName.trim().split(/\s+/)[0] || "there";
+  const firstName =
+    submission.fullName.trim().split(WHITESPACE_RE)[0] || "there";
   const isVisitor = variant === "visitor";
   const previewText = isVisitor
     ? `Your roof estimate: roughly ${submission.rangeDisplay}`

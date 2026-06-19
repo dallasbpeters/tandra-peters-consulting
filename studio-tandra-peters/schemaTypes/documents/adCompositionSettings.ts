@@ -27,9 +27,18 @@ export const roofSceneChapterType = defineType({
   title: "Roof scene chapter",
   type: "object",
   fields: [
-    defineField({ name: "durationSecs", title: "Duration (secs)", type: "number" }),
+    defineField({
+      name: "durationSecs",
+      title: "Duration (secs)",
+      type: "number",
+    }),
     defineField({ name: "skip", title: "Skip chapter", type: "boolean" }),
-    defineField({ name: "camera", title: "Camera", type: "object", fields: roofSceneCameraFields }),
+    defineField({
+      name: "camera",
+      title: "Camera",
+      type: "object",
+      fields: roofSceneCameraFields,
+    }),
     defineField({
       name: "hotspot",
       title: "Hotspot",
@@ -46,7 +55,10 @@ export const roofSceneChapterType = defineType({
   preview: {
     select: { title: "callout.title", subtitle: "callout.watchFor" },
     prepare: ({ title, subtitle }) => ({
-      title: typeof title === "string" && title.trim() ? title : "Roof scene chapter",
+      title:
+        typeof title === "string" && title.trim()
+          ? title
+          : "Roof scene chapter",
       subtitle:
         typeof subtitle === "string" && subtitle.trim()
           ? subtitle
@@ -73,7 +85,12 @@ export const roofSceneSettingsType = defineType({
       type: "boolean",
       initialValue: true,
     }),
-    defineField({ name: "fov", title: "Field of view", type: "number", initialValue: 51 }),
+    defineField({
+      name: "fov",
+      title: "Field of view",
+      type: "number",
+      initialValue: 51,
+    }),
     defineField({
       name: "introSecs",
       title: "Intro duration (secs)",
@@ -98,7 +115,12 @@ export const roofSceneSettingsType = defineType({
       type: "object",
       fields: [
         defineField({ name: "trust", title: "Trust", type: "text", rows: 2 }),
-        defineField({ name: "callout", title: "Callout", type: "text", rows: 2 }),
+        defineField({
+          name: "callout",
+          title: "Callout",
+          type: "text",
+          rows: 2,
+        }),
         defineField({ name: "byline", title: "Byline", type: "string" }),
         defineField({ name: "badge", title: "Badge", type: "string" }),
         defineField({
@@ -114,7 +136,12 @@ export const roofSceneSettingsType = defineType({
       title: "Certification badges",
       type: "object",
       fields: [
-        defineField({ name: "show", title: "Show badges", type: "boolean", initialValue: false }),
+        defineField({
+          name: "show",
+          title: "Show badges",
+          type: "boolean",
+          initialValue: false,
+        }),
         defineField({
           name: "gafMasterElite",
           title: "GAF Master Elite",
@@ -139,7 +166,12 @@ export const roofSceneSettingsType = defineType({
           type: "boolean",
           initialValue: false,
         }),
-        defineField({ name: "tamkoPro", title: "Tamko Pro", type: "boolean", initialValue: false }),
+        defineField({
+          name: "tamkoPro",
+          title: "Tamko Pro",
+          type: "boolean",
+          initialValue: false,
+        }),
       ],
     }),
     defineField({

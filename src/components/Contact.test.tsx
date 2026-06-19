@@ -1,24 +1,51 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
-import { describe, it, expect, beforeEach } from "vitest";
+import { HttpResponse, http } from "msw";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  mockCapture,
+  mockCaptureException,
+  mockIdentify,
+  server,
+} from "../test/setup";
+import { CONTACT_API_PATH, Contact } from "./Contact";
 
-import { server } from "../test/setup";
-import { mockCapture, mockIdentify, mockCaptureException } from "../test/setup";
-import { Contact } from "./Contact";
-import { CONTACT_API_PATH } from "./Contact";
+// ─── module-level regex constants ────────────────────────────────────────────
+
+const FULL_NAME_LABEL = /full name/i;
+const EMAIL_ADDRESS_LABEL = /email address/i;
+const YOUR_MESSAGE_LABEL = /your message/i;
+const PROPERTY_ADDRESS_LABEL = /property address/i;
+const SEND_MESSAGE_BUTTON = /send message/i;
+const MESSAGE_WAS_SENT = /message was sent/i;
+const CONSENT_ERROR = /please confirm you agree to be contacted/i;
+const SOMETHING_FAILED_ON_SERVER = /something failed on the server/i;
+const ENDPOINT_NOT_FOUND = /endpoint was not found/i;
+const NOT_ALLOWED_TO_SUBMIT = /not allowed to submit/i;
+const EMAIL_DELIVERY_NOT_CONFIGURED = /email delivery isn't configured/i;
+const COULD_NOT_SEND_MESSAGE = /could not send your message/i;
+const UNEXPECTED_RESPONSE = /unexpected response/i;
+const SERVER_RETURNED_HTML_ERROR = /server returned an error instead of json/i;
+const SERVER_FAILED_ON_VERCEL = /server failed to run on vercel/i;
+const NETWORK_OR_CORS_ERROR = /network or cors error/i;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 const fillRequiredFields = async (
   user: ReturnType<typeof userEvent.setup>,
-  overrides: { message?: string } = {},
+  overrides: { message?: string } = {}
 ) => {
-  await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-  await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
   await user.type(
-    screen.getByRole("textbox", { name: /your message/i }),
-    overrides.message ?? "Hello, I need a roof inspection.",
+    screen.getByRole("textbox", { name: FULL_NAME_LABEL }),
+    "Jane Doe"
+  );
+  await user.type(
+    screen.getByRole("textbox", { name: EMAIL_ADDRESS_LABEL }),
+    "jane@example.com"
+  );
+  await user.type(
+    screen.getByRole("textbox", { name: YOUR_MESSAGE_LABEL }),
+    overrides.message ?? "Hello, I need a roof inspection."
   );
   // Check the consent checkbox
   await user.click(screen.getByRole("checkbox"));
@@ -41,11 +68,19 @@ describe("Contact form", () => {
   it("renders the form with required fields", () => {
     render(<Contact />);
 
-    expect(screen.getByRole("textbox", { name: /full name/i })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: /email address/i })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: /your message/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: FULL_NAME_LABEL })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: EMAIL_ADDRESS_LABEL })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: YOUR_MESSAGE_LABEL })
+    ).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: SEND_MESSAGE_BUTTON })
+    ).toBeInTheDocument();
   });
 
   // ── happy path ──────────────────────────────────────────────────────────────
@@ -54,21 +89,21 @@ describe("Contact form", () => {
     render(<Contact />);
 
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
       // FIX 1: match the actual success message text
-      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+      expect(screen.getByText(MESSAGE_WAS_SENT)).toBeInTheDocument();
     });
 
     // PostHog tracking
     expect(mockIdentify).toHaveBeenCalledWith(
       "jane@example.com",
-      expect.objectContaining({ email: "jane@example.com", name: "Jane Doe" }),
+      expect.objectContaining({ email: "jane@example.com", name: "Jane Doe" })
     );
     expect(mockCapture).toHaveBeenCalledWith(
       "contact_form_submitted",
-      expect.objectContaining({ has_message: true }),
+      expect.objectContaining({ has_message: true })
     );
   });
 
@@ -76,16 +111,18 @@ describe("Contact form", () => {
     render(<Contact />);
 
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent(/message was sent/i);
+      expect(screen.getByRole("status")).toHaveTextContent(MESSAGE_WAS_SENT);
     });
 
     // The form is swapped out for the confirmation, so no fields remain.
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /send message/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: SEND_MESSAGE_BUTTON })
+    ).not.toBeInTheDocument();
   });
 
   // ── validation ──────────────────────────────────────────────────────────────
@@ -94,17 +131,29 @@ describe("Contact form", () => {
     render(<Contact />);
 
     // Fill everything except consent
-    await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-    await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
-    await user.type(screen.getByRole("textbox", { name: /your message/i }), "Hello");
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.type(
+      screen.getByRole("textbox", { name: FULL_NAME_LABEL }),
+      "Jane Doe"
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: EMAIL_ADDRESS_LABEL }),
+      "jane@example.com"
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: YOUR_MESSAGE_LABEL }),
+      "Hello"
+    );
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/please confirm you agree to be contacted/i)).toBeInTheDocument();
+      expect(screen.getByText(CONSENT_ERROR)).toBeInTheDocument();
     });
 
     // No network request should have been made
-    expect(mockCapture).not.toHaveBeenCalledWith("contact_form_submitted", expect.anything());
+    expect(mockCapture).not.toHaveBeenCalledWith(
+      "contact_form_submitted",
+      expect.anything()
+    );
   });
 
   it("does not submit while already sending", async () => {
@@ -113,12 +162,14 @@ describe("Contact form", () => {
       resolveRequest = resolve;
     });
 
-    server.use(http.post(CONTACT_API_PATH, () => pendingRequest as Promise<Response>));
+    server.use(
+      http.post(CONTACT_API_PATH, () => pendingRequest as Promise<Response>)
+    );
 
     render(<Contact />);
     await fillRequiredFields(user);
 
-    const submitBtn = screen.getByRole("button", { name: /send message/i });
+    const submitBtn = screen.getByRole("button", { name: SEND_MESSAGE_BUTTON });
     await user.click(submitBtn);
 
     // Button should be disabled while sending
@@ -128,10 +179,15 @@ describe("Contact form", () => {
 
     // Clicking again should be a no-op
     await user.click(submitBtn);
-    expect(mockCapture).not.toHaveBeenCalledWith("contact_form_submitted", expect.anything());
+    expect(mockCapture).not.toHaveBeenCalledWith(
+      "contact_form_submitted",
+      expect.anything()
+    );
 
     // Clean up
-    resolveRequest!(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    resolveRequest?.(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
   });
 
   // ── honeypot ────────────────────────────────────────────────────────────────
@@ -140,7 +196,9 @@ describe("Contact form", () => {
     render(<Contact />);
 
     // The honeypot input has tabIndex=-1 and aria-hidden
-    const honeypotInput = document.querySelector('input[name="_hp"]') as HTMLInputElement | null;
+    const honeypotInput = document.querySelector(
+      'input[name="_hp"]'
+    ) as HTMLInputElement | null;
 
     expect(honeypotInput).toBeInTheDocument();
     expect(honeypotInput).toHaveAttribute("tabindex", "-1");
@@ -154,16 +212,16 @@ describe("Contact form", () => {
       http.post(CONTACT_API_PATH, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ ok: true });
-      }),
+      })
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
       // FIX 1: match the actual success message text
-      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+      expect(screen.getByText(MESSAGE_WAS_SENT)).toBeInTheDocument();
     });
 
     expect(capturedBody).toHaveProperty("_hp", "");
@@ -174,91 +232,106 @@ describe("Contact form", () => {
   it("shows generic error message on generic 500 with JSON error body", async () => {
     server.use(
       http.post(CONTACT_API_PATH, () =>
-        HttpResponse.json({ ok: false, error: "Something failed on the server" }, { status: 500 }),
-      ),
+        HttpResponse.json(
+          { ok: false, error: "Something failed on the server" },
+          { status: 500 }
+        )
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/something failed on the server/i)).toBeInTheDocument();
+      expect(screen.getByText(SOMETHING_FAILED_ON_SERVER)).toBeInTheDocument();
     });
 
     expect(mockCapture).toHaveBeenCalledWith(
       "contact_form_error",
-      expect.objectContaining({ status: 500 }),
+      expect.objectContaining({ status: 500 })
     );
   });
 
   it("shows 404 error message when endpoint is not found", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 404 })),
+      http.post(CONTACT_API_PATH, () =>
+        HttpResponse.json({ ok: false }, { status: 404 })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/endpoint was not found/i)).toBeInTheDocument();
+      expect(screen.getByText(ENDPOINT_NOT_FOUND)).toBeInTheDocument();
     });
   });
 
   it("shows 403 CORS/origin error message", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 403 })),
+      http.post(CONTACT_API_PATH, () =>
+        HttpResponse.json({ ok: false }, { status: 403 })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/not allowed to submit/i)).toBeInTheDocument();
+      expect(screen.getByText(NOT_ALLOWED_TO_SUBMIT)).toBeInTheDocument();
     });
   });
 
   it("shows 503 email-not-configured error message", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 503 })),
+      http.post(CONTACT_API_PATH, () =>
+        HttpResponse.json({ ok: false }, { status: 503 })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/email delivery isn't configured/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(EMAIL_DELIVERY_NOT_CONFIGURED)
+      ).toBeInTheDocument();
     });
   });
 
   it("shows 502 send-failure error message", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 502 })),
+      http.post(CONTACT_API_PATH, () =>
+        HttpResponse.json({ ok: false }, { status: 502 })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/could not send your message/i)).toBeInTheDocument();
+      expect(screen.getByText(COULD_NOT_SEND_MESSAGE)).toBeInTheDocument();
     });
   });
 
   it("shows unexpected-response error when response is 200 ok but data.ok is false", async () => {
     server.use(
-      http.post(CONTACT_API_PATH, () => HttpResponse.json({ ok: false }, { status: 200 })),
+      http.post(CONTACT_API_PATH, () =>
+        HttpResponse.json({ ok: false }, { status: 200 })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/unexpected response/i)).toBeInTheDocument();
+      expect(screen.getByText(UNEXPECTED_RESPONSE)).toBeInTheDocument();
     });
   });
 
@@ -271,16 +344,16 @@ describe("Contact form", () => {
           new HttpResponse("<html>Not Found</html>", {
             status: 500,
             headers: { "Content-Type": "text/html" },
-          }),
-      ),
+          })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server returned an error instead of json/i)).toBeInTheDocument();
+      expect(screen.getByText(SERVER_RETURNED_HTML_ERROR)).toBeInTheDocument();
     });
   });
 
@@ -295,16 +368,16 @@ describe("Contact form", () => {
               "Content-Type": "text/html",
               "x-vercel-error": "FUNCTION_INVOCATION_FAILED",
             },
-          }),
-      ),
+          })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server failed to run on vercel/i)).toBeInTheDocument();
+      expect(screen.getByText(SERVER_FAILED_ON_VERCEL)).toBeInTheDocument();
     });
   });
 
@@ -319,16 +392,16 @@ describe("Contact form", () => {
               "Content-Type": "text/html",
               "x-vercel-error": "FUNCTION_INVOCATION_TIMEOUT",
             },
-          }),
-      ),
+          })
+      )
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/server returned an error instead of json/i)).toBeInTheDocument();
+      expect(screen.getByText(SERVER_RETURNED_HTML_ERROR)).toBeInTheDocument();
     });
   });
 
@@ -340,10 +413,10 @@ describe("Contact form", () => {
 
     render(<Contact />);
     await fillRequiredFields(user);
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/network or cors error/i)).toBeInTheDocument();
+      expect(screen.getByText(NETWORK_OR_CORS_ERROR)).toBeInTheDocument();
     });
 
     expect(mockCaptureException).toHaveBeenCalled();
@@ -358,20 +431,29 @@ describe("Contact form", () => {
       http.post(CONTACT_API_PATH, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ ok: true });
-      }),
+      })
     );
 
     render(<Contact />);
 
-    await user.type(screen.getByRole("textbox", { name: /full name/i }), "Jane Doe");
-    await user.type(screen.getByRole("textbox", { name: /email address/i }), "jane@example.com");
-    await user.type(screen.getByRole("textbox", { name: /your message/i }), "Need a quote please.");
+    await user.type(
+      screen.getByRole("textbox", { name: FULL_NAME_LABEL }),
+      "Jane Doe"
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: EMAIL_ADDRESS_LABEL }),
+      "jane@example.com"
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: YOUR_MESSAGE_LABEL }),
+      "Need a quote please."
+    );
     await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
       // FIX 1: match the actual success message text
-      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+      expect(screen.getByText(MESSAGE_WAS_SENT)).toBeInTheDocument();
     });
 
     expect(capturedBody).toMatchObject({
@@ -390,19 +472,19 @@ describe("Contact form", () => {
       http.post(CONTACT_API_PATH, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ ok: true });
-      }),
+      })
     );
 
     render(<Contact />);
     await fillRequiredFields(user);
     await user.type(
-      screen.getByRole("textbox", { name: /property address/i }),
-      "123 Cedar Ridge Dr, Round Rock, TX",
+      screen.getByRole("textbox", { name: PROPERTY_ADDRESS_LABEL }),
+      "123 Cedar Ridge Dr, Round Rock, TX"
     );
-    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await user.click(screen.getByRole("button", { name: SEND_MESSAGE_BUTTON }));
 
     await waitFor(() => {
-      expect(screen.getByText(/message was sent/i)).toBeInTheDocument();
+      expect(screen.getByText(MESSAGE_WAS_SENT)).toBeInTheDocument();
     });
 
     expect(capturedBody).toMatchObject({

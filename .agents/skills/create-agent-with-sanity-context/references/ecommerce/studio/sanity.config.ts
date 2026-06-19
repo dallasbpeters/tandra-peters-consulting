@@ -1,8 +1,15 @@
-import { AGENT_CONTEXT_SCHEMA_TYPE_NAME, agentContextPlugin } from "@sanity/agent-context/studio";
+import {
+  AGENT_CONTEXT_SCHEMA_TYPE_NAME,
+  agentContextPlugin,
+} from "@sanity/agent-context/studio";
 import { visionTool } from "@sanity/vision";
 import { defineConfig } from "sanity";
+import {
+  type ListItemBuilder,
+  type StructureBuilder,
+  structureTool,
+} from "sanity/structure";
 import { markdownSchema } from "sanity-plugin-markdown";
-import { type ListItemBuilder, type StructureBuilder, structureTool } from "sanity/structure";
 
 import { agentInsightsPlugin } from "./agent-insights-tool/agentInsightsPlugin";
 import { schemaTypes } from "./schemaTypes";
@@ -31,11 +38,15 @@ export default defineConfig({
     structureTool({
       structure: (S: StructureBuilder) => {
         // Document types to group under "Agents"
-        const agentTypes = [AGENT_CONTEXT_SCHEMA_TYPE_NAME, "agent.config", "agent.conversation"];
+        const agentTypes = [
+          AGENT_CONTEXT_SCHEMA_TYPE_NAME,
+          "agent.config",
+          "agent.conversation",
+        ];
 
         // Get all schema types except agent-related types
         const defaultListItems = S.documentTypeListItems().filter(
-          (item: ListItemBuilder) => !agentTypes.includes(item.getId() ?? ""),
+          (item: ListItemBuilder) => !agentTypes.includes(item.getId() ?? "")
         );
 
         return S.list()
@@ -50,10 +61,16 @@ export default defineConfig({
                 S.list()
                   .title("Agents")
                   .items([
-                    S.documentTypeListItem("agent.config").title("Agent Configs"),
-                    S.documentTypeListItem(AGENT_CONTEXT_SCHEMA_TYPE_NAME).title("Agent Contexts"),
-                    S.documentTypeListItem("agent.conversation").title("Agent Conversations"),
-                  ]),
+                    S.documentTypeListItem("agent.config").title(
+                      "Agent Configs"
+                    ),
+                    S.documentTypeListItem(
+                      AGENT_CONTEXT_SCHEMA_TYPE_NAME
+                    ).title("Agent Contexts"),
+                    S.documentTypeListItem("agent.conversation").title(
+                      "Agent Conversations"
+                    ),
+                  ])
               ),
           ]);
       },

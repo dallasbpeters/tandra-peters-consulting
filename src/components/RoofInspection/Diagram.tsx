@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { theme } from "../../theme";
 import { useCameraContext } from "./context";
 
-type DiagramProps = {
-  /** Absolute or root-relative path to the GLB model, e.g. `"/roof.glb"`. */
-  src: string;
+interface DiagramProps {
   /** Accessible label for the landmark region. Defaults to a descriptive sentence. */
   alt?: string;
   /**
@@ -14,7 +13,9 @@ type DiagramProps = {
    * projects it onto the correct 3D surface.
    */
   children?: React.ReactNode;
-};
+  /** Absolute or root-relative path to the GLB model, e.g. `"/roof.glb"`. */
+  src: string;
+}
 
 const isModelViewerDefined = () =>
   typeof customElements !== "undefined" && !!customElements.get("model-viewer");
@@ -26,7 +27,9 @@ const ensureModelViewerScript = async () => {
     return true;
   }
 
-  const existing = document.getElementById(MODEL_VIEWER_SCRIPT_ID) as HTMLScriptElement | null;
+  const existing = document.getElementById(
+    MODEL_VIEWER_SCRIPT_ID
+  ) as HTMLScriptElement | null;
   if (existing) {
     if (existing.dataset.loaded === "true") {
       return isModelViewerDefined();
@@ -39,7 +42,7 @@ const ensureModelViewerScript = async () => {
         () => reject(new Error("model-viewer script failed to load")),
         {
           once: true,
-        },
+        }
       );
     });
 
@@ -56,7 +59,9 @@ const ensureModelViewerScript = async () => {
       script.dataset.loaded = "true";
       resolve();
     });
-    script.addEventListener("error", () => reject(new Error("model-viewer script failed to load")));
+    script.addEventListener("error", () =>
+      reject(new Error("model-viewer script failed to load"))
+    );
     document.head.appendChild(script);
   });
 
@@ -88,7 +93,7 @@ const useModelViewerReady = () => {
       }
     };
 
-    void load();
+    load();
 
     return () => {
       cancelled = true;
@@ -145,7 +150,9 @@ export const Diagram: React.FC<DiagramProps> = ({
   chaptersRef.current = chapters;
 
   // Absolute URL so model-viewer's workers resolve the GLB correctly
-  const absoluteSrc = src.startsWith("http") ? src : `${window.location.origin}${src}`;
+  const absoluteSrc = src.startsWith("http")
+    ? src
+    : `${window.location.origin}${src}`;
 
   // Ref gives us the DOM element so we can imperatively drive the camera
   const mvRef = useRef<
@@ -160,12 +167,22 @@ export const Diagram: React.FC<DiagramProps> = ({
   // Toolbar view change → apply full camera preset
   useEffect(() => {
     const mv = mvRef.current;
-    if (!mv) return;
+    if (!mv) {
+      return;
+    }
     const view = views.find((v) => v.id === activeViewId);
-    if (!view) return;
-    if (view.cameraOrbit) mv.cameraOrbit = view.cameraOrbit;
-    if (view.cameraTarget) mv.cameraTarget = view.cameraTarget;
-    if (view.fieldOfView) mv.fieldOfView = view.fieldOfView;
+    if (!view) {
+      return;
+    }
+    if (view.cameraOrbit) {
+      mv.cameraOrbit = view.cameraOrbit;
+    }
+    if (view.cameraTarget) {
+      mv.cameraTarget = view.cameraTarget;
+    }
+    if (view.fieldOfView) {
+      mv.fieldOfView = view.fieldOfView;
+    }
     mv.jumpCameraToGoal?.();
   }, [activeViewId, views]);
 
@@ -175,12 +192,18 @@ export const Diagram: React.FC<DiagramProps> = ({
   // effect on every hover-induced re-render.
   useEffect(() => {
     const mv = mvRef.current;
-    if (!mv || !focusChapterId) return;
+    if (!(mv && focusChapterId)) {
+      return;
+    }
     const chapter = chaptersRef.current.find((c) => c.id === focusChapterId);
-    if (!chapter?.position3d) return;
+    if (!chapter?.position3d) {
+      return;
+    }
 
     mv.cameraTarget = chapter.position3d;
-    if (chapter.focusOrbit) mv.cameraOrbit = chapter.focusOrbit;
+    if (chapter.focusOrbit) {
+      mv.cameraOrbit = chapter.focusOrbit;
+    }
   }, [focusChapterId]);
 
   // Punch through the shadow DOM so hotspot callouts aren't clipped.
@@ -224,7 +247,7 @@ export const Diagram: React.FC<DiagramProps> = ({
       cancelled = true;
       cancelAnimationFrame(rafId);
     };
-  }, [src, children, modelViewerReady]);
+  }, []);
 
   // Guard against "loaded but invisible" model-viewer states.
   // In some route/browser combinations, the GLB loads successfully yet the
@@ -241,7 +264,9 @@ export const Diagram: React.FC<DiagramProps> = ({
     let attempts = 0;
 
     const tick = () => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
 
       const mv = mvRef.current as
         | (HTMLElement & { loaded?: boolean; modelIsVisible?: boolean })
@@ -271,7 +296,7 @@ export const Diagram: React.FC<DiagramProps> = ({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [modelViewerReady, src, activeViewId, focusChapterId]);
+  }, [modelViewerReady]);
 
   // Boost metallic/roughness on the roofing material after the model loads.
   const handleLoad = () => {
@@ -287,7 +312,9 @@ export const Diagram: React.FC<DiagramProps> = ({
         }>;
       };
     };
-    if (!mv?.model?.materials) return;
+    if (!mv?.model?.materials) {
+      return;
+    }
     setShowRenderFallback(false);
     for (const mat of mv.model.materials) {
       mat.pbrMetallicRoughness.setMetallicFactor(0.75);
@@ -302,13 +329,18 @@ export const Diagram: React.FC<DiagramProps> = ({
   // imperative useEffect has set on the model-viewer element.
   const [initialOrbit] = useState(
     () =>
-      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ?? "-115deg 45deg 6.5m",
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraOrbit ??
+      "-115deg 45deg 6.5m"
   );
   const [initialTarget] = useState(
-    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ?? "auto",
+    () =>
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.cameraTarget ??
+      "auto"
   );
   const [initialFov] = useState(
-    () => (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ?? "auto",
+    () =>
+      (views.find((v) => v.id === activeViewId) ?? views[0])?.fieldOfView ??
+      "auto"
   );
 
   // Padding-bottom trick: gives the wrapper a concrete pixel height so
@@ -341,30 +373,30 @@ export const Diagram: React.FC<DiagramProps> = ({
   };
 
   return (
-    <div style={wrapperStyle} role="region" aria-label={alt}>
+    <section aria-label={alt} style={wrapperStyle}>
       {modelViewerReady ? (
         <model-viewer
-          ref={mvRef as React.Ref<HTMLElement>}
-          id="mv"
-          src={absoluteSrc}
           alt={alt}
-          camera-orbit={initialOrbit}
-          camera-target={initialTarget}
-          field-of-view={initialFov}
-          min-camera-orbit="210deg 75deg 360deg"
-          max-camera-orbit="auto auto 100%"
-          tone-mapping="neutral"
           ar-modes="webxr scene-viewer quick-look"
           camera-controls={true}
+          camera-orbit={initialOrbit}
+          camera-target={initialTarget}
+          disable-zoom
+          environment-image="legacy"
+          field-of-view={initialFov}
+          id="mv"
           interaction-prompt="none"
           loading="eager"
+          max-camera-orbit="auto auto 100%"
+          min-camera-orbit="210deg 75deg 360deg"
+          onLoad={handleLoad}
+          ref={mvRef as React.Ref<HTMLElement>}
           shadow-intensity="1.5"
           shadow-softness=".6"
-          environment-image="legacy"
-          touch-action="pan-y"
-          disable-zoom
-          onLoad={handleLoad}
+          src={absoluteSrc}
           style={modelStyle}
+          tone-mapping="neutral"
+          touch-action="pan-y"
         >
           {children}
         </model-viewer>
@@ -381,9 +413,10 @@ export const Diagram: React.FC<DiagramProps> = ({
             background: theme.colors.paper,
           }}
         >
+          {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
           <img
-            src="/roof.jpeg"
             alt="Roof inspection diagram fallback"
+            src="/roof.jpeg"
             style={{
               width: "100%",
               height: "100%",
@@ -393,6 +426,6 @@ export const Diagram: React.FC<DiagramProps> = ({
           />
         </div>
       ) : null}
-    </div>
+    </section>
   );
 };

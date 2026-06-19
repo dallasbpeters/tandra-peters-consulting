@@ -1,13 +1,13 @@
 import type { PlayerRef } from "@remotion/player";
 
 import {
+  type KeyboardEvent,
+  type PointerEvent,
+  type SyntheticEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent,
-  type PointerEvent,
-  type SyntheticEvent,
 } from "react";
 
 import type { CaptionCue } from "../../remotion/tandraIntroContent";
@@ -20,18 +20,19 @@ import { PlayPauseButton } from "./PlayPauseButton";
 import { SeekBar } from "./SeekBar";
 import { VideoPoster } from "./VideoPoster";
 
-const REMOTION_DURATION_SECONDS = TANDRA_INTRO_DURATION_IN_FRAMES / TANDRA_INTRO_FPS;
+const REMOTION_DURATION_SECONDS =
+  TANDRA_INTRO_DURATION_IN_FRAMES / TANDRA_INTRO_FPS;
 
-type Props = {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  playerRef: React.RefObject<PlayerRef | null>;
-  isRemotion: boolean;
-  posterUrl?: string;
-  captionsVisible?: boolean;
+interface Props {
   captionCues?: CaptionCue[];
+  captionsVisible?: boolean;
+  isRemotion: boolean;
   isVisible: boolean;
   onControlPress?: () => void;
-};
+  playerRef: React.RefObject<PlayerRef | null>;
+  posterUrl?: string;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+}
 
 const clampRatio = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -47,7 +48,9 @@ export const VideoControls = ({
 }: Props) => {
   const progressTrackRef = useRef<HTMLDivElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(isRemotion ? REMOTION_DURATION_SECONDS : 0);
+  const [duration, setDuration] = useState(
+    isRemotion ? REMOTION_DURATION_SECONDS : 0
+  );
   const [currentTime, setCurrentTime] = useState(0);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
 
@@ -61,7 +64,7 @@ export const VideoControls = ({
     if (Number.isFinite(node.duration)) {
       setDuration(node.duration);
     }
-    setIsPlaying(!node.paused && !node.ended);
+    setIsPlaying(!(node.paused || node.ended));
   }, [videoRef]);
 
   useEffect(() => {
@@ -153,7 +156,7 @@ export const VideoControls = ({
       node.currentTime = nextTime;
       syncVideoPlaybackState();
     },
-    [duration, isRemotion, playerRef, syncVideoPlaybackState, videoRef],
+    [duration, isRemotion, playerRef, syncVideoPlaybackState, videoRef]
   );
 
   const seekFromClientX = useCallback(
@@ -166,7 +169,7 @@ export const VideoControls = ({
       const rect = track.getBoundingClientRect();
       seekToTime(clampRatio((clientX - rect.left) / rect.width) * duration);
     },
-    [duration, seekToTime],
+    [duration, seekToTime]
   );
 
   const handleProgressPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -242,7 +245,7 @@ export const VideoControls = ({
       node.pause();
       syncVideoPlaybackState();
     },
-    [isRemotion, onControlPress, playerRef, syncVideoPlaybackState, videoRef],
+    [isRemotion, onControlPress, playerRef, syncVideoPlaybackState, videoRef]
   );
 
   const showPoster = Boolean(posterUrl && !isPlaying && currentTime === 0);
@@ -254,29 +257,29 @@ export const VideoControls = ({
       ? captionCues.find(
           (cue) =>
             currentTime * TANDRA_INTRO_FPS >= cue.fromFrame &&
-            currentTime * TANDRA_INTRO_FPS < cue.toFrame,
+            currentTime * TANDRA_INTRO_FPS < cue.toFrame
         )
       : undefined;
 
   return (
     <>
       {showPoster && posterUrl ? (
-        <VideoPoster posterUrl={posterUrl} onPress={handleTogglePlay} />
+        <VideoPoster onPress={handleTogglePlay} posterUrl={posterUrl} />
       ) : null}
 
       <SeekBar
-        progress={progress}
-        progressPercent={progressPercent}
         isDragging={isDraggingProgress}
-        trackRef={progressTrackRef}
+        onKeyDown={handleProgressKeyDown}
         onPointerDown={handleProgressPointerDown}
         onPointerMove={handleProgressPointerMove}
         onPointerUp={handleProgressPointerUp}
-        onKeyDown={handleProgressKeyDown}
+        progress={progress}
+        progressPercent={progressPercent}
+        trackRef={progressTrackRef}
       />
 
       {activeCaption ? (
-        <div className="featured-video__captions-overlay" aria-hidden="true">
+        <div aria-hidden="true" className="featured-video__captions-overlay">
           <p>{activeCaption.text}</p>
         </div>
       ) : null}

@@ -1,11 +1,11 @@
-export type Review = {
-  id: number;
-  name: string;
-  text: string;
-  rating: number;
+export interface Review {
   avatar: string;
   date: string;
-};
+  id: number;
+  name: string;
+  rating: number;
+  text: string;
+}
 
 /** Google reviews synced from the homepage Elfsight widget (Birdcreek Roofing). */
 export const reviews = [

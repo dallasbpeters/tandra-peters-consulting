@@ -16,9 +16,9 @@ const QUERY = `
 `;
 
 interface ProductData {
+  image: { asset: { _ref: string } } | null;
   slug: string;
   title: string;
-  image: { asset: { _ref: string } } | null;
 }
 
 interface ProductProps {
@@ -30,11 +30,13 @@ export function Product(props: ProductProps) {
   const { id, isInline } = props;
 
   const { data: product, isLoading } = useSWR(`product-${id}`, () =>
-    client.fetch<ProductData | null>(QUERY, { id }),
+    client.fetch<ProductData | null>(QUERY, { id })
   );
 
   if (isLoading) {
-    if (isInline) return null;
+    if (isInline) {
+      return null;
+    }
 
     return (
       <div className="flex animate-pulse items-center gap-3 rounded-md border border-neutral-200 bg-white p-2">
@@ -45,13 +47,15 @@ export function Product(props: ProductProps) {
     );
   }
 
-  if (!product) return null;
+  if (!product) {
+    return null;
+  }
 
   if (isInline) {
     return (
       <Link
-        href={`/products/${product.slug}`}
         className="text-blue-600 underline hover:text-blue-700"
+        href={`/products/${product.slug}`}
       >
         {product.title}
       </Link>
@@ -60,21 +64,23 @@ export function Product(props: ProductProps) {
 
   return (
     <Link
-      href={`/products/${product.slug}`}
       className="flex items-center gap-3 rounded-md border border-neutral-200 bg-white p-2 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+      href={`/products/${product.slug}`}
     >
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-neutral-100">
         {product.image && (
           <Image
-            src={urlFor(product.image).width(80).height(80).url()}
             alt={product.title}
-            fill
             className="object-cover"
+            fill
+            src={urlFor(product.image).width(80).height(80).url()}
           />
         )}
       </div>
 
-      <span className="text-sm font-medium text-neutral-900">{product.title}</span>
+      <span className="font-medium text-neutral-900 text-sm">
+        {product.title}
+      </span>
     </Link>
   );
 }

@@ -13,6 +13,7 @@
 import type { ThreeElements } from "@react-three/fiber";
 
 declare module "react/jsx-runtime" {
+  // biome-ignore lint/style/noNamespace: JSX namespace augmentation inside declare module is the only TypeScript-supported mechanism
   namespace JSX {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface IntrinsicElements extends ThreeElements {}
@@ -20,6 +21,7 @@ declare module "react/jsx-runtime" {
 }
 
 declare module "react/jsx-dev-runtime" {
+  // biome-ignore lint/style/noNamespace: JSX namespace augmentation inside declare module is the only TypeScript-supported mechanism
   namespace JSX {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface IntrinsicElements extends ThreeElements {}
@@ -27,6 +29,7 @@ declare module "react/jsx-dev-runtime" {
 }
 
 declare module "react" {
+  // biome-ignore lint/style/noNamespace: JSX namespace augmentation inside declare module is the only TypeScript-supported mechanism
   namespace JSX {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface IntrinsicElements extends ThreeElements {}

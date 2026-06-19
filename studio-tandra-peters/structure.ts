@@ -26,11 +26,19 @@ export const structure: StructureResolver = (S) =>
     .items([
       S.listItem()
         .title("Home page")
-        .child(S.document().schemaType("homePage").documentId("homePage").title("Home page")),
+        .child(
+          S.document()
+            .schemaType("homePage")
+            .documentId("homePage")
+            .title("Home page")
+        ),
       S.listItem()
         .title("Site settings")
         .child(
-          S.document().schemaType("siteSettings").documentId("siteSettings").title("Site settings"),
+          S.document()
+            .schemaType("siteSettings")
+            .documentId("siteSettings")
+            .title("Site settings")
         ),
       S.listItem()
         .title("Roof inspections page")
@@ -38,18 +46,23 @@ export const structure: StructureResolver = (S) =>
           S.document()
             .schemaType("roofInspectionsPage")
             .documentId("roofInspectionsPage")
-            .title("Roof inspections page"),
+            .title("Roof inspections page")
         ),
       S.listItem()
         .title("AI context")
-        .child(S.document().schemaType("aiContext").documentId("aiContext").title("AI context")),
+        .child(
+          S.document()
+            .schemaType("aiContext")
+            .documentId("aiContext")
+            .title("AI context")
+        ),
       S.listItem()
         .title("SEO dashboard")
         .child(
           S.document()
             .schemaType("seoDashboardInsights")
             .documentId("seoDashboardInsights")
-            .title("SEO dashboard"),
+            .title("SEO dashboard")
         ),
       S.listItem()
         .title("Insurance workflow")
@@ -57,7 +70,7 @@ export const structure: StructureResolver = (S) =>
           S.document()
             .schemaType("workflowPage")
             .documentId("workflowPage")
-            .title("Insurance claim workflow"),
+            .title("Insurance claim workflow")
         ),
       S.listItem()
         .title("Insurance FAQs")
@@ -65,7 +78,7 @@ export const structure: StructureResolver = (S) =>
           S.document()
             .schemaType("insuranceFaqsPage")
             .documentId("insuranceFaqsPage")
-            .title("Insurance FAQs page"),
+            .title("Insurance FAQs page")
         ),
       S.listItem()
         .title("Estimator page")
@@ -73,7 +86,7 @@ export const structure: StructureResolver = (S) =>
           S.document()
             .schemaType("estimatorPage")
             .documentId("estimatorPage")
-            .title("Estimator page"),
+            .title("Estimator page")
         ),
       S.listItem()
         .title("Articles")
@@ -90,7 +103,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("articlesPage")
                     .documentId("articlesPage")
-                    .title("Articles page"),
+                    .title("Articles page")
                 ),
               // Static `documentTypeList` child (not `documentTypeListItem`): the list-item’s lazy
               // resolver depends on `parent.items.find(id)` and often fails when nested under
@@ -102,9 +115,11 @@ export const structure: StructureResolver = (S) =>
                   S.documentTypeList("post")
                     .id("articles-post-documents")
                     .title("Posts")
-                    .defaultOrdering([{ field: "publishedAt", direction: "desc" }]),
+                    .defaultOrdering([
+                      { field: "publishedAt", direction: "desc" },
+                    ])
                 ),
-            ]),
+            ])
         ),
       S.listItem()
         .title("Emails")
@@ -121,7 +136,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("clientEmail")
                     .documentId("clientEmail")
-                    .title("Client email"),
+                    .title("Client email")
                 ),
               S.listItem()
                 .title("Email signature")
@@ -130,7 +145,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("emailSignature")
                     .documentId("emailSignature")
-                    .title("Email signature"),
+                    .title("Email signature")
                 ),
               S.listItem()
                 .title("Contacts")
@@ -139,9 +154,11 @@ export const structure: StructureResolver = (S) =>
                   S.documentTypeList("emailContact")
                     .id("email-contacts-documents")
                     .title("Contacts")
-                    .defaultOrdering([{ field: "lastContactedAt", direction: "desc" }]),
+                    .defaultOrdering([
+                      { field: "lastContactedAt", direction: "desc" },
+                    ])
                 ),
-            ]),
+            ])
         ),
       S.listItem()
         .title("Video ad settings")
@@ -158,7 +175,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("roofSceneSettings")
                     .documentId("roofSceneSettings")
-                    .title("3D Roof Scene"),
+                    .title("3D Roof Scene")
                 ),
               S.listItem()
                 .title("Storm Spot Ad")
@@ -167,7 +184,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("stormSpotSettings")
                     .documentId("stormSpotSettings")
-                    .title("Storm Spot Ad"),
+                    .title("Storm Spot Ad")
                 ),
               S.listItem()
                 .title("Roof Value Ad")
@@ -176,7 +193,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("roofValueSettings")
                     .documentId("roofValueSettings")
-                    .title("Roof Value Ad"),
+                    .title("Roof Value Ad")
                 ),
               S.listItem()
                 .title("Custom Slots Ad")
@@ -185,7 +202,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("customSlotsSettings")
                     .documentId("customSlotsSettings")
-                    .title("Custom Slots Ad"),
+                    .title("Custom Slots Ad")
                 ),
               S.listItem()
                 .title("Tandra Intro Video")
@@ -194,7 +211,7 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("tandraIntroSettings")
                     .documentId("tandraIntroSettings")
-                    .title("Tandra Intro Video"),
+                    .title("Tandra Intro Video")
                 ),
               S.listItem()
                 .title("Helping Texas Homeowners Ad")
@@ -203,9 +220,9 @@ export const structure: StructureResolver = (S) =>
                   S.document()
                     .schemaType("helpingTexasHomeownersSettings")
                     .documentId("helpingTexasHomeownersSettings")
-                    .title("Helping Texas Homeowners Ad"),
+                    .title("Helping Texas Homeowners Ad")
                 ),
-            ]),
+            ])
         ),
       S.divider(),
       ...S.documentTypeListItems().filter((item) => {

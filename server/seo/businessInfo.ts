@@ -9,8 +9,10 @@
 
 export const DEFAULT_SITE_URL = "https://www.tandra.me";
 
+const TRAILING_SLASH_RE = /\/$/;
+
 export const normalizeOrigin = (value?: string): string =>
-  (value?.trim() || DEFAULT_SITE_URL).replace(/\/$/, "");
+  (value?.trim() || DEFAULT_SITE_URL).replace(TRAILING_SLASH_RE, "");
 
 export const BUSINESS = {
   name: "Tandra Peters — Roofing consultation",
@@ -90,7 +92,9 @@ const areaServedNodes = () => [
 ];
 
 /** RoofingContractor (a LocalBusiness subtype) describing the consulting service. */
-export const buildLocalBusinessSchema = (siteUrlEnv?: string): Record<string, unknown> => {
+export const buildLocalBusinessSchema = (
+  siteUrlEnv?: string
+): Record<string, unknown> => {
   const url = normalizeOrigin(siteUrlEnv);
   return {
     "@context": "https://schema.org",
@@ -126,7 +130,9 @@ export const buildLocalBusinessSchema = (siteUrlEnv?: string): Record<string, un
 };
 
 /** Person schema for Tandra Peters (entity recognition for AI / search). */
-export const buildPersonSchema = (siteUrlEnv?: string): Record<string, unknown> => {
+export const buildPersonSchema = (
+  siteUrlEnv?: string
+): Record<string, unknown> => {
   const url = normalizeOrigin(siteUrlEnv);
   return {
     "@context": "https://schema.org",

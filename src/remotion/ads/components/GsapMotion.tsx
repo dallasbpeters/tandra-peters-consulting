@@ -1,13 +1,24 @@
 import { evolvePath } from "@remotion/paths";
-import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type React from "react";
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 
 const ExpandLine: React.FC<{
   startFrame?: number;
   color?: string;
   maxWidth?: number;
   height?: number;
-}> = ({ startFrame = 0, color = "var(--color-accent)", maxWidth = 200, height = 5 }) => {
+}> = ({
+  startFrame = 0,
+  color = "var(--color-accent)",
+  maxWidth = 200,
+  height = 5,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const progress = spring({
@@ -93,28 +104,29 @@ function LogoAnimation() {
         }}
       >
         <svg
-          viewBox="0 0 147.75 117.21"
-          width={200}
+          aria-hidden="true"
           height={159}
           style={{ display: "block", overflow: "visible" }}
+          viewBox="0 0 147.75 117.21"
+          width={200}
         >
           <path
             d={BC_BIRD_PATH}
             fill="none"
             stroke="var(--color-everglade-light, #2d4a3e)"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
             strokeDasharray={evolution.strokeDasharray}
             strokeDashoffset={evolution.strokeDashoffset}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
           />
           <path
+            d={BC_BIRD_PATH}
+            fill="var(--color-everglade-light, #2d4a3e)"
             style={{
               opacity: logoFillOpacity,
               position: "absolute",
             }}
-            d={BC_BIRD_PATH}
-            fill="var(--color-everglade-light, #2d4a3e)"
           />
         </svg>
 
@@ -141,7 +153,12 @@ function LogoAnimation() {
             Birdcreek Roofing
           </p>
         </div>
-        <ExpandLine startFrame={80} maxWidth={320} height={6} color="var(--color-accent-light)" />
+        <ExpandLine
+          color="var(--color-accent-light)"
+          height={6}
+          maxWidth={320}
+          startFrame={80}
+        />
       </div>
     </AbsoluteFill>
   );

@@ -1,6 +1,8 @@
 import type { PostCategory } from "../types/article";
 
-export const postCategoryLabel = (category: PostCategory | string | undefined): string => {
+export const postCategoryLabel = (
+  category: PostCategory | string | undefined
+): string => {
   const labels: Record<string, string> = {
     "roof-replacement": "Roof replacement",
     "insurance-claims": "Insurance & claims",

@@ -9,39 +9,43 @@ export type CreativeLayout =
   | "canva-storm-overlay"
   | "canva-gradient-panel";
 
-export type FontPresetId = "brand-serif" | "clean-sans" | "condensed" | "caveat";
+export type FontPresetId =
+  | "brand-serif"
+  | "clean-sans"
+  | "condensed"
+  | "caveat";
 
-export type AdTemplatePreset = {
-  layout: CreativeLayout;
-  fontPresetId: FontPresetId;
-  contentPadding: number;
-  headlineSize: number;
-  eyebrowSize: number;
-  bodySize: number;
-  ctaSize: number;
-  eyebrow: string;
-  headline: string;
+export interface AdTemplatePreset {
+  accentColor: string;
+  backgroundColor: string;
   body: string;
+  bodySize: number;
+  contentPadding: number;
   cta: string;
+  ctaSize: number;
+  defaultImageName?: string;
+  defaultImageUrl?: string;
+  eyebrow: string;
+  eyebrowSize: number;
+  fontPresetId: FontPresetId;
   footnote: string;
   footnote2?: string;
-  backgroundColor: string;
-  textColor: string;
-  headlineColor: string;
+  headline: string;
   headlineAccentColor: string;
-  accentColor: string;
+  headlineColor: string;
+  headlineSize: number;
+  layout: CreativeLayout;
   showLogo: boolean;
-  defaultImageUrl?: string;
-  defaultImageName?: string;
-};
+  textColor: string;
+}
 
-export type AdTemplate = {
+export interface AdTemplate {
+  helper: string;
   id: string;
   label: string;
-  helper: string;
-  thumbnail: string;
   preset: AdTemplatePreset;
-};
+  thumbnail: string;
+}
 
 /** Presets sourced from https://sitepres.my.canva.site/laptop-lid */
 export const AD_TEMPLATES: readonly AdTemplate[] = [
@@ -234,7 +238,8 @@ export const LAYOUT_OPTIONS: ReadonlyArray<{
 ];
 
 export const getAdTemplate = (templateId: string) =>
-  AD_TEMPLATES.find((template) => template.id === templateId) ?? AD_TEMPLATES[0];
+  AD_TEMPLATES.find((template) => template.id === templateId) ??
+  AD_TEMPLATES[0];
 
 export const applyAdTemplatePreset = <
   T extends AdTemplatePreset & {
@@ -262,9 +267,20 @@ export const applyAdTemplatePreset = <
 >(
   current: T,
   template: AdTemplate,
-  options?: { keepImage?: boolean },
+  options?: { keepImage?: boolean }
 ) => {
   const keepImage = options?.keepImage ?? false;
+  const templateDefaultImage = template.preset.defaultImageUrl
+    ? {
+        imageFile: null as File | null,
+        imageUrl: template.preset.defaultImageUrl,
+        imageName: template.preset.defaultImageName ?? template.label,
+      }
+    : {
+        imageFile: null as File | null,
+        imageUrl: null as string | null,
+        imageName: null as string | null,
+      };
   const nextImage =
     keepImage && (current.imageUrl || current.imageFile)
       ? {
@@ -272,17 +288,7 @@ export const applyAdTemplatePreset = <
           imageUrl: current.imageUrl,
           imageName: current.imageName,
         }
-      : template.preset.defaultImageUrl
-        ? {
-            imageFile: null as File | null,
-            imageUrl: template.preset.defaultImageUrl,
-            imageName: template.preset.defaultImageName ?? template.label,
-          }
-        : {
-            imageFile: null as File | null,
-            imageUrl: null as string | null,
-            imageName: null as string | null,
-          };
+      : templateDefaultImage;
 
   return {
     ...current,

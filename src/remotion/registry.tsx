@@ -31,29 +31,27 @@ export type CompositionId =
   | "CustomSlots"
   | "HelpingTexasHomeowners";
 
-export type CompositionEntry = {
+export interface CompositionEntry {
+  /** Aspect-ratio string for the Player wrapper. */
+  aspectRatio: string;
+  component: ComponentType<Record<string, unknown>>;
+  /** Default input props used for preview when no live copy is available. */
+  defaultProps: Record<string, unknown>;
+  /** Short description for the picker. */
+  description: string;
+  durationInFrames: number;
+  fps: number;
+  height: number;
   id: CompositionId;
   /** Human label shown in the Studio picker. */
   label: string;
-  /** Short description for the picker. */
-  description: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: ComponentType<any>;
-  width: number;
-  height: number;
-  fps: number;
-  durationInFrames: number;
-  /** Aspect-ratio string for the Player wrapper. */
-  aspectRatio: string;
-  /** Default input props used for preview when no live copy is available. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultProps: Record<string, any>;
   /**
    * When set, the preview merges live Sanity copy from this homePage object
    * field into the input props. Only `TandraIntro` is CMS-backed today.
    */
   sanityField?: "tandraIntroVideo";
-};
+  width: number;
+}
 
 const ratio = (w: number, h: number): string => `${w} / ${h}`;
 
@@ -123,7 +121,8 @@ export const COMPOSITIONS: CompositionEntry[] = [
   {
     id: "HelpingTexasHomeowners",
     label: "Helping Texas homeowners",
-    description: "Vertical 4:5 multi-scene assembler with the helping-homeowners intro.",
+    description:
+      "Vertical 4:5 multi-scene assembler with the helping-homeowners intro.",
     component: CustomSlots,
     width: 1080,
     height: 1350,

@@ -12,9 +12,19 @@ import {
   Stack,
   Text,
 } from "@sanity/ui";
-import { type ComponentProps, useEffect, useId, useMemo, useState } from "react";
+import {
+  type ComponentProps,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from "react";
 import ReactMarkdown from "react-markdown";
-import { DEFAULT_STUDIO_CLIENT_OPTIONS, useClient, useRelativeTime } from "sanity";
+import {
+  DEFAULT_STUDIO_CLIENT_OPTIONS,
+  useClient,
+  useRelativeTime,
+} from "sanity";
 import { useRouter } from "sanity/router";
 
 import { ViewLayout } from "./ViewLayout";
@@ -22,21 +32,21 @@ import { ViewLayout } from "./ViewLayout";
 type BadgeTone = ComponentProps<typeof Badge>["tone"];
 
 interface Conversation {
-  _id: string;
   _createdAt: string;
-  summary: string;
-  firstMessage?: string;
-  messages: {
-    role: string;
-    content: string;
-    _key: string;
-  }[];
+  _id: string;
   classification?: {
     successRate?: number;
     agentConfusion?: number;
     userConfusion?: number;
   };
   contentGap?: string;
+  firstMessage?: string;
+  messages: {
+    role: string;
+    content: string;
+    _key: string;
+  }[];
+  summary: string;
 }
 
 const QUERY = `*[_type == "agent.conversation"] | order(_createdAt desc) {
@@ -56,7 +66,13 @@ const COLUMN_WIDTHS = {
   action: 72,
 } as const;
 
-const RESPONSIVE_DISPLAY: BoxProps["display"] = ["none", "none", "none", "none", "block"];
+const RESPONSIVE_DISPLAY: BoxProps["display"] = [
+  "none",
+  "none",
+  "none",
+  "none",
+  "block",
+];
 
 function RelativeDate(props: { date: string }) {
   const relativeTime = useRelativeTime(props.date, {
@@ -96,7 +112,7 @@ function RateBadge(props: { value: number | undefined; inverted?: boolean }) {
 
   return (
     <Flex align="center" justify="center">
-      <Badge tone={tone} fontSize={1} padding={2} radius={2}>
+      <Badge fontSize={1} padding={2} radius={2} tone={tone}>
         {value ?? 0}%
       </Badge>
     </Flex>
@@ -109,13 +125,19 @@ export function ConversationsView() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [inspectedConversationId, setInspectedConversationId] = useState<string | null>(null);
+  const [inspectedConversationId, setInspectedConversationId] = useState<
+    string | null
+  >(null);
 
   const dialogId = useId();
 
-  const inspectedConversation = useMemo(() => {
-    return conversations.find((conversation) => conversation._id === inspectedConversationId);
-  }, [conversations, inspectedConversationId]);
+  const inspectedConversation = useMemo(
+    () =>
+      conversations.find(
+        (conversation) => conversation._id === inspectedConversationId
+      ),
+    [conversations, inspectedConversationId]
+  );
 
   useEffect(() => {
     const getConversations = async () => {
@@ -124,7 +146,11 @@ export function ConversationsView() {
         setConversations(data);
         setLoading(false);
       } catch (error) {
-        setError(error instanceof Error ? error : new Error("Failed to fetch conversations"));
+        setError(
+          error instanceof Error
+            ? error
+            : new Error("Failed to fetch conversations")
+        );
       }
     };
 
@@ -133,10 +159,10 @@ export function ConversationsView() {
 
   if (error) {
     return (
-      <Flex align="center" justify="center" padding={5} height="fill">
+      <Flex align="center" height="fill" justify="center" padding={5}>
         <Container width={1}>
-          <Card padding={5} tone="critical" border radius={3}>
-            <Text size={1} muted>
+          <Card border padding={5} radius={3} tone="critical">
+            <Text muted size={1}>
               {error.message}
             </Text>
           </Card>
@@ -147,56 +173,87 @@ export function ConversationsView() {
 
   if (loading) {
     return (
-      <Flex align="center" justify="center" padding={5} height="fill">
+      <Flex align="center" height="fill" justify="center" padding={5}>
         <Spinner muted />
       </Flex>
     );
   }
 
   return (
-    <ViewLayout title="Conversations" description="View all conversations with the agent" border>
-      <Stack space={1} height="fill">
+    <ViewLayout
+      border
+      description="View all conversations with the agent"
+      title="Conversations"
+    >
+      <Stack height="fill" space={1}>
         {/* Header */}
-        <Card padding={3} borderBottom>
-          <Flex gap={4} align="center">
+        <Card borderBottom padding={3}>
+          <Flex align="center" gap={4}>
             <Box style={{ width: COLUMN_WIDTHS.date }}>
-              <Text textOverflow="ellipsis" size={1} weight="semibold" muted>
+              <Text muted size={1} textOverflow="ellipsis" weight="semibold">
                 Date
               </Text>
             </Box>
 
-            <Box flex={2} display={RESPONSIVE_DISPLAY}>
-              <Text textOverflow="ellipsis" size={1} weight="semibold" muted>
+            <Box display={RESPONSIVE_DISPLAY} flex={2}>
+              <Text muted size={1} textOverflow="ellipsis" weight="semibold">
                 Initial question
               </Text>
             </Box>
 
             <Box flex={2}>
-              <Text textOverflow="ellipsis" size={1} weight="semibold" muted>
+              <Text muted size={1} textOverflow="ellipsis" weight="semibold">
                 Summary
               </Text>
             </Box>
 
             <Box flex={2}>
-              <Text textOverflow="ellipsis" size={1} weight="semibold" muted>
+              <Text muted size={1} textOverflow="ellipsis" weight="semibold">
                 Content gap
               </Text>
             </Box>
 
-            <Box style={{ width: COLUMN_WIDTHS.success }} display={RESPONSIVE_DISPLAY}>
-              <Text textOverflow="ellipsis" align="center" size={1} weight="semibold" muted>
+            <Box
+              display={RESPONSIVE_DISPLAY}
+              style={{ width: COLUMN_WIDTHS.success }}
+            >
+              <Text
+                align="center"
+                muted
+                size={1}
+                textOverflow="ellipsis"
+                weight="semibold"
+              >
                 Success
               </Text>
             </Box>
 
-            <Box style={{ width: COLUMN_WIDTHS.confusion }} display={RESPONSIVE_DISPLAY}>
-              <Text textOverflow="ellipsis" align="center" size={1} weight="semibold" muted>
+            <Box
+              display={RESPONSIVE_DISPLAY}
+              style={{ width: COLUMN_WIDTHS.confusion }}
+            >
+              <Text
+                align="center"
+                muted
+                size={1}
+                textOverflow="ellipsis"
+                weight="semibold"
+              >
                 Agent confusion
               </Text>
             </Box>
 
-            <Box style={{ width: COLUMN_WIDTHS.confusion }} display={RESPONSIVE_DISPLAY}>
-              <Text textOverflow="ellipsis" align="center" size={1} weight="semibold" muted>
+            <Box
+              display={RESPONSIVE_DISPLAY}
+              style={{ width: COLUMN_WIDTHS.confusion }}
+            >
+              <Text
+                align="center"
+                muted
+                size={1}
+                textOverflow="ellipsis"
+                weight="semibold"
+              >
                 User confusion
               </Text>
             </Box>
@@ -207,9 +264,9 @@ export function ConversationsView() {
         </Card>
 
         {conversations.length === 0 && (
-          <Flex align="center" justify="center" height="fill">
+          <Flex align="center" height="fill" justify="center">
             <Card padding={5}>
-              <Text size={1} muted align="center">
+              <Text align="center" muted size={1}>
                 No conversations yet
               </Text>
             </Card>
@@ -221,55 +278,80 @@ export function ConversationsView() {
           const isLast = index === arr.length - 1;
 
           return (
-            <Card key={conversation._id} padding={3} borderBottom={!isLast} tone="default">
-              <Flex gap={4} align="center">
+            <Card
+              borderBottom={!isLast}
+              key={conversation._id}
+              padding={3}
+              tone="default"
+            >
+              <Flex align="center" gap={4}>
                 <Box style={{ width: COLUMN_WIDTHS.date }}>
-                  <Text size={1} muted title={conversation._createdAt}>
+                  <Text muted size={1} title={conversation._createdAt}>
                     <RelativeDate date={conversation._createdAt} />
                   </Text>
                 </Box>
 
-                <Box flex={2} display={RESPONSIVE_DISPLAY}>
-                  <Text size={1} muted>
+                <Box display={RESPONSIVE_DISPLAY} flex={2}>
+                  <Text muted size={1}>
                     {conversation.firstMessage || "—"}
                   </Text>
                 </Box>
 
                 <Box flex={2}>
-                  <Text size={1} muted>
+                  <Text muted size={1}>
                     {conversation.summary || "No summary"}
                   </Text>
                 </Box>
 
                 <Box flex={2}>
-                  <Text size={1} muted>
+                  <Text muted size={1}>
                     {conversation.contentGap || "-"}
                   </Text>
                 </Box>
 
-                <Box style={{ width: COLUMN_WIDTHS.success }} display={RESPONSIVE_DISPLAY}>
+                <Box
+                  display={RESPONSIVE_DISPLAY}
+                  style={{ width: COLUMN_WIDTHS.success }}
+                >
                   <RateBadge value={conversation.classification?.successRate} />
                 </Box>
 
-                <Box style={{ width: COLUMN_WIDTHS.confusion }} display={RESPONSIVE_DISPLAY}>
-                  <RateBadge value={conversation.classification?.agentConfusion} inverted />
+                <Box
+                  display={RESPONSIVE_DISPLAY}
+                  style={{ width: COLUMN_WIDTHS.confusion }}
+                >
+                  <RateBadge
+                    inverted
+                    value={conversation.classification?.agentConfusion}
+                  />
                 </Box>
 
-                <Box style={{ width: COLUMN_WIDTHS.confusion }} display={RESPONSIVE_DISPLAY}>
-                  <RateBadge value={conversation.classification?.userConfusion} inverted />
+                <Box
+                  display={RESPONSIVE_DISPLAY}
+                  style={{ width: COLUMN_WIDTHS.confusion }}
+                >
+                  <RateBadge
+                    inverted
+                    value={conversation.classification?.userConfusion}
+                  />
                 </Box>
 
-                <Flex align="center" gap={2} style={{ width: COLUMN_WIDTHS.action }}>
+                <Flex
+                  align="center"
+                  gap={2}
+                  style={{ width: COLUMN_WIDTHS.action }}
+                >
                   <Button
+                    fontSize={1}
                     icon={EyeOpenIcon}
                     mode="bleed"
-                    padding={2}
-                    fontSize={1}
                     onClick={() => setInspectedConversationId(conversation._id)}
+                    padding={2}
                   />
 
                   <Button
                     as="a"
+                    fontSize={1}
                     href={router.resolveIntentLink("edit", {
                       id: conversation._id,
                       type: "agent.conversation",
@@ -277,7 +359,6 @@ export function ConversationsView() {
                     icon={LinkIcon}
                     mode="bleed"
                     padding={2}
-                    fontSize={1}
                   />
                 </Flex>
               </Flex>
@@ -298,12 +379,13 @@ export function ConversationsView() {
           <Flex direction="column" gap={4} padding={4}>
             {inspectedConversation.messages.map((message) => {
               const tone = message.role === "user" ? "transparent" : "default";
-              const justify = message.role === "user" ? "flex-start" : "flex-end";
+              const justify =
+                message.role === "user" ? "flex-start" : "flex-end";
               const textAlign = message.role === "user" ? "left" : "right";
 
               return (
-                <Flex key={message._key} justify={justify}>
-                  <Stack key={message._key} space={3} flex={0.75}>
+                <Flex justify={justify} key={message._key}>
+                  <Stack flex={0.75} key={message._key} space={3}>
                     <Text
                       align={textAlign}
                       muted
@@ -315,11 +397,11 @@ export function ConversationsView() {
                     </Text>
 
                     <Card
+                      overflow="auto"
                       padding={3}
-                      tone={tone}
                       radius={3}
                       scheme={message.role === "assistant" ? "dark" : "light"}
-                      overflow="auto"
+                      tone={tone}
                     >
                       <ReactMarkdown
                         components={{

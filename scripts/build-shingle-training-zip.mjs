@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
  * Build Fal flux-lora-fast-training zip from training/roof-swatches + training/roofs.
  * Writes matching .txt captions (trigger: txshingle) and outputs training/txshingle-training.zip
  */
-import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -19,14 +19,27 @@ const TRIGGER = "txshingle";
 
 const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
+const RE_HYPHEN = /-/g;
+const RE_WORD_START = /\b\w/g;
+const RE_OK = /\bOk\b/g;
+const RE_OR = /\bOr\b/g;
+const RE_CA = /\bCa\b/g;
+const RE_IR = /\bIr\b/g;
+const RE_LOWER_UPPER_BOUNDARY = /([a-z])([A-Z])/g;
+const RE_ALPHA_DIGIT_BOUNDARY = /([A-Za-z])(\d)/g;
+const RE_MALARKEY_PREFIX = /^(architectural|designer)-/;
+const RE_MALARKEY_LOCALE_SUFFIX = /-(OK|OR|CA)-malarkey-swatch$/;
+const RE_MALARKEY_SWATCH_SUFFIX = /-malarkey-swatch$/;
+const RE_FILE_EXT = /\.[^.]+$/;
+
 const humanize = (slug) =>
   slug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\bOk\b/g, "OK")
-    .replace(/\bOr\b/g, "OR")
-    .replace(/\bCa\b/g, "CA")
-    .replace(/\bIr\b/g, "IR");
+    .replace(RE_HYPHEN, " ")
+    .replace(RE_WORD_START, (c) => c.toUpperCase())
+    .replace(RE_OK, "OK")
+    .replace(RE_OR, "OR")
+    .replace(RE_CA, "CA")
+    .replace(RE_IR, "IR");
 
 /** @param {string} name */
 const captionFor = (name) => {
@@ -36,14 +49,16 @@ const captionFor = (name) => {
     const color = humanize(
       base
         .replace("Windsor_", "")
-        .replace(/([a-z])([A-Z])/g, "$1-$2")
-        .replace(/([A-Za-z])(\d)/g, "$1-$2"),
+        .replace(RE_LOWER_UPPER_BOUNDARY, "$1-$2")
+        .replace(RE_ALPHA_DIGIT_BOUNDARY, "$1-$2")
     );
     return `${TRIGGER}, installed residential roof with Malarkey Windsor designer laminated asphalt shingles, ${color} colorway, dimensional tab shadow lines and mineral granules, natural daylight, sharp roofing photography`;
   }
 
   if (base.startsWith("Pinnacle-Impact-") && base.endsWith("-Swatch")) {
-    const color = humanize(base.replace("Pinnacle-Impact-", "").replace("-IR-Swatch", ""));
+    const color = humanize(
+      base.replace("Pinnacle-Impact-", "").replace("-IR-Swatch", "")
+    );
     return `${TRIGGER}, flat product swatch of Atlas Pinnacle Impact architectural asphalt shingle, ${color} colorway, visible mineral granules and tab shadow lines, macro texture detail, sharp manufacturer product photography`;
   }
 
@@ -56,11 +71,13 @@ const captionFor = (name) => {
   }
 
   if (base.includes("malarkey-swatch")) {
-    const line = base.startsWith("designer-") ? "designer laminated" : "architectural";
+    const line = base.startsWith("designer-")
+      ? "designer laminated"
+      : "architectural";
     const stripped = base
-      .replace(/^(architectural|designer)-/, "")
-      .replace(/-(OK|OR|CA)-malarkey-swatch$/, "")
-      .replace(/-malarkey-swatch$/, "");
+      .replace(RE_MALARKEY_PREFIX, "")
+      .replace(RE_MALARKEY_LOCALE_SUFFIX, "")
+      .replace(RE_MALARKEY_SWATCH_SUFFIX, "");
     const color = humanize(stripped);
     return `${TRIGGER}, flat product swatch of Malarkey ${line} dimensional asphalt shingle, ${color} colorway, visible mineral granules and tab shadow lines, macro texture detail, sharp manufacturer product photography`;
   }
@@ -104,12 +121,16 @@ async function main() {
     try {
       images.push(...(await collectImages(dir)));
     } catch (err) {
-      if (/** @type {NodeJS.ErrnoException} */ (err).code !== "ENOENT") throw err;
+      if (/** @type {NodeJS.ErrnoException} */ (err).code !== "ENOENT") {
+        throw err;
+      }
     }
   }
 
   if (images.length === 0) {
-    console.error("No images found under training/roof-swatches or training/roofs");
+    console.error(
+      "No images found under training/roof-swatches or training/roofs"
+    );
     process.exit(1);
   }
 
@@ -117,7 +138,7 @@ async function main() {
 
   for (const imagePath of images.sort()) {
     const caption = captionFor(imagePath);
-    const txtPath = imagePath.replace(/\.[^.]+$/, ".txt");
+    const txtPath = imagePath.replace(RE_FILE_EXT, ".txt");
     await writeFile(txtPath, `${caption}\n`, "utf8");
 
     const imageName = basename(imagePath);
@@ -134,11 +155,11 @@ async function main() {
         "-j",
         OUTPUT_ZIP,
         ...images.map((p) => basename(p)),
-        ...images.map((p) => basename(p).replace(/\.[^.]+$/, ".txt")),
+        ...images.map((p) => basename(p).replace(RE_FILE_EXT, ".txt")),
       ],
       {
         cwd: STAGING_DIR,
-      },
+      }
     );
   } finally {
     await execFileAsync("rm", ["-rf", STAGING_DIR]);

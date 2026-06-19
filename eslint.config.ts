@@ -1,9 +1,9 @@
 import css from "@eslint/css";
 import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import pluginReact from "eslint-plugin-react";
 import { reactRefresh } from "eslint-plugin-react-refresh";
-import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 

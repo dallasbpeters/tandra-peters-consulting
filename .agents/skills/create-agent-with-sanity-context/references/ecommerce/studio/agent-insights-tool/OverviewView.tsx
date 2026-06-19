@@ -1,15 +1,24 @@
-import { Box, Card, Flex, Grid, Heading, Spinner, Stack, Text } from "@sanity/ui";
+import {
+  Box,
+  Card,
+  Flex,
+  Grid,
+  Heading,
+  Spinner,
+  Stack,
+  Text,
+} from "@sanity/ui";
 import { useEffect, useState } from "react";
 import { DEFAULT_STUDIO_CLIENT_OPTIONS, useClient } from "sanity";
 
 import { ViewLayout } from "./ViewLayout";
 
 interface Stats {
-  total: number;
-  avgSuccess: number | null;
   avgAgentConfusion: number | null;
+  avgSuccess: number | null;
   avgUserConfusion: number | null;
   contentGapRate: number | null;
+  total: number;
 }
 
 const QUERY = `{
@@ -22,8 +31,8 @@ const QUERY = `{
 
 interface StatCardProps {
   label: string;
-  value: string | number;
   muted?: boolean;
+  value: string | number;
 }
 
 function StatCard(props: StatCardProps) {
@@ -32,11 +41,11 @@ function StatCard(props: StatCardProps) {
   return (
     <Card padding={4} radius={2} tone="transparent">
       <Stack space={3}>
-        <Text size={1} muted>
+        <Text muted size={1}>
           {label}
         </Text>
 
-        <Heading size={2} muted={muted}>
+        <Heading muted={muted} size={2}>
           {value}
         </Heading>
       </Stack>
@@ -58,7 +67,10 @@ export function OverviewView() {
 
   if (loading) {
     return (
-      <ViewLayout title="Overview" description="Summary of agent conversations and performance">
+      <ViewLayout
+        description="Summary of agent conversations and performance"
+        title="Overview"
+      >
         <Flex align="center" justify="center" padding={5}>
           <Spinner muted />
         </Flex>
@@ -67,7 +79,10 @@ export function OverviewView() {
   }
 
   return (
-    <ViewLayout title="Overview" description="Summary of agent conversations and performance">
+    <ViewLayout
+      description="Summary of agent conversations and performance"
+      title="Overview"
+    >
       <Box>
         <Stack space={4}>
           <Grid columns={[1, 1, 1, 3, 5]} gap={4}>
@@ -75,26 +90,26 @@ export function OverviewView() {
 
             <StatCard
               label="Avg Success Rate"
-              value={`${stats?.avgSuccess ?? 0}%`}
               muted={!stats?.avgSuccess}
+              value={`${stats?.avgSuccess ?? 0}%`}
             />
 
             <StatCard
               label="Avg Agent Confusion"
-              value={`${stats?.avgAgentConfusion ?? 0}%`}
               muted={!stats?.avgAgentConfusion}
+              value={`${stats?.avgAgentConfusion ?? 0}%`}
             />
 
             <StatCard
               label="Avg User Confusion"
-              value={`${stats?.avgUserConfusion ?? 0}%`}
               muted={!stats?.avgUserConfusion}
+              value={`${stats?.avgUserConfusion ?? 0}%`}
             />
 
             <StatCard
               label="Content Gap Rate"
-              value={`${stats?.contentGapRate ?? 0}%`}
               muted={!stats?.contentGapRate}
+              value={`${stats?.contentGapRate ?? 0}%`}
             />
           </Grid>
         </Stack>

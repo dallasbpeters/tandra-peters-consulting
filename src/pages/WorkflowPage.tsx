@@ -2,10 +2,14 @@ import {
   addEdge,
   Background,
   BackgroundVariant,
-  ConnectionMode,
-  MarkerType,
+  type Connection,
   ConnectionLineType,
+  ConnectionMode,
+  type Edge,
   Handle,
+  MarkerType,
+  type Node,
+  type NodeProps,
   Position,
   ReactFlow,
   ReactFlowProvider,
@@ -16,10 +20,6 @@ import {
   useReactFlow,
   useStore,
   useUpdateNodeInternals,
-  type Connection,
-  type Edge,
-  type Node,
-  type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -49,6 +49,7 @@ import {
   mapWorkflowPageCopy,
   type WorkflowNodeData,
 } from "../sanity/mapSanityWorkflow";
+
 const WORKFLOW_CANVAS_BOTTOM_PAD = 64;
 const WORKFLOW_MOBILE_ZOOM = 1;
 
@@ -66,13 +67,18 @@ type WorkflowEditorState =
       body: string;
     };
 
-type BoundsRect = { x: number; y: number; width: number; height: number };
+interface BoundsRect {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
 
 const measureCanvasHeight = (
   bounds: BoundsRect,
   viewportZoom: number,
   viewportAnchorY: number,
-  anchorY: number,
+  anchorY: number
 ) =>
   viewportAnchorY +
   (bounds.y + bounds.height - anchorY) * viewportZoom +
@@ -87,9 +93,19 @@ const WORKFLOW_HANDLE_POSITION: Record<WorkflowHandleId, Position> = {
   right: Position.Right,
 };
 
-const WORKFLOW_HANDLE_IDS: WorkflowHandleId[] = ["top", "right", "bottom", "left"];
-const isWorkflowHandleId = (value: string | null | undefined): value is WorkflowHandleId =>
-  value === "top" || value === "bottom" || value === "left" || value === "right";
+const WORKFLOW_HANDLE_IDS: WorkflowHandleId[] = [
+  "top",
+  "right",
+  "bottom",
+  "left",
+];
+const isWorkflowHandleId = (
+  value: string | null | undefined
+): value is WorkflowHandleId =>
+  value === "top" ||
+  value === "bottom" ||
+  value === "left" ||
+  value === "right";
 
 const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
   const edges = useStore((state) => state.edges);
@@ -131,14 +147,14 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
   // those new handles stay unregistered — so connections can't start from them
   // and new edges fail with "Couldn't create edge" (error #008). Re-measure
   // whenever the rendered handle set changes.
-  const sourceHandleKey = sourceHandles.join(",");
-  const targetHandleKey = targetHandles.join(",");
+  const _sourceHandleKey = sourceHandles.join(",");
+  const _targetHandleKey = targetHandles.join(",");
   useEffect(() => {
     updateNodeInternals(id);
-  }, [id, sourceHandleKey, targetHandleKey, updateNodeInternals]);
+  }, [id, updateNodeInternals]);
 
   return (
-    <div className={`workflow-node${data.wide ? " workflow-node--wide" : ""}`}>
+    <div className={`workflow-node${data.wide ? "workflow-node--wide" : ""}`}>
       <h3 className="workflow-node__title">{data.title}</h3>
       <p className="workflow-node__body">{data.body}</p>
       {data.subsections?.map((section) => (
@@ -149,20 +165,20 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
       ))}
       {sourceHandles.map((handleId) => (
         <Handle
-          key={`source-${handleId}`}
-          id={handleId}
-          type="source"
-          position={WORKFLOW_HANDLE_POSITION[handleId]}
           className="workflow-node__handle workflow-node__handle--source"
+          id={handleId}
+          key={`source-${handleId}`}
+          position={WORKFLOW_HANDLE_POSITION[handleId]}
+          type="source"
         />
       ))}
       {targetHandles.map((handleId) => (
         <Handle
-          key={`target-${handleId}`}
-          id={handleId}
-          type="target"
-          position={WORKFLOW_HANDLE_POSITION[handleId]}
           className="workflow-node__handle workflow-node__handle--target"
+          id={handleId}
+          key={`target-${handleId}`}
+          position={WORKFLOW_HANDLE_POSITION[handleId]}
+          type="target"
         />
       ))}
     </div>
@@ -171,29 +187,29 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
 
 const nodeTypes = { workflowStep: WorkflowStepNode };
 
-type InsuranceWorkflowDiagramProps = {
-  nodes: Node<WorkflowNodeData>[];
+interface InsuranceWorkflowDiagramProps {
   edges: Edge[];
-  viewportZoom: number;
-  viewportAnchorX: number;
-  viewportAnchorY: number;
+  estimatedNodeHeight: number;
+  nodes: Node<WorkflowNodeData>[];
   originX: number;
   originY: number;
-  estimatedNodeHeight: number;
   remountKey: string;
-};
-
-type DiagramLayoutProps = {
-  isMobile: boolean;
-  canvasRef: React.RefObject<HTMLDivElement | null>;
-  viewportZoom: number;
   viewportAnchorX: number;
   viewportAnchorY: number;
+  viewportZoom: number;
+}
+
+interface DiagramLayoutProps {
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  estimatedNodeHeight: number;
+  isMobile: boolean;
+  onCanvasHeight: (height: number) => void;
   originX: number;
   originY: number;
-  estimatedNodeHeight: number;
-  onCanvasHeight: (height: number) => void;
-};
+  viewportAnchorX: number;
+  viewportAnchorY: number;
+  viewportZoom: number;
+}
 
 /** Runs inside ReactFlowProvider — syncs viewport + canvas height after nodes measure. */
 const WorkflowDiagramLayout = ({
@@ -217,7 +233,9 @@ const WorkflowDiagramLayout = ({
 
   const syncLayout = useCallback(() => {
     const nodeList = getNodes();
-    if (!nodeList.length) return;
+    if (!nodeList.length) {
+      return;
+    }
 
     const canvasWidth = canvasRef.current?.clientWidth ?? 0;
     const zoom = isMobile ? WORKFLOW_MOBILE_ZOOM : viewportZoom;
@@ -228,7 +246,7 @@ const WorkflowDiagramLayout = ({
         nodeList,
         canvasWidth,
         originY,
-        estimatedNodeHeight,
+        estimatedNodeHeight
       );
       if (mobileStackPositionsChanged(nodeList, stacked)) {
         setNodes(stacked);
@@ -266,7 +284,9 @@ const WorkflowDiagramLayout = ({
   ]);
 
   useEffect(() => {
-    if (!nodesInitialized) return;
+    if (!nodesInitialized) {
+      return;
+    }
     syncLayout();
     requestAnimationFrame(syncLayout);
   }, [nodesInitialized, syncLayout]);
@@ -289,23 +309,30 @@ const InsuranceWorkflowDiagramInner = ({
   originX,
   originY,
   estimatedNodeHeight,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }: InsuranceWorkflowDiagramProps) => {
   const isMobile = useIsMobile(768);
   const auth = useOptionalGoogleAuthGate();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { getNodesBounds: getMeasuredNodesBounds } = useReactFlow<Node<WorkflowNodeData>, Edge>();
+  const { getNodesBounds: getMeasuredNodesBounds } = useReactFlow<
+    Node<WorkflowNodeData>,
+    Edge
+  >();
 
   const layoutNodes = useMemo(
     () =>
       isMobile
         ? estimateMobileStackedNodes(desktopNodes, originY, estimatedNodeHeight)
         : desktopNodes,
-    [desktopNodes, estimatedNodeHeight, isMobile, originY],
+    [desktopNodes, estimatedNodeHeight, isMobile, originY]
   );
 
   const layoutEdges = useMemo(
-    () => (isMobile ? remapWorkflowEdgesForVerticalStack(desktopEdges) : desktopEdges),
-    [desktopEdges, isMobile],
+    () =>
+      isMobile
+        ? remapWorkflowEdgesForVerticalStack(desktopEdges)
+        : desktopEdges,
+    [desktopEdges, isMobile]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);
@@ -319,11 +346,16 @@ const InsuranceWorkflowDiagramInner = ({
   const [editor, setEditor] = useState<WorkflowEditorState | null>(null);
   const selectedNodeIds = useMemo(
     () => nodes.filter((node) => node.selected).map((node) => node.id),
-    [nodes],
+    [nodes]
   );
 
   const [canvasHeight, setCanvasHeight] = useState(() =>
-    measureCanvasHeight(getMeasuredNodesBounds(layoutNodes), activeZoom, viewportAnchorY, originY),
+    measureCanvasHeight(
+      getMeasuredNodesBounds(layoutNodes),
+      activeZoom,
+      viewportAnchorY,
+      originY
+    )
   );
 
   const markDirty = useCallback(() => {
@@ -354,7 +386,7 @@ const InsuranceWorkflowDiagramInner = ({
         body: node.data.body,
       });
     },
-    [nodes],
+    [nodes]
   );
 
   const closeEditor = useCallback(() => {
@@ -377,8 +409,8 @@ const InsuranceWorkflowDiagramInner = ({
                 labelBgPadding: [8, 6],
                 labelBgBorderRadius: 6,
               }
-            : existingEdge,
-        ),
+            : existingEdge
+        )
       );
       markDirty();
       closeEditor();
@@ -396,8 +428,8 @@ const InsuranceWorkflowDiagramInner = ({
                 body: editor.body.trim() || existingNode.data.body,
               },
             }
-          : existingNode,
-      ),
+          : existingNode
+      )
     );
     markDirty();
     closeEditor();
@@ -430,8 +462,8 @@ const InsuranceWorkflowDiagramInner = ({
               color: "#8156f6",
             },
           },
-          existingEdges,
-        ),
+          existingEdges
+        )
       );
       markDirty();
       setEditor({
@@ -440,7 +472,7 @@ const InsuranceWorkflowDiagramInner = ({
         label: "Connection",
       });
     },
-    [isEditMode, markDirty, setEdges],
+    [isEditMode, markDirty, setEdges]
   );
 
   const onReconnect = useCallback(
@@ -464,12 +496,12 @@ const InsuranceWorkflowDiagramInner = ({
             labelBgBorderRadius: 6,
           },
           newConnection,
-          existingEdges,
-        ),
+          existingEdges
+        )
       );
       markDirty();
     },
-    [isEditMode, markDirty, setEdges],
+    [isEditMode, markDirty, setEdges]
   );
 
   const onEdgeDoubleClick = useCallback(
@@ -480,7 +512,7 @@ const InsuranceWorkflowDiagramInner = ({
 
       openEdgeEditor(edge);
     },
-    [isEditMode, openEdgeEditor],
+    [isEditMode, openEdgeEditor]
   );
 
   const onNodeDoubleClick = useCallback(
@@ -491,7 +523,7 @@ const InsuranceWorkflowDiagramInner = ({
 
       openNodeEditor(node.id);
     },
-    [isEditMode, openNodeEditor],
+    [isEditMode, openNodeEditor]
   );
 
   const removeSelectedNodes = useCallback(() => {
@@ -500,10 +532,12 @@ const InsuranceWorkflowDiagramInner = ({
     }
 
     const removed = new Set(selectedNodeIds);
-    setNodes((existingNodes) => existingNodes.filter((node) => !removed.has(node.id)));
+    setNodes((existingNodes) =>
+      existingNodes.filter((node) => !removed.has(node.id))
+    );
     setEdges((existingEdges) => {
       const kept = existingEdges.filter(
-        (edge) => !removed.has(edge.source) && !removed.has(edge.target),
+        (edge) => !(removed.has(edge.source) || removed.has(edge.target))
       );
 
       setEditor((current) => {
@@ -513,7 +547,10 @@ const InsuranceWorkflowDiagramInner = ({
         if (current.kind === "node" && removed.has(current.nodeId)) {
           return null;
         }
-        if (current.kind === "edge" && !kept.some((edge) => edge.id === current.edgeId)) {
+        if (
+          current.kind === "edge" &&
+          !kept.some((edge) => edge.id === current.edgeId)
+        ) {
           return null;
         }
         return current;
@@ -533,15 +570,19 @@ const InsuranceWorkflowDiagramInner = ({
 
       if (changes.some((change) => change.type === "remove")) {
         const removedNodeIds = new Set(
-          changes.filter((change) => change.type === "remove").map((change) => change.id),
+          changes
+            .filter((change) => change.type === "remove")
+            .map((change) => change.id)
         );
 
         setEditor((current) =>
-          current?.kind === "node" && removedNodeIds.has(current.nodeId) ? null : current,
+          current?.kind === "node" && removedNodeIds.has(current.nodeId)
+            ? null
+            : current
         );
       }
     },
-    [isEditMode, markDirty, onNodesChange],
+    [isEditMode, markDirty, onNodesChange]
   );
 
   const handleEdgesChange = useCallback<typeof onEdgesChange>(
@@ -553,18 +594,22 @@ const InsuranceWorkflowDiagramInner = ({
 
       if (changes.some((change) => change.type === "remove")) {
         const removedEdgeIds = new Set(
-          changes.filter((change) => change.type === "remove").map((change) => change.id),
+          changes
+            .filter((change) => change.type === "remove")
+            .map((change) => change.id)
         );
         setEditor((current) =>
-          current?.kind === "edge" && removedEdgeIds.has(current.edgeId) ? null : current,
+          current?.kind === "edge" && removedEdgeIds.has(current.edgeId)
+            ? null
+            : current
         );
       }
     },
-    [isEditMode, markDirty, onEdgesChange],
+    [isEditMode, markDirty, onEdgesChange]
   );
 
   const saveWorkflow = useCallback(async () => {
-    if (!isEditMode || !canEditWorkflow) {
+    if (!(isEditMode && canEditWorkflow)) {
       return;
     }
 
@@ -620,7 +665,7 @@ const InsuranceWorkflowDiagramInner = ({
           payload?.error ||
             (fallbackDetail
               ? `Could not save workflow to Sanity (${response.status}): ${fallbackDetail.slice(0, 180)}`
-              : `Could not save workflow to Sanity (${response.status}).`),
+              : `Could not save workflow to Sanity (${response.status}).`)
         );
       }
 
@@ -629,7 +674,11 @@ const InsuranceWorkflowDiagramInner = ({
       setSaveMessage("Saved to Sanity.");
     } catch (error) {
       setSaveStatus("error");
-      setSaveMessage(error instanceof Error ? error.message : "Could not save workflow to Sanity.");
+      setSaveMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not save workflow to Sanity."
+      );
     }
   }, [auth?.token, canEditWorkflow, edges, isEditMode, nodes]);
 
@@ -642,7 +691,15 @@ const InsuranceWorkflowDiagramInner = ({
     setHasUnsavedChanges(false);
     setSaveStatus("idle");
     setSaveMessage(null);
-  }, [hasUnsavedChanges, isEditMode, layoutEdges, layoutNodes, saveStatus, setEdges, setNodes]);
+  }, [
+    hasUnsavedChanges,
+    isEditMode,
+    layoutEdges,
+    layoutNodes,
+    saveStatus,
+    setEdges,
+    setNodes,
+  ]);
 
   useEffect(() => {
     if (!canEditWorkflow) {
@@ -657,39 +714,39 @@ const InsuranceWorkflowDiagramInner = ({
   }, [isEditMode]);
 
   return (
-    <div
-      ref={canvasRef}
-      className={`workflow-page__canvas${isEditMode ? " workflow-page__canvas--edit" : ""}`}
-      style={{ height: canvasHeight }}
+    <section
       aria-label="Insurance claim workflow diagram"
+      className={`workflow-page__canvas${isEditMode ? "workflow-page__canvas--edit" : ""}`}
+      ref={canvasRef}
+      style={{ height: canvasHeight }}
     >
       {!isMobile && canEditWorkflow ? (
         <div className="workflow-page__edit-controls">
           <button
-            type="button"
-            className="workflow-page__edit-toggle"
             aria-pressed={isEditMode}
+            className="workflow-page__edit-toggle"
             onClick={() => setIsEditMode((current) => !current)}
+            type="button"
           >
             {isEditMode ? "Editing on" : "Editing off"}
           </button>
           {isEditMode ? (
             <>
               <button
-                type="button"
                 className="workflow-page__save"
-                onClick={() => {
-                  void saveWorkflow();
-                }}
                 disabled={saveStatus === "saving" || !hasUnsavedChanges}
+                onClick={() => {
+                  saveWorkflow();
+                }}
+                type="button"
               >
                 {saveStatus === "saving" ? "Saving…" : "Save changes"}
               </button>
               <button
-                type="button"
                 className="workflow-page__remove-node"
-                onClick={removeSelectedNodes}
                 disabled={selectedNodeIds.length === 0}
+                onClick={removeSelectedNodes}
+                type="button"
               >
                 Remove selected node
               </button>
@@ -706,26 +763,34 @@ const InsuranceWorkflowDiagramInner = ({
         </p>
       ) : null}
       {isEditMode && editor ? (
-        <section className="workflow-page__editor-popover" role="dialog" aria-modal="false">
+        <section
+          aria-modal="false"
+          className="workflow-page__editor-popover"
+          role="dialog"
+        >
           <h2 className="workflow-page__editor-title">
-            {editor.kind === "edge" ? "Edit connection label" : "Edit workflow step"}
+            {editor.kind === "edge"
+              ? "Edit connection label"
+              : "Edit workflow step"}
           </h2>
 
           {editor.kind === "edge" ? (
             <label className="workflow-page__editor-field">
               Label
               <input
-                name="workflow-edge-label"
-                id="workflow-edge-label"
+                autoFocus
                 className="workflow-page__editor-input"
-                value={editor.label}
+                id="workflow-edge-label"
+                name="workflow-edge-label"
                 onChange={(event) =>
                   setEditor((current) =>
-                    current?.kind === "edge" ? { ...current, label: event.target.value } : current,
+                    current?.kind === "edge"
+                      ? { ...current, label: event.target.value }
+                      : current
                   )
                 }
                 placeholder="Connection label"
-                autoFocus
+                value={editor.label}
               />
             </label>
           ) : (
@@ -733,71 +798,80 @@ const InsuranceWorkflowDiagramInner = ({
               <label className="workflow-page__editor-field">
                 Title
                 <input
-                  name="workflow-step-title"
-                  id="workflow-step-title"
+                  autoFocus
                   className="workflow-page__editor-input"
-                  value={editor.title}
+                  id="workflow-step-title"
+                  name="workflow-step-title"
                   onChange={(event) =>
                     setEditor((current) =>
                       current?.kind === "node"
                         ? { ...current, title: event.target.value }
-                        : current,
+                        : current
                     )
                   }
                   placeholder="Step title"
-                  autoFocus
+                  value={editor.title}
                 />
               </label>
               <label className="workflow-page__editor-field">
                 Body
                 <textarea
-                  name="workflow-step-body"
-                  id="workflow-step-body"
                   className="workflow-page__editor-textarea"
-                  value={editor.body}
+                  id="workflow-step-body"
+                  name="workflow-step-body"
                   onChange={(event) =>
                     setEditor((current) =>
-                      current?.kind === "node" ? { ...current, body: event.target.value } : current,
+                      current?.kind === "node"
+                        ? { ...current, body: event.target.value }
+                        : current
                     )
                   }
                   placeholder="Step details"
                   rows={5}
+                  value={editor.body}
                 />
               </label>
             </>
           )}
 
           <div className="workflow-page__editor-actions">
-            <button type="button" className="workflow-page__editor-button" onClick={saveEditor}>
+            <button
+              className="workflow-page__editor-button"
+              onClick={saveEditor}
+              type="button"
+            >
               Apply
             </button>
             <button
-              type="button"
               className="workflow-page__editor-button workflow-page__editor-button--ghost"
               onClick={closeEditor}
+              type="button"
             >
               Cancel
             </button>
           </div>
         </section>
       ) : null}
-      {!isMobile ? (
-        <p className="workflow-page__pan-hint" aria-hidden>
+      {isMobile ? null : (
+        <p aria-hidden className="workflow-page__pan-hint">
           {isEditMode ? (
             <>
-              Edit mode: drag nodes or connect handles. Hold <kbd>Space</kbd> and drag to pan.
+              Edit mode: drag nodes or connect handles. Hold <kbd>Space</kbd>{" "}
+              and drag to pan.
             </>
           ) : (
             <>
               Tip: Hold <kbd>Space</kbd> and drag to pan
-              {canEditWorkflow ? " — enable editing to move and reconnect steps." : ""}
+              {canEditWorkflow
+                ? " — enable editing to move and reconnect steps."
+                : ""}
             </>
           )}
         </p>
-      ) : null}
+      )}
       <ReactFlow
-        connectionMode={ConnectionMode.Loose}
         connectionLineType={ConnectionLineType.SmoothStep}
+        connectionMode={ConnectionMode.Loose}
         deleteKeyCode={isEditMode ? ["Backspace", "Delete"] : null}
         edges={edges}
         edgesFocusable={isEditMode}
@@ -807,17 +881,17 @@ const InsuranceWorkflowDiagramInner = ({
         minZoom={activeZoom}
         nodes={nodes}
         nodesConnectable={isEditMode}
-        nodesFocusable={isEditMode}
         nodesDraggable={isEditMode}
+        nodesFocusable={isEditMode}
         nodeTypes={nodeTypes}
         onConnect={onConnect}
-        onNodeDoubleClick={onNodeDoubleClick}
         onEdgeDoubleClick={onEdgeDoubleClick}
         onEdgesChange={handleEdgesChange}
-        onReconnect={onReconnect}
+        onNodeDoubleClick={onNodeDoubleClick}
         onNodesChange={handleNodesChange}
+        onReconnect={onReconnect}
         panActivationKeyCode="Space"
-        panOnDrag={!isMobile && !isEditMode}
+        panOnDrag={!(isMobile || isEditMode)}
         panOnScroll={false}
         preventScrolling={false}
         proOptions={{ hideAttribution: true }}
@@ -826,20 +900,25 @@ const InsuranceWorkflowDiagramInner = ({
         zoomOnPinch={false}
         zoomOnScroll={false}
       >
-        <Background gap={16} size={1} color="#c8c8c4" variant={BackgroundVariant.Lines} />
+        <Background
+          color="#c8c8c4"
+          gap={16}
+          size={1}
+          variant={BackgroundVariant.Lines}
+        />
         <WorkflowDiagramLayout
-          isMobile={isMobile}
           canvasRef={canvasRef}
-          viewportZoom={viewportZoom}
-          viewportAnchorX={viewportAnchorX}
-          viewportAnchorY={viewportAnchorY}
+          estimatedNodeHeight={estimatedNodeHeight}
+          isMobile={isMobile}
+          onCanvasHeight={setCanvasHeight}
           originX={originX}
           originY={originY}
-          estimatedNodeHeight={estimatedNodeHeight}
-          onCanvasHeight={setCanvasHeight}
+          viewportAnchorX={viewportAnchorX}
+          viewportAnchorY={viewportAnchorY}
+          viewportZoom={viewportZoom}
         />
       </ReactFlow>
-    </div>
+    </section>
   );
 };
 
@@ -847,7 +926,9 @@ const InsuranceWorkflowDiagram = (props: InsuranceWorkflowDiagramProps) => {
   const isMobile = useIsMobile(768);
 
   return (
-    <ReactFlowProvider key={`${props.remountKey}-${isMobile ? "stack" : "grid"}`}>
+    <ReactFlowProvider
+      key={`${props.remountKey}-${isMobile ? "stack" : "grid"}`}
+    >
       <InsuranceWorkflowDiagramInner {...props} />
     </ReactFlowProvider>
   );
@@ -864,23 +945,21 @@ export const WorkflowPage = () => {
 
   return (
     <SitePageChrome>
-      <>
-        <header className="workflow-page__intro">
-          <h1 className="workflow-page__title">{copy.pageTitle}</h1>
-          <p className="workflow-page__lede">{copy.pageLede}</p>
-        </header>
-        {loading && !page ? (
-          <p className="workflow-page__lede" style={{ textAlign: "center" }}>
-            Loading workflow…
-          </p>
-        ) : (
-          <>
-            <InsuranceWorkflowDiagram {...diagram} />
-            <ContactBanner {...CONTACT_BANNER_WORKFLOW_FAQ} />
-            <ContactBanner {...CONTACT_BANNER_FREE_INSPECTION} />
-          </>
-        )}
-      </>
+      <header className="workflow-page__intro">
+        <h1 className="workflow-page__title">{copy.pageTitle}</h1>
+        <p className="workflow-page__lede">{copy.pageLede}</p>
+      </header>
+      {loading && !page ? (
+        <p className="workflow-page__lede" style={{ textAlign: "center" }}>
+          Loading workflow…
+        </p>
+      ) : (
+        <>
+          <InsuranceWorkflowDiagram {...diagram} />
+          <ContactBanner {...CONTACT_BANNER_WORKFLOW_FAQ} />
+          <ContactBanner {...CONTACT_BANNER_FREE_INSPECTION} />
+        </>
+      )}
     </SitePageChrome>
   );
 };

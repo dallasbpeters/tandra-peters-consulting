@@ -9,8 +9,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { listAttioPeople } from "../../server/email/attio.js";
-import { listEmailContacts, mergeRecipients } from "../../server/email/contactsStore.js";
-import { DashboardAuthError, authorizeSeoDashboardRequest } from "../../server/seo/googleAuth.js";
+import {
+  listEmailContacts,
+  mergeRecipients,
+} from "../../server/email/contactsStore.js";
+import {
+  authorizeSeoDashboardRequest,
+  DashboardAuthError,
+} from "../../server/seo/googleAuth.js";
 
 const applyCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -18,7 +24,10 @@ const applyCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   applyCors(res);
 
   if (req.method === "OPTIONS") {
@@ -36,16 +45,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     const attioToken = process.env.ATTIO_API_TOKEN?.trim();
     const sanityToken =
-      process.env.SANITY_WRITE_TOKEN?.trim() || process.env.SANITY_API_WRITE_TOKEN?.trim();
+      process.env.SANITY_WRITE_TOKEN?.trim() ||
+      process.env.SANITY_API_WRITE_TOKEN?.trim();
 
-    if (!attioToken && !sanityToken) {
+    if (!(attioToken || sanityToken)) {
       res.status(503).json({
-        error: "No recipient source configured (set SANITY_WRITE_TOKEN and/or ATTIO_API_TOKEN).",
+        error:
+          "No recipient source configured (set SANITY_WRITE_TOKEN and/or ATTIO_API_TOKEN).",
       });
       return;
     }
 
-    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const search =
+      typeof req.query.search === "string" ? req.query.search : undefined;
 
     const [attio, sanity] = await Promise.all([
       attioToken

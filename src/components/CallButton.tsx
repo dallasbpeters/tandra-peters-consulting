@@ -1,10 +1,13 @@
 import { usePostHog } from "@posthog/react";
 import { motion } from "motion/react";
-import React from "react";
+import type React from "react";
 
 import { theme } from "../theme";
 
-export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512) 968-3965" }) => {
+export const CallButton = ({
+  label = "Call or text 512-968-3965",
+  phone = "(512) 968-3965",
+}) => {
   const posthog = usePostHog();
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.body,
@@ -46,10 +49,7 @@ export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512)
   };
   return (
     <motion.button
-      style={buttonStyle}
       initial={{ opacity: 0, x: -20, rotate: -90 }}
-      whileInView={{ opacity: 1, x: 0, rotate: -90 }}
-      viewport={{ once: true }}
       onTap={() => {
         const method = window.innerWidth < 768 ? "sms" : "tel";
         posthog?.capture("call_button_tapped", { method, phone });
@@ -59,6 +59,9 @@ export const CallButton = ({ label = "Call or text 512-968-3965", phone = "(512)
           window.location.href = `tel:${phone}`;
         }
       }}
+      style={buttonStyle}
+      viewport={{ once: true }}
+      whileInView={{ opacity: 1, x: 0, rotate: -90 }}
     >
       <span style={labelStyle}>{label}</span>
     </motion.button>

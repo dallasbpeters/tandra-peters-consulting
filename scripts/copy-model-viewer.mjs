@@ -9,13 +9,15 @@ const source = path.join(
   "@google",
   "model-viewer",
   "dist",
-  "model-viewer.min.js",
+  "model-viewer.min.js"
 );
 const destDir = path.join(repoRoot, "public");
 const dest = path.join(destDir, "model-viewer.min.js");
 
 if (!existsSync(source)) {
-  console.error("[copy-model-viewer] Missing @google/model-viewer — run pnpm install.");
+  console.error(
+    "[copy-model-viewer] Missing @google/model-viewer — run pnpm install."
+  );
   process.exit(1);
 }
 

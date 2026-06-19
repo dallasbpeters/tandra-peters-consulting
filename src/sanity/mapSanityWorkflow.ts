@@ -1,41 +1,18 @@
 import { stegaClean } from "@sanity/client/stega";
-import { MarkerType, type Edge, type Node } from "@xyflow/react";
+import { type Edge, MarkerType, type Node } from "@xyflow/react";
 
 const WORKFLOW_EDGE_COLOR = "#8156f6";
 
-export type WorkflowNodeData = {
-  title: string;
+export interface WorkflowNodeData extends Record<string, unknown> {
   body: string;
-  wide?: boolean;
   subsections?: { title: string; body: string }[];
-};
+  title: string;
+  wide?: boolean;
+}
 
 type SanityDoc = Record<string, unknown>;
 
-export type WorkflowPageDoc = {
-  pageTitle?: string;
-  pageLede?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  viewportZoom?: number;
-  viewportAnchorX?: number;
-  viewportAnchorY?: number;
-  layoutOriginX?: number;
-  layoutOriginY?: number;
-  layoutNodeWidth?: number;
-  layoutNodeHeight?: number;
-  layoutColGap?: number;
-  layoutRowGap?: number;
-  layoutFinalRowExtraOffset?: number;
-  nodes?: Array<{
-    stepId?: string;
-    title?: string;
-    body?: string;
-    wide?: boolean;
-    posX?: number;
-    posY?: number;
-    subsections?: Array<{ title?: string; body?: string }>;
-  }>;
+export interface WorkflowPageDoc {
   edges?: Array<{
     edgeId?: string;
     sourceStep?: string;
@@ -45,7 +22,30 @@ export type WorkflowPageDoc = {
     label?: string;
     animated?: boolean;
   }>;
-};
+  layoutColGap?: number;
+  layoutFinalRowExtraOffset?: number;
+  layoutNodeHeight?: number;
+  layoutNodeWidth?: number;
+  layoutOriginX?: number;
+  layoutOriginY?: number;
+  layoutRowGap?: number;
+  nodes?: Array<{
+    stepId?: string;
+    title?: string;
+    body?: string;
+    wide?: boolean;
+    posX?: number;
+    posY?: number;
+    subsections?: Array<{ title?: string; body?: string }>;
+  }>;
+  pageLede?: string;
+  pageTitle?: string;
+  seoDescription?: string;
+  seoTitle?: string;
+  viewportAnchorX?: number;
+  viewportAnchorY?: number;
+  viewportZoom?: number;
+}
 
 const FALLBACK_PAGE_TITLE = "Insurance Claim Workflow";
 const FALLBACK_PAGE_LEDE =
@@ -96,15 +96,15 @@ const FALLBACK_STEPS: WorkflowNodeData[] = [
   },
 ];
 
-type WorkflowLayout = {
+interface WorkflowLayout {
+  colGap: number;
+  finalRowExtraOffset: number;
+  nodeHeight: number;
+  nodeWidth: number;
   originX: number;
   originY: number;
-  nodeWidth: number;
-  nodeHeight: number;
-  colGap: number;
   rowGap: number;
-  finalRowExtraOffset: number;
-};
+}
 
 const DEFAULT_LAYOUT: WorkflowLayout = {
   originX: 12,
@@ -124,7 +124,10 @@ const asString = (value: unknown): string | undefined => {
 const asNumber = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
 
-const layoutPosition = (index: number, layout: WorkflowLayout): { x: number; y: number } => {
+const layoutPosition = (
+  index: number,
+  layout: WorkflowLayout
+): { x: number; y: number } => {
   const rowStride = layout.nodeHeight + layout.rowGap;
   const colStride = layout.nodeWidth + layout.colGap;
 
@@ -160,7 +163,7 @@ const layoutPosition = (index: number, layout: WorkflowLayout): { x: number; y: 
 };
 
 const mapWorkflowLayout = (
-  doc: WorkflowPageDoc | SanityDoc | null | undefined,
+  doc: WorkflowPageDoc | SanityDoc | null | undefined
 ): WorkflowLayout => ({
   originX: asNumber(doc?.layoutOriginX, DEFAULT_LAYOUT.originX),
   originY: asNumber(doc?.layoutOriginY, DEFAULT_LAYOUT.originY),
@@ -168,7 +171,10 @@ const mapWorkflowLayout = (
   nodeHeight: asNumber(doc?.layoutNodeHeight, DEFAULT_LAYOUT.nodeHeight),
   colGap: asNumber(doc?.layoutColGap, DEFAULT_LAYOUT.colGap),
   rowGap: asNumber(doc?.layoutRowGap, DEFAULT_LAYOUT.rowGap),
-  finalRowExtraOffset: asNumber(doc?.layoutFinalRowExtraOffset, DEFAULT_LAYOUT.finalRowExtraOffset),
+  finalRowExtraOffset: asNumber(
+    doc?.layoutFinalRowExtraOffset,
+    DEFAULT_LAYOUT.finalRowExtraOffset
+  ),
 });
 
 const stepIndexFromId = (stepId: string): number | null => {
@@ -270,12 +276,16 @@ const buildFallbackEdges = (): Edge[] =>
     ...connection,
   }));
 
-const mapNodeData = (node: NonNullable<WorkflowPageDoc["nodes"]>[number]): WorkflowNodeData => {
+const mapNodeData = (
+  node: NonNullable<WorkflowPageDoc["nodes"]>[number]
+): WorkflowNodeData => {
   const subsections = Array.isArray(node.subsections)
     ? node.subsections.flatMap((section) => {
         const title = asString(section.title);
         const body = asString(section.body);
-        if (!title || !body) return [];
+        if (!(title && body)) {
+          return [];
+        }
         return [{ title, body }];
       })
     : undefined;
@@ -288,14 +298,19 @@ const mapNodeData = (node: NonNullable<WorkflowPageDoc["nodes"]>[number]): Workf
   };
 };
 
-export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | undefined) => {
+export const mapWorkflowDiagram = (
+  doc: WorkflowPageDoc | SanityDoc | null | undefined
+) => {
   const layout = mapWorkflowLayout(doc);
   const nodesRaw = Array.isArray(doc?.nodes) ? doc.nodes : null;
   const edgesRaw = Array.isArray(doc?.edges) ? doc.edges : null;
 
   const nodes =
     nodesRaw?.length &&
-    nodesRaw.every((node) => asString(node.stepId) && asString(node.title) && asString(node.body))
+    nodesRaw.every(
+      (node) =>
+        asString(node.stepId) && asString(node.title) && asString(node.body)
+    )
       ? [...nodesRaw]
           .sort((a, b) => {
             const ai = stepIndexFromId(asString(a.stepId) ?? "");
@@ -303,7 +318,7 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
             return (ai ?? 0) - (bi ?? 0);
           })
           .map((node) => {
-            const stepId = asString(node.stepId)!;
+            const stepId = asString(node.stepId) ?? "";
             const index = stepIndexFromId(stepId) ?? 0;
             const defaultPosition = layoutPosition(index, layout);
             return {
@@ -326,16 +341,16 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
         asString(edge.sourceStep) &&
         asString(edge.targetStep) &&
         asString(edge.sourceHandle) &&
-        asString(edge.targetHandle),
+        asString(edge.targetHandle)
       // label is intentionally optional — blank label just shows no text on the edge
     )
       ? edgesRaw.map((edge) => ({
           ...edgeDefaults,
-          id: asString(edge.edgeId)!,
-          source: asString(edge.sourceStep)!,
-          target: asString(edge.targetStep)!,
-          sourceHandle: asString(edge.sourceHandle)!,
-          targetHandle: asString(edge.targetHandle)!,
+          id: asString(edge.edgeId) ?? "",
+          source: asString(edge.sourceStep) ?? "",
+          target: asString(edge.targetStep) ?? "",
+          sourceHandle: asString(edge.sourceHandle) ?? "",
+          targetHandle: asString(edge.targetHandle) ?? "",
           ...(asString(edge.label) ? { label: asString(edge.label) } : {}),
         }))
       : buildFallbackEdges();
@@ -368,7 +383,9 @@ export const mapWorkflowDiagram = (doc: WorkflowPageDoc | SanityDoc | null | und
   };
 };
 
-export const mapWorkflowPageCopy = (doc: WorkflowPageDoc | SanityDoc | null | undefined) => {
+export const mapWorkflowPageCopy = (
+  doc: WorkflowPageDoc | SanityDoc | null | undefined
+) => {
   const pageTitle = asString(doc?.pageTitle) ?? FALLBACK_PAGE_TITLE;
   const pageLede = asString(doc?.pageLede) ?? FALLBACK_PAGE_LEDE;
 

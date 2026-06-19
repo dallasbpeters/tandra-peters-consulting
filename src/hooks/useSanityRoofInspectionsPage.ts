@@ -5,25 +5,29 @@ import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { ROOF_INSPECTIONS_PAGE_QUERY } from "../sanity/queries";
 
-type RoofInspectionsPageDoc = {
-  seoTitle?: string;
-  seoDescription?: string;
+interface RoofInspectionsPageDoc {
   roofInspection?: Record<string, unknown>;
+  seoDescription?: string;
+  seoTitle?: string;
   socialShare?: Record<string, unknown>;
-};
+}
 
-type RoofInspectionsQueryResult = {
-  page?: RoofInspectionsPageDoc | null;
+interface RoofInspectionsQueryResult {
   homeRoofInspection?: Record<string, unknown>;
   homeSocialShare?: Record<string, unknown>;
-};
+  page?: RoofInspectionsPageDoc | null;
+}
 
 export const useSanityRoofInspectionsPage = () => {
   const [page, setPage] = useState<RoofInspectionsPageDoc | null>(null);
-  const [homeRoofInspection, setHomeRoofInspection] = useState<Record<string, unknown> | null>(
-    null,
-  );
-  const [homeSocialShare, setHomeSocialShare] = useState<Record<string, unknown> | null>(null);
+  const [homeRoofInspection, setHomeRoofInspection] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const [homeSocialShare, setHomeSocialShare] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -31,7 +35,7 @@ export const useSanityRoofInspectionsPage = () => {
     try {
       const client = getSanityClient();
       const raw = await client.fetch<RoofInspectionsQueryResult | null>(
-        ROOF_INSPECTIONS_PAGE_QUERY,
+        ROOF_INSPECTIONS_PAGE_QUERY
       );
       const cleaned =
         raw && !isSanityStegaUiActive()
@@ -49,16 +53,22 @@ export const useSanityRoofInspectionsPage = () => {
   }, []);
 
   useEffect(() => {
-    void refetch();
+    refetch().catch(() => undefined);
   }, [refetch]);
 
   useEffect(() => {
     const onPresentationRefresh = () => {
-      void refetch();
+      refetch().catch(() => undefined);
     };
-    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+    window.addEventListener(
+      SANITY_PRESENTATION_REFRESH_EVENT,
+      onPresentationRefresh
+    );
     return () =>
-      window.removeEventListener(SANITY_PRESENTATION_REFRESH_EVENT, onPresentationRefresh);
+      window.removeEventListener(
+        SANITY_PRESENTATION_REFRESH_EVENT,
+        onPresentationRefresh
+      );
   }, [refetch]);
 
   return { page, homeRoofInspection, homeSocialShare, loading, error, refetch };

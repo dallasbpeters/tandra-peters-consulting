@@ -12,17 +12,17 @@ export type UnsplashImageAsset = SanityImageAsset & {
   downloadLocation?: string;
 };
 
-type UnsplashSearchPayload = {
-  images?: UnsplashImageAsset[];
+interface UnsplashSearchPayload {
   error?: string;
-};
+  images?: UnsplashImageAsset[];
+}
 
 export const useUnsplashImageSearch = (enabled: boolean) => {
   const [query, setQuery] = useState(DEFAULT_UNSPLASH_QUERY);
   const [images, setImages] = useState<UnsplashImageAsset[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
+  const [_reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!enabled) {
@@ -42,7 +42,7 @@ export const useUnsplashImageSearch = (enabled: boolean) => {
       setLoading(true);
       setError(null);
 
-      void fetch(`/api/unsplash-search?query=${encodeURIComponent(trimmedQuery)}`, {
+      fetch(`/api/unsplash-search?query=${encodeURIComponent(trimmedQuery)}`, {
         signal: abortController.signal,
       })
         .then(async (response) => {
@@ -59,7 +59,9 @@ export const useUnsplashImageSearch = (enabled: boolean) => {
           }
 
           setError(
-            searchError instanceof Error ? searchError.message : "Could not search Unsplash.",
+            searchError instanceof Error
+              ? searchError.message
+              : "Could not search Unsplash."
           );
         })
         .finally(() => {
@@ -73,7 +75,7 @@ export const useUnsplashImageSearch = (enabled: boolean) => {
       window.clearTimeout(timeout);
       abortController.abort();
     };
-  }, [enabled, query, reloadKey]);
+  }, [enabled, query]);
 
   return {
     error,

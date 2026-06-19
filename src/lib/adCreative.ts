@@ -11,28 +11,28 @@ export type PlatformShape = "square" | "wide" | "tall";
  * interpreted against the format's own width/height so the same shape scales to
  * any export size. Drives both the canvas clip mask and the on-door mockup.
  */
-export type DoorHangerCutout = {
-  /** Top corner radius (rounded "tombstone" top). */
-  topRadius: number;
-  /** Doorknob hole diameter. */
-  holeDiameter: number;
+export interface DoorHangerCutout {
   /** Distance from the top edge to the center of the hole. */
   holeCenterFromTop: number;
+  /** Doorknob hole diameter. */
+  holeDiameter: number;
   /** Width of the slit/throat that connects the hole to the top edge. */
   slotWidth: number;
-};
+  /** Top corner radius (rounded "tombstone" top). */
+  topRadius: number;
+}
 
-export type PlatformPreset = {
-  id: string;
-  label: string;
-  helper: string;
-  width: number;
-  height: number;
-  /** Natural unit of `width`/`height`. Defaults to "px" when omitted. */
-  unit?: AdUnit;
+export interface PlatformPreset {
   /** Present on die-cut door-hanger formats; enables the clip mask + mockup. */
   cutout?: DoorHangerCutout;
-};
+  height: number;
+  helper: string;
+  id: string;
+  label: string;
+  /** Natural unit of `width`/`height`. Defaults to "px" when omitted. */
+  unit?: AdUnit;
+  width: number;
+}
 
 /** Brand palette shared by the swatch grid and every ad color picker. */
 export const BRAND_SWATCHES = [
@@ -51,60 +51,72 @@ export const BRAND_SWATCHES = [
 ] as const;
 
 /** Just the hex values — the preset list react-color's BlockPicker expects. */
-export const BRAND_SWATCH_VALUES: string[] = BRAND_SWATCHES.map((swatch) => swatch.value);
+export const BRAND_SWATCH_VALUES: string[] = BRAND_SWATCHES.map(
+  (swatch) => swatch.value
+);
 
-export type CreativeState = {
-  templateId: string;
-  platformId: string;
-  unit: AdUnit;
-  adWidth: number;
+export interface CreativeState {
+  accentColor: string;
   adHeight: number;
-  layout: CreativeLayout;
-  contentPadding: number;
-  fontPresetId: FontPresetId;
-  headlineSize: number;
-  eyebrowSize: number;
+  adWidth: number;
+  backgroundColor: string;
+  body: string;
+  bodyLineHeight: number;
+  bodyOffset: number;
   bodySize: number;
+  contentPadding: number;
+  cta: string;
+  ctaLineHeight: number;
+  ctaOffset: number;
   ctaSize: number;
   eyebrow: string;
-  headline: string;
-  body: string;
-  cta: string;
+  eyebrowLineHeight: number;
+  eyebrowOffset: number;
+  eyebrowSize: number;
+  fontPresetId: FontPresetId;
   footnote: string;
   footnote2?: string;
-  backgroundColor: string;
-  textColor: string;
-  headlineColor: string;
-  headlineAccentColor: string;
-  accentColor: string;
-  showLogo: boolean;
-  logoVariant: LogoVariant;
-  showBottomBorder: boolean;
-  eyebrowLineHeight: number;
-  headlineLineHeight: number;
-  bodyLineHeight: number;
-  ctaLineHeight: number;
   footnoteLineHeight: number;
-  eyebrowOffset: number;
-  headlineOffset: number;
-  bodyOffset: number;
-  ctaOffset: number;
   footnoteOffset: number;
+  headline: string;
+  headlineAccentColor: string;
+  headlineColor: string;
+  headlineLineHeight: number;
+  headlineOffset: number;
+  headlineSize: number;
   imageFile: File | null;
-  imageUrl: string | null;
   imageName: string | null;
-};
+  imageUrl: string | null;
+  layout: CreativeLayout;
+  logoVariant: LogoVariant;
+  platformId: string;
+  showBottomBorder: boolean;
+  showLogo: boolean;
+  templateId: string;
+  textColor: string;
+  unit: AdUnit;
+}
 
 const PRINT_DPI = 300;
 
-export const formatAdDimensions = (width: number, height: number, unit: AdUnit) => {
+export const formatAdDimensions = (
+  width: number,
+  height: number,
+  unit: AdUnit
+) => {
   const suffix = unit === "px" ? "px" : "in";
-  const formattedWidth = unit === "px" ? String(Math.round(width)) : width.toFixed(2);
-  const formattedHeight = unit === "px" ? String(Math.round(height)) : height.toFixed(2);
+  const formattedWidth =
+    unit === "px" ? String(Math.round(width)) : width.toFixed(2);
+  const formattedHeight =
+    unit === "px" ? String(Math.round(height)) : height.toFixed(2);
   return `${formattedWidth} x ${formattedHeight}${suffix}`;
 };
 
-export const getExportPixelSize = (width: number, height: number, unit: AdUnit) =>
+export const getExportPixelSize = (
+  width: number,
+  height: number,
+  unit: AdUnit
+) =>
   unit === "px"
     ? { width: Math.round(width), height: Math.round(height) }
     : {

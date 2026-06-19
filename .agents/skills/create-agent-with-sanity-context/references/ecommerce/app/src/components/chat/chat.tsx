@@ -32,10 +32,14 @@ import { Message } from "./message/message";
  */
 function isWaitingForText(messages: UIMessage[]): boolean {
   const last = messages[messages.length - 1];
-  if (!last || last.role !== "assistant") return true;
+  if (!last || last.role !== "assistant") {
+    return true;
+  }
 
   const parts = last.parts ?? [];
-  if (parts.length === 0) return true;
+  if (parts.length === 0) {
+    return true;
+  }
 
   const lastPart = parts[parts.length - 1];
   return !(lastPart.type === "text" && lastPart.text.trim().length > 0);
@@ -62,70 +66,91 @@ export function Chat({ onClose }: ChatProps) {
       filters.color?.forEach((v) => params.append("color", v));
       filters.size?.forEach((v) => params.append("size", v));
       filters.brand?.forEach((v) => params.append("brand", v));
-      if (filters.minPrice) params.set("minPrice", String(filters.minPrice));
-      if (filters.maxPrice) params.set("maxPrice", String(filters.maxPrice));
-      if (filters.sort) params.set("sort", filters.sort);
+      if (filters.minPrice) {
+        params.set("minPrice", String(filters.minPrice));
+      }
+      if (filters.maxPrice) {
+        params.set("maxPrice", String(filters.maxPrice));
+      }
+      if (filters.sort) {
+        params.set("sort", filters.sort);
+      }
 
       const newUrl = `/products${params.toString() ? `?${params}` : ""}`;
       router.push(newUrl, { scroll: false });
       return newUrl;
     },
-    [router],
+    [router]
   );
 
-  const { messages, sendMessage, status, addToolOutput, error, regenerate } = useChat({
-    transport: new DefaultChatTransport({
-      body: () => ({ documentContext: getDocumentContext() }),
-    }),
-    // Auto-continue for regular tools, but skip when screenshot is pending
-    // as we send the screenshot manually after the tool output is received.
-    sendAutomaticallyWhen: ({ messages }) => {
-      if (pendingScreenshotRef.current) return false;
-      return lastAssistantMessageIsCompleteWithToolCalls({ messages });
-    },
-    onToolCall: async ({ toolCall }) => {
-      if (toolCall.dynamic) return;
-
-      const respond = (output: unknown): void => {
-        addToolOutput({ tool: toolCall.toolName, toolCallId: toolCall.toolCallId, output });
-      };
-
-      switch (toolCall.toolName) {
-        case CLIENT_TOOL_NAMES.PAGE_CONTEXT: {
-          respond(getPageContent());
+  const { messages, sendMessage, status, addToolOutput, error, regenerate } =
+    useChat({
+      transport: new DefaultChatTransport({
+        body: () => ({ documentContext: getDocumentContext() }),
+      }),
+      // Auto-continue for regular tools, but skip when screenshot is pending
+      // as we send the screenshot manually after the tool output is received.
+      sendAutomaticallyWhen: ({ messages }) => {
+        if (pendingScreenshotRef.current) {
+          return false;
+        }
+        return lastAssistantMessageIsCompleteWithToolCalls({ messages });
+      },
+      onToolCall: async ({ toolCall }) => {
+        if (toolCall.dynamic) {
           return;
         }
 
-        case CLIENT_TOOL_NAMES.SCREENSHOT: {
-          try {
-            pendingScreenshotRef.current = await captureScreenshot();
-            respond("Screenshot captured. It will arrive in the next message.");
-          } catch (err) {
-            respond(`Failed: ${err instanceof Error ? err.message : String(err)}`);
-          }
+        const respond = (output: unknown): void => {
+          addToolOutput({
+            tool: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+        };
 
-          return;
-        }
-
-        case CLIENT_TOOL_NAMES.SET_FILTERS: {
-          const parsed = productFiltersSchema.safeParse(toolCall.input);
-
-          if (!parsed.success) {
-            respond(`Invalid input: ${parsed.error.message}`);
+        switch (toolCall.toolName) {
+          case CLIENT_TOOL_NAMES.PAGE_CONTEXT: {
+            respond(getPageContent());
             return;
           }
 
-          const url = applyProductFilters(parsed.data);
-          respond(`Filters applied. Navigated to ${url}`);
+          case CLIENT_TOOL_NAMES.SCREENSHOT: {
+            try {
+              pendingScreenshotRef.current = await captureScreenshot();
+              respond(
+                "Screenshot captured. It will arrive in the next message."
+              );
+            } catch (err) {
+              respond(
+                `Failed: ${err instanceof Error ? err.message : String(err)}`
+              );
+            }
+
+            return;
+          }
+
+          case CLIENT_TOOL_NAMES.SET_FILTERS: {
+            const parsed = productFiltersSchema.safeParse(toolCall.input);
+
+            if (!parsed.success) {
+              respond(`Invalid input: ${parsed.error.message}`);
+              return;
+            }
+
+            const url = applyProductFilters(parsed.data);
+            respond(`Filters applied. Navigated to ${url}`);
+          }
         }
-      }
-    },
-  });
+      },
+    });
 
   // The `addToolOutput` does not support files, so we send the screenshot after
   // the tool output is received and the status is ready as a follow-up message.
   useEffect(() => {
-    if (status !== "ready" || !pendingScreenshotRef.current) return;
+    if (status !== "ready" || !pendingScreenshotRef.current) {
+      return;
+    }
 
     const screenshot = pendingScreenshotRef.current;
     pendingScreenshotRef.current = null;
@@ -149,7 +174,9 @@ export function Chat({ onClose }: ChatProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
     sendMessage({ text: input });
     setInput("");
   };
@@ -163,23 +190,25 @@ export function Chat({ onClose }: ChatProps) {
       className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-900 px-4 py-3">
+      <div className="flex items-center justify-between border-neutral-100 border-b bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
             <MessageCircle className="h-4 w-4 text-white" />
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-white">Shopping Assistant</h3>
+            <h3 className="font-medium text-sm text-white">
+              Shopping Assistant
+            </h3>
 
-            <p className="text-xs text-neutral-400">Ask me anything</p>
+            <p className="text-neutral-400 text-xs">Ask me anything</p>
           </div>
         </div>
 
         <button
-          type="button"
-          onClick={onClose}
           className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+          onClick={onClose}
+          type="button"
         >
           <X className="h-5 w-5" />
         </button>
@@ -188,7 +217,7 @@ export function Chat({ onClose }: ChatProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-center text-sm text-neutral-400">
+          <div className="flex h-full items-center justify-center text-center text-neutral-400 text-sm">
             <p>Ask me anything about our products.</p>
           </div>
         ) : (
@@ -199,7 +228,7 @@ export function Chat({ onClose }: ChatProps) {
 
             {showLoader && (
               <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-lg bg-neutral-100 px-4 py-2 text-sm text-neutral-900">
+                <div className="max-w-[80%] rounded-lg bg-neutral-100 px-4 py-2 text-neutral-900 text-sm">
                   <Loader />
                 </div>
               </div>
@@ -207,13 +236,13 @@ export function Chat({ onClose }: ChatProps) {
 
             {error && (
               <div className="flex justify-start">
-                <div className="flex flex-col gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="flex flex-col gap-2 rounded-lg bg-red-50 px-4 py-3 text-red-700 text-sm">
                   <span>{error.message || "Something went wrong."}</span>
 
                   <button
-                    type="button"
+                    className="w-fit rounded bg-red-600 px-3 py-1 font-medium text-white text-xs hover:bg-red-700"
                     onClick={() => regenerate()}
-                    className="w-fit rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
+                    type="button"
                   >
                     Try again
                   </button>
@@ -227,8 +256,13 @@ export function Chat({ onClose }: ChatProps) {
       </div>
 
       {/* Input */}
-      <div className="border-t border-neutral-200 p-4">
-        <ChatInput input={input} setInput={setInput} onSubmit={handleSubmit} disabled={isLoading} />
+      <div className="border-neutral-200 border-t p-4">
+        <ChatInput
+          disabled={isLoading}
+          input={input}
+          onSubmit={handleSubmit}
+          setInput={setInput}
+        />
       </div>
     </div>
   );

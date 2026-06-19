@@ -11,12 +11,17 @@
  * Returns:       { response: string }
  */
 
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { createGroq } from "@ai-sdk/groq";
 import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/context/ai-sdk";
-import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  generateText,
+  jsonSchema,
+  type ModelMessage,
+  stepCountIs,
+  type ToolSet,
+} from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -80,16 +85,18 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 ## Response format
 Use markdown. Lead with a concise summary, then structure and detail. Use code blocks with language tags for TypeScript, TSX, and GROQ.`;
 
+const RE_FUNCTION_CALL_FAILURE = /failed to call a function|failed_generation/i;
+
 const isFunctionCallFailure = (message: string): boolean =>
-  /failed to call a function|failed_generation/i.test(message);
+  RE_FUNCTION_CALL_FAILURE.test(message);
 
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
-type RpcTool = {
-  name: string;
+interface RpcTool {
   description: string;
   inputSchema: Record<string, unknown>;
-};
+  name: string;
+}
 
 const sanityMcpHeaders = (token: string) => ({
   "Content-Type": "application/json",
@@ -108,7 +115,7 @@ async function callJsonRpc(
   headers: Record<string, string>,
   method: string,
   params?: unknown,
-  id = 1,
+  id = 1
 ): Promise<unknown> {
   const res = await fetch(url, {
     method: "POST",
@@ -132,31 +139,44 @@ async function callJsonRpc(
     error?: { message: string };
   };
 
-  if (parsed.error) throw new Error(`MCP error: ${parsed.error.message}`);
+  if (parsed.error) {
+    throw new Error(`MCP error: ${parsed.error.message}`);
+  }
   return parsed.result;
 }
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin ?? "";
-  const allowed = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim());
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim());
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
   const mobbinMcpUrl = process.env.MOBBIN_MCP_URL?.trim() ?? "";
   const mobbinMcpToken = process.env.MOBBIN_MCP_BEARER_TOKEN?.trim() ?? "";
 
-  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
-  if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
+  if (!token) {
+    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  }
+  if (!groqKey) {
+    return res.status(500).json({ error: "GROQ_API_KEY not set" });
+  }
 
   const body = req.body as { messages?: ModelMessage[]; threadId?: string };
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
@@ -183,19 +203,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sanityToolsResult = (await callJsonRpc(
       SANITY_MCP_URL,
       sanityMcpHeaders(token),
-      "tools/list",
+      "tools/list"
     )) as { tools: RpcTool[] };
 
-    const allToolEntries: Array<
-      [string, RpcTool, (input: Record<string, unknown>) => Promise<string>]
-    > = sanityToolsResult.tools.map((mcpTool) => [
+    const allToolEntries: [
+      string,
+      RpcTool,
+      (input: Record<string, unknown>) => Promise<string>,
+    ][] = sanityToolsResult.tools.map((mcpTool) => [
       mcpTool.name,
       mcpTool,
       async (input: Record<string, unknown>) => {
-        const result = (await callJsonRpc(SANITY_MCP_URL, sanityMcpHeaders(token), "tools/call", {
-          name: mcpTool.name,
-          arguments: input,
-        })) as { content?: Array<{ type: string; text?: string }> };
+        const result = (await callJsonRpc(
+          SANITY_MCP_URL,
+          sanityMcpHeaders(token),
+          "tools/call",
+          {
+            name: mcpTool.name,
+            arguments: input,
+          }
+        )) as { content?: Array<{ type: string; text?: string }> };
 
         return (
           result.content
@@ -210,7 +237,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const mobbinToolsResult = (await callJsonRpc(
         mobbinMcpUrl,
         mobbinMcpHeaders(mobbinMcpToken),
-        "tools/list",
+        "tools/list"
       )) as { tools: RpcTool[] };
 
       for (const mobbinTool of mobbinToolsResult.tools) {
@@ -228,7 +255,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               {
                 name: mobbinTool.name,
                 arguments: input,
-              },
+              }
             )) as { content?: Array<{ type: string; text?: string }> };
 
             return (
@@ -247,10 +274,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         toolName,
         {
           description: mcpTool.description,
-          inputSchema: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
+          inputSchema: jsonSchema(
+            mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
+          ),
           execute,
         } as unknown as ToolSet[string],
-      ]),
+      ])
     );
 
     const groq = createGroq({ apiKey: groqKey });
@@ -258,7 +287,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const baseRequest = {
       model: groq(GROQ_MODEL),
       messages: body.messages,
-      ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
+      ...(insights
+        ? { experimental_telemetry: { isEnabled: true, ...insights } }
+        : {}),
     } as const;
 
     let text: string;
@@ -270,7 +301,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         stopWhen: stepCountIs(10),
       }));
     } catch (toolError) {
-      const toolErrorMessage = toolError instanceof Error ? toolError.message : String(toolError);
+      const toolErrorMessage =
+        toolError instanceof Error ? toolError.message : String(toolError);
       if (!isFunctionCallFailure(toolErrorMessage)) {
         throw toolError;
       }

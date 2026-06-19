@@ -1,21 +1,26 @@
 "use client";
 
-import type * as React from "react";
-
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-export function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
+export function Select(
+  props: React.ComponentProps<typeof SelectPrimitive.Root>
+) {
   return <SelectPrimitive.Root {...props} />;
 }
 
-export function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) {
+export function SelectValue(
+  props: React.ComponentProps<typeof SelectPrimitive.Value>
+) {
   return <SelectPrimitive.Value {...props} />;
 }
 
-export function SelectTrigger(props: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+export function SelectTrigger(
+  props: React.ComponentProps<typeof SelectPrimitive.Trigger>
+) {
   const { className, children, ...rest } = props;
   return (
     <SelectPrimitive.Trigger
@@ -26,7 +31,7 @@ export function SelectTrigger(props: React.ComponentProps<typeof SelectPrimitive
         "focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "[&>span]:line-clamp-1 [&>span]:flex [&>span]:items-center [&>span]:gap-2",
-        className,
+        className
       )}
       {...rest}
     >
@@ -39,21 +44,23 @@ export function SelectTrigger(props: React.ComponentProps<typeof SelectPrimitive
   );
 }
 
-export function SelectContent(props: React.ComponentProps<typeof SelectPrimitive.Content>) {
+export function SelectContent(
+  props: React.ComponentProps<typeof SelectPrimitive.Content>
+) {
   const { className, children, position = "popper", ...rest } = props;
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         className={cn(
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-neutral-200 bg-white text-neutral-900 shadow-md",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:animate-out data-[state=open]:animate-in",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
           "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          className,
+            "data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
+          className
         )}
         position={position}
         {...rest}
@@ -62,7 +69,7 @@ export function SelectContent(props: React.ComponentProps<typeof SelectPrimitive
           className={cn(
             "p-1",
             position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
           )}
         >
           {children}
@@ -72,15 +79,17 @@ export function SelectContent(props: React.ComponentProps<typeof SelectPrimitive
   );
 }
 
-export function SelectItem(props: React.ComponentProps<typeof SelectPrimitive.Item>) {
+export function SelectItem(
+  props: React.ComponentProps<typeof SelectPrimitive.Item>
+) {
   const { className, children, ...rest } = props;
   return (
     <SelectPrimitive.Item
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none",
         "focus:bg-neutral-100 focus:text-neutral-900",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        className,
+        className
       )}
       {...rest}
     >

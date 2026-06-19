@@ -1,15 +1,17 @@
 const NEXTDOOR_HOST_RE = /^https?:\/\/(?:[a-z0-9-]+\.)?nextdoor\.com\//i;
 const LOGIN_WALL_RE =
   /sign\s*in|log\s*in|join\s+nextdoor|create\s+(?:a\s+)?(?:free\s+)?account|verify\s+your\s+address/i;
+const NEXT_DATA_SCRIPT_RE =
+  /<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i;
 
-export type FetchNextdoorResult = {
-  url: string;
-  status: "success" | "login_required" | "not_found" | "error";
-  title?: string;
+export interface FetchNextdoorResult {
   body?: string;
   comments?: string[];
   message?: string;
-};
+  status: "success" | "login_required" | "not_found" | "error";
+  title?: string;
+  url: string;
+}
 
 const normalizeUrl = (raw: string): string => {
   const trimmed = raw.trim();
@@ -41,10 +43,13 @@ const decodeHtml = (value: string): string =>
     .replace(/\s+/g, " ")
     .trim();
 
-const readMetaContent = (html: string, property: string): string | undefined => {
+const readMetaContent = (
+  html: string,
+  property: string
+): string | undefined => {
   const re = new RegExp(
     `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`,
-    "i",
+    "i"
   );
   const match = html.match(re);
   return match?.[1] ? decodeHtml(match[1]) : undefined;
@@ -55,10 +60,14 @@ const stripHtml = (html: string): string =>
     html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " "),
+      .replace(/<[^>]+>/g, " ")
   );
 
-const collectStrings = (value: unknown, keys: Set<string>, out: string[]): void => {
+const collectStrings = (
+  value: unknown,
+  keys: Set<string>,
+  out: string[]
+): void => {
   if (!value || typeof value !== "object") {
     return;
   }
@@ -71,7 +80,11 @@ const collectStrings = (value: unknown, keys: Set<string>, out: string[]): void 
   }
 
   for (const [key, nested] of Object.entries(value)) {
-    if (keys.has(key) && typeof nested === "string" && nested.trim().length > 20) {
+    if (
+      keys.has(key) &&
+      typeof nested === "string" &&
+      nested.trim().length > 20
+    ) {
       out.push(nested.trim());
     }
     collectStrings(nested, keys, out);
@@ -79,9 +92,9 @@ const collectStrings = (value: unknown, keys: Set<string>, out: string[]): void 
 };
 
 const extractFromNextData = (
-  html: string,
+  html: string
 ): { title?: string; body?: string; comments: string[] } => {
-  const match = html.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
+  const match = html.match(NEXT_DATA_SCRIPT_RE);
   if (!match?.[1]) {
     return { comments: [] };
   }
@@ -94,15 +107,29 @@ const extractFromNextData = (
 
     collectStrings(
       data,
-      new Set(["body", "text", "message", "content", "postText", "subject", "title"]),
-      bodies,
+      new Set([
+        "body",
+        "text",
+        "message",
+        "content",
+        "postText",
+        "subject",
+        "title",
+      ]),
+      bodies
     );
     collectStrings(data, new Set(["title", "subject"]), titles);
-    collectStrings(data, new Set(["commentBody", "commentText", "replyText"]), comments);
+    collectStrings(
+      data,
+      new Set(["commentBody", "commentText", "replyText"]),
+      comments
+    );
 
-    const uniqueBodies = [...new Set(bodies)].sort((a, b) => b.length - a.length);
+    const uniqueBodies = [...new Set(bodies)].sort(
+      (a, b) => b.length - a.length
+    );
     const uniqueComments = [...new Set(comments)].filter(
-      (comment) => !uniqueBodies[0]?.includes(comment),
+      (comment) => !uniqueBodies[0]?.includes(comment)
     );
 
     return {
@@ -120,7 +147,7 @@ const looksLikeLoginWall = (html: string, title?: string): boolean => {
   return LOGIN_WALL_RE.test(sample);
 };
 
-const fetchHtml = async (url: string, cookie?: string): Promise<Response> => {
+const fetchHtml = (url: string, cookie?: string): Promise<Response> => {
   const headers: Record<string, string> = {
     Accept: "text/html,application/xhtml+xml",
     "Accept-Language": "en-US,en;q=0.9",
@@ -135,7 +162,10 @@ const fetchHtml = async (url: string, cookie?: string): Promise<Response> => {
   return fetch(url, { headers, redirect: "follow" });
 };
 
-const fetchViaJinaReader = async (url: string, apiKey?: string): Promise<string | null> => {
+const fetchViaJinaReader = async (
+  url: string,
+  apiKey?: string
+): Promise<string | null> => {
   const readerUrl = `https://r.jina.ai/${url}`;
   const headers: Record<string, string> = {
     Accept: "text/plain",
@@ -178,7 +208,7 @@ const formatResult = (result: FetchNextdoorResult): string => {
 
 export const fetchNextdoorThread = async (
   rawUrl: string,
-  options?: { cookie?: string; jinaApiKey?: string },
+  options?: { cookie?: string; jinaApiKey?: string }
 ): Promise<string> => {
   const url = normalizeUrl(rawUrl);
 
@@ -211,9 +241,12 @@ export const fetchNextdoorThread = async (
     }
 
     const html = await response.text();
-    const title = readMetaContent(html, "og:title") ?? readMetaContent(html, "twitter:title");
+    const title =
+      readMetaContent(html, "og:title") ??
+      readMetaContent(html, "twitter:title");
     const description =
-      readMetaContent(html, "og:description") ?? readMetaContent(html, "description");
+      readMetaContent(html, "og:description") ??
+      readMetaContent(html, "description");
     const nextData = extractFromNextData(html);
 
     if (looksLikeLoginWall(html, title) && !nextData.body && !description) {

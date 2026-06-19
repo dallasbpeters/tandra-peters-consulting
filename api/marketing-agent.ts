@@ -10,12 +10,17 @@
  * Returns:       { response: string }
  */
 
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { createGroq } from "@ai-sdk/groq";
 import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/context/ai-sdk";
-import { generateText, jsonSchema, stepCountIs, type ModelMessage, type ToolSet } from "ai";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  generateText,
+  jsonSchema,
+  type ModelMessage,
+  stepCountIs,
+  type ToolSet,
+} from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -66,11 +71,15 @@ Call \`initial_context\` to load the current content schema. Use \`groq_query\` 
 ## Response format
 Use markdown. Start with a prioritised action summary (what to do first), then detailed guidance. For keyword lists, use tables with columns: Keyword | Intent | Difficulty (Low/Med/High) | Notes. For content recommendations, include the proposed H1, target keyword, and a one-sentence angle description.`;
 
+const RE_FUNCTION_CALL_FAILURE = /failed to call a function|failed_generation/i;
+const RE_MODEL_AVAILABILITY_FAILURE =
+  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i;
+
 const isFunctionCallFailure = (message: string): boolean =>
-  /failed to call a function|failed_generation/i.test(message);
+  RE_FUNCTION_CALL_FAILURE.test(message);
 
 const isModelAvailabilityFailure = (message: string): boolean =>
-  /model.*(not found|unsupported|decommissioned|not available)|invalid model/i.test(message);
+  RE_MODEL_AVAILABILITY_FAILURE.test(message);
 
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
@@ -80,7 +89,12 @@ const mcpHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
 });
 
-async function callMcp(token: string, method: string, params?: unknown, id = 1): Promise<unknown> {
+async function callMcp(
+  token: string,
+  method: string,
+  params?: unknown,
+  id = 1
+): Promise<unknown> {
   const res = await fetch(MCP_URL, {
     method: "POST",
     headers: mcpHeaders(token),
@@ -103,29 +117,42 @@ async function callMcp(token: string, method: string, params?: unknown, id = 1):
     error?: { message: string };
   };
 
-  if (parsed.error) throw new Error(`MCP error: ${parsed.error.message}`);
+  if (parsed.error) {
+    throw new Error(`MCP error: ${parsed.error.message}`);
+  }
   return parsed.result;
 }
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin ?? "";
-  const allowed = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim());
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim());
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   const token = process.env.SANITY_API_READ_TOKEN;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!token) return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
-  if (!groqKey) return res.status(500).json({ error: "GROQ_API_KEY not set" });
+  if (!token) {
+    return res.status(500).json({ error: "SANITY_API_READ_TOKEN not set" });
+  }
+  if (!groqKey) {
+    return res.status(500).json({ error: "GROQ_API_KEY not set" });
+  }
 
   const body = req.body as { messages?: ModelMessage[]; threadId?: string };
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
@@ -177,11 +204,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mcpTool.name,
           {
             description: mcpTool.description,
-            inputSchema: jsonSchema(mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]),
+            inputSchema: jsonSchema(
+              mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
+            ),
             execute,
           } as unknown as ToolSet[string],
         ];
-      }),
+      })
     );
 
     const groq = createGroq({
@@ -191,7 +220,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const baseRequest = {
       messages: body.messages,
-      ...(insights ? { experimental_telemetry: { isEnabled: true, ...insights } } : {}),
+      ...(insights
+        ? { experimental_telemetry: { isEnabled: true, ...insights } }
+        : {}),
     } as const;
 
     const runWithModel = async (modelId: string) => {
@@ -205,7 +236,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           stopWhen: stepCountIs(10),
         }));
       } catch (toolError) {
-        const toolErrorMessage = toolError instanceof Error ? toolError.message : String(toolError);
+        const toolErrorMessage =
+          toolError instanceof Error ? toolError.message : String(toolError);
         if (!isFunctionCallFailure(toolErrorMessage)) {
           throw toolError;
         }

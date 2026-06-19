@@ -1,15 +1,13 @@
-import type { CSSProperties } from "react";
-
 import { usePostHog } from "@posthog/react";
-import React, { useState } from "react";
-
-import type { HeroProps } from "../../types";
-
+import type React from "react";
+import type { CSSProperties } from "react";
+import { useState } from "react";
 import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { layoutClass } from "../../styles/layoutClasses";
 import { theme } from "../../theme";
+import type { HeroProps } from "../../types";
 import { GoogleAuthGate } from "../GoogleAuthGate";
 import { DEFAULT_HERO_EYEBROW } from "./heroConstants";
 
@@ -20,7 +18,9 @@ const optimized = (url: string, w: number) =>
 
 const srcSet = (url: string) =>
   isSanityCdnUrl(url)
-    ? [640, 960, 1280, 1600, 2000].map((w) => `${optimized(url, w)} ${w}w`).join(", ")
+    ? [640, 960, 1280, 1600, 2000]
+        .map((w) => `${optimized(url, w)} ${w}w`)
+        .join(", ")
     : undefined;
 
 /** Direction 5 — Full-bleed photo hero. paddingTop offsets the fixed NavDualCTARail. Nav is rendered separately. */
@@ -59,7 +59,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     gradient: {
       position: "absolute",
       inset: 0,
-      background: "linear-gradient(180deg, transparent 20%, oklch(8.97% 0.008 107.13 / 0.85) 100%)",
+      background:
+        "linear-gradient(180deg, transparent 20%, oklch(8.97% 0.008 107.13 / 0.85) 100%)",
     },
     accentBar: {
       position: "absolute",
@@ -92,7 +93,9 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       gap: theme.spacing.xxxxl,
       flexDirection: isMobile ? "column" : "row",
     },
-    copyBlock: isMobile ? { maxWidth: "100%" } : { maxWidth: "40rem", flex: "0 0 40rem" },
+    copyBlock: isMobile
+      ? { maxWidth: "100%" }
+      : { maxWidth: "40rem", flex: "0 0 40rem" },
     badge: {
       display: "flex",
       alignItems: "center",
@@ -142,7 +145,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
       flexDirection: isMobile ? "column" : "row",
     },
     ctaPrimary: {
-      background: hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
+      background:
+        hovBtn === "primary" ? theme.colors.accent : theme.colors.accentLight,
       color: theme.colors.everglade,
       padding: `${theme.spacing.buttonPadYLg} ${theme.spacing.xxxxxl}`,
       fontWeight: 900,
@@ -156,7 +160,8 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
     ctaSecondary: {
       border: `1px solid ${hovBtn === "secondary" ? "oklch(100% 0 0 / 0.65)" : "oklch(100% 0 0 / 0.35)"}`,
       color: "oklch(100% 0 0)",
-      background: hovBtn === "secondary" ? "oklch(100% 0 0 / 0.08)" : "transparent",
+      background:
+        hovBtn === "secondary" ? "oklch(100% 0 0 / 0.08)" : "transparent",
       padding: `${theme.spacing.buttonPadYLg} ${theme.spacing.xxxxxl}`,
       fontWeight: 700,
       fontSize: "0.8125rem",
@@ -171,9 +176,10 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
   return (
     <div style={styles.wrapper}>
       <section style={styles.section}>
+        {/* biome-ignore lint/correctness/useImageSize: dynamic size fills viewport via CSS */}
         <img
-          aria-hidden="true"
           alt=""
+          aria-hidden="true"
           decoding="async"
           fetchPriority="high"
           sizes="100vw"
@@ -209,12 +215,12 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
                 {subtitle && (
                   <div style={styles.subtitleStyle}>
                     <RichText
-                      value={subtitle}
                       paragraphStyle={{
                         fontSize: "inherit",
                         color: "inherit",
                         lineHeight: "inherit",
                       }}
+                      value={subtitle}
                     />
                   </div>
                 )}
@@ -223,29 +229,29 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
                   <div style={styles.ctaRow}>
                     <a
                       href={ctaHref}
-                      style={styles.ctaPrimary}
-                      onMouseEnter={() => setHovBtn("primary")}
-                      onMouseLeave={() => setHovBtn(null)}
                       onClick={() =>
                         posthog?.capture("hero_cta_clicked", {
                           variant: "dual-cta-rail",
                           cta_text: ctaText,
                         })
                       }
+                      onMouseEnter={() => setHovBtn("primary")}
+                      onMouseLeave={() => setHovBtn(null)}
+                      style={styles.ctaPrimary}
                     >
                       {ctaText}
                     </a>
                     <a
                       href={secondaryCtaHref}
-                      style={styles.ctaSecondary}
-                      onMouseEnter={() => setHovBtn("secondary")}
-                      onMouseLeave={() => setHovBtn(null)}
                       onClick={() =>
                         posthog?.capture("hero_secondary_cta_clicked", {
                           variant: "dual-cta-rail",
                           cta_text: secondaryCtaText,
                         })
                       }
+                      onMouseEnter={() => setHovBtn("secondary")}
+                      onMouseLeave={() => setHovBtn(null)}
+                      style={styles.ctaSecondary}
                     >
                       {secondaryCtaText}
                     </a>
@@ -257,7 +263,7 @@ export const HeroDualCTARail: React.FC<HeroProps> = ({
               <div
                 className="elfsight-app-367b8f47-df3d-45c0-a27e-555bc948bfac"
                 data-elfsight-app-lazy
-              ></div>
+              />
             </div>
           </div>
         </div>

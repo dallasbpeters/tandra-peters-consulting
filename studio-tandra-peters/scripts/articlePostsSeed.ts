@@ -3,12 +3,11 @@ import type { SanityClient } from "@sanity/client";
 
 import { blocksFromParagraphs } from "./blocksFromText";
 
-type ArticleSeed = {
+interface ArticleSeed {
   _id: string;
   _type: "post";
-  title: string;
-  slug: { _type: "slug"; current: string };
-  publishedAt: string;
+  authorName: string;
+  body: ReturnType<typeof blocksFromParagraphs>;
   category:
     | "roof-replacement"
     | "insurance-claims"
@@ -16,19 +15,24 @@ type ArticleSeed = {
     | "maintenance"
     | "texas-homeowners";
   excerpt: string;
+  publishedAt: string;
   seoDescription: string;
-  authorName: string;
-  body: ReturnType<typeof blocksFromParagraphs>;
-};
+  slug: { _type: "slug"; current: string };
+  title: string;
+}
 
-const bp = (paragraphs: string[], prefix: string) => blocksFromParagraphs(paragraphs, prefix);
+const bp = (paragraphs: string[], prefix: string) =>
+  blocksFromParagraphs(paragraphs, prefix);
 
 export const articlePostsSeed: ArticleSeed[] = [
   {
     _id: "post-texas-roof-replacement-process",
     _type: "post",
     title: "The Texas Roof Replacement Process: What Homeowners Should Expect",
-    slug: { _type: "slug", current: "texas-roof-replacement-process-homeowners-guide" },
+    slug: {
+      _type: "slug",
+      current: "texas-roof-replacement-process-homeowners-guide",
+    },
     publishedAt: "2025-11-18T15:00:00.000Z",
     category: "roof-replacement",
     excerpt:
@@ -44,14 +48,17 @@ export const articlePostsSeed: ArticleSeed[] = [
         "During installation, clear communication and site visits keep the project aligned with what you approved. After completion, final invoicing and certificates of completion submitted to the carrier (when applicable) close the loop so your documentation matches the work performed.",
         "As a Birdcreek Roofing consultant, I help homeowners interpret findings, understand options, and stay oriented through each phase—so education, advocacy, and professional installation stay connected.",
       ],
-      "art-tx-replace",
+      "art-tx-replace"
     ),
   },
   {
     _id: "post-professional-roof-inspection",
     _type: "post",
     title: "What to Expect During a Professional Roof Inspection",
-    slug: { _type: "slug", current: "what-to-expect-professional-roof-inspection" },
+    slug: {
+      _type: "slug",
+      current: "what-to-expect-professional-roof-inspection",
+    },
     publishedAt: "2025-11-05T15:00:00.000Z",
     category: "inspections",
     excerpt:
@@ -66,14 +73,17 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Inside the attic, inspectors look for moisture staining, compressed insulation, daylight through the deck, and whether intake and exhaust ventilation are balanced enough for our Texas heat.",
         "You should leave with plain-language notes on what is urgent, what can be monitored, and what to discuss with insurers or contractors. Good documentation makes the next step—repair, replacement, or claim support—much clearer.",
       ],
-      "art-insp",
+      "art-insp"
     ),
   },
   {
     _id: "post-insurance-roof-claims",
     _type: "post",
     title: "Homeowners Insurance and Roof Damage: A Practical Guide",
-    slug: { _type: "slug", current: "homeowners-insurance-roof-damage-claims-guide" },
+    slug: {
+      _type: "slug",
+      current: "homeowners-insurance-roof-damage-claims-guide",
+    },
     publishedAt: "2025-10-22T15:00:00.000Z",
     category: "insurance-claims",
     excerpt:
@@ -88,7 +98,7 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Policies and outcomes vary by carrier and coverage; no article can guarantee a result. What you can control is organization: dates, photos, estimates, and a written understanding of what was approved or denied.",
         "As a consultant working within the Birdcreek Roofing model, I help homeowners read estimates, ask better questions, and advocate for fair scopes when appropriate—without promising outcomes your policy cannot support.",
       ],
-      "art-ins",
+      "art-ins"
     ),
   },
   {
@@ -110,7 +120,7 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Texas sun and attic temperatures punish under-ventilated assemblies regardless of surface material. If you are investing in a new roof, treat ventilation and flashing upgrades as part of the system—not an afterthought.",
         "Your best choice depends on architecture, HOA rules, insurance considerations, and how long you plan to stay. A consultant-led review helps you compare realistic lifecycle costs instead of brochure promises.",
       ],
-      "art-shingle-metal",
+      "art-shingle-metal"
     ),
   },
   {
@@ -132,14 +142,17 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Insurance decisions hinge on policy language and adjuster findings. Clear photos, dated notes, and a defensible scope from your contractor help carriers evaluate the loss fairly.",
         "If you are unsure, start with an inspection and a written explanation of options. You can always phase repairs, but you should never guess about structural or moisture risk.",
       ],
-      "art-storm",
+      "art-storm"
     ),
   },
   {
     _id: "post-choose-consultant-austin",
     _type: "post",
     title: "How to Choose a Roofing Consultant in Austin (and Across Texas)",
-    slug: { _type: "slug", current: "how-to-choose-roofing-consultant-austin-texas" },
+    slug: {
+      _type: "slug",
+      current: "how-to-choose-roofing-consultant-austin-texas",
+    },
     publishedAt: "2025-09-01T15:00:00.000Z",
     category: "texas-homeowners",
     excerpt:
@@ -154,14 +167,17 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Experience with Texas weather patterns, insurance documentation, and multi-story or complex roof geometry matters. Look for specifics in past projects, not generic promises.",
         "Trust your instincts on communication. If you do not understand the plan, keep asking questions until you do. A good consultant welcomes that.",
       ],
-      "art-consultant",
+      "art-consultant"
     ),
   },
   {
     _id: "post-maintain-new-roof",
     _type: "post",
     title: "Maintaining Your Roof After Installation",
-    slug: { _type: "slug", current: "maintaining-your-roof-after-installation" },
+    slug: {
+      _type: "slug",
+      current: "maintaining-your-roof-after-installation",
+    },
     publishedAt: "2025-08-15T15:00:00.000Z",
     category: "maintenance",
     excerpt:
@@ -176,14 +192,17 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Walk the perimeter after major storms and look for displaced metal, lifted tabs, or new interior ceiling spots. Early catches are almost always cheaper than late leaks.",
         "Consider a professional check-in before hail season if your roof is mid-life. Maintenance is about extending performance—not waiting for an emergency.",
       ],
-      "art-maintain",
+      "art-maintain"
     ),
   },
   {
     _id: "post-texas-weather-lifespan",
     _type: "post",
     title: "Texas Weather and Your Roof: Lifespan and Warning Signs",
-    slug: { _type: "slug", current: "texas-weather-roof-lifespan-warning-signs" },
+    slug: {
+      _type: "slug",
+      current: "texas-weather-roof-lifespan-warning-signs",
+    },
     publishedAt: "2025-08-01T15:00:00.000Z",
     category: "texas-homeowners",
     excerpt:
@@ -198,7 +217,7 @@ export const articlePostsSeed: ArticleSeed[] = [
         "Attic ventilation imbalances can cook shingles from underneath even when the exterior looks “fine.” If upstairs rooms run hot or your ridge looks weathered unevenly, ask about airflow.",
         "Proactive inspections help you plan replacement on your timeline instead of reacting to interior damage. That is usually better for budget and insurance conversations alike.",
       ],
-      "art-weather",
+      "art-weather"
     ),
   },
 ];
@@ -219,9 +238,9 @@ export const patchHomePageArticleRefs = async (client: SanityClient) => {
   const updated: string[] = [];
   for (const id of HOME_PAGE_IDS) {
     try {
-      const sections = await client.fetch<Array<Record<string, unknown>> | null>(
-        `*[_id == $id][0].sections`,
-        { id },
+      const sections = await client.fetch<Record<string, unknown>[] | null>(
+        "*[_id == $id][0].sections",
+        { id }
       );
       if (!Array.isArray(sections)) {
         continue;
@@ -249,6 +268,8 @@ export const patchHomePageArticleRefs = async (client: SanityClient) => {
     }
   }
   if (updated.length > 0) {
-    console.log(`Synced home article list (${refs.length} refs): ${updated.join(", ")}`);
+    console.log(
+      `Synced home article list (${refs.length} refs): ${updated.join(", ")}`
+    );
   }
 };

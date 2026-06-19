@@ -1,30 +1,44 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin } from "vite";
-
 import { createClient } from "@sanity/client";
 import { Resend } from "resend";
-
-import type { ClientEmailContent, EmailAssets, EmailRecipient } from "../server/email/types.js";
-
+import type { Plugin } from "vite";
 import { listAttioPeople, postAttioPersonNote } from "../server/email/attio.js";
-import { listEmailContacts, mergeRecipients } from "../server/email/contactsStore.js";
+import {
+  listEmailContacts,
+  mergeRecipients,
+} from "../server/email/contactsStore.js";
 import { fetchClientEmail } from "../server/email/sanity.js";
 import { renderClientEmail } from "../server/email/template.js";
-import { DashboardAuthError, authorizeSeoDashboardRequest } from "../server/seo/googleAuth.js";
+import type {
+  ClientEmailContent,
+  EmailAssets,
+  EmailRecipient,
+} from "../server/email/types.js";
+import {
+  authorizeSeoDashboardRequest,
+  DashboardAuthError,
+} from "../server/seo/googleAuth.js";
 
 const RENDER_PATH = "/api/email/render";
 const RECIPIENTS_PATH = "/api/email/recipients";
 const SEND_PATH = "/api/email/send";
 const SAVE_DEFAULT_PATH = "/api/email/save-default";
-const EMAIL_PATHS = new Set([RENDER_PATH, RECIPIENTS_PATH, SEND_PATH, SAVE_DEFAULT_PATH]);
+const EMAIL_PATHS = new Set([
+  RENDER_PATH,
+  RECIPIENTS_PATH,
+  SEND_PATH,
+  SAVE_DEFAULT_PATH,
+]);
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 const SANITY_API_VERSION = "2026-05-29";
 const CLIENT_EMAIL_DOCUMENT_ID = "clientEmail";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TRAILING_SLASH_RE = /\/$/;
 
-const pathnameOnly = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+const pathnameOnly = (url: string | undefined): string =>
+  (url ?? "").split("?")[0] ?? "";
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -52,14 +66,17 @@ const pick = (env: Record<string, string>, key: string): string =>
   env[key]?.trim() || process.env[key]?.trim() || "";
 
 const assetsFrom = (env: Record<string, string>): EmailAssets => {
-  const base = (pick(env, "EMAIL_ASSET_BASE_URL") || "https://www.tandra.me").replace(/\/$/, "");
+  const base = (
+    pick(env, "EMAIL_ASSET_BASE_URL") || "https://www.tandra.me"
+  ).replace(TRAILING_SLASH_RE, "");
   return {
     headerLogoUrl: `${base}/BC_Horizontal_Color.png`,
     signatureLogoFallback: `${base}/BC_Horizontal_Color.png`,
   };
 };
 
-const str = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const str = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
 
 const rand = () => Math.random().toString(36).slice(2, 10);
 
@@ -67,18 +84,28 @@ type LooseObject = Record<string, unknown> & { _key?: string; _type?: string };
 
 /** Ensure every block, span, and markDef carries a `_key` (Sanity rejects keyless array items). */
 const normalizeBlocks = (input: unknown): LooseObject[] => {
-  if (!Array.isArray(input)) return [];
+  if (!Array.isArray(input)) {
+    return [];
+  }
   return input
     .map((raw, i): LooseObject | null => {
-      if (!raw || typeof raw !== "object") return null;
+      if (!raw || typeof raw !== "object") {
+        return null;
+      }
       const block: LooseObject = { ...(raw as LooseObject) };
-      if (!block._key) block._key = `b-${i}-${rand()}`;
+      if (!block._key) {
+        block._key = `b-${i}-${rand()}`;
+      }
       if (Array.isArray(block.children)) {
         block.children = block.children
           .map((child, ci): LooseObject | null => {
-            if (!child || typeof child !== "object") return null;
+            if (!child || typeof child !== "object") {
+              return null;
+            }
             const span: LooseObject = { ...(child as LooseObject) };
-            if (!span._key) span._key = `s-${i}-${ci}-${rand()}`;
+            if (!span._key) {
+              span._key = `s-${i}-${ci}-${rand()}`;
+            }
             return span;
           })
           .filter((c): c is LooseObject => c !== null);
@@ -86,9 +113,13 @@ const normalizeBlocks = (input: unknown): LooseObject[] => {
       if (Array.isArray(block.markDefs)) {
         block.markDefs = block.markDefs
           .map((def, di): LooseObject | null => {
-            if (!def || typeof def !== "object") return null;
+            if (!def || typeof def !== "object") {
+              return null;
+            }
             const markDef: LooseObject = { ...(def as LooseObject) };
-            if (!markDef._key) markDef._key = `m-${i}-${di}-${rand()}`;
+            if (!markDef._key) {
+              markDef._key = `m-${i}-${di}-${rand()}`;
+            }
             return markDef;
           })
           .filter((d): d is LooseObject => d !== null);
@@ -99,18 +130,28 @@ const normalizeBlocks = (input: unknown): LooseObject[] => {
 };
 
 const parseRecipients = (value: unknown): EmailRecipient[] => {
-  if (!Array.isArray(value)) return [];
+  if (!Array.isArray(value)) {
+    return [];
+  }
   const seen = new Set<string>();
   const out: EmailRecipient[] = [];
   for (const item of value) {
-    if (!item || typeof item !== "object") continue;
+    if (!item || typeof item !== "object") {
+      continue;
+    }
     const rec = item as Record<string, unknown>;
-    const email = typeof rec.email === "string" ? rec.email.trim().toLowerCase() : "";
-    if (!email || !EMAIL_RE.test(email) || seen.has(email)) continue;
+    const email =
+      typeof rec.email === "string" ? rec.email.trim().toLowerCase() : "";
+    if (!(email && EMAIL_RE.test(email)) || seen.has(email)) {
+      continue;
+    }
     seen.add(email);
     out.push({
       id: typeof rec.id === "string" ? rec.id : "",
-      name: typeof rec.name === "string" && rec.name.trim() ? rec.name.trim() : email,
+      name:
+        typeof rec.name === "string" && rec.name.trim()
+          ? rec.name.trim()
+          : email,
       email,
     });
   }
@@ -118,7 +159,9 @@ const parseRecipients = (value: unknown): EmailRecipient[] => {
 };
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
-  if (!buffer.length) return {};
+  if (!buffer.length) {
+    return {};
+  }
   try {
     return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
   } catch {
@@ -134,6 +177,7 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
 export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
   name: "vite-email-dev-api",
   configureServer(server) {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       const pathname = pathnameOnly(req.url);
       if (!EMAIL_PATHS.has(pathname)) {
@@ -151,8 +195,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
 
       try {
         await authorizeSeoDashboardRequest(
-          typeof req.headers.authorization === "string" ? req.headers.authorization : undefined,
-          env,
+          typeof req.headers.authorization === "string"
+            ? req.headers.authorization
+            : undefined,
+          env
         );
 
         if (pathname === RECIPIENTS_PATH) {
@@ -162,15 +208,19 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
           }
           const attioToken = pick(env, "ATTIO_API_TOKEN");
           const sanityToken =
-            pick(env, "SANITY_WRITE_TOKEN") || pick(env, "SANITY_API_WRITE_TOKEN");
-          if (!attioToken && !sanityToken) {
+            pick(env, "SANITY_WRITE_TOKEN") ||
+            pick(env, "SANITY_API_WRITE_TOKEN");
+          if (!(attioToken || sanityToken)) {
             json(res, 503, {
               error:
                 "No recipient source configured (set SANITY_WRITE_TOKEN and/or ATTIO_API_TOKEN).",
             });
             return;
           }
-          const requestUrl = new URL(req.url ?? RECIPIENTS_PATH, "http://localhost");
+          const requestUrl = new URL(
+            req.url ?? RECIPIENTS_PATH,
+            "http://localhost"
+          );
           const search = requestUrl.searchParams.get("search") ?? undefined;
           const [attio, sanity] = await Promise.all([
             attioToken
@@ -210,9 +260,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
           }
           const apiKey = pick(env, "RESEND_API_KEY");
           const from = pick(env, "EMAIL_FROM");
-          if (!apiKey || !from) {
+          if (!(apiKey && from)) {
             json(res, 503, {
-              error: "Email sending is not configured (missing RESEND_API_KEY or EMAIL_FROM).",
+              error:
+                "Email sending is not configured (missing RESEND_API_KEY or EMAIL_FROM).",
             });
             return;
           }
@@ -222,9 +273,12 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             json(res, 400, { error: "Add at least one valid recipient." });
             return;
           }
-          const content = (body.content as ClientEmailContent | undefined) ?? {};
-          const subject = content.subject?.trim() || "A note from Tandra Peters";
-          const replyTo = pick(env, "EMAIL_REPLY_TO") || content.signature?.email?.trim();
+          const content =
+            (body.content as ClientEmailContent | undefined) ?? {};
+          const subject =
+            content.subject?.trim() || "A note from Tandra Peters";
+          const replyTo =
+            pick(env, "EMAIL_REPLY_TO") || content.signature?.email?.trim();
           const html = await renderClientEmail(content, assetsFrom(env));
 
           const resend = new Resend(apiKey);
@@ -255,7 +309,7 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
                   attioToken,
                   recipient.id,
                   `Email sent · ${subject} · ${today}`,
-                  `Subject: ${subject}\nSent to: ${recipient.email}\nSource: Email composer (dev)`,
+                  `Subject: ${subject}\nSent to: ${recipient.email}\nSource: Email composer (dev)`
                 );
               }
             } catch (err) {
@@ -277,15 +331,19 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             json(res, 405, { error: "Method not allowed" });
             return;
           }
-          const token = pick(env, "SANITY_WRITE_TOKEN") || pick(env, "SANITY_API_WRITE_TOKEN");
+          const token =
+            pick(env, "SANITY_WRITE_TOKEN") ||
+            pick(env, "SANITY_API_WRITE_TOKEN");
           if (!token) {
             json(res, 503, {
-              error: "Saving defaults is not configured (missing SANITY_WRITE_TOKEN).",
+              error:
+                "Saving defaults is not configured (missing SANITY_WRITE_TOKEN).",
             });
             return;
           }
           const body = parseJson(await readBody(req));
-          const content = (body.content as ClientEmailContent | undefined) ?? {};
+          const content =
+            (body.content as ClientEmailContent | undefined) ?? {};
           const fields = {
             subject: str(content.subject),
             previewText: str(content.previewText),
@@ -322,7 +380,10 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
         }
         console.error("[vite-email-dev-api]", pathname, error);
         json(res, 500, {
-          error: error instanceof Error ? error.message : "Unexpected email API error.",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unexpected email API error.",
         });
       }
     });

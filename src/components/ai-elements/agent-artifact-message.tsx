@@ -6,8 +6,8 @@ import { useCallback, useState } from "react";
 import { parseAgentArtifactText } from "../../lib/parseAgentArtifact";
 import {
   Artifact,
-  ArtifactActions,
   ArtifactAction,
+  ArtifactActions,
   ArtifactContent,
   ArtifactDescription,
   ArtifactHeader,
@@ -15,18 +15,16 @@ import {
 } from "./artifact";
 import { MessageResponse } from "./message";
 
-type Props = {
+interface Props {
   text: string;
-};
+}
 
 export const AgentArtifactMessage = ({ text }: Props) => {
   const segments = parseAgentArtifactText(text);
-  const displaySegments =
-    segments.length > 0
-      ? segments
-      : text.trim()
-        ? [{ type: "markdown" as const, content: text.trim() }]
-        : [];
+  const fallbackSegments = text.trim()
+    ? [{ type: "markdown" as const, content: text.trim() }]
+    : [];
+  const displaySegments = segments.length > 0 ? segments : fallbackSegments;
 
   if (displaySegments.length === 0) {
     return null;
@@ -35,21 +33,27 @@ export const AgentArtifactMessage = ({ text }: Props) => {
   return (
     <>
       {displaySegments.map((segment, index) => {
+        const segmentKey = `${segment.type}-${segment.content.slice(0, 32)}-${index}`;
         if (segment.type === "markdown") {
           return (
-            <MessageResponse className="agent-chat__message-body" key={`md-${index}`}>
+            <MessageResponse
+              className="agent-chat__message-body"
+              key={segmentKey}
+            >
               {segment.content}
             </MessageResponse>
           );
         }
 
         return (
-          <Artifact className="agent-chat__artifact" key={`artifact-${index}`}>
+          <Artifact className="agent-chat__artifact" key={segmentKey}>
             <ArtifactHeader>
               <div className="min-w-0 flex-1">
                 <ArtifactTitle>{segment.title}</ArtifactTitle>
                 {segment.description ? (
-                  <ArtifactDescription>{segment.description}</ArtifactDescription>
+                  <ArtifactDescription>
+                    {segment.description}
+                  </ArtifactDescription>
                 ) : null}
               </div>
               <ArtifactActions>
@@ -72,7 +76,9 @@ const ArtifactCopyAction = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(text);
@@ -90,7 +96,11 @@ const ArtifactCopyAction = ({ text }: { text: string }) => {
       onClick={handleCopy}
       tooltip={copied ? "Copied" : "Copy response"}
     >
-      {copied ? <Check height={16} width={16} /> : <Copy height={16} width={16} />}
+      {copied ? (
+        <Check height={16} width={16} />
+      ) : (
+        <Copy height={16} width={16} />
+      )}
     </ArtifactAction>
   );
 };

@@ -18,7 +18,9 @@ import { processEstimateSubmission } from "./email/estimateSubmission.js";
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
-  if (raw == null) return {};
+  if (raw == null) {
+    return {};
+  }
   if (typeof raw === "string") {
     try {
       return JSON.parse(raw) as Record<string, unknown>;
@@ -26,13 +28,17 @@ const parseBody = (req: VercelRequest): Record<string, unknown> => {
       return {};
     }
   }
-  if (typeof raw === "object") return raw as Record<string, unknown>;
+  if (typeof raw === "object") {
+    return raw as Record<string, unknown>;
+  }
   return {};
 };
 
 const parseAllowedOrigins = (): string[] => {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
-  if (!raw) return [];
+  if (!raw) {
+    return [];
+  }
   return raw
     .split(",")
     .map((s) => s.trim())
@@ -41,19 +47,27 @@ const parseAllowedOrigins = (): string[] => {
 
 const isAllowedRequest = (req: VercelRequest): boolean => {
   const allowed = parseAllowedOrigins();
-  if (allowed.length === 0) return true;
+  if (allowed.length === 0) {
+    return true;
+  }
 
   const origin = req.headers.origin as string | undefined;
-  if (origin && allowed.includes(origin)) return true;
+  if (origin && allowed.includes(origin)) {
+    return true;
+  }
 
   if (!origin) {
     const host = (req.headers.host ?? "").split(":")[0].toLowerCase();
-    if (!host) return false;
+    if (!host) {
+      return false;
+    }
     for (const o of allowed) {
       try {
-        if (new URL(o).hostname.toLowerCase() === host) return true;
+        if (new URL(o).hostname.toLowerCase() === host) {
+          return true;
+        }
       } catch {
-        continue;
+        // noop
       }
     }
   }
@@ -64,7 +78,9 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
   const raw = process.env.ALLOWED_ORIGINS?.trim();
   if (!raw) {
     res.setHeader("Access-Control-Allow-Origin", origin ?? "*");
-    if (origin) res.setHeader("Vary", "Origin");
+    if (origin) {
+      res.setHeader("Vary", "Origin");
+    }
     return;
   }
   if (origin && parseAllowedOrigins().includes(origin)) {
@@ -73,7 +89,10 @@ const applyCors = (res: VercelResponse, origin: string | undefined): void => {
   }
 };
 
-const estimateHandler = async (req: VercelRequest, res: VercelResponse): Promise<void> => {
+const estimateHandler = async (
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> => {
   const origin = req.headers.origin as string | undefined;
   applyCors(res, origin);
 
@@ -101,13 +120,17 @@ const estimateHandler = async (req: VercelRequest, res: VercelResponse): Promise
     emailFrom: process.env.EMAIL_FROM,
     notificationTo: process.env.CONTACT_NOTIFICATION_TO,
     assetBaseUrl: process.env.EMAIL_ASSET_BASE_URL,
-    sanityWriteToken: process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
+    sanityWriteToken:
+      process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
   });
 
   res.status(result.status).json(result.body);
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   try {
     await estimateHandler(req, res);
   } catch (err) {

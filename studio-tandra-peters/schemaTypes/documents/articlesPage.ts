@@ -23,7 +23,8 @@ export const articlesPageType = defineType({
       name: "seoTitle",
       title: "SEO title",
       type: "string",
-      description: "Browser tab title. If empty, the page heading is used with the site name.",
+      description:
+        "Browser tab title. If empty, the page heading is used with the site name.",
     }),
     defineField({
       name: "seoDescription",

@@ -7,23 +7,27 @@ import type { EmailRecipient } from "./types.js";
 const ATTIO_QUERY_URL = "https://api.attio.com/v2/objects/people/records/query";
 const ATTIO_NOTES_URL = "https://api.attio.com/v2/notes";
 
-type AttioNameValue = {
-  full_name?: string;
+interface AttioNameValue {
   first_name?: string;
+  full_name?: string;
   last_name?: string;
-};
-type AttioEmailValue = { email_address?: string };
+}
+interface AttioEmailValue {
+  email_address?: string;
+}
 
-type AttioRecord = {
+interface AttioRecord {
   id?: { record_id?: string };
   values?: {
     name?: AttioNameValue[];
     email_addresses?: AttioEmailValue[];
   };
-};
+}
 
 const recordToRecipient = (record: AttioRecord): EmailRecipient | null => {
-  const email = record.values?.email_addresses?.find((e) => e.email_address)?.email_address?.trim();
+  const email = record.values?.email_addresses
+    ?.find((e) => e.email_address)
+    ?.email_address?.trim();
   if (!email) {
     return null;
   }
@@ -34,7 +38,10 @@ const recordToRecipient = (record: AttioRecord): EmailRecipient | null => {
   const nameValue = record.values?.name?.[0];
   const name =
     nameValue?.full_name?.trim() ||
-    [nameValue?.first_name, nameValue?.last_name].filter(Boolean).join(" ").trim() ||
+    [nameValue?.first_name, nameValue?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
     email;
 
   return { id: recordId, name, email: email.toLowerCase() };
@@ -47,7 +54,7 @@ const recordToRecipient = (record: AttioRecord): EmailRecipient | null => {
  */
 export const listAttioPeople = async (
   token: string,
-  options: { limit?: number; search?: string } = {},
+  options: { limit?: number; search?: string } = {}
 ): Promise<EmailRecipient[]> => {
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500);
 
@@ -65,7 +72,9 @@ export const listAttioPeople = async (
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Attio query failed (${res.status}): ${body.slice(0, 300)}`);
+    throw new Error(
+      `Attio query failed (${res.status}): ${body.slice(0, 300)}`
+    );
   }
 
   const json = (await res.json()) as { data?: AttioRecord[] };
@@ -78,7 +87,7 @@ export const listAttioPeople = async (
     return recipients;
   }
   return recipients.filter(
-    (r) => r.name.toLowerCase().includes(search) || r.email.includes(search),
+    (r) => r.name.toLowerCase().includes(search) || r.email.includes(search)
   );
 };
 
@@ -87,7 +96,7 @@ export const postAttioPersonNote = async (
   token: string,
   recordId: string,
   title: string,
-  content: string,
+  content: string
 ): Promise<boolean> => {
   try {
     const res = await fetch(ATTIO_NOTES_URL, {

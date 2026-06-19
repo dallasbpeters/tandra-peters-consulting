@@ -1,29 +1,36 @@
+import { type RenderResult, render } from "@testing-library/react";
 import type { ReactElement } from "react";
-
-import { render, type RenderResult } from "@testing-library/react";
 
 import { About } from "../components/About";
 import { AdImagePicker } from "../components/AdImagePicker";
+import { ArticleCardSharedStyles } from "../components/ArticleCardSharedStyles";
+import { ArticleGridCard } from "../components/ArticleGridCard";
+import { ArticleJsonLd } from "../components/ArticleJsonLd";
+import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
+import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
 } from "../components/ai-elements/conversation";
-import { Message, MessageContent, MessageResponse } from "../components/ai-elements/message";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "../components/ai-elements/message";
 import {
   PromptInput,
   PromptInputBody,
   PromptInputFooter,
   PromptInputTextarea,
 } from "../components/ai-elements/prompt-input";
-import { Reasoning, ReasoningContent, ReasoningTrigger } from "../components/ai-elements/reasoning";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "../components/ai-elements/reasoning";
 import { Shimmer } from "../components/ai-elements/shimmer";
 import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
-import { ArticleCardSharedStyles } from "../components/ArticleCardSharedStyles";
-import { ArticleGridCard } from "../components/ArticleGridCard";
-import { ArticleJsonLd } from "../components/ArticleJsonLd";
-import { ArticleRichTextLinkStyles } from "../components/ArticleRichTextLinkStyles";
-import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import Band from "../components/Band";
 import { BeforeAfterSlider } from "../components/BeforeAfterSlider";
 import BirdCreekLogo from "../components/BirdCreekLogo";
@@ -39,17 +46,19 @@ import { FeaturedVideoSection } from "../components/FeaturedVideoSection";
 import { Footer } from "../components/Footer";
 import FooterBg from "../components/FooterBg";
 import { Hero } from "../components/Hero";
-import { HeroDualCTARail } from "../components/hero/HeroDualCTARail";
-import { HeroGlassOverlay } from "../components/hero/HeroGlassOverlay";
-import { HeroPillNav } from "../components/hero/HeroPillNav";
-import { NavDualCTARail } from "../components/hero/NavDualCTARail";
-import { NavGlassOverlay } from "../components/hero/NavGlassOverlay";
-import { NavPillNav } from "../components/hero/NavPillNav";
 import { HeroVariant } from "../components/HeroVariant";
 import HomeRoofInspection from "../components/HomeRoofInspection";
+import { HeroDualCTARail } from "../components/hero/HeroDualCtaRail";
+import { HeroGlassOverlay } from "../components/hero/HeroGlassOverlay";
+import { HeroPillNav } from "../components/hero/HeroPillNav";
+import { NavDualCTARail } from "../components/hero/NavDualCtaRail";
+import { NavGlassOverlay } from "../components/hero/NavGlassOverlay";
+import { NavPillNav } from "../components/hero/NavPillNav";
 import { Mission } from "../components/Mission";
 import { Nav } from "../components/Nav";
 import { NavVariant } from "../components/NavVariant";
+import { RoofInspection } from "../components/RoofInspection";
+import { CHAPTERS, VIEWS } from "../components/RoofInspection/data";
 import { GoogleLogo } from "../components/reviews/google-logo";
 import { GoogleReviews } from "../components/reviews/google-reviews";
 import { MarqueeRow } from "../components/reviews/marquee-row";
@@ -57,8 +66,6 @@ import { ReviewCard } from "../components/reviews/review-card";
 import { ReviewModal } from "../components/reviews/review-modal";
 import { Avatar, GoogleMark, Stars } from "../components/reviews/review-parts";
 import { reviews } from "../components/reviews/reviews-data";
-import { RoofInspection } from "../components/RoofInspection";
-import { CHAPTERS, VIEWS } from "../components/RoofInspection/data";
 import ScrollVelocity from "../components/ScrollText";
 import { SeoStructuredData } from "../components/SeoStructuredData";
 import { ServiceAreaMap } from "../components/ServiceAreaMap";
@@ -87,18 +94,22 @@ import { SeoDashboardPage } from "../pages/SeoDashboardPage";
 import { TermsOfServicePage } from "../pages/TermsOfServicePage";
 import { defaultTandraIntroContent } from "../remotion/tandraIntroContent";
 import { mockArticlePost } from "./a11yMocks";
-import { renderWithRouter, renderWithSiteProviders } from "./renderWithProviders";
+import {
+  renderWithRouter,
+  renderWithSiteProviders,
+} from "./renderWithProviders";
 
-export type A11yCase = {
+export interface A11yCase {
   name: string;
   render: () => RenderResult;
-};
+}
 
-const sampleReview = reviews[0]!;
+const sampleReview = reviews.at(0);
 const roofChapters = CHAPTERS.filter((chapter) => chapter.position3d);
 
 const renderPlain = (ui: ReactElement): RenderResult => render(ui);
-const renderRouted = (ui: ReactElement, route = "/"): RenderResult => renderWithRouter(ui, route);
+const renderRouted = (ui: ReactElement, route = "/"): RenderResult =>
+  renderWithRouter(ui, route);
 const renderSite = (ui: ReactElement, route = "/"): RenderResult =>
   renderWithSiteProviders(ui, { route });
 
@@ -119,7 +130,7 @@ export const a11yCases: A11yCase[] = [
               description: "Before and after roof work.",
             },
           ]}
-        />,
+        />
       ),
   },
   { name: "Band", render: () => renderPlain(<Band />) },
@@ -134,7 +145,7 @@ export const a11yCases: A11yCase[] = [
       renderPlain(
         <DeferUntilVisible>
           <p>Deferred section content</p>
-        </DeferUntilVisible>,
+        </DeferUntilVisible>
       ),
   },
   { name: "Expertise", render: () => renderPlain(<Expertise />) },
@@ -147,7 +158,10 @@ export const a11yCases: A11yCase[] = [
   {
     name: "SocialShareBar",
     render: () =>
-      renderRouted(<SocialShareBar heading="Roof inspection guide" />, "/articles/test-article"),
+      renderRouted(
+        <SocialShareBar heading="Roof inspection guide" />,
+        "/articles/test-article"
+      ),
   },
   { name: "Stats", render: () => renderPlain(<Stats />) },
   { name: "Testimonials", render: () => renderPlain(<Testimonials />) },
@@ -179,7 +193,8 @@ export const a11yCases: A11yCase[] = [
   },
   {
     name: "ArticleGridCard",
-    render: () => renderRouted(<ArticleGridCard post={mockArticlePost} cardIndex={0} />),
+    render: () =>
+      renderRouted(<ArticleGridCard cardIndex={0} post={mockArticlePost} />),
   },
   {
     name: "ArticleCardSharedStyles",
@@ -192,7 +207,9 @@ export const a11yCases: A11yCase[] = [
   {
     name: "ArticleJsonLd",
     render: () =>
-      renderPlain(<ArticleJsonLd post={mockArticlePost} path="/articles/test-article" />),
+      renderPlain(
+        <ArticleJsonLd path="/articles/test-article" post={mockArticlePost} />
+      ),
   },
   {
     name: "SeoStructuredData",
@@ -207,13 +224,17 @@ export const a11yCases: A11yCase[] = [
     render: () =>
       renderPlain(
         <AdImagePicker
+          error={null}
           images={[]}
           loading={false}
-          error={null}
+          onRefresh={() => {
+            // noop
+          }}
+          onSelect={() => {
+            // noop
+          }}
           selectedImageUrl={null}
-          onRefresh={() => {}}
-          onSelect={() => {}}
-        />,
+        />
       ),
   },
   {
@@ -234,7 +255,16 @@ export const a11yCases: A11yCase[] = [
   },
   {
     name: "ReviewModal",
-    render: () => renderPlain(<ReviewModal review={sampleReview} isOpen onClose={() => {}} />),
+    render: () =>
+      renderPlain(
+        <ReviewModal
+          isOpen
+          onClose={() => {
+            // noop
+          }}
+          review={sampleReview}
+        />
+      ),
   },
   { name: "ReviewStars", render: () => renderPlain(<Stars rating={5} />) },
   {
@@ -252,38 +282,66 @@ export const a11yCases: A11yCase[] = [
           content={defaultTandraIntroContent}
           posterUrl="/roof.jpeg"
           showCaptions={false}
-        />,
+        />
       ),
   },
   {
     name: "FeaturedVideoSection",
     render: () =>
       renderPlain(
-        <FeaturedVideoSection posterUrl="/roof.jpeg" introContent={defaultTandraIntroContent} />,
+        <FeaturedVideoSection
+          introContent={defaultTandraIntroContent}
+          posterUrl="/roof.jpeg"
+        />
       ),
   },
   {
     name: "VideoPoster",
-    render: () => renderPlain(<VideoPoster posterUrl="/roof.jpeg" onPress={() => {}} />),
+    render: () =>
+      renderPlain(
+        <VideoPoster
+          onPress={() => {
+            // noop
+          }}
+          posterUrl="/roof.jpeg"
+        />
+      ),
   },
   {
     name: "PlayPauseButton",
-    render: () => renderPlain(<PlayPauseButton isPlaying={false} isVisible onPress={() => {}} />),
+    render: () =>
+      renderPlain(
+        <PlayPauseButton
+          isPlaying={false}
+          isVisible
+          onPress={() => {
+            // noop
+          }}
+        />
+      ),
   },
   {
     name: "SeekBar",
     render: () =>
       renderPlain(
         <SeekBar
+          isDragging={false}
+          onKeyDown={() => {
+            // noop
+          }}
+          onPointerDown={() => {
+            // noop
+          }}
+          onPointerMove={() => {
+            // noop
+          }}
+          onPointerUp={() => {
+            // noop
+          }}
           progress={0.1}
           progressPercent={10}
-          isDragging={false}
           trackRef={{ current: null }}
-          onPointerDown={() => {}}
-          onPointerMove={() => {}}
-          onPointerUp={() => {}}
-          onKeyDown={() => {}}
-        />,
+        />
       ),
   },
   {
@@ -293,13 +351,13 @@ export const a11yCases: A11yCase[] = [
       const playerRef = { current: null };
       return renderPlain(
         <VideoControls
-          videoRef={videoRef}
-          playerRef={playerRef}
+          captionsVisible={false}
           isRemotion={false}
           isVisible
+          playerRef={playerRef}
           posterUrl="/roof.jpeg"
-          captionsVisible={false}
-        />,
+          videoRef={videoRef}
+        />
       );
     },
   },
@@ -312,14 +370,14 @@ export const a11yCases: A11yCase[] = [
         <RoofInspection chapters={CHAPTERS} views={VIEWS}>
           <RoofInspection.Rail
             kicker="Roof basics"
+            lede="Seven things I check on every roof."
             title={
               <>
                 The <em>Inspection.</em>
               </>
             }
-            lede="Seven things I check on every roof."
           />
-        </RoofInspection>,
+        </RoofInspection>
       ),
   },
   {
@@ -330,7 +388,7 @@ export const a11yCases: A11yCase[] = [
           <RoofInspection.Canvas>
             <RoofInspection.Toolbar />
           </RoofInspection.Canvas>
-        </RoofInspection>,
+        </RoofInspection>
       ),
   },
   {
@@ -343,7 +401,7 @@ export const a11yCases: A11yCase[] = [
             kicker: "Roof basics",
             lede: "Seven things I check on every roof.",
           }}
-        />,
+        />
       ),
   },
 
@@ -354,9 +412,12 @@ export const a11yCases: A11yCase[] = [
       renderPlain(
         <Conversation>
           <ConversationContent>
-            <ConversationEmptyState title="Start a chat" description="Ask a question to begin." />
+            <ConversationEmptyState
+              description="Ask a question to begin."
+              title="Start a chat"
+            />
           </ConversationContent>
-        </Conversation>,
+        </Conversation>
       ),
   },
   {
@@ -367,19 +428,23 @@ export const a11yCases: A11yCase[] = [
           <MessageContent>
             <MessageResponse>Here is a sample assistant reply.</MessageResponse>
           </MessageContent>
-        </Message>,
+        </Message>
       ),
   },
   {
     name: "PromptInput",
     render: () =>
       renderPlain(
-        <PromptInput onSubmit={() => {}}>
+        <PromptInput
+          onSubmit={() => {
+            // noop
+          }}
+        >
           <PromptInputBody>
             <PromptInputTextarea placeholder="Ask a question…" />
           </PromptInputBody>
           <PromptInputFooter />
-        </PromptInput>,
+        </PromptInput>
       ),
   },
   {
@@ -387,9 +452,19 @@ export const a11yCases: A11yCase[] = [
     render: () =>
       renderPlain(
         <Suggestions>
-          <Suggestion suggestion="Audit my homepage" onClick={() => {}} />
-          <Suggestion suggestion="Plan a FAQ section" onClick={() => {}} />
-        </Suggestions>,
+          <Suggestion
+            onClick={() => {
+              // noop
+            }}
+            suggestion="Audit my homepage"
+          />
+          <Suggestion
+            onClick={() => {
+              // noop
+            }}
+            suggestion="Plan a FAQ section"
+          />
+        </Suggestions>
       ),
   },
   {
@@ -400,10 +475,12 @@ export const a11yCases: A11yCase[] = [
     name: "Reasoning",
     render: () =>
       renderPlain(
-        <Reasoning isStreaming={false} defaultOpen>
+        <Reasoning defaultOpen isStreaming={false}>
           <ReasoningTrigger />
-          <ReasoningContent>Checked the live Sanity schema first.</ReasoningContent>
-        </Reasoning>,
+          <ReasoningContent>
+            Checked the live Sanity schema first.
+          </ReasoningContent>
+        </Reasoning>
       ),
   },
 
@@ -416,7 +493,7 @@ export const a11yCases: A11yCase[] = [
           <main>
             <h1>Page content</h1>
           </main>
-        </SitePageChrome>,
+        </SitePageChrome>
       ),
   },
   {
@@ -425,7 +502,7 @@ export const a11yCases: A11yCase[] = [
       renderSite(
         <LegalLayout title="Accessibility test">
           <p>Sample legal copy for accessibility testing.</p>
-        </LegalLayout>,
+        </LegalLayout>
       ),
   },
   { name: "Home", render: () => renderSite(<Home />) },

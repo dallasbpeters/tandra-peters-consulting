@@ -60,7 +60,8 @@ export const roofInspectionHotspotType = defineType({
       title: "What to watch for",
       type: "text",
       rows: 3,
-      description: 'Practical warning shown under "What to watch for" in the card.',
+      description:
+        'Practical warning shown under "What to watch for" in the card.',
       validation: (Rule) => Rule.required(),
     }),
     // ── 3D position ──────────────────────────────────────────────────────────
@@ -97,7 +98,8 @@ export const roofInspectionHotspotType = defineType({
       name: "norm3dX",
       title: "Normal X",
       type: "number",
-      description: "Surface normal X component (used to hide back-facing hotspots).",
+      description:
+        "Surface normal X component (used to hide back-facing hotspots).",
     }),
     defineField({
       name: "norm3dY",

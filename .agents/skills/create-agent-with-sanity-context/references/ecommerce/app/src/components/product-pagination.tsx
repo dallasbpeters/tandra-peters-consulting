@@ -38,7 +38,9 @@ export function ProductPagination(props: ProductPaginationProps) {
 
     pages.push(1);
 
-    if (currentPage > 3) pages.push("ellipsis");
+    if (currentPage > 3) {
+      pages.push("ellipsis");
+    }
 
     for (
       let i = Math.max(2, currentPage - 1);
@@ -48,7 +50,9 @@ export function ProductPagination(props: ProductPaginationProps) {
       pages.push(i);
     }
 
-    if (currentPage < totalPages - 2) pages.push("ellipsis");
+    if (currentPage < totalPages - 2) {
+      pages.push("ellipsis");
+    }
 
     pages.push(totalPages);
 
@@ -60,9 +64,9 @@ export function ProductPagination(props: ProductPaginationProps) {
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={currentPage > 1 ? createPageURL(currentPage - 1) : undefined}
             aria-disabled={currentPage <= 1}
             className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+            href={currentPage > 1 ? createPageURL(currentPage - 1) : undefined}
           />
         </PaginationItem>
 
@@ -73,18 +77,27 @@ export function ProductPagination(props: ProductPaginationProps) {
             </PaginationItem>
           ) : (
             <PaginationItem key={page}>
-              <PaginationLink href={createPageURL(page)} isActive={page === currentPage}>
+              <PaginationLink
+                href={createPageURL(page)}
+                isActive={page === currentPage}
+              >
                 {page}
               </PaginationLink>
             </PaginationItem>
-          ),
+          )
         )}
 
         <PaginationItem>
           <PaginationNext
-            href={currentPage < totalPages ? createPageURL(currentPage + 1) : undefined}
             aria-disabled={currentPage >= totalPages}
-            className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+            className={
+              currentPage >= totalPages ? "pointer-events-none opacity-50" : ""
+            }
+            href={
+              currentPage < totalPages
+                ? createPageURL(currentPage + 1)
+                : undefined
+            }
           />
         </PaginationItem>
       </PaginationContent>

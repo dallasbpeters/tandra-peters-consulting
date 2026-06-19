@@ -8,8 +8,16 @@ export const serviceCardType = defineType({
   title: "Service card",
   type: "object",
   fields: [
-    defineField({ name: "id", type: "string", validation: (r) => r.required() }),
-    defineField({ name: "title", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "id",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "title",
+      type: "string",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "description",
       title: "Description",

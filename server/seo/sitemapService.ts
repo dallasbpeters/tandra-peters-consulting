@@ -11,19 +11,25 @@ const SITEMAP_POSTS_QUERY = `*[_type == "post" && defined(slug.current)]{
   "publishedAt": publishedAt
 }`;
 
-type SitemapPost = {
-  slug?: string | null;
+interface SitemapPost {
   _updatedAt?: string | null;
   publishedAt?: string | null;
-};
+  slug?: string | null;
+}
+
+const TRAILING_SLASH_RE = /\/$/;
 
 const normalizeOrigin = (value?: string): string =>
-  (value?.trim() || DEFAULT_SITE_URL).replace(/\/$/, "");
+  (value?.trim() || DEFAULT_SITE_URL).replace(TRAILING_SLASH_RE, "");
 
 const toIsoDate = (value?: string | null): string | null => {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
   return parsed.toISOString();
 };
 
@@ -47,14 +53,22 @@ const buildUrlEntry = ({
   priority?: string;
 }): string => {
   const tags = [`<loc>${xmlEscape(loc)}</loc>`];
-  if (lastmod) tags.push(`<lastmod>${lastmod}</lastmod>`);
-  if (changefreq) tags.push(`<changefreq>${changefreq}</changefreq>`);
-  if (priority) tags.push(`<priority>${priority}</priority>`);
+  if (lastmod) {
+    tags.push(`<lastmod>${lastmod}</lastmod>`);
+  }
+  if (changefreq) {
+    tags.push(`<changefreq>${changefreq}</changefreq>`);
+  }
+  if (priority) {
+    tags.push(`<priority>${priority}</priority>`);
+  }
 
   return `<url>${tags.join("")}</url>`;
 };
 
-export const generateSitemapXml = async (siteUrlEnv?: string): Promise<string> => {
+export const generateSitemapXml = async (
+  siteUrlEnv?: string
+): Promise<string> => {
   const origin = normalizeOrigin(siteUrlEnv);
 
   const client = createClient({
@@ -69,7 +83,9 @@ export const generateSitemapXml = async (siteUrlEnv?: string): Promise<string> =
 
   for (const post of posts) {
     const slug = post.slug?.trim();
-    if (!slug) continue;
+    if (!slug) {
+      continue;
+    }
     uniquePosts.set(slug, post);
   }
 
@@ -119,7 +135,7 @@ export const generateSitemapXml = async (siteUrlEnv?: string): Promise<string> =
         lastmod: toIsoDate(post._updatedAt ?? post.publishedAt),
         changefreq: "monthly",
         priority: "0.7",
-      }),
+      })
     );
 
   return [
