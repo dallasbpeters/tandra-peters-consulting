@@ -143,10 +143,7 @@ type ServiceItemProps = {
 
 const ServiceItem = ({ phase, title, description, isMobile }: ServiceItemProps) => {
   const itemStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
     textAlign: isMobile ? "left" : "right",
-    alignItems: isMobile ? "flex-start" : "flex-end",
   };
 
   const metaStyle: React.CSSProperties = {
@@ -185,7 +182,7 @@ const ServiceItem = ({ phase, title, description, isMobile }: ServiceItemProps) 
   };
 
   return (
-    <article style={itemStyle}>
+    <article className="services-alt-item" style={itemStyle}>
       <div style={metaStyle}>{phase}</div>
       <h2 style={titleStyle}>{title}</h2>
       <div style={descStyle}>
@@ -207,10 +204,7 @@ const BirdcreekAdvantageItem = ({
   onCtaClick,
 }: BirdcreekAdvantageItemProps) => {
   const itemStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
     textAlign: isMobile ? "left" : "right",
-    alignItems: isMobile ? "flex-start" : "flex-end",
   };
 
   const metaStyle: React.CSSProperties = {
@@ -266,7 +260,7 @@ const BirdcreekAdvantageItem = ({
   };
 
   return (
-    <article style={itemStyle}>
+    <article className="services-alt-item" style={itemStyle}>
       <div style={metaStyle}>CORE // ADV</div>
       <h2 style={titleStyle}>{birdcreekAdvantage.title}</h2>
       <div style={descStyle}>

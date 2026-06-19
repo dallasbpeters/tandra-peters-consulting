@@ -62,12 +62,6 @@ export const Expertise: React.FC<ExpertiseProps> = ({
     marginBottom: theme.spacing.xxxxxxxxl,
   };
 
-  const gridStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: theme.spacing.xxxxl,
-  };
-
   const cardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.black,
     borderRadius: theme.radius.large,
@@ -75,9 +69,6 @@ export const Expertise: React.FC<ExpertiseProps> = ({
     position: "relative",
     overflow: "hidden",
     minHeight: "400px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     transition: "all 0.5s",
   };
 
@@ -127,10 +118,14 @@ export const Expertise: React.FC<ExpertiseProps> = ({
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          style={gridStyle}
           className="expertise-grid"
         >
           <style>{`
+            .expertise-grid {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: var(--wa-space-2xl);
+            }
             @media (min-width: 768px) {
               .expertise-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -154,7 +149,7 @@ export const Expertise: React.FC<ExpertiseProps> = ({
               key={item.id}
               variants={cardVariants}
               style={cardStyle}
-              className="expertise-card"
+              className="layout-col-between expertise-card"
             >
               {item.image ? (
                 <div

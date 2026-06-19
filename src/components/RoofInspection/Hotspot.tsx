@@ -240,9 +240,6 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     border: 0,
     padding: 0,
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
   };
 
   const dotStyle: React.CSSProperties = {
@@ -336,6 +333,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     <>
       <div ref={wrapperRef} style={wrapperStyle} {...slotProps}>
         <button
+          className="layout-flex-center"
           style={buttonStyle}
           aria-label={`${chapter.label} — point ${chapter.id}`}
           aria-expanded={isOpen}

@@ -321,8 +321,13 @@ const renderHtml = (template: string, page: PageMeta): string => {
   const jsonLd = page.jsonLd.map(jsonLdTag).join("\n  ");
   html = html.replace("</head>", `  ${jsonLd}\n</head>`);
 
-  // Server-rendered content inside #root (React hydrates/replaces on load).
-  html = html.replace(/<div id="root"><\/div>/, `<div id="root">${page.bodyHtml}</div>`);
+  // Server-rendered content inside #root (React replaces on load).
+  // Wrapped in `hidden` so browsers never paint the unstyled bare HTML while JS
+  // is loading, but non-JS parsers (AI/bot crawlers) can still read it in the DOM.
+  html = html.replace(
+    /<div id="root"><\/div>/,
+    `<div id="root"><div hidden aria-hidden="true">${page.bodyHtml}</div></div>`,
+  );
 
   return html;
 };

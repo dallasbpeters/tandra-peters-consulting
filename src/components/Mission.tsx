@@ -54,19 +54,8 @@ export const Mission: React.FC<MissionProps> = ({
   };
 
   const headerStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
     marginBottom: theme.spacing.xxxxxxxxl,
     color: theme.colors.paper,
-    gap: theme.spacing.xxxxxxxxl,
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: theme.spacing.lg,
   };
 
   const cardBaseStyle: React.CSSProperties = {
@@ -75,9 +64,6 @@ export const Mission: React.FC<MissionProps> = ({
     padding: theme.spacing.xxxxl,
     position: "relative",
     overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     transition: "all 0.5s",
   };
 
@@ -104,7 +90,7 @@ export const Mission: React.FC<MissionProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={headerStyle}
-          className="md-row-end"
+          className="layout-col-between wa-align-items-end wa-gap-4xl md-row-end"
         >
           <style>{`
             @media (min-width: 768px) {
@@ -178,10 +164,14 @@ export const Mission: React.FC<MissionProps> = ({
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          style={gridStyle}
           className="mission-grid"
         >
           <style>{`
+            .mission-grid {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: var(--wa-space-s);
+            }
             .mission-card:hover .mission-card-bg { opacity: 0.3 !important; }
             .mission-card:hover .mission-card-bg img {
               transform: scale(1.08) !important;
@@ -206,7 +196,7 @@ export const Mission: React.FC<MissionProps> = ({
                 key={service.id}
                 variants={cardVariants}
                 style={isMain ? mainCardStyle : secondaryCardStyle}
-                className="mission-grid-item mission-card"
+                className="layout-col-between mission-grid-item mission-card"
               >
                 {service.image ? (
                   <div

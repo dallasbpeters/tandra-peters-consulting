@@ -21,9 +21,6 @@ const containerStyle: React.CSSProperties = {
   position: "relative",
   overflow: "hidden",
   padding: `${theme.spacing.xxxxl} ${theme.spacing.lg}`,
-  display: "grid",
-  placeContent: "center",
-  placeItems: "center",
 };
 
 const shaderStyle: React.CSSProperties = {
@@ -107,7 +104,7 @@ export function FeaturedVideoSection({ videoUrl, posterUrl, introContent }: Prop
   };
 
   return (
-    <div ref={sectionRef} style={containerStyle}>
+    <div ref={sectionRef} className="layout-grid-center" style={containerStyle}>
       <Shader style={shaderStyle}>
         {/* Explicit ids: React useId() fallback yields `__` GLSL names that fail on Safari. */}
         <SolidColor id="videoSolid" color="#09291d" />

@@ -17,15 +17,7 @@ type CanvasProps = {
  * Holds an optional hint caption + the Diagram (and Toolbar when active).
  */
 export const Canvas: React.FC<CanvasProps> = ({ hint, children }) => {
-  const canvasStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing.xl,
-  };
-
   const hintRowStyle: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "flex-end",
     paddingBottom: theme.spacing.lg,
     borderBottom: `1px solid ${mix(theme.colors.everglade, 18)}`,
   };
@@ -39,9 +31,9 @@ export const Canvas: React.FC<CanvasProps> = ({ hint, children }) => {
   };
 
   return (
-    <section style={canvasStyle} className="stage__canvas">
+    <section className="wa-stack wa-gap-m stage__canvas">
       {hint && (
-        <div style={hintRowStyle}>
+        <div className="layout-flex-end" style={hintRowStyle}>
           <p style={hintTextStyle}>{hint}</p>
         </div>
       )}

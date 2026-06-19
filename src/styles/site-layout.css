@@ -804,3 +804,118 @@ wa-details::part(summary) {
   font-size: 1.125rem;
   font-weight: 700;
 }
+
+/* ─── Layout utility classes — geometry only, no color/typography ────────
+   These supplement WA primitive classes (wa-stack, wa-cluster, wa-split,
+   wa-grid) for patterns WA doesn't cover: fixed-track grids, flex-center,
+   and responsive adaptations that need @media rules.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Flex column with space-between (card bodies, section headers) */
+.layout-col-between {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Flex: center on both axes (fixed-size icon containers) */
+.layout-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Flex: push content to the end of the row */
+.layout-flex-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Grid: place-content + place-items center (media frames) */
+.layout-grid-center {
+  display: grid;
+  place-content: center;
+  place-items: center;
+}
+
+/* Fixed icon + text two-column button (RoofInspection Rail chapter buttons) */
+.layout-chapter-btn {
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  align-items: center;
+  width: 100%;
+}
+
+/* Nav logo: 2-column grid with named template areas */
+.nav-logo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "image text"
+    "image tagline";
+  align-items: center;
+  column-gap: var(--theme-spacing-sm);
+}
+
+/* About bio card: two-column on desktop, single-column on mobile */
+.about-bio-card {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 0;
+}
+
+/* ServicesAlt item: right-aligned on desktop, left-aligned on mobile */
+.services-alt-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* RoofInspection Toolbar: two-column on desktop, single on mobile */
+.roof-toolbar {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  align-items: baseline;
+}
+
+/* RoofInspection TabGroup: horizontal row on desktop, vertical on mobile */
+.roof-tab-group {
+  display: flex;
+  flex-direction: row;
+  gap: 8px 4px;
+}
+
+/* Nav desktop nav: flex row for navigation links */
+.nav-desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-spacing-xxl);
+  justify-content: center;
+}
+
+@media (width <= 1224px) {
+  .about-bio-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: var(--theme-spacing-lg);
+  }
+}
+
+@media (width <= 768px) {
+  .services-alt-item {
+    align-items: flex-start;
+  }
+
+  .roof-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .roof-tab-group {
+    flex-direction: column;
+  }
+
+  .nav-logo {
+    grid-template-areas: "image text";
+  }
+}

@@ -72,8 +72,6 @@ export const Hero: React.FC<HeroProps> = ({
   const sectionStyle: React.CSSProperties = {
     position: "relative",
     minHeight: isMobile ? "60vh" : "80vh",
-    display: "flex",
-    alignItems: "center",
     paddingTop: theme.spacing.sectionHero,
     paddingBottom: theme.spacing.sectionLoose,
     background: `linear-gradient(135deg, ${theme.colors.black} 0%, ${theme.colors.black} 100%)`,
@@ -156,7 +154,7 @@ export const Hero: React.FC<HeroProps> = ({
   };
 
   return (
-    <section style={sectionStyle}>
+    <section className="wa-cluster" style={sectionStyle}>
       <img
         aria-hidden="true"
         alt=""

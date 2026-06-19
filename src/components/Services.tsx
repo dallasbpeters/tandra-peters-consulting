@@ -76,18 +76,7 @@ export const Services: React.FC<ServicesProps> = ({
   };
 
   const headerStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
     marginBottom: "2rem",
-    gap: "2rem",
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "1rem",
   };
 
   const mainCardStyle: React.CSSProperties = {
@@ -97,9 +86,6 @@ export const Services: React.FC<ServicesProps> = ({
     position: "relative",
     overflow: "hidden",
     minHeight: "500px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     transition: "all 0.5s",
   };
 
@@ -107,9 +93,6 @@ export const Services: React.FC<ServicesProps> = ({
     backgroundColor: mix(theme.colors.everglade, 60),
     borderRadius: theme.radius.medium,
     padding: "2rem",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     border: `1px solid ${mix(theme.colors.paperDark, 10)}`,
     transition: "all 0.5s",
   };
@@ -127,9 +110,10 @@ export const Services: React.FC<ServicesProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           style={headerStyle}
-          className="md-row-end"
+          className="layout-col-between wa-align-items-start wa-gap-2xl md-row-end"
         >
           <style>{`
+            .services-grid { display: grid; grid-template-columns: 1fr; gap: var(--wa-space-s); }
             @media (min-width: 768px) {
               .md-row-end {
                 flex-direction: row !important;
@@ -193,7 +177,6 @@ export const Services: React.FC<ServicesProps> = ({
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          style={gridStyle}
           className="services-grid"
         >
           {services.map((service, i) => {
@@ -203,7 +186,7 @@ export const Services: React.FC<ServicesProps> = ({
                 key={service.id}
                 variants={cardVariants}
                 style={isMain ? mainCardStyle : secondaryCardStyle}
-                className={`${isMain ? "services-span-8" : "services-span-4"} group`}
+                className={`${isMain ? "services-span-8" : "services-span-4"} group layout-col-between`}
               >
                 {isMain && service.image && (
                   <div

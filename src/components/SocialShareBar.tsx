@@ -94,20 +94,6 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
     paddingBottom: theme.spacing.lg,
   };
 
-  const innerFlexStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing.xl,
-    alignItems: "flex-start",
-  };
-
-  const rowStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-  };
-
   const labelStyle: React.CSSProperties = {
     fontFamily: theme.fonts.headline,
     fontWeight: 700,
@@ -155,7 +141,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 
   return (
     <section style={sectionStyle} aria-label="Social sharing">
-      <div className={`${layoutClass.containerWide} social-share-inner`} style={innerFlexStyle}>
+      <div
+        className={`${layoutClass.containerWide} social-share-inner wa-stack wa-gap-m wa-align-items-start`}
+      >
         <style>{`
           @media (min-width: 640px) {
             .social-share-inner {
@@ -177,7 +165,7 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
           }
         `}</style>
         <p style={{ ...labelStyle, margin: 0 }}>{heading}</p>
-        <div style={rowStyle}>
+        <div className="wa-cluster wa-gap-3xs">
           <a
             href={pageUrl ? facebookHref : undefined}
             target="_blank"

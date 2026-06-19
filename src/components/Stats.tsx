@@ -48,27 +48,6 @@ export const Stats: React.FC<StatsProps> = ({
     color: theme.colors.white,
   };
 
-  const statsGridStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "start",
-    alignItems: "start",
-    gap: theme.spacing.xxxxl,
-    transition: "all 0.5s",
-  };
-
-  const statsItemStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing.md,
-  };
-  const statsStackStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "center",
-  };
-
   const statsTextStyle: React.CSSProperties = {
     fontWeight: 900,
     fontSize: ".775rem",
@@ -97,16 +76,17 @@ export const Stats: React.FC<StatsProps> = ({
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          style={statsGridStyle}
+          className="wa-cluster wa-align-items-start wa-gap-2xl"
+          style={{ transition: "all 0.5s" }}
         >
           {items.map((stat, i) => (
             <motion.div
               key={stat.rowKey ?? `${stat.name}-${stat.value}-${i}`}
               variants={itemVariants}
-              style={statsItemStyle}
+              className="wa-cluster wa-gap-xs"
             >
               <stat.icon color={theme.colors.purple} width={48} height={48} />
-              <div style={statsStackStyle}>
+              <div className="wa-stack wa-align-items-start">
                 <span style={statsValueStyle}>{stat.value}</span>
                 <span style={statsTextStyle}>{stat.name}</span>
               </div>

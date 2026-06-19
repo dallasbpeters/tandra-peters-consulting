@@ -103,11 +103,6 @@ export const Nav: React.FC<NavProps> = ({
     },
 
     logo: {
-      display: "grid",
-      gridTemplateColumns: "auto minmax(0, 1fr)",
-      gridTemplateAreas: isMobile ? `"image text"` : `"image text" "image tagline"`,
-      alignItems: "center",
-      gap: `0 ${theme.spacing.sm}`,
       minWidth: 0,
     },
     image: {
@@ -155,13 +150,6 @@ export const Nav: React.FC<NavProps> = ({
       textOverflow: "ellipsis",
     },
 
-    desktopNav: {
-      display: "none",
-      alignItems: "center",
-      gap: theme.spacing.xxl,
-      justifyContent: "center",
-    },
-
     navLink: {
       fontFamily: theme.fonts.headline,
       fontWeight: 700,
@@ -190,9 +178,8 @@ export const Nav: React.FC<NavProps> = ({
       >
         <TransitionLink
           to="/"
-          className="logo-link nav-focusable"
+          className="logo-link nav-focusable nav-logo"
           style={{
-            ...styles.logo,
             textDecoration: "none",
             flex: "1 1 auto",
             minWidth: 0,
@@ -210,7 +197,7 @@ export const Nav: React.FC<NavProps> = ({
           </motion.div>
         </TransitionLink>
 
-        <div style={{ ...styles.desktopNav, display: "flex" }} className="md-flex">
+        <div className="md-flex nav-desktop-nav">
           <style>{`
             .nav-focusable:focus-visible {
               outline: 2px solid ${theme.colors.everglade} !important;

@@ -36,18 +36,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const { views, activeViewId, setActiveViewId } = useCameraContext();
 
   const wrapperStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: isMobile ? "1fr" : "1.5fr 1fr",
-    alignItems: "baseline",
-    gap: theme.spacing.xxxxl,
     paddingBottom: theme.spacing.xl,
     borderBottom: `1px solid ${hairline}`,
     minWidth: 0,
   };
 
   const tabGroupStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
     gap: 4,
     rowGap: 8,
     fontSize: "11px",
@@ -100,8 +94,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   return (
-    <div style={wrapperStyle} role="toolbar" aria-label="Diagram view options">
-      <div style={tabGroupStyle} role="tablist">
+    <div
+      className="roof-toolbar wa-gap-2xl"
+      style={wrapperStyle}
+      role="toolbar"
+      aria-label="Diagram view options"
+    >
+      <div className="roof-tab-group" style={tabGroupStyle} role="tablist">
         {views.map((view) => {
           const isActive = activeViewId === view.id;
           return (

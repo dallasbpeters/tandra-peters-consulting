@@ -9,8 +9,9 @@ import { EstimatorQuestion as EstimatorQuestionType } from "../../types";
 import { optionIllustrationFor } from "./optionIllustrations";
 import {
   estimatorOptionArtStyle,
+  estimatorOptionClass,
   estimatorOptionStyle,
-  estimatorOptionsStyle,
+  estimatorOptionsClass,
   ghostButtonStyle,
 } from "./styles";
 
@@ -56,7 +57,12 @@ export const EstimatorQuestion = ({
       <h2 style={headingStyle}>{question.prompt}</h2>
       {question.helpText ? <p style={helpStyle}>{question.helpText}</p> : null}
 
-      <div style={{ ...estimatorOptionsStyle, marginTop: theme.spacing.xxl }}>
+      <div
+        className={estimatorOptionsClass}
+        style={
+          { "--min-column-size": "16rem", marginTop: theme.spacing.xxl } as React.CSSProperties
+        }
+      >
         {question.options.map((option) => {
           const optionKey = option._key ?? option.label;
           const isSelected = selected === optionKey;
@@ -66,6 +72,7 @@ export const EstimatorQuestion = ({
             <button
               type="button"
               key={optionKey}
+              className={estimatorOptionClass}
               onClick={() => onSelect(questionKey, optionKey)}
               aria-pressed={isSelected}
               style={{

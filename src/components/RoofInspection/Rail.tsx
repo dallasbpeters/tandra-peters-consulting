@@ -37,11 +37,8 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
 
   // Sticky / max-height are handled by .stage__rail in site-layout.css,
   // which also disables sticky on mobile via @media (width <= 700px).
-  const railStyle: React.CSSProperties = {};
 
   const kickerStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
     gap: theme.spacing.cozy,
     fontSize: "11px",
     fontWeight: 700,
@@ -99,9 +96,6 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
     borderLeft: 0,
     borderRight: 0,
     cursor: "pointer",
-    display: "grid",
-    gridTemplateColumns: "1.75rem 1fr",
-    alignItems: "center",
     color: isActive ? theme.colors.everglade : mutedText,
     background: "none",
     textAlign: "left",
@@ -122,12 +116,12 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
   };
 
   return (
-    <aside style={railStyle} className="stage__rail">
+    <aside className="stage__rail">
       {/* stage__rail-header and stage__rail-nav become direct flex children of
           .stage on mobile via `display: contents` on the aside */}
       <div className="stage__rail-header">
         {kicker ? (
-          <div style={kickerStyle}>
+          <div className="wa-cluster" style={kickerStyle}>
             <span style={kickerRuleStyle} aria-hidden="true" />
             <span>{kicker}</span>
           </div>
@@ -144,6 +138,7 @@ export const Rail: React.FC<RailProps> = ({ kicker, title, lede }) => {
             return (
               <li key={chapter.id} style={listItemStyle}>
                 <button
+                  className="layout-chapter-btn"
                   style={getChapterButtonStyle(isActive)}
                   data-active={isActive}
                   onClick={() => {

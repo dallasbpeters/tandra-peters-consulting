@@ -123,15 +123,11 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
   };
 
   const cardStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: isStacked ? "1fr" : ".5fr 1fr",
-    gridTemplateRows: isStacked ? "1fr auto" : "1fr",
     backgroundColor: theme.colors.black,
     color: theme.colors.white,
     padding: isStacked ? theme.spacing.xxxxl : 0,
     borderRadius: theme.radius.large,
     boxShadow: theme.shadow.md,
-    gap: isStacked ? theme.spacing.lg : 0,
     contain: "paint",
     borderBlockEnd: `8px solid ${theme.colors.heroAccent}`,
   };
@@ -195,7 +191,7 @@ export const About: React.FC<AboutProps> = ({ badgeText, badgeSubtext, body, ima
         className={`${layoutClass.containerWideAboutGrid} lg-grid`}
         style={paragraphWrapperStyle}
       >
-        <div className="about-card" style={cardStyle}>
+        <div className="about-card about-bio-card" style={cardStyle}>
           <div style={imagewrapperStyle} aria-hidden="true" />
           {/* Text body — GSAP targets all text inside .about-body-text */}
           <div className="about-body-text" style={bodyTextStyle}>

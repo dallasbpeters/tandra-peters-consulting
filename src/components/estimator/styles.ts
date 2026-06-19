@@ -2,6 +2,16 @@ import React from "react";
 
 import { mix, theme } from "../../theme";
 
+// ── Layout className strings (WA utilities) ───────────────────────────────
+export const estimatorCardLayoutClass = "wa-stack wa-gap-l";
+export const estimatorOptionsClass = "wa-grid wa-gap-xs";
+export const estimatorOptionClass = "wa-stack wa-gap-3xs";
+export const estimatorEmailRowClass = "wa-grid wa-gap-xs";
+export const estimatorFooterClass = "wa-split wa-gap-s";
+export const foundStatusClass = "wa-cluster wa-gap-2xs wa-align-items-start";
+
+// ── Visual-only inline styles ──────────────────────────────────────────────
+
 export const primaryButtonStyle: React.CSSProperties = {
   backgroundColor: theme.colors.everglade,
   color: theme.colors.white,
@@ -35,24 +45,6 @@ export const ghostButtonStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export const estimatorIntroLayoutStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  gap: "1.5rem",
-  alignItems: "start",
-  justifyItems: "start",
-  minBlockSize: "50vh",
-};
-
-export const estimatorCardLayoutStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr)",
-  gap: "1.5rem",
-  alignItems: "start",
-  justifyItems: "start",
-  minBlockSize: "50vh",
-};
-
 export const estimatorCardStyle: React.CSSProperties = {
   width: "min(100%, 80rem)",
   borderRadius: "var(--theme-radius-large, 1rem)",
@@ -61,6 +53,7 @@ export const estimatorCardStyle: React.CSSProperties = {
   marginBlockEnd: "var(--theme-spacing-section)",
   zIndex: 10,
 };
+
 export const introCardStyle: React.CSSProperties = {
   width: "min(100%, 40rem)",
   borderRadius: "var(--theme-radius-large, 1rem)",
@@ -70,16 +63,7 @@ export const introCardStyle: React.CSSProperties = {
   zIndex: 10,
 };
 
-export const estimatorOptionsStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 16rem), 1fr))",
-  gap: "0.75rem",
-};
-
 export const estimatorOptionStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.25rem",
   textAlign: "left",
   width: "100%",
   padding: "1.1rem 1.25rem",
@@ -100,21 +84,6 @@ export const estimatorOptionArtStyle: React.CSSProperties = {
   marginBlockEnd: "0.65rem",
 };
 
-export const estimatorEmailRowStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 14rem), 1fr))",
-  gap: "0.75rem",
-  marginBottom: theme.spacing.md,
-};
-
-export const estimatorFooterStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "1rem",
-  flexWrap: "wrap",
-};
-
 export const foundStatus: React.CSSProperties = {
   marginTop: theme.spacing.md,
   padding: `${theme.spacing.sm} ${theme.spacing.md}`,
@@ -123,9 +92,6 @@ export const foundStatus: React.CSSProperties = {
   borderRadius: theme.radius.medium,
   fontSize: "0.85rem",
   color: theme.colors.everglade,
-  display: "flex",
-  gap: theme.spacing.sm,
-  alignItems: "flex-start",
 };
 
 export const eyebrow: React.CSSProperties = {

@@ -56,9 +56,6 @@ export const Footer: React.FC<FooterProps> = ({
     height: "2.5rem",
     backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: theme.radius.pill,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     color: theme.colors.heroAccent,
     transition: "all 0.3s",
     textDecoration: "none",
@@ -78,13 +75,9 @@ export const Footer: React.FC<FooterProps> = ({
     listStyle: "none",
     padding: 0,
     margin: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing.sm,
     fontSize: "0.875rem",
     fontFamily: theme.fonts.headline,
     fontWeight: 800,
-
     letterSpacing: "0.1em",
   };
 
@@ -167,7 +160,7 @@ export const Footer: React.FC<FooterProps> = ({
                 href={social.href}
                 style={socialLinkStyle}
                 aria-label={social.platform ?? "Visit social profile"}
-                className="social-link"
+                className="social-link layout-flex-center"
               >
                 <social.icon width={18} height={18} strokeWidth={1.5} aria-hidden />
               </a>
@@ -177,7 +170,7 @@ export const Footer: React.FC<FooterProps> = ({
         <GoogleAuthGate>
           <div className="md-col-3">
             <h2 style={headingStyle}>Quick Links</h2>
-            <ul style={linkListStyle}>
+            <ul style={linkListStyle} className="wa-stack wa-gap-2xs">
               {quickLinks.map((link, i) => (
                 <li style={linklistItemStyle} key={i}>
                   {link.href.startsWith("#") ? (
@@ -207,7 +200,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           <div className="md-col-3">
             <h2 style={headingStyle}>Legal</h2>
-            <ul style={linkListStyle}>
+            <ul style={linkListStyle} className="wa-stack wa-gap-2xs">
               {legalLinks.map((link, i) => (
                 <li style={linklistItemStyle} key={i}>
                   <TransitionLink

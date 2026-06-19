@@ -58,7 +58,22 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── WebAwesome space-scale token bridge ──────────────────────────────── */
+  --wa-space-3xs: var(--theme-spacing-xs); /* 0.25rem */
+  --wa-space-2xs: var(--theme-spacing-sm); /* 0.5rem  */
+  --wa-space-xs: var(--theme-spacing-md); /* 0.75rem */
+  --wa-space-s: var(--theme-spacing-lg); /* 1rem    */
+  --wa-space-m: var(--theme-spacing-xl); /* 1.25rem */
+  --wa-space-l: var(--theme-spacing-xxl); /* 1.5rem  */
+  --wa-space-xl: var(--theme-spacing-xxxl); /* 1.75rem */
+  --wa-space-2xl: var(--theme-spacing-xxxxl); /* 2rem    */
+  --wa-space-3xl: var(--theme-spacing-xxxxxxl); /* 2.5rem  */
+  --wa-space-4xl: var(--theme-spacing-xxxxxxxxl); /* 3rem    */
+  --wa-space-5xl: var(--theme-spacing-section); /* 4rem    */
 }
+
+
 
 /* wa-option's internal padding is em-based (0.5em top/bottom by default).
    External styles override the Shadow DOM :host rules, so we can set

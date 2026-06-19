@@ -19,16 +19,17 @@ import { mix, theme } from "../../theme";
 import { EstimatorMapBackground } from "./EstimatorMapBackground";
 import { optionIllustrationFor } from "./optionIllustrations";
 import {
-  estimatorCardLayoutStyle,
+  estimatorCardLayoutClass,
   estimatorCardStyle,
-  estimatorEmailRowStyle,
-  estimatorFooterStyle,
-  estimatorIntroLayoutStyle,
+  estimatorEmailRowClass,
+  estimatorFooterClass,
   estimatorOptionArtStyle,
+  estimatorOptionClass,
   estimatorOptionStyle,
-  estimatorOptionsStyle,
-  introCardStyle,
+  estimatorOptionsClass,
   foundStatus,
+  foundStatusClass,
+  introCardStyle,
   eyebrow,
 } from "./styles";
 
@@ -348,7 +349,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
           {content.description ? <p style={helpStyle}>{content.description}</p> : null}
         </div>
         {/* Intro: 2-col with map panel. Questions/results: single card. */}
-        <div style={step === -1 ? estimatorIntroLayoutStyle : estimatorCardLayoutStyle}>
+        <div className={estimatorCardLayoutClass} style={{ minBlockSize: "50vh" }}>
           <div data-estimator-card style={step === -1 ? introCardStyle : estimatorCardStyle}>
             {/* Progress bar (hidden on intro + results) */}
             {step >= 0 && !onResults ? (
@@ -394,14 +395,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
 
                     {/* Address lookup */}
                     <div style={{ marginTop: theme.spacing.xxl }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: theme.spacing.sm,
-                          alignItems: "flex-end",
-                          flexWrap: "wrap",
-                        }}
-                      >
+                      <div className="wa-cluster wa-gap-2xs wa-align-items-end">
                         <div style={{ flex: "1 1 220px" }}>
                           <label htmlFor="contact-property-address" style={addressLabelStyle}>
                             Property Address{" "}
@@ -489,7 +483,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                       </div>
 
                       {lookupStatus === "found" && selectedAddress ? (
-                        <div style={foundStatus}>
+                        <div className={foundStatusClass} style={foundStatus}>
                           <Check
                             width={15}
                             height={15}
@@ -564,10 +558,13 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                           ) : null}
 
                           <div
-                            style={{
-                              ...estimatorOptionsStyle,
-                              marginTop: theme.spacing.xxl,
-                            }}
+                            className={estimatorOptionsClass}
+                            style={
+                              {
+                                "--min-column-size": "16rem",
+                                marginTop: theme.spacing.xxl,
+                              } as React.CSSProperties
+                            }
                           >
                             {question.options.map((option) => {
                               const optionKey = option._key ?? option.label;
@@ -579,6 +576,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                 <button
                                   type="button"
                                   key={optionKey}
+                                  className={estimatorOptionClass}
                                   onClick={() => selectOption(questionKey, optionKey)}
                                   aria-pressed={isSelected}
                                   style={{
@@ -682,21 +680,18 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                         </p>
 
                         <ul
+                          className="wa-stack wa-gap-3xs"
                           style={{
                             listStyle: "none",
                             margin: `0 0 ${theme.spacing.xl}`,
                             padding: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: theme.spacing.xs,
                           }}
                         >
                           {summary.map((row) => (
                             <li
                               key={row.prompt}
+                              className="wa-split"
                               style={{
-                                display: "flex",
-                                justifyContent: "space-between",
                                 gap: theme.spacing.lg,
                                 fontSize: "0.95rem",
                                 color: mix(theme.colors.everglade, 75),
@@ -738,10 +733,8 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                         {/* EMAIL ME */}
                         {sendStatus === "sent" ? (
                           <div
+                            className="wa-cluster wa-gap-xs"
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: theme.spacing.md,
                               color: theme.colors.accent,
                               fontWeight: 700,
                               padding: theme.spacing.lg,
@@ -765,7 +758,15 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                             >
                               Email me this estimate
                             </p>
-                            <div style={estimatorEmailRowStyle}>
+                            <div
+                              className={estimatorEmailRowClass}
+                              style={
+                                {
+                                  "--min-column-size": "14rem",
+                                  marginBottom: theme.spacing.md,
+                                } as React.CSSProperties
+                              }
+                            >
                               <WaInput
                                 label="Your name"
                                 value={fullName}
@@ -796,7 +797,7 @@ export const Estimator: React.FC<EstimatorProps> = ({ content, sectionId = "esti
                                 {sendError}
                               </p>
                             ) : null}
-                            <div style={estimatorFooterStyle}>
+                            <div className={estimatorFooterClass}>
                               <button
                                 type="submit"
                                 disabled={sendStatus === "sending"}

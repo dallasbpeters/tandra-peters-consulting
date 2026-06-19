@@ -10,6 +10,7 @@ import posthog from "posthog-js";
 gsap.registerPlugin(ScrollTrigger, useGSAP, SplitText);
 
 import "./styles/fonts.css";
+import "@awesome.me/webawesome/dist/styles/utilities.css";
 import "./index.css";
 import "./styles/site-layout.css";
 /* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
