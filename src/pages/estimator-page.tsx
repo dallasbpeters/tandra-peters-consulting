@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 
-import { ContactBanner } from "../components/ContactBanner";
+import { ContactBanner } from "../components/contact-banner";
 import { Estimator } from "../components/estimator/estimator";
-import { SitePageChrome } from "../components/SitePageChrome";
-import { usePageMetadata } from "../hooks/usePageMetadata";
-import { useSanityEstimatorPage } from "../hooks/useSanityEstimatorPage";
-import { CONTACT_BANNER_FREE_INSPECTION } from "../lib/contactBannerPresets";
+import { SitePageChrome } from "../components/site-page-chrome";
+import { usePageMetadata } from "../hooks/use-page-metadata";
+import { useSanityEstimatorPage } from "../hooks/use-sanity-estimator-page";
+import { CONTACT_BANNER_FREE_INSPECTION } from "../lib/contact-banner-presets";
 import { ESTIMATOR_DEFAULT_SEO, ESTIMATOR_DEFAULTS } from "../lib/estimator";
-import { mapEstimatorPageContent } from "../sanity/mapEstimatorPage";
+import { mapEstimatorPageContent } from "../sanity/map-estimator-page";
 
 export const EstimatorPage = () => {
   const { page } = useSanityEstimatorPage();

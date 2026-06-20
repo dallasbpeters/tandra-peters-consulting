@@ -39,7 +39,7 @@ import { patchTandraIntroRenderedVideo } from "./lib/patch-tandra-intro-render.j
 import { patchTandraIntroThumbnail } from "./lib/patch-tandra-intro-thumbnail.js";
 import { restoreRemotionSnapshot } from "./lib/remotion-snapshot.js";
 
-const DEFAULT_COMPOSITION_ID = "TandraIntro";
+const DEFAULT_COMPOSITION_ID = "tandra-intro";
 
 const _RE_CAMEL_BOUNDARY = /([a-z0-9])([A-Z])/g;
 const _RE_NON_SLUG_CHARS = /[^a-z0-9]+/g;
@@ -279,7 +279,7 @@ export default async function handler(
   // (software ANGLE) which is reliable in the Vercel Sandbox. The CLI
   // `remotion.config.ts` setting does NOT apply to renderMediaOnVercel — it must
   // be passed here as a render option.
-  const WEBGL_COMPOSITIONS = new Set(["RoofScene"]);
+  const WEBGL_COMPOSITIONS = new Set(["roof-scene"]);
   const chromiumOptions = WEBGL_COMPOSITIONS.has(compositionId)
     ? ({ gl: "angle" } as const)
     : undefined;

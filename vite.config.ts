@@ -2,32 +2,32 @@ import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import {
-  defineConfig,
-  loadEnv,
-  type PluginOption,
-  type ProxyOptions,
-} from "vite";
+import type { PluginOption, ProxyOptions } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
-import { ogImageComposite } from "./plugins/ogImageComposite";
-import { viteAdVersionsApi } from "./plugins/viteAdVersionsApi";
-import { viteAgentDevApi } from "./plugins/viteAgentDevApi";
-import { viteAnalyticsApi } from "./plugins/viteAnalyticsApi";
-import { viteContactDevApi } from "./plugins/viteContactDevApi";
-import { viteEmailDevApi } from "./plugins/viteEmailDevApi";
-import { viteEstimateDevApi } from "./plugins/viteEstimateDevApi";
-import { viteFalDevApi } from "./plugins/viteFalDevApi";
-import { viteRenderTandraIntroApi } from "./plugins/viteRenderTandraIntroApi";
-import { viteSanityImageApi } from "./plugins/viteSanityImageApi";
-import { viteSeoDashboardApi } from "./plugins/viteSeoDashboardApi";
-import { viteSitemapApi } from "./plugins/viteSitemapApi";
-import { viteUnsplashApi } from "./plugins/viteUnsplashApi";
-import { viteWorkflowSaveApi } from "./plugins/viteWorkflowSaveApi";
+import { ogImageComposite } from "./plugins/og-image-composite";
+import { viteAdVersionsApi } from "./plugins/vite-ad-versions-api";
+import { viteAgentDevApi } from "./plugins/vite-agent-dev-api";
+import { viteAnalyticsApi } from "./plugins/vite-analytics-api";
+import { viteContactDevApi } from "./plugins/vite-contact-dev-api";
+import { viteEmailDevApi } from "./plugins/vite-email-dev-api";
+import { viteEstimateDevApi } from "./plugins/vite-estimate-dev-api";
+import { viteFalDevApi } from "./plugins/vite-fal-dev-api";
+import { viteRenderTandraIntroApi } from "./plugins/vite-render-tandra-intro-api";
+import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
+import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
+import { viteSitemapApi } from "./plugins/vite-sitemap-api";
+import { viteUnsplashApi } from "./plugins/vite-unsplash-api";
+import { viteWorkflowSaveApi } from "./plugins/vite-workflow-save-api";
 
+// oxlint-disable-next-line require-unicode-regexp
 const TRAILING_SLASH_RE = /\/$/;
+// oxlint-disable-next-line require-unicode-regexp
 const CONTACT_API_PATH_RE = /\/api\/contact$/i;
+// oxlint-disable-next-line require-unicode-regexp
 const API_PATH_RE = /\/api$/i;
+// oxlint-disable-next-line prefer-named-capture-group require-unicode-regexp
 const POSTHOG_CLOUD_RE = /^https:\/\/(us|eu)\.i\.posthog\.com$/i;
 
 export default defineConfig(({ mode }) => {
@@ -68,13 +68,14 @@ export default defineConfig(({ mode }) => {
     !posthogCloudIngestion;
 
   const posthogProxyBase = {
-    target: posthogProxyTarget,
     changeOrigin: true,
     secure: true,
+    target: posthogProxyTarget,
   };
 
   const devProxy: Record<string, ProxyOptions> = {};
   if (contactProxyTarget) {
+    // oxlint-disable-next-line sort-keys
     devProxy["/api/contact"] = {
       target: contactProxyTarget,
       changeOrigin: true,
@@ -133,20 +134,27 @@ export default defineConfig(({ mode }) => {
       },
     } satisfies PluginOption,
     ViteImageOptimizer({
+      avif: { quality: 70 },
       /** Base OG PNG + roofline SVG are composited later; do not recompress the base PNG here. */
       exclude: ["roofline.svg"],
-      png: { quality: 80 },
       jpeg: { quality: 75 },
-      webp: { quality: 80 },
-      avif: { quality: 70 },
+      png: { quality: 80 },
       svg: {
         plugins: [{ name: "removeViewBox" }, { name: "sortAttrs" }],
       },
+      webp: { quality: 80 },
     }) as unknown as PluginOption,
     ogImageComposite() as unknown as PluginOption,
   ];
 
   return {
+    css: {
+      // Map compiled CSS back to source (theme files, estimator.css, etc.) in dev.
+      devSourcemap: true,
+    },
+    optimizeDeps: {
+      exclude: ["@awesome.me/webawesome"],
+    },
     plugins,
     resolve: {
       alias: {
@@ -154,13 +162,7 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ["three"],
     },
-    optimizeDeps: {
-      exclude: ["@awesome.me/webawesome"],
-    },
-    css: {
-      // Map compiled CSS back to source (theme files, estimator.css, etc.) in dev.
-      devSourcemap: true,
-    },
+    // oxlint-disable-next-line sort-keys
     server: {
       port: 3001,
       strictPort: true,

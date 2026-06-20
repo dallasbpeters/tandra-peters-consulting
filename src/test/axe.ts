@@ -1,5 +1,6 @@
 import axeCoreLib from "axe-core";
-import { type AxeResults, axe as axeFn, type RunOptions } from "jest-axe";
+import type { AxeResults, RunOptions } from "jest-axe";
+import { axe as axeFn } from "jest-axe";
 
 export type AxeCheckTarget = Element | Document | string;
 

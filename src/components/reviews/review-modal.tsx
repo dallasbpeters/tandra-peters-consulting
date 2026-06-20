@@ -1,5 +1,6 @@
 import { Xmark } from "iconoir-react";
-import { type MouseEvent, useEffect, useId, useRef } from "react";
+import type { MouseEvent } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
 import { theme } from "../../theme";

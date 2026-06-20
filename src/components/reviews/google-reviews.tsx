@@ -1,76 +1,76 @@
 import type { CSSProperties } from "react";
 
-import { useIsMobile } from "../../hooks/isMobile";
-import { layoutClass } from "../../styles/layoutClasses";
+import { useIsMobile } from "../../hooks/is-mobile";
+import { layoutClass } from "../../styles/layout-classes";
 import { theme } from "../../theme";
 import { GoogleLogo } from "./google-logo";
 import { MarqueeRow } from "./marquee-row";
 import { reviews } from "./reviews-data";
 
 const styles = {
-  section: {
-    width: "100%",
-    paddingBlock: theme.spacing.sectionWide,
-    backgroundColor: theme.colors.paper,
-  },
   header: {
-    maxWidth: "48rem",
     margin: `0 auto ${theme.spacing.xxxxxxxxxxl}`,
+    maxWidth: "48rem",
     textAlign: "center",
   },
   kicker: {
+    color: theme.colors.everglade,
     fontFamily: theme.fonts.headline,
     fontSize: "0.6875rem",
     fontWeight: 800,
     letterSpacing: "0.16em",
-    textTransform: "uppercase",
-    color: theme.colors.everglade,
     margin: 0,
+    textTransform: "uppercase",
   },
-  title: {
-    margin: `${theme.spacing.lg} 0 0`,
-    fontFamily: theme.fonts.headlineAlt,
-    fontSize: "clamp(2rem, 4vw, 3rem)",
-    lineHeight: 1.15,
-    color: theme.colors.everglade,
-  },
-  ratingRow: {
-    marginTop: theme.spacing.xxl,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.md,
+  ratingCount: {
+    color: theme.colors.legalMuted,
+    fontFamily: theme.fonts.headline,
+    fontSize: "0.875rem",
   },
   ratingMeta: {
-    display: "flex",
     alignItems: "center",
+    display: "flex",
     gap: theme.spacing.sm,
   },
+  ratingRow: {
+    alignItems: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing.md,
+    justifyContent: "center",
+    marginTop: theme.spacing.xxl,
+  },
   ratingValue: {
+    color: theme.colors.everglade,
     fontFamily: theme.fonts.headline,
     fontSize: "1.125rem",
     fontWeight: 800,
-    color: theme.colors.everglade,
-  },
-  ratingCount: {
-    fontFamily: theme.fonts.headline,
-    fontSize: "0.875rem",
-    color: theme.colors.legalMuted,
-  },
-  stars: {
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing.hairline,
-  },
-  star: {
-    width: "1.25rem",
-    height: "1.25rem",
   },
   rows: {
     display: "flex",
     flexDirection: "column",
     gap: theme.spacing.xl,
+  },
+  section: {
+    backgroundColor: theme.colors.paper,
+    paddingBlock: theme.spacing.sectionWide,
+    width: "100%",
+  },
+  star: {
+    height: "1.25rem",
+    width: "1.25rem",
+  },
+  stars: {
+    alignItems: "center",
+    display: "flex",
+    gap: theme.spacing.hairline,
+  },
+  title: {
+    color: theme.colors.everglade,
+    fontFamily: theme.fonts.headlineAlt,
+    fontSize: "clamp(2rem, 4vw, 3rem)",
+    lineHeight: 1.15,
+    margin: `${theme.spacing.lg} 0 0`,
   },
 } satisfies Record<string, CSSProperties>;
 

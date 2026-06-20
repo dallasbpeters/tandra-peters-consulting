@@ -50,18 +50,18 @@ const legacyParagraphBlock = (
   _key: string,
   text: string
 ): PortableTextBlock => ({
-  _type: "block",
   _key,
-  style: "normal",
-  markDefs: [],
+  _type: "block",
   children: [
     {
-      _type: "span",
       _key: `${_key}-s`,
+      _type: "span",
       marks: [],
       text,
     },
   ],
+  markDefs: [],
+  style: "normal",
 });
 
 /**

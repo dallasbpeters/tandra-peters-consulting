@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import type { IconoirIconComponent } from "../../icons/serviceIconMap";
+import type { IconoirIconComponent } from "../../icons/service-icon-map";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 

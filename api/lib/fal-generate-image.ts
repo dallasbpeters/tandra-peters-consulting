@@ -56,7 +56,7 @@ type ImageToImageEndpoint =
 
 interface ImageModelConfig {
   imageEndpoint?: ImageToImageEndpoint;
-  imageInputKind?: "imageUrl" | "imageUrls";
+  imageInputKind?: "image-url" | "imageUrls";
   inputKind: "aspectRatio" | "imageSize" | "seedream";
   promptEnhancementKey:
     | "enable_prompt_expansion"

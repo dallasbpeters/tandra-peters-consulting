@@ -1,4 +1,5 @@
-import { type CSSProperties, useState } from "react";
+import type { CSSProperties } from "react";
+import { useState } from "react";
 
 import { theme } from "../../theme";
 import type { Review } from "./reviews-data";
@@ -7,14 +8,14 @@ const STAR_FILLED = "#FBBC05";
 const STAR_EMPTY = theme.palette.paper["300"];
 
 const starStyles = {
-  stars: {
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing.hairline,
-  },
   star: {
-    width: "16px",
     height: "16px",
+    width: "16px",
+  },
+  stars: {
+    alignItems: "center",
+    display: "flex",
+    gap: theme.spacing.hairline,
   },
 } satisfies Record<string, CSSProperties>;
 
@@ -35,7 +36,7 @@ export const Stars = ({
         aria-hidden="true"
         fill={position <= rating ? STAR_FILLED : STAR_EMPTY}
         key={`star-${position}`}
-        style={{ ...starStyles.star, width: size, height: size }}
+        style={{ ...starStyles.star, height: size, width: size }}
         viewBox="0 0 24 24"
       >
         <path d="M12 2l2.95 6.36 6.99.78-5.2 4.72 1.42 6.86L12 17.77l-6.16 3.95 1.42-6.86-5.2-4.72 6.99-.78L12 2z" />
@@ -46,26 +47,26 @@ export const Stars = ({
 
 const avatarStyles = {
   avatar: {
-    width: "44px",
-    height: "44px",
-    borderRadius: theme.radius.pill,
-    objectFit: "cover",
-    flexShrink: 0,
     backgroundColor: theme.colors.paperDim,
+    borderRadius: theme.radius.pill,
+    flexShrink: 0,
+    height: "44px",
+    objectFit: "cover",
+    width: "44px",
   },
   avatarFallback: {
-    display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    width: "44px",
-    height: "44px",
-    borderRadius: theme.radius.pill,
-    flexShrink: 0,
     backgroundColor: theme.palette.everglade["100"],
+    borderRadius: theme.radius.pill,
     color: theme.colors.everglade,
+    display: "flex",
+    flexShrink: 0,
     fontFamily: theme.fonts.headline,
     fontSize: "0.875rem",
     fontWeight: 700,
+    height: "44px",
+    justifyContent: "center",
+    width: "44px",
   },
 } satisfies Record<string, CSSProperties>;
 
@@ -86,8 +87,8 @@ export const Avatar = ({
         aria-hidden="true"
         style={{
           ...avatarStyles.avatarFallback,
-          width: dimension,
           height: dimension,
+          width: dimension,
         }}
       >
         {initial}
@@ -105,7 +106,7 @@ export const Avatar = ({
       onError={() => setImageFailed(true)}
       referrerPolicy="no-referrer"
       src={review.avatar}
-      style={{ ...avatarStyles.avatar, width: dimension, height: dimension }}
+      style={{ ...avatarStyles.avatar, height: dimension, width: dimension }}
       width={size}
     />
   );
@@ -114,7 +115,7 @@ export const Avatar = ({
 export const GoogleMark = ({ size = 20 }: { size?: number }) => (
   <svg
     aria-hidden="true"
-    style={{ width: size, height: size, flexShrink: 0 }}
+    style={{ flexShrink: 0, height: size, width: size }}
     viewBox="0 0 24 24"
   >
     <path

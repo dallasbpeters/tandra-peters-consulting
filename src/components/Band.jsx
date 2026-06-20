@@ -53,8 +53,8 @@ export default function Band(props) {
   });
 
   const { scrollYProgress } = useScroll({
-    target: isMounted ? ref : undefined,
     offset: ["start end", "end start"],
+    target: isMounted ? ref : undefined,
   });
 
   const bands = [
@@ -73,7 +73,7 @@ export default function Band(props) {
     { ease: (t) => t * t * (3 - 2 * t) }
   );
 
-  const offsetSpring = useSpring(0, { stiffness: 30, damping: 15 });
+  const offsetSpring = useSpring(0, { damping: 15, stiffness: 30 });
   useMotionValueEvent(offsetSpring, "change", setMouseOffset);
 
   function onMouseMove(event) {
@@ -95,10 +95,10 @@ export default function Band(props) {
   const lastBandIndex = bands.length - 1;
   /** Subpixel animated heights leave hairline gaps; overlap + base fill hides them. */
   const bandOverlapStyle = (index) => ({
-    marginTop: index > 0 ? -1 : 0,
-    marginBottom: index === lastBandIndex ? -1 : 0,
-    transform: "translateZ(0)",
     backfaceVisibility: "hidden",
+    marginBottom: index === lastBandIndex ? -1 : 0,
+    marginTop: index > 0 ? -1 : 0,
+    transform: "translateZ(0)",
   });
 
   if (numStops < 2) {
@@ -109,10 +109,10 @@ export default function Band(props) {
         className={className}
         ref={ref}
         style={{
-          position: "relative",
-          width: "100%",
-          transform: rotate ? "rotate(180deg)" : undefined,
           background: numStops === 1 ? palette[0] : undefined,
+          position: "relative",
+          transform: rotate ? "rotate(180deg)" : undefined,
+          width: "100%",
           ...style,
         }}
       >
@@ -120,20 +120,20 @@ export default function Band(props) {
           <motion.div
             key={band.opacity}
             style={{
-              position: "relative",
-              width: "100%",
               background: gradientBg,
               height,
+              position: "relative",
+              width: "100%",
               ...bandOverlapStyle(index),
             }}
           >
             <span
               style={{
-                position: "absolute",
-                inset: 0,
-                display: "block",
                 background: tint,
+                display: "block",
+                inset: 0,
                 opacity: band.opacity,
+                position: "absolute",
               }}
             />
           </motion.div>
@@ -171,10 +171,10 @@ export default function Band(props) {
       onMouseMove={onMouseMove}
       ref={ref}
       style={{
-        position: "relative",
-        width: "100%",
-        transform: rotate ? "rotate(180deg)" : undefined,
         background: palette[0],
+        position: "relative",
+        transform: rotate ? "rotate(180deg)" : undefined,
+        width: "100%",
         ...style,
       }}
     >
@@ -182,10 +182,10 @@ export default function Band(props) {
         <motion.div
           key={band.opacity}
           style={{
-            position: "relative",
-            width: "100%",
             background: gradientBg,
             height,
+            position: "relative",
+            width: "100%",
             ...customProperties,
             transition: transitionValue,
             ...bandOverlapStyle(index),
@@ -193,11 +193,11 @@ export default function Band(props) {
         >
           <span
             style={{
-              position: "absolute",
-              inset: 0,
-              display: "block",
               background: tint,
+              display: "block",
+              inset: 0,
               opacity: band.opacity,
+              position: "absolute",
             }}
           />
         </motion.div>

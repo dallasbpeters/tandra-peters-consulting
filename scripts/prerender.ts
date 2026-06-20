@@ -286,7 +286,7 @@ const articlePage = (post: PostDoc): PageMeta | null => {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: `${ORIGIN}/` },
+      { "@type": "ListItem", position: 1, name: "home", item: `${ORIGIN}/` },
       {
         "@type": "ListItem",
         position: 2,

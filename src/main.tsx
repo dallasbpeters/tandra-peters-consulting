@@ -16,11 +16,11 @@ import "./styles/site-layout.css";
 /* StrictMode disabled: double-mounting breaks Presentation ↔ visual-editing comlink in dev. */
 import { createRoot } from "react-dom/client";
 
-import App from "./App.tsx";
+import App from "./app.tsx";
 import {
   isPosthogEnabled,
   resolvePosthogClientOptions,
-} from "./posthogClientConfig";
+} from "./posthog-client-config";
 
 /**
  * After a deploy, tabs opened on the previous build request lazy-route chunks
@@ -62,10 +62,10 @@ if (posthogToken && isPosthogEnabled()) {
         const toolbarReady = posthog.toolbar?.maybeLoadToolbar?.() ?? false;
         console.info("[PostHog] SDK ready", {
           api_host: posthog.config.api_host,
-          ui_host: posthog.config.ui_host,
           toolbar_external_deps:
             !posthog.config.disable_external_dependency_loading,
           toolbar_launch_detected: toolbarReady,
+          ui_host: posthog.config.ui_host,
         });
         if (!toolbarReady) {
           console.info(
@@ -77,7 +77,7 @@ if (posthogToken && isPosthogEnabled()) {
   });
 }
 
-const rootEl = document.getElementById("root");
+const rootEl = document.querySelector("#root");
 if (!rootEl) {
   throw new Error("Root element #root not found in document.");
 }

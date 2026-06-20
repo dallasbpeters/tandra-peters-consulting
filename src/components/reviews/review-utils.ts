@@ -5,8 +5,8 @@ export const formatReviewDate = (isoDate: string) => {
   }
 
   return parsed.toLocaleDateString("en-US", {
-    month: "short",
     day: "numeric",
+    month: "short",
     year: "numeric",
   });
 };

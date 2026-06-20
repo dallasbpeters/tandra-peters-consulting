@@ -3,7 +3,7 @@
 import { Check, Copy } from "iconoir-react";
 import { useCallback, useState } from "react";
 
-import { parseAgentArtifactText } from "../../lib/parseAgentArtifact";
+import { parseAgentArtifactText } from "../../lib/parse-agent-artifact";
 import {
   Artifact,
   ArtifactAction,
@@ -22,7 +22,7 @@ interface Props {
 export const AgentArtifactMessage = ({ text }: Props) => {
   const segments = parseAgentArtifactText(text);
   const fallbackSegments = text.trim()
-    ? [{ type: "markdown" as const, content: text.trim() }]
+    ? [{ content: text.trim(), type: "markdown" as const }]
     : [];
   const displaySegments = segments.length > 0 ? segments : fallbackSegments;
 
@@ -84,8 +84,8 @@ const ArtifactCopyAction = ({ text }: { text: string }) => {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1200);
-    } catch (err) {
-      console.warn("[artifact-copy] clipboard failed", err);
+    } catch (error) {
+      console.warn("[artifact-copy] clipboard failed", error);
     }
   }, [text]);
 

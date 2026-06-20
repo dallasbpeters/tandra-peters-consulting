@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@sanity/client";
 import groq from "groq";
 
-import { plainTextFromRich } from "../../src/portableText/plainText.js";
+import { plainTextFromRich } from "../../src/portableText/plain-text.js";
 
 type SeoAuditStatus = "good" | "warning" | "critical";
 type SeoRecommendationPriority = "high" | "medium" | "low";

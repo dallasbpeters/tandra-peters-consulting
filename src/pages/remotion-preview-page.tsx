@@ -1,0 +1,172 @@
+import { Player } from "@remotion/player";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
+import { fetchTandraIntroContent } from "../remotion/fetch-tandra-intro-content";
+import type { CompositionEntry } from "../remotion/registry";
+import { COMPOSITIONS, getComposition } from "../remotion/registry";
+
+/**
+ * Standalone, chrome-less preview of any Remotion composition, driven by a
+ * `?id=<CompositionId>` query param. Renders the live `@remotion/player` so
+ * editors can scrub and play in-browser.
+ *
+ * This route is embedded in an <iframe> by the Sanity Studio "Videos" tool
+ * (see studio-tandra-peters/components/RemotionVideoTool.tsx) and is also
+ * directly viewable at /remotion-preview?id=TandraStormSpot.
+ *
+ * For `TandraIntro` the live Sanity `homePage.tandraIntroVideo` copy is merged
+ * into the input props (drafts included when VITE_SANITY_API_READ_TOKEN is set),
+ * so the preview matches what a render would produce.
+ */
+const CONTROL_BAR_HEIGHT = 0;
+
+const wrapStyle: React.CSSProperties = {
+  alignItems: "center",
+  background: "#0b0b09",
+  boxSizing: "border-box",
+  display: "flex",
+  inset: 0,
+  justifyContent: "center",
+  padding: 16,
+  position: "fixed",
+};
+
+const messageStyle: React.CSSProperties = {
+  color: "#d5f6e9",
+  fontFamily: "system-ui, sans-serif",
+  fontSize: 15,
+  lineHeight: 1.5,
+  maxWidth: 420,
+  textAlign: "center",
+};
+
+export const RemotionPreviewPage = () => {
+  const [searchParams] = useSearchParams();
+  const requestedId = searchParams.get("id") ?? "tandra-intro";
+  const entry: CompositionEntry | undefined = getComposition(requestedId);
+
+  // Live Sanity copy for CMS-backed compositions (TandraIntro only, today).
+  const [liveProps, setLiveProps] = useState<Record<string, unknown> | null>(
+    null
+  );
+  const [loading, setLoading] = useState(Boolean(entry?.sanityField));
+
+  // Edited props received from Studio tool via postMessage.
+  const [editedProps, setEditedProps] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (entry?.sanityField === "tandraIntroVideo") {
+      setLoading(true);
+      fetchTandraIntroContent()
+        .then((result) => {
+          if (!cancelled) {
+            setLiveProps({
+              content: result.content,
+              showCaptions: result.showCaptions,
+            });
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setLiveProps(null);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false);
+          }
+        });
+    } else {
+      setLiveProps(null);
+      setLoading(false);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [entry?.sanityField]);
+
+  // Listen for live prop edits from the Studio Videos tool.
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "remotion:updateProps") {
+        setEditedProps(event.data.props);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  const inputProps = useMemo(() => {
+    // For CMS-backed compositions, merge Studio edits on top of live Sanity content
+    // so fields not touched in the editor still reflect the published copy.
+    if (entry?.sanityField && editedProps && liveProps) {
+      return { ...liveProps, ...editedProps };
+    }
+    return editedProps ?? liveProps ?? entry?.defaultProps ?? {};
+  }, [editedProps, liveProps, entry?.defaultProps, entry?.sanityField]);
+
+  const playerStyle = useMemo<React.CSSProperties>(() => {
+    if (!entry) {
+      return {};
+    }
+    const isPortrait = entry.height > entry.width;
+    return {
+      aspectRatio: entry.aspectRatio,
+      ...(isPortrait
+        ? {
+            height: `calc(100vh - 32px - ${CONTROL_BAR_HEIGHT}px)`,
+            maxWidth: "100%",
+            width: "auto",
+          }
+        : { height: "auto", width: "min(100%, calc(100vh * 16 / 9))" }),
+      borderRadius: 8,
+      boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
+      overflow: "hidden",
+    };
+  }, [entry]);
+
+  if (!entry) {
+    return (
+      <div style={wrapStyle}>
+        <p style={messageStyle}>
+          Unknown composition <code>{requestedId}</code>.
+          <br />
+          Available: {COMPOSITIONS.map((c) => c.id).join(", ")}
+        </p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={wrapStyle}>
+        <p style={messageStyle}>Loading {entry.label}…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={wrapStyle}>
+      <Player
+        acknowledgeRemotionLicense
+        component={entry.component}
+        compositionHeight={entry.height}
+        compositionWidth={entry.width}
+        controls
+        durationInFrames={entry.durationInFrames}
+        fps={entry.fps}
+        inputProps={inputProps}
+        key={entry.id}
+        loop
+        style={playerStyle}
+      />
+    </div>
+  );
+};
+
+export default RemotionPreviewPage;

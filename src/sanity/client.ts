@@ -1,10 +1,11 @@
-import { createClient, type SanityClient } from "@sanity/client";
+import type { SanityClient } from "@sanity/client";
+import { createClient } from "@sanity/client";
 
 import {
   SANITY_API_VERSION,
   SANITY_DATASET,
   SANITY_PROJECT_ID,
-} from "./projectDetails";
+} from "./project-details";
 
 const fallbackStudioUrl = import.meta.env.PROD
   ? "https://www.tandra.me/studio"
@@ -93,15 +94,15 @@ export const getSanityClient = (): SanityClient => {
   }
 
   const client = createClient({
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    projectId: SANITY_PROJECT_ID,
     // Use the CDN in all non-draft contexts. The CDN TTL (~60 s) is acceptable
     // for a content site; avoiding it on every production request was costing
     // 500–2000 ms per page load with no meaningful freshness benefit.
     useCdn: !drafts,
     ...(drafts ? { perspective: "drafts" as const } : {}),
-    ...(token ? { token, ignoreBrowserTokenWarning: true } : {}),
+    ...(token ? { ignoreBrowserTokenWarning: true, token } : {}),
     stega: {
       enabled: stega,
       studioUrl: import.meta.env.VITE_SANITY_STUDIO_URL || fallbackStudioUrl,

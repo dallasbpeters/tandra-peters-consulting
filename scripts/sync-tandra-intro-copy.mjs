@@ -2,11 +2,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 import { config as loadEnv } from "dotenv";
 
-import { fetchTandraIntroContent } from "../src/remotion/fetchTandraIntroContent.ts";
+import { fetchTandraIntroContent } from "../src/remotion/fetch-tandra-intro-content.ts";
 
 loadEnv({ path: ".env.local" });
 
-const ROOT_FILE = new URL("../src/remotion/Root.tsx", import.meta.url);
+const ROOT_FILE = new URL("../src/remotion/root.tsx", import.meta.url);
 
 const { content, source, documentId } = await fetchTandraIntroContent();
 if (source === "fallback") {
@@ -30,7 +30,7 @@ const pattern = /defaultProps=\{\{[\s\S]*?\}\}\s*\n\s*durationInFrames=/;
 
 if (!pattern.test(sourceText)) {
   console.error(
-    "[video:sync-copy] Could not find defaultProps block in src/remotion/Root.tsx."
+    "[video:sync-copy] Could not find defaultProps block in src/remotion/root.tsx."
   );
   process.exit(1);
 }

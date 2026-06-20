@@ -1,7 +1,7 @@
-import "../test/a11yMocks";
+import "../test/a11y-mocks";
 import { describe, expect, it } from "vitest";
 
-import { a11yCases } from "../test/a11yCatalog";
+import { a11yCases } from "../test/a11y-catalog";
 import { runAxe } from "../test/axe";
 
 describe("accessibility (axe-core)", () => {

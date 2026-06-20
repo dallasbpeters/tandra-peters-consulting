@@ -5,15 +5,15 @@ import { ReviewCard } from "./review-card";
 import type { Review } from "./reviews-data";
 
 const styles = {
-  viewport: {
-    display: "flex",
-    overflow: "hidden",
-  },
   track: {
     display: "flex",
     flexShrink: 0,
     gap: theme.spacing.xl,
     paddingRight: theme.spacing.xl,
+  },
+  viewport: {
+    display: "flex",
+    overflow: "hidden",
   },
 } satisfies Record<string, CSSProperties>;
 

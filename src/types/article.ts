@@ -34,10 +34,12 @@ export type PostDetail = PostListItem & {
     tagline?: string | null;
     title?: string | null;
     intro?: PortableTextBlock[] | string | null;
-    items?: Array<{
-      _key?: string | null;
-      question?: string | null;
-      answer?: PortableTextBlock[] | string | null;
-    }> | null;
+    items?:
+      | {
+          _key?: string | null;
+          question?: string | null;
+          answer?: PortableTextBlock[] | string | null;
+        }[]
+      | null;
   } | null;
 };

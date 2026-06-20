@@ -20,11 +20,11 @@ import {
   formatRange,
   summarizeSelections,
 } from "../../lib/estimator";
-import { layoutClass } from "../../styles/layoutClasses";
+import { layoutClass } from "../../styles/layout-classes";
 import { mix, theme } from "../../theme";
 import type { EstimatorPageContent } from "../../types";
-import { EstimatorMapBackground } from "./EstimatorMapBackground";
-import { optionIllustrationFor } from "./optionIllustrations";
+import { EstimatorMapBackground } from "./estimator-map-background";
+import { optionIllustrationFor } from "./option-illustrations";
 import {
   estimatorCardLayoutClass,
   estimatorCardStyle,
@@ -221,14 +221,14 @@ export const Estimator: React.FC<EstimatorProps> = ({
     try {
       const res = await fetch(ESTIMATE_API_PATH, {
         body: JSON.stringify({
-          fullName: fullName.trim(),
+          answers: summary,
           email: email.trim(),
-          lowEstimate: estimate.low,
+          fullName: fullName.trim(),
           highEstimate: estimate.high,
+          lowEstimate: estimate.low,
+          propertyAddress: selectedAddress ?? (address.trim() || null),
           rangeDisplay: formatRange(estimate, currency),
           squareFootage: estimate.sqft,
-          propertyAddress: selectedAddress ?? (address.trim() || null),
-          answers: summary,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",

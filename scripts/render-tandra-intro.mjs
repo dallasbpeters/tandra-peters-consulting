@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 
 import { config as loadEnv } from "dotenv";
 
-import { fetchTandraIntroContent } from "../src/remotion/fetchTandraIntroContent.ts";
+import { fetchTandraIntroContent } from "../src/remotion/fetch-tandra-intro-content.ts";
 
 loadEnv({ path: ".env.local" });
 
@@ -10,7 +10,7 @@ const mode = process.argv[2] ?? "render";
 const stillCommand = [
   "still",
   "src/remotion/index.ts",
-  "TandraIntro",
+  "tandra-intro",
   "out/tandra-intro-still.png",
   "--frame=450",
   "--scale=0.5",
@@ -18,7 +18,7 @@ const stillCommand = [
 const renderCommand = [
   "render",
   "src/remotion/index.ts",
-  "TandraIntro",
+  "tandra-intro",
   "out/tandra-intro.mp4",
 ];
 const studioCommand = ["studio", "src/remotion/index.ts"];

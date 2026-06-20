@@ -17,8 +17,8 @@ const schemaTypesRoot = path.join(repoRoot, "studio-tandra-peters/schemaTypes");
 const generatedSanityDir = path.join(repoRoot, "src/sanity/generated");
 const generatedComponentsDir = path.join(repoRoot, "src/components/generated");
 const homeQueryPath = path.join(repoRoot, "src/sanity/queries.ts");
-const homeMapperPath = path.join(repoRoot, "src/sanity/mapSanityHome.tsx");
-const homePagePath = path.join(repoRoot, "src/pages/Home.tsx");
+const homeMapperPath = path.join(repoRoot, "src/sanity/map-sanity-home.tsx");
+const homePagePath = path.join(repoRoot, "src/pages/home.tsx");
 
 const FIELD_TYPE_OPTIONS = [
   "string",
@@ -42,7 +42,7 @@ const RE_WHITESPACE = /\s+/g;
 const RE_SANITY_IMPORT = /import\s*\{([^}]+)\}\s*from\s*"sanity";/;
 const RE_SCHEMA_TYPES_ARRAY = /export const schemaTypes = \[([\s\S]*?)\];/;
 const RE_MAP_SANITY_HOME_IMPORT =
-  /import\s*\{([\s\S]*?)\}\s*from\s*'\.\.\/sanity\/mapSanityHome'/;
+  /import\s*\{([\s\S]*?)\}\s*from\s*'\.\.\/sanity\/map-sanity-home'/;
 const RE_DEFINE_TYPE_BLOCK =
   /defineType\s*\(\s*\{[\s\S]*?name:\s*"([^"]+)"[\s\S]*?title:\s*"([^"]+)"[\s\S]*?type:\s*"([^"]+)"[\s\S]*?\}\s*\)/;
 const RE_LEADING_WHITESPACE = /^\s*/;
@@ -428,7 +428,7 @@ const ensureHomePageBirdcreekConsumption = (source) => {
       if (!parsedImports.includes("mapBirdcreekVideoBannerProps")) {
         parsedImports.splice(2, 0, "mapBirdcreekVideoBannerProps");
       }
-      return `import { ${parsedImports.join(", ")} } from '../sanity/mapSanityHome'`;
+      return `import { ${parsedImports.join(", ")} } from '../sanity/map-sanity-home'`;
     });
   }
 
@@ -711,7 +711,7 @@ const main = async () => {
       console.log(`- Fields: ${fields.map((field) => field.name).join(", ")}`);
       if (autoWireSummary?.updated) {
         console.log(
-          "- Wiring: Updated src/sanity/queries.ts, src/sanity/mapSanityHome.tsx, src/pages/Home.tsx"
+          "- Wiring: Updated src/sanity/queries.ts, src/sanity/map-sanity-home.tsx, src/pages/home.tsx"
         );
       } else if (autoWireSummary?.reason) {
         console.log(`- Wiring: Skipped (${autoWireSummary.reason})`);

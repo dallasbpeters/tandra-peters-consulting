@@ -1,7 +1,7 @@
 import type { PortableTextBlock } from "@portabletext/types";
 import type React from "react";
 
-import type { IconoirIconComponent } from "./icons/serviceIconMap";
+import type { IconoirIconComponent } from "./icons/service-icon-map";
 import type { PostListItem } from "./types/article";
 
 declare module "react" {

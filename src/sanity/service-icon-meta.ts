@@ -1,0 +1,46 @@
+/**
+ * Curated Iconoir icons for service cards — single source for Sanity `list` + frontend map.
+ * Keep keys aligned with `src/icons/service-icon-map.tsx`.
+ */
+export const SERVICE_ICON_OPTIONS = [
+  { title: "Search — inspection, assessment", value: "search" },
+  { title: "Page — documents, insurance forms", value: "page" },
+  { title: "Shield check — protection, warranty", value: "shieldCheck" },
+  { title: "Hammer — construction, repair", value: "hammer" },
+  { title: "Wrench — maintenance, service", value: "wrench" },
+  { title: "Ruler — measurement, precision", value: "ruler" },
+  { title: "Truck — delivery, on-site", value: "truck" },
+  { title: "Umbrella — coverage, weather", value: "umbrella" },
+  { title: "Home — residential", value: "home" },
+  { title: "Home user — residential, family", value: "homeUser" },
+  { title: "Eye — inspection, review", value: "eye" },
+  { title: "Clipboard check — checklist, approval", value: "clipboardCheck" },
+  { title: "Tools — trade, workmanship", value: "tools" },
+  { title: "Warning — damage, urgency", value: "warningTriangle" },
+  { title: "Shield — security, trust", value: "shield" },
+  { title: "Chat — consultation, support", value: "chatLines" },
+  { title: "Phone — call, contact", value: "phone" },
+  { title: "Mail — email", value: "mail" },
+  { title: "Calendar — scheduling", value: "calendar" },
+  { title: "Clock — timeline, availability", value: "clock" },
+  { title: "User — personal, advisor", value: "user" },
+  { title: "Group — team, crew", value: "group" },
+  { title: "Light bulb — guidance, ideas", value: "lightBulb" },
+  { title: "Leaf — sustainability, materials", value: "leaf" },
+  { title: "Fire / heat — climate, UV", value: "fireFlame" },
+  { title: "Snow / cold — weather exposure", value: "snow" },
+  { title: "Cloud & sun — weather, climate", value: "cloudSunny" },
+  { title: "Map pin — location, service area", value: "mapPin" },
+  { title: "Sparks — quality, standout", value: "sparks" },
+  { title: "Heart — care, values", value: "heart" },
+  { title: "Help — FAQ, explain", value: "helpCircle" },
+  { title: "Check circle — complete, verified", value: "checkCircle" },
+  { title: "Badge check — certified, trusted", value: "badgeCheck" },
+] as const;
+
+export type ServiceIconKey = (typeof SERVICE_ICON_OPTIONS)[number]["value"];
+
+/** Legacy Sanity values from Lucide-era schema */
+export const LEGACY_SERVICE_ICON_ALIASES: Record<string, ServiceIconKey> = {
+  fileText: "page",
+};

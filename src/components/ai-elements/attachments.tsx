@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 
-import type { IconoirIconComponent } from "../../icons/serviceIconMap";
+import type { IconoirIconComponent } from "../../icons/service-icon-map";
 
 // ============================================================================
 // Types

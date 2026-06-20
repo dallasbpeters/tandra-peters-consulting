@@ -3,53 +3,41 @@ import { toHaveNoViolations } from "jest-axe";
 import { setupServer } from "msw/node";
 import React from "react";
 import { afterAll, afterEach, beforeAll, expect, vi } from "vitest";
+import { handlers } from "./handlers";
 
 expect.extend(toHaveNoViolations);
 
-import { handlers } from "./handlers";
-
 // ── Browser API stubs (jsdom doesn't implement these) ─────────────────────────
-if (typeof globalThis.IntersectionObserver === "undefined") {
+if (globalThis.IntersectionObserver === undefined) {
   globalThis.IntersectionObserver = class {
+    // oxlint-disable-next-line class-methods-use-this
     observe() {
       // noop
     }
+    // oxlint-disable-next-line class-methods-use-this
     unobserve() {
       // noop
     }
+    // oxlint-disable-next-line class-methods-use-this
     disconnect() {
       // noop
     }
   } as unknown as typeof IntersectionObserver;
 }
 
-if (typeof globalThis.ResizeObserver === "undefined") {
-  globalThis.ResizeObserver = class {
-    observe() {
-      // noop
-    }
-    unobserve() {
-      // noop
-    }
-    disconnect() {
-      // noop
-    }
-  } as unknown as typeof ResizeObserver;
-}
-
 if (typeof window.matchMedia !== "function") {
   Object.defineProperty(window, "matchMedia", {
-    writable: true,
     value: vi.fn().mockImplementation((query: string) => ({
+      addEventListener: vi.fn(),
+      addListener: vi.fn(),
+      dispatchEvent: vi.fn(),
       matches: false,
       media: query,
       onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      removeListener: vi.fn(),
     })),
+    writable: true,
   });
 }
 
@@ -66,20 +54,21 @@ export const mockIdentify = vi.fn();
 export const mockCaptureException = vi.fn();
 
 vi.mock("@posthog/react", () => ({
+  useFeatureFlagVariantKey: () => null,
   usePostHog: () => ({
     capture: mockCapture,
-    identify: mockIdentify,
     captureException: mockCaptureException,
-    getFeatureFlag: () => undefined,
-    featureFlags: { hasLoadedFlags: true, getFlags: () => [] },
+    featureFlags: { getFlags: () => [], hasLoadedFlags: true },
+    getFeatureFlag: () => null,
+    identify: mockIdentify,
   }),
-  useFeatureFlagVariantKey: () => undefined,
 }));
 
 const waFieldId = (label?: string, name?: string, id?: string) =>
   (id as string) ||
   (name as string) ||
-  (label ? label.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "field");
+  // oxlint-disable-next-line require-unicode-regexp
+  (label ? label.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-") : "field");
 
 // ── Web component stubs ───────────────────────────────────────────────────────
 vi.mock("@awesome.me/webawesome/dist/react/input/index.js", () => ({
@@ -91,11 +80,10 @@ vi.mock("@awesome.me/webawesome/dist/react/input/index.js", () => ({
     onInput,
     type = "text",
     id,
-    children: _children, // slot content – not valid on <input>
-    autocomplete: _autocomplete, // web-component attribute, not camelCase
-    withLabel: _withLabel, // web-component-only prop
-    withClear: _withClear, // web-component-only prop
-    maxlength: maxlengthProp, // web-component attribute, not camelCase
+    children: _children,
+    autocomplete: _autocomplete,
+    withClear: _withClear,
+    maxlength: maxlengthProp,
     ...rest
   }: Record<string, unknown> & {
     label?: string;
@@ -150,7 +138,7 @@ vi.mock("@awesome.me/webawesome/dist/react/textarea/index.js", () => ({
     onChange,
     onInput,
     id,
-    children: _children, // no slot content on <textarea>
+    children: _children,
     autocomplete: _autocomplete,
     withLabel: _withLabel,
     ...rest
@@ -373,7 +361,7 @@ vi.mock("@mapbox/search-js-react", () => ({
     children ?? null,
 }));
 
-vi.mock("../components/TransitionLink", () => ({
+vi.mock("../components/transition-link", () => ({
   TransitionLink: ({
     children,
     to,
@@ -383,12 +371,12 @@ vi.mock("../components/TransitionLink", () => ({
   }) => <a href={to}>{children}</a>,
 }));
 
-vi.mock("../components/GoogleAuthGate", () => ({
+vi.mock("../components/google-auth-gate", () => ({
+  GoogleAuthFooterTrigger: () => null,
   GoogleAuthGate: ({ children }: { children?: React.ReactNode }) =>
     children ?? null,
   GoogleAuthGateProvider: ({ children }: { children?: React.ReactNode }) =>
     children,
-  GoogleAuthFooterTrigger: () => null,
 }));
 
 vi.mock("@awesome.me/webawesome/dist/react/button/index.js", () => ({

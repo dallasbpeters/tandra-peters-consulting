@@ -1,4 +1,5 @@
-import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { theme } from "../../theme";
 import { ReviewModal } from "./review-modal";
@@ -8,39 +9,20 @@ import type { Review } from "./reviews-data";
 
 const styles = {
   card: {
+    backgroundColor: theme.colors.white,
+    border: `1px solid ${theme.colors.paperDark}`,
+    borderRadius: theme.radius.large,
     display: "flex",
     flexDirection: "column",
-    gap: theme.spacing.lg,
-    width: "20rem",
     flexShrink: 0,
-    borderRadius: theme.radius.large,
-    border: `1px solid ${theme.colors.paperDark}`,
-    backgroundColor: theme.colors.white,
+    gap: theme.spacing.lg,
     padding: theme.spacing.xxl,
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing.md,
-  },
-  meta: {
-    minWidth: 0,
-    flex: 1,
-  },
-  name: {
-    fontFamily: theme.fonts.headline,
-    fontSize: "0.875rem",
-    fontWeight: 700,
-    color: theme.colors.everglade,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    margin: 0,
+    width: "20rem",
   },
   date: {
+    color: theme.colors.legalMuted,
     fontFamily: theme.fonts.headline,
     fontSize: "0.75rem",
-    color: theme.colors.legalMuted,
     margin: `${theme.spacing.hairline} 0 0`,
   },
   footer: {
@@ -48,6 +30,25 @@ const styles = {
     flexDirection: "column",
     gap: theme.spacing.md,
     marginTop: "auto",
+  },
+  header: {
+    alignItems: "center",
+    display: "flex",
+    gap: theme.spacing.md,
+  },
+  meta: {
+    flex: 1,
+    minWidth: 0,
+  },
+  name: {
+    color: theme.colors.everglade,
+    fontFamily: theme.fonts.headline,
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    margin: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
 } satisfies Record<string, CSSProperties>;
 

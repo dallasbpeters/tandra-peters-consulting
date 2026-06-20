@@ -3,7 +3,7 @@
  *
  * Kept under `api/lib` (NOT imported from `src/`) so the Vercel serverless
  * bundle stays independent of the SPA build — same convention as
- * `fetch-tandra-intro-content.ts`. These mirror `src/remotion/ads/adDefaults.ts`;
+ * `fetch-tandra-intro-content.ts`. These mirror `src/remotion/ads/ad-defaults.ts`;
  * keep the two in sync if the ad copy changes. (TandraIntro copy comes from
  * Sanity, not here.)
  */
