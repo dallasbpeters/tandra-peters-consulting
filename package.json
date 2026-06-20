@@ -40,7 +40,7 @@
     "test:run": "NODE_ENV=test vitest run",
     "test:a11y": "NODE_ENV=test vitest run src/a11y",
     "check": "ultracite check",
-    "fix": "ultracite fix",
+    "fix": "biome check --write --unsafe",
     "prepare": "husky"
   },
   "dependencies": {
@@ -157,6 +157,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/express": "^4.17.25",
     "@types/geojson": "^7946.0.16",
+    "@types/jest-axe": "^3.5.9",
     "@types/node": "^22.19.21",
     "@types/react-color": "^3.0.13",
     "@types/three": "^0.184.1",
