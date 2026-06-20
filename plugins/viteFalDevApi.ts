@@ -3,6 +3,7 @@
  * Fal without `vercel dev`. Requires FAL_KEY in repo-root .env.local.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
+
 import type { Plugin } from "vite";
 
 const FAL_PATH = "/api/fal/generate-image";

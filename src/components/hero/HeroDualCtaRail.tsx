@@ -2,6 +2,7 @@ import { usePostHog } from "@posthog/react";
 import type React from "react";
 import type { CSSProperties } from "react";
 import { useState } from "react";
+
 import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";

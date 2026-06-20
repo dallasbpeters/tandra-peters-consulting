@@ -4,6 +4,8 @@
   "files": {
     "includes": [
       "!.agents",
+      "!.claude",
+      "!skills",
       "!dist",
       "!out",
       "!.remotion",

@@ -1,4 +1,5 @@
 import type React from "react";
+
 import { layoutClass } from "../styles/layoutClasses";
 import { theme } from "../theme";
 import type { CertificationsProps } from "../types";

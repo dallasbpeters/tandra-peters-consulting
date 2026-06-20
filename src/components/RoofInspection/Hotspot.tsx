@@ -1,6 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
 import { useRoofInspection } from "./context";

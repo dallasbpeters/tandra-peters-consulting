@@ -3,8 +3,8 @@ import "@fontsource/bebas-neue/latin-400.css";
 import "@fontsource/ibm-plex-serif/400.css";
 import "@fontsource/ibm-plex-serif/400-italic.css";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
-
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import WaNumberInput from "@awesome.me/webawesome/dist/react/number-input/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
@@ -30,6 +30,7 @@ import {
   useRef,
   useState,
 } from "react";
+
 import { AdCanvasEditor } from "../components/AdCanvasEditor";
 import { AdColorSwatch } from "../components/AdColorSwatch";
 import { AdImagePicker } from "../components/AdImagePicker";
@@ -58,6 +59,7 @@ import {
   applyAdTemplatePreset,
   type FontPresetId,
 } from "../lib/adCreativeTemplates";
+
 import "../styles/ad-dashboard.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────

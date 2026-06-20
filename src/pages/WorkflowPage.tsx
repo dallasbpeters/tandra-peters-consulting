@@ -21,8 +21,8 @@ import {
   useStore,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 
+import "@xyflow/react/dist/style.css";
 import "../styles/workflow-page.css";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+
 import { createClient } from "@sanity/client";
 
 // Load token from .env.local

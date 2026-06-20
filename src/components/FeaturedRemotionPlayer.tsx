@@ -1,5 +1,6 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { forwardRef, memo, useMemo } from "react";
+
 import { TandraIntro } from "../remotion/TandraIntro";
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
 import {

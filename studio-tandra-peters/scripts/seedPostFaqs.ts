@@ -1,8 +1,10 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import type { PortableTextBlock } from "@portabletext/types";
 import { createClient } from "@sanity/client";
 import { config } from "dotenv";
+
 import { buildArticleFaqProps } from "../../src/article/buildArticleFaq";
 import type { PostDetail } from "../../src/types/article";
 import { blocksFromParagraphs } from "./blocksFromText";

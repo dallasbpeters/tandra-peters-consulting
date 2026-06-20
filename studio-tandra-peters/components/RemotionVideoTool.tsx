@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColorSchemeValue } from "sanity";
+
 import {
   CUSTOM_SLOTS_DEFAULTS,
   HELPING_TEXAS_DEFAULTS,
@@ -139,13 +140,13 @@ const isStructuredRoofSceneDoc = (
 ): boolean =>
   Boolean(
     doc &&
-      (Array.isArray(doc.chapters) ||
-        typeof doc.showCallouts === "boolean" ||
-        typeof doc.showProgress === "boolean" ||
-        typeof doc.fov === "number" ||
-        typeof doc.introSecs === "number" ||
-        doc.cta ||
-        doc.badges)
+    (Array.isArray(doc.chapters) ||
+      typeof doc.showCallouts === "boolean" ||
+      typeof doc.showProgress === "boolean" ||
+      typeof doc.fov === "number" ||
+      typeof doc.introSecs === "number" ||
+      doc.cta ||
+      doc.badges)
   );
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {

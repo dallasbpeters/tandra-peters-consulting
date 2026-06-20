@@ -1,6 +1,7 @@
 /** Upsert demo `post` docs and sync home page article references. Needs `SANITY_API_WRITE_TOKEN`. `pnpm seed:posts` */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { createClient } from "@sanity/client";
 import { config } from "dotenv";
 

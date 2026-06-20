@@ -1,5 +1,4 @@
 import type { SanityClient } from "@sanity/client";
-
 import { useMemo } from "react";
 import { useSource } from "sanity";
 

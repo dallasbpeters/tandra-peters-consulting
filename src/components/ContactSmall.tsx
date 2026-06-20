@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Dither, LinearGradient, Shader, WaveDistortion } from "shaders/react";
 
 import { layoutClass } from "../styles/layoutClasses";
+
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
 import { mix, theme } from "../theme";

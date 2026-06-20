@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { GET as pluginAnalyticsGet } from "sanity-plugin-ga-dashboard/api";
 
 /**

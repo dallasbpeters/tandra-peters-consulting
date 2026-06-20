@@ -1,5 +1,4 @@
 import type { PortableTextBlock } from "@portabletext/editor";
-
 import { usePostHog } from "@posthog/react";
 import {
   CheckCircle,

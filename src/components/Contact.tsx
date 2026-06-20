@@ -7,6 +7,7 @@ import { usePostHog } from "@posthog/react";
 import { stegaClean } from "@sanity/client/stega";
 import { Mail, MapPin, Phone, Send } from "iconoir-react";
 import { AnimatePresence, motion } from "motion/react";
+
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import type React from "react";
 import { useState } from "react";

@@ -6,6 +6,7 @@
  * Sanity document. Google-auth gated (same allowlist as the SEO dashboard).
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+
 import { fetchClientEmail } from "../../server/email/sanity.js";
 import { renderClientEmail } from "../../server/email/template.js";
 import type {

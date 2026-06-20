@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type React from "react";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
+
 import { useIsMobile } from "../../hooks/isMobile";
 import { mix, theme } from "../../theme";
 import type { NavProps } from "../../types";

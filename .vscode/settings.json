@@ -27,7 +27,6 @@
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnPaste": true,
   "emmet.showExpandedAbbreviation": "never",
   "js/ts.tsdk.path": "node_modules/typescript/lib",
@@ -64,11 +63,5 @@
   },
   "[yaml]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
-  },
-  "[mdx]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[svelte]": {
-    "editor.defaultFormatter": "biomejs.biome"
   }
 }

@@ -1,5 +1,4 @@
 import type { FaqProps } from "../types";
-
 import { INSURANCE_FAQ_ITEMS } from "./insuranceFaqItems";
 import { INSURANCE_SUPPLEMENT_FAQ_ITEMS } from "./insuranceSupplementFaqItems";
 

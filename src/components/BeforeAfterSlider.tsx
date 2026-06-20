@@ -1,7 +1,6 @@
 "use client";
 
 import type { PortableTextBlock } from "@portabletext/types";
-
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import { type CSSProperties, useCallback, useRef, useState } from "react";
 

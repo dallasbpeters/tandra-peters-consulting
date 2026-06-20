@@ -6,6 +6,7 @@
  *         src/components/texasStateOutline.json
  */
 import { readFileSync, writeFileSync } from "node:fs";
+
 import { feature } from "topojson-client";
 
 import {

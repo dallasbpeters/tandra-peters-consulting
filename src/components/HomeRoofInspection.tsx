@@ -1,5 +1,4 @@
 import type { RoofInspectionSectionProps } from "../types";
-
 import { type Chapter, RoofInspection, VIEWS } from "./RoofInspection";
 import { hotspotCoordKey } from "./RoofInspection/hotspotCoords";
 

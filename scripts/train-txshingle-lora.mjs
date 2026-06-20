@@ -6,6 +6,7 @@ import { basename, join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+
 import { createFalClient } from "@fal-ai/client";
 /**
  * Upload training/txshingle-training.zip to Fal and run flux-lora-fast-training.

@@ -1,4 +1,5 @@
 import type React from "react";
+
 import { useServicesSectionVariant } from "../hooks/useServicesSectionVariant";
 import type { ServicesProps } from "../types";
 import { Services } from "./Services";

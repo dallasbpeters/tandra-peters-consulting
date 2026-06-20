@@ -18,6 +18,7 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 import type { CSSProperties } from "react";
+
 import { PortableTextToEmail } from "./portableText.js";
 import { sanityImage } from "./sanity.js";
 import type {

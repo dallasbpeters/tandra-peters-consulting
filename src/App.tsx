@@ -34,7 +34,7 @@ const RoofInspections = lazy(async () => {
 });
 
 const EstimatorPage = lazy(async () => {
-  const module = await import("./pages/EstimatorPage");
+  const module = await import("./pages/estimator-page");
   return { default: module.EstimatorPage };
 });
 

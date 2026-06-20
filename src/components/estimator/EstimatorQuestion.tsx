@@ -3,7 +3,6 @@ import { motion } from "motion/react";
 import type React from "react";
 
 import type { EstimatorSelections } from "../../lib/estimator";
-
 import { mix, theme } from "../../theme";
 import type { EstimatorQuestion as EstimatorQuestionType } from "../../types";
 import { optionIllustrationFor } from "./optionIllustrations";

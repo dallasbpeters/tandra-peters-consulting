@@ -25,6 +25,7 @@ import {
   useRef,
   useState,
 } from "react";
+
 import {
   CANVAS_FONT_FAMILIES,
   type CanvasElement,
@@ -50,6 +51,7 @@ import { formatAdDimensions, getExportPixelSize } from "../lib/adCreative";
 import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/doorHanger";
 import { buildQrDataUri } from "../lib/qrCode";
 import { AdColorSwatch } from "./AdColorSwatch";
+
 import "../styles/ad-canvas.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────

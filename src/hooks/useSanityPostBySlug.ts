@@ -1,5 +1,6 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useState } from "react";
+
 import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";
 import { POST_BY_SLUG_QUERY } from "../sanity/queries";

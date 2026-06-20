@@ -7,6 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+
 import { BadgeRow } from "./components/BadgeRow";
 import { FadeWrapper } from "./components/FadeWrapper";
 import Logo from "./components/Logo";

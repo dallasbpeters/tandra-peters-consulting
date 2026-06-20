@@ -1,4 +1,5 @@
 import { type CSSProperties, useState } from "react";
+
 import { theme } from "../../theme";
 import type { Review } from "./reviews-data";
 

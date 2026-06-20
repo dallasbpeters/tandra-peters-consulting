@@ -14,8 +14,8 @@
  *   ATTIO_API_TOKEN   — Optional; used to log a note on the contact's timeline.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 import { Resend } from "resend";
+
 import { postAttioPersonNote } from "../../server/email/attio.js";
 import { renderClientEmail } from "../../server/email/template.js";
 import type {

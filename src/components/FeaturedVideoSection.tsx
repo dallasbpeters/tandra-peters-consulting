@@ -1,5 +1,4 @@
 import type { PlayerRef } from "@remotion/player";
-
 import { motion, useInView, type Variants } from "motion/react";
 import type React from "react";
 import {
@@ -14,7 +13,6 @@ import {
 import { Halftone, Shader, SolidColor, Swirl } from "shaders/react";
 
 import type { TandraIntroContent } from "../remotion/tandraIntroContent";
-
 import { getCaptionCues } from "../remotion/tandraIntroContent";
 import { theme } from "../theme";
 import { VideoControls } from "./videocontrols";

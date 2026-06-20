@@ -1,4 +1,5 @@
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+
 import { theme } from "../../theme";
 import { ReviewModal } from "./review-modal";
 import { Avatar, GoogleMark, Stars } from "./review-parts";

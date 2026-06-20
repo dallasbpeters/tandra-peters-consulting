@@ -1,5 +1,4 @@
 import type { FalClient } from "@fal-ai/client";
-
 import sharp from "sharp";
 
 export type BackgroundRemovalModel = "birefnet-heavy" | "bria" | "ideogram";

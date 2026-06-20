@@ -45,7 +45,6 @@ The **Videos tool** (`studio-tandra-peters/components/RemotionVideoTool.tsx`) le
 
 **Editor schema:** Editable fields per composition live in `src/remotion/ads/editSchemas.ts`. Each entry defines sections with fields (type: text/textarea/boolean/select/number). For RoofScene, each chapter's camera + hotspot is listed as its own section with numeric inputs.
 
-
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.
@@ -136,14 +135,17 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
+
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
+
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---
@@ -169,7 +171,6 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 ---
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `pnpm dlx ultracite fix` before committing to ensure compliance.
-
 
 # Ultracite Code Standards
 
@@ -261,14 +262,17 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
+
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
+
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---

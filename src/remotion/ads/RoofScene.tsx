@@ -29,6 +29,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+
 import { CHAPTERS } from "./chapters";
 import Logo from "./components/Logo";
 import type {

@@ -1,5 +1,6 @@
 import type React from "react";
 import { useMemo, useState } from "react";
+
 import { CameraContext, RoofInspectionContext } from "./context";
 import type { Chapter, View } from "./types";
 

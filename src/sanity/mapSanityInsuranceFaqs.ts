@@ -1,5 +1,4 @@
 import type { FaqProps } from "../types";
-
 import { mapFaqProps } from "./mapSanityHome";
 
 export interface InsuranceFaqsPageDoc {

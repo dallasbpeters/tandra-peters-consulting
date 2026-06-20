@@ -1,6 +1,7 @@
 import { NavArrowRight } from "iconoir-react";
 import { motion } from "motion/react";
 import type { CSSProperties } from "react";
+
 import { FALLBACK_ARTICLE_COVER } from "../article/postCoverImage";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";

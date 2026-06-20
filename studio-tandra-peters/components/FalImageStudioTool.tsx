@@ -1,7 +1,6 @@
 import type WaCheckboxElement from "@awesome.me/webawesome/dist/components/checkbox/checkbox.js";
 import type WaNumberInputElement from "@awesome.me/webawesome/dist/components/number-input/number-input.js";
 import type WaSliderElement from "@awesome.me/webawesome/dist/components/slider/slider.js";
-
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
 import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
@@ -15,6 +14,7 @@ import { useColorSchemeValue } from "sanity";
 
 import { falStudioApiEndpoint } from "../falStudioConfig";
 import { useStudioClient } from "../hooks/useStudioClient";
+
 import "./falImageStudioTool.css";
 
 type BackgroundRemovalModel = "birefnet-heavy" | "bria" | "ideogram";
@@ -1076,17 +1076,17 @@ export function FalImageStudioTool() {
   const isTxshingleLoraModel = model === "fal-ai/flux-lora";
   const usesReferenceImage = Boolean(
     !isTxshingleLoraModel &&
-      selectedAsset &&
-      (mode === "image" ||
-        mode === "series" ||
-        mode === "remove-bg" ||
-        mode === "remove-sky")
+    selectedAsset &&
+    (mode === "image" ||
+      mode === "series" ||
+      mode === "remove-bg" ||
+      mode === "remove-sky")
   );
   const isBackgroundRemovalMode = mode === "remove-bg" || mode === "remove-sky";
   const supportsReferenceStrength = Boolean(
     usesReferenceImage &&
-      !isBackgroundRemovalMode &&
-      selectedModel.id !== "fal-ai/flux-2-pro"
+    !isBackgroundRemovalMode &&
+    selectedModel.id !== "fal-ai/flux-2-pro"
   );
 
   const referenceModelNote = useMemo(() => {

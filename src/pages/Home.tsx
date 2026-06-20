@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from "react";
+
 import { ArticlesTeaser } from "../components/ArticlesTeaser";
 import { BirdcreekVideoBanner } from "../components/BirdcreekVideoBanner";
 import { DeferUntilVisible } from "../components/DeferUntilVisible";

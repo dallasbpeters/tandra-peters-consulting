@@ -1,5 +1,4 @@
 import type { ServiceAreaMapProps } from "../types";
-
 import { MapBox } from "./Mapbox";
 
 export const ServiceAreaMap = ({

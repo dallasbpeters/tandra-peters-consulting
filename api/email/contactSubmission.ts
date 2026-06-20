@@ -8,6 +8,7 @@
  * entry points; this module is request-agnostic.
  */
 import { Resend } from "resend";
+
 import { renderContactLeadEmail } from "./contactLead.js";
 import { upsertContactLead } from "./contactsStore.js";
 import type { ContactLeadSubmission, EmailAssets } from "./types.js";

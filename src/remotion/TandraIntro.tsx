@@ -15,6 +15,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+
 import { theme } from "../theme";
 import type {
   CaptionCue,

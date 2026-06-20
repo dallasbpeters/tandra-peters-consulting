@@ -1,7 +1,6 @@
 import type { CalculateMetadataFunction } from "remotion";
 
 import type { RoofSceneProps } from "./composition/roofSceneSchema";
-
 import { roofSceneSchema } from "./composition/roofSceneSchema";
 
 export const roofSceneCalculateMetadata: CalculateMetadataFunction<

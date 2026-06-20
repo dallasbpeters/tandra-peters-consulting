@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+
 import { useSanitySite } from "../context/useSanitySite";
 import { getMainRouteClass } from "../lib/mainRouteClass";
 import { mapFooterProps } from "../sanity/mapSanityHome";

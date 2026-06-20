@@ -1,5 +1,4 @@
 import "../ads.vars.css";
-
 import { loadFont } from "@remotion/google-fonts/Manrope";
 import { fitTextOnNLines, measureText } from "@remotion/layout-utils";
 import type { TextAlign } from "@remotion/rounded-text-box";

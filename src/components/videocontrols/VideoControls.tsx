@@ -1,5 +1,4 @@
 import type { PlayerRef } from "@remotion/player";
-
 import {
   type KeyboardEvent,
   type PointerEvent,
@@ -11,7 +10,6 @@ import {
 } from "react";
 
 import type { CaptionCue } from "../../remotion/tandraIntroContent";
-
 import {
   TANDRA_INTRO_DURATION_IN_FRAMES,
   TANDRA_INTRO_FPS,

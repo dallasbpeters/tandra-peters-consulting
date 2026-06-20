@@ -15,7 +15,6 @@ import { createClient } from "@sanity/client";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import type { ClientEmailContent } from "../../server/email/types.js";
-
 import {
   authorizeSeoDashboardRequest,
   DashboardAuthError,

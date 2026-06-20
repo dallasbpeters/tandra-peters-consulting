@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useIsMobile } from "@/src/hooks/isMobile";
 import { layoutClass } from "@/src/styles/layoutClasses";
+
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";
 import { theme } from "../../theme";

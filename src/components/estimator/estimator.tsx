@@ -1,5 +1,6 @@
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import { AddressAutofill } from "@mapbox/search-js-react";
+
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import { usePostHog } from "@posthog/react";
 import {
@@ -13,9 +14,9 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import type React from "react";
 import { useMemo, useState } from "react";
+import type { EstimatorSelections } from "../../lib/estimator";
 import {
   computeEstimate,
-  type EstimatorSelections,
   formatRange,
   summarizeSelections,
 } from "../../lib/estimator";
@@ -43,8 +44,9 @@ const trackGaEstimator = (payload: Record<string, unknown>) => {
   if (typeof window === "undefined") {
     return;
   }
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
-    .gtag;
+  const { gtag } = window as Window & {
+    gtag?: (...args: unknown[]) => void;
+  };
   if (typeof gtag !== "function") {
     return;
   }
@@ -54,7 +56,7 @@ const trackGaEstimator = (payload: Record<string, unknown>) => {
 /** Relative path so production stays same-origin; Vite proxies `/api` in dev. */
 export const ESTIMATE_API_PATH = "/api/estimate";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 type SendStatus = "idle" | "sending" | "sent" | "error";
 type AddressLookupStatus = "idle" | "loading" | "found" | "error";
@@ -64,10 +66,10 @@ interface EstimatorProps {
   sectionId?: string;
 }
 
+// biome-ignore-start lint/complexity/noExcessiveCognitiveComplexity: estimator flow contains a single orchestrator component with many conditional render branches
 export const Estimator: React.FC<EstimatorProps> = ({
   content,
   sectionId = "estimator",
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
 }) => {
   const posthog = usePostHog();
   const questions = content.questions ?? [];
@@ -126,11 +128,11 @@ export const Estimator: React.FC<EstimatorProps> = ({
         throw new Error("Could not check that address on the map.");
       }
       const data = (await res.json()) as {
-        features?: Array<{
+        features?: {
           center?: [number, number];
           place_name?: string;
           text?: string;
-        }>;
+        }[];
       };
       const feature = data.features?.[0];
       if (!feature?.center) {
@@ -138,11 +140,11 @@ export const Estimator: React.FC<EstimatorProps> = ({
       }
       const formatted = feature.place_name || formattedAddress;
       setMapboxAddress(formatted, feature.center, "mapbox-geocoding");
-    } catch (err) {
+    } catch (error) {
       setLookupStatus("error");
       setLookupError(
-        err instanceof Error
-          ? err.message
+        error instanceof Error
+          ? error.message
           : "Could not check that address on the map."
       );
     }
@@ -218,8 +220,6 @@ export const Estimator: React.FC<EstimatorProps> = ({
     setSendError(null);
     try {
       const res = await fetch(ESTIMATE_API_PATH, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: fullName.trim(),
           email: email.trim(),
@@ -230,6 +230,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
           propertyAddress: selectedAddress ?? (address.trim() || null),
           answers: summary,
         }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -240,8 +242,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
       }
       setSendStatus("sent");
       posthog?.identify(email.trim(), {
-        name: fullName.trim(),
         email: email.trim(),
+        name: fullName.trim(),
       });
       posthog?.capture("estimator_emailed", {
         range: formatRange(estimate, currency),
@@ -250,15 +252,15 @@ export const Estimator: React.FC<EstimatorProps> = ({
         action: "emailed",
         range: formatRange(estimate, currency),
       });
-    } catch (err) {
+    } catch (error) {
       setSendStatus("error");
       setSendError(
-        err instanceof Error ? err.message : "Could not send the estimate."
+        error instanceof Error ? error.message : "Could not send the estimate."
       );
-      posthog?.captureException(err);
+      posthog?.captureException(error);
       trackGaEstimator({
         action: "error",
-        error: err instanceof Error ? err.message : String(err),
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   };
@@ -267,27 +269,27 @@ export const Estimator: React.FC<EstimatorProps> = ({
     totalSteps > 0 ? (Math.min(step + 1, totalSteps) / totalSteps) * 100 : 0;
 
   const headingStyle: React.CSSProperties = {
-    fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
-    lineHeight: 1.15,
-    fontFamily: theme.fonts.headline,
-    fontWeight: 800,
     color: theme.colors.white,
+    fontFamily: theme.fonts.headline,
+    fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
+    fontWeight: 800,
+    lineHeight: 1.15,
     margin: 0,
   };
   const cardHeadingStyle: React.CSSProperties = {
-    fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
-    lineHeight: 1.15,
-    fontFamily: theme.fonts.headline,
-    fontWeight: 800,
     color: theme.colors.black,
+    fontFamily: theme.fonts.headline,
+    fontSize: "clamp(1.6rem, 4vw, 2.25rem)",
+    fontWeight: 800,
+    lineHeight: 1.15,
     marginBlockEnd: theme.spacing.md,
   };
   const cardTextStyle: React.CSSProperties = {
-    fontSize: "1.2rem",
-    lineHeight: 1.15,
-    fontFamily: theme.fonts.headline,
-    fontWeight: 800,
     color: theme.colors.black,
+    fontFamily: theme.fonts.headline,
+    fontSize: "1.2rem",
+    fontWeight: 800,
+    lineHeight: 1.15,
     margin: 0,
   };
 
@@ -299,65 +301,65 @@ export const Estimator: React.FC<EstimatorProps> = ({
   };
 
   const slideVariants = {
-    enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 40 : -40 }),
     center: { opacity: 1, x: 0 },
+    enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 40 : -40 }),
     exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -40 : 40 }),
   };
 
   const addressLabelStyle: React.CSSProperties = {
+    color: theme.colors.everglade,
     display: "block",
     fontFamily: theme.fonts.body,
     fontSize: "var(--wa-form-control-label-font-size, 1rem)",
-    color: theme.colors.everglade,
     marginBottom: "0.5rem",
   };
 
   const primaryButtonStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.everglade,
-    color: theme.colors.white,
-    padding: `${theme.spacing.lg} ${theme.spacing.xxl}`,
-    fontFamily: theme.fonts.headline,
-    fontWeight: 900,
-    textTransform: "uppercase",
-    borderRadius: theme.radius.medium,
-    letterSpacing: "0.08em",
-    fontSize: "0.875rem",
-    display: "inline-flex",
     alignItems: "center",
-    gap: theme.spacing.md,
+    backgroundColor: theme.colors.everglade,
     border: "none",
+    borderRadius: theme.radius.medium,
+    color: theme.colors.white,
     cursor: "pointer",
+    display: "inline-flex",
+    fontFamily: theme.fonts.headline,
+    fontSize: "0.875rem",
+    fontWeight: 900,
+    gap: theme.spacing.md,
+    letterSpacing: "0.08em",
     marginTop: theme.spacing.xl,
+    padding: `${theme.spacing.lg} ${theme.spacing.xxl}`,
+    textTransform: "uppercase",
   };
 
   const ghostButtonStyle: React.CSSProperties = {
-    backgroundColor: "transparent",
-    color: mix(theme.colors.everglade, 80),
-    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-    fontFamily: theme.fonts.headline,
-    fontWeight: 700,
-    fontSize: "0.875rem",
-    borderRadius: theme.radius.medium,
-    display: "inline-flex",
     alignItems: "center",
-    gap: theme.spacing.sm,
+    backgroundColor: "transparent",
     border: "none",
+    borderRadius: theme.radius.medium,
+    color: mix(theme.colors.everglade, 80),
     cursor: "pointer",
+    display: "inline-flex",
+    fontFamily: theme.fonts.headline,
+    fontSize: "0.875rem",
+    fontWeight: 700,
+    gap: theme.spacing.sm,
+    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
   };
 
   const addressInputStyle: React.CSSProperties = {
-    width: "100%",
-    boxSizing: "border-box",
-    fontFamily: theme.fonts.body,
-    fontSize: "var(--wa-form-control-value-font-size, 1rem)",
-    color: theme.colors.everglade,
     backgroundColor: "var(--wa-form-control-background-color, #fff)",
     border:
       "var(--wa-form-control-border-width, 1px) var(--wa-form-control-border-style, solid) var(--wa-form-control-border-color)",
     borderRadius: "var(--wa-border-radius-m, 0.5rem)",
+    boxSizing: "border-box",
+    color: theme.colors.everglade,
+    fontFamily: theme.fonts.body,
+    fontSize: "var(--wa-form-control-value-font-size, 1rem)",
     height: "var(--wa-form-control-height, 2.625rem)",
-    padding: "0 var(--wa-form-control-padding-inline, 1rem)",
     outline: "none",
+    padding: "0 var(--wa-form-control-padding-inline, 1rem)",
+    width: "100%",
   };
 
   return (
@@ -366,8 +368,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
       className={layoutClass.sectionPadded}
       id={sectionId}
       style={{
-        placeItems: "center",
         backgroundColor: theme.colors.paper,
+        placeItems: "center",
         position: "relative",
       }}
     >
@@ -403,26 +405,24 @@ export const Estimator: React.FC<EstimatorProps> = ({
           >
             {/* Progress bar (hidden on intro + results) */}
             {step >= 0 && !onResults ? (
-              <div
-                aria-valuemax={totalSteps}
-                aria-valuemin={0}
-                aria-valuenow={Math.min(step + 1, totalSteps)}
-                role="progressbar"
+              <progress
+                max={totalSteps}
                 style={{
-                  height: 6,
                   backgroundColor: theme.colors.paperDark,
+                  height: 6,
                   position: "relative",
                 }}
+                value={Math.min(step + 1, totalSteps)}
               >
                 <motion.div
                   animate={{ width: `${progressPct}%` }}
                   style={{
-                    height: "100%",
                     backgroundColor: theme.colors.accent,
+                    height: "100%",
                   }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
                 />
-              </div>
+              </progress>
             ) : null}
 
             <div style={{ padding: "clamp(1.5rem, 4vw, 2.75rem)" }}>
@@ -457,8 +457,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
                             Property Address{" "}
                             <span
                               style={{
-                                fontWeight: 400,
                                 color: mix(theme.colors.everglade, 45),
+                                fontWeight: 400,
                               }}
                             >
                               (optional)
@@ -538,16 +538,16 @@ export const Estimator: React.FC<EstimatorProps> = ({
                           style={{
                             ...ghostButtonStyle,
                             border: `1px solid ${theme.colors.paperDark}`,
+                            cursor:
+                              !address.trim() || lookupStatus === "loading"
+                                ? "default"
+                                : "pointer",
                             flexShrink: 0,
                             height: "2.75rem",
                             opacity:
                               !address.trim() || lookupStatus === "loading"
                                 ? 0.5
                                 : 1,
-                            cursor:
-                              !address.trim() || lookupStatus === "loading"
-                                ? "default"
-                                : "pointer",
                           }}
                           type="button"
                         >
@@ -589,9 +589,9 @@ export const Estimator: React.FC<EstimatorProps> = ({
                         <p
                           role="alert"
                           style={{
-                            marginTop: theme.spacing.sm,
-                            fontSize: "0.85rem",
                             color: theme.colors.danger,
+                            fontSize: "0.85rem",
+                            marginTop: theme.spacing.sm,
                           }}
                         >
                           {lookupError} You can still answer the questions
@@ -634,12 +634,12 @@ export const Estimator: React.FC<EstimatorProps> = ({
                         >
                           <p
                             style={{
-                              textTransform: "uppercase",
-                              letterSpacing: "0.16em",
+                              color: mix(theme.colors.everglade, 55),
                               fontSize: "0.7rem",
                               fontWeight: 800,
-                              color: mix(theme.colors.everglade, 55),
+                              letterSpacing: "0.16em",
                               margin: `0 0 ${theme.spacing.sm}`,
+                              textTransform: "uppercase",
                             }}
                           >
                             Question {step + 1} of {totalSteps}
@@ -658,7 +658,6 @@ export const Estimator: React.FC<EstimatorProps> = ({
                               } as React.CSSProperties
                             }
                           >
-                            {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic */}
                             {question.options.map((option) => {
                               const optionKey = option._key ?? option.label;
                               const isSelected = selected === optionKey;
@@ -678,12 +677,12 @@ export const Estimator: React.FC<EstimatorProps> = ({
                                   }
                                   style={{
                                     ...estimatorOptionStyle,
-                                    borderColor: isSelected
-                                      ? theme.colors.accent
-                                      : theme.colors.paperDark,
                                     backgroundColor: isSelected
                                       ? mix(theme.colors.accent, 8)
                                       : theme.colors.paper,
+                                    borderColor: isSelected
+                                      ? theme.colors.accent
+                                      : theme.colors.paperDark,
                                     boxShadow: isSelected
                                       ? `0 8px 20px ${mix(theme.colors.accent, 18)}`
                                       : "none",
@@ -702,10 +701,10 @@ export const Estimator: React.FC<EstimatorProps> = ({
                                   ) : null}
                                   <span
                                     style={{
-                                      fontFamily: theme.fonts.headline,
-                                      fontWeight: 700,
-                                      fontSize: "1.05rem",
                                       color: theme.colors.everglade,
+                                      fontFamily: theme.fonts.headline,
+                                      fontSize: "1.05rem",
+                                      fontWeight: 700,
                                     }}
                                   >
                                     {option.label}
@@ -713,8 +712,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
                                   {option.description ? (
                                     <span
                                       style={{
-                                        fontSize: "0.85rem",
                                         color: mix(theme.colors.everglade, 65),
+                                        fontSize: "0.85rem",
                                       }}
                                     >
                                       {option.description}
@@ -758,9 +757,9 @@ export const Estimator: React.FC<EstimatorProps> = ({
                         <p
                           style={{
                             ...helpStyle,
-                            margin: 0,
-                            fontWeight: 700,
                             color: theme.colors.accent,
+                            fontWeight: 700,
+                            margin: 0,
                           }}
                         >
                           {content.resultHeading ??
@@ -768,11 +767,11 @@ export const Estimator: React.FC<EstimatorProps> = ({
                         </p>
                         <p
                           style={{
-                            fontFamily: theme.fonts.headline,
-                            fontWeight: 900,
-                            fontSize: "clamp(2.25rem, 8vw, 3.75rem)",
-                            lineHeight: 1.05,
                             color: theme.colors.everglade,
+                            fontFamily: theme.fonts.headline,
+                            fontSize: "clamp(2.25rem, 8vw, 3.75rem)",
+                            fontWeight: 900,
+                            lineHeight: 1.05,
                             margin: `${theme.spacing.sm} 0 ${theme.spacing.lg}`,
                           }}
                         >
@@ -792,19 +791,19 @@ export const Estimator: React.FC<EstimatorProps> = ({
                               className="wa-split"
                               key={row.prompt}
                               style={{
+                                borderBottom: `1px solid ${theme.colors.paperDark}`,
+                                color: mix(theme.colors.everglade, 75),
+                                fontSize: "0.95rem",
                                 gap: theme.spacing.lg,
                                 marginInlineStart: 0,
-                                fontSize: "0.95rem",
-                                color: mix(theme.colors.everglade, 75),
-                                borderBottom: `1px solid ${theme.colors.paperDark}`,
                                 padding: `${theme.spacing.sm} 0`,
                               }}
                             >
                               <span>{row.prompt}</span>
                               <span
                                 style={{
-                                  fontWeight: 700,
                                   color: theme.colors.everglade,
+                                  fontWeight: 700,
                                   textAlign: "right",
                                 }}
                               >
@@ -817,14 +816,14 @@ export const Estimator: React.FC<EstimatorProps> = ({
                         {content.disclaimer ? (
                           <p
                             style={{
-                              fontSize: "0.85rem",
-                              lineHeight: 1.6,
-                              color: mix(theme.colors.everglade, 60),
                               backgroundColor: mix(theme.colors.accent, 6),
                               borderInlineStart: `4px solid ${theme.colors.accent}`,
-                              padding: theme.spacing.lg,
                               borderRadius: theme.radius.medium,
+                              color: mix(theme.colors.everglade, 60),
+                              fontSize: "0.85rem",
+                              lineHeight: 1.6,
                               margin: `0 0 ${theme.spacing.xxl}`,
+                              padding: theme.spacing.lg,
                             }}
                           >
                             {content.disclaimer}
@@ -836,11 +835,11 @@ export const Estimator: React.FC<EstimatorProps> = ({
                           <div
                             className="wa-cluster wa-gap-xs"
                             style={{
+                              backgroundColor: mix(theme.colors.accent, 8),
+                              borderRadius: theme.radius.medium,
                               color: theme.colors.accent,
                               fontWeight: 700,
                               padding: theme.spacing.lg,
-                              backgroundColor: mix(theme.colors.accent, 8),
-                              borderRadius: theme.radius.medium,
                             }}
                           >
                             <Check height={22} width={22} />
@@ -849,17 +848,13 @@ export const Estimator: React.FC<EstimatorProps> = ({
                             </span>
                           </div>
                         ) : (
-                          // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onKeyDown stops propagation on a native form element
-                          <form
-                            onKeyDown={(e) => e.stopPropagation()}
-                            onSubmit={handleEmail}
-                          >
+                          <form onSubmit={handleEmail}>
                             <p
                               style={{
-                                fontFamily: theme.fonts.headline,
-                                fontWeight: 700,
-                                fontSize: "1.1rem",
                                 color: theme.colors.everglade,
+                                fontFamily: theme.fonts.headline,
+                                fontSize: "1.1rem",
+                                fontWeight: 700,
                                 margin: `0 0 ${theme.spacing.md}`,
                               }}
                             >
@@ -975,3 +970,4 @@ export const Estimator: React.FC<EstimatorProps> = ({
     </section>
   );
 };
+// biome-ignore-end lint/complexity/noExcessiveCognitiveComplexity: estimator flow contains a single orchestrator component with many conditional render branches

@@ -1,5 +1,6 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useState } from "react";
+
 import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
 import { ARTICLES_INDEX_QUERY } from "../sanity/queries";
 import type { ArticlesPageDoc, PostListItem } from "../types/article";

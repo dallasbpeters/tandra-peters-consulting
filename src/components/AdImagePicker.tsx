@@ -1,5 +1,4 @@
 import type WaPopoverElement from "@awesome.me/webawesome/dist/components/popover/popover.js";
-
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaPopover from "@awesome.me/webawesome/dist/react/popover/index.js";
 import WaSwitch from "@awesome.me/webawesome/dist/react/switch/index.js";
@@ -7,7 +6,6 @@ import { MediaImage, RefreshDouble } from "iconoir-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { SanityImageAsset } from "../hooks/useSanityImageAssets";
-
 import { useUnsplashImageSearch } from "../hooks/useUnsplashImageSearch";
 import { sanityImageUrl } from "../sanity/imageUrl";
 

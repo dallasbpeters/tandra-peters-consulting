@@ -68,6 +68,7 @@ import {
   type StoredChatImage,
 } from "../lib/buildAgentApiMessages";
 import { mix, theme } from "../theme";
+
 import "../styles/agent-chat.css";
 
 export interface AgentConfig {

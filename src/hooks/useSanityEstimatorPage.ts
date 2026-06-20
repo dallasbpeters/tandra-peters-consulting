@@ -1,5 +1,6 @@
 import { stegaClean } from "@sanity/client/stega";
 import { useCallback, useEffect, useState } from "react";
+
 import { getSanityClient, isSanityStegaUiActive } from "../sanity/client";
 import type { EstimatorPageDoc } from "../sanity/mapEstimatorPage";
 import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentationEvents";

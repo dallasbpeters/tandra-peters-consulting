@@ -1,24 +1,12 @@
-import type {
-  CustomCssProperties,
-  CustomElements,
-} from "@awesome.me/webawesome/dist/custom-elements-jsx.d.ts";
 import type { PortableTextBlock } from "@portabletext/types";
-
 import type React from "react";
 
 import type { IconoirIconComponent } from "./icons/serviceIconMap";
 import type { PostListItem } from "./types/article";
 
 declare module "react" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface IntrinsicElements extends CustomElements {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface CSSProperties extends CustomCssProperties {}
-}
-
-declare module "react" {
   interface CSSProperties {
-    cornerShape?: string; // Or a union of specific values like 'bevel' | 'round'
+    cornerShape?: string;
     webkitCornerShape?: string;
   }
 }

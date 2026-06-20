@@ -20,6 +20,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+
 import { adsFile, toSrc } from "./adsFile";
 import { BadgeRow } from "./components/BadgeRow";
 import BirdAnimation from "./components/Bird";

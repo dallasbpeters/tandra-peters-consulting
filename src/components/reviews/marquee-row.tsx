@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+
 import { theme } from "../../theme";
 import { ReviewCard } from "./review-card";
 import type { Review } from "./reviews-data";

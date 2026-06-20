@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { useRef } from "react";
 // Plugins registered once in main.tsx — do not re-register here.
 import { ChromaFlow, Dither, ImageTexture, Shader } from "shaders/react";
+
 import { useIsMobile } from "../../hooks/isMobile";
 import { RichText } from "../../portableText/RichText";
 import { isSanityCdnUrl, sanityImageUrl } from "../../sanity/imageUrl";

@@ -2,6 +2,7 @@ import { usePostHog } from "@posthog/react";
 import { Page, Search, ShieldCheck } from "iconoir-react";
 import { motion } from "motion/react";
 import type React from "react";
+
 import { useIsMobile } from "../hooks/isMobile";
 import { RichText } from "../portableText/RichText";
 import { theme } from "../theme";

@@ -1,4 +1,5 @@
 import type React from "react";
+
 import { useHeroBannerVariant } from "../hooks/useHeroBannerVariant";
 import type { HeroProps } from "../types";
 import { Hero } from "./Hero";

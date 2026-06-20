@@ -1,5 +1,4 @@
 import type { NavProps } from "../types";
-
 import { mapNavProps } from "./mapSanityHome";
 
 const CACHE_KEY = "tandra:nav-props";

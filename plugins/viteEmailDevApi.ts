@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+
 import { createClient } from "@sanity/client";
 import { Resend } from "resend";
 import type { Plugin } from "vite";
+
 import { listAttioPeople, postAttioPersonNote } from "../server/email/attio.js";
 import {
   listEmailContacts,

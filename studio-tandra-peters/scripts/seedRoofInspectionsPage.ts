@@ -1,6 +1,7 @@
 /** Upsert only the `roofInspectionsPage` singleton. `pnpm seed:roof-inspections-page` */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { createClient } from "@sanity/client";
 import { config } from "dotenv";
 

@@ -3,13 +3,15 @@ import { usePostHog } from "@posthog/react";
 import { motion } from "motion/react";
 import type React from "react";
 import { useEffect, useMemo } from "react";
+
 import { plainTextFromRich } from "../portableText/plainText";
 import { RichText } from "../portableText/RichText";
 import { layoutClass } from "../styles/layoutClasses";
-import type { FaqItem, FaqProps } from "../types";
+import { mix, theme } from "../theme";
+
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 
-import { mix, theme } from "../theme";
+import type { FaqItem, FaqProps } from "../types";
 
 const DEFAULT_ITEMS: FaqItem[] = [
   {

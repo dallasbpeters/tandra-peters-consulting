@@ -1,5 +1,6 @@
 import { usePostHog } from "@posthog/react";
 import type { CSSProperties } from "react";
+
 import { postCategoryLabel } from "../article/categoryLabels";
 import {
   FALLBACK_ARTICLE_COVER,

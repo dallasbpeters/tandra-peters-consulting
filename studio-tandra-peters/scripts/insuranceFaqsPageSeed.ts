@@ -1,4 +1,5 @@
 import type { PortableTextBlock } from "@portabletext/types";
+
 import { INSURANCE_FAQ_ITEMS } from "../../src/lib/insuranceFaqItems";
 import { INSURANCE_SUPPLEMENT_FAQ_ITEMS } from "../../src/lib/insuranceSupplementFaqItems";
 import type { FaqItem } from "../../src/types";

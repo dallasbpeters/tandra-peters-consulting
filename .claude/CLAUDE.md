@@ -88,14 +88,17 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
+
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
+
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---
@@ -121,7 +124,6 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 ---
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `pnpm dlx ultracite fix` before committing to ensure compliance.
-
 
 # Ultracite Code Standards
 
@@ -213,14 +215,17 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
+
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
+
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---

@@ -1,6 +1,7 @@
 /** Upsert only the `insuranceFaqsPage` singleton. `pnpm seed:insurance-faqs-page` */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { createClient } from "@sanity/client";
 import { config } from "dotenv";
 

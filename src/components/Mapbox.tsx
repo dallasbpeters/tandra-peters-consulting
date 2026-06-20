@@ -1,7 +1,9 @@
 import mapboxgl from "mapbox-gl";
 import { useEffect, useMemo, useRef } from "react";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ChromaFlow, Shader } from "shaders/react";
+
 import { useIsMobile } from "../hooks/isMobile";
 import { useNearViewport } from "../hooks/useNearViewport";
 import { mix, theme } from "../theme";
