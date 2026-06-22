@@ -1084,9 +1084,11 @@ export const AdCanvasEditor = ({
     const isEditing = el.id === editingId;
 
     const style: CSSProperties = {
+      // oxlint-disable-next-line eqeqeq no-eq-null
       height: el.height == null ? "auto" : `${el.height}%`,
       left: `${el.x}%`,
       opacity: el.opacity,
+      position: "absolute",
       top: `${el.y}%`,
       width: `${el.width}%`,
       zIndex: index + 1,
