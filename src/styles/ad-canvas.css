@@ -53,10 +53,12 @@
 }
 
 .ad-canvas-el.is-locked {
+  position: absolute;
   cursor: default;
 }
 
-.ad-canvas-el.is-editing {
+.ad-canvas-elis-editing {
+  position: absolute;
   cursor: text;
 }
 

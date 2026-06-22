@@ -1167,7 +1167,13 @@ export const AdCanvasEditor = ({
     return (
       <button
         aria-label={el.name}
-        className={`ad-canvas-el${el.locked ? "is-locked" : ""}${isEditing ? "is-editing" : ""}`}
+        className={[
+          "ad-canvas-el",
+          el.locked && "is-locked",
+          isEditing && "is-editing",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         key={el.id}
         onContextMenu={(event) => openMenu(event, el.id)}
         onDoubleClick={el.kind === "text" ? () => beginEdit(el.id) : undefined}

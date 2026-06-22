@@ -264,7 +264,6 @@ export const ContactSmall = ({
           {submitStatus === "success" ? (
             <div
               aria-live="polite"
-              role="status"
               style={{
                 color: theme.colors.everglade,
                 fontSize: "0.875rem",
