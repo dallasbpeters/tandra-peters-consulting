@@ -57,7 +57,7 @@
   cursor: default;
 }
 
-.ad-canvas-elis-editing {
+.ad-canvas-el.is-editing {
   position: absolute;
   cursor: text;
 }

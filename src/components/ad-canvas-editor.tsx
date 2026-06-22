@@ -1169,8 +1169,8 @@ export const AdCanvasEditor = ({
         aria-label={el.name}
         className={[
           "ad-canvas-el",
-          el.locked && "is-locked",
-          isEditing && "is-editing",
+          el.locked && "ad-canvas-el is-locked",
+          isEditing && "ad-canvas-el is-editing",
         ]
           .filter(Boolean)
           .join(" ")}
