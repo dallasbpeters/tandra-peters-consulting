@@ -30,13 +30,13 @@ import {
   useRef,
   useState,
 } from "react";
-
+import type { AdCanvasCaptureHandle } from "../components/ad-canvas-editor";
 import { AdCanvasEditor } from "../components/ad-canvas-editor";
 import { AdColorSwatch } from "../components/ad-color-swatch";
 import { AdImagePicker } from "../components/ad-image-picker";
 import { SitePageChrome } from "../components/site-page-chrome";
+import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { useAdVersions } from "../hooks/use-ad-versions";
-import { useGoogleDashboardAuth } from "../hooks/use-google-dashboard-auth";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import type { SanityImageAsset } from "../hooks/use-sanity-image-assets";
 import { useSanityImageAssets } from "../hooks/use-sanity-image-assets";
@@ -288,10 +288,16 @@ const revokeObjectUrl = (url: string | null) => {
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
-// Format-CurrentDateTime — used as the default saved-version name.
-const formatVersionName = (date = new Date()) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ` +
-  `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+const formatVersionName = (
+  platformLabel: string,
+  dimensionStr: string,
+  date = new Date()
+) => {
+  const dateStr =
+    `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ` +
+    `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  return `${platformLabel} · ${dimensionStr} · ${dateStr}`;
+};
 
 // Serialize the editable configuration only. The uploaded File and blob: object
 // URLs cannot be persisted, so we drop them; Sanity-hosted image URLs survive.
@@ -593,6 +599,53 @@ const AuthPanel = ({
   </section>
 );
 
+// ─── Versions list ────────────────────────────────────────────────────────────
+
+interface AdVersionsListProps {
+  loading: boolean;
+  onSelect: (id: string) => void;
+  selectedVersionId: string | null;
+  versions: { id: string; name: string; thumbnail?: string }[];
+}
+
+const AdVersionsList = ({
+  loading,
+  onSelect,
+  selectedVersionId,
+  versions,
+}: AdVersionsListProps) => {
+  if (loading) {
+    return <p className="ad-toolbar-popover-label">Loading versions…</p>;
+  }
+  if (versions.length === 0) {
+    return <p className="ad-toolbar-popover-label">No saved versions yet.</p>;
+  }
+  return (
+    <div className="ad-version-list">
+      {versions.map((version) => (
+        <button
+          className={
+            version.id === selectedVersionId
+              ? "ad-version-item is-selected"
+              : "ad-version-item"
+          }
+          key={version.id}
+          onClick={() => onSelect(version.id)}
+          type="button"
+        >
+          {version.thumbnail ? (
+            // biome-ignore lint/correctness/useImageSize: aspect ratio maintained by CSS
+            <img alt="" className="ad-version-thumb" src={version.thumbnail} />
+          ) : (
+            <div className="ad-version-thumb-placeholder" />
+          )}
+          <span className="ad-version-name">{version.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const AdDashboardPage = () => {
@@ -600,6 +653,7 @@ export const AdDashboardPage = () => {
   const posthog = usePostHog();
   const imageLibrary = useSanityImageAssets();
   const versions = useAdVersions();
+  const captureRef = useRef<AdCanvasCaptureHandle | null>(null);
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
   const [selectedVersionId, setSelectedVersionId] = useState("");
   const [versionStatus, setVersionStatus] = useState<string | null>(null);
@@ -728,40 +782,48 @@ export const AdDashboardPage = () => {
     });
   }, []);
 
-  const handleSaveVersion = useCallback(async () => {
-    if (!auth.token) {
-      return;
-    }
-    setVersionBusy(true);
-    setVersionStatus(null);
-    try {
-      const response = await fetch("/api/ad-versions", {
-        body: JSON.stringify({
-          config: serializeCreative(creative),
-
-          name: formatVersionName(),
-        }),
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      if (!response.ok) {
-        throw new Error(`Save failed (${response.status})`);
+  const handleSaveVersion = useCallback(
+    async (thumbnail?: string) => {
+      if (!auth.token) {
+        return;
       }
-      setVersionStatus("Version saved.");
-      versions.refresh();
-    } catch (saveError) {
-      setVersionStatus(
-        saveError instanceof Error
-          ? saveError.message
-          : "Could not save version."
-      );
-    } finally {
-      setVersionBusy(false);
-    }
-  }, [auth.token, creative, versions]);
+      setVersionBusy(true);
+      setVersionStatus(null);
+      try {
+        const dimensionStr = formatAdDimensions(
+          creative.adWidth,
+          creative.adHeight,
+          creative.unit
+        );
+        const response = await fetch("/api/ad-versions", {
+          body: JSON.stringify({
+            config: serializeCreative(creative),
+            name: formatVersionName(selectedPlatform.label, dimensionStr),
+            ...(thumbnail ? { thumbnail } : {}),
+          }),
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error(`Save failed (${response.status})`);
+        }
+        setVersionStatus("Version saved.");
+        versions.refresh();
+      } catch (saveError) {
+        setVersionStatus(
+          saveError instanceof Error
+            ? saveError.message
+            : "Could not save version."
+        );
+      } finally {
+        setVersionBusy(false);
+      }
+    },
+    [auth.token, creative, versions, selectedPlatform.label]
+  );
 
   const handleSelectVersion = useCallback(
     (id: string) => {
@@ -1015,8 +1077,10 @@ export const AdDashboardPage = () => {
         <WaButton
           appearance="filled"
           loading={versionBusy}
-          onClick={() => {
-            handleSaveVersion();
+          onClick={async () => {
+            const thumbnail =
+              (await captureRef.current?.captureThumb()) ?? undefined;
+            handleSaveVersion(thumbnail);
           }}
           size="small"
           variant="brand"
@@ -1025,21 +1089,12 @@ export const AdDashboardPage = () => {
           Save version
         </WaButton>
 
-        <WaSelect
-          appearance="outlined"
-          label="Saved versions"
-          name="adVersion"
-          onChange={(event) => handleSelectVersion(getSelectValue(event))}
-          placeholder={versions.loading ? "Loading…" : "Choose a version"}
-          size="xs"
-          value={selectedVersionId}
-        >
-          {versions.versions.map((version) => (
-            <WaOption key={version.id} value={version.id}>
-              {version.name}
-            </WaOption>
-          ))}
-        </WaSelect>
+        <AdVersionsList
+          loading={versions.loading}
+          onSelect={handleSelectVersion}
+          selectedVersionId={selectedVersionId}
+          versions={versions.versions}
+        />
 
         <WaButton
           appearance="outlined"
@@ -1103,6 +1158,7 @@ export const AdDashboardPage = () => {
 
         {auth.token ? (
           <AdCanvasEditor
+            captureRef={captureRef}
             creative={creative}
             selectedPlatform={selectedPlatform}
             selectedPlatformShape={selectedPlatformShape}

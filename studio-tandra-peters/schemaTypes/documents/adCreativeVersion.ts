@@ -31,6 +31,13 @@ export const adCreativeVersionType = defineType({
         "Serialized ad creative state. Edited from the Ad Builder, not here.",
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: "thumbnail",
+      title: "Thumbnail",
+      type: "text",
+      hidden: true,
+      description: "Base64 preview thumbnail captured at save time.",
+    }),
   ],
   orderings: [
     {

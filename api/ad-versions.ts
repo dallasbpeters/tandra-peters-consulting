@@ -70,6 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       id?: unknown;
       name?: unknown;
       config?: unknown;
+      thumbnail?: unknown;
     };
 
     if (req.method === "DELETE") {
@@ -85,6 +86,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const name = sanitizeString(body.name);
     const config = sanitizeString(body.config);
+    const thumbnail =
+      typeof body.thumbnail === "string" ? body.thumbnail.trim() : undefined;
     if (!(name && config)) {
       res.status(400).json({ error: "Missing version name or config." });
       return;
@@ -98,6 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       _type: "adCreativeVersion",
       name,
       config,
+      ...(thumbnail ? { thumbnail } : {}),
       savedAt: new Date().toISOString(),
       savedBy: user.email,
     });

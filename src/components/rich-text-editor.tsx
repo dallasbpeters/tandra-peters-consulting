@@ -18,6 +18,7 @@ import {
   isActiveStyle,
 } from "@portabletext/editor/selectors";
 import type { CSSProperties, ReactNode } from "react";
+import { useRef } from "react";
 
 import { mix, theme } from "../theme";
 
@@ -282,33 +283,43 @@ export const RichTextEditor = ({
   value,
   onChange,
   placeholder,
-}: RichTextEditorProps) => (
-  <EditorProvider initialConfig={{ initialValue: value, schemaDefinition }}>
-    <div style={frameStyle}>
-      <Toolbar />
-      <PortableTextEditable
-        renderAnnotation={renderAnnotation}
-        renderDecorator={renderDecorator}
-        renderListItem={renderListItem}
-        renderPlaceholder={() =>
-          placeholder ? (
-            <span style={{ color: mix(theme.colors.everglade, 45) }}>
-              {placeholder}
-            </span>
-          ) : null
-        }
-        renderStyle={renderStyle}
-        style={editableStyle}
+}: RichTextEditorProps) => {
+  // Stable reference — EditorProvider reinitializes when initialConfig reference changes
+  // (React compiler cache check), so a new object literal each render causes the editor
+  // to remount on every keystroke, immediately losing focus to the first toolbar button.
+  const initialConfig = useRef({
+    initialValue: value.length > 0 ? value : undefined,
+    schemaDefinition,
+  });
+
+  return (
+    <EditorProvider initialConfig={initialConfig.current}>
+      <div style={frameStyle}>
+        <Toolbar />
+        <PortableTextEditable
+          renderAnnotation={renderAnnotation}
+          renderDecorator={renderDecorator}
+          renderListItem={renderListItem}
+          renderPlaceholder={() =>
+            placeholder ? (
+              <span style={{ color: mix(theme.colors.everglade, 45) }}>
+                {placeholder}
+              </span>
+            ) : null
+          }
+          renderStyle={renderStyle}
+          style={editableStyle}
+        />
+      </div>
+      <EventListenerPlugin
+        on={(event) => {
+          if (event.type === "mutation") {
+            onChange(event.value ?? []);
+          }
+        }}
       />
-    </div>
-    <EventListenerPlugin
-      on={(event) => {
-        if (event.type === "mutation") {
-          onChange(event.value ?? []);
-        }
-      }}
-    />
-  </EditorProvider>
-);
+    </EditorProvider>
+  );
+};
 
 export default RichTextEditor;

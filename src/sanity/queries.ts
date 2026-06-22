@@ -424,7 +424,8 @@ export const AD_CREATIVE_VERSIONS_QUERY = groq`*[_type == "adCreativeVersion"] |
   _id,
   name,
   savedAt,
-  config
+  config,
+  thumbnail
 }`;
 
 /** Single post by slug for /articles/:slug */

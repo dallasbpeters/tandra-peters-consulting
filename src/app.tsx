@@ -6,6 +6,7 @@ import { GoogleAuthGateProvider } from "./components/google-auth-gate";
 import { RouteScrollManager } from "./components/route-scroll-manager";
 import { SanityVisualEditing } from "./components/sanity-visual-editing";
 import { SiteShell } from "./components/site-shell";
+import { DashboardAuthProvider } from "./context/dashboard-auth-context";
 import { SanityContentProvider } from "./context/sanity-site-context";
 import { Home } from "./pages/home";
 
@@ -90,13 +91,15 @@ const RemotionPreviewPage = lazy(async () => {
 const RootLayout = () => (
   <>
     <RouteScrollManager />
-    <GoogleAuthGateProvider>
-      <SanityContentProvider>
-        <SanityVisualEditing />
-        <SiteShell />
-        <Analytics />
-      </SanityContentProvider>
-    </GoogleAuthGateProvider>
+    <DashboardAuthProvider>
+      <GoogleAuthGateProvider>
+        <SanityContentProvider>
+          <SanityVisualEditing />
+          <SiteShell />
+          <Analytics />
+        </SanityContentProvider>
+      </GoogleAuthGateProvider>
+    </DashboardAuthProvider>
   </>
 );
 

@@ -312,7 +312,7 @@ export const ContactSmall = ({
                 id="contact-small-full-name"
                 label={nameLabel}
                 name="full-name"
-                onChange={(ev) => setFullName(ev.target.value)}
+                onChange={(ev) => setFullName(ev.target.value ?? "")}
                 placeholder="John Doe"
                 required
                 type="text"
@@ -325,7 +325,7 @@ export const ContactSmall = ({
                 id="contact-small-email"
                 label={emailLabel}
                 name="email"
-                onChange={(ev) => setVisitorEmail(ev.target.value)}
+                onChange={(ev) => setVisitorEmail(ev.target.value ?? "")}
                 placeholder="john@example.com"
                 required
                 type="email"
@@ -347,7 +347,7 @@ export const ContactSmall = ({
                 id="contact-small-phone"
                 label="Phone Number"
                 name="phone"
-                onChange={(ev) => setPhoneNumber(ev.target.value)}
+                onChange={(ev) => setPhoneNumber(ev.target.value ?? "")}
                 placeholder="(512) 555-0100"
                 type="tel"
                 value={phoneNumber}

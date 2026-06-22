@@ -13,8 +13,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { RichTextEditor } from "../components/rich-text-editor";
 import { SitePageChrome } from "../components/site-page-chrome";
+import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { useIsMobile } from "../hooks/is-mobile";
-import { useGoogleDashboardAuth } from "../hooks/use-google-dashboard-auth";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import { layoutClass } from "../styles/layout-classes";
 import { mix, theme } from "../theme";
@@ -990,7 +990,6 @@ export const EmailComposerPage = () => {
             </section>
           </div>
         ) : null}
-        ;
       </div>
     </SitePageChrome>
   );

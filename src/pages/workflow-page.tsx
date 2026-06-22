@@ -1,22 +1,14 @@
+import type { Edge, Node, NodeProps } from "@xyflow/react";
 import {
-  addEdge,
   Background,
   BackgroundVariant,
-  type Connection,
   ConnectionLineType,
   ConnectionMode,
-  type Edge,
   Handle,
-  MarkerType,
-  type Node,
-  type NodeProps,
   Position,
   ReactFlow,
   ReactFlowProvider,
-  reconnectEdge,
-  useEdgesState,
   useNodesInitialized,
-  useNodesState,
   useReactFlow,
   useStore,
   useUpdateNodeInternals,
@@ -29,10 +21,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ContactBanner } from "../components/contact-banner";
 import { SitePageChrome } from "../components/site-page-chrome";
+import { WorkflowEditControls } from "../components/workflow-edit-controls";
+import { WorkflowEditorPopover } from "../components/workflow-editor-popover";
 import { useIsMobile } from "../hooks/is-mobile";
 import { useOptionalGoogleAuthGate } from "../hooks/use-google-auth-gate";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import { useSanityWorkflowPage } from "../hooks/use-sanity-workflow-page";
+import { useWorkflowEditor } from "../hooks/use-workflow-editor";
 import {
   CONTACT_BANNER_FREE_INSPECTION,
   CONTACT_BANNER_WORKFLOW_FAQ,
@@ -44,28 +39,14 @@ import {
   remapWorkflowEdgesForVerticalStack,
   WORKFLOW_MOBILE_HORIZONTAL_PAD,
 } from "../lib/workflow-mobile-layout";
+import type { WorkflowNodeData } from "../sanity/map-sanity-workflow";
 import {
   mapWorkflowDiagram,
   mapWorkflowPageCopy,
-  type WorkflowNodeData,
 } from "../sanity/map-sanity-workflow";
 
 const WORKFLOW_CANVAS_BOTTOM_PAD = 64;
 const WORKFLOW_MOBILE_ZOOM = 1;
-
-type SaveStatus = "idle" | "saving" | "saved" | "error";
-type WorkflowEditorState =
-  | {
-      kind: "edge";
-      edgeId: string;
-      label: string;
-    }
-  | {
-      kind: "node";
-      nodeId: string;
-      title: string;
-      body: string;
-    };
 
 interface BoundsRect {
   height: number;
@@ -99,6 +80,7 @@ const WORKFLOW_HANDLE_IDS: WorkflowHandleId[] = [
   "bottom",
   "left",
 ];
+
 const isWorkflowHandleId = (
   value: string | null | undefined
 ): value is WorkflowHandleId =>
@@ -116,14 +98,12 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
     if (isEditMode) {
       return WORKFLOW_HANDLE_IDS;
     }
-
     const handles = new Set<WorkflowHandleId>();
     for (const edge of edges) {
       if (edge.source === id && isWorkflowHandleId(edge.sourceHandle)) {
         handles.add(edge.sourceHandle);
       }
     }
-
     return [...handles];
   }, [edges, id, isEditMode]);
 
@@ -131,30 +111,27 @@ const WorkflowStepNode = ({ id, data }: NodeProps<Node<WorkflowNodeData>>) => {
     if (isEditMode) {
       return WORKFLOW_HANDLE_IDS;
     }
-
     const handles = new Set<WorkflowHandleId>();
     for (const edge of edges) {
       if (edge.target === id && isWorkflowHandleId(edge.targetHandle)) {
         handles.add(edge.targetHandle);
       }
     }
-
     return [...handles];
   }, [edges, id, isEditMode]);
 
-  // ReactFlow measures a node's handles when it mounts. Toggling edit mode (or
-  // adding an edge) changes which handles render on an already-mounted node, and
-  // those new handles stay unregistered — so connections can't start from them
-  // and new edges fail with "Couldn't create edge" (error #008). Re-measure
-  // whenever the rendered handle set changes.
-  const _sourceHandleKey = sourceHandles.join(",");
-  const _targetHandleKey = targetHandles.join(",");
+  // ReactFlow measures handles on mount; toggling edit mode adds new handles that
+  // stay unregistered unless we re-trigger measurement (error #008).
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, updateNodeInternals]);
 
   return (
-    <div className={`workflow-node${data.wide ? "workflow-node--wide" : ""}`}>
+    <div
+      className={
+        data.wide ? "workflow-node workflow-node--wide" : "workflow-node"
+      }
+    >
       <h3 className="workflow-node__title">{data.title}</h3>
       <p className="workflow-node__body">{data.body}</p>
       {data.subsections?.map((section) => (
@@ -223,12 +200,10 @@ const WorkflowDiagramLayout = ({
   estimatedNodeHeight,
   onCanvasHeight,
 }: DiagramLayoutProps) => {
-  const {
-    getNodes,
-    getNodesBounds: getMeasuredNodesBounds,
-    setNodes,
-    setViewport,
-  } = useReactFlow<Node<WorkflowNodeData>, Edge>();
+  const { getNodesBounds, getNodes, setNodes, setViewport } = useReactFlow<
+    Node<WorkflowNodeData>,
+    Edge
+  >();
   const nodesInitialized = useNodesInitialized();
 
   const syncLayout = useCallback(() => {
@@ -256,7 +231,7 @@ const WorkflowDiagramLayout = ({
 
     const anchor = layoutNodes.find((node) => node.id === "1");
     const anchorY = anchor?.position.y ?? originY;
-    const bounds = getMeasuredNodesBounds(layoutNodes);
+    const bounds = getNodesBounds(layoutNodes);
 
     onCanvasHeight(measureCanvasHeight(bounds, zoom, viewportAnchorY, anchorY));
 
@@ -270,8 +245,8 @@ const WorkflowDiagramLayout = ({
   }, [
     canvasRef,
     estimatedNodeHeight,
-    getMeasuredNodesBounds,
     getNodes,
+    getNodesBounds,
     isMobile,
     onCanvasHeight,
     originX,
@@ -309,15 +284,11 @@ const InsuranceWorkflowDiagramInner = ({
   originX,
   originY,
   estimatedNodeHeight,
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }: InsuranceWorkflowDiagramProps) => {
   const isMobile = useIsMobile(768);
   const auth = useOptionalGoogleAuthGate();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { getNodesBounds: getMeasuredNodesBounds } = useReactFlow<
-    Node<WorkflowNodeData>,
-    Edge
-  >();
+  const { getNodesBounds } = useReactFlow<Node<WorkflowNodeData>, Edge>();
 
   const layoutNodes = useMemo(
     () =>
@@ -335,524 +306,85 @@ const InsuranceWorkflowDiagramInner = ({
     [desktopEdges, isMobile]
   );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(layoutEdges);
   const activeZoom = isMobile ? WORKFLOW_MOBILE_ZOOM : viewportZoom;
   const canEditWorkflow = Boolean(auth?.isAuthenticated) && !isMobile;
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [editor, setEditor] = useState<WorkflowEditorState | null>(null);
-  const selectedNodeIds = useMemo(
-    () => nodes.filter((node) => node.selected).map((node) => node.id),
-    [nodes]
-  );
+
+  const {
+    nodes,
+    edges,
+    isEditMode,
+    setIsEditMode,
+    hasUnsavedChanges,
+    saveStatus,
+    saveMessage,
+    editor,
+    setEditor,
+    selectedNodeIds,
+    onConnect,
+    onReconnect,
+    onEdgeDoubleClick,
+    onNodeDoubleClick,
+    removeSelectedNodes,
+    handleNodesChange,
+    handleEdgesChange,
+    saveWorkflow,
+    closeEditor,
+    saveEditor,
+  } = useWorkflowEditor({
+    authToken: auth?.token,
+    canEditWorkflow,
+    layoutEdges,
+    layoutNodes,
+  });
 
   const [canvasHeight, setCanvasHeight] = useState(() =>
     measureCanvasHeight(
-      getMeasuredNodesBounds(layoutNodes),
+      getNodesBounds(layoutNodes),
       activeZoom,
       viewportAnchorY,
       originY
     )
   );
 
-  const markDirty = useCallback(() => {
-    setHasUnsavedChanges(true);
-    setSaveStatus("idle");
-    setSaveMessage(null);
-  }, []);
-
-  const openEdgeEditor = useCallback((edge: Edge) => {
-    setEditor({
-      edgeId: edge.id,
-      kind: "edge",
-      label: typeof edge.label === "string" ? edge.label : "",
-    });
-  }, []);
-
-  const openNodeEditor = useCallback(
-    (nodeId: string) => {
-      const node = nodes.find((entry) => entry.id === nodeId);
-      if (!node) {
-        return;
-      }
-
-      setEditor({
-        body: node.data.body,
-        kind: "node",
-        nodeId,
-        title: node.data.title,
-      });
-    },
-    [nodes]
-  );
-
-  const closeEditor = useCallback(() => {
-    setEditor(null);
-  }, []);
-
-  const saveEditor = useCallback(() => {
-    if (!editor) {
-      return;
-    }
-
-    if (editor.kind === "edge") {
-      setEdges((existingEdges) =>
-        existingEdges.map((existingEdge) =>
-          existingEdge.id === editor.edgeId
-            ? {
-                ...existingEdge,
-                label: editor.label.trim() || "Connection",
-                labelBgBorderRadius: 6,
-                labelBgPadding: [8, 6],
-                labelShowBg: true,
-              }
-            : existingEdge
-        )
-      );
-      markDirty();
-      closeEditor();
-      return;
-    }
-
-    setNodes((existingNodes) =>
-      existingNodes.map((existingNode) =>
-        existingNode.id === editor.nodeId
-          ? {
-              ...existingNode,
-              data: {
-                ...existingNode.data,
-                body: editor.body.trim() || existingNode.data.body,
-                title: editor.title.trim() || existingNode.data.title,
-              },
-            }
-          : existingNode
-      )
-    );
-    markDirty();
-    closeEditor();
-  }, [closeEditor, editor, markDirty, setEdges, setNodes]);
-
-  const onConnect = useCallback(
-    (connection: Connection) => {
-      if (!isEditMode) {
-        return;
-      }
-
-      const edgeId =
-        connection.source && connection.target
-          ? `${connection.source}-${connection.sourceHandle ?? "right"}-${connection.target}-${connection.targetHandle ?? "left"}-${Date.now()}`
-          : `edge-${Date.now()}`;
-
-      setEdges((existingEdges) =>
-        addEdge(
-          {
-            ...connection,
-            animated: false,
-            id: edgeId,
-            label: "Connection",
-            labelBgBorderRadius: 6,
-            labelBgPadding: [8, 6],
-            labelShowBg: true,
-            markerEnd: {
-              color: "#8156f6",
-              type: MarkerType.ArrowClosed,
-            },
-            type: "smoothstep",
-          },
-          existingEdges
-        )
-      );
-      markDirty();
-      setEditor({
-        edgeId,
-        kind: "edge",
-        label: "Connection",
-      });
-    },
-    [isEditMode, markDirty, setEdges]
-  );
-
-  const onReconnect = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => {
-      if (!isEditMode) {
-        return;
-      }
-
-      setEdges((existingEdges) =>
-        reconnectEdge(
-          {
-            ...oldEdge,
-            animated: false,
-            labelBgBorderRadius: 6,
-            labelBgPadding: [8, 6],
-            labelShowBg: true,
-            markerEnd: {
-              color: "#8156f6",
-              type: MarkerType.ArrowClosed,
-            },
-            type: "smoothstep",
-          },
-          newConnection,
-          existingEdges
-        )
-      );
-      markDirty();
-    },
-    [isEditMode, markDirty, setEdges]
-  );
-
-  const onEdgeDoubleClick = useCallback(
-    (_event: React.MouseEvent, edge: Edge) => {
-      if (!isEditMode) {
-        return;
-      }
-
-      openEdgeEditor(edge);
-    },
-    [isEditMode, openEdgeEditor]
-  );
-
-  const onNodeDoubleClick = useCallback(
-    (_event: React.MouseEvent, node: Node<WorkflowNodeData>) => {
-      if (!isEditMode) {
-        return;
-      }
-
-      openNodeEditor(node.id);
-    },
-    [isEditMode, openNodeEditor]
-  );
-
-  const removeSelectedNodes = useCallback(() => {
-    if (!isEditMode || selectedNodeIds.length === 0) {
-      return;
-    }
-
-    const removed = new Set(selectedNodeIds);
-    setNodes((existingNodes) =>
-      existingNodes.filter((node) => !removed.has(node.id))
-    );
-    setEdges((existingEdges) => {
-      const kept = existingEdges.filter(
-        (edge) => !(removed.has(edge.source) || removed.has(edge.target))
-      );
-
-      setEditor((current) => {
-        if (!current) {
-          return null;
-        }
-        if (current.kind === "node" && removed.has(current.nodeId)) {
-          return null;
-        }
-        if (
-          current.kind === "edge" &&
-          !kept.some((edge) => edge.id === current.edgeId)
-        ) {
-          return null;
-        }
-        return current;
-      });
-
-      return kept;
-    });
-    markDirty();
-  }, [isEditMode, markDirty, selectedNodeIds, setEdges, setNodes]);
-
-  const handleNodesChange = useCallback<typeof onNodesChange>(
-    (changes) => {
-      onNodesChange(changes);
-      if (isEditMode && changes.some((change) => change.type !== "select")) {
-        markDirty();
-      }
-
-      if (changes.some((change) => change.type === "remove")) {
-        const removedNodeIds = new Set(
-          changes
-            .filter((change) => change.type === "remove")
-            .map((change) => change.id)
-        );
-
-        setEditor((current) =>
-          current?.kind === "node" && removedNodeIds.has(current.nodeId)
-            ? null
-            : current
-        );
-      }
-    },
-    [isEditMode, markDirty, onNodesChange]
-  );
-
-  const handleEdgesChange = useCallback<typeof onEdgesChange>(
-    (changes) => {
-      onEdgesChange(changes);
-      if (isEditMode && changes.some((change) => change.type !== "select")) {
-        markDirty();
-      }
-
-      if (changes.some((change) => change.type === "remove")) {
-        const removedEdgeIds = new Set(
-          changes
-            .filter((change) => change.type === "remove")
-            .map((change) => change.id)
-        );
-        setEditor((current) =>
-          current?.kind === "edge" && removedEdgeIds.has(current.edgeId)
-            ? null
-            : current
-        );
-      }
-    },
-    [isEditMode, markDirty, onEdgesChange]
-  );
-
-  const saveWorkflow = useCallback(async () => {
-    if (!(isEditMode && canEditWorkflow)) {
-      return;
-    }
-
-    if (!auth?.token) {
-      setSaveStatus("error");
-      setSaveMessage("Sign in with Google to save workflow edits.");
-      return;
-    }
-
-    setSaveStatus("saving");
-    setSaveMessage(null);
-
-    try {
-      const response = await fetch("/api/workflow-save", {
-        body: JSON.stringify({
-          edges: edges.map((edge) => ({
-            edgeId: edge.id,
-            label: typeof edge.label === "string" ? edge.label : "",
-            sourceHandle: edge.sourceHandle ?? "right",
-            sourceStep: edge.source,
-            targetHandle: edge.targetHandle ?? "left",
-            targetStep: edge.target,
-          })),
-          nodes: nodes.map((node) => ({
-            body: node.data.body,
-            posX: node.position.x,
-            posY: node.position.y,
-            stepId: node.id,
-            subsections: node.data.subsections ?? [],
-            title: node.data.title,
-            wide: node.data.wide === true,
-          })),
-        }),
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-
-      const raw = await response.text();
-      const payload = (() => {
-        try {
-          return raw ? (JSON.parse(raw) as { error?: string }) : null;
-        } catch {
-          return null;
-        }
-      })();
-
-      if (!response.ok) {
-        const fallbackDetail = raw.trim();
-        throw new Error(
-          payload?.error ||
-            (fallbackDetail
-              ? `Could not save workflow to Sanity (${response.status}): ${fallbackDetail.slice(0, 180)}`
-              : `Could not save workflow to Sanity (${response.status}).`)
-        );
-      }
-
-      setHasUnsavedChanges(false);
-      setSaveStatus("saved");
-      setSaveMessage("Saved to Sanity.");
-    } catch (error) {
-      setSaveStatus("error");
-      setSaveMessage(
-        error instanceof Error
-          ? error.message
-          : "Could not save workflow to Sanity."
-      );
-    }
-  }, [auth?.token, canEditWorkflow, edges, isEditMode, nodes]);
-
-  useEffect(() => {
-    if (isEditMode || hasUnsavedChanges || saveStatus === "saved") {
-      return;
-    }
-    setNodes(layoutNodes);
-    setEdges(layoutEdges);
-    setHasUnsavedChanges(false);
-    setSaveStatus("idle");
-    setSaveMessage(null);
-  }, [
-    hasUnsavedChanges,
-    isEditMode,
-    layoutEdges,
-    layoutNodes,
-    saveStatus,
-    setEdges,
-    setNodes,
-  ]);
-
-  useEffect(() => {
-    if (!canEditWorkflow) {
-      setIsEditMode(false);
-    }
-  }, [canEditWorkflow]);
-
-  useEffect(() => {
-    if (!isEditMode) {
-      setEditor(null);
-    }
-  }, [isEditMode]);
-
   return (
     <section
       aria-label="Insurance claim workflow diagram"
-      className={`workflow-page__canvas${isEditMode ? "workflow-page__canvas--edit" : ""}`}
+      className={
+        isEditMode
+          ? "workflow-page__canvas workflow-page__canvas--edit"
+          : "workflow-page__canvas"
+      }
       ref={canvasRef}
       style={{ height: canvasHeight }}
     >
-      {!isMobile && canEditWorkflow ? (
-        <div className="workflow-page__edit-controls">
-          <button
-            aria-pressed={isEditMode}
-            className="workflow-page__edit-toggle"
-            onClick={() => setIsEditMode((current) => !current)}
-            type="button"
-          >
-            {isEditMode ? "Editing on" : "Editing off"}
-          </button>
-          {isEditMode ? (
-            <>
-              <button
-                className="workflow-page__save"
-                disabled={saveStatus === "saving" || !hasUnsavedChanges}
-                onClick={() => {
-                  saveWorkflow();
-                }}
-                type="button"
-              >
-                {saveStatus === "saving" ? "Saving…" : "Save changes"}
-              </button>
-              <button
-                className="workflow-page__remove-node"
-                disabled={selectedNodeIds.length === 0}
-                onClick={removeSelectedNodes}
-                type="button"
-              >
-                Remove selected node
-              </button>
-            </>
-          ) : null}
-        </div>
-      ) : null}
-      {isEditMode && saveMessage ? (
+      {!isMobile && canEditWorkflow && (
+        <WorkflowEditControls
+          hasUnsavedChanges={hasUnsavedChanges}
+          isEditMode={isEditMode}
+          onRemoveSelected={removeSelectedNodes}
+          onSave={saveWorkflow}
+          onToggleEditMode={() => setIsEditMode((c) => !c)}
+          saveStatus={saveStatus}
+          selectedNodeIds={selectedNodeIds}
+        />
+      )}
+      {isEditMode && saveMessage && (
         <p
           className={`workflow-page__save-status workflow-page__save-status--${saveStatus}`}
           role={saveStatus === "error" ? "alert" : undefined}
         >
           {saveMessage}
         </p>
-      ) : null}
-      {isEditMode && editor ? (
-        <section
-          aria-modal="false"
-          className="workflow-page__editor-popover"
-          role="dialog"
-        >
-          <h2 className="workflow-page__editor-title">
-            {editor.kind === "edge"
-              ? "Edit connection label"
-              : "Edit workflow step"}
-          </h2>
-
-          {editor.kind === "edge" ? (
-            <label className="workflow-page__editor-field">
-              Label
-              <input
-                autoFocus
-                className="workflow-page__editor-input"
-                id="workflow-edge-label"
-                name="workflow-edge-label"
-                onChange={(event) =>
-                  setEditor((current) =>
-                    current?.kind === "edge"
-                      ? { ...current, label: event.target.value }
-                      : current
-                  )
-                }
-                placeholder="Connection label"
-                value={editor.label}
-              />
-            </label>
-          ) : (
-            <>
-              <label className="workflow-page__editor-field">
-                Title
-                <input
-                  autoFocus
-                  className="workflow-page__editor-input"
-                  id="workflow-step-title"
-                  name="workflow-step-title"
-                  onChange={(event) =>
-                    setEditor((current) =>
-                      current?.kind === "node"
-                        ? { ...current, title: event.target.value }
-                        : current
-                    )
-                  }
-                  placeholder="Step title"
-                  value={editor.title}
-                />
-              </label>
-              <label className="workflow-page__editor-field">
-                Body
-                <textarea
-                  className="workflow-page__editor-textarea"
-                  id="workflow-step-body"
-                  name="workflow-step-body"
-                  onChange={(event) =>
-                    setEditor((current) =>
-                      current?.kind === "node"
-                        ? { ...current, body: event.target.value }
-                        : current
-                    )
-                  }
-                  placeholder="Step details"
-                  rows={5}
-                  value={editor.body}
-                />
-              </label>
-            </>
-          )}
-
-          <div className="workflow-page__editor-actions">
-            <button
-              className="workflow-page__editor-button"
-              onClick={saveEditor}
-              type="button"
-            >
-              Apply
-            </button>
-            <button
-              className="workflow-page__editor-button workflow-page__editor-button--ghost"
-              onClick={closeEditor}
-              type="button"
-            >
-              Cancel
-            </button>
-          </div>
-        </section>
-      ) : null}
-      {isMobile ? null : (
+      )}
+      {isEditMode && editor && (
+        <WorkflowEditorPopover
+          editor={editor}
+          onChange={setEditor}
+          onClose={closeEditor}
+          onSave={saveEditor}
+        />
+      )}
+      {!isMobile && (
         <p aria-hidden className="workflow-page__pan-hint">
           {isEditMode ? (
             <>
@@ -924,7 +456,6 @@ const InsuranceWorkflowDiagramInner = ({
 
 const InsuranceWorkflowDiagram = (props: InsuranceWorkflowDiagramProps) => {
   const isMobile = useIsMobile(768);
-
   return (
     <ReactFlowProvider
       key={`${props.remountKey}-${isMobile ? "stack" : "grid"}`}

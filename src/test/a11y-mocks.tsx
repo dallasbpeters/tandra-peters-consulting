@@ -280,7 +280,7 @@ vi.mock("../hooks/use-sanity-post-by-slug", () => ({
   }),
 }));
 
-vi.mock("../hooks/use-google-dashboard-auth", () => ({
+vi.mock("../context/dashboard-auth-context", () => ({
   useGoogleDashboardAuth: () => ({
     authError: null,
     buttonRef: { current: null },

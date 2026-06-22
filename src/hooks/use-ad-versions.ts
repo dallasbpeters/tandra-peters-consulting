@@ -8,6 +8,7 @@ export interface AdCreativeVersion {
   id: string;
   name: string;
   savedAt?: string;
+  thumbnail?: string;
 }
 
 interface AdCreativeVersionResult {
@@ -15,6 +16,7 @@ interface AdCreativeVersionResult {
   config?: string;
   name?: string;
   savedAt?: string;
+  thumbnail?: string;
 }
 
 const toVersion = (doc: AdCreativeVersionResult): AdCreativeVersion | null => {
@@ -26,6 +28,7 @@ const toVersion = (doc: AdCreativeVersionResult): AdCreativeVersion | null => {
     id: doc._id,
     name: doc.name,
     savedAt: doc.savedAt,
+    thumbnail: doc.thumbnail,
   };
 };
 

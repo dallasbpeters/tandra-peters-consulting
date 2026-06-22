@@ -244,7 +244,14 @@ const isEditableTarget = (target: EventTarget | null) => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+export interface AdCanvasCaptureHandle {
+  /** Capture a thumbnail of the current canvas. Returns a data URL or null on failure. */
+  captureThumb: () => Promise<string | null>;
+}
+
 interface AdCanvasEditorProps {
+  /** Ref that receives a { captureThumb } handle for capturing thumbnails. */
+  captureRef?: React.RefObject<AdCanvasCaptureHandle | null>;
   creative: CreativeState;
   selectedPlatform: PlatformPreset;
   selectedPlatformShape: PlatformShape;
@@ -255,6 +262,7 @@ interface AdCanvasEditorProps {
 }
 
 export const AdCanvasEditor = ({
+  captureRef,
   creative,
   selectedPlatform,
   selectedPlatformShape,
@@ -291,6 +299,47 @@ export const AdCanvasEditor = ({
       getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
     [creative.adWidth, creative.adHeight, creative.unit]
   );
+
+  // Expose a captureThumb handle to the parent via captureRef.
+  const exportPixelSizeRef = useRef(exportPixelSize);
+  exportPixelSizeRef.current = exportPixelSize;
+  const backgroundColorRef = useRef(creative.backgroundColor);
+  backgroundColorRef.current = creative.backgroundColor;
+  useEffect(() => {
+    if (!captureRef) {
+      return;
+    }
+    captureRef.current = {
+      captureThumb: async () => {
+        const node = canvasRef.current;
+        if (!node) {
+          return null;
+        }
+        try {
+          const { width, height } = exportPixelSizeRef.current;
+          const thumbWidth = 320;
+          const thumbHeight = Math.round((height / width) * thumbWidth);
+          const blob = await exportCanvasNode(
+            node,
+            thumbWidth,
+            thumbHeight,
+            backgroundColorRef.current
+          );
+          return await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          return null;
+        }
+      },
+    };
+    return () => {
+      captureRef.current = null;
+    };
+  }, [captureRef]);
 
   // ── Re-seed when template or platform changes ────────────────────────────
   const seedKey = `${creative.templateId}|${creative.platformId}|${creative.layout}|${creative.fontPresetId}`;

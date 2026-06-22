@@ -10,7 +10,7 @@ import { useEffect } from "react";
 
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
-import { useGoogleDashboardAuth } from "../hooks/use-google-dashboard-auth";
+import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import { useSeoDashboard } from "../hooks/use-seo-dashboard";
 import { layoutClass } from "../styles/layout-classes";

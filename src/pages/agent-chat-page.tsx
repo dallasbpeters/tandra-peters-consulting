@@ -60,7 +60,7 @@ import {
 } from "../components/ai-elements/reasoning";
 import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/site-page-chrome";
-import { useGoogleDashboardAuth } from "../hooks/use-google-dashboard-auth";
+import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import {
   buildApiMessages,

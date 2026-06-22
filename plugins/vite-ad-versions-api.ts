@@ -131,6 +131,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
               id?: unknown;
               name?: unknown;
               config?: unknown;
+              thumbnail?: unknown;
             })
           : {};
 
@@ -155,6 +156,10 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
 
         const name = sanitizeString(body.name);
         const config = sanitizeString(body.config);
+        const thumbnail =
+          typeof body.thumbnail === "string"
+            ? body.thumbnail.trim()
+            : undefined;
         if (!(name && config)) {
           json(res, 400, { error: "Missing version name or config." });
           return;
@@ -168,6 +173,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
           _type: "adCreativeVersion",
           name,
           config,
+          ...(thumbnail ? { thumbnail } : {}),
           savedAt: new Date().toISOString(),
           savedBy: user.email,
         });
