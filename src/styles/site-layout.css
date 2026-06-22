@@ -407,6 +407,7 @@ main {
     var(--theme-spacing-xxxl);
   text-align: center;
   background: oklch(97.16% 0.019 171.52);
+  border: none;
   border-radius: var(--theme-radius-large);
   box-shadow: 0 24px 48px rgb(0 0 0 / 18%);
 }
@@ -708,6 +709,7 @@ main {
   max-height: min(85vh, 40rem);
   overflow: hidden;
   background: oklch(100% 0 0);
+  border: none;
   border-radius: var(--theme-radius-large);
   box-shadow: 0 24px 48px rgb(0 0 0 / 18%);
 }

@@ -995,6 +995,31 @@ export const AdCanvasEditor = ({
     setMockupError(null);
   }, []);
 
+  const backdropRef = useCallback(
+    (node: HTMLDialogElement | null) => {
+      if (!node) {
+        return;
+      }
+      const handleClick = (e: MouseEvent) => {
+        if (e.target === e.currentTarget) {
+          closeMockup();
+        }
+      };
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          closeMockup();
+        }
+      };
+      node.addEventListener("click", handleClick);
+      node.addEventListener("keydown", handleKeyDown);
+      return () => {
+        node.removeEventListener("click", handleClick);
+        node.removeEventListener("keydown", handleKeyDown);
+      };
+    },
+    [closeMockup]
+  );
+
   useEffect(
     () => () => {
       if (mockupUrl) {
@@ -1695,26 +1720,14 @@ export const AdCanvasEditor = ({
       ) : null}
 
       {mockupUrl || mockupError ? (
-        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: modal backdrop — click outside to dismiss is a standard modal pattern
-        <div
+        <dialog
           aria-label="Door hanger mockup"
           aria-modal="true"
           className="ad-mockup-backdrop"
-          onClick={closeMockup}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              closeMockup();
-            }
-          }}
-          role="dialog"
+          open
+          ref={backdropRef}
         >
-          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stops click propagation to backdrop */}
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation to backdrop */}
-          <div
-            className="ad-mockup-modal"
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
+          <div className="ad-mockup-modal">
             <div className="ad-mockup-head">
               <strong>Door hanger preview</strong>
               <button
@@ -1732,7 +1745,7 @@ export const AdCanvasEditor = ({
               mockupContent
             )}
           </div>
-        </div>
+        </dialog>
       ) : null}
     </section>
   );

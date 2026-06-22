@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useIsMobile } from "../../hooks/is-mobile";
@@ -167,13 +167,28 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardPos, setCardPos] = useState<CardPos | null>(null);
 
-  const scheduleClose = () => {
+  const scheduleClose = useCallback(() => {
     clearSharedClose();
     _closeTimer = setTimeout(() => setActiveChapterId(null), CLOSE_DELAY);
-  };
+  }, [setActiveChapterId]);
 
   // Cancel any pending close on unmount
   useEffect(() => clearSharedClose, []);
+
+  // Keep the callout open while the cursor travels from the dot to the card.
+  // Imperative listeners avoid putting mouse handlers on the non-interactive div.
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) {
+      return;
+    }
+    el.addEventListener("mouseenter", clearSharedClose);
+    el.addEventListener("mouseleave", scheduleClose);
+    return () => {
+      el.removeEventListener("mouseenter", clearSharedClose);
+      el.removeEventListener("mouseleave", scheduleClose);
+    };
+  }, [scheduleClose]);
 
   // model-viewer reads data-position only when a slotted child is added.
   // Attribute edits alone do not move dots — call updateHotspot (or remount).
@@ -251,8 +266,6 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     setActiveChapterId(chapter.id);
   };
   const handleDotLeave = scheduleClose;
-  const handleCardEnter = clearSharedClose;
-  const handleCardLeave = scheduleClose;
 
   if (!is3d) {
     return null;
@@ -380,16 +393,14 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
         </button>
       </div>
 
-      {/* Portal — only mounted while open; card's own handlers keep it alive
-          while the mouse travels from the dot into the card. */}
+      {/* Portal — only mounted while open; useEffect on cardRef attaches
+          mouseenter/mouseleave so the card stays open while the cursor travels
+          from the dot to the card (see imperative effect above). */}
       {isOpen &&
         createPortal(
-          // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onMouseEnter/Leave keep callout card open while cursor travels from trigger to card
           <div
             aria-label={chapter.callout.title}
             className="stage__hotspot-callout"
-            onMouseEnter={handleCardEnter}
-            onMouseLeave={handleCardLeave}
             ref={cardRef}
             role="dialog"
             style={cardStyle}

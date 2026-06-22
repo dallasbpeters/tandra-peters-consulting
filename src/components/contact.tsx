@@ -481,10 +481,8 @@ export const Contact = ({
               Thanks — your message was sent. We’ll be in touch soon.
             </div>
           ) : (
-            // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onKeyDown stops propagation on a native form element
             <form
               noValidate
-              onKeyDown={(e) => e.stopPropagation()}
               onSubmit={handleSubmit}
               style={{
                 display: "flex",

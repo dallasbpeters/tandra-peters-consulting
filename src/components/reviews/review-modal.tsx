@@ -1,5 +1,4 @@
 import { Xmark } from "iconoir-react";
-import type { MouseEvent } from "react";
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -44,34 +43,27 @@ export const ReviewModal = ({ review, isOpen, onClose }: ReviewModalProps) => {
     return null;
   }
 
-  const handleBackdropClick = () => {
-    onClose();
-  };
-
-  const handleDialogClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-  };
-
   return createPortal(
     // biome-ignore lint/a11y/noStaticElementInteractions: modal backdrop — click/Escape outside to dismiss
     <div
       className="review-modal__backdrop"
-      onClick={handleBackdropClick}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
-          handleBackdropClick();
+          onClose();
         }
       }}
       role="presentation"
     >
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stops click propagation to backdrop */}
-      <div
+      <dialog
         aria-labelledby={titleId}
         aria-modal="true"
         className="review-modal"
-        onClick={handleDialogClick}
-        onKeyDown={(e) => e.stopPropagation()}
-        role="dialog"
+        open
       >
         <button
           aria-label="Close review"
@@ -108,7 +100,7 @@ export const ReviewModal = ({ review, isOpen, onClose }: ReviewModalProps) => {
             </span>
           </p>
         </div>
-      </div>
+      </dialog>
     </div>,
     document.body
   );

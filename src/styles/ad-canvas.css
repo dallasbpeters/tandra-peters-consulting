@@ -509,6 +509,7 @@
   justify-content: center;
   padding: var(--theme-spacing-lg, 1.5rem);
   background: rgb(8 10 9 / 80%);
+  border: none;
 }
 
 .ad-mockup-modal {

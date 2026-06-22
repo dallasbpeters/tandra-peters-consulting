@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -82,34 +82,27 @@ export const GoogleAuthSignInModal = () => {
     return null;
   }
 
-  const handleBackdropClick = () => {
-    auth.closeSignInModal();
-  };
-
-  const handleDialogClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-  };
-
   return createPortal(
     // biome-ignore lint/a11y/noStaticElementInteractions: modal backdrop — click/Escape outside to dismiss
     <div
       className="google-auth-gate__modal-backdrop"
-      onClick={handleBackdropClick}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          auth.closeSignInModal();
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
-          handleBackdropClick();
+          auth.closeSignInModal();
         }
       }}
       role="presentation"
     >
-      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stops click propagation to backdrop */}
-      <div
+      <dialog
         aria-labelledby="google-auth-gate-modal-title"
         aria-modal="true"
         className="google-auth-gate__modal"
-        onClick={handleDialogClick}
-        onKeyDown={(e) => e.stopPropagation()}
-        role="dialog"
+        open
       >
         <button
           aria-label="Close sign-in"
@@ -167,7 +160,7 @@ export const GoogleAuthSignInModal = () => {
             {auth.authError}
           </p>
         ) : null}
-      </div>
+      </dialog>
     </div>,
     document.body
   );
