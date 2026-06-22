@@ -63,6 +63,7 @@
 }
 
 .ad-canvas-el:hover:not(.is-locked, .is-editing) {
+  position: absolute;
   outline: calc(1.5px / var(--canvas-scale, 1)) solid rgb(146 182 97 / 70%);
 }
 
