@@ -1083,7 +1083,7 @@ export const AdCanvasEditor = ({
   const renderElement = (el: CanvasElement, index: number) => {
     const isEditing = el.id === editingId;
 
-    const style: CSSProperties = {
+    const textboxstyle: CSSProperties = {
       // oxlint-disable-next-line eqeqeq no-eq-null
       height: el.height == null ? "auto" : `${el.height}%`,
       left: `${el.x}%`,
@@ -1188,7 +1188,7 @@ export const AdCanvasEditor = ({
         ref={(node) => {
           nodesRef.current[el.id] = node;
         }}
-        style={style}
+        style={textboxstyle}
         type="button"
       >
         {inner}
