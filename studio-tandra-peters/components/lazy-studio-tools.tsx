@@ -1,4 +1,5 @@
-import { type ComponentType, lazy, Suspense } from "react";
+import type {ComponentType } from "react";
+import { lazy, Suspense } from "react";
 
 const StudioToolFallback = () => (
   <div
@@ -39,7 +40,7 @@ export const LazyFalImageStudioTool = lazyStudioTool(() =>
 );
 
 export const LazyEmailPreviewTool = lazyStudioTool(() =>
-  import("./EmailPreviewTool").then((module) => ({
+  import("./email-preview-tool").then((module) => ({
     default: module.EmailPreviewTool,
   }))
 );

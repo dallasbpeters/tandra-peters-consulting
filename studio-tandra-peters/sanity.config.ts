@@ -1,18 +1,12 @@
-import {
-  type AssistFieldActionProps,
-  assist,
-  defineAssistFieldAction,
-  defineAssistFieldActionGroup,
-  defineFieldActionDivider,
-  isType,
-  useUserInput,
-} from "@sanity/assist";
+import { assist, defineAssistFieldAction, defineAssistFieldActionGroup, defineFieldActionDivider, isType, useUserInput } from '@sanity/assist';
+import type { AssistFieldActionProps } from '@sanity/assist';
 import type { SanityClient } from "@sanity/client";
 import { contextPlugin } from "@sanity/context/studio";
 import { StarFilledIcon } from "@sanity/icons";
 import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
-import { defineConfig, type SchemaType } from "sanity";
+import { defineConfig } from 'sanity';
+import type { SchemaType } from 'sanity';
 import { googleAnalyticsPlugin } from "sanity-plugin-ga-dashboard";
 import { iconPicker } from "sanity-plugin-icon-picker";
 import {
@@ -27,7 +21,7 @@ import {
   LazyFalImageStudioTool,
   LazyImageManagerTool,
   LazyRemotionVideoTool,
-} from "./components/lazyStudioTools";
+} from "./components/lazy-studio-tools";
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
@@ -45,6 +39,7 @@ interface TransformTargetCreateIfNotExists {
 }
 
 const configuredPreviewOrigin = process.env.SANITY_STUDIO_PREVIEW_URL?.replace(
+  // oxlint-disable-next-line require-unicode-regexp
   /\/$/,
   ""
 );
@@ -61,6 +56,7 @@ const previewOrigin =
         : "http://localhost:3001");
 
 const gaApiUrl =
+  // oxlint-disable-next-line require-unicode-regexp
   process.env.SANITY_STUDIO_GA_API_URL?.replace(/\/$/, "") ||
   `${previewOrigin}/api/analytics`;
 
@@ -241,29 +237,29 @@ const createBrandVoiceAction = (
   client: SanityClient
 ) =>
   defineAssistFieldAction({
-    title,
     onAction: async () => {
       const brandContext = await loadBrandToneContext(client);
       await client.agent.action.transform({
-        schemaId: props.schemaId,
-        documentId: props.documentIdForAction,
-        targetDocument: {
-          operation: "createIfNotExists",
-          _id: props.documentIdForAction,
-          _type: props.documentSchemaType.name,
-          initialValues: props.getDocumentValue(),
-        } as TransformTargetCreateIfNotExists as never,
-        instruction: buildRewriteInstruction(goal),
-        instructionParams: {
-          brandContext,
-          field: { type: "field", path: props.path },
-        },
-        target: props.path.length ? { path: props.path } : undefined,
         conditionalPaths: {
           paths: props.getConditionalPaths(),
         },
+        documentId: props.documentIdForAction,
+        instruction: buildRewriteInstruction(goal),
+        instructionParams: {
+          brandContext,
+          field: { path: props.path, type: "field" },
+        },
+        schemaId: props.schemaId,
+        target: props.path.length ? { path: props.path } : undefined,
+        targetDocument: {
+          _id: props.documentIdForAction,
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+          operation: "createIfNotExists",
+        } as TransformTargetCreateIfNotExists as never,
       });
     },
+    title,
   });
 
 const createDocumentBrandVoiceAction = (
@@ -273,27 +269,27 @@ const createDocumentBrandVoiceAction = (
   client: SanityClient
 ) =>
   defineAssistFieldAction({
-    title,
     onAction: async () => {
       const brandContext = await loadBrandToneContext(client);
       await client.agent.action.transform({
-        schemaId: props.schemaId,
+        conditionalPaths: {
+          paths: props.getConditionalPaths(),
+        },
         documentId: props.documentIdForAction,
-        targetDocument: {
-          operation: "createIfNotExists",
-          _id: props.documentIdForAction,
-          _type: props.documentSchemaType.name,
-          initialValues: props.getDocumentValue(),
-        } as TransformTargetCreateIfNotExists as never,
         instruction: buildDocumentRewriteInstruction(goal),
         instructionParams: {
           brandContext,
         },
-        conditionalPaths: {
-          paths: props.getConditionalPaths(),
-        },
+        schemaId: props.schemaId,
+        targetDocument: {
+          _id: props.documentIdForAction,
+          _type: props.documentSchemaType.name,
+          initialValues: props.getDocumentValue(),
+          operation: "createIfNotExists",
+        } as TransformTargetCreateIfNotExists as never,
       });
     },
+    title,
   });
 
 const brandVoiceFieldActions = {
@@ -332,7 +328,6 @@ const brandVoiceFieldActions = {
       if (actionType === "document") {
         return [
           defineAssistFieldActionGroup({
-            title: "Brand voice rewrites",
             children: [
               createDocumentBrandVoiceAction(
                 "Rewrite document in brand voice",
@@ -354,18 +349,17 @@ const brandVoiceFieldActions = {
               ),
               defineFieldActionDivider(),
               defineAssistFieldAction({
-                title: "Custom document rewrite...",
                 onAction: async () => {
                   const input = await getUserInput({
-                    title: "Custom rewrite goal",
                     inputs: [
                       {
-                        id: "goal",
-                        title: "Rewrite goal",
                         description:
                           "Describe what should change across the document, such as warmer, shorter, clearer, or more local.",
+                        id: "goal",
+                        title: "Rewrite goal",
                       },
                     ],
+                    title: "Custom rewrite goal",
                   });
                   const goal = input?.[0]?.result?.trim();
                   if (!goal) {
@@ -373,32 +367,33 @@ const brandVoiceFieldActions = {
                   }
                   const brandContext = await loadBrandToneContext(client);
                   await client.agent.action.transform({
-                    schemaId,
+                    conditionalPaths: {
+                      paths: getConditionalPaths(),
+                    },
                     documentId: documentIdForAction,
-                    targetDocument: {
-                      operation: "createIfNotExists",
-                      _id: documentIdForAction,
-                      _type: documentSchemaType.name,
-                      initialValues: getDocumentValue(),
-                    } as TransformTargetCreateIfNotExists as never,
                     instruction: buildDocumentRewriteInstruction(goal),
                     instructionParams: {
                       brandContext,
                     },
-                    conditionalPaths: {
-                      paths: getConditionalPaths(),
-                    },
+                    schemaId,
+                    targetDocument: {
+                      _id: documentIdForAction,
+                      _type: documentSchemaType.name,
+                      initialValues: getDocumentValue(),
+                      operation: "createIfNotExists",
+                    } as TransformTargetCreateIfNotExists as never,
                   });
                 },
+                title: "Custom document rewrite...",
               }),
             ],
+            title: "Brand voice rewrites",
           }),
         ];
       }
 
       return [
         defineAssistFieldActionGroup({
-          title: "Brand voice rewrites",
           children: [
             createBrandVoiceAction(
               "Rewrite in brand voice",
@@ -426,18 +421,17 @@ const brandVoiceFieldActions = {
             ),
             defineFieldActionDivider(),
             defineAssistFieldAction({
-              title: "Custom rewrite...",
               onAction: async () => {
                 const input = await getUserInput({
-                  title: "Custom rewrite goal",
                   inputs: [
                     {
-                      id: "goal",
-                      title: "Rewrite goal",
                       description:
                         "Describe what should change, such as shorter, clearer, more local, or more homeowner-friendly.",
+                      id: "goal",
+                      title: "Rewrite goal",
                     },
                   ],
+                  title: "Custom rewrite goal",
                 });
                 const goal = input?.[0]?.result?.trim();
                 if (!goal) {
@@ -445,27 +439,29 @@ const brandVoiceFieldActions = {
                 }
                 const brandContext = await loadBrandToneContext(client);
                 await client.agent.action.transform({
-                  schemaId,
-                  documentId: documentIdForAction,
-                  targetDocument: {
-                    operation: "createIfNotExists",
-                    _id: documentIdForAction,
-                    _type: documentSchemaType.name,
-                    initialValues: getDocumentValue(),
-                  } as TransformTargetCreateIfNotExists as never,
-                  instruction: buildRewriteInstruction(goal),
-                  instructionParams: {
-                    brandContext,
-                    field: { type: "field", path },
-                  },
-                  target: path.length ? { path } : undefined,
                   conditionalPaths: {
                     paths: getConditionalPaths(),
                   },
+                  documentId: documentIdForAction,
+                  instruction: buildRewriteInstruction(goal),
+                  instructionParams: {
+                    brandContext,
+                    field: { path, type: "field" },
+                  },
+                  schemaId,
+                  target: path.length ? { path } : undefined,
+                  targetDocument: {
+                    _id: documentIdForAction,
+                    _type: documentSchemaType.name,
+                    initialValues: getDocumentValue(),
+                    operation: "createIfNotExists",
+                  } as TransformTargetCreateIfNotExists as never,
                 });
               },
+              title: "Custom rewrite...",
             }),
           ],
+          title: "Brand voice rewrites",
         }),
       ];
     }, [
@@ -483,6 +479,7 @@ const brandVoiceFieldActions = {
   },
 };
 
+// oxlint-disable-next-line sort-keys
 export default defineConfig({
   name: "default",
   title: "Tandra Peters",
@@ -494,24 +491,24 @@ export default defineConfig({
   tools: (prev) => [
     ...prev,
     {
+      component: LazyImageManagerTool,
       name: "image-manager",
       title: "Image Manager",
-      component: LazyImageManagerTool,
     },
     {
+      component: LazyFalImageStudioTool,
       name: "fal-image-studio",
       title: "AI Image Studio",
-      component: LazyFalImageStudioTool,
     },
     {
+      component: LazyEmailPreviewTool,
       name: "email-preview",
       title: "Email Preview",
-      component: LazyEmailPreviewTool,
     },
     {
+      component: LazyRemotionVideoTool,
       name: "videos",
       title: "Videos",
-      component: LazyRemotionVideoTool,
     },
   ],
 
@@ -530,30 +527,95 @@ export default defineConfig({
     ...(studioFlags.presentation
       ? [
           presentationTool({
-            previewUrl: {
-              initial: previewOrigin,
-            },
             allowOrigins: [
               "http://localhost:*",
               "http://127.0.0.1:*",
               "https://www.tandra.me",
               "https://tandra.me",
             ],
+            previewUrl: {
+              initial: previewOrigin,
+            },
             resolve: {
+              locations: {
+                articlesPage: defineLocations({
+                  resolve: () => ({
+                    locations: [{ href: "/articles", title: "Articles" }],
+                  }),
+                  select: { id: "_id" },
+                }),
+                homePage: defineLocations({
+                  resolve: () => ({
+                    locations: [{ href: "/", title: "Home" }],
+                  }),
+                  select: { id: "_id" },
+                }),
+                insuranceFaqsPage: defineLocations({
+                  resolve: () => ({
+                    locations: [
+                      { href: "/insurance-faqs", title: "Insurance FAQs" },
+                    ],
+                  }),
+                  select: { id: "_id" },
+                }),
+                post: defineLocations({
+                  resolve: (doc) => {
+                    const slug =
+                      typeof doc?.slug === "string" ? doc.slug.trim() : "";
+                    const title =
+                      typeof doc?.title === "string" && doc.title.trim()
+                        ? doc.title.trim()
+                        : "Article";
+                    if (!slug) {
+                      return { locations: [{ href: "/articles", title }] };
+                    }
+                    return {
+                      locations: [{ href: `/articles/${slug}`, title }],
+                    };
+                  },
+                  select: { slug: "slug.current", title: "title" },
+                }),
+                roofInspectionsPage: defineLocations({
+                  resolve: () => ({
+                    locations: [
+                      { href: "/roof-inspections", title: "Roof inspections" },
+                    ],
+                  }),
+                  select: { id: "_id" },
+                }),
+                siteSettings: defineLocations({
+                  resolve: () => ({
+                    locations: [
+                      { href: "/", title: "Home" },
+                      { href: "/privacy", title: "Privacy" },
+                      { href: "/terms", title: "Terms" },
+                      { href: "/cookies", title: "Cookies" },
+                    ],
+                  }),
+                  select: { id: "_id" },
+                }),
+                workflowPage: defineLocations({
+                  resolve: () => ({
+                    locations: [
+                      { href: "/workflow", title: "Insurance workflow" },
+                    ],
+                  }),
+                  select: { id: "_id" },
+                }),
+              },
               mainDocuments: defineDocuments([
-                { route: "/", filter: `_type == "homePage"` },
+                { filter: `_type == "homePage"`, route: "/" },
                 {
-                  route: "/roof-inspections",
                   filter: `_id == "roofInspectionsPage"`,
+                  route: "/roof-inspections",
                 },
-                { route: "/articles", filter: `_id == "articlesPage"` },
-                { route: "/workflow", filter: `_id == "workflowPage"` },
+                { filter: `_id == "articlesPage"`, route: "/articles" },
+                { filter: `_id == "workflowPage"`, route: "/workflow" },
                 {
-                  route: "/insurance-faqs",
                   filter: `_id == "insuranceFaqsPage"`,
+                  route: "/insurance-faqs",
                 },
                 {
-                  route: "/articles/:slug",
                   resolve: ({ params }) => {
                     const slug = params.slug?.trim();
                     if (!slug) {
@@ -564,77 +626,12 @@ export default defineConfig({
                       params: { slug },
                     };
                   },
+                  route: "/articles/:slug",
                 },
-                { route: "/privacy", filter: `_type == "siteSettings"` },
-                { route: "/terms", filter: `_type == "siteSettings"` },
-                { route: "/cookies", filter: `_type == "siteSettings"` },
+                { filter: `_type == "siteSettings"`, route: "/privacy" },
+                { filter: `_type == "siteSettings"`, route: "/terms" },
+                { filter: `_type == "siteSettings"`, route: "/cookies" },
               ]),
-              locations: {
-                homePage: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [{ title: "Home", href: "/" }],
-                  }),
-                }),
-                roofInspectionsPage: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [
-                      { title: "Roof inspections", href: "/roof-inspections" },
-                    ],
-                  }),
-                }),
-                siteSettings: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [
-                      { title: "Home", href: "/" },
-                      { title: "Privacy", href: "/privacy" },
-                      { title: "Terms", href: "/terms" },
-                      { title: "Cookies", href: "/cookies" },
-                    ],
-                  }),
-                }),
-                articlesPage: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [{ title: "Articles", href: "/articles" }],
-                  }),
-                }),
-                workflowPage: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [
-                      { title: "Insurance workflow", href: "/workflow" },
-                    ],
-                  }),
-                }),
-                insuranceFaqsPage: defineLocations({
-                  select: { id: "_id" },
-                  resolve: () => ({
-                    locations: [
-                      { title: "Insurance FAQs", href: "/insurance-faqs" },
-                    ],
-                  }),
-                }),
-                post: defineLocations({
-                  select: { title: "title", slug: "slug.current" },
-                  resolve: (doc) => {
-                    const slug =
-                      typeof doc?.slug === "string" ? doc.slug.trim() : "";
-                    const title =
-                      typeof doc?.title === "string" && doc.title.trim()
-                        ? doc.title.trim()
-                        : "Article";
-                    if (!slug) {
-                      return { locations: [{ title, href: "/articles" }] };
-                    }
-                    return {
-                      locations: [{ title, href: `/articles/${slug}` }],
-                    };
-                  },
-                }),
-              },
             },
           }),
         ]
