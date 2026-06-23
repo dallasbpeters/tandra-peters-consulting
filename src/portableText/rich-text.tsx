@@ -194,7 +194,7 @@ export const RichText = ({
     ]
   );
 
-  if (value == null) {
+  if (value === null) {
     return null;
   }
 

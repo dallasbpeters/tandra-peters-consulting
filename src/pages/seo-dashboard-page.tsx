@@ -101,7 +101,7 @@ const chipStyle = (
 };
 
 const deltaToneColor = (value: number | null): string => {
-  if (value == null) {
+  if (value === null) {
     return mix(theme.colors.everglade, 60);
   }
   if (value >= 0) {
@@ -126,7 +126,7 @@ const priorityTone = (priority: SeoRecommendationPriority): CSSProperties => {
 };
 
 const formatDelta = (value: number | null, label: string): string => {
-  if (value == null) {
+  if (value === null) {
     return `${label} unavailable`;
   }
   if (value === 0) {
@@ -764,7 +764,7 @@ export const SeoDashboardPage = () => {
                     label="Observed pageviews"
                     subtext={`${data.analytics.timeframeLabel} · ${data.analytics.scopeLabel}`}
                     value={
-                      data.analytics.pageviews7d == null
+                      data.analytics.pageviews7d === null
                         ? "—"
                         : `${data.analytics.pageviews7d}`
                     }

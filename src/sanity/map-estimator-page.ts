@@ -33,19 +33,19 @@ const mapOption = (raw: Record<string, unknown>): EstimatorOption | null => {
     option.description = description;
   }
   const sqft = cleanNumber(raw.sqftMidpoint);
-  if (sqft != null) {
+  if (sqft !== null) {
     option.sqftMidpoint = sqft;
   }
   const mult = cleanNumber(raw.sqftMultiplier);
-  if (mult != null) {
+  if (mult !== null) {
     option.sqftMultiplier = mult;
   }
   const perSqft = cleanNumber(raw.pricePerSqftAdd);
-  if (perSqft != null) {
+  if (perSqft !== null) {
     option.pricePerSqftAdd = perSqft;
   }
   const flat = cleanNumber(raw.flatAdd);
-  if (flat != null) {
+  if (flat !== null) {
     option.flatAdd = flat;
   }
   return option;
@@ -61,7 +61,7 @@ const mapQuestion = (
   const options = Array.isArray(raw.options)
     ? raw.options
         .map((o) => mapOption(o as Record<string, unknown>))
-        .filter((o): o is EstimatorOption => o != null)
+        .filter((o): o is EstimatorOption => o !== null)
     : [];
   if (options.length === 0) {
     return null;
@@ -113,22 +113,22 @@ export const mapEstimatorPageContent = (
   assignString("bannerCtaLabel", data.bannerCtaLabel);
 
   const baseFee = cleanNumber(data.baseFee);
-  if (baseFee != null) {
+  if (baseFee !== null) {
     out.baseFee = baseFee;
   }
   const baseRatePerSqft = cleanNumber(data.baseRatePerSqft);
-  if (baseRatePerSqft != null) {
+  if (baseRatePerSqft !== null) {
     out.baseRatePerSqft = baseRatePerSqft;
   }
   const rangeSpreadPercent = cleanNumber(data.rangeSpreadPercent);
-  if (rangeSpreadPercent != null) {
+  if (rangeSpreadPercent !== null) {
     out.rangeSpreadPercent = rangeSpreadPercent;
   }
 
   if (Array.isArray(data.questions) && data.questions.length > 0) {
     const questions = data.questions
       .map((q: Record<string, unknown>) => mapQuestion(q))
-      .filter((q): q is EstimatorQuestion => q != null);
+      .filter((q): q is EstimatorQuestion => q !== null);
     if (questions.length > 0) {
       out.questions = questions;
     }

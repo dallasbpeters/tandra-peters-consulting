@@ -823,7 +823,7 @@ export function getProp(props: Record<string, unknown>, key: string): unknown {
   const parts = key.split(".");
   let val: unknown = props;
   for (const part of parts) {
-    if (val == null || typeof val !== "object") {
+    if (val === null || typeof val !== "object") {
       return;
     }
     val = (val as Record<string, unknown>)[part];
@@ -842,7 +842,7 @@ export function setProp(
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
     const next = (current as Record<string, unknown>)[part];
-    if (next == null || typeof next !== "object") {
+    if (next === null || typeof next !== "object") {
       (current as Record<string, unknown>)[part] = {};
     } else if (Array.isArray(next)) {
       (current as Record<string, unknown>)[part] = [...next];

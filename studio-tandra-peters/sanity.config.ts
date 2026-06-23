@@ -33,7 +33,6 @@ import { studioFlags } from "./studioFlags";
 interface TransformTargetCreateIfNotExists {
   _id: string;
   _type?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialValues?: Record<string, any>;
   operation: "createIfNotExists";
 }
@@ -54,11 +53,6 @@ const previewOrigin =
       (process.env.NODE_ENV === "production"
         ? "https://www.tandra.me"
         : "http://localhost:3001");
-
-const gaApiUrl =
-  // oxlint-disable-next-line require-unicode-regexp
-  process.env.SANITY_STUDIO_GA_API_URL?.replace(/\/$/, "") ||
-  `${previewOrigin}/api/analytics`;
 
 const BRAND_TONE_CONTEXT_ID = "assist-context-brand-tone";
 const CUSTOM_AI_CONTEXT_ID = "aiContext";
@@ -307,7 +301,6 @@ const brandVoiceFieldActions = {
     } = props;
     const client = useStudioClient({ apiVersion: "vX" });
     const getUserInput = useUserInput();
-    const _pathKey = JSON.stringify(path);
 
     return useMemo(() => {
       if (actionType === "field" && !isRewriteableField(schemaType)) {

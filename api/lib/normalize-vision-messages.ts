@@ -24,7 +24,7 @@ const normalizeImagePart = (part: {
   image?: unknown;
   mediaType?: string;
 }) => {
-  if (part.type !== "image" || part.image == null) {
+  if (part.type !== "image" || part.image === null) {
     return part;
   }
 

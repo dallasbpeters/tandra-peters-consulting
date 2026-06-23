@@ -43,7 +43,7 @@
     "@types/react": "19.2.17",
     "agentation": "^3.0.2",
     "dotenv": "^17.4.2",
-    "eslint": "^10.5.0",
+    "eslint": "^9.0.0",
     "prettier": "^3.8.4",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

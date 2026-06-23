@@ -2,16 +2,14 @@ import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const ENV_ALLOWED_ORIGINS = "GA_DASHBOARD_ALLOWED_ORIGINS";
-const LOCAL_ALLOWED_ORIGINS = [
-  "http://localhost:3333",
-  "http://127.0.0.1:3333",
-];
-const isProduction = process.env.NODE_ENV === "production";
+// Matches any Sanity-hosted studio: https://{anything}.sanity.studio
+const SANITY_STUDIO_RE = /^https:\/\/[a-z0-9-]+\.sanity\.studio$/iu;
+const LOCAL_ORIGINS = ["http://localhost:3333", "http://127.0.0.1:3333"];
 
 const parseAllowedOrigins = (): string[] => {
   const fromEnv = process.env[ENV_ALLOWED_ORIGINS]?.trim();
   if (!fromEnv) {
-    return isProduction ? [] : LOCAL_ALLOWED_ORIGINS;
+    return [];
   }
   return fromEnv
     .split(",")
@@ -19,27 +17,28 @@ const parseAllowedOrigins = (): string[] => {
     .filter(Boolean);
 };
 
-const resolveCorsOrigin = (origin: string | undefined): string | undefined => {
-  if (!origin) {
-    return;
+const isTrustedOrigin = (origin: string): boolean => {
+  if (SANITY_STUDIO_RE.test(origin)) {
+    return true;
   }
-  const allowed = parseAllowedOrigins();
-  return allowed.includes(origin) ? origin : undefined;
+  if (LOCAL_ORIGINS.includes(origin)) {
+    return true;
+  }
+  return parseAllowedOrigins().includes(origin);
 };
 
 const isAllowedOrigin = (origin: string | undefined): boolean => {
   if (!origin) {
     return true;
   }
-  return Boolean(resolveCorsOrigin(origin));
+  return isTrustedOrigin(origin);
 };
 
 const applyCors = (res: VercelResponse, origin: string | undefined) => {
-  const corsOrigin = resolveCorsOrigin(origin);
-  if (!corsOrigin) {
+  if (!(origin && isTrustedOrigin(origin))) {
     return;
   }
-  res.setHeader("Access-Control-Allow-Origin", corsOrigin);
+  res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");

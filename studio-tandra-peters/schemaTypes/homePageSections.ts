@@ -404,7 +404,7 @@ export const servicesSectionType = defineType({
     }),
   ],
   preview: {
-    prepare: ({}) => ({
+    prepare: () => ({
       title: "Services",
     }),
   },
@@ -521,7 +521,7 @@ export const socialShareSectionType = defineType({
     }),
   ],
   preview: {
-    prepare: ({}) => ({
+    prepare: () => ({
       title: "Social share bar",
     }),
   },

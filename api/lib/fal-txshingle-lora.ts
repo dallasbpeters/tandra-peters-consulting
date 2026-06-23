@@ -75,5 +75,5 @@ export const buildTxshingleLoraInput = ({
   num_inference_steps: 28,
   output_format: outputFormat === "webp" ? "jpeg" : outputFormat,
   prompt: ensureTxshingleTrigger(prompt),
-  ...(seed == null ? {} : { seed }),
+  ...(seed === null ? {} : { seed }),
 });

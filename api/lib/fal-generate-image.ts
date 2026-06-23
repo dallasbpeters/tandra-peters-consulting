@@ -310,7 +310,7 @@ const buildTextInput = ({
     prompt,
     num_images: numImages,
     output_format: outputFormat,
-    ...(seed == null ? {} : { seed }),
+    ...(seed === null ? {} : { seed }),
   };
 
   if (config.inputKind === "aspectRatio" || config.inputKind === "seedream") {
@@ -362,7 +362,7 @@ const resolveReferenceStrength = ({
   const strengthEndpoint = endpoint as keyof typeof DEFAULT_IMG2IMG_STRENGTH;
   const defaultStrength = DEFAULT_IMG2IMG_STRENGTH[strengthEndpoint];
 
-  if (body.referenceAdherence != null) {
+  if (body.referenceAdherence !== null) {
     const appliedReferenceAdherence = clampNumber(
       body.referenceAdherence,
       0.35,
@@ -411,7 +411,7 @@ const buildImageInput = ({
   const base: Record<string, unknown> = {
     num_images: numImages,
     prompt,
-    ...(seed == null ? {} : { seed }),
+    ...(seed === null ? {} : { seed }),
   };
 
   if (endpoint === "fal-ai/flux-2-pro/edit") {
@@ -514,7 +514,7 @@ const normalizeJobs = (body: FalGenerateImageBody): NormalizedJob[] => {
       ? body.referenceImageUrl.trim()
       : "";
   const seed =
-    body.seed === "" || body.seed == null
+    body.seed === "" || body.seed === null
       ? undefined
       : clampInteger(body.seed, 0, 0, 2_147_483_647);
   const enhancePrompt = body.enhancePrompt !== false;

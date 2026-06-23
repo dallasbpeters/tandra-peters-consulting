@@ -18,7 +18,7 @@ import { processEstimateSubmission } from "./email/estimateSubmission.js";
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
-  if (raw == null) {
+  if (raw === null) {
     return {};
   }
   if (typeof raw === "string") {

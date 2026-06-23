@@ -5,7 +5,6 @@ interface GeneratedImageOpts {
   name: string;
   title?: string;
   /** Use Sanity image rules, e.g. `(rule) => rule.required()` */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validation?: (rule: any) => any;
 }
 

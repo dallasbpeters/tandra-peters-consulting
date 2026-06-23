@@ -10,7 +10,7 @@ import {
 } from "../../src/remotion/ads/adDefaults";
 import type {
   EditorField,
-  EditorSection,
+  EditorSection as EditorSectionSchema,
 } from "../../src/remotion/ads/editSchemas";
 import { getProp, SCHEMAS, setProp } from "../../src/remotion/ads/editSchemas";
 import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
@@ -125,7 +125,6 @@ const RENDER_BASE =
 const RENDER_SECRET =
   process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_PROPS: Record<string, any> = {
   TandraRoofValue: ROOF_VALUE_DEFAULTS,
   TandraStormSpot: STORM_SPOT_DEFAULTS,
@@ -188,7 +187,6 @@ export function RemotionVideoTool() {
 
   // ── Editor form state ─────────────────────────────────────────────────
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [formProps, setFormProps] = useState<Record<string, any>>(() =>
     DEFAULT_PROPS[activeId] ? { ...DEFAULT_PROPS[activeId] } : {}
   );
@@ -279,7 +277,6 @@ export function RemotionVideoTool() {
           .catch(() => setFormProps(defaults));
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client
         .fetch<{ props?: string } | null>(
           `*[_id == "${schemaName}"][0]{ props }`
@@ -649,7 +646,6 @@ export function RemotionVideoTool() {
                 colors={colors}
                 key={section.key}
                 onChange={onFieldChange}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 props={formProps as any}
                 section={section}
               />
@@ -669,8 +665,7 @@ function EditorSection({
   onChange,
   colors,
 }: {
-  section: EditorSection;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  section: EditorSectionSchema;
   props: Record<string, any>;
   onChange: (key: string, value: unknown) => void;
   colors: Record<string, string>;

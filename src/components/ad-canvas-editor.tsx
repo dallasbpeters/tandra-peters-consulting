@@ -56,7 +56,7 @@ import "../styles/ad-canvas.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TRAILING_NEWLINES_RE = /\n+$/;
+const TRAILING_NEWLINES_RE = /\n+$/u;
 
 const LOGO_SOURCES: Record<LogoVariant, string> = {
   "horizontal-white": "/BC_Horizontal_White.svg",
@@ -567,7 +567,7 @@ export const AdCanvasEditor = ({
         : null;
 
       const cancelLongPress = () => {
-        if (longPressTimer != null) {
+        if (longPressTimer !== null) {
           window.clearTimeout(longPressTimer);
           longPressTimer = null;
         }
@@ -621,10 +621,10 @@ export const AdCanvasEditor = ({
         ny = clamp(ny, -heightPct + 2, 98);
 
         const nextGuides: CanvasGuide[] = [];
-        if (xSnap.guide != null) {
+        if (xSnap.guide !== null) {
           nextGuides.push({ axis: "x", position: xSnap.guide });
         }
-        if (ySnap.guide != null) {
+        if (ySnap.guide !== null) {
           nextGuides.push({ axis: "y", position: ySnap.guide });
         }
 
@@ -693,7 +693,7 @@ export const AdCanvasEditor = ({
         width = Math.max(MIN_ELEMENT_WIDTH, width);
 
         let { height } = origin;
-        if (origin.height != null) {
+        if (origin.height !== null) {
           if (isCorner) {
             height = origin.height * (width / origin.width);
           } else {
@@ -712,12 +712,12 @@ export const AdCanvasEditor = ({
         if (west) {
           x = origin.x + (origin.width - width);
         }
-        if (north && origin.height != null && height != null) {
+        if (north && origin.height !== null && height !== null) {
           y = origin.y + (origin.height - height);
         }
 
         const patch: Partial<CanvasElement> = { width, x, y };
-        if (height != null) {
+        if (height !== null) {
           patch.height = height;
         }
         if (el.kind === "text" && isCorner) {
@@ -1066,7 +1066,7 @@ export const AdCanvasEditor = ({
       top: `${el.y}%`,
       width: `${el.width}%`,
     };
-    if (el.height == null) {
+    if (el.height === null) {
       const node = nodesRef.current[el.id];
       const canvas = canvasRef.current;
       if (node && canvas && canvas.offsetHeight > 0) {
@@ -1084,8 +1084,7 @@ export const AdCanvasEditor = ({
     const isEditing = el.id === editingId;
 
     const textboxstyle: CSSProperties = {
-      // oxlint-disable-next-line eqeqeq no-eq-null
-      height: el.height == null ? "auto" : `${el.height}%`,
+      height: el.height === null ? "auto" : `${el.height}%`,
       left: `${el.x}%`,
       opacity: el.opacity,
       position: "absolute",
@@ -1117,7 +1116,9 @@ export const AdCanvasEditor = ({
         // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-multiline is only set when role="textbox" is also active
         <div
           aria-multiline={isEditing ? "true" : undefined}
-          className={`ad-canvas-text${isEditing ? "is-editing" : ""}`}
+          className={["ad-canvas-text", isEditing && "is-editing"]
+            .filter(Boolean)
+            .join(" ")}
           contentEditable={isEditing}
           onBlur={isEditing ? commitEdit : undefined}
           ref={isEditing ? editRef : undefined}
@@ -1171,8 +1172,8 @@ export const AdCanvasEditor = ({
         aria-label={el.name}
         className={[
           "ad-canvas-el",
-          el.locked && "ad-canvas-el is-locked",
-          isEditing && "ad-canvas-el is-editing",
+          el.locked && "is-locked",
+          isEditing && "is-editing",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -1496,7 +1497,7 @@ export const AdCanvasEditor = ({
   };
 
   const selectedHandles =
-    selected?.height == null ? AUTO_HEIGHT_HANDLES : FIXED_HEIGHT_HANDLES;
+    selected?.height === null ? AUTO_HEIGHT_HANDLES : FIXED_HEIGHT_HANDLES;
   const handles = selected ? selectedHandles : [];
 
   const mockupContent = mockupUrl ? (
@@ -1625,7 +1626,12 @@ export const AdCanvasEditor = ({
 
             {selected ? (
               <div
-                className={`ad-canvas-selection${selected.locked ? "is-locked" : ""}`}
+                className={[
+                  "ad-canvas-selection",
+                  selected.locked && "is-locked",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 style={getSelectionStyle(selected)}
               >
                 {selected.locked

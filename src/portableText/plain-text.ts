@@ -7,7 +7,7 @@ import { coercePortableTextInput } from "./value.js";
 export const plainTextFromRich = (
   value: PortableTextBlock[] | string | undefined | null | unknown
 ): string => {
-  if (value == null) {
+  if (value === null) {
     return "";
   }
   const coerced = coercePortableTextInput(value);

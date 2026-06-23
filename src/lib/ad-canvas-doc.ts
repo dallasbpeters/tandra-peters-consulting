@@ -1102,7 +1102,7 @@ export const collectSnapTargets = (
       continue;
     }
     xTargets.push(el.x, el.x + el.width / 2, el.x + el.width);
-    if (el.height == null) {
+    if (el.height === null) {
       yTargets.push(el.y);
     } else {
       yTargets.push(el.y, el.y + el.height / 2, el.y + el.height);
