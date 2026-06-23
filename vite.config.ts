@@ -162,9 +162,6 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ["three"],
     },
-    rollupOptions: {
-      external: ["react", "react/jsx-runtime"],
-    },
     // oxlint-disable-next-line sort-keys
     server: {
       port: 3001,

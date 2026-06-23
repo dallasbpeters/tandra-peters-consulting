@@ -261,6 +261,7 @@ interface AdCanvasEditorProps {
   toolbarStart?: React.ReactNode;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 export const AdCanvasEditor = ({
   captureRef,
   creative,
@@ -268,7 +269,6 @@ export const AdCanvasEditor = ({
   selectedPlatformShape,
   toolbarStart,
   toolbarEnd,
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }: AdCanvasEditorProps) => {
   const posthog = usePostHog();
   const viewportRef = useRef<HTMLDivElement | null>(null);
