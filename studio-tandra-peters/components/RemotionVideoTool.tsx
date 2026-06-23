@@ -7,14 +7,14 @@ import {
   ROOF_SCENE_DEFAULTS,
   ROOF_VALUE_DEFAULTS,
   STORM_SPOT_DEFAULTS,
-} from "../../src/remotion/ads/adDefaults";
+} from "../../src/remotion/ads/ad-defaults";
 import type {
   EditorField,
   EditorSection as EditorSectionSchema,
-} from "../../src/remotion/ads/editSchemas";
-import { getProp, SCHEMAS, setProp } from "../../src/remotion/ads/editSchemas";
-import type { TandraIntroContent } from "../../src/remotion/tandraIntroContent";
-import { defaultTandraIntroContent } from "../../src/remotion/tandraIntroContent";
+} from "../../src/remotion/ads/edit-schemas";
+import { getProp, SCHEMAS, setProp } from "../../src/remotion/ads/edit-schemas";
+import type { TandraIntroContent } from "../../src/remotion/tandra-intro-content";
+import { defaultTandraIntroContent } from "../../src/remotion/tandra-intro-content";
 import { useStudioClient } from "../hooks/useStudioClient";
 
 // ── helpers (inline to avoid pulling fetchTandraIntroContent which uses import.meta.env) ──
