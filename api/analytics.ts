@@ -1,17 +1,11 @@
+import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { GET as pluginAnalyticsGet } from "sanity-plugin-ga-dashboard/api";
 
-/**
- * Comma-separated absolute origins allowed to call /api/analytics, e.g.
- * GA_DASHBOARD_ALLOWED_ORIGINS=https://on6anif3y43e3t03oiwrgp30.sanity.studio,https://www.tandra.me
- */
 const ENV_ALLOWED_ORIGINS = "GA_DASHBOARD_ALLOWED_ORIGINS";
-
 const LOCAL_ALLOWED_ORIGINS = [
   "http://localhost:3333",
   "http://127.0.0.1:3333",
 ];
-
 const isProduction = process.env.NODE_ENV === "production";
 
 const parseAllowedOrigins = (): string[] => {
@@ -19,19 +13,18 @@ const parseAllowedOrigins = (): string[] => {
   if (!fromEnv) {
     return isProduction ? [] : LOCAL_ALLOWED_ORIGINS;
   }
-
   return fromEnv
     .split(",")
-    .map((value) => value.trim())
+    .map((v) => v.trim())
     .filter(Boolean);
 };
 
 const resolveCorsOrigin = (origin: string | undefined): string | undefined => {
-  const allowedOrigins = parseAllowedOrigins();
   if (!origin) {
     return;
   }
-  return allowedOrigins.includes(origin) ? origin : undefined;
+  const allowed = parseAllowedOrigins();
+  return allowed.includes(origin) ? origin : undefined;
 };
 
 const isAllowedOrigin = (origin: string | undefined): boolean => {
@@ -46,7 +39,6 @@ const applyCors = (res: VercelResponse, origin: string | undefined) => {
   if (!corsOrigin) {
     return;
   }
-
   res.setHeader("Access-Control-Allow-Origin", corsOrigin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -54,49 +46,96 @@ const applyCors = (res: VercelResponse, origin: string | undefined) => {
   res.setHeader("Access-Control-Max-Age", "86400");
 };
 
-const toWebRequest = (req: VercelRequest): Request => {
-  const host = req.headers.host ?? "localhost";
-  const rawPath = req.url ?? "/";
-  const path = rawPath.startsWith("http")
-    ? rawPath
-    : `https://${host}${rawPath}`;
-
-  const headerPairs: [string, string][] = [];
-  for (const [key, value] of Object.entries(req.headers)) {
-    if (value == null) {
-      continue;
-    }
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        headerPairs.push([key, item]);
-      }
-      continue;
-    }
-
-    headerPairs.push([key, value]);
-  }
-
-  return new Request(path, {
-    method: req.method,
-    headers: new Headers(headerPairs),
+function createGaClient() {
+  const privateKey = process.env.GA_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  return new BetaAnalyticsDataClient({
+    credentials: {
+      client_email: process.env.GA_SERVICE_ACCOUNT_EMAIL,
+      private_key: privateKey,
+    },
   });
-};
+}
 
-const sendWebResponse = async (
-  res: VercelResponse,
-  webResponse: Response,
-  origin: string | undefined
-) => {
-  res.status(webResponse.status);
+async function fetchAnalytics(days: number) {
+  const client = createGaClient();
+  const property = `properties/${process.env.GA_PROPERTY_ID}`;
+  const startDate = `${days}daysAgo`;
+  const endDate = "today";
 
-  webResponse.headers.forEach((value, key) => {
-    res.setHeader(key, value);
-  });
+  const [overview, topPages, topSources, dailyTrend] = await Promise.all([
+    client.runReport({
+      property,
+      dateRanges: [{ startDate, endDate }],
+      metrics: [
+        { name: "totalUsers" },
+        { name: "sessions" },
+        { name: "screenPageViews" },
+        { name: "bounceRate" },
+        { name: "averageSessionDuration" },
+      ],
+    }),
+    client.runReport({
+      property,
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
+      metrics: [{ name: "screenPageViews" }, { name: "totalUsers" }],
+      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+      limit: 10,
+    }),
+    client.runReport({
+      property,
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "sessionDefaultChannelGroup" }],
+      metrics: [{ name: "sessions" }, { name: "totalUsers" }],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 8,
+    }),
+    client.runReport({
+      property,
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "date" }],
+      metrics: [{ name: "screenPageViews" }, { name: "sessions" }],
+      orderBys: [{ dimension: { dimensionName: "date" } }],
+    }),
+  ]);
 
-  applyCors(res, origin);
-  res.send(Buffer.from(await webResponse.arrayBuffer()));
-};
+  const overviewRow = overview[0]?.rows?.[0];
+  return {
+    period: `${days}d`,
+    overview: {
+      totalUsers: Number(overviewRow?.metricValues?.[0]?.value ?? 0),
+      sessions: Number(overviewRow?.metricValues?.[1]?.value ?? 0),
+      screenPageViews: Number(overviewRow?.metricValues?.[2]?.value ?? 0),
+      bounceRate: Number(overviewRow?.metricValues?.[3]?.value ?? 0),
+      averageSessionDuration: Number(
+        overviewRow?.metricValues?.[4]?.value ?? 0
+      ),
+    },
+    topPages: (topPages[0]?.rows ?? []).map((row) => ({
+      pagePath: row.dimensionValues?.[0]?.value ?? "",
+      pageTitle: row.dimensionValues?.[1]?.value ?? "",
+      screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
+      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+    })),
+    topSources: (topSources[0]?.rows ?? []).map((row) => ({
+      channel: row.dimensionValues?.[0]?.value ?? "",
+      sessions: Number(row.metricValues?.[0]?.value ?? 0),
+      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+    })),
+    dailyTrend: (dailyTrend[0]?.rows ?? []).map((row) => {
+      const raw = row.dimensionValues?.[0]?.value ?? "";
+      const date =
+        raw.length === 8
+          ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
+          : raw;
+      return {
+        date,
+        screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
+        sessions: Number(row.metricValues?.[1]?.value ?? 0),
+      };
+    }),
+  };
+}
 
 export default async function analyticsHandler(
   req: VercelRequest,
@@ -122,13 +161,17 @@ export default async function analyticsHandler(
     return;
   }
 
+  const days = Math.min(90, Math.max(1, Number(req.query.days) || 30));
+
   try {
-    const webRequest = toWebRequest(req);
-    const webResponse = await pluginAnalyticsGet(webRequest);
-    await sendWebResponse(res, webResponse, origin);
+    const data = await fetchAnalytics(days);
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=600"
+    );
+    res.status(200).json(data);
   } catch (error) {
     console.error("[api/analytics]", error);
-    applyCors(res, origin);
-    res.status(500).json({ error: "Failed to load analytics dashboard data." });
+    res.status(500).json({ error: "Failed to load analytics data." });
   }
 }

@@ -7,7 +7,6 @@ import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
 import { defineConfig } from 'sanity';
 import type { SchemaType } from 'sanity';
-import { googleAnalyticsPlugin } from "sanity-plugin-ga-dashboard";
 import { iconPicker } from "sanity-plugin-icon-picker";
 import {
   defineDocuments,
@@ -19,6 +18,7 @@ import { structureTool } from "sanity/structure";
 import {
   LazyEmailPreviewTool,
   LazyFalImageStudioTool,
+  LazyGaDashboardTool,
   LazyImageManagerTool,
   LazyRemotionVideoTool,
 } from "./components/lazy-studio-tools";
@@ -510,6 +510,11 @@ export default defineConfig({
       name: "videos",
       title: "Videos",
     },
+    {
+      component: LazyGaDashboardTool,
+      name: "analytics",
+      title: "Analytics",
+    },
   ],
 
   // AI Assist: open any document → ✨ in the document header → “Manage instructions” → “Enable AI assistance”
@@ -520,9 +525,6 @@ export default defineConfig({
       fieldActions: brandVoiceFieldActions,
     }),
     structureTool({ structure }),
-    googleAnalyticsPlugin({
-      apiUrl: gaApiUrl,
-    }),
     iconPicker(),
     ...(studioFlags.presentation
       ? [

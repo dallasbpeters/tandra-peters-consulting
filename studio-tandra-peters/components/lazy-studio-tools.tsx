@@ -50,3 +50,9 @@ export const LazyRemotionVideoTool = lazyStudioTool(() =>
     default: module.RemotionVideoTool,
   }))
 );
+
+export const LazyGaDashboardTool = lazyStudioTool(() =>
+  import("./GaDashboardTool").then((module) => ({
+    default: module.GaDashboardTool,
+  }))
+);
