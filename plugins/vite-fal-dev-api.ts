@@ -58,6 +58,9 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
       if (env.FAL_KEY?.trim()) {
         process.env.FAL_KEY = env.FAL_KEY.trim();
       }
+      if (env.FAL_TXSHINGLE_LORA_URL?.trim()) {
+        process.env.FAL_TXSHINGLE_LORA_URL = env.FAL_TXSHINGLE_LORA_URL.trim();
+      }
 
       try {
         const { handler } = await import("../api/lib/fal-generate-image.js");
