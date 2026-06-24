@@ -222,7 +222,10 @@ export const GaDashboardTool = () => {
             {[
               { label: "Users", value: fmt(data.overview.totalUsers) },
               { label: "Sessions", value: fmt(data.overview.sessions) },
-              { label: "Page Views", value: fmt(data.overview.screenPageViews) },
+              {
+                label: "Page Views",
+                value: fmt(data.overview.screenPageViews),
+              },
               { label: "Bounce Rate", value: fmtPct(data.overview.bounceRate) },
               {
                 label: "Avg. Session",
@@ -295,7 +298,9 @@ export const GaDashboardTool = () => {
                   <>
                     <span>{fmtDate(data.dailyTrend[0].date)}</span>
                     <span>
-                      {fmtDate(data.dailyTrend[data.dailyTrend.length - 1].date)}
+                      {fmtDate(
+                        data.dailyTrend[data.dailyTrend.length - 1].date
+                      )}
                     </span>
                   </>
                 )}
@@ -308,7 +313,11 @@ export const GaDashboardTool = () => {
                 Traffic Sources
               </div>
               <div
-                style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.55rem",
+                }}
               >
                 {data.topSources.map((src) => (
                   <div key={src.channel}>
@@ -405,7 +414,10 @@ export const GaDashboardTool = () => {
                       title={page.pagePath}
                     >
                       <span
-                        style={{ color: "rgb(180 195 180 / 50%)", marginRight: 4 }}
+                        style={{
+                          color: "rgb(180 195 180 / 50%)",
+                          marginRight: 4,
+                        }}
                       >
                         /
                       </span>

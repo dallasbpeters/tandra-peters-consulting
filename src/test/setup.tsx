@@ -3,6 +3,7 @@ import { toHaveNoViolations } from "jest-axe";
 import { setupServer } from "msw/node";
 import React from "react";
 import { afterAll, afterEach, beforeAll, expect, vi } from "vitest";
+
 import { handlers } from "./handlers";
 
 expect.extend(toHaveNoViolations);

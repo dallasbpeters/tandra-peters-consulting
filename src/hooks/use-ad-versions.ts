@@ -36,10 +36,11 @@ export const useAdVersions = () => {
   const [versions, setVersions] = useState<AdCreativeVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [_reloadKey, setReloadKey] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    const requestKey = reloadKey;
 
     const load = async () => {
       setLoading(true);
@@ -50,7 +51,7 @@ export const useAdVersions = () => {
         const result = await client.fetch<AdCreativeVersionResult[]>(
           AD_CREATIVE_VERSIONS_QUERY
         );
-        if (cancelled) {
+        if (cancelled || requestKey !== reloadKey) {
           return;
         }
         setVersions(
@@ -76,7 +77,7 @@ export const useAdVersions = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   return {
     error,

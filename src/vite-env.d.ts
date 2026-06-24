@@ -1,5 +1,18 @@
 /// <reference types="vite/client" />
 
+declare module "*.woff2?url" {
+  const src: string;
+  export default src;
+}
+
+interface SaveFilePickerOptions {
+  suggestedName?: string;
+  types?: Array<{
+    accept: Record<string, string[]>;
+    description?: string;
+  }>;
+}
+
 interface ImportMetaEnv {
   /**
    * Production origin only (e.g. https://www.tandra.me), not `/api/contact`.
@@ -77,4 +90,7 @@ interface Window {
       };
     };
   };
+  showSaveFilePicker?: (
+    options?: SaveFilePickerOptions
+  ) => Promise<FileSystemFileHandle>;
 }

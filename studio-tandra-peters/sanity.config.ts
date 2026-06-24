@@ -1,12 +1,19 @@
-import { assist, defineAssistFieldAction, defineAssistFieldActionGroup, defineFieldActionDivider, isType, useUserInput } from '@sanity/assist';
-import type { AssistFieldActionProps } from '@sanity/assist';
+import {
+  assist,
+  defineAssistFieldAction,
+  defineAssistFieldActionGroup,
+  defineFieldActionDivider,
+  isType,
+  useUserInput,
+} from "@sanity/assist";
+import type { AssistFieldActionProps } from "@sanity/assist";
 import type { SanityClient } from "@sanity/client";
 import { contextPlugin } from "@sanity/context/studio";
 import { StarFilledIcon } from "@sanity/icons";
 import { visionTool } from "@sanity/vision";
 import { useMemo } from "react";
-import { defineConfig } from 'sanity';
-import type { SchemaType } from 'sanity';
+import { defineConfig } from "sanity";
+import type { SchemaType } from "sanity";
 import { iconPicker } from "sanity-plugin-icon-picker";
 import {
   defineDocuments,

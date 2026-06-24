@@ -1,3 +1,14 @@
+import bebasNeueLatinUrl from "@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url";
+import ibmPlexSerifLatinItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-italic.woff2?url";
+import ibmPlexSerifLatinUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-normal.woff2?url";
+import ibmPlexSerifLatinExtItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-italic.woff2?url";
+import ibmPlexSerifLatinExtUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-normal.woff2?url";
+import caveatLatinExtUrl from "@fontsource-variable/caveat/files/caveat-latin-ext-wght-normal.woff2?url";
+import caveatLatinUrl from "@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2?url";
+import hankenLatinExtItalicUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-italic.woff2?url";
+import hankenLatinExtUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-normal.woff2?url";
+import hankenLatinItalicUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-italic.woff2?url";
+import hankenLatinUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2?url";
 import { usePostHog } from "@posthog/react";
 import { toBlob } from "html-to-image";
 import {
@@ -11,6 +22,7 @@ import {
   Lock,
   PlusSquare,
   QrCode,
+  ShareAndroid,
   Text,
   Trash,
   Xmark,
@@ -24,14 +36,17 @@ import {
   useRef,
   useState,
 } from "react";
+
 import type {
   CanvasElement,
   CanvasGuide,
   TextCanvasElement,
 } from "../lib/ad-canvas-doc";
 import {
+  applyCopyToElements,
   CANVAS_FONT_FAMILIES,
   collectSnapTargets,
+  createBandElement,
   createElementId,
   createQrElement,
   createRectElement,
@@ -47,20 +62,251 @@ import type {
   PlatformPreset,
   PlatformShape,
 } from "../lib/ad-creative";
-import { formatAdDimensions, getExportPixelSize } from "../lib/ad-creative";
+import {
+  BRAND_SWATCH_VALUES,
+  formatAdDimensions,
+  getExportPixelSize,
+} from "../lib/ad-creative";
 import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/door-hanger";
 import { buildQrDataUri } from "../lib/qr-code";
 import { AdColorSwatch } from "./ad-color-swatch";
+import Band from "./band.jsx";
 
 import "../styles/ad-canvas.css";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TRAILING_NEWLINES_RE = /\n+$/u;
+const DOWNLOAD_URL_REVOKE_DELAY_MS = 60_000;
+const LATIN_UNICODE_RANGE =
+  "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD";
+const LATIN_EXT_UNICODE_RANGE =
+  "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF";
+
+interface FontFaceAsset {
+  family: string;
+  style: "italic" | "normal";
+  unicodeRange?: string;
+  url: string;
+  weight: string;
+}
+
+type CopyStatus = "copied" | "error" | "idle";
+
+const AD_CANVAS_FONT_ASSETS: FontFaceAsset[] = [
+  {
+    family: "Hanken Grotesk Variable",
+    style: "normal",
+    unicodeRange: LATIN_EXT_UNICODE_RANGE,
+    url: hankenLatinExtUrl,
+    weight: "100 900",
+  },
+  {
+    family: "Hanken Grotesk Variable",
+    style: "normal",
+    unicodeRange: LATIN_UNICODE_RANGE,
+    url: hankenLatinUrl,
+    weight: "100 900",
+  },
+  {
+    family: "Hanken Grotesk Variable",
+    style: "italic",
+    unicodeRange: LATIN_EXT_UNICODE_RANGE,
+    url: hankenLatinExtItalicUrl,
+    weight: "100 900",
+  },
+  {
+    family: "Hanken Grotesk Variable",
+    style: "italic",
+    unicodeRange: LATIN_UNICODE_RANGE,
+    url: hankenLatinItalicUrl,
+    weight: "100 900",
+  },
+  {
+    family: "IBM Plex Serif",
+    style: "normal",
+    unicodeRange: LATIN_EXT_UNICODE_RANGE,
+    url: ibmPlexSerifLatinExtUrl,
+    weight: "400",
+  },
+  {
+    family: "IBM Plex Serif",
+    style: "normal",
+    unicodeRange: LATIN_UNICODE_RANGE,
+    url: ibmPlexSerifLatinUrl,
+    weight: "400",
+  },
+  {
+    family: "IBM Plex Serif",
+    style: "italic",
+    unicodeRange: LATIN_EXT_UNICODE_RANGE,
+    url: ibmPlexSerifLatinExtItalicUrl,
+    weight: "400",
+  },
+  {
+    family: "IBM Plex Serif",
+    style: "italic",
+    unicodeRange: LATIN_UNICODE_RANGE,
+    url: ibmPlexSerifLatinItalicUrl,
+    weight: "400",
+  },
+  {
+    family: "Bebas Neue",
+    style: "normal",
+    url: bebasNeueLatinUrl,
+    weight: "400",
+  },
+  {
+    family: "Caveat Variable",
+    style: "normal",
+    unicodeRange: LATIN_EXT_UNICODE_RANGE,
+    url: caveatLatinExtUrl,
+    weight: "400 700",
+  },
+  {
+    family: "Caveat Variable",
+    style: "normal",
+    unicodeRange: LATIN_UNICODE_RANGE,
+    url: caveatLatinUrl,
+    weight: "400 700",
+  },
+];
+
+let adCanvasFontEmbedCssPromise: Promise<string> | null = null;
 
 const LOGO_SOURCES: Record<LogoVariant, string> = {
   "horizontal-white": "/BC_Horizontal_White.svg",
   "vertical-white": "/BC_Vertical_White.svg",
+};
+
+// ─── Logo colorization ────────────────────────────────────────────────────────
+
+const svgTextCache = new Map<string, string>();
+
+async function fetchSvgText(src: string): Promise<string> {
+  const cached = svgTextCache.get(src);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const res = await fetch(src);
+  const text = await res.text();
+  svgTextCache.set(src, text);
+  return text;
+}
+
+const SVG_STYLE_BLOCK_RE = /(<style[^>]*>)([\s\S]*?)(<\/style>)/i;
+const SVG_WHITE_FILL_RE = /fill:\s*(#fff|white)\b/gi;
+
+function colorizeSvgText(svgText: string, color: string): string {
+  return svgText.replace(
+    SVG_STYLE_BLOCK_RE,
+    (_m, open, body: string, close) =>
+      `${open}${body.replace(SVG_WHITE_FILL_RE, `fill:${color}`)}${close}`
+  );
+}
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result)));
+    reader.addEventListener("error", () =>
+      reject(reader.error ?? new Error("Could not read the font file."))
+    );
+    reader.readAsDataURL(blob);
+  });
+
+const fetchFontDataUrl = async (url: string): Promise<string> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Could not load export font (${response.status}).`);
+  }
+  return blobToDataUrl(await response.blob());
+};
+
+const buildFontFaceCss = (asset: FontFaceAsset, dataUrl: string) =>
+  [
+    "@font-face {",
+    `  font-family: "${asset.family}";`,
+    `  font-style: ${asset.style};`,
+    "  font-display: swap;",
+    `  font-weight: ${asset.weight};`,
+    `  src: url(${dataUrl}) format("woff2");`,
+    asset.unicodeRange ? `  unicode-range: ${asset.unicodeRange};` : null,
+    "}",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+const getAdCanvasFontEmbedCss = (): Promise<string> => {
+  adCanvasFontEmbedCssPromise ??= Promise.all(
+    AD_CANVAS_FONT_ASSETS.map(async (asset) =>
+      buildFontFaceCss(asset, await fetchFontDataUrl(asset.url))
+    )
+  )
+    .then((fontFaces) => fontFaces.join("\n"))
+    .catch(() => "");
+
+  return adCanvasFontEmbedCssPromise;
+};
+
+const getCopyImageLabel = (status: CopyStatus) => {
+  if (status === "copied") {
+    return "Copied!";
+  }
+  if (status === "error") {
+    return "Failed";
+  }
+  return "Copy image";
+};
+
+const getShareImageLabel = (sharing: boolean, shareReady: boolean) => {
+  if (sharing) {
+    return "Sharing…";
+  }
+  if (shareReady) {
+    return "Share";
+  }
+  return "Preparing…";
+};
+
+const isAbortError = (error: unknown) =>
+  error instanceof DOMException && error.name === "AbortError";
+
+const buildAdExportFilename = (platformId: string) =>
+  `tandra-ad-${platformId}-${Date.now()}.png`;
+
+interface LogoImageProps {
+  color: string;
+  variant: LogoVariant;
+}
+
+const LogoImage = ({ variant, color }: LogoImageProps) => {
+  const baseSrc = LOGO_SOURCES[variant];
+  const [src, setSrc] = useState(baseSrc);
+
+  useEffect(() => {
+    const isWhite =
+      color.toLowerCase() === "#ffffff" || color.toLowerCase() === "#fff";
+    if (isWhite) {
+      setSrc(baseSrc);
+      return;
+    }
+    let live = true;
+    fetchSvgText(baseSrc).then((text) => {
+      if (live) {
+        const colorized = colorizeSvgText(text, color);
+        setSrc(
+          `data:image/svg+xml;charset=utf-8,${encodeURIComponent(colorized)}`
+        );
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, [baseSrc, color]);
+
+  // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
+  return <img alt="Birdcreek Roofing" draggable={false} src={src} />;
 };
 
 const MIN_ELEMENT_WIDTH = 3;
@@ -141,7 +387,45 @@ const downloadBlob = (blob: Blob, filename: string) => {
   document.body.append(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(
+    () => URL.revokeObjectURL(url),
+    DOWNLOAD_URL_REVOKE_DELAY_MS
+  );
+};
+
+const createPngSaveHandle = (filename: string) => {
+  if (!window.showSaveFilePicker) {
+    return null;
+  }
+
+  return window.showSaveFilePicker({
+    suggestedName: filename,
+    types: [
+      {
+        accept: { "image/png": [".png"] },
+        description: "PNG image",
+      },
+    ],
+  });
+};
+
+const saveBlob = async (
+  blob: Blob,
+  filename: string,
+  fileHandlePromise: Promise<FileSystemFileHandle> | null
+) => {
+  if (!fileHandlePromise) {
+    downloadBlob(blob, filename);
+    return;
+  }
+
+  const fileHandle = await fileHandlePromise;
+  const writable = await fileHandle.createWritable();
+  try {
+    await writable.write(blob);
+  } finally {
+    await writable.close();
+  }
 };
 
 const exportCanvasNode = async (
@@ -184,11 +468,14 @@ const exportCanvasNode = async (
       exportHeight / previewHeight
     );
 
+    const fontEmbedCSS = await getAdCanvasFontEmbedCss();
+
     const blob = await toBlob(node, {
       backgroundColor,
       cacheBust: true,
       canvasHeight: exportHeight,
       canvasWidth: exportWidth,
+      fontEmbedCSS,
       height: previewHeight,
       includeQueryParams: true,
       pixelRatio,
@@ -245,6 +532,13 @@ const isEditableTarget = (target: EventTarget | null) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export interface AdCanvasCaptureHandle {
+  /** Apply generated copy to role elements without resetting canvas geometry. */
+  applyCopy: (copy: {
+    body: string;
+    cta: string;
+    eyebrow: string;
+    headline: string;
+  }) => void;
   /** Capture a thumbnail of the current canvas. Returns a data URL or null on failure. */
   captureThumb: () => Promise<string | null>;
 }
@@ -253,6 +547,11 @@ interface AdCanvasEditorProps {
   /** Ref that receives a { captureThumb } handle for capturing thumbnails. */
   captureRef?: React.RefObject<AdCanvasCaptureHandle | null>;
   creative: CreativeState;
+  /**
+   * Increment this to force a full canvas reseed (e.g. after loading a saved
+   * version) even when template/platform/layout/font haven't changed.
+   */
+  reseedSignal?: number;
   selectedPlatform: PlatformPreset;
   selectedPlatformShape: PlatformShape;
   /** Menus rendered after the toolbar actions (account). */
@@ -261,10 +560,123 @@ interface AdCanvasEditorProps {
   toolbarStart?: React.ReactNode;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
+interface AdCanvasToolbarActionsProps {
+  addBand: () => void;
+  addQr: () => void;
+  addShape: () => void;
+  addText: () => void;
+  copyStatus: CopyStatus;
+  creative: CreativeState;
+  cutout: PlatformPreset["cutout"];
+  exporting: boolean;
+  handleCopyImage: () => void;
+  handleExport: () => void;
+  handleNativeShare: () => void;
+  handleNextdoorShare: () => void;
+  handlePreviewOnDoor: () => void;
+  mockupBusy: boolean;
+  shareReady: boolean;
+  sharing: boolean;
+  toolbarEnd?: React.ReactNode;
+}
+
+const AdCanvasToolbarActions = ({
+  addBand,
+  addQr,
+  addShape,
+  addText,
+  copyStatus,
+  creative,
+  cutout,
+  exporting,
+  handleCopyImage,
+  handleExport,
+  handleNativeShare,
+  handleNextdoorShare,
+  handlePreviewOnDoor,
+  mockupBusy,
+  shareReady,
+  sharing,
+  toolbarEnd,
+}: AdCanvasToolbarActionsProps) => (
+  <div className="ad-canvas-toolbar-actions">
+    <button className="ad-canvas-add-btn" onClick={addText} type="button">
+      <Text height={16} width={16} />
+      Text
+    </button>
+    <button className="ad-canvas-add-btn" onClick={addShape} type="button">
+      <PlusSquare height={16} width={16} />
+      Shape
+    </button>
+    <button className="ad-canvas-add-btn" onClick={addQr} type="button">
+      <QrCode height={16} width={16} />
+      QR code
+    </button>
+    <button className="ad-canvas-add-btn" onClick={addBand} type="button">
+      <PlusSquare height={16} width={16} />
+      Band
+    </button>
+    {cutout ? (
+      <button
+        className="ad-canvas-add-btn"
+        disabled={mockupBusy}
+        onClick={handlePreviewOnDoor}
+        type="button"
+      >
+        <Eye height={16} width={16} />
+        {mockupBusy ? "Rendering..." : "Preview on door"}
+      </button>
+    ) : null}
+    <button
+      className="ad-dashboard-export"
+      disabled={exporting}
+      onClick={handleExport}
+      type="button"
+    >
+      <Download height={18} width={18} />
+      {exporting ? "Exporting..." : "Export PNG"}
+    </button>
+    {typeof navigator !== "undefined" && "share" in navigator ? (
+      <button
+        className="ad-canvas-add-btn"
+        disabled={sharing || !shareReady}
+        onClick={handleNativeShare}
+        type="button"
+      >
+        <ShareAndroid height={16} width={16} />
+        {getShareImageLabel(sharing, shareReady)}
+      </button>
+    ) : null}
+    <button
+      className="ad-canvas-add-btn"
+      onClick={handleCopyImage}
+      type="button"
+    >
+      <Copy height={16} width={16} />
+      {getCopyImageLabel(copyStatus)}
+    </button>
+    <a
+      className="nd-share-button ad-canvas-add-btn"
+      data-content={`${creative.headline} ${creative.body}`.trim()}
+      data-url={typeof window === "undefined" ? "" : window.location.href}
+      href="https://nextdoor.com/sharekit/share/"
+      onClick={(event) => {
+        event.preventDefault();
+        handleNextdoorShare();
+      }}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      Nextdoor
+    </a>
+    {toolbarEnd}
+  </div>
+);
+
 export const AdCanvasEditor = ({
   captureRef,
   creative,
+  reseedSignal = 0,
   selectedPlatform,
   selectedPlatformShape,
   toolbarStart,
@@ -287,9 +699,15 @@ export const AdCanvasEditor = ({
   const [previewScale, setPreviewScale] = useState(1);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareReady, setShareReady] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const [mockupUrl, setMockupUrl] = useState<string | null>(null);
   const [mockupBusy, setMockupBusy] = useState(false);
   const [mockupError, setMockupError] = useState<string | null>(null);
+  const shareBlobRef = useRef<{ blob: Blob; filename: string } | null>(null);
+  const shareCapturePromiseRef = useRef<Promise<Blob> | null>(null);
 
   const elementsRef = useRef(elements);
   elementsRef.current = elements;
@@ -298,6 +716,24 @@ export const AdCanvasEditor = ({
     () =>
       getExportPixelSize(creative.adWidth, creative.adHeight, creative.unit),
     [creative.adWidth, creative.adHeight, creative.unit]
+  );
+
+  const shareCacheKey = useMemo(
+    () =>
+      JSON.stringify({
+        backgroundColor: creative.backgroundColor,
+        elements,
+        height: exportPixelSize.height,
+        platformId: selectedPlatform.id,
+        width: exportPixelSize.width,
+      }),
+    [
+      creative.backgroundColor,
+      elements,
+      exportPixelSize.height,
+      exportPixelSize.width,
+      selectedPlatform.id,
+    ]
   );
 
   // Expose a captureThumb handle to the parent via captureRef.
@@ -310,6 +746,9 @@ export const AdCanvasEditor = ({
       return;
     }
     captureRef.current = {
+      applyCopy: (copy) => {
+        setElements((current) => applyCopyToElements(current, copy));
+      },
       captureThumb: async () => {
         const node = canvasRef.current;
         if (!node) {
@@ -342,7 +781,7 @@ export const AdCanvasEditor = ({
   }, [captureRef]);
 
   // ── Re-seed when template or platform changes ────────────────────────────
-  const seedKey = `${creative.templateId}|${creative.platformId}|${creative.layout}|${creative.fontPresetId}`;
+  const seedKey = `${creative.templateId}|${creative.platformId}|${creative.layout}|${creative.fontPresetId}|${reseedSignal}`;
   const prevSeedKey = useRef(seedKey);
   useEffect(() => {
     if (prevSeedKey.current === seedKey) {
@@ -419,9 +858,17 @@ export const AdCanvasEditor = ({
   const patchElement = useCallback(
     (id: string, patch: Partial<CanvasElement>) => {
       setElements((prev) =>
-        prev.map((el) =>
-          el.id === id ? ({ ...el, ...patch } as CanvasElement) : el
-        )
+        prev.map((el) => {
+          if (el.id !== id) {
+            return el;
+          }
+          const next = { ...el, ...patch } as CanvasElement;
+          if (next.kind === "band") {
+            next.x = 0;
+            next.width = 100;
+          }
+          return next;
+        })
       );
     },
     []
@@ -883,6 +1330,12 @@ export const AdCanvasEditor = ({
     setSelectedId(el.id);
   }, []);
 
+  const addBand = useCallback(() => {
+    const el = createBandElement(BRAND_SWATCH_VALUES.slice(0, 4));
+    setElements((prev) => [...prev, el]);
+    setSelectedId(el.id);
+  }, []);
+
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -890,6 +1343,9 @@ export const AdCanvasEditor = ({
       setExportError("The ad canvas is not ready yet.");
       return;
     }
+
+    const filename = buildAdExportFilename(selectedPlatform.id);
+    const fileHandlePromise = createPngSaveHandle(filename);
 
     setSelectedId(null);
     setEditingId(null);
@@ -905,7 +1361,7 @@ export const AdCanvasEditor = ({
         creative.backgroundColor,
         true
       );
-      downloadBlob(blob, `tandra-ad-${selectedPlatform.id}-${Date.now()}.png`);
+      await saveBlob(blob, filename, fileHandlePromise);
       posthog?.capture("ad_creative_exported", {
         editor: "canvas",
         elementCount: elementsRef.current.length,
@@ -913,6 +1369,9 @@ export const AdCanvasEditor = ({
         platform: selectedPlatform.id,
       });
     } catch (error) {
+      if (isAbortError(error)) {
+        return;
+      }
       setExportError(
         error instanceof Error ? error.message : "Could not export PNG."
       );
@@ -927,6 +1386,125 @@ export const AdCanvasEditor = ({
     posthog,
     selectedPlatform.id,
   ]);
+
+  // ── Share ─────────────────────────────────────────────────────────────────
+  const captureBlob = useCallback(
+    (options: { clearUi?: boolean } = {}): Promise<Blob> => {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        throw new Error("Canvas not ready.");
+      }
+      if (options.clearUi !== false) {
+        setSelectedId(null);
+        setEditingId(null);
+        setMenu(null);
+      }
+      return exportCanvasNode(
+        canvas,
+        exportPixelSize.width,
+        exportPixelSize.height,
+        creative.backgroundColor,
+        true
+      );
+    },
+    [creative.backgroundColor, exportPixelSize]
+  );
+
+  const prepareShareBlob = useCallback((): Promise<Blob> => {
+    if (shareCapturePromiseRef.current) {
+      return shareCapturePromiseRef.current;
+    }
+    const filename = buildAdExportFilename(selectedPlatform.id);
+    const promise = captureBlob({ clearUi: false })
+      .then((blob) => {
+        shareBlobRef.current = { blob, filename };
+        return blob;
+      })
+      .finally(() => {
+        shareCapturePromiseRef.current = null;
+      });
+    shareCapturePromiseRef.current = promise;
+    return promise;
+  }, [captureBlob, selectedPlatform.id]);
+
+  useEffect(() => {
+    shareBlobRef.current = null;
+    setShareReady(false);
+    if (shareCacheKey === "") {
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      prepareShareBlob()
+        .then(() => setShareReady(true))
+        .catch(() => {
+          shareBlobRef.current = null;
+          setShareReady(false);
+        });
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [prepareShareBlob, shareCacheKey]);
+
+  const handleNativeShare = useCallback(async () => {
+    setShareError(null);
+    const prepared = shareBlobRef.current;
+    if (!prepared) {
+      prepareShareBlob().catch(() => {
+        shareBlobRef.current = null;
+        setShareReady(false);
+      });
+      setShareError("Preparing the image. Try Share again in a moment.");
+      return;
+    }
+
+    try {
+      const file = new File([prepared.blob], prepared.filename, {
+        type: "image/png",
+      });
+      const shareData: ShareData = { files: [file], title: creative.headline };
+      if (navigator.canShare && !navigator.canShare(shareData)) {
+        setShareError("This browser cannot share PNG files.");
+        return;
+      }
+      setSharing(true);
+      await navigator.share(shareData);
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        setShareError(err.message || "Could not share the image.");
+      }
+    } finally {
+      setSharing(false);
+    }
+  }, [creative.headline, prepareShareBlob]);
+
+  const handleCopyImage = useCallback(async () => {
+    try {
+      if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+        throw new Error("Clipboard image copy is not available.");
+      }
+      const blobPromise = captureBlob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blobPromise }),
+      ]);
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch {
+      setCopyStatus("error");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    }
+  }, [captureBlob]);
+
+  const handleNextdoorShare = useCallback(async () => {
+    const content = encodeURIComponent(
+      `${creative.headline} ${creative.body}`.trim()
+    );
+    const url = encodeURIComponent(window.location.href);
+    const shareUrl = `https://nextdoor.com/sharekit/share/?url=${url}&content=${content}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+    const blob = await captureBlob().catch(() => null);
+    if (blob) {
+      downloadBlob(blob, `nextdoor-ad-${selectedPlatform.id}.png`);
+    }
+  }, [captureBlob, creative.body, creative.headline, selectedPlatform.id]);
 
   const handlePreviewOnDoor = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -1140,14 +1718,7 @@ export const AdCanvasEditor = ({
         />
       );
     } else if (el.kind === "logo") {
-      inner = (
-        // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
-        <img
-          alt="Birdcreek Roofing"
-          draggable={false}
-          src={LOGO_SOURCES[el.variant]}
-        />
-      );
+      inner = <LogoImage color={el.color ?? "#ffffff"} variant={el.variant} />;
     } else if (el.kind === "qr") {
       inner = (
         // biome-ignore lint/correctness/useImageSize: dynamic size controlled by canvas element
@@ -1158,12 +1729,29 @@ export const AdCanvasEditor = ({
           src={buildQrDataUri(el.value, el.fgColor, el.bgColor)}
         />
       );
-    } else {
+    } else if (el.kind === "rect") {
       inner = (
         <div
           className="ad-canvas-rect"
           style={{ background: el.fill, borderRadius: `${el.borderRadius}cqw` }}
         />
+      );
+    } else {
+      // el.kind === "band"
+      const totalHeightPx = ((el.height ?? 3) / 100) * exportPixelSize.height;
+      const rowHeightPx = Math.max(1, totalHeightPx / 6);
+      inner = (
+        <div style={{ height: "100%", overflow: "hidden", width: "100%" }}>
+          <Band
+            autoAnimate={false}
+            colors={el.colors}
+            maxHeight={rowHeightPx}
+            minHeight={rowHeightPx}
+            rotate={el.rotate}
+            scrollEnd={0}
+            scrollStart={0}
+          />
+        </div>
       );
     }
 
@@ -1247,6 +1835,24 @@ export const AdCanvasEditor = ({
               step={0.2}
               type="number"
               value={Number.parseFloat(selected.fontSize.toFixed(1))}
+            />
+            <input
+              aria-label="Line height"
+              id="ad-line-height"
+              max={2.5}
+              min={0.75}
+              name="ad-line-height"
+              onChange={(event) => {
+                const value = Number.parseFloat(event.target.value);
+                if (Number.isFinite(value)) {
+                  patchElement(selected.id, {
+                    lineHeight: clamp(value, 0.75, 2.5),
+                  });
+                }
+              }}
+              step={0.05}
+              type="number"
+              value={Number.parseFloat(selected.lineHeight.toFixed(2))}
             />
             <AdColorSwatch
               label="Text color"
@@ -1397,20 +2003,53 @@ export const AdCanvasEditor = ({
         ) : null}
 
         {selected.kind === "logo" ? (
-          <select
-            aria-label="Logo variant"
-            id="ad-logo-variant"
-            name="ad-logo-variant"
-            onChange={(event) =>
-              patchElement(selected.id, {
-                variant: event.target.value as LogoVariant,
-              })
-            }
-            value={selected.variant}
-          >
-            <option value="horizontal-white">Horizontal (white)</option>
-            <option value="vertical-white">Vertical (white)</option>
-          </select>
+          <>
+            <select
+              aria-label="Logo variant"
+              id="ad-logo-variant"
+              name="ad-logo-variant"
+              onChange={(event) =>
+                patchElement(selected.id, {
+                  variant: event.target.value as LogoVariant,
+                })
+              }
+              value={selected.variant}
+            >
+              <option value="horizontal-white">Horizontal</option>
+              <option value="vertical-white">Vertical</option>
+            </select>
+            <AdColorSwatch
+              label="Logo color"
+              onChange={(hex) => patchElement(selected.id, { color: hex })}
+              value={selected.color ?? "#ffffff"}
+            />
+          </>
+        ) : null}
+
+        {selected.kind === "band" ? (
+          <>
+            {selected.colors.map((color, index) => (
+              <AdColorSwatch
+                key={`${color}-${String(index)}`}
+                label={`Band color ${String(index + 1)}`}
+                onChange={(hex) => {
+                  const updated = [...selected.colors];
+                  updated[index] = hex;
+                  patchElement(selected.id, { colors: updated });
+                }}
+                value={color}
+              />
+            ))}
+            <button
+              className={selected.rotate ? "is-active" : ""}
+              onClick={() =>
+                patchElement(selected.id, { rotate: !selected.rotate })
+              }
+              type="button"
+            >
+              Flip
+            </button>
+          </>
         ) : null}
 
         <label className="ad-canvas-opacity">
@@ -1536,49 +2175,25 @@ export const AdCanvasEditor = ({
               : null}
           </span>
         </div>
-        <div className="ad-canvas-toolbar-actions">
-          <button className="ad-canvas-add-btn" onClick={addText} type="button">
-            <Text height={16} width={16} />
-            Text
-          </button>
-          <button
-            className="ad-canvas-add-btn"
-            onClick={addShape}
-            type="button"
-          >
-            <PlusSquare height={16} width={16} />
-            Shape
-          </button>
-          <button className="ad-canvas-add-btn" onClick={addQr} type="button">
-            <QrCode height={16} width={16} />
-            QR code
-          </button>
-          {cutout ? (
-            <button
-              className="ad-canvas-add-btn"
-              disabled={mockupBusy}
-              onClick={() => {
-                handlePreviewOnDoor();
-              }}
-              type="button"
-            >
-              <Eye height={16} width={16} />
-              {mockupBusy ? "Rendering..." : "Preview on door"}
-            </button>
-          ) : null}
-          <button
-            className="ad-dashboard-export"
-            disabled={exporting}
-            onClick={() => {
-              handleExport();
-            }}
-            type="button"
-          >
-            <Download height={18} width={18} />
-            {exporting ? "Exporting..." : "Export PNG"}
-          </button>
-          {toolbarEnd}
-        </div>
+        <AdCanvasToolbarActions
+          addBand={addBand}
+          addQr={addQr}
+          addShape={addShape}
+          addText={addText}
+          copyStatus={copyStatus}
+          creative={creative}
+          cutout={cutout}
+          exporting={exporting}
+          handleCopyImage={handleCopyImage}
+          handleExport={handleExport}
+          handleNativeShare={handleNativeShare}
+          handleNextdoorShare={handleNextdoorShare}
+          handlePreviewOnDoor={handlePreviewOnDoor}
+          mockupBusy={mockupBusy}
+          shareReady={shareReady}
+          sharing={sharing}
+          toolbarEnd={toolbarEnd}
+        />
       </div>
 
       <div className="ad-canvas-context-bar">{renderContextBar()}</div>
@@ -1586,6 +2201,11 @@ export const AdCanvasEditor = ({
       {exportError ? (
         <p className="ad-dashboard-error ad-dashboard-export-error">
           {exportError}
+        </p>
+      ) : null}
+      {shareError ? (
+        <p className="ad-dashboard-error ad-dashboard-export-error">
+          {shareError}
         </p>
       ) : null}
 

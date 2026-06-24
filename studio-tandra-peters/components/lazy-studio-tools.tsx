@@ -1,4 +1,4 @@
-import type {ComponentType } from "react";
+import type { ComponentType } from "react";
 import { lazy, Suspense } from "react";
 
 const StudioToolFallback = () => (

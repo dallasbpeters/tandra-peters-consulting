@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { readFileSync, writeFileSync } from "node:fs";
+
 /**
  * Sorts object literal keys alphabetically.
  * Collects all transforms, then applies them right-to-left so offsets stay valid.

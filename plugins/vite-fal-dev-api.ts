@@ -1,12 +1,14 @@
 /**
- * Serves POST /api/fal/generate-image during Vite dev so Sanity Studio can call
- * Fal without `vercel dev`. Requires FAL_KEY in repo-root .env.local.
+ * Serves Fal image and ad-copy routes during Vite dev without `vercel dev`.
+ * Requires FAL_KEY in repo-root .env.local.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
-const FAL_PATH = "/api/fal/generate-image";
+const FAL_IMAGE_PATH = "/api/fal/generate-image";
+const FAL_AD_COPY_PATH = "/api/fal/generate-ad-copy";
+const FAL_PATHS = new Set([FAL_IMAGE_PATH, FAL_AD_COPY_PATH]);
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -37,7 +39,8 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
-      if (pathnameOnly(req.url) !== FAL_PATH) {
+      const pathname = pathnameOnly(req.url);
+      if (!FAL_PATHS.has(pathname)) {
         next();
         return;
       }
@@ -58,14 +61,28 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
       if (env.FAL_KEY?.trim()) {
         process.env.FAL_KEY = env.FAL_KEY.trim();
       }
+      for (const key of [
+        "FAL_AD_COPY_MODEL",
+        "GOOGLE_ALLOWED_DOMAIN",
+        "GOOGLE_ALLOWED_EMAILS",
+        "VITE_GOOGLE_ALLOWED_DOMAIN",
+        "VITE_GOOGLE_ALLOWED_EMAILS",
+      ]) {
+        if (env[key]?.trim()) {
+          process.env[key] = env[key].trim();
+        }
+      }
       if (env.FAL_TXSHINGLE_LORA_URL?.trim()) {
         process.env.FAL_TXSHINGLE_LORA_URL = env.FAL_TXSHINGLE_LORA_URL.trim();
       }
 
       try {
-        const { handler } = await import("../api/lib/fal-generate-image.js");
+        const { handler } =
+          pathname === FAL_AD_COPY_PATH
+            ? await import("../api/lib/fal-generate-ad-copy.js")
+            : await import("../api/lib/fal-generate-image.js");
         const host = req.headers.host ?? "localhost:3001";
-        const pathWithQuery = req.url ?? FAL_PATH;
+        const pathWithQuery = req.url ?? pathname;
         const bodyBuf = await readBody(req);
         const headers = new Headers();
         for (const [key, value] of Object.entries(req.headers)) {

@@ -10,8 +10,5 @@ interface StudioClientOptions {
 export const useStudioClient = (options: StudioClientOptions): SanityClient => {
   const source = useSource();
 
-  return useMemo(
-    () => source.getClient(options),
-    [source, options]
-  );
+  return useMemo(() => source.getClient(options), [source, options]);
 };

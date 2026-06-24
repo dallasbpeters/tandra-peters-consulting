@@ -10,7 +10,13 @@ import type { FontPresetId } from "./ad-creative-templates";
 // width, y/height relative to canvas height. Text font sizes are in cqw so they
 // scale with the canvas at any export size.
 
-export type CanvasElementKind = "text" | "image" | "logo" | "rect" | "qr";
+export type CanvasElementKind =
+  | "text"
+  | "image"
+  | "logo"
+  | "rect"
+  | "qr"
+  | "band";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -57,6 +63,8 @@ export type ImageCanvasElement = CanvasElementBase & {
 export type LogoCanvasElement = CanvasElementBase & {
   kind: "logo";
   variant: LogoVariant;
+  /** Fill color applied to the SVG logo; defaults to white (#ffffff). */
+  color?: string;
 };
 
 export type RectCanvasElement = CanvasElementBase & {
@@ -76,12 +84,21 @@ export type QrCanvasElement = CanvasElementBase & {
   bgColor: string;
 };
 
+export type BandCanvasElement = CanvasElementBase & {
+  kind: "band";
+  /** Gradient color stops, left to right. */
+  colors: string[];
+  /** Flip the gradient 180deg. */
+  rotate: boolean;
+};
+
 export type CanvasElement =
   | TextCanvasElement
   | ImageCanvasElement
   | LogoCanvasElement
   | RectCanvasElement
-  | QrCanvasElement;
+  | QrCanvasElement
+  | BandCanvasElement;
 
 export interface CanvasGuide {
   axis: "x" | "y";
@@ -224,6 +241,20 @@ export const createRectElement = (fill: string): RectCanvasElement => ({
   y: 38,
 });
 
+export const createBandElement = (colors: string[]): BandCanvasElement => ({
+  colors,
+  height: 3,
+  id: createElementId(),
+  kind: "band",
+  locked: false,
+  name: "Band",
+  opacity: 1,
+  rotate: false,
+  width: 100,
+  x: 0,
+  y: 80,
+});
+
 // ─── Seeding from creative state ──────────────────────────────────────────────
 // Each layout reproduces one of the original template designs. Geometry is in
 // percentages of the canvas; font sizes are cqw. Template size presets
@@ -272,6 +303,7 @@ const seedLogoEl = (
   kind: "logo",
   name: "logo",
   ...geo,
+  color: "#ffffff",
   height: null,
   locked: false,
   opacity: 1,
@@ -970,6 +1002,55 @@ export const seedCanvasElements = (
   }
 };
 
+export interface CanvasCopyFields {
+  body: string;
+  cta: string;
+  eyebrow: string;
+  headline: string;
+}
+
+/**
+ * Applies an explicitly selected copy variant to the stable text roles while
+ * preserving every element's direct-manipulation geometry and styling.
+ */
+export const applyCopyToElements = (
+  elements: CanvasElement[],
+  copy: CanvasCopyFields
+): CanvasElement[] => {
+  const hasHeadlineAccent = elements.some(
+    (element) => element.id === ROLE_IDS.headlineAccent
+  );
+  const headlineLines = copy.headline
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const splitHeadline = hasHeadlineAccent && headlineLines.length >= 2;
+  const headline = splitHeadline
+    ? headlineLines.slice(0, -1).join("\n")
+    : copy.headline;
+  const headlineAccent = splitHeadline ? (headlineLines.at(-1) ?? "") : "";
+  const textByRole: Partial<Record<string, string>> = {
+    [ROLE_IDS.body]: copy.body,
+    [ROLE_IDS.cta]: copy.cta,
+    [ROLE_IDS.eyebrow]: copy.eyebrow,
+    [ROLE_IDS.headline]: headline,
+    [ROLE_IDS.headlineAccent]: headlineAccent,
+  };
+  let changed = false;
+  const next = elements.map((element) => {
+    if (element.kind !== "text") {
+      return element;
+    }
+    const text = textByRole[element.id];
+    if (text === undefined || text === element.text) {
+      return element;
+    }
+    changed = true;
+    return { ...element, text };
+  });
+  return changed ? next : elements;
+};
+
 // Keep role-seeded image/logo elements in sync with the toolbar menus without
 // disturbing geometry/styling/text users set by direct manipulation on the
 // canvas. Text edits happen inline on the canvas only, so creative copy is
@@ -1033,6 +1114,7 @@ export const syncElementsFromCreative = (
     next = [
       ...next,
       {
+        color: "#ffffff",
         height: null,
         id: ROLE_IDS.logo,
         kind: "logo",

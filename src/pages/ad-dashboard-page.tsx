@@ -18,6 +18,7 @@ import {
   MediaImage,
   Page,
   Palette,
+  Sparks,
   Trash,
   Upload,
   User,
@@ -30,6 +31,7 @@ import {
   useRef,
   useState,
 } from "react";
+
 import type { AdCanvasCaptureHandle } from "../components/ad-canvas-editor";
 import { AdCanvasEditor } from "../components/ad-canvas-editor";
 import { AdColorSwatch } from "../components/ad-color-swatch";
@@ -265,6 +267,10 @@ const getSelectedPlatform = (platformId: string) =>
 const getPlatformUnit = (platform: PlatformPreset): AdUnit =>
   platform.unit ?? "px";
 
+const FEED_LABEL_RE = /Feed$/u;
+const getSavedVersionFormatName = (platform: PlatformPreset) =>
+  platform.label.replace(FEED_LABEL_RE, "Post");
+
 const getPlatformShape = (
   platform: Pick<PlatformPreset, "width" | "height">
 ): PlatformShape => {
@@ -309,8 +315,63 @@ const serializeCreative = (creative: CreativeState): string => {
   });
 };
 
+const readApiError = async (response: Response, fallback: string) => {
+  try {
+    const body = (await response.json()) as { error?: unknown };
+    if (typeof body.error === "string" && body.error.trim()) {
+      return body.error.trim();
+    }
+  } catch {
+    // Fall through to the status-based fallback.
+  }
+  return fallback;
+};
+
+// When a saved config has trailing content after the JSON object (e.g. from an
+// old save that concatenated a thumbnail), extract just the first object.
+const extractFirstJsonObject = (s: string): string => {
+  const start = s.indexOf("{");
+  if (start < 0) {
+    throw new SyntaxError("No JSON object in config.");
+  }
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) {
+      continue;
+    }
+    if (ch === "{") {
+      depth++;
+    } else if (ch === "}" && --depth === 0) {
+      return s.slice(start, i + 1);
+    }
+  }
+  throw new SyntaxError("Unterminated JSON object in config.");
+};
+
 const deserializeCreative = (config: string): CreativeState => {
-  const parsed = JSON.parse(config) as Partial<CreativeState>;
+  let raw = config;
+  let parsed: Partial<CreativeState>;
+  try {
+    parsed = JSON.parse(raw) as Partial<CreativeState>;
+  } catch {
+    raw = extractFirstJsonObject(config);
+    parsed = JSON.parse(raw) as Partial<CreativeState>;
+  }
   return { ...DEFAULT_CREATIVE, ...parsed, imageFile: null };
 };
 
@@ -532,6 +593,7 @@ interface ToolbarMenuProps {
   hideLabel?: boolean;
   icon: React.ReactNode;
   label: string;
+  wide?: boolean;
 }
 
 const ToolbarMenu = ({
@@ -539,6 +601,7 @@ const ToolbarMenu = ({
   label,
   hideLabel,
   children,
+  wide,
 }: ToolbarMenuProps) => {
   const triggerId = useId().replaceAll(":", "-");
 
@@ -555,13 +618,25 @@ const ToolbarMenu = ({
         {hideLabel ? null : <span>{label}</span>}
       </button>
       <WaPopover
-        className="ad-toolbar-popover"
+        className={
+          wide
+            ? "ad-toolbar-popover ad-toolbar-popover--wide"
+            : "ad-toolbar-popover"
+        }
         distance={10}
         for={triggerId}
         placement="bottom-start"
         withoutArrow
       >
-        <div className="ad-toolbar-popover-surface">{children}</div>
+        <div
+          className={
+            wide
+              ? "ad-toolbar-popover-surface ad-toolbar-popover-surface--wide"
+              : "ad-toolbar-popover-surface"
+          }
+        >
+          {children}
+        </div>
       </WaPopover>
     </div>
   );
@@ -605,7 +680,12 @@ interface AdVersionsListProps {
   loading: boolean;
   onSelect: (id: string) => void;
   selectedVersionId: string | null;
-  versions: { id: string; name: string; thumbnail?: string }[];
+  versions: {
+    id: string;
+    name: string;
+    savedAt?: string;
+    thumbnail?: string;
+  }[];
 }
 
 const AdVersionsList = ({
@@ -620,6 +700,23 @@ const AdVersionsList = ({
   if (versions.length === 0) {
     return <p className="ad-toolbar-popover-label">No saved versions yet.</p>;
   }
+
+  const formatSavedAt = (savedAt?: string) => {
+    if (!savedAt) {
+      return "Saved version";
+    }
+    const date = new Date(savedAt);
+    if (Number.isNaN(date.getTime())) {
+      return "Saved version";
+    }
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   return (
     <div className="ad-version-list">
       {versions.map((version) => (
@@ -639,9 +736,199 @@ const AdVersionsList = ({
           ) : (
             <div className="ad-version-thumb-placeholder" />
           )}
-          <span className="ad-version-name">{version.name}</span>
+          <span className="ad-version-copy">
+            <span className="ad-version-name">{version.name}</span>
+            <span className="ad-version-date">
+              {formatSavedAt(version.savedAt)}
+            </span>
+          </span>
         </button>
       ))}
+    </div>
+  );
+};
+
+interface AdCopyVariant {
+  angle: string;
+  body: string;
+  cta: string;
+  eyebrow: string;
+  headline: string;
+  hypothesis: string;
+  id: string;
+}
+
+interface AdCopyResponse {
+  error?: string;
+  model?: string;
+  variants?: AdCopyVariant[];
+}
+
+interface AdCopyGeneratorProps {
+  currentCopy: string;
+  onApply: (variant: AdCopyVariant) => void;
+  platform: string;
+  token: string;
+}
+
+const AdCopyGenerator = ({
+  currentCopy,
+  onApply,
+  platform,
+  token,
+}: AdCopyGeneratorProps) => {
+  const [campaignGoal, setCampaignGoal] = useState("Book a roof inspection");
+  const [audience, setAudience] = useState(
+    "Central Texas homeowners who are worried about roof damage"
+  );
+  const [brief, setBrief] = useState("");
+  const [tone, setTone] = useState("Warm, direct, trustworthy");
+  const [variants, setVariants] = useState<AdCopyVariant[]>([]);
+  const [model, setModel] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generate = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/fal/generate-ad-copy", {
+        body: JSON.stringify({
+          audience,
+          brief,
+          campaignGoal,
+          currentCopy,
+          platform,
+          tone,
+        }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const result = (await response.json()) as AdCopyResponse;
+      if (!response.ok) {
+        throw new Error(
+          result.error || `Generation failed (${response.status})`
+        );
+      }
+      if (!Array.isArray(result.variants) || result.variants.length === 0) {
+        throw new Error("Fal returned no usable copy variants.");
+      }
+      setVariants(result.variants);
+      setModel(result.model ?? "fal.ai");
+    } catch (generationError) {
+      setError(
+        generationError instanceof Error
+          ? generationError.message
+          : "Could not generate ad copy."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [audience, brief, campaignGoal, currentCopy, platform, token, tone]);
+
+  return (
+    <div className="ad-copy-generator">
+      <div className="ad-copy-generator__intro">
+        <strong>Generate three testable angles</strong>
+        <p>
+          fal.ai generates the copy. The open Upworthy archive informs the
+          testing method; real roofing performance still needs your own A/B
+          results.
+        </p>
+      </div>
+
+      <form
+        className="ad-copy-generator__form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          generate();
+        }}
+      >
+        <label>
+          <span>Campaign goal</span>
+          <input
+            maxLength={200}
+            onChange={(event) => setCampaignGoal(event.target.value)}
+            required
+            value={campaignGoal}
+          />
+        </label>
+        <label>
+          <span>Audience</span>
+          <input
+            maxLength={300}
+            onChange={(event) => setAudience(event.target.value)}
+            required
+            value={audience}
+          />
+        </label>
+        <label>
+          <span>Tone</span>
+          <select
+            onChange={(event) => setTone(event.target.value)}
+            value={tone}
+          >
+            <option>Warm, direct, trustworthy</option>
+            <option>Urgent without fear tactics</option>
+            <option>Neighborly and reassuring</option>
+            <option>Expert and educational</option>
+          </select>
+        </label>
+        <label>
+          <span>Offer, proof, and constraints</span>
+          <textarea
+            maxLength={1200}
+            onChange={(event) => setBrief(event.target.value)}
+            placeholder="Only include facts we can claim: the homeowner situation, service, proof, offer, exclusions, and required wording."
+            rows={4}
+            value={brief}
+          />
+        </label>
+        <WaButton
+          appearance="filled"
+          loading={loading}
+          type="submit"
+          variant="brand"
+        >
+          <Sparks height={16} slot="start" width={16} />
+          Generate variants
+        </WaButton>
+      </form>
+
+      {error ? <p className="ad-dashboard-error">{error}</p> : null}
+
+      {variants.length > 0 ? (
+        <div className="ad-copy-generator__results">
+          <p className="ad-toolbar-popover-label">Three hypotheses · {model}</p>
+          {variants.map((variant) => (
+            <article className="ad-copy-variant" key={variant.id}>
+              <div className="ad-copy-variant__heading">
+                <span>{variant.angle}</span>
+                <button onClick={() => onApply(variant)} type="button">
+                  Apply to canvas
+                </button>
+              </div>
+              <small>{variant.eyebrow}</small>
+              <strong>{variant.headline}</strong>
+              <p>{variant.body}</p>
+              <b>{variant.cta}</b>
+              <em>{variant.hypothesis}</em>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      <a
+        className="ad-copy-generator__source"
+        href="https://upworthy.natematias.com/about-the-archive.html"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Research source: Upworthy Research Archive (CC BY 4.0)
+      </a>
     </div>
   );
 };
@@ -658,6 +945,7 @@ export const AdDashboardPage = () => {
   const [selectedVersionId, setSelectedVersionId] = useState("");
   const [versionStatus, setVersionStatus] = useState<string | null>(null);
   const [versionBusy, setVersionBusy] = useState(false);
+  const [versionLoadKey, setVersionLoadKey] = useState(0);
 
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
@@ -770,6 +1058,24 @@ export const AdDashboardPage = () => {
     setCreative((current) => applyAdTemplatePreset(current, template));
   }, []);
 
+  const handleApplyCopyVariant = useCallback(
+    (variant: AdCopyVariant) => {
+      captureRef.current?.applyCopy(variant);
+      setCreative((current) => ({
+        ...current,
+        body: variant.body,
+        cta: variant.cta,
+        eyebrow: variant.eyebrow,
+        headline: variant.headline,
+      }));
+      posthog?.capture("ad_copy_variant_applied", {
+        angle: variant.id,
+        platform: creative.platformId,
+      });
+    },
+    [creative.platformId, posthog]
+  );
+
   const handleSanityImageSelect = useCallback((image: SanityImageAsset) => {
     setCreative((current) => {
       revokeObjectUrl(current.imageUrl);
@@ -798,7 +1104,10 @@ export const AdDashboardPage = () => {
         const response = await fetch("/api/ad-versions", {
           body: JSON.stringify({
             config: serializeCreative(creative),
-            name: formatVersionName(selectedPlatform.label, dimensionStr),
+            name: formatVersionName(
+              getSavedVersionFormatName(selectedPlatform),
+              dimensionStr
+            ),
             ...(thumbnail ? { thumbnail } : {}),
           }),
           headers: {
@@ -808,7 +1117,9 @@ export const AdDashboardPage = () => {
           method: "POST",
         });
         if (!response.ok) {
-          throw new Error(`Save failed (${response.status})`);
+          throw new Error(
+            await readApiError(response, `Save failed (${response.status})`)
+          );
         }
         setVersionStatus("Version saved.");
         versions.refresh();
@@ -822,7 +1133,7 @@ export const AdDashboardPage = () => {
         setVersionBusy(false);
       }
     },
-    [auth.token, creative, versions, selectedPlatform.label]
+    [auth.token, creative, versions, selectedPlatform]
   );
 
   const handleSelectVersion = useCallback(
@@ -836,10 +1147,12 @@ export const AdDashboardPage = () => {
         return;
       }
       try {
+        const loaded = deserializeCreative(match.config);
         setCreative((current) => {
           revokeObjectUrl(current.imageUrl);
-          return deserializeCreative(match.config);
+          return loaded;
         });
+        setVersionLoadKey((k) => k + 1);
         setVersionStatus(`Loaded "${match.name}".`);
       } catch {
         setVersionStatus("Could not load that version.");
@@ -864,7 +1177,9 @@ export const AdDashboardPage = () => {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error(`Delete failed (${response.status})`);
+        throw new Error(
+          await readApiError(response, `Delete failed (${response.status})`)
+        );
       }
       setSelectedVersionId("");
       setVersionStatus("Version deleted.");
@@ -959,6 +1274,24 @@ export const AdDashboardPage = () => {
           Picking a new Design or Font reseeds the canvas. Text, sizing, and
           styling all happen directly on the canvas.
         </p>
+      </ToolbarMenu>
+
+      <ToolbarMenu
+        icon={<Sparks height={16} width={16} />}
+        label="AI Copy"
+        wide
+      >
+        <AdCopyGenerator
+          currentCopy={JSON.stringify({
+            body: creative.body,
+            cta: creative.cta,
+            eyebrow: creative.eyebrow,
+            headline: creative.headline,
+          })}
+          onApply={handleApplyCopyVariant}
+          platform={selectedPlatform.label}
+          token={auth.token ?? ""}
+        />
       </ToolbarMenu>
 
       <ToolbarMenu icon={<Upload height={16} width={16} />} label="Image">
@@ -1077,10 +1410,18 @@ export const AdDashboardPage = () => {
         <WaButton
           appearance="filled"
           loading={versionBusy}
-          onClick={async () => {
-            const thumbnail =
-              (await captureRef.current?.captureThumb()) ?? undefined;
-            handleSaveVersion(thumbnail);
+          onClick={() => {
+            (async () => {
+              setVersionBusy(true);
+              let thumbnail: string | undefined;
+              try {
+                thumbnail =
+                  (await captureRef.current?.captureThumb()) ?? undefined;
+              } catch {
+                thumbnail = undefined;
+              }
+              await handleSaveVersion(thumbnail);
+            })();
           }}
           size="small"
           variant="brand"
@@ -1160,6 +1501,7 @@ export const AdDashboardPage = () => {
           <AdCanvasEditor
             captureRef={captureRef}
             creative={creative}
+            reseedSignal={versionLoadKey}
             selectedPlatform={selectedPlatform}
             selectedPlatformShape={selectedPlatformShape}
             toolbarEnd={accountMenu}
