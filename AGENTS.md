@@ -15,6 +15,17 @@
 - Use natural roofer vocabulary in copy and component naming — avoid architectural jargon Tandra wouldn't say on the job (e.g. "the walk" → "the inspection").
 - Use shared `src/hooks/isMobile.ts` (`useIsMobile(breakpoint?)`) for JS viewport detection — do not duplicate local mobile hooks in components; hooks must be called inside components, never at module scope.
 
+## Codegen Guardrails
+
+- Prefer code shapes that pass `pnpm fix` on the first run. Keep an eye on Biome warnings before adding new patterns.
+- Keep React page components shallow. If a page starts to accumulate branching, split it into small leaf components instead of pushing complexity past the limit.
+- Avoid nested ternaries, `void` in event handlers, and `div`-as-button patterns. Use semantic `button` elements for interactive UI.
+- For DOM events on `window`, `document`, `Image`, `FileReader`, or `script`, prefer `addEventListener()` and clean up listeners in teardown.
+- Hoist regex literals and other reusable constants to module scope.
+- Reuse existing helpers and shared hooks instead of introducing one-off local variants.
+- When a file grows beyond a single screen of distinct responsibilities, stop and extract a component or helper before adding more logic.
+- If a generated change triggers Biome complexity or formatting complaints, fix the structure rather than suppressing the rule.
+
 ## Learned Workspace Facts
 
 - Stack: Vite 6 + React 19 + TypeScript SPA on port **3001** (`pnpm dev`). This is NOT a Next.js project — do not install `next` or `next-sanity`. Package manager is `pnpm`; lockfile is `pnpm-lock.yaml`. Run site + studio together with `pnpm dev:all`.

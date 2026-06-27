@@ -1,7 +1,8 @@
+/* eslint-disable css/use-baseline */
 .fal-upscaler-shell {
   --fal-bg: #09110f;
-  --fal-panel: rgba(13, 20, 18, 0.84);
-  --fal-panel-raised: rgba(19, 28, 25, 0.92);
+  --fal-panel: rgb(13 20 18 / 84%);
+  --fal-panel-raised: rgb(19 28 25 / 92%);
   --fal-border: rgb(255 255 255 / 9%);
   --fal-border-strong: rgb(255 255 255 / 16%);
   --fal-text: #eef5ef;
@@ -23,6 +24,16 @@
       transparent 26%
     ),
     linear-gradient(180deg, #09110f 0%, #0b1612 100%);
+}
+
+.fal-upscaler-pill {
+  min-inline-size: 3.4rem;
+  padding: 0.72rem 0.9rem;
+  color: var(--fal-text);
+  cursor: pointer;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid var(--fal-border);
+  border-radius: 999px;
 }
 
 .fal-upscaler-header {
@@ -147,6 +158,10 @@
   align-items: center;
   justify-content: center;
   font: inherit;
+}
+
+.fal-upscaler-button-label {
+  display: inline;
 }
 
 .fal-upscaler-icon-button {
@@ -404,6 +419,33 @@
   align-content: start;
 }
 
+.fal-upscaler-controls-summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.fal-upscaler-controls-summary::-webkit-details-marker {
+  display: none;
+}
+
+.fal-upscaler-controls-summary > div {
+  min-inline-size: 0;
+}
+
+.fal-upscaler-collapse-icon {
+  flex: none;
+  transition: transform 180ms ease;
+}
+
+.fal-upscaler-controls[open] .fal-upscaler-collapse-icon {
+  transform: rotate(180deg);
+}
+
+.fal-upscaler-panel-body {
+  display: grid;
+  gap: var(--theme-spacing-md);
+}
+
 .fal-upscaler-control-group {
   display: grid;
   gap: 0.7rem;
@@ -413,16 +455,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.fal-upscaler-pill {
-  min-inline-size: 3.4rem;
-  padding: 0.72rem 0.9rem;
-  color: var(--fal-text);
-  cursor: pointer;
-  background: rgb(255 255 255 / 4%);
-  border: 1px solid var(--fal-border);
-  border-radius: 999px;
 }
 
 .fal-upscaler-pill.is-active {
@@ -481,8 +513,14 @@
 
 @media (width <= 720px) {
   .fal-upscaler-shell {
-    padding-block-end: var(--theme-spacing-xl);
+    gap: var(--theme-spacing-md);
+    min-height: calc(100dvh - 80px);
+    padding-block: var(--theme-spacing-md) var(--theme-spacing-xl);
     padding-inline: var(--theme-spacing-md);
+  }
+
+  .fal-upscaler-header {
+    gap: var(--theme-spacing-sm);
   }
 
   .fal-upscaler-header-meta,
@@ -492,8 +530,120 @@
     width: 100%;
   }
 
+  .fal-upscaler-header-meta {
+    flex-wrap: wrap;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .fal-upscaler-grid {
+    gap: var(--theme-spacing-sm);
+  }
+
+  .fal-upscaler-viewer {
+    order: 1;
+  }
+
+  .fal-upscaler-queue {
+    order: 2;
+  }
+
+  .fal-upscaler-controls {
+    order: 3;
+  }
+
+  .fal-upscaler-panel {
+    padding: var(--theme-spacing-sm);
+  }
+
+  .fal-upscaler-panel-header {
+    flex-wrap: wrap;
+  }
+
+  .fal-upscaler-panel-header > div {
+    flex: 1 1 100%;
+    min-inline-size: 0;
+  }
+
+  .fal-upscaler-icon-button,
+  .fal-upscaler-ghost-button,
+  .fal-upscaler-pill,
+  .fal-upscaler-dropzone {
+    min-block-size: 2.75rem;
+  }
+
+  .fal-upscaler-dropzone {
+    padding: 1rem;
+  }
+
+  .fal-upscaler-list {
+    max-block-size: 18rem;
+  }
+
+  .fal-upscaler-queue-item {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    padding: 0.7rem;
+  }
+
+  .fal-upscaler-queue-item img {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  .fal-upscaler-viewer-actions,
+  .fal-upscaler-footer-actions {
+    gap: 0.5rem;
+  }
+
   .fal-upscaler-comparison,
   .fal-upscaler-placeholder {
-    min-height: 20rem;
+    min-height: 16rem;
+  }
+
+  .fal-upscaler-canvas {
+    border-radius: 20px;
+  }
+
+  .fal-upscaler-slider {
+    padding: 0.8rem 0.85rem 0.9rem;
+  }
+
+  .fal-upscaler-footer {
+    align-items: flex-start;
+  }
+
+  .fal-upscaler-summary ul {
+    padding-left: 1rem;
+  }
+
+  .fal-upscaler-button-label {
+    display: none;
+  }
+
+  .fal-upscaler-ghost-button,
+  .fal-upscaler-icon-button {
+    gap: 0;
+  }
+
+  .fal-upscaler-ghost-button {
+    inline-size: 2.85rem;
+    padding-inline: 0;
+  }
+
+  .fal-upscaler-ghost-button svg,
+  .fal-upscaler-icon-button svg {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+  }
+
+  .fal-upscaler-controls-summary {
+    padding: 0;
+  }
+
+  .fal-upscaler-controls-summary > div {
+    padding-block-end: 0.1rem;
+  }
+
+  .fal-upscaler-panel-body {
+    gap: var(--theme-spacing-sm);
   }
 }

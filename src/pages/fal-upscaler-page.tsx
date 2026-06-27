@@ -2,13 +2,15 @@ import {
   CloudUpload,
   Download,
   MediaImage,
+  NavArrowDown,
   Play,
   Refresh,
 } from "iconoir-react";
-import type { ChangeEvent, DragEvent } from "react";
+import type { ChangeEvent, DragEvent, RefObject } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SitePageChrome } from "../components/site-page-chrome";
+import { useIsMobile } from "../hooks/is-mobile";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 
 import "../styles/fal-upscaler.css";
@@ -106,14 +108,16 @@ const formatBytes = (bytes: number): string => {
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
+    const handleLoad = () => {
       if (typeof reader.result === "string") {
         resolve(reader.result);
         return;
       }
       reject(new Error("Failed to read file."));
     };
-    reader.onerror = () => reject(new Error("Failed to read file."));
+    const handleError = () => reject(new Error("Failed to read file."));
+    reader.addEventListener("load", handleLoad, { once: true });
+    reader.addEventListener("error", handleError, { once: true });
     reader.readAsDataURL(file);
   });
 
@@ -273,6 +277,334 @@ const renderCanvasContent = ({
   );
 };
 
+const FalUpscalerQueuePanel = ({
+  activeId,
+  fileInputRef,
+  onDrop,
+  onFileChange,
+  onSelectItem,
+  queue,
+}: {
+  activeId: string | null;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onDrop: (event: DragEvent<HTMLElement>) => Promise<void>;
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onSelectItem: (id: string) => void;
+  queue: QueueItem[];
+}) => (
+  <aside className="fal-upscaler-panel fal-upscaler-queue">
+    <div className="fal-upscaler-panel-header">
+      <div>
+        <h2>Queue</h2>
+        <p>Drag images here or choose files from disk.</p>
+      </div>
+      <button
+        className="fal-upscaler-icon-button"
+        onClick={() => {
+          fileInputRef.current?.click();
+        }}
+        type="button"
+      >
+        <CloudUpload aria-hidden="true" />
+      </button>
+      <input
+        accept="image/*"
+        multiple
+        onChange={onFileChange}
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        type="file"
+      />
+    </div>
+
+    <button
+      className="fal-upscaler-dropzone"
+      onClick={() => {
+        fileInputRef.current?.click();
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+      }}
+      onDrop={onDrop}
+      type="button"
+    >
+      <MediaImage aria-hidden="true" />
+      <strong>Drop image files here</strong>
+      <span>PNG, JPG, WebP, AVIF, and GIF work well.</span>
+    </button>
+
+    <div className="fal-upscaler-list">
+      {queue.length === 0 ? (
+        <div className="fal-upscaler-empty-state">
+          No images in the queue yet.
+        </div>
+      ) : (
+        queue.map((item) => (
+          <button
+            className={`fal-upscaler-queue-item${item.id === activeId ? "is-active" : ""}`}
+            key={item.id}
+            onClick={() => {
+              onSelectItem(item.id);
+            }}
+            type="button"
+          >
+            <img alt="" height={48} src={item.previewUrl} width={48} />
+            <span>
+              <strong>{item.file.name}</strong>
+              <small>
+                {formatBytes(item.file.size)} · {item.status}
+              </small>
+              {item.error ? <small>{item.error}</small> : null}
+            </span>
+          </button>
+        ))
+      )}
+    </div>
+  </aside>
+);
+
+const FalUpscalerPreviewPanel = ({
+  activeDimensions,
+  canDownload,
+  hasComparison,
+  isProcessing,
+  onDownload,
+  onProcessAll,
+  onProcessSelected,
+  onSplitChange,
+  outputDimensions,
+  queueLength,
+  resultDimensions,
+  resultUrl,
+  scale,
+  sourceUrl,
+  split,
+  title,
+}: {
+  activeDimensions: { height: number; width: number } | null;
+  canDownload: boolean;
+  hasComparison: boolean;
+  isProcessing: boolean;
+  onDownload: () => void;
+  onProcessAll: () => void;
+  onProcessSelected: () => void;
+  onSplitChange: (value: number) => void;
+  outputDimensions: { height: number; width: number } | null;
+  queueLength: number;
+  resultDimensions: { height: number; width: number } | null;
+  resultUrl?: string;
+  scale: (typeof SCALE_OPTIONS)[number];
+  sourceUrl?: string;
+  split: number;
+}) => (
+  <section className="fal-upscaler-panel fal-upscaler-viewer">
+    <div className="fal-upscaler-panel-header">
+      <div>
+        <h2>Preview</h2>
+        <p>Compare the source image and the fal result.</p>
+      </div>
+      <div className="fal-upscaler-viewer-actions">
+        <button
+          aria-label="Upscale selected"
+          className="fal-upscaler-ghost-button"
+          disabled={queueLength === 0}
+          onClick={onProcessSelected}
+          type="button"
+        >
+          <Play aria-hidden="true" />
+          <span className="fal-upscaler-button-label">
+            {isProcessing ? "Working" : "Upscale selected"}
+          </span>
+        </button>
+        <button
+          aria-label="Upscale all"
+          className="fal-upscaler-ghost-button"
+          disabled={queueLength === 0}
+          onClick={onProcessAll}
+          type="button"
+        >
+          <Refresh aria-hidden="true" />
+          <span className="fal-upscaler-button-label">Upscale all</span>
+        </button>
+      </div>
+    </div>
+
+    <div className="fal-upscaler-canvas">
+      {renderCanvasContent({
+        activeDimensions,
+        hasComparison,
+        onSplitChange,
+        resultDimensions,
+        resultUrl,
+        scale,
+        sourceUrl,
+        split,
+      })}
+    </div>
+
+    <footer className="fal-upscaler-footer">
+      <div>
+        <strong>{title}</strong>
+        <span>
+          {activeDimensions
+            ? `${activeDimensions.width} × ${activeDimensions.height}px`
+            : "No dimensions yet"}
+          {outputDimensions
+            ? ` → ${outputDimensions.width} × ${outputDimensions.height}px`
+            : ""}
+        </span>
+      </div>
+      <div className="fal-upscaler-footer-actions">
+        <button
+          aria-label="Download result"
+          className="fal-upscaler-ghost-button"
+          disabled={!canDownload}
+          onClick={onDownload}
+          type="button"
+        >
+          <Download aria-hidden="true" />
+          <span className="fal-upscaler-button-label">Download result</span>
+        </button>
+      </div>
+    </footer>
+  </section>
+);
+
+const FalUpscalerControlsPanel = ({
+  face,
+  isMobile,
+  model,
+  onFaceChange,
+  onOutputFormatChange,
+  onModelChange,
+  onScaleChange,
+  onTileChange,
+  outputFormat,
+  scale,
+  tile,
+}: {
+  face: boolean;
+  isMobile: boolean;
+  model: (typeof MODEL_OPTIONS)[number]["id"];
+  onFaceChange: (value: boolean) => void;
+  onOutputFormatChange: (value: (typeof OUTPUT_FORMATS)[number]["id"]) => void;
+  onModelChange: (value: (typeof MODEL_OPTIONS)[number]["id"]) => void;
+  onScaleChange: (value: (typeof SCALE_OPTIONS)[number]) => void;
+  onTileChange: (value: number) => void;
+  outputFormat: (typeof OUTPUT_FORMATS)[number]["id"];
+  scale: (typeof SCALE_OPTIONS)[number];
+  tile: number;
+}) => (
+  <details
+    className="fal-upscaler-panel fal-upscaler-controls"
+    open={!isMobile}
+  >
+    <summary className="fal-upscaler-panel-header fal-upscaler-controls-summary">
+      <div>
+        <h2>Controls</h2>
+        <p>These settings are sent directly to fal.</p>
+      </div>
+      <NavArrowDown aria-hidden="true" className="fal-upscaler-collapse-icon" />
+    </summary>
+
+    <div className="fal-upscaler-panel-body">
+      <section className="fal-upscaler-control-group">
+        <h3>Scale</h3>
+        <div className="fal-upscaler-pill-row">
+          {SCALE_OPTIONS.map((value) => (
+            <button
+              className={`fal-upscaler-pill${value === scale ? "is-active" : ""}`}
+              key={value}
+              onClick={() => {
+                onScaleChange(value);
+              }}
+              type="button"
+            >
+              {value}x
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="fal-upscaler-control-group">
+        <h3>Model</h3>
+        <label className="fal-upscaler-select">
+          <span>Fal model</span>
+          <select
+            onChange={(event) => {
+              onModelChange(
+                event.target.value as (typeof MODEL_OPTIONS)[number]["id"]
+              );
+            }}
+            value={model}
+          >
+            {MODEL_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="fal-upscaler-hint">
+          {MODEL_OPTIONS.find((option) => option.id === model)?.description}
+        </p>
+      </section>
+
+      <section className="fal-upscaler-control-group">
+        <h3>Output</h3>
+        <div className="fal-upscaler-pill-row">
+          {OUTPUT_FORMATS.map((option) => (
+            <button
+              className={`fal-upscaler-pill${option.id === outputFormat ? "is-active" : ""}`}
+              key={option.id}
+              onClick={() => {
+                onOutputFormatChange(option.id);
+              }}
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <label className="fal-upscaler-toggle">
+          <input
+            checked={face}
+            onChange={(event) => {
+              onFaceChange(event.target.checked);
+            }}
+            type="checkbox"
+          />
+          <span>Face enhancement</span>
+        </label>
+        <label className="fal-upscaler-number">
+          <span>Tile size</span>
+          <input
+            max={800}
+            min={0}
+            onChange={(event) => {
+              onTileChange(Number(event.target.value));
+            }}
+            step={50}
+            type="number"
+            value={tile}
+          />
+        </label>
+      </section>
+
+      <section className="fal-upscaler-control-group fal-upscaler-summary">
+        <h3>Job summary</h3>
+        <ul>
+          <li>Model: {model}</li>
+          <li>Scale: {scale}x</li>
+          <li>Output: {outputFormat.toUpperCase()}</li>
+          <li>Face enhance: {face ? "On" : "Off"}</li>
+          <li>Tile: {tile}</li>
+        </ul>
+      </section>
+    </div>
+  </details>
+);
+
 const useImageDimensions = (url?: string) => {
   const [dimensions, setDimensions] = useState<{
     height: number;
@@ -286,7 +618,7 @@ const useImageDimensions = (url?: string) => {
     }
     let cancelled = false;
     const image = new window.Image();
-    image.onload = () => {
+    const handleLoad = () => {
       if (!cancelled) {
         setDimensions({
           height: image.naturalHeight,
@@ -294,14 +626,18 @@ const useImageDimensions = (url?: string) => {
         });
       }
     };
-    image.onerror = () => {
+    const handleError = () => {
       if (!cancelled) {
         setDimensions(null);
       }
     };
+    image.addEventListener("load", handleLoad, { once: true });
+    image.addEventListener("error", handleError, { once: true });
     image.src = url;
     return () => {
       cancelled = true;
+      image.removeEventListener("load", handleLoad);
+      image.removeEventListener("error", handleError);
     };
   }, [url]);
 
@@ -342,6 +678,7 @@ export const FalUpscalerPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queueRef = useRef<QueueItem[]>([]);
+  const isMobile = useIsMobile(720);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -377,7 +714,7 @@ export const FalUpscalerPage = () => {
   };
 
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []).filter((file) =>
+    const files = [...(event.target.files ?? [])].filter((file) =>
       file.type.startsWith("image/")
     );
     if (files.length === 0) {
@@ -389,7 +726,7 @@ export const FalUpscalerPage = () => {
 
   const onDrop = async (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
-    const files = Array.from(event.dataTransfer.files).filter((file) =>
+    const files = [...event.dataTransfer.files].filter((file) =>
       file.type.startsWith("image/")
     );
     if (files.length === 0) {
@@ -427,9 +764,9 @@ export const FalUpscalerPage = () => {
         status: "done",
       }));
       return result;
-    } catch (caught) {
+    } catch (error) {
       const message =
-        caught instanceof Error ? caught.message : "Upscale failed.";
+        error instanceof Error ? error.message : "Upscale failed.";
       updateItem(item.id, (current) => ({
         ...current,
         error: message,
@@ -478,10 +815,6 @@ export const FalUpscalerPage = () => {
           <div>
             <p className="fal-upscaler-eyebrow">Fal-backed desktop tool</p>
             <h1>Image Upscaler</h1>
-            <p className="fal-upscaler-subtitle">
-              Drop in a real image, pick your scale and model, and the app
-              routes the job through <code>FAL_KEY</code> in the environment.
-            </p>
           </div>
 
           <div className="fal-upscaler-header-meta">
@@ -495,240 +828,51 @@ export const FalUpscalerPage = () => {
         {error ? <p className="fal-upscaler-error">{error}</p> : null}
 
         <div className="fal-upscaler-grid">
-          <aside className="fal-upscaler-panel fal-upscaler-queue">
-            <div className="fal-upscaler-panel-header">
-              <div>
-                <h2>Queue</h2>
-                <p>Drag images here or choose files from disk.</p>
-              </div>
-              <button
-                className="fal-upscaler-icon-button"
-                onClick={() => fileInputRef.current?.click()}
-                type="button"
-              >
-                <CloudUpload aria-hidden="true" />
-              </button>
-              <input
-                accept="image/*"
-                multiple
-                onChange={onFileChange}
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                type="file"
-              />
-            </div>
+          <FalUpscalerQueuePanel
+            activeId={activeId}
+            fileInputRef={fileInputRef}
+            onDrop={onDrop}
+            onFileChange={onFileChange}
+            onSelectItem={setActiveId}
+            queue={queue}
+          />
 
-            <button
-              className="fal-upscaler-dropzone"
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(event) => {
-                event.preventDefault();
-              }}
-              onDrop={onDrop}
-              type="button"
-            >
-              <MediaImage aria-hidden="true" />
-              <strong>Drop image files here</strong>
-              <span>PNG, JPG, WebP, AVIF, and GIF work well.</span>
-            </button>
+          <FalUpscalerPreviewPanel
+            activeDimensions={activeDimensions}
+            canDownload={canDownload}
+            hasComparison={hasComparison}
+            isProcessing={isProcessing}
+            onDownload={() => {
+              if (activeItem) {
+                downloadResult(activeItem);
+              }
+            }}
+            onProcessAll={processAll}
+            onProcessSelected={processSelected}
+            onSplitChange={setSplit}
+            outputDimensions={outputDimensions}
+            queueLength={queue.length}
+            resultDimensions={resultDimensions}
+            resultUrl={resultUrl}
+            scale={scale}
+            sourceUrl={sourceUrl}
+            split={split}
+            title={activeItem?.file.name ?? "Waiting for an image"}
+          />
 
-            <div className="fal-upscaler-list">
-              {queue.length === 0 ? (
-                <div className="fal-upscaler-empty-state">
-                  No images in the queue yet.
-                </div>
-              ) : (
-                queue.map((item) => (
-                  <button
-                    className={`fal-upscaler-queue-item${item.id === activeId ? "is-active" : ""}`}
-                    key={item.id}
-                    onClick={() => setActiveId(item.id)}
-                    type="button"
-                  >
-                    <img alt="" height={48} src={item.previewUrl} width={48} />
-                    <span>
-                      <strong>{item.file.name}</strong>
-                      <small>
-                        {formatBytes(item.file.size)} · {item.status}
-                      </small>
-                      {item.error ? <small>{item.error}</small> : null}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-          </aside>
-
-          <section className="fal-upscaler-panel fal-upscaler-viewer">
-            <div className="fal-upscaler-panel-header">
-              <div>
-                <h2>Preview</h2>
-                <p>Compare the source image and the fal result.</p>
-              </div>
-              <div className="fal-upscaler-viewer-actions">
-                <button
-                  className="fal-upscaler-ghost-button"
-                  disabled={!activeItem}
-                  onClick={processSelected}
-                  type="button"
-                >
-                  <Play aria-hidden="true" />
-                  {isProcessing ? "Working" : "Upscale selected"}
-                </button>
-                <button
-                  className="fal-upscaler-ghost-button"
-                  disabled={!queue.length}
-                  onClick={processAll}
-                  type="button"
-                >
-                  <Refresh aria-hidden="true" />
-                  Upscale all
-                </button>
-              </div>
-            </div>
-
-            <div className="fal-upscaler-canvas">
-              {renderCanvasContent({
-                activeDimensions,
-                hasComparison,
-                onSplitChange: setSplit,
-                resultDimensions,
-                resultUrl,
-                scale,
-                sourceUrl,
-                split,
-              })}
-            </div>
-
-            <footer className="fal-upscaler-footer">
-              <div>
-                <strong>
-                  {activeItem?.file.name ?? "Waiting for an image"}
-                </strong>
-                <span>
-                  {activeDimensions
-                    ? `${activeDimensions.width} × ${activeDimensions.height}px`
-                    : "No dimensions yet"}
-                  {outputDimensions
-                    ? ` → ${outputDimensions.width} × ${outputDimensions.height}px`
-                    : ""}
-                </span>
-              </div>
-              <div className="fal-upscaler-footer-actions">
-                <button
-                  className="fal-upscaler-ghost-button"
-                  disabled={!canDownload}
-                  onClick={() => {
-                    if (activeItem) {
-                      downloadResult(activeItem);
-                    }
-                  }}
-                  type="button"
-                >
-                  <Download aria-hidden="true" />
-                  Download result
-                </button>
-              </div>
-            </footer>
-          </section>
-
-          <aside className="fal-upscaler-panel fal-upscaler-controls">
-            <div className="fal-upscaler-panel-header">
-              <div>
-                <h2>Controls</h2>
-                <p>These settings are sent directly to fal.</p>
-              </div>
-            </div>
-
-            <section className="fal-upscaler-control-group">
-              <h3>Scale</h3>
-              <div className="fal-upscaler-pill-row">
-                {SCALE_OPTIONS.map((value) => (
-                  <button
-                    className={`fal-upscaler-pill${value === scale ? "is-active" : ""}`}
-                    key={value}
-                    onClick={() => setScale(value)}
-                    type="button"
-                  >
-                    {value}x
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="fal-upscaler-control-group">
-              <h3>Model</h3>
-              <label className="fal-upscaler-select">
-                <span>Fal model</span>
-                <select
-                  onChange={(event) =>
-                    setModel(
-                      event.target.value as (typeof MODEL_OPTIONS)[number]["id"]
-                    )
-                  }
-                  value={model}
-                >
-                  {MODEL_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="fal-upscaler-hint">
-                {
-                  MODEL_OPTIONS.find((option) => option.id === model)
-                    ?.description
-                }
-              </p>
-            </section>
-
-            <section className="fal-upscaler-control-group">
-              <h3>Output</h3>
-              <div className="fal-upscaler-pill-row">
-                {OUTPUT_FORMATS.map((option) => (
-                  <button
-                    className={`fal-upscaler-pill${option.id === outputFormat ? "is-active" : ""}`}
-                    key={option.id}
-                    onClick={() => setOutputFormat(option.id)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <label className="fal-upscaler-toggle">
-                <input
-                  checked={face}
-                  onChange={(event) => setFace(event.target.checked)}
-                  type="checkbox"
-                />
-                <span>Face enhancement</span>
-              </label>
-              <label className="fal-upscaler-number">
-                <span>Tile size</span>
-                <input
-                  max={800}
-                  min={0}
-                  onChange={(event) => setTile(Number(event.target.value))}
-                  step={50}
-                  type="number"
-                  value={tile}
-                />
-              </label>
-            </section>
-
-            <section className="fal-upscaler-control-group fal-upscaler-summary">
-              <h3>Job summary</h3>
-              <ul>
-                <li>Model: {model}</li>
-                <li>Scale: {scale}x</li>
-                <li>Output: {outputFormat.toUpperCase()}</li>
-                <li>Face enhance: {face ? "On" : "Off"}</li>
-                <li>Tile: {tile}</li>
-              </ul>
-            </section>
-          </aside>
+          <FalUpscalerControlsPanel
+            face={face}
+            isMobile={isMobile}
+            model={model}
+            onFaceChange={setFace}
+            onModelChange={setModel}
+            onOutputFormatChange={setOutputFormat}
+            onScaleChange={setScale}
+            onTileChange={setTile}
+            outputFormat={outputFormat}
+            scale={scale}
+            tile={tile}
+          />
         </div>
       </div>
     </SitePageChrome>
