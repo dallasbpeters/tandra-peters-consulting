@@ -2,6 +2,7 @@ import { layoutClass } from "../styles/layout-classes";
 
 const LEGAL_PATHS = new Set(["/privacy", "/terms", "/cookies"]);
 const AD_DASHBOARD_PATHS = new Set(["/ads", "/advertising"]);
+const TOOL_PATHS = new Set(["/upscaler"]);
 
 /** Shared <main> class in SiteShell — one persistent view-transition target per sub-page. */
 export const getMainRouteClass = (pathname: string): string => {
@@ -18,6 +19,10 @@ export const getMainRouteClass = (pathname: string): string => {
   }
 
   if (AD_DASHBOARD_PATHS.has(pathname)) {
+    return layoutClass.pageMainAdDashboard;
+  }
+
+  if (TOOL_PATHS.has(pathname)) {
     return layoutClass.pageMainAdDashboard;
   }
 

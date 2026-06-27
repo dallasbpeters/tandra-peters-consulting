@@ -42,6 +42,7 @@ import { useAdVersions } from "../hooks/use-ad-versions";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import type { SanityImageAsset } from "../hooks/use-sanity-image-assets";
 import { useSanityImageAssets } from "../hooks/use-sanity-image-assets";
+import type { CanvasElement } from "../lib/ad-canvas-doc";
 import type {
   AdUnit,
   CreativeState,
@@ -59,6 +60,10 @@ import {
   AD_TEMPLATES,
   applyAdTemplatePreset,
 } from "../lib/ad-creative-templates";
+import {
+  deserializeAdVersionConfig,
+  serializeAdVersionConfig,
+} from "../lib/ad-version-config";
 
 import "../styles/ad-dashboard.css";
 
@@ -305,16 +310,6 @@ const formatVersionName = (
   return `${platformLabel} · ${dimensionStr} · ${dateStr}`;
 };
 
-// Serialize the editable configuration only. The uploaded File and blob: object
-// URLs cannot be persisted, so we drop them; Sanity-hosted image URLs survive.
-const serializeCreative = (creative: CreativeState): string => {
-  const { imageFile: _imageFile, imageUrl, ...rest } = creative;
-  return JSON.stringify({
-    ...rest,
-    imageUrl: imageUrl && !imageUrl.startsWith("blob:") ? imageUrl : null,
-  });
-};
-
 const readApiError = async (response: Response, fallback: string) => {
   try {
     const body = (await response.json()) as { error?: unknown };
@@ -325,54 +320,6 @@ const readApiError = async (response: Response, fallback: string) => {
     // Fall through to the status-based fallback.
   }
   return fallback;
-};
-
-// When a saved config has trailing content after the JSON object (e.g. from an
-// old save that concatenated a thumbnail), extract just the first object.
-const extractFirstJsonObject = (s: string): string => {
-  const start = s.indexOf("{");
-  if (start < 0) {
-    throw new SyntaxError("No JSON object in config.");
-  }
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let i = start; i < s.length; i++) {
-    const ch = s[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (ch === "\\" && inString) {
-      escaped = true;
-      continue;
-    }
-    if (ch === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (inString) {
-      continue;
-    }
-    if (ch === "{") {
-      depth++;
-    } else if (ch === "}" && --depth === 0) {
-      return s.slice(start, i + 1);
-    }
-  }
-  throw new SyntaxError("Unterminated JSON object in config.");
-};
-
-const deserializeCreative = (config: string): CreativeState => {
-  let raw = config;
-  let parsed: Partial<CreativeState>;
-  try {
-    parsed = JSON.parse(raw) as Partial<CreativeState>;
-  } catch {
-    raw = extractFirstJsonObject(config);
-    parsed = JSON.parse(raw) as Partial<CreativeState>;
-  }
-  return { ...DEFAULT_CREATIVE, ...parsed, imageFile: null };
 };
 
 // ─── Default state ────────────────────────────────────────────────────────────
@@ -946,6 +893,9 @@ export const AdDashboardPage = () => {
   const [versionStatus, setVersionStatus] = useState<string | null>(null);
   const [versionBusy, setVersionBusy] = useState(false);
   const [versionLoadKey, setVersionLoadKey] = useState(0);
+  const [restoredElements, setRestoredElements] = useState<
+    CanvasElement[] | null
+  >(null);
 
   const selectedPlatform = useMemo(
     () => getSelectedPlatform(creative.platformId),
@@ -1103,7 +1053,10 @@ export const AdDashboardPage = () => {
         );
         const response = await fetch("/api/ad-versions", {
           body: JSON.stringify({
-            config: serializeCreative(creative),
+            config: serializeAdVersionConfig(
+              creative,
+              captureRef.current?.getElements() ?? []
+            ),
             name: formatVersionName(
               getSavedVersionFormatName(selectedPlatform),
               dimensionStr
@@ -1147,11 +1100,15 @@ export const AdDashboardPage = () => {
         return;
       }
       try {
-        const loaded = deserializeCreative(match.config);
+        const loaded = deserializeAdVersionConfig(
+          match.config,
+          DEFAULT_CREATIVE
+        );
         setCreative((current) => {
           revokeObjectUrl(current.imageUrl);
-          return loaded;
+          return loaded.creative;
         });
+        setRestoredElements(loaded.canvasElements);
         setVersionLoadKey((k) => k + 1);
         setVersionStatus(`Loaded "${match.name}".`);
       } catch {
@@ -1502,6 +1459,7 @@ export const AdDashboardPage = () => {
             captureRef={captureRef}
             creative={creative}
             reseedSignal={versionLoadKey}
+            restoredElements={restoredElements}
             selectedPlatform={selectedPlatform}
             selectedPlatformShape={selectedPlatformShape}
             toolbarEnd={accountMenu}

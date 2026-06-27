@@ -1,20 +1,36 @@
 /* Generated from src/theme.ts — do not edit; run pnpm generate:theme-css */
 :root {
-  --theme-radius-small: 0.25rem;
-  --theme-radius-medium: 0.5rem;
   --theme-radius-large: 1rem;
+  --theme-radius-medium: 0.5rem;
+  --theme-radius-pill: 9999px;
+  --theme-radius-small: 0.25rem;
   --theme-radius-xlarge: 1.5rem;
   --theme-radius-xxlarge: 2rem;
   --theme-radius-xxxlarge: 2.5rem;
   --theme-radius-xxxxlarge: 3rem;
   --theme-radius-xxxxxlarge: 3.5rem;
   --theme-radius-xxxxxxxlarge: 4rem;
-  --theme-radius-pill: 9999px;
-  --theme-spacing-xs: 0.25rem;
-  --theme-spacing-sm: 0.5rem;
-  --theme-spacing-md: 0.75rem;
+  --theme-spacing-button-pad-y: 0.5625rem;
+  --theme-spacing-button-pad-y-lg: 0.9375rem;
+  --theme-spacing-compact: 0.625rem;
+  --theme-spacing-cozy: 0.875rem;
+  --theme-spacing-hairline: 0.125rem;
+  --theme-spacing-inset-xl: 1.375rem;
   --theme-spacing-lg: 1rem;
+  --theme-spacing-md: 0.75rem;
+  --theme-spacing-micro: 0.15rem;
+  --theme-spacing-nav-clearance: 7.5rem;
+  --theme-spacing-nudge: 0.2rem;
+  --theme-spacing-section: 4rem;
+  --theme-spacing-section-hero: 8rem;
+  --theme-spacing-section-inset-top: 6.5rem;
+  --theme-spacing-section-loose: 5rem;
+  --theme-spacing-section-wide: 6rem;
+  --theme-spacing-sm: 0.5rem;
+  --theme-spacing-stack-pad: 1.125rem;
+  --theme-spacing-tight: 0.375rem;
   --theme-spacing-xl: 1.25rem;
+  --theme-spacing-xs: 0.25rem;
   --theme-spacing-xxl: 1.5rem;
   --theme-spacing-xxxl: 1.75rem;
   --theme-spacing-xxxxl: 2rem;
@@ -24,38 +40,31 @@
   --theme-spacing-xxxxxxxxl: 3rem;
   --theme-spacing-xxxxxxxxxl: 3.25rem;
   --theme-spacing-xxxxxxxxxxl: 3.5rem;
-  --theme-spacing-section: 4rem;
-  --theme-spacing-section-loose: 5rem;
-  --theme-spacing-section-wide: 6rem;
-  --theme-spacing-nav-clearance: 7.5rem;
-  --theme-spacing-section-hero: 8rem;
-  --theme-spacing-tight: 0.375rem;
-  --theme-spacing-compact: 0.625rem;
-  --theme-spacing-cozy: 0.875rem;
-  --theme-spacing-hairline: 0.125rem;
-  --theme-spacing-micro: 0.15rem;
-  --theme-spacing-nudge: 0.2rem;
-  --theme-spacing-inset-xl: 1.375rem;
-  --theme-spacing-button-pad-y: 0.5625rem;
-  --theme-spacing-button-pad-y-lg: 0.9375rem;
-  --theme-spacing-stack-pad: 1.125rem;
-  --theme-spacing-section-inset-top: 6.5rem;
-  --theme-shadow-sm:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%),
-    0.4px 0.8px 1px -1.2px hsl(60deg 12% 66% / 28%),
-    0.9px 1.8px 2.3px -2.4px hsl(60deg 12% 66% / 29%);
-  --theme-shadow-md:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 29%),
-    0.8px 1.6px 2px -0.8px hsl(60deg 12% 66% / 29%),
-    1.9px 3.8px 4.8px -1.6px hsl(60deg 12% 66% / 30%),
-    4.6px 9.2px 11.7px -2.4px hsl(60deg 12% 66% / 30%);
   --theme-shadow-lg:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%),
-    1.3px 2.6px 3.3px -0.3px hsl(60deg 12% 66% / 27%),
-    2.4px 4.7px 6px -0.7px hsl(60deg 12% 66% / 27%),
-    3.8px 7.6px 9.7px -1px hsl(60deg 12% 66% / 27%),
-    6px 12.1px 15.4px -1.4px hsl(60deg 12% 66% / 28%),
-    9.4px 18.7px 23.9px -1.7px hsl(60deg 12% 66% / 28%),
-    14.1px 28.3px 36px -2.1px hsl(60deg 12% 66% / 28%),
-    20.8px 41.5px 52.9px -2.4px hsl(60deg 12% 66% / 28%);
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%), 1.3px 2.6px 3.3px -0.3px hsl(
+      60deg 12% 66% /
+      27%
+    ), 2.4px 4.7px 6px -0.7px hsl(60deg 12% 66% / 27%), 3.8px 7.6px 9.7px -1px hsl(
+      60deg 12% 66% /
+      27%
+    ), 6px 12.1px 15.4px -1.4px hsl(60deg 12% 66% / 28%), 9.4px 18.7px 23.9px -1.7px hsl(
+      60deg 12% 66% /
+      28%
+    ), 14.1px 28.3px 36px -2.1px hsl(60deg 12% 66% / 28%), 20.8px 41.5px 52.9px -2.4px hsl(
+      60deg 12% 66% /
+      28%
+    );
+  --theme-shadow-md:
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 29%), 0.8px 1.6px 2px -0.8px hsl(
+      60deg 12% 66% /
+      29%
+    ), 1.9px 3.8px 4.8px -1.6px hsl(60deg 12% 66% / 30%), 4.6px 9.2px 11.7px -2.4px hsl(
+      60deg 12% 66% /
+      30%
+    );
+  --theme-shadow-sm:
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%), 0.4px 0.8px 1px -1.2px hsl(
+      60deg 12% 66% /
+      28%
+    ), 0.9px 1.8px 2.3px -2.4px hsl(60deg 12% 66% / 29%);
 }

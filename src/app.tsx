@@ -78,6 +78,11 @@ const AdDashboardPage = lazy(async () => {
   return { default: module.AdDashboardPage };
 });
 
+const FalUpscalerPage = lazy(async () => {
+  const module = await import("./pages/fal-upscaler-page");
+  return { default: module.FalUpscalerPage };
+});
+
 const EmailComposerPage = lazy(async () => {
   const module = await import("./pages/email-composer-page");
   return { default: module.EmailComposerPage };
@@ -131,6 +136,7 @@ const appRouter = createBrowserRouter([
       { element: <ResponseAgentPage />, path: "response" },
       { element: <EmailComposerPage />, path: "emails" },
       { element: <EmailComposerPage />, path: "email" },
+      { element: <FalUpscalerPage />, path: "upscaler" },
     ],
     element: <RootLayout />,
   },

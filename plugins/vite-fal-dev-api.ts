@@ -8,7 +8,8 @@ import type { Plugin } from "vite";
 
 const FAL_IMAGE_PATH = "/api/fal/generate-image";
 const FAL_AD_COPY_PATH = "/api/fal/generate-ad-copy";
-const FAL_PATHS = new Set([FAL_IMAGE_PATH, FAL_AD_COPY_PATH]);
+const FAL_UPSCALE_PATH = "/api/fal/upscale-image";
+const FAL_PATHS = new Set([FAL_IMAGE_PATH, FAL_AD_COPY_PATH, FAL_UPSCALE_PATH]);
 
 const readBody = (req: IncomingMessage): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -33,6 +34,16 @@ const sendOptions = (res: ServerResponse) => {
 
 const pathnameOnly = (url: string | undefined) =>
   (url ?? "").split("?")[0] ?? "";
+
+const loadFalHandler = (pathname: string) => {
+  if (pathname === FAL_AD_COPY_PATH) {
+    return import("../api/lib/fal-generate-ad-copy.js");
+  }
+  if (pathname === FAL_UPSCALE_PATH) {
+    return import("../api/lib/fal-upscale-image.js");
+  }
+  return import("../api/lib/fal-generate-image.js");
+};
 
 export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
   name: "vite-fal-dev-api",
@@ -77,10 +88,7 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
       }
 
       try {
-        const { handler } =
-          pathname === FAL_AD_COPY_PATH
-            ? await import("../api/lib/fal-generate-ad-copy.js")
-            : await import("../api/lib/fal-generate-image.js");
+        const { handler } = await loadFalHandler(pathname);
         const host = req.headers.host ?? "localhost:3001";
         const pathWithQuery = req.url ?? pathname;
         const bodyBuf = await readBody(req);

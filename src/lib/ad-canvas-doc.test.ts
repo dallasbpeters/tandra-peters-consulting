@@ -2,9 +2,38 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyCopyToElements,
+  buildCanvasReseedKey,
   ROLE_IDS,
   type TextCanvasElement,
 } from "./ad-canvas-doc";
+
+describe("buildCanvasReseedKey", () => {
+  const creative = {
+    fontPresetId: "brand-serif" as const,
+    layout: "photo-fill" as const,
+    platformId: "instagram-square",
+    templateId: "roof-inspection",
+  };
+
+  it("preserves the composition when only the format changes", () => {
+    const originalKey = buildCanvasReseedKey(creative, 0);
+    const nextFormatKey = buildCanvasReseedKey(
+      { ...creative, platformId: "facebook-landscape" },
+      0
+    );
+
+    expect(nextFormatKey).toBe(originalKey);
+  });
+
+  it("rebuilds the composition for a template or explicit reseed", () => {
+    expect(
+      buildCanvasReseedKey({ ...creative, templateId: "storm-damage" }, 0)
+    ).not.toBe(buildCanvasReseedKey(creative, 0));
+    expect(buildCanvasReseedKey(creative, 1)).not.toBe(
+      buildCanvasReseedKey(creative, 0)
+    );
+  });
+});
 
 const textElement = (id: string, text: string): TextCanvasElement => ({
   background: null,
@@ -49,11 +78,9 @@ describe("applyCopyToElements", () => {
 
     const result = applyCopyToElements(original, copy);
 
-    expect(result.map((element) => element.text)).toEqual([
-      copy.headline,
-      copy.body,
-      copy.cta,
-    ]);
+    expect(
+      result.map((element) => (element.kind === "text" ? element.text : ""))
+    ).toEqual([copy.headline, copy.body, copy.cta]);
     expect(result[0]).toMatchObject({ width: 60, x: 12, y: 24 });
   });
 
@@ -66,6 +93,8 @@ describe("applyCopyToElements", () => {
       copy
     );
 
-    expect(result.map((element) => element.text)).toEqual([copy.headline, ""]);
+    expect(
+      result.map((element) => (element.kind === "text" ? element.text : ""))
+    ).toEqual([copy.headline, ""]);
   });
 });

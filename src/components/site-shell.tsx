@@ -20,6 +20,7 @@ const AGENT_PATHS = new Set([
   "/advertising",
   "/response",
   "/emails",
+  "/upscaler",
 ]);
 
 const agentNavItems: NavItem[] = [
@@ -28,6 +29,7 @@ const agentNavItems: NavItem[] = [
   { href: "/response", name: "Response Agent" },
   { href: "/ads", name: "Ad Builder" },
   { href: "/emails", name: "Email Builder" },
+  { href: "/upscaler", name: "Image Upscaler" },
 ];
 
 const resolveHeroStyle = (

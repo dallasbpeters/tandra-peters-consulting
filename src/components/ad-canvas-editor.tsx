@@ -44,6 +44,7 @@ import type {
 } from "../lib/ad-canvas-doc";
 import {
   applyCopyToElements,
+  buildCanvasReseedKey,
   CANVAS_FONT_FAMILIES,
   collectSnapTargets,
   createBandElement,
@@ -69,6 +70,7 @@ import {
 } from "../lib/ad-creative";
 import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/door-hanger";
 import { buildQrDataUri } from "../lib/qr-code";
+import { buildNextdoorShareUrl } from "../utils/nextdoor-share";
 import { AdColorSwatch } from "./ad-color-swatch";
 import Band from "./band.jsx";
 
@@ -541,6 +543,8 @@ export interface AdCanvasCaptureHandle {
   }) => void;
   /** Capture a thumbnail of the current canvas. Returns a data URL or null on failure. */
   captureThumb: () => Promise<string | null>;
+  /** Read the current direct-manipulation document for version persistence. */
+  getElements: () => CanvasElement[];
 }
 
 interface AdCanvasEditorProps {
@@ -549,9 +553,11 @@ interface AdCanvasEditorProps {
   creative: CreativeState;
   /**
    * Increment this to force a full canvas reseed (e.g. after loading a saved
-   * version) even when template/platform/layout/font haven't changed.
+   * version) even when template/layout/font haven't changed.
    */
   reseedSignal?: number;
+  /** Canvas document restored alongside a saved creative version. */
+  restoredElements?: CanvasElement[] | null;
   selectedPlatform: PlatformPreset;
   selectedPlatformShape: PlatformShape;
   /** Menus rendered after the toolbar actions (account). */
@@ -575,6 +581,7 @@ interface AdCanvasToolbarActionsProps {
   handleNextdoorShare: () => void;
   handlePreviewOnDoor: () => void;
   mockupBusy: boolean;
+  nextdoorShareUrl: string;
   shareReady: boolean;
   sharing: boolean;
   toolbarEnd?: React.ReactNode;
@@ -595,6 +602,7 @@ const AdCanvasToolbarActions = ({
   handleNextdoorShare,
   handlePreviewOnDoor,
   mockupBusy,
+  nextdoorShareUrl,
   shareReady,
   sharing,
   toolbarEnd,
@@ -659,7 +667,7 @@ const AdCanvasToolbarActions = ({
       className="nd-share-button ad-canvas-add-btn"
       data-content={`${creative.headline} ${creative.body}`.trim()}
       data-url={typeof window === "undefined" ? "" : window.location.href}
-      href="https://nextdoor.com/sharekit/share/"
+      href={nextdoorShareUrl}
       onClick={(event) => {
         event.preventDefault();
         handleNextdoorShare();
@@ -677,6 +685,7 @@ export const AdCanvasEditor = ({
   captureRef,
   creative,
   reseedSignal = 0,
+  restoredElements = null,
   selectedPlatform,
   selectedPlatformShape,
   toolbarStart,
@@ -774,25 +783,39 @@ export const AdCanvasEditor = ({
           return null;
         }
       },
+      getElements: () => elementsRef.current,
     };
     return () => {
       captureRef.current = null;
     };
   }, [captureRef]);
 
-  // ── Re-seed when template or platform changes ────────────────────────────
-  const seedKey = `${creative.templateId}|${creative.platformId}|${creative.layout}|${creative.fontPresetId}|${reseedSignal}`;
+  // ── Re-seed when the template changes or a saved version is loaded ───────
+  const seedKey = buildCanvasReseedKey(creative, reseedSignal);
   const prevSeedKey = useRef(seedKey);
+  const prevReseedSignal = useRef(reseedSignal);
   useEffect(() => {
     if (prevSeedKey.current === seedKey) {
       return;
     }
+    const isRestoringVersion = prevReseedSignal.current !== reseedSignal;
     prevSeedKey.current = seedKey;
-    setElements(seedCanvasElements(creative, selectedPlatform.cutout));
+    prevReseedSignal.current = reseedSignal;
+    setElements(
+      isRestoringVersion && restoredElements
+        ? restoredElements
+        : seedCanvasElements(creative, selectedPlatform.cutout)
+    );
     setSelectedId(null);
     setEditingId(null);
     setMenu(null);
-  }, [seedKey, creative, selectedPlatform.cutout]);
+  }, [
+    seedKey,
+    creative,
+    reseedSignal,
+    restoredElements,
+    selectedPlatform.cutout,
+  ]);
 
   // ── Sync panel copy edits into role elements ─────────────────────────────
   useEffect(() => {
@@ -1493,18 +1516,20 @@ export const AdCanvasEditor = ({
     }
   }, [captureBlob]);
 
-  const handleNextdoorShare = useCallback(async () => {
-    const content = encodeURIComponent(
-      `${creative.headline} ${creative.body}`.trim()
+  const nextdoorShareUrl = useMemo(() => {
+    const pageUrl = typeof window === "undefined" ? "" : window.location.href;
+    return buildNextdoorShareUrl(
+      `${creative.headline} ${creative.body} ${pageUrl}`.trim()
     );
-    const url = encodeURIComponent(window.location.href);
-    const shareUrl = `https://nextdoor.com/sharekit/share/?url=${url}&content=${content}`;
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  }, [creative.body, creative.headline]);
+
+  const handleNextdoorShare = useCallback(async () => {
+    window.open(nextdoorShareUrl, "_blank", "noopener,noreferrer");
     const blob = await captureBlob().catch(() => null);
     if (blob) {
       downloadBlob(blob, `nextdoor-ad-${selectedPlatform.id}.png`);
     }
-  }, [captureBlob, creative.body, creative.headline, selectedPlatform.id]);
+  }, [captureBlob, nextdoorShareUrl, selectedPlatform.id]);
 
   const handlePreviewOnDoor = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -2190,6 +2215,7 @@ export const AdCanvasEditor = ({
           handleNextdoorShare={handleNextdoorShare}
           handlePreviewOnDoor={handlePreviewOnDoor}
           mockupBusy={mockupBusy}
+          nextdoorShareUrl={nextdoorShareUrl}
           shareReady={shareReady}
           sharing={sharing}
           toolbarEnd={toolbarEnd}

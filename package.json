@@ -1,8 +1,11 @@
 {
   "name": "react-example",
   "version": "0.0.0",
+  "description": "Fal-backed image upscaler and desktop wrapper for Tandra Peters Consulting.",
+  "author": "Dallas Peters",
   "private": true,
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "copy:model-viewer": "node scripts/copy-model-viewer.mjs",
     "generate:theme-css": "tsx scripts/generate-theme-css-vars.mjs",
@@ -11,8 +14,15 @@
     "dev:studio": "pnpm --dir studio-tandra-peters dev",
     "dev:email": "pnpm --dir react-email-starter dev",
     "dev:tool": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
     "dev:content": "concurrently -k -n studio,email -c magenta,yellow \"pnpm --dir studio-tandra-peters dev\" \"pnpm --dir react-email-starter dev\"",
     "build": "node scripts/copy-model-viewer.mjs && tsx scripts/generate-theme-css-vars.mjs && vite build && tsx scripts/prerender.ts",
+    "build:desktop": "pnpm build && electron-builder",
+    "build:desktop:dir": "pnpm build && electron-builder --dir",
+    "build:desktop:mac": "pnpm build && electron-builder --mac",
+    "build:desktop:mac:op": "APPLE_ID=op://Shared/RoleModel\\ Apple\\ Store/username APPLE_APP_SPECIFIC_PASSWORD=op://Shared/RoleModel\\ Apple\\ Store/password op run -- sh -c 'pnpm build && electron-builder --mac'",
+    "build:desktop:win": "pnpm build && electron-builder --win",
+    "build:desktop:linux": "pnpm build && electron-builder --linux",
     "prerender": "tsx scripts/prerender.ts",
     "build:vercel": "node scripts/build-vercel.mjs",
     "video:studio": "tsx scripts/render-tandra-intro.mjs studio",
@@ -169,6 +179,8 @@
     "agentation": "^3.0.2",
     "axe-core": "^4.12.1",
     "concurrently": "^9.2.3",
+    "electron": "^37.10.3",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.5.0",
     "eslint-plugin-jsx-a11y": "6.8.0",
     "eslint-plugin-react": "^7.37.5",
@@ -199,6 +211,36 @@
     "overrides": {
       "@types/react": "19.2.17",
       "@types/react-dom": "19.2.3"
+    }
+  },
+  "build": {
+    "appId": "com.tandra.falupscaler",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.photography",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "productName": "Fal Upscaler",
+    "win": {
+      "target": [
+        "nsis"
+      ]
     }
   }
 }

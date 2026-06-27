@@ -9,6 +9,7 @@ import { plainTextFromRich } from "../portableText/plain-text";
 import { layoutClass } from "../styles/layout-classes";
 import { theme } from "../theme";
 import type { SocialShareBarProps } from "../types";
+import { buildNextdoorShareUrl } from "../utils/nextdoor-share";
 import { buildSharePageUrl } from "../utils/site-url";
 
 export const SocialShareBar: React.FC<SocialShareBarProps> = ({
@@ -48,7 +49,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
-  const nextdoorHref = `https://nextdoor.com/sharekit/?source=tandra.me&body=${encodeURIComponent(`Check out ${sharePlain} ${pageUrl}`)}&hashtag=roofing`;
+  const nextdoorHref = buildNextdoorShareUrl(
+    `Check out ${sharePlain} ${pageUrl}`
+  );
 
   const canWebShare =
     typeof navigator !== "undefined" && typeof navigator.share === "function";

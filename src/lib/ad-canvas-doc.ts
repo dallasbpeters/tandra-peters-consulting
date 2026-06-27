@@ -1002,6 +1002,20 @@ export const seedCanvasElements = (
   }
 };
 
+/**
+ * Changes that intentionally replace the composition with a fresh template.
+ * Format/platform changes are excluded because canvas geometry uses percentages
+ * and should remain intact when the aspect ratio changes.
+ */
+export const buildCanvasReseedKey = (
+  creative: Pick<
+    CreativeState,
+    "fontPresetId" | "layout" | "platformId" | "templateId"
+  >,
+  reseedSignal: number
+): string =>
+  `${creative.templateId}|${creative.layout}|${creative.fontPresetId}|${reseedSignal}`;
+
 export interface CanvasCopyFields {
   body: string;
   cta: string;

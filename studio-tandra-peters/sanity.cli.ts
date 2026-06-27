@@ -1,5 +1,16 @@
 import { defineCliConfig } from "sanity/cli";
 
+const FAL_TOOL_OPTIMIZED_DEPENDENCIES = [
+  "@awesome.me/webawesome/dist/react/button/index.js",
+  "@awesome.me/webawesome/dist/react/checkbox/index.js",
+  "@awesome.me/webawesome/dist/react/input/index.js",
+  "@awesome.me/webawesome/dist/react/number-input/index.js",
+  "@awesome.me/webawesome/dist/react/option/index.js",
+  "@awesome.me/webawesome/dist/react/select/index.js",
+  "@awesome.me/webawesome/dist/react/slider/index.js",
+  "@awesome.me/webawesome/dist/react/textarea/index.js",
+];
+
 export default defineCliConfig({
   api: {
     projectId: "7irm699i",
@@ -13,4 +24,14 @@ export default defineCliConfig({
      */
     autoUpdates: true,
   },
+  vite: (config) => ({
+    ...config,
+    optimizeDeps: {
+      ...config.optimizeDeps,
+      include: [
+        ...(config.optimizeDeps?.include ?? []),
+        ...FAL_TOOL_OPTIMIZED_DEPENDENCIES,
+      ],
+    },
+  }),
 });

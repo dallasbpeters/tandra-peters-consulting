@@ -19,3 +19,4 @@ training/output/
 training/txshingle-lora.json
 
 .remotion
+release
