@@ -2,3 +2,18 @@ packages:
   - "studio-tandra-peters"
   - "react-email-starter"
 autoInstallPeers: true
+overrides:
+  "@types/react": 19.2.17
+  "@types/react-dom": 19.2.3
+allowBuilds:
+  "@google/genai": true
+  "@remotion/google-fonts": true
+  better-sqlite3: true
+  core-js: true
+  core-js-pure: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  msw: true
+  protobufjs: true
+  sharp: true

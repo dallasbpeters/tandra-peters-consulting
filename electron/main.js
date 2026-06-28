@@ -12,6 +12,12 @@ const FAL_ENDPOINT = "fal-ai/esrgan";
 let mainWindow = null;
 const DATA_URL_REGEX = /^data:([^;,]+);base64,(.+)$/i;
 const STRIP_EXTENSION_REGEX = /\.[^.]+$/;
+const APP_ICON_PATH = path.join(
+  app.getAppPath(),
+  "electron",
+  "assets",
+  "app-icon.png"
+);
 
 const MODEL_OPTIONS = new Set([
   "RealESRGAN_x4plus",
@@ -272,6 +278,8 @@ const startDesktopServer = async () => {
     height: 1040,
     minWidth: 1180,
     minHeight: 820,
+    icon: APP_ICON_PATH,
+    title: "Fal Upscaler",
   });
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -287,6 +295,8 @@ const createWindow = async () => {
       height: 1040,
       minWidth: 1180,
       minHeight: 820,
+      icon: APP_ICON_PATH,
+      title: "Fal Upscaler",
     });
     mainWindow.on("closed", () => {
       mainWindow = null;

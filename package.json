@@ -1,9 +1,9 @@
 {
   "name": "react-example",
   "version": "0.0.0",
+  "private": true,
   "description": "Fal-backed image upscaler and desktop wrapper for Tandra Peters Consulting.",
   "author": "Dallas Peters",
-  "private": true,
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -16,13 +16,14 @@
     "dev:tool": "concurrently -k -n site,studio -c cyan,magenta \"pnpm dev\" \"pnpm --dir studio-tandra-peters dev\"",
     "dev:desktop": "node scripts/dev-desktop.mjs",
     "dev:content": "concurrently -k -n studio,email -c magenta,yellow \"pnpm --dir studio-tandra-peters dev\" \"pnpm --dir react-email-starter dev\"",
+    "generate:desktop-icons": "node scripts/generate-desktop-icons.mjs",
     "build": "node scripts/copy-model-viewer.mjs && tsx scripts/generate-theme-css-vars.mjs && vite build && tsx scripts/prerender.ts",
-    "build:desktop": "pnpm build && electron-builder",
-    "build:desktop:dir": "pnpm build && electron-builder --dir",
-    "build:desktop:mac": "pnpm build && electron-builder --mac",
-    "build:desktop:mac:op": "APPLE_ID=op://Shared/RoleModel\\ Apple\\ Store/username APPLE_APP_SPECIFIC_PASSWORD=op://Shared/RoleModel\\ Apple\\ Store/password op run -- sh -c 'pnpm build && electron-builder --mac'",
-    "build:desktop:win": "pnpm build && electron-builder --win",
-    "build:desktop:linux": "pnpm build && electron-builder --linux",
+    "build:desktop": "node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder",
+    "build:desktop:dir": "node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder --dir",
+    "build:desktop:mac": "node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder --mac",
+    "build:desktop:mac:op": "APPLE_ID=op://Shared/RoleModel\\ Apple\\ Store/username APPLE_APP_SPECIFIC_PASSWORD=op://Shared/RoleModel\\ Apple\\ Store/password op run -- sh -c 'node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder --mac'",
+    "build:desktop:win": "node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder --win",
+    "build:desktop:linux": "node scripts/generate-desktop-icons.mjs && pnpm build && electron-builder --linux",
     "prerender": "tsx scripts/prerender.ts",
     "build:vercel": "node scripts/build-vercel.mjs",
     "video:studio": "tsx scripts/render-tandra-intro.mjs studio",
@@ -207,16 +208,11 @@
     "vitest": "^4.1.9",
     "zod": "4.3.6"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.17",
-      "@types/react-dom": "19.2.3"
-    }
-  },
   "build": {
     "appId": "com.tandra.falupscaler",
     "asar": true,
     "directories": {
+      "buildResources": "electron/assets",
       "output": "release"
     },
     "files": [
@@ -224,13 +220,16 @@
       "electron/**",
       "package.json"
     ],
+    "icon": "app-icon.png",
     "linux": {
+      "icon": "app-icon.png",
       "target": [
         "AppImage"
       ]
     },
     "mac": {
       "category": "public.app-category.photography",
+      "icon": "app-icon.icns",
       "target": [
         "dmg",
         "zip"

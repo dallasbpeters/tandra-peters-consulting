@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { useSanitySite } from "../context/use-sanity-site";
+import { isElectronDesktopApp } from "../lib/desktop-shell";
 import { getMainRouteClass } from "../lib/main-route-class";
 import { mapFooterProps } from "../sanity/map-sanity-home";
 import { resolveStableNavProps } from "../sanity/stable-nav-props";
@@ -55,7 +56,15 @@ export const SiteShell = () => {
   const navProps = resolveStableNavProps(site);
   const heroStyle = resolveHeroStyle(location.pathname, data?.home);
   const isAgentRoute = AGENT_PATHS.has(location.pathname);
+  const isDesktopApp = isElectronDesktopApp();
   const isHome = location.pathname === "/";
+  const mainRouteClassName = [
+    getMainRouteClass(location.pathname),
+    "site-main-route",
+    isDesktopApp ? "site-main-route--desktop-shell" : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const outlet = (
     <Suspense
@@ -69,7 +78,7 @@ export const SiteShell = () => {
 
   return (
     <>
-      {navProps && (
+      {!isDesktopApp && navProps && (
         <NavVariant
           {...navProps}
           heroStyle={isAgentRoute ? undefined : heroStyle}
@@ -77,15 +86,7 @@ export const SiteShell = () => {
         />
       )}
 
-      {isHome ? (
-        outlet
-      ) : (
-        <main
-          className={`${getMainRouteClass(location.pathname)} site-main-route`}
-        >
-          {outlet}
-        </main>
-      )}
+      {isHome ? outlet : <main className={mainRouteClassName}>{outlet}</main>}
 
       {isAgentRoute ? null : (
         <Suspense fallback={null}>

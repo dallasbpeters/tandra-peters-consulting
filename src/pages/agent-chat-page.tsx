@@ -136,24 +136,24 @@ interface PersistedConversation {
 const isChatPart = (value: unknown): value is ChatPart =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      ("type" in value && (value as { type?: unknown }).type === "text"
-        ? typeof (value as { text?: unknown }).text === "string"
-        : "type" in value &&
-          (value as { type?: unknown }).type === "reasoning" &&
-          typeof (value as { text?: unknown }).text === "string")
+    typeof value === "object" &&
+    ("type" in value && (value as { type?: unknown }).type === "text"
+      ? typeof (value as { text?: unknown }).text === "string"
+      : "type" in value &&
+        (value as { type?: unknown }).type === "reasoning" &&
+        typeof (value as { text?: unknown }).text === "string")
   );
 
 const isChatMessage = (value: unknown): value is ChatMessage =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      typeof (value as { id?: unknown }).id === "string" &&
-      ((value as { role?: unknown }).role === "user" ||
-        (value as { role?: unknown }).role === "assistant") &&
-      typeof (value as { content?: unknown }).content === "string" &&
-      Array.isArray((value as { parts?: unknown }).parts) &&
-      (value as { parts: unknown[] }).parts.every(isChatPart)
+    typeof value === "object" &&
+    typeof (value as { id?: unknown }).id === "string" &&
+    ((value as { role?: unknown }).role === "user" ||
+      (value as { role?: unknown }).role === "assistant") &&
+    typeof (value as { content?: unknown }).content === "string" &&
+    Array.isArray((value as { parts?: unknown }).parts) &&
+    (value as { parts: unknown[] }).parts.every(isChatPart)
   );
 
 const getStorageKey = (agentSlug: string) =>

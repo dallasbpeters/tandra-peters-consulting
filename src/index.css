@@ -104,12 +104,29 @@ main section[id],
 
 body {
   position: relative;
+  margin: 0;
   overflow-x: hidden;
   font-family: "Plus Jakarta Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: oklch(25.66% 0.046 163.6deg);
   background-color: oklch(96.63% 0.004 106.47deg);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+.desktop-app body,
+.desktop-app #root {
+  min-height: 100dvh;
+}
+
+.desktop-app body {
+  overflow: hidden;
+  background-color: #09110f;
 }
 
 h1,

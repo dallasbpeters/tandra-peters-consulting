@@ -469,7 +469,8 @@ export const Estimator: React.FC<EstimatorProps> = ({
                             <AddressAutofill
                               accessToken={mapboxToken}
                               onRetrieve={(res) => {
-                                const feature = res?.features?.[0] as unknown as
+                                const feature = res
+                                  ?.features?.[0] as unknown as
                                   | {
                                       geometry?: { coordinates?: unknown };
                                       properties?: {

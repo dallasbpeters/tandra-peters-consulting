@@ -396,6 +396,7 @@ const FalUpscalerPreviewPanel = ({
   scale: (typeof SCALE_OPTIONS)[number];
   sourceUrl?: string;
   split: number;
+  title: string;
 }) => (
   <section className="fal-upscaler-panel fal-upscaler-viewer">
     <div className="fal-upscaler-panel-header">

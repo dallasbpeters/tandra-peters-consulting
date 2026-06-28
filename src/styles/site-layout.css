@@ -128,6 +128,10 @@
   padding-top: var(--site-padding-inline-start);
 }
 
+.desktop-app .site-page-main {
+  padding-top: var(--theme-spacing-xl);
+}
+
 .home-loading-hero {
   min-height: 80vh;
   background: #ececec;

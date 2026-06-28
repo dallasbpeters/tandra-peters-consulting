@@ -11,19 +11,32 @@
   --fal-accent-soft: rgb(157 207 117 / 18%);
   --fal-shadow: 0 18px 50px rgb(0 0 0 / 38%);
 
+  box-sizing: border-box;
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: var(--theme-spacing-lg);
   min-height: calc(100vh - 80px);
   padding: clamp(var(--theme-spacing-lg), 3vw, var(--theme-spacing-xxl));
   color: var(--fal-text);
   background:
-    radial-gradient(circle at top left, rgb(157 207 117 / 16%), transparent 30%),
+    radial-gradient(
+      circle at top left,
+      rgb(157 207 117 / 16%),
+      transparent 30%
+    ),
     radial-gradient(
       circle at bottom right,
       rgb(78 127 255 / 12%),
       transparent 26%
     ),
     linear-gradient(180deg, #09110f 0%, #0b1612 100%);
+}
+
+.desktop-app .fal-upscaler-shell {
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: var(--theme-spacing-lg);
+  overflow: hidden;
 }
 
 .fal-upscaler-pill {
@@ -113,10 +126,16 @@
   min-height: min(78vh, 64rem);
 }
 
+.desktop-app .fal-upscaler-grid {
+  height: 100%;
+  min-height: 0;
+}
+
 .fal-upscaler-panel {
   display: grid;
   gap: var(--theme-spacing-md);
   min-width: 0;
+  min-height: 0;
   padding: var(--theme-spacing-md);
   background: var(--fal-panel);
   border: 1px solid var(--fal-border);
@@ -417,6 +436,12 @@
 
 .fal-upscaler-controls {
   align-content: start;
+}
+
+.desktop-app .fal-upscaler-queue,
+.desktop-app .fal-upscaler-viewer,
+.desktop-app .fal-upscaler-controls {
+  height: 100%;
 }
 
 .fal-upscaler-controls-summary {

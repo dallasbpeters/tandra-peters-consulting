@@ -17,6 +17,7 @@ import "./styles/site-layout.css";
 import { createRoot } from "react-dom/client";
 
 import App from "./app.tsx";
+import { isElectronDesktopApp } from "./lib/desktop-shell";
 import {
   isPosthogEnabled,
   resolvePosthogClientOptions,
@@ -81,6 +82,11 @@ const rootEl = document.querySelector("#root");
 if (!rootEl) {
   throw new Error("Root element #root not found in document.");
 }
+
+if (isElectronDesktopApp()) {
+  document.documentElement.classList.add("desktop-app");
+}
+
 createRoot(rootEl).render(
   <PostHogProvider client={posthog}>
     <App />

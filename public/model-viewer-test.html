@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>model-viewer test — roof.glb</title>
 
     <script
@@ -11,134 +11,134 @@
     ></script>
 
     <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      padding: 0;
-      margin: 0;
-    }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+      }
 
-    body {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      padding: 2rem 1.5rem;
-      font-family: system-ui, sans-serif;
-      color: #1a1a1a;
-      background: #f0ede8;
-    }
+      body {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 2rem 1.5rem;
+        font-family: system-ui, sans-serif;
+        color: #1a1a1a;
+        background: #f0ede8;
+      }
 
-    h1 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-    }
+      h1 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+      }
 
-    /* ── Two-up layout ── */
-    .panels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
+      /* ── Two-up layout ── */
+      .panels {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
 
-    .panel {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .panel-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-    .panel-label span {
-      margin-left: 0.5rem;
-      font-weight: 400;
-      color: #aaa;
-    }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .panel-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .panel-label span {
+        margin-left: 0.5rem;
+        font-weight: 400;
+        color: #aaa;
+      }
 
-    /* ── The viewer itself ── */
-    .mv-wrap {
-      position: relative;
-      width: 100%;
-      /* concrete height so model-viewer height:100% resolves correctly  */
-      height: 400px;
-      overflow: hidden;
-      border-radius: 4px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    }
+      /* ── The viewer itself ── */
+      .mv-wrap {
+        position: relative;
+        width: 100%;
+        /* concrete height so model-viewer height:100% resolves correctly  */
+        height: 400px;
+        overflow: hidden;
+        border-radius: 4px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      }
 
-    model-viewer {
-      /* CSS rule (0,0,1) beats shadow :host (0,0,0) */
-      --poster-color: #e4e0d8;
-      --progress-bar-color: #2d6a4f;
-      --progress-mask: none;
-      /* CSS rule (0,0,1) beats shadow :host (0,0,0) */
-      display: block;
-      width: 100%;
-      height: 100%;
-      background: #e4e0d8;
-    }
+      model-viewer {
+        /* CSS rule (0,0,1) beats shadow :host (0,0,0) */
+        --poster-color: #e4e0d8;
+        --progress-bar-color: #2d6a4f;
+        --progress-mask: none;
+        /* CSS rule (0,0,1) beats shadow :host (0,0,0) */
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #e4e0d8;
+      }
 
-    .status {
-      min-height: 1.2em;
-      font-size: 0.8rem;
-      color: #999;
-    }
-    .status.ok {
-      font-weight: 600;
-      color: #2d6a4f;
-    }
-    .status.error {
-      font-weight: 600;
-      color: #c0392b;
-    }
+      .status {
+        min-height: 1.2em;
+        font-size: 0.8rem;
+        color: #999;
+      }
+      .status.ok {
+        font-weight: 600;
+        color: #2d6a4f;
+      }
+      .status.error {
+        font-weight: 600;
+        color: #c0392b;
+      }
 
-    /* ── Toolbar ── */
-    .toolbar {
-      display: flex;
-      align-self: flex-start;
-      overflow: hidden;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .toolbar button {
-      padding: 0.4rem 1rem;
-      font-size: 10px;
-      font-weight: 700;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      border-right: 1px solid #ccc;
-    }
-    .toolbar button:last-child {
-      border-right: none;
-    }
-    .toolbar button.active {
-      color: #f5f4f0;
-      background: #1a3a2a;
-    }
+      /* ── Toolbar ── */
+      .toolbar {
+        display: flex;
+        align-self: flex-start;
+        overflow: hidden;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .toolbar button {
+        padding: 0.4rem 1rem;
+        font-size: 10px;
+        font-weight: 700;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        border-right: 1px solid #ccc;
+      }
+      .toolbar button:last-child {
+        border-right: none;
+      }
+      .toolbar button.active {
+        color: #f5f4f0;
+        background: #1a3a2a;
+      }
 
-    /* ── Console ── */
-    #console-out {
-      max-height: 180px;
-      padding: 1rem;
-      overflow-y: auto;
-      font-family: "SF Mono", "Fira Mono", monospace;
-      font-size: 0.72rem;
-      color: #c8ffa8;
-      white-space: pre-wrap;
-      background: #1a1a1a;
-      border-radius: 4px;
-    }
+      /* ── Console ── */
+      #console-out {
+        max-height: 180px;
+        padding: 1rem;
+        overflow-y: auto;
+        font-family: "SF Mono", "Fira Mono", monospace;
+        font-size: 0.72rem;
+        color: #c8ffa8;
+        white-space: pre-wrap;
+        background: #1a1a1a;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
@@ -222,91 +222,91 @@
     <pre id="console-out">Running diagnostics…\n</pre>
 
     <script>
-    "use strict";
-    const out = document.getElementById("console-out");
-    const log = (...args) => {
-      out.textContent += `${args.join(" ")}\n`;
-    };
+      "use strict";
+      const out = document.getElementById("console-out");
+      const log = (...args) => {
+        out.textContent += `${args.join(" ")}\n`;
+      };
 
-    // ── Check custom element registration ──
-    const defined = !!customElements.get("model-viewer");
-    log("[CE] model-viewer defined:", defined);
-    if (!defined) {
-      // It's a module script so it executes after parse — wait for upgrade
-      customElements.whenDefined("model-viewer").then(() => {
-        log("[CE] model-viewer defined (after whenDefined)");
-      });
-    }
+      // ── Check custom element registration ──
+      const defined = !!customElements.get("model-viewer");
+      log("[CE] model-viewer defined:", defined);
+      if (!defined) {
+        // It's a module script so it executes after parse — wait for upgrade
+        customElements.whenDefined("model-viewer").then(() => {
+          log("[CE] model-viewer defined (after whenDefined)");
+        });
+      }
 
-    // ── Check WebGL ──
-    const canvas = document.createElement("canvas");
-    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
-    log(
-      "[WebGL]",
-      gl
-        ? `available (${gl.constructor.name})`
-        : "NOT AVAILABLE — this is the problem"
-    );
+      // ── Check WebGL ──
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+      log(
+        "[WebGL]",
+        gl
+          ? `available (${gl.constructor.name})`
+          : "NOT AVAILABLE — this is the problem"
+      );
 
-    // ── Fetch check: can the page reach roof.glb? ──
-    // Use absolute URL — relative URLs inside CDN workers resolve to the wrong origin
-    const glbUrl = "http://localhost:3000/roof.glb";
-    fetch(glbUrl, { method: "HEAD" })
-      .then((r) =>
-        log(
-          "[fetch]",
-          glbUrl,
-          "→",
-          r.status,
-          r.headers.get("content-length") ?? "?",
-          "bytes"
+      // ── Fetch check: can the page reach roof.glb? ──
+      // Use absolute URL — relative URLs inside CDN workers resolve to the wrong origin
+      const glbUrl = "http://localhost:3000/roof.glb";
+      fetch(glbUrl, { method: "HEAD" })
+        .then((r) =>
+          log(
+            "[fetch]",
+            glbUrl,
+            "→",
+            r.status,
+            r.headers.get("content-length") ?? "?",
+            "bytes"
+          )
         )
-      )
-      .catch((e) => log("[fetch] FAILED:", e.message));
+        .catch((e) => log("[fetch] FAILED:", e.message));
 
-    // ── Astronaut status ──
-    const mvA = document.getElementById("mv-astronaut");
-    const stA = document.getElementById("status-astronaut");
-    mvA.addEventListener("load", () => {
-      stA.textContent = "✓ Loaded";
-      stA.className = "status ok";
-      log("[A] astronaut loaded ✓");
-    });
-    mvA.addEventListener("error", (e) => {
-      stA.textContent = `✗ ${e.detail?.message ?? "error"}`;
-      stA.className = "status error";
-      log("[A] astronaut ERROR:", JSON.stringify(e.detail));
-    });
-
-    // ── Roof status ──
-    const mvR = document.getElementById("mv-roof");
-    const stR = document.getElementById("status-roof");
-    mvR.addEventListener("load", () => {
-      stR.textContent = "✓ Loaded — drag to orbit, scroll to zoom";
-      stR.className = "status ok";
-      log("[B] roof loaded ✓");
-      log("[B] orbit:", JSON.stringify(mvR.getCameraOrbit()));
-      log("[B] dims:", JSON.stringify(mvR.getDimensions()));
-    });
-    mvR.addEventListener("error", (e) => {
-      stR.textContent = `✗ ${e.detail?.message ?? "error"}`;
-      stR.className = "status error";
-      log("[B] roof ERROR:", JSON.stringify(e.detail));
-    });
-
-    // ── Toolbar ──
-    for (const btn of document.querySelectorAll("#toolbar button")) {
-      btn.addEventListener("click", () => {
-        for (const b of document.querySelectorAll("#toolbar button")) {
-          b.classList.remove("active");
-        }
-        btn.classList.add("active");
-        mvR.setAttribute("camera-orbit", btn.dataset.orbit);
-        mvR.setAttribute("camera-target", btn.dataset.target);
-        mvR.setAttribute("field-of-view", btn.dataset.fov);
-        log("[toolbar] →", btn.textContent.trim(), btn.dataset.orbit);
+      // ── Astronaut status ──
+      const mvA = document.getElementById("mv-astronaut");
+      const stA = document.getElementById("status-astronaut");
+      mvA.addEventListener("load", () => {
+        stA.textContent = "✓ Loaded";
+        stA.className = "status ok";
+        log("[A] astronaut loaded ✓");
       });
-    }
+      mvA.addEventListener("error", (e) => {
+        stA.textContent = `✗ ${e.detail?.message ?? "error"}`;
+        stA.className = "status error";
+        log("[A] astronaut ERROR:", JSON.stringify(e.detail));
+      });
+
+      // ── Roof status ──
+      const mvR = document.getElementById("mv-roof");
+      const stR = document.getElementById("status-roof");
+      mvR.addEventListener("load", () => {
+        stR.textContent = "✓ Loaded — drag to orbit, scroll to zoom";
+        stR.className = "status ok";
+        log("[B] roof loaded ✓");
+        log("[B] orbit:", JSON.stringify(mvR.getCameraOrbit()));
+        log("[B] dims:", JSON.stringify(mvR.getDimensions()));
+      });
+      mvR.addEventListener("error", (e) => {
+        stR.textContent = `✗ ${e.detail?.message ?? "error"}`;
+        stR.className = "status error";
+        log("[B] roof ERROR:", JSON.stringify(e.detail));
+      });
+
+      // ── Toolbar ──
+      for (const btn of document.querySelectorAll("#toolbar button")) {
+        btn.addEventListener("click", () => {
+          for (const b of document.querySelectorAll("#toolbar button")) {
+            b.classList.remove("active");
+          }
+          btn.classList.add("active");
+          mvR.setAttribute("camera-orbit", btn.dataset.orbit);
+          mvR.setAttribute("camera-target", btn.dataset.target);
+          mvR.setAttribute("field-of-view", btn.dataset.fov);
+          log("[toolbar] →", btn.textContent.trim(), btn.dataset.orbit);
+        });
+      }
     </script>
   </body>
 </html>

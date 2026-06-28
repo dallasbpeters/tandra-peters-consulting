@@ -41,30 +41,21 @@
   --theme-spacing-xxxxxxxxxl: 3.25rem;
   --theme-spacing-xxxxxxxxxxl: 3.5rem;
   --theme-shadow-lg:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%), 1.3px 2.6px 3.3px -0.3px hsl(
-      60deg 12% 66% /
-      27%
-    ), 2.4px 4.7px 6px -0.7px hsl(60deg 12% 66% / 27%), 3.8px 7.6px 9.7px -1px hsl(
-      60deg 12% 66% /
-      27%
-    ), 6px 12.1px 15.4px -1.4px hsl(60deg 12% 66% / 28%), 9.4px 18.7px 23.9px -1.7px hsl(
-      60deg 12% 66% /
-      28%
-    ), 14.1px 28.3px 36px -2.1px hsl(60deg 12% 66% / 28%), 20.8px 41.5px 52.9px -2.4px hsl(
-      60deg 12% 66% /
-      28%
-    );
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%),
+    1.3px 2.6px 3.3px -0.3px hsl(60deg 12% 66% / 27%),
+    2.4px 4.7px 6px -0.7px hsl(60deg 12% 66% / 27%),
+    3.8px 7.6px 9.7px -1px hsl(60deg 12% 66% / 27%),
+    6px 12.1px 15.4px -1.4px hsl(60deg 12% 66% / 28%),
+    9.4px 18.7px 23.9px -1.7px hsl(60deg 12% 66% / 28%),
+    14.1px 28.3px 36px -2.1px hsl(60deg 12% 66% / 28%),
+    20.8px 41.5px 52.9px -2.4px hsl(60deg 12% 66% / 28%);
   --theme-shadow-md:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 29%), 0.8px 1.6px 2px -0.8px hsl(
-      60deg 12% 66% /
-      29%
-    ), 1.9px 3.8px 4.8px -1.6px hsl(60deg 12% 66% / 30%), 4.6px 9.2px 11.7px -2.4px hsl(
-      60deg 12% 66% /
-      30%
-    );
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 29%),
+    0.8px 1.6px 2px -0.8px hsl(60deg 12% 66% / 29%),
+    1.9px 3.8px 4.8px -1.6px hsl(60deg 12% 66% / 30%),
+    4.6px 9.2px 11.7px -2.4px hsl(60deg 12% 66% / 30%);
   --theme-shadow-sm:
-    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%), 0.4px 0.8px 1px -1.2px hsl(
-      60deg 12% 66% /
-      28%
-    ), 0.9px 1.8px 2.3px -2.4px hsl(60deg 12% 66% / 29%);
+    0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%),
+    0.4px 0.8px 1px -1.2px hsl(60deg 12% 66% / 28%),
+    0.9px 1.8px 2.3px -2.4px hsl(60deg 12% 66% / 29%);
 }

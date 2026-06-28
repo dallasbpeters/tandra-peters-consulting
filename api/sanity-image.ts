@@ -5,9 +5,8 @@ import { sanityImageUrl } from "./lib/sanity-image-url.js";
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
 
-const queryValue = (
-  value: string | string[] | undefined
-): string | undefined => (Array.isArray(value) ? value[0] : value);
+const queryValue = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;
 
 const parseAllowedSanityImageUrl = (raw: string | undefined): URL | null => {
   if (!raw) {

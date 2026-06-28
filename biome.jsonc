@@ -11,8 +11,8 @@
       "!.remotion",
       "!sketches",
       "!studio-tandra-peters",
-      "!public/model-viewer.min.js"
-    ]
+      "!public/model-viewer.min.js",
+    ],
   },
   "linter": {
     "rules": {
@@ -21,10 +21,10 @@
           "level": "error",
           "options": {
             "requireAscii": true,
-            "filenameCases": ["kebab-case", "camelCase", "PascalCase"]
-          }
-        }
-      }
-    }
-  }
+            "filenameCases": ["kebab-case", "camelCase", "PascalCase"],
+          },
+        },
+      },
+    },
+  },
 }

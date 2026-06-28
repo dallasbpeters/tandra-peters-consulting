@@ -8,11 +8,24 @@
   --shadow-large: var(--theme-shadow-lg);
 }
 
+.desktop-app {
+  --nav-bar-offset: 0px;
+}
+
 /* stylelint-disable no-descending-specificity */
 
 .site-page-main {
   min-height: 100vh;
   padding-top: 100px;
+}
+
+.desktop-app .site-page-main {
+  padding-top: var(--theme-spacing-xl);
+}
+
+.desktop-app .site-page-main.site-page-main--ad-dashboard {
+  min-height: 100dvh;
+  padding: 0;
 }
 
 footer {

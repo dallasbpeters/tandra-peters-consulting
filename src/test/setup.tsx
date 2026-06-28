@@ -83,6 +83,7 @@ vi.mock("@awesome.me/webawesome/dist/react/input/index.js", () => ({
     id,
     children: _children,
     autocomplete: _autocomplete,
+    withLabel: _withLabel,
     withClear: _withClear,
     maxlength: maxlengthProp,
     ...rest
@@ -142,6 +143,7 @@ vi.mock("@awesome.me/webawesome/dist/react/textarea/index.js", () => ({
     children: _children,
     autocomplete: _autocomplete,
     withLabel: _withLabel,
+    maxlength: maxlengthProp,
     ...rest
   }: Record<string, unknown> & {
     label?: string;
@@ -153,18 +155,28 @@ vi.mock("@awesome.me/webawesome/dist/react/textarea/index.js", () => ({
     children?: React.ReactNode;
     autocomplete?: string;
     withLabel?: boolean;
+    maxlength?: number | string;
   }) => {
     const fieldId = waFieldId(label, name, id);
     const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       onChange?.(event);
       onInput?.(event);
     };
+    const parsedMaxLengthFromString =
+      typeof maxlengthProp === "string"
+        ? Number.parseInt(maxlengthProp, 10) || undefined
+        : undefined;
+    const parsedMaxLength =
+      typeof maxlengthProp === "number"
+        ? maxlengthProp
+        : parsedMaxLengthFromString;
 
     return (
       <div>
         {label ? <label htmlFor={fieldId}>{label}</label> : null}
         <textarea
           id={fieldId}
+          maxLength={parsedMaxLength}
           name={(name as string) ?? fieldId}
           onChange={handleChange}
           value={(value as string) ?? ""}
@@ -182,6 +194,7 @@ vi.mock("@awesome.me/webawesome/dist/react/select/index.js", () => ({
     value,
     onChange,
     children,
+    withClear: _withClear,
     ...rest
   }: Record<string, unknown> & {
     label?: string;
@@ -189,6 +202,7 @@ vi.mock("@awesome.me/webawesome/dist/react/select/index.js", () => ({
     value?: string;
     onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     children?: React.ReactNode;
+    withClear?: boolean;
   }) => {
     const fieldId = waFieldId(label, name);
     return (

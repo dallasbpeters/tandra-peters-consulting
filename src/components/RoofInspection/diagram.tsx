@@ -21,6 +21,7 @@ const isModelViewerDefined = () =>
   typeof customElements !== "undefined" && !!customElements.get("model-viewer");
 
 const MODEL_VIEWER_SCRIPT_ID = "model-viewer-script";
+type ModelViewerStyle = React.CSSProperties & Record<`--${string}`, string>;
 
 const ensureModelViewerScript = async () => {
   if (isModelViewerDefined()) {
@@ -358,7 +359,7 @@ export const Diagram: React.FC<DiagramProps> = ({
   // Inline styles on the host element beat shadow-DOM :host rules.
   // `contain: none` removes the paint-containment bucket that model-viewer sets
   // via `:host { contain: strict }`, which forces clipping even when overflow is visible.
-  const modelStyle: React.CSSProperties = {
+  const modelStyle: ModelViewerStyle = {
     "--poster-color": theme.colors.paper,
     "--progress-bar-color": "#7c32f4",
     "--progress-mask": "none",

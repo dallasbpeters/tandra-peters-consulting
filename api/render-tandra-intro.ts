@@ -162,9 +162,8 @@ const isTrustedBrowserOrigin = (req: VercelRequest): boolean => {
   return trustedRenderOrigins().has(origin);
 };
 
-const queryValue = (
-  value: string | string[] | undefined
-): string | undefined => (Array.isArray(value) ? value[0] : value);
+const queryValue = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;
 
 const shouldForceRender = (req: VercelRequest): boolean =>
   queryValue(req.query.force)?.toLowerCase() === "true" ||
