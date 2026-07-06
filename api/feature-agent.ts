@@ -285,7 +285,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const groq = createGroq({ apiKey: groqKey });
     const model = groq(GROQ_MODEL);
     const experimentalTelemetry = insights
-      ? { isEnabled: true, ...insights }
+      ? { integrations: [insights], isEnabled: true }
       : undefined;
 
     let text: string;

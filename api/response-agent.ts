@@ -243,16 +243,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const model = groq(modelId);
     const experimentalTelemetry = insights
-      ? { isEnabled: true, ...insights }
+      ? { integrations: [insights], isEnabled: true }
       : undefined;
 
     let text: string;
     try {
       ({ text } = await generateText({
-        model,
-        messages,
         experimental_download: downloadVisionAssets,
         experimental_telemetry: experimentalTelemetry,
+        messages,
+        model,
         stopWhen: stepCountIs(10),
         system: RESPONSE_AGENT_SYSTEM_PROMPT,
         tools,
@@ -265,10 +265,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       ({ text } = await generateText({
-        model,
-        messages,
         experimental_download: downloadVisionAssets,
         experimental_telemetry: experimentalTelemetry,
+        messages,
+        model,
         system: `${RESPONSE_AGENT_SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
       }));
     }

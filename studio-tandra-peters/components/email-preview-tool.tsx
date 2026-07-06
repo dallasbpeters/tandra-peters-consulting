@@ -1,11 +1,11 @@
 import { useColorSchemeValue } from "sanity";
 
 /**
- * Embeds the client email preview inside Studio so editors can see the
- * rendered email as they publish `clientEmail` / `emailSignature`.
+ * Embeds the client email composer inside Studio so editors can preview and
+ * send the published/default client email without leaving Sanity.
  *
- * Uses the site's `/api/email/preview` endpoint by default. Local dev can
- * override the origin with `SANITY_STUDIO_EMAIL_PREVIEW_URL`.
+ * Uses the site's `/email-composer` route by default. Local dev can override
+ * the origin with `SANITY_STUDIO_EMAIL_PREVIEW_URL`.
  */
 const TRAILING_SLASH_RE = /\/$/u;
 
@@ -38,6 +38,7 @@ const resolvePreviewBase = (): string => {
 const PREVIEW_BASE = resolvePreviewBase();
 
 const PREVIEW_URL = `${PREVIEW_BASE}/api/email/preview`;
+const COMPOSER_URL = `${PREVIEW_BASE}/email-composer?source=sanity`;
 
 // oxlint-disable-next-line func-style
 export function EmailPreviewTool() {
@@ -62,11 +63,31 @@ export function EmailPreviewTool() {
           padding: "0.75rem 1rem",
         }}
       >
-        Live render of the client email. Publish content under{" "}
-        <strong>Emails</strong>, then refresh.
+        <div>
+          Compose, preview, choose recipients, and send the client email.
+          Published defaults still live under <strong>Emails</strong>.
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+          <a
+            href={COMPOSER_URL}
+            rel="noopener noreferrer"
+            style={{ color: "inherit", fontWeight: 700 }}
+            target="_blank"
+          >
+            Open full composer
+          </a>
+          <a
+            href={PREVIEW_URL}
+            rel="noopener noreferrer"
+            style={{ color: "inherit" }}
+            target="_blank"
+          >
+            Static preview
+          </a>
+        </div>
       </div>
       <iframe
-        src={PREVIEW_URL}
+        src={COMPOSER_URL}
         style={{
           border: "none",
           display: "block",
@@ -74,7 +95,7 @@ export function EmailPreviewTool() {
           minHeight: 0,
           width: "100%",
         }}
-        title="Client email preview"
+        title="Client email composer"
       />
     </div>
   );

@@ -135,6 +135,9 @@ export function SanityImageManagerTool() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftAltText, setDraftAltText] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
+  const [pendingDeleteAssetId, setPendingDeleteAssetId] = useState<
+    string | null
+  >(null);
   const [referenceLoading, setReferenceLoading] = useState(false);
   const [selectedReferences, setSelectedReferences] = useState<{
     usedBy?: number;
@@ -166,6 +169,8 @@ export function SanityImageManagerTool() {
   }, [loadAssets]);
 
   useEffect(() => {
+    setPendingDeleteAssetId(null);
+
     if (!selectedAssetId) {
       setSelectedReferences(null);
       return;
@@ -327,15 +332,14 @@ export function SanityImageManagerTool() {
       return;
     }
 
-    const label = imageLabel(selectedAsset);
-    const confirmed = window.confirm(
-      `Delete "${label}" from Sanity assets? This will fail if Sanity blocks the asset because it is still referenced.`
-    );
-
-    if (!confirmed) {
+    if (pendingDeleteAssetId !== selectedAsset._id) {
+      setPendingDeleteAssetId(selectedAsset._id);
+      setNotice(null);
+      setError(null);
       return;
     }
 
+    setPendingDeleteAssetId(null);
     setSaving(true);
     setError(null);
     setNotice(null);
@@ -583,6 +587,37 @@ export function SanityImageManagerTool() {
                     Delete image
                   </WaButton>
                 </div>
+
+                {pendingDeleteAssetId === selectedAsset._id ? (
+                  <div
+                    aria-live="polite"
+                    className="sim__confirm-delete"
+                    role="status"
+                  >
+                    <strong>Delete this image?</strong>
+                    <p>
+                      Sanity will block the delete if this image is still
+                      referenced.
+                    </p>
+                    <div className="sim__confirm-actions">
+                      <WaButton
+                        className="sim__danger"
+                        disabled={saving}
+                        onClick={() => void handleDelete()}
+                        size="xs"
+                      >
+                        {saving ? "Deleting..." : "Confirm delete"}
+                      </WaButton>
+                      <WaButton
+                        disabled={saving}
+                        onClick={() => setPendingDeleteAssetId(null)}
+                        size="xs"
+                      >
+                        Cancel
+                      </WaButton>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </>
           ) : (

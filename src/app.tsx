@@ -9,6 +9,7 @@ import { SiteShell } from "./components/site-shell";
 import { DashboardAuthProvider } from "./context/dashboard-auth-context";
 import { SanityContentProvider } from "./context/sanity-site-context";
 import { Home } from "./pages/home";
+import { layoutClass } from "./styles/layout-classes";
 
 const ArticlePage = lazy(async () => {
   const module = await import("./pages/article-page");
@@ -108,12 +109,24 @@ const RootLayout = () => (
   </>
 );
 
+const EmailComposerEmbed = () => (
+  <DashboardAuthProvider>
+    <main className={layoutClass.pageMain}>
+      <EmailComposerPage />
+    </main>
+  </DashboardAuthProvider>
+);
+
 const appRouter = createBrowserRouter([
   {
     element: <RemotionPreviewPage />,
     // Standalone, chrome-less Remotion preview embedded by the Sanity Studio
     // "Videos" tool. No SiteShell / nav / providers — just the player.
     path: "remotion-preview",
+  },
+  {
+    element: <EmailComposerEmbed />,
+    path: "email-composer",
   },
   {
     children: [

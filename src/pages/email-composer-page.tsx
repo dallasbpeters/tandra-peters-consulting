@@ -146,17 +146,22 @@ const primaryButton = (disabled: boolean): CSSProperties => ({
 
 const Field = ({
   label,
+  htmlFor,
   children,
 }: {
+  htmlFor?: string;
   label: string;
   children: React.ReactNode;
 }) => (
   <div style={fieldStyle}>
-    {/* biome-ignore lint/a11y/noLabelWithoutControl: children contains the associated control; biome can't see through the ReactNode prop */}
-    <label style={labelStyle}>
-      {label}
-      {children}
-    </label>
+    {htmlFor ? (
+      <label htmlFor={htmlFor} style={labelStyle}>
+        {label}
+      </label>
+    ) : (
+      <div style={labelStyle}>{label}</div>
+    )}
+    {children}
   </div>
 );
 
@@ -563,22 +568,25 @@ export const EmailComposerPage = () => {
                   Message
                 </h2>
 
-                <Field label="Subject">
+                <Field htmlFor="email-subject" label="Subject">
                   <input
+                    id="email-subject"
                     onChange={handleField("subject")}
                     style={inputStyle}
                     value={form.subject}
                   />
                 </Field>
-                <Field label="Inbox preview text">
+                <Field htmlFor="email-preview-text" label="Inbox preview text">
                   <input
+                    id="email-preview-text"
                     onChange={handleField("previewText")}
                     style={inputStyle}
                     value={form.previewText}
                   />
                 </Field>
-                <Field label="Greeting">
+                <Field htmlFor="email-greeting" label="Greeting">
                   <input
+                    id="email-greeting"
                     onChange={handleField("greeting")}
                     style={inputStyle}
                     value={form.greeting}
@@ -586,6 +594,7 @@ export const EmailComposerPage = () => {
                 </Field>
                 <Field label="Body">
                   <RichTextEditor
+                    ariaLabel="Email body"
                     key={defaultsLoaded ? "ready" : "loading"}
                     onChange={(body) => setForm((prev) => ({ ...prev, body }))}
                     placeholder="Write your message…"
@@ -599,23 +608,26 @@ export const EmailComposerPage = () => {
                     gridTemplateColumns: "1fr 1fr",
                   }}
                 >
-                  <Field label="Button label">
+                  <Field htmlFor="email-cta-label" label="Button label">
                     <input
+                      id="email-cta-label"
                       onChange={handleField("ctaLabel")}
                       style={inputStyle}
                       value={form.ctaLabel}
                     />
                   </Field>
-                  <Field label="Button link">
+                  <Field htmlFor="email-cta-url" label="Button link">
                     <input
+                      id="email-cta-url"
                       onChange={handleField("ctaUrl")}
                       style={inputStyle}
                       value={form.ctaUrl}
                     />
                   </Field>
                 </div>
-                <Field label="Closing">
+                <Field htmlFor="email-closing" label="Closing">
                   <input
+                    id="email-closing"
                     onChange={handleField("closing")}
                     style={inputStyle}
                     value={form.closing}

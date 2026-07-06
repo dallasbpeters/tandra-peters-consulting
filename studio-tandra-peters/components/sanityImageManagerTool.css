@@ -325,6 +325,31 @@
   color: var(--studio-tool-danger);
 }
 
+.sim__confirm-delete {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  background: var(--studio-tool-alert-bg);
+  border: 1px solid var(--studio-tool-alert-border);
+  border-radius: var(--studio-tool-radius-md);
+}
+
+.sim__confirm-delete strong {
+  color: var(--studio-tool-alert-text);
+  font-size: 0.9rem;
+}
+
+.sim__confirm-delete p {
+  margin: 0;
+  color: var(--studio-tool-muted);
+}
+
+.sim__confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .sim__empty,
 .sim__empty-detail {
   font-weight: 800;

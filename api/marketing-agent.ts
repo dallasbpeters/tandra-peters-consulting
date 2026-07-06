@@ -219,7 +219,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const experimentalTelemetry = insights
-      ? { isEnabled: true, ...insights }
+      ? { integrations: [insights], isEnabled: true }
       : undefined;
 
     const runWithModel = async (modelId: string) => {

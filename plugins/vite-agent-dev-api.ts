@@ -439,7 +439,12 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const baseRequest = {
           messages: requestMessages as import("ai").ModelMessage[],
           ...(insights
-            ? { experimental_telemetry: { isEnabled: true, ...insights } }
+            ? {
+                experimental_telemetry: {
+                  integrations: [insights],
+                  isEnabled: true,
+                },
+              }
             : {}),
         };
 

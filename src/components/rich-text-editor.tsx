@@ -17,8 +17,8 @@ import {
   isActiveListItem,
   isActiveStyle,
 } from "@portabletext/editor/selectors";
-import type { CSSProperties, ReactNode } from "react";
-import { useRef } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { mix, theme } from "../theme";
 
@@ -108,6 +108,33 @@ const toolbarStyle: CSSProperties = {
   padding: 6,
 };
 
+const linkFormStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 6,
+  minWidth: 260,
+};
+
+const linkInputStyle: CSSProperties = {
+  backgroundColor: theme.colors.white,
+  border: `1px solid ${mix(theme.colors.everglade, 20)}`,
+  borderRadius: theme.radius.small,
+  color: theme.colors.everglade,
+  flex: "1 1 11rem",
+  fontSize: "0.85rem",
+  height: 30,
+  minWidth: 0,
+  padding: "0 8px",
+};
+
+const linkLabelStyle: CSSProperties = {
+  color: mix(theme.colors.everglade, 72),
+  fontSize: "0.75rem",
+  fontWeight: 800,
+  marginLeft: 4,
+};
+
 const frameStyle: CSSProperties = {
   backgroundColor: theme.colors.white,
   border: `1px solid ${mix(theme.colors.everglade, 18)}`,
@@ -140,6 +167,7 @@ const ToolbarButton = ({
     aria-pressed={active}
     onClick={onClick}
     onMouseDown={(e) => e.preventDefault()}
+    onPointerDown={(e) => e.preventDefault()}
     style={{
       backgroundColor: active ? theme.palette.accent["600"] : "transparent",
       border: "none",
@@ -153,6 +181,7 @@ const ToolbarButton = ({
       minWidth: 30,
       padding: "0 8px",
     }}
+    tabIndex={-1}
     title={title}
     type="button"
   >
@@ -160,8 +189,55 @@ const ToolbarButton = ({
   </button>
 );
 
+const LinkUrlForm = ({
+  inputRef,
+  onCancel,
+  onChange,
+  onSubmit,
+  value,
+}: {
+  inputRef: RefObject<HTMLInputElement | null>;
+  onCancel: () => void;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  value: string;
+}) => {
+  const inputId = useId();
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+      style={linkFormStyle}
+    >
+      <label htmlFor={inputId} style={linkLabelStyle}>
+        Link URL
+      </label>
+      <input
+        id={inputId}
+        onChange={(event) => onChange(event.currentTarget.value)}
+        ref={inputRef}
+        style={linkInputStyle}
+        type="url"
+        value={value}
+      />
+      <ToolbarButton active={false} onClick={onSubmit} title="Apply link">
+        Apply
+      </ToolbarButton>
+      <ToolbarButton active={false} onClick={onCancel} title="Cancel link">
+        Cancel
+      </ToolbarButton>
+    </form>
+  );
+};
+
 const Toolbar = () => {
   const editor = useEditor();
+  const linkInputRef = useRef<HTMLInputElement | null>(null);
+  const [linkEditorOpen, setLinkEditorOpen] = useState(false);
+  const [linkDraft, setLinkDraft] = useState("https://");
   const bold = useEditorSelector(editor, isActiveDecorator("strong"));
   const italic = useEditorSelector(editor, isActiveDecorator("em"));
   const link = useEditorSelector(editor, isActiveAnnotation("link"));
@@ -171,6 +247,13 @@ const Toolbar = () => {
   const bullet = useEditorSelector(editor, isActiveListItem("bullet"));
   const number = useEditorSelector(editor, isActiveListItem("number"));
 
+  useEffect(() => {
+    if (linkEditorOpen) {
+      linkInputRef.current?.focus();
+      linkInputRef.current?.select();
+    }
+  }, [linkEditorOpen]);
+
   const handleLink = () => {
     if (link) {
       editor.send({
@@ -179,15 +262,21 @@ const Toolbar = () => {
       });
       return;
     }
-    // biome-ignore lint/suspicious/noAlert: intentional browser prompt for link URL input
-    const href = window.prompt("Link URL", "https://");
+    setLinkDraft("https://");
+    setLinkEditorOpen(true);
+  };
+
+  const handleApplyLink = () => {
+    const href = linkDraft.trim();
     if (!href) {
+      setLinkEditorOpen(false);
       return;
     }
     editor.send({
       annotation: { name: "link", value: { href } },
       type: "annotation.toggle",
     });
+    setLinkEditorOpen(false);
   };
 
   return (
@@ -213,6 +302,15 @@ const Toolbar = () => {
       <ToolbarButton active={link} onClick={handleLink} title="Link">
         Link
       </ToolbarButton>
+      {linkEditorOpen ? (
+        <LinkUrlForm
+          inputRef={linkInputRef}
+          onCancel={() => setLinkEditorOpen(false)}
+          onChange={setLinkDraft}
+          onSubmit={handleApplyLink}
+          value={linkDraft}
+        />
+      ) : null}
       <span
         style={{
           backgroundColor: mix(theme.colors.everglade, 14),
@@ -273,6 +371,7 @@ const Toolbar = () => {
 };
 
 interface RichTextEditorProps {
+  ariaLabel?: string;
   onChange: (blocks: PortableTextBlock[]) => void;
   placeholder?: string;
   value: PortableTextBlock[];
@@ -283,6 +382,7 @@ export const RichTextEditor = ({
   value,
   onChange,
   placeholder,
+  ariaLabel = "Email body",
 }: RichTextEditorProps) => {
   // Stable reference — EditorProvider reinitializes when initialConfig reference changes
   // (React compiler cache check), so a new object literal each render causes the editor
@@ -297,6 +397,7 @@ export const RichTextEditor = ({
       <div style={frameStyle}>
         <Toolbar />
         <PortableTextEditable
+          aria-label={ariaLabel}
           renderAnnotation={renderAnnotation}
           renderDecorator={renderDecorator}
           renderListItem={renderListItem}
