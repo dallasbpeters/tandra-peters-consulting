@@ -1,22 +1,10 @@
-/**
- * Sanity-backed store for website contact-form leads. Each submission upserts an
- * `emailContact` document (deduped by email) so the email composer can send to
- * people who have reached out.
- *
- * Documents are written as DRAFTS and never published, so the lead's PII (email,
- * phone, address) stays out of the public-read `production` dataset — only
- * requests carrying a Sanity token (the Studio, the auth-gated composer
- * endpoints) can read them.
- */
-import { createClient, type SanityClient } from "@sanity/client";
-
-import type { ContactLeadSubmission, EmailRecipient } from "./types.js";
+import { createClient } from "@sanity/client";
 
 const PROJECT_ID = "7irm699i";
 const DATASET = "production";
 const API_VERSION = "2026-05-29";
 
-const client = (token: string): SanityClient =>
+const client = (token) =>
   createClient({
     projectId: PROJECT_ID,
     dataset: DATASET,
@@ -27,8 +15,7 @@ const client = (token: string): SanityClient =>
     perspective: "raw",
   });
 
-/** Stable draft id derived from the email, so repeat submissions update one doc. */
-const contactDraftId = (email: string): string => {
+const contactDraftId = (email) => {
   const key = email
     .trim()
     .toLowerCase()
@@ -38,15 +25,7 @@ const contactDraftId = (email: string): string => {
   return `drafts.emailContact.${key}`;
 };
 
-/**
- * Create-or-update the lead's contact document. Stored as a draft to keep it
- * private. Throws on failure so the caller can log without blocking the
- * visitor's success response.
- */
-export const upsertContactLead = async (
-  token: string,
-  submission: ContactLeadSubmission
-): Promise<void> => {
+export const upsertContactLead = async (token, submission) => {
   const email = submission.email.trim().toLowerCase();
   if (!email) {
     return;
@@ -99,21 +78,11 @@ const CONTACTS_QUERY = `*[_type == "emailContact" && subscribed != false && defi
   email
 }`;
 
-/** List subscribed contacts as composer recipients. */
-export const listEmailContacts = async (
-  token: string,
-  options: { search?: string } = {}
-): Promise<EmailRecipient[]> => {
-  const rows =
-    await client(token).fetch<{ id: string; name?: string; email?: string }[]>(
-      CONTACTS_QUERY
-    );
+export const listEmailContacts = async (token, options = {}) => {
+  const rows = await client(token).fetch(CONTACTS_QUERY);
 
   const recipients = rows
-    .filter(
-      (r): r is { id: string; name?: string; email: string } =>
-        typeof r.email === "string" && r.email.includes("@")
-    )
+    .filter((r) => typeof r.email === "string" && r.email.includes("@"))
     .map((r) => ({
       id: r.id,
       name: r.name?.trim() || r.email,
@@ -129,16 +98,8 @@ export const listEmailContacts = async (
   );
 };
 
-/**
- * Merge CRM (Attio) and Sanity recipients, deduped by email. Attio entries win
- * on collision so their record id is preserved (used to log sent emails back to
- * the CRM). Result is sorted by name.
- */
-export const mergeRecipients = (
-  attio: EmailRecipient[],
-  sanity: EmailRecipient[]
-): EmailRecipient[] => {
-  const byEmail = new Map<string, EmailRecipient>();
+export const mergeRecipients = (attio, sanity) => {
+  const byEmail = new Map();
   for (const r of sanity) {
     byEmail.set(r.email, r);
   }

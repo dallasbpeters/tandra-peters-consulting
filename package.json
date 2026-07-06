@@ -141,7 +141,6 @@
     "react-router-dom": "^7.18.0",
     "resend": "^6.14.0",
     "sanity": "^5.31.1",
-    "sanity-plugin-ga-dashboard": "^1.0.6",
     "shaders": "^2.5.131",
     "sharp": "^0.34.5",
     "streamdown": "^2.5.0",

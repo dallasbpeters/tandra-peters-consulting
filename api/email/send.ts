@@ -16,17 +16,17 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
 
-import { postAttioPersonNote } from "../../server/email/attio.js";
-import { renderClientEmail } from "../../server/email/template.js";
-import type {
-  ClientEmailContent,
-  EmailAssets,
-  EmailRecipient,
-} from "../../server/email/types.js";
 import {
   authorizeSeoDashboardRequest,
   DashboardAuthError,
 } from "../../server/seo/googleAuth.js";
+import { postAttioPersonNote } from "./attio.js";
+import { renderClientEmail } from "./template.js";
+import type {
+  ClientEmailContent,
+  EmailAssets,
+  EmailRecipient,
+} from "./types.js";
 
 const RE_TRAILING_SLASH = /\/$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

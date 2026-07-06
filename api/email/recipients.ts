@@ -8,15 +8,12 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { listAttioPeople } from "../../server/email/attio.js";
-import {
-  listEmailContacts,
-  mergeRecipients,
-} from "../../server/email/contactsStore.js";
 import {
   authorizeSeoDashboardRequest,
   DashboardAuthError,
 } from "../../server/seo/googleAuth.js";
+import { listAttioPeople } from "./attio.js";
+import { listEmailContacts, mergeRecipients } from "./contactsStore.js";
 
 const applyCors = (res: VercelResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");

@@ -1,3 +1,4 @@
+// oxlint-disable func-style
 /**
  * POST /api/response-agent
  *
@@ -13,13 +14,8 @@ import { createGroq } from "@ai-sdk/groq";
 import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/context/ai-sdk";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import {
-  generateText,
-  jsonSchema,
-  type ModelMessage,
-  stepCountIs,
-  type ToolSet,
-} from "ai";
+import type { ModelMessage, ToolSet } from "ai";
+import { generateText, jsonSchema, stepCountIs } from "ai";
 
 import { downloadVisionAssets } from "./lib/download-vision-assets.js";
 import {
@@ -37,7 +33,8 @@ const DATASET = "production";
 const AGENT_CONTEXT_SLUG = "response-agent";
 const SANITY_MCP_URL = `https://api.sanity.io/v2026-03-03/agent-context/${PROJECT_ID}/${DATASET}/${AGENT_CONTEXT_SLUG}`;
 
-const RE_FUNCTION_CALL_FAILURE = /failed to call a function|failed_generation/i;
+const RE_FUNCTION_CALL_FAILURE =
+  /failed to call a function|failed_generation/iu;
 
 const isFunctionCallFailure = (message: string): boolean =>
   RE_FUNCTION_CALL_FAILURE.test(message);
@@ -50,10 +47,21 @@ interface RpcTool {
   name: string;
 }
 
+interface ResponseAgentBody {
+  messages?: ModelMessage[];
+  threadId?: string;
+}
+
+type ToolEntry = [
+  string,
+  RpcTool,
+  (input: Record<string, unknown>) => Promise<string>,
+];
+
 const sanityMcpHeaders = (token: string) => ({
-  "Content-Type": "application/json",
   Accept: "application/json, text/event-stream",
   Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
 });
 
 async function callJsonRpc(
@@ -64,9 +72,9 @@ async function callJsonRpc(
   id = 1
 ): Promise<unknown> {
   const res = await fetch(url, {
-    method: "POST",
+    body: JSON.stringify({ id, jsonrpc: "2.0", method, params }),
     headers,
-    body: JSON.stringify({ jsonrpc: "2.0", method, params, id }),
+    method: "POST",
   });
 
   if (!res.ok) {
@@ -91,19 +99,117 @@ async function callJsonRpc(
   return parsed.result;
 }
 
-// ─── Route handler ────────────────────────────────────────────────────────────
-
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const setCorsHeaders = (req: VercelRequest, res: VercelResponse): void => {
   const origin = req.headers.origin ?? "";
   const allowed = (process.env.ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((o) => o.trim());
+
   if (allowed.length && allowed.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
+
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+};
+
+const createInsights = (threadId?: string) => {
+  const writeToken = process.env.SANITY_WRITE_TOKEN;
+
+  if (!writeToken) {
+    return;
+  }
+
+  return sanityInsightsIntegration({
+    agentId: "response-agent",
+    client: createClient({
+      apiVersion: "2026-01-01",
+      dataset: DATASET,
+      projectId: PROJECT_ID,
+      token: writeToken,
+      useCdn: false,
+    }),
+    threadId: threadId ?? crypto.randomUUID(),
+  });
+};
+
+const createMcpToolEntry = (token: string, mcpTool: RpcTool): ToolEntry => [
+  mcpTool.name,
+  mcpTool,
+  async (input: Record<string, unknown>) => {
+    const result = (await callJsonRpc(
+      SANITY_MCP_URL,
+      sanityMcpHeaders(token),
+      "tools/call",
+      {
+        arguments: input,
+        name: mcpTool.name,
+      }
+    )) as { content?: { type: string; text?: string }[] };
+
+    return (
+      result.content
+        ?.filter((c) => c.type === "text")
+        .map((c) => c.text ?? "")
+        .join("\n") ?? JSON.stringify(result)
+    );
+  },
+];
+
+const createNextdoorToolEntry = (): ToolEntry => {
+  const nextdoorCookie = process.env.NEXTDOOR_SESSION_COOKIE?.trim();
+  const jinaApiKey = process.env.JINA_API_KEY?.trim();
+
+  return [
+    NEXTDOOR_FETCH_TOOL.name,
+    {
+      description: NEXTDOOR_FETCH_TOOL.description,
+      inputSchema: NEXTDOOR_FETCH_TOOL.inputSchema,
+      name: NEXTDOOR_FETCH_TOOL.name,
+    },
+    (input: Record<string, unknown>) => {
+      const url = typeof input.url === "string" ? input.url : "";
+      return fetchNextdoorThread(url, {
+        cookie: nextdoorCookie,
+        jinaApiKey,
+      });
+    },
+  ];
+};
+
+const toToolSet = (toolEntries: ToolEntry[]): ToolSet =>
+  Object.fromEntries(
+    toolEntries.map(([toolName, mcpTool, execute]) => [
+      toolName,
+      {
+        description: mcpTool.description,
+        execute,
+        inputSchema: jsonSchema(
+          mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
+        ),
+      } as unknown as ToolSet[string],
+    ])
+  );
+
+const loadTools = async (token: string): Promise<ToolSet> => {
+  const sanityToolsResult = (await callJsonRpc(
+    SANITY_MCP_URL,
+    sanityMcpHeaders(token),
+    "tools/list"
+  )) as { tools: RpcTool[] };
+
+  return toToolSet([
+    ...sanityToolsResult.tools.map((mcpTool) =>
+      createMcpToolEntry(token, mcpTool)
+    ),
+    createNextdoorToolEntry(),
+  ]);
+};
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -122,113 +228,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "GROQ_API_KEY not set" });
   }
 
-  const body = req.body as { messages?: ModelMessage[]; threadId?: string };
+  const body = req.body as ResponseAgentBody;
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return res.status(400).json({ error: "messages array is required" });
   }
 
-  // ── Sanity Insights telemetry (optional – requires SANITY_WRITE_TOKEN) ──────
-  const writeToken = process.env.SANITY_WRITE_TOKEN;
-  const insights = writeToken
-    ? sanityInsightsIntegration({
-        client: createClient({
-          projectId: PROJECT_ID,
-          dataset: DATASET,
-          apiVersion: "2026-01-01",
-          useCdn: false,
-          token: writeToken,
-        }),
-        agentId: "response-agent",
-        threadId: body.threadId ?? crypto.randomUUID(),
-      })
-    : undefined;
+  const insights = createInsights(body.threadId);
 
   try {
-    const sanityToolsResult = (await callJsonRpc(
-      SANITY_MCP_URL,
-      sanityMcpHeaders(token),
-      "tools/list"
-    )) as { tools: RpcTool[] };
-
-    const allToolEntries: [
-      string,
-      RpcTool,
-      (input: Record<string, unknown>) => Promise<string>,
-    ][] = sanityToolsResult.tools.map((mcpTool) => [
-      mcpTool.name,
-      mcpTool,
-      async (input: Record<string, unknown>) => {
-        const result = (await callJsonRpc(
-          SANITY_MCP_URL,
-          sanityMcpHeaders(token),
-          "tools/call",
-          {
-            name: mcpTool.name,
-            arguments: input,
-          }
-        )) as { content?: Array<{ type: string; text?: string }> };
-
-        return (
-          result.content
-            ?.filter((c) => c.type === "text")
-            .map((c) => c.text ?? "")
-            .join("\n") ?? JSON.stringify(result)
-        );
-      },
-    ]);
-
-    const nextdoorCookie = process.env.NEXTDOOR_SESSION_COOKIE?.trim();
-    const jinaApiKey = process.env.JINA_API_KEY?.trim();
-
-    allToolEntries.push([
-      NEXTDOOR_FETCH_TOOL.name,
-      {
-        name: NEXTDOOR_FETCH_TOOL.name,
-        description: NEXTDOOR_FETCH_TOOL.description,
-        inputSchema: NEXTDOOR_FETCH_TOOL.inputSchema,
-      },
-      (input: Record<string, unknown>) => {
-        const url = typeof input.url === "string" ? input.url : "";
-        return fetchNextdoorThread(url, {
-          cookie: nextdoorCookie,
-          jinaApiKey,
-        });
-      },
-    ]);
-
-    const tools: ToolSet = Object.fromEntries(
-      allToolEntries.map(([toolName, mcpTool, execute]) => [
-        toolName,
-        {
-          description: mcpTool.description,
-          inputSchema: jsonSchema(
-            mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
-          ),
-          execute,
-        } as unknown as ToolSet[string],
-      ])
-    );
-
+    const tools = await loadTools(token);
     const groq = createGroq({ apiKey: groqKey });
     const messages = normalizeVisionMessages(body.messages);
     const modelId = pickResponseAgentModel(messages);
 
-    const baseRequest = {
-      model: groq(modelId),
-      messages,
-      ...(insights
-        ? { experimental_telemetry: { isEnabled: true, ...insights } }
-        : {}),
-    } as const;
+    const model = groq(modelId);
+    const experimentalTelemetry = insights
+      ? { isEnabled: true, ...insights }
+      : undefined;
 
     let text: string;
     try {
       ({ text } = await generateText({
-        ...baseRequest,
+        model,
+        messages,
+        experimental_download: downloadVisionAssets,
+        experimental_telemetry: experimentalTelemetry,
+        stopWhen: stepCountIs(10),
         system: RESPONSE_AGENT_SYSTEM_PROMPT,
         tools,
-        stopWhen: stepCountIs(10),
-        experimental_download: downloadVisionAssets,
       }));
     } catch (toolError) {
       const toolErrorMessage =
@@ -238,16 +265,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       ({ text } = await generateText({
-        ...baseRequest,
-        system: `${RESPONSE_AGENT_SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
+        model,
+        messages,
         experimental_download: downloadVisionAssets,
+        experimental_telemetry: experimentalTelemetry,
+        system: `${RESPONSE_AGENT_SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
       }));
     }
 
     return res.status(200).json({ response: text });
-  } catch (err) {
-    console.error("[/api/response-agent]", err);
-    const message = err instanceof Error ? err.message : String(err);
+  } catch (error) {
+    console.error("[/api/response-agent]", error);
+    const message = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ error: message });
   }
 }

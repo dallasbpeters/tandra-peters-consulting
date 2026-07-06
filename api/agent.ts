@@ -210,22 +210,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── 3. Run Groq with tool auto-continuation ───────────────────────────────
     const groq = createGroq({ apiKey: groqKey });
-
-    const baseRequest = {
-      model: groq(GROQ_MODEL),
-      messages: body.messages,
-      ...(insights
-        ? { experimental_telemetry: { isEnabled: true, ...insights } }
-        : {}),
-    } as const;
+    const model = groq(GROQ_MODEL);
+    const experimentalTelemetry = insights
+      ? { isEnabled: true, ...insights }
+      : undefined;
 
     let text: string;
     try {
       ({ text } = await generateText({
-        ...baseRequest,
+        model,
+        messages: body.messages,
+        experimental_telemetry: experimentalTelemetry,
+        stopWhen: stepCountIs(10),
         system: SYSTEM_PROMPT,
         tools,
-        stopWhen: stepCountIs(10),
       }));
     } catch (toolError) {
       const toolErrorMessage =
@@ -235,7 +233,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       ({ text } = await generateText({
-        ...baseRequest,
+        model,
+        messages: body.messages,
+        experimental_telemetry: experimentalTelemetry,
         system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
       }));
     }

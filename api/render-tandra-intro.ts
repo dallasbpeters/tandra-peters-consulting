@@ -48,6 +48,16 @@ const _RE_TIMESTAMP_PUNCT = /[:.]/g;
 const LOCAL_BUNDLE_DIR = ".remotion";
 const RENDER_PIPELINE_VERSION = "tandra-intro-render-v2";
 
+const normalizeCompositionId = (id: string): string => {
+  if (id === "TandraIntro") {
+    return DEFAULT_COMPOSITION_ID;
+  }
+  if (id === "RoofScene") {
+    return "roof-scene";
+  }
+  return id;
+};
+
 const resolveCompositionId = (req: VercelRequest): string => {
   const fromQuery =
     queryValue(req.query.compositionId) ?? queryValue(req.query.id);
@@ -58,7 +68,7 @@ const resolveCompositionId = (req: VercelRequest): string => {
           | undefined)
       : undefined;
   const raw = (fromBody ?? fromQuery ?? DEFAULT_COMPOSITION_ID).trim();
-  return raw || DEFAULT_COMPOSITION_ID;
+  return normalizeCompositionId(raw || DEFAULT_COMPOSITION_ID);
 };
 
 const shouldCapturePoster = (req: VercelRequest): boolean => {

@@ -134,5 +134,12 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
 ];
 
-export const getComposition = (id: string): CompositionEntry | undefined =>
-  COMPOSITIONS.find((c) => c.id === id);
+const COMPOSITION_ALIASES: Record<string, CompositionId> = {
+  RoofScene: "roof-scene",
+  TandraIntro: "tandra-intro",
+};
+
+export const getComposition = (id: string): CompositionEntry | undefined => {
+  const normalizedId = COMPOSITION_ALIASES[id] ?? id;
+  return COMPOSITIONS.find((c) => c.id === normalizedId);
+};

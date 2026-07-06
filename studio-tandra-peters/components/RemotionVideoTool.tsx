@@ -81,7 +81,7 @@ interface CompositionMeta {
 
 const COMPOSITIONS: CompositionMeta[] = [
   {
-    id: "TandraIntro",
+    id: "tandra-intro",
     label: "Homepage intro",
     description: "30s · 16:9 · plays on the home page hero. Copy from Sanity.",
     orientation: "landscape",
@@ -102,7 +102,7 @@ const COMPOSITIONS: CompositionMeta[] = [
     cms: false,
   },
   {
-    id: "RoofScene",
+    id: "roof-scene",
     label: "3D roof inspection",
     description: "4:5 · animated 3D roof walkthrough (heavier preview).",
     orientation: "portrait",
@@ -117,21 +117,54 @@ const COMPOSITIONS: CompositionMeta[] = [
   },
 ];
 
-const PREVIEW_BASE =
-  process.env.SANITY_STUDIO_PREVIEW_URL?.replace(/\/$/, "") ||
-  "http://localhost:3001";
-const RENDER_BASE =
-  process.env.SANITY_STUDIO_RENDER_API_URL?.replace(/\/$/, "") || PREVIEW_BASE;
+const trimTrailingSlash = (value: string): string => value.replace(/\/$/, "");
+
+const getBrowserOrigin = (): string | undefined => {
+  if (typeof window === "undefined" || window.location.origin === "null") {
+    return;
+  }
+  return trimTrailingSlash(window.location.origin);
+};
+
+const isLocalOrigin = (value: string | undefined): boolean =>
+  Boolean(
+    value?.startsWith("http://localhost") ||
+    value?.startsWith("http://127.0.0.1")
+  );
+
+const resolvePreviewBase = (): string => {
+  const configured = process.env.SANITY_STUDIO_PREVIEW_URL
+    ? trimTrailingSlash(process.env.SANITY_STUDIO_PREVIEW_URL)
+    : undefined;
+  const browserOrigin = getBrowserOrigin();
+
+  if (process.env.NODE_ENV === "production" && isLocalOrigin(configured)) {
+    return browserOrigin ?? "https://www.tandra.me";
+  }
+
+  return (
+    configured ??
+    browserOrigin ??
+    (process.env.NODE_ENV === "production"
+      ? "https://www.tandra.me"
+      : "http://localhost:3001")
+  );
+};
+
+const PREVIEW_BASE = resolvePreviewBase();
+const RENDER_BASE = process.env.SANITY_STUDIO_RENDER_API_URL
+  ? trimTrailingSlash(process.env.SANITY_STUDIO_RENDER_API_URL)
+  : PREVIEW_BASE;
 const RENDER_SECRET =
   process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
 
 const DEFAULT_PROPS: Record<string, any> = {
   TandraRoofValue: ROOF_VALUE_DEFAULTS,
   TandraStormSpot: STORM_SPOT_DEFAULTS,
-  RoofScene: ROOF_SCENE_DEFAULTS,
+  "roof-scene": ROOF_SCENE_DEFAULTS,
   CustomSlots: CUSTOM_SLOTS_DEFAULTS,
   HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
-  TandraIntro: { showCaptions: false, content: defaultTandraIntroContent },
+  "tandra-intro": { showCaptions: false, content: defaultTandraIntroContent },
 };
 
 const isStructuredRoofSceneDoc = (
@@ -149,12 +182,17 @@ const isStructuredRoofSceneDoc = (
   );
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {
-  RoofScene: "roofSceneSettings",
+  "roof-scene": "roofSceneSettings",
   TandraStormSpot: "stormSpotSettings",
   TandraRoofValue: "roofValueSettings",
   CustomSlots: "customSlotsSettings",
   HelpingTexasHomeowners: "helpingTexasHomeownersSettings",
-  TandraIntro: "tandraIntroSettings",
+  "tandra-intro": "tandraIntroSettings",
+};
+
+const COMPOSITION_TO_EDITOR_SCHEMA: Record<string, string> = {
+  "roof-scene": "RoofScene",
+  "tandra-intro": "TandraIntro",
 };
 
 type SaveState =
@@ -196,7 +234,7 @@ export function RemotionVideoTool() {
     const defaults = DEFAULT_PROPS[activeId]
       ? { ...DEFAULT_PROPS[activeId] }
       : {};
-    if (activeId === "TandraIntro") {
+    if (activeId === "tandra-intro") {
       // Load actual copy from the home page's tandraIntroVideo field so the editor
       // shows what's currently published, then overlay any saved settings on top.
       client
@@ -244,7 +282,7 @@ export function RemotionVideoTool() {
         setFormProps(defaults);
         return;
       }
-      if (activeId === "RoofScene") {
+      if (activeId === "roof-scene") {
         client
           .fetch<Record<string, unknown> | null>(
             `*[_id == "roofSceneSettings"][0]`
@@ -299,7 +337,8 @@ export function RemotionVideoTool() {
     }
   }, [activeId, client]);
 
-  const schema = SCHEMAS[activeId] ?? [];
+  const editorSchemaKey = COMPOSITION_TO_EDITOR_SCHEMA[activeId] ?? activeId;
+  const schema = SCHEMAS[editorSchemaKey] ?? [];
 
   // Send updated props to the preview iframe whenever formProps changes.
   useEffect(() => {
@@ -324,7 +363,7 @@ export function RemotionVideoTool() {
     setSaveState({ status: "saving" });
     try {
       await client.createOrReplace(
-        activeId === "RoofScene"
+        activeId === "roof-scene"
           ? {
               _id: schemaName,
               _type: schemaName,

@@ -24,13 +24,13 @@ export const ContactLead = (submission: ContactLeadSubmission) => (
 );
 
 ContactLead.PreviewProps = {
-  fullName: "Sarah Mitchell",
   email: "sarah.mitchell@example.com",
-  phoneNumber: "(512) 555-0142",
-  serviceLabel: "Hail & Wind Damage Roof Inspection",
-  propertyAddress: "1234 Cedar Ridge Dr, Round Rock, TX 78664",
+  fullName: "Sarah Mitchell",
   message:
     "We had a big hailstorm last week and I'm seeing some granules in the gutters.\n\nCould you come take a look and let me know if we should file a claim? Mornings are best for us.",
+  phoneNumber: "(512) 555-0142",
+  propertyAddress: "1234 Cedar Ridge Dr, Round Rock, TX 78664",
+  serviceLabel: "Hail & Wind Damage Roof Inspection",
   submittedAt: new Date().toISOString(),
 } satisfies ContactLeadSubmission;
 

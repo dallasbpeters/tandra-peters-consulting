@@ -14,11 +14,11 @@
 import { createClient } from "@sanity/client";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import type { ClientEmailContent } from "../../server/email/types.js";
 import {
   authorizeSeoDashboardRequest,
   DashboardAuthError,
 } from "../../server/seo/googleAuth.js";
+import type { ClientEmailContent } from "./types.js";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";

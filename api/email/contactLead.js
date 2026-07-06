@@ -1,10 +1,8 @@
-import type { ContactLeadSubmission, EmailAssets } from "./types.js";
-
 const RE_NEWLINE = /\r?\n/;
 const RE_NON_PHONE_CHARS = /[^0-9+]/g;
 const WHITESPACE_RE = /\s+/;
 
-const escapeHtml = (value: string): string =>
+const escapeHtml = (value) =>
   value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -12,10 +10,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeAttr = (value: string): string =>
-  escapeHtml(value).replaceAll("`", "&#96;");
+const escapeAttr = (value) => escapeHtml(value).replaceAll("`", "&#96;");
 
-const formatTimestamp = (iso?: string): string => {
+const formatTimestamp = (iso) => {
   const date = iso ? new Date(iso) : new Date();
   if (Number.isNaN(date.getTime())) {
     return new Date().toLocaleString("en-US");
@@ -27,13 +24,13 @@ const formatTimestamp = (iso?: string): string => {
   });
 };
 
-const messageHtml = (message: string): string =>
+const messageHtml = (message) =>
   message
     .split(RE_NEWLINE)
     .map((line) => (line ? escapeHtml(line) : "&nbsp;"))
     .join("<br />");
 
-const maybeField = (label: string, value?: string): string => {
+const maybeField = (label, value) => {
   const v = value?.trim();
   if (!v) {
     return "";
@@ -44,10 +41,7 @@ const maybeField = (label: string, value?: string): string => {
   </section>`;
 };
 
-export const renderContactLeadEmail = (
-  submission: ContactLeadSubmission,
-  assets: EmailAssets
-): string => {
+export const renderContactLeadEmail = (submission, assets) => {
   const name = submission.fullName.trim() || "Website visitor";
   const service = submission.serviceLabel?.trim();
   const phone = submission.phoneNumber?.trim();
@@ -62,7 +56,7 @@ export const renderContactLeadEmail = (
     <title>New roofing inquiry</title>
   </head>
   <body style="background:#f3f5f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;margin:0;padding:24px 0;color:#1a2b22;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">New roofing inquiry from ${escapeHtml(name)}${service ? ` · ${escapeHtml(service)}` : ""}</div>
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">New roofing inquiry from ${escapeHtml(name)}${service ? ` \u00b7 ${escapeHtml(service)}` : ""}</div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
       <tr>
         <td align="center">

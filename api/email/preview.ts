@@ -6,9 +6,9 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { fetchClientEmail } from "../../server/email/sanity.js";
-import { renderClientEmail } from "../../server/email/template.js";
-import type { EmailAssets } from "../../server/email/types.js";
+import { fetchClientEmail } from "./sanity.js";
+import { renderClientEmail } from "./template.js";
+import type { EmailAssets } from "./types.js";
 
 const ASSET_BASE = (
   process.env.EMAIL_ASSET_BASE_URL ?? "https://www.tandra.me"

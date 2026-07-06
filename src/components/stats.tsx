@@ -86,7 +86,7 @@ export const Stats: React.FC<StatsProps> = ({
               variants={itemVariants}
             >
               <stat.icon color={theme.colors.purple} height={48} width={48} />
-              <div className="wa-stack wa-align-items-start">
+              <div className="wa-stack wa-align-items-start wa-gap-0">
                 <span style={statsValueStyle}>{stat.value}</span>
                 <span style={statsTextStyle}>{stat.name}</span>
               </div>

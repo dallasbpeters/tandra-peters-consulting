@@ -13,22 +13,22 @@ import { CONTACT_API_PATH, Contact } from "./contact";
 
 // ─── module-level regex constants ────────────────────────────────────────────
 
-const FULL_NAME_LABEL = /full name/i;
-const EMAIL_ADDRESS_LABEL = /email address/i;
-const YOUR_MESSAGE_LABEL = /your message/i;
-const PROPERTY_ADDRESS_LABEL = /property address/i;
-const SEND_MESSAGE_BUTTON = /send message/i;
-const MESSAGE_WAS_SENT = /message was sent/i;
-const CONSENT_ERROR = /please confirm you agree to be contacted/i;
-const SOMETHING_FAILED_ON_SERVER = /something failed on the server/i;
-const ENDPOINT_NOT_FOUND = /endpoint was not found/i;
-const NOT_ALLOWED_TO_SUBMIT = /not allowed to submit/i;
-const EMAIL_DELIVERY_NOT_CONFIGURED = /email delivery isn't configured/i;
-const COULD_NOT_SEND_MESSAGE = /could not send your message/i;
-const UNEXPECTED_RESPONSE = /unexpected response/i;
-const SERVER_RETURNED_HTML_ERROR = /server returned an error instead of json/i;
-const SERVER_FAILED_ON_VERCEL = /server failed to run on vercel/i;
-const NETWORK_OR_CORS_ERROR = /network or cors error/i;
+const FULL_NAME_LABEL = /full name/iu;
+const EMAIL_ADDRESS_LABEL = /email address/iu;
+const YOUR_MESSAGE_LABEL = /your message/iu;
+const PROPERTY_ADDRESS_LABEL = /property address/iu;
+const SEND_MESSAGE_BUTTON = /send message/iu;
+const MESSAGE_WAS_SENT = /message was sent/iu;
+const CONSENT_ERROR = /please confirm you agree to be contacted/iu;
+const SOMETHING_FAILED_ON_SERVER = /something failed on the server/iu;
+const ENDPOINT_NOT_FOUND = /endpoint was not found/iu;
+const NOT_ALLOWED_TO_SUBMIT = /not allowed to submit/iu;
+const EMAIL_DELIVERY_NOT_CONFIGURED = /email delivery isn't configured/iu;
+const COULD_NOT_SEND_MESSAGE = /could not send your message/iu;
+const UNEXPECTED_RESPONSE = /unexpected response/iu;
+const SERVER_RETURNED_HTML_ERROR = /server returned an error instead of json/iu;
+const SERVER_FAILED_ON_VERCEL = /server failed to run on vercel/iu;
+const NETWORK_OR_CORS_ERROR = /network or cors error/iu;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 

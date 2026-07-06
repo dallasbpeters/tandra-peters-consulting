@@ -218,22 +218,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: GROQ_DEFAULT_HEADERS,
     });
 
-    const baseRequest = {
-      messages: body.messages,
-      ...(insights
-        ? { experimental_telemetry: { isEnabled: true, ...insights } }
-        : {}),
-    } as const;
+    const experimentalTelemetry = insights
+      ? { isEnabled: true, ...insights }
+      : undefined;
 
     const runWithModel = async (modelId: string) => {
       let responseText: string;
+      const model = groq(modelId);
       try {
         ({ text: responseText } = await generateText({
-          ...baseRequest,
-          model: groq(modelId),
+          model,
+          messages: body.messages,
+          experimental_telemetry: experimentalTelemetry,
+          stopWhen: stepCountIs(10),
           system: SYSTEM_PROMPT,
           tools,
-          stopWhen: stepCountIs(10),
         }));
       } catch (toolError) {
         const toolErrorMessage =
@@ -243,8 +242,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         ({ text: responseText } = await generateText({
-          ...baseRequest,
-          model: groq(modelId),
+          model,
+          messages: body.messages,
+          experimental_telemetry: experimentalTelemetry,
           system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
         }));
       }

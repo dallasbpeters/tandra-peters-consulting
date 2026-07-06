@@ -4,14 +4,38 @@ import { useColorSchemeValue } from "sanity";
  * Embeds the client email preview inside Studio so editors can see the
  * rendered email as they publish `clientEmail` / `emailSignature`.
  *
- * In local dev, uses the react-email preview server (`pnpm dev:email`) if
- * `SANITY_STUDIO_EMAIL_PREVIEW_URL` points to it. In production, falls back
- * to the site's `/api/email/preview` endpoint (served from www.tandra.me).
+ * Uses the site's `/api/email/preview` endpoint by default. Local dev can
+ * override the origin with `SANITY_STUDIO_EMAIL_PREVIEW_URL`.
  */
-const PREVIEW_BASE =
-  // oxlint-disable-next-line require-unicode-regexp
-  process.env.SANITY_STUDIO_EMAIL_PREVIEW_URL?.replace(/\/$/, "") ||
-  "https://www.tandra.me";
+const TRAILING_SLASH_RE = /\/$/u;
+
+const stripTrailingSlash = (value: string): string =>
+  value.replace(TRAILING_SLASH_RE, "");
+
+const getBrowserOrigin = (): string | undefined => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  return window.location.origin;
+};
+
+const resolvePreviewBase = (): string => {
+  const configured =
+    process.env.SANITY_STUDIO_EMAIL_PREVIEW_URL ||
+    process.env.SANITY_STUDIO_PREVIEW_URL;
+
+  if (configured) {
+    return stripTrailingSlash(configured);
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:3001";
+  }
+
+  return stripTrailingSlash(getBrowserOrigin() ?? "https://www.tandra.me");
+};
+
+const PREVIEW_BASE = resolvePreviewBase();
 
 const PREVIEW_URL = `${PREVIEW_BASE}/api/email/preview`;
 
@@ -39,8 +63,7 @@ export function EmailPreviewTool() {
         }}
       >
         Live render of the client email. Publish content under{" "}
-        <strong>Emails</strong>, then refresh. Needs the email preview server
-        running (<code>pnpm dev:email</code>).
+        <strong>Emails</strong>, then refresh.
       </div>
       <iframe
         src={PREVIEW_URL}

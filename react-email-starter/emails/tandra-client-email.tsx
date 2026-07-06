@@ -14,8 +14,8 @@ const baseUrl = process.env.VERCEL_URL
 
 const assets: EmailAssets = {
   headerLogoUrl: `${baseUrl}/static/BC_Horizontal_Color.png`,
-  signatureLogoFallback: `${baseUrl}/static/BC_Horizontal_Color.png`,
   signatureHeadshotFallback: `${baseUrl}/static/tandra.webp`,
+  signatureLogoFallback: `${baseUrl}/static/BC_Horizontal_Color.png`,
 };
 
 export const TandraClientEmail = async (props: ClientEmailContent) => {
@@ -25,21 +25,21 @@ export const TandraClientEmail = async (props: ClientEmailContent) => {
 };
 
 TandraClientEmail.PreviewProps = {
-  subject: "Your roof inspection summary & next steps",
-  previewText: "Here's what I found on your roof and what we'll do next.",
-  greeting: "Hi Sarah,",
+  closing: "Talk soon,",
   ctaLabel: "View your inspection report",
   ctaUrl: "https://www.tandra.me",
-  closing: "Talk soon,",
+  greeting: "Hi Sarah,",
+  previewText: "Here's what I found on your roof and what we'll do next.",
   signature: {
-    name: "Tandra Peters",
-    jobTitle: "Roofing Consultant",
     company: "Birdcreek Roofing",
-    tagline: "Helping Central Texas homeowners through the roofing process.",
-    phone: "(512) 968-3965",
     email: "tandra@birdcreekroofing.com",
+    jobTitle: "Roofing Consultant",
+    name: "Tandra Peters",
+    phone: "(512) 968-3965",
+    tagline: "Helping Central Texas homeowners through the roofing process.",
     website: "https://www.tandra.me",
   },
+  subject: "Your roof inspection summary & next steps",
 } satisfies ClientEmailContent;
 
 export default TandraClientEmail;

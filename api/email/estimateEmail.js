@@ -1,8 +1,4 @@
-import type { EmailAssets, EstimateSubmission } from "./types.js";
-
-type Variant = "visitor" | "lead";
-
-const escapeHtml = (value: string): string =>
+const escapeHtml = (value) =>
   value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -10,12 +6,11 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeAttr = (value: string): string =>
-  escapeHtml(value).replaceAll("`", "&#96;");
+const escapeAttr = (value) => escapeHtml(value).replaceAll("`", "&#96;");
 
 const WHITESPACE_RE = /\s+/;
 
-const answerRows = (answers: EstimateSubmission["answers"]): string =>
+const answerRows = (answers) =>
   answers
     .map(
       (row) =>
@@ -26,17 +21,13 @@ const answerRows = (answers: EstimateSubmission["answers"]): string =>
     )
     .join("");
 
-export const renderEstimateEmail = (
-  submission: EstimateSubmission,
-  assets: EmailAssets,
-  variant: Variant
-): string => {
+export const renderEstimateEmail = (submission, assets, variant) => {
   const firstName =
     submission.fullName.trim().split(WHITESPACE_RE)[0] || "there";
   const isVisitor = variant === "visitor";
   const previewText = isVisitor
     ? `Your roof estimate: roughly ${submission.rangeDisplay}`
-    : `New estimate lead · ${submission.fullName} · ${submission.rangeDisplay}`;
+    : `New estimate lead \u00b7 ${submission.fullName} \u00b7 ${submission.rangeDisplay}`;
   const scheduleUrl = "https://www.tandra.me/#contact";
 
   return `<!doctype html>
@@ -73,12 +64,12 @@ export const renderEstimateEmail = (
 
                 ${
                   isVisitor
-                    ? `<p style="font-size:14px;line-height:22px;color:#1a2b22;margin:18px 0;">This is a ballpark only—your real quote depends on materials, pitch, access, and what we find once we're up on the roof. Want a precise number? Let's set up a free look.</p>
+                    ? `<p style="font-size:14px;line-height:22px;color:#1a2b22;margin:18px 0;">This is a ballpark only\u2014your real quote depends on materials, pitch, access, and what we find once we're up on the roof. Want a precise number? Let's set up a free look.</p>
                        <p style="margin:4px 0;">
                          <a href="${escapeAttr(scheduleUrl)}" style="display:inline-block;background:#3a7d5d;border-radius:8px;color:#ffffff;font-size:15px;font-weight:600;padding:12px 22px;text-decoration:none;">Schedule a free inspection</a>
                        </p>
                        <hr style="border:0;border-top:1px solid #e4e8e6;margin:22px 0 0;" />
-                       <p style="font-size:11px;line-height:18px;color:#8a958e;margin:20px 0 0;">— Tandra Peters, Roofing Consultant · Birdcreek Roofing</p>`
+                       <p style="font-size:11px;line-height:18px;color:#8a958e;margin:20px 0 0;">\u2014 Tandra Peters, Roofing Consultant \u00b7 Birdcreek Roofing</p>`
                     : `<p style="margin:8px 0 4px;">
                          <a href="mailto:${escapeAttr(submission.email)}?subject=${encodeURIComponent("Your roof estimate")}" style="display:inline-block;background:#3a7d5d;border-radius:8px;color:#ffffff;font-size:15px;font-weight:600;padding:12px 22px;text-decoration:none;">Reply to ${escapeHtml(firstName)}</a>
                        </p>
