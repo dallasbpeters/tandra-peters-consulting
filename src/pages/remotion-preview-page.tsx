@@ -41,6 +41,9 @@ const messageStyle: React.CSSProperties = {
   textAlign: "center",
 };
 
+const getInitialFrame = (entry: CompositionEntry): number =>
+  Math.min(entry.previewFrame ?? 0, entry.durationInFrames - 1);
+
 export const RemotionPreviewPage = () => {
   const [searchParams] = useSearchParams();
   const requestedId = searchParams.get("id") ?? "tandra-intro";
@@ -160,6 +163,7 @@ export const RemotionPreviewPage = () => {
         controls
         durationInFrames={entry.durationInFrames}
         fps={entry.fps}
+        initialFrame={getInitialFrame(entry)}
         inputProps={inputProps}
         key={entry.id}
         loop

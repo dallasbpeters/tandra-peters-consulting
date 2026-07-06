@@ -45,6 +45,8 @@ export interface CompositionEntry {
   id: CompositionId;
   /** Human label shown in the Studio picker. */
   label: string;
+  /** Frame shown when the in-browser player first loads. */
+  previewFrame?: number;
   /**
    * When set, the preview merges live Sanity copy from this homePage object
    * field into the input props. Only `TandraIntro` is CMS-backed today.
@@ -66,6 +68,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
     height: 1080,
     id: "tandra-intro",
     label: "Homepage intro",
+    previewFrame: TANDRA_INTRO_FPS,
     sanityField: "tandraIntroVideo",
     width: 1920,
   },
