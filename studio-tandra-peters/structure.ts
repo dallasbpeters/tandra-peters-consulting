@@ -83,6 +83,15 @@ export const structure: StructureResolver = (S) =>
             .defaultOrdering([{ direction: "desc", field: "updatedAt" }])
         ),
       S.listItem()
+        .title("Desk board")
+        .id("desk-board-section")
+        .child(
+          S.documentTypeList("deskBoardItem")
+            .id("desk-board-documents")
+            .title("Desk board")
+            .defaultOrdering([{ direction: "desc", field: "createdAt" }])
+        ),
+      S.listItem()
         .title("Insurance workflow")
         .child(
           S.document()

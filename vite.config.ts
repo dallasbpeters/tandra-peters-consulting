@@ -12,13 +12,14 @@ import { viteAgentDevApi } from "./plugins/vite-agent-dev-api";
 import { viteAnalyticsApi } from "./plugins/vite-analytics-api";
 import { viteContactDevApi } from "./plugins/vite-contact-dev-api";
 import { viteDeskAreaIntelApi } from "./plugins/vite-desk-area-intel-api";
+import { viteDeskBoardApi } from "./plugins/vite-desk-board-api";
 import { viteDeskCaptureApi } from "./plugins/vite-desk-capture-api";
+import { viteDeskPlanApi } from "./plugins/vite-desk-plan-api";
 import { viteDeskTargetsApi } from "./plugins/vite-desk-targets-api";
 import { viteEmailDevApi } from "./plugins/vite-email-dev-api";
 import { viteEstimateDevApi } from "./plugins/vite-estimate-dev-api";
 import { viteFalDevApi } from "./plugins/vite-fal-dev-api";
 import { viteRenderTandraIntroApi } from "./plugins/vite-render-tandra-intro-api";
-import { viteRoofCheckApi } from "./plugins/vite-roof-check-api";
 import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
 import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
 import { viteSitemapApi } from "./plugins/vite-sitemap-api";
@@ -123,10 +124,11 @@ export default defineConfig(({ mode }) => {
     viteWorkflowSaveApi(env) as unknown as PluginOption,
     viteAdVersionsApi(env) as unknown as PluginOption,
     viteDeskAreaIntelApi(env) as unknown as PluginOption,
+    viteDeskBoardApi(env) as unknown as PluginOption,
     viteDeskCaptureApi(env) as unknown as PluginOption,
+    viteDeskPlanApi(env) as unknown as PluginOption,
     viteDeskTargetsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
-    viteRoofCheckApi(env) as unknown as PluginOption,
     viteEstimateDevApi(env) as unknown as PluginOption,
     viteRenderTandraIntroApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,

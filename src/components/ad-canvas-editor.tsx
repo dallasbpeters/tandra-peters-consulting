@@ -185,7 +185,7 @@ const LOGO_SOURCES: Record<LogoVariant, string> = {
 
 const svgTextCache = new Map<string, string>();
 
-async function fetchSvgText(src: string): Promise<string> {
+const fetchSvgText = async (src: string): Promise<string> => {
   const cached = svgTextCache.get(src);
   if (cached !== undefined) {
     return cached;
@@ -194,20 +194,25 @@ async function fetchSvgText(src: string): Promise<string> {
   const text = await res.text();
   svgTextCache.set(src, text);
   return text;
-}
+};
 
-const SVG_STYLE_BLOCK_RE = /(<style[^>]*>)([\s\S]*?)(<\/style>)/i;
-const SVG_WHITE_FILL_RE = /fill:\s*(#fff|white)\b/gi;
+const SVG_STYLE_BLOCK_RE =
+  /(?<open><style[^>]*>)(?<body>[\s\S]*?)(?<close><\/style>)/iu;
+const SVG_WHITE_FILL_RE = /fill:\s*(?<fill>#fff|white)\b/giu;
 
-function colorizeSvgText(svgText: string, color: string): string {
-  return svgText.replace(
-    SVG_STYLE_BLOCK_RE,
-    (_m, open, body: string, close) =>
-      `${open}${body.replace(SVG_WHITE_FILL_RE, `fill:${color}`)}${close}`
-  );
-}
+const colorizeSvgText = (svgText: string, color: string): string =>
+  svgText.replace(SVG_STYLE_BLOCK_RE, (...args) => {
+    const groups = args.at(-1) as {
+      open: string;
+      body: string;
+      close: string;
+    };
+    return `${groups.open}${groups.body.replace(SVG_WHITE_FILL_RE, `fill:${color}`)}${groups.close}`;
+  });
 
 const blobToDataUrl = (blob: Blob): Promise<string> =>
+  // FileReader is a callback-based API; wrapping it in a Promise is required.
+  // oxlint-disable-next-line promise/avoid-new
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.addEventListener("load", () => resolve(String(reader.result)));
@@ -239,15 +244,21 @@ const buildFontFaceCss = (asset: FontFaceAsset, dataUrl: string) =>
     .filter(Boolean)
     .join("\n");
 
-const getAdCanvasFontEmbedCss = (): Promise<string> => {
-  adCanvasFontEmbedCssPromise ??= Promise.all(
-    AD_CANVAS_FONT_ASSETS.map(async (asset) =>
-      buildFontFaceCss(asset, await fetchFontDataUrl(asset.url))
-    )
-  )
-    .then((fontFaces) => fontFaces.join("\n"))
-    .catch(() => "");
+const buildAdCanvasFontEmbedCss = async (): Promise<string> => {
+  try {
+    const fontFaces = await Promise.all(
+      AD_CANVAS_FONT_ASSETS.map(async (asset) =>
+        buildFontFaceCss(asset, await fetchFontDataUrl(asset.url))
+      )
+    );
+    return fontFaces.join("\n");
+  } catch {
+    return "";
+  }
+};
 
+const getAdCanvasFontEmbedCss = (): Promise<string> => {
+  adCanvasFontEmbedCssPromise ??= buildAdCanvasFontEmbedCss();
   return adCanvasFontEmbedCssPromise;
 };
 
@@ -294,14 +305,16 @@ const LogoImage = ({ variant, color }: LogoImageProps) => {
       return;
     }
     let live = true;
-    fetchSvgText(baseSrc).then((text) => {
+    const applyColorizedSvg = async () => {
+      const text = await fetchSvgText(baseSrc);
       if (live) {
         const colorized = colorizeSvgText(text, color);
         setSrc(
           `data:image/svg+xml;charset=utf-8,${encodeURIComponent(colorized)}`
         );
       }
-    });
+    };
+    applyColorizedSvg();
     return () => {
       live = false;
     };
@@ -317,6 +330,16 @@ const MIN_FONT_SIZE = 0.8;
 const MAX_FONT_SIZE = 40;
 const NUDGE_STEP = 0.5;
 const NUDGE_STEP_LARGE = 2;
+
+const ARROW_NUDGE: Record<
+  string,
+  (el: CanvasElement, step: number) => Partial<CanvasElement>
+> = {
+  ArrowDown: (el, step) => ({ y: el.y + step }),
+  ArrowLeft: (el, step) => ({ x: el.x - step }),
+  ArrowRight: (el, step) => ({ x: el.x + step }),
+  ArrowUp: (el, step) => ({ y: el.y - step }),
+};
 
 /** Touch has no right-click — holding still this long opens the context menu. */
 const LONG_PRESS_MS = 450;
@@ -454,6 +477,8 @@ const exportCanvasNode = async (
   }
 
   try {
+    // requestAnimationFrame is a callback API; a Promise wrapper is required.
+    // oxlint-disable-next-line promise/avoid-new
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => resolve());
     });
@@ -501,17 +526,27 @@ const exportCanvasNode = async (
 };
 
 const blobToImage = (blob: Blob): Promise<HTMLImageElement> =>
+  // Image loading is a callback API; a Promise wrapper is required.
+  // oxlint-disable-next-line promise/avoid-new
   new Promise((resolve, reject) => {
     const url = URL.createObjectURL(blob);
     const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not load the exported design."));
-    };
+    img.addEventListener(
+      "load",
+      () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      },
+      { once: true }
+    );
+    img.addEventListener(
+      "error",
+      () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not load the exported design."));
+      },
+      { once: true }
+    );
     img.src = url;
   });
 
@@ -773,12 +808,7 @@ export const AdCanvasEditor = ({
             thumbHeight,
             backgroundColorRef.current
           );
-          return await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
+          return await blobToDataUrl(blob);
         } catch {
           return null;
         }
@@ -1253,71 +1283,80 @@ export const AdCanvasEditor = ({
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (menu) {
-          setMenu(null);
-          return;
-        }
-        if (editingId) {
-          commitEdit();
-          return;
-        }
-        setSelectedId(null);
+    const handleEscape = () => {
+      if (menu) {
+        setMenu(null);
         return;
       }
+      if (editingId) {
+        commitEdit();
+        return;
+      }
+      setSelectedId(null);
+    };
 
-      if (isEditableTarget(event.target)) {
-        return;
+    const runModifierCommand = (event: KeyboardEvent, id: string) => {
+      if (event.key.toLowerCase() === "d") {
+        duplicateElement(id);
+        return true;
       }
-      if (!selectedId) {
-        return;
+      if (event.key === "]") {
+        moveLayer(id, event.shiftKey ? "front" : "forward");
+        return true;
       }
-      const selected = elementsRef.current.find((el) => el.id === selectedId);
-      if (!selected) {
-        return;
+      if (event.key === "[") {
+        moveLayer(id, event.shiftKey ? "back" : "backward");
+        return true;
       }
+      return false;
+    };
 
+    const nudgeSelected = (selected: CanvasElement, event: KeyboardEvent) => {
+      const step = event.shiftKey ? NUDGE_STEP_LARGE : NUDGE_STEP;
+      const patch = ARROW_NUDGE[event.key];
+      if (!patch) {
+        return false;
+      }
+      patchElement(selected.id, patch(selected, step));
+      return true;
+    };
+
+    const handleSelectedKey = (
+      selected: CanvasElement,
+      event: KeyboardEvent
+    ) => {
       if (event.key === "Delete" || event.key === "Backspace") {
         if (!selected.locked) {
           event.preventDefault();
-          removeElement(selectedId);
+          removeElement(selected.id);
         }
         return;
       }
 
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "d") {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        runModifierCommand(event, selected.id)
+      ) {
         event.preventDefault();
-        duplicateElement(selectedId);
         return;
       }
 
-      if ((event.metaKey || event.ctrlKey) && event.key === "]") {
+      if (!selected.locked && nudgeSelected(selected, event)) {
         event.preventDefault();
-        moveLayer(selectedId, event.shiftKey ? "front" : "forward");
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleEscape();
         return;
       }
-
-      if ((event.metaKey || event.ctrlKey) && event.key === "[") {
-        event.preventDefault();
-        moveLayer(selectedId, event.shiftKey ? "back" : "backward");
+      if (isEditableTarget(event.target) || !selectedId) {
         return;
       }
-
-      const step = event.shiftKey ? NUDGE_STEP_LARGE : NUDGE_STEP;
-      if (event.key === "ArrowLeft" && !selected.locked) {
-        event.preventDefault();
-        patchElement(selectedId, { x: selected.x - step });
-      } else if (event.key === "ArrowRight" && !selected.locked) {
-        event.preventDefault();
-        patchElement(selectedId, { x: selected.x + step });
-      } else if (event.key === "ArrowUp" && !selected.locked) {
-        event.preventDefault();
-        patchElement(selectedId, { y: selected.y - step });
-      } else if (event.key === "ArrowDown" && !selected.locked) {
-        event.preventDefault();
-        patchElement(selectedId, { y: selected.y + step });
+      const selected = elementsRef.current.find((el) => el.id === selectedId);
+      if (selected) {
+        handleSelectedKey(selected, event);
       }
     };
 
@@ -1438,14 +1477,15 @@ export const AdCanvasEditor = ({
       return shareCapturePromiseRef.current;
     }
     const filename = buildAdExportFilename(selectedPlatform.id);
-    const promise = captureBlob({ clearUi: false })
-      .then((blob) => {
+    const promise = (async () => {
+      try {
+        const blob = await captureBlob({ clearUi: false });
         shareBlobRef.current = { blob, filename };
         return blob;
-      })
-      .finally(() => {
+      } finally {
         shareCapturePromiseRef.current = null;
-      });
+      }
+    })();
     shareCapturePromiseRef.current = promise;
     return promise;
   }, [captureBlob, selectedPlatform.id]);
@@ -1456,13 +1496,14 @@ export const AdCanvasEditor = ({
     if (shareCacheKey === "") {
       return;
     }
-    const timeout = window.setTimeout(() => {
-      prepareShareBlob()
-        .then(() => setShareReady(true))
-        .catch(() => {
-          shareBlobRef.current = null;
-          setShareReady(false);
-        });
+    const timeout = window.setTimeout(async () => {
+      try {
+        await prepareShareBlob();
+        setShareReady(true);
+      } catch {
+        shareBlobRef.current = null;
+        setShareReady(false);
+      }
     }, 900);
     return () => window.clearTimeout(timeout);
   }, [prepareShareBlob, shareCacheKey]);
@@ -1471,10 +1512,14 @@ export const AdCanvasEditor = ({
     setShareError(null);
     const prepared = shareBlobRef.current;
     if (!prepared) {
-      prepareShareBlob().catch(() => {
-        shareBlobRef.current = null;
-        setShareReady(false);
-      });
+      (async () => {
+        try {
+          await prepareShareBlob();
+        } catch {
+          shareBlobRef.current = null;
+          setShareReady(false);
+        }
+      })();
       setShareError("Preparing the image. Try Share again in a moment.");
       return;
     }

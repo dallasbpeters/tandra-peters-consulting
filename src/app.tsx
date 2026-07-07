@@ -40,11 +40,6 @@ const EstimatorPage = lazy(async () => {
   return { default: module.EstimatorPage };
 });
 
-const RoofCheckPage = lazy(async () => {
-  const module = await import("./pages/roof-check-page");
-  return { default: module.RoofCheckPage };
-});
-
 const PrivacyPolicyPage = lazy(async () => {
   const module = await import("./pages/privacy-policy-page");
   return { default: module.PrivacyPolicyPage };
@@ -152,8 +147,6 @@ const appRouter = createBrowserRouter([
       { element: <InsuranceFaqsPage />, path: "insurance-faqs" },
       { element: <RoofInspections />, path: "roof-inspection" },
       { element: <RoofInspections />, path: "roof-inspections" },
-      { element: <RoofCheckPage />, path: "roof-check" },
-      { element: <RoofCheckPage />, path: "roof-check/:areaSlug" },
       { element: <EstimatorPage />, path: "estimate" },
       { element: <FeatureBuilderPage />, path: "agent" },
       { element: <MarketingAgentPage />, path: "marketing" },
