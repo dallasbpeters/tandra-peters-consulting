@@ -1,3 +1,63 @@
+.desk-next > div {
+  display: grid;
+  gap: var(--theme-spacing-sm);
+  max-width: 44rem;
+}
+
+.desk-lead > div {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+}
+
+.desk-lead strong {
+  color: oklch(25.66% 0.046 163.6);
+}
+
+.desk-lead span,
+.desk-lead p {
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 68%, transparent);
+}
+
+.desk-area-county span {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 64%, transparent);
+}
+
+.desk-canvass-summary span,
+.desk-canvass-name span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 56%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.desk-metric span {
+  font-size: 0.88rem;
+  font-weight: 850;
+  color: oklch(25.66% 0.046 163.6);
+}
+
+.desk-area-intel__source span {
+  max-width: 26rem;
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.35;
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 54%, transparent);
+  text-align: right;
+}
+
+.desk-canvass-summary > div {
+  display: grid;
+  gap: 2px;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  background: oklch(96.63% 0.004 106.47);
+  border: 1px solid
+    color-mix(in oklch, oklch(20.94% 0.034 164.2) 10%, transparent);
+  border-radius: var(--theme-radius-medium);
+}
+
 .desk {
   display: grid;
   gap: var(--theme-spacing-xl);
@@ -140,12 +200,6 @@
 .desk-metric strong {
   font-size: 2.2rem;
   line-height: 1;
-  color: oklch(25.66% 0.046 163.6);
-}
-
-.desk-metric span {
-  font-size: 0.88rem;
-  font-weight: 850;
   color: oklch(25.66% 0.046 163.6);
 }
 
@@ -309,15 +363,6 @@
   max-width: 28rem;
 }
 
-.desk-area-intel__source span {
-  max-width: 26rem;
-  font-size: 0.74rem;
-  font-weight: 750;
-  line-height: 1.35;
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 54%, transparent);
-  text-align: right;
-}
-
 .desk-area-intel__layout {
   display: grid;
   grid-template-columns: minmax(20rem, 0.92fr) minmax(20rem, 1.08fr);
@@ -359,29 +404,10 @@
   gap: var(--theme-spacing-sm);
 }
 
-.desk-canvass-summary > div {
-  display: grid;
-  gap: 2px;
-  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
-  background: oklch(96.63% 0.004 106.47);
-  border: 1px solid
-    color-mix(in oklch, oklch(20.94% 0.034 164.2) 10%, transparent);
-  border-radius: var(--theme-radius-medium);
-}
-
 .desk-canvass-summary strong {
   font-size: 1.5rem;
   font-weight: 850;
   color: oklch(25.66% 0.046 163.6);
-}
-
-.desk-canvass-summary span,
-.desk-canvass-name span {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 56%, transparent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .desk-canvass-name {
@@ -621,12 +647,6 @@
   color: oklch(25.66% 0.046 163.6);
 }
 
-.desk-area-county span {
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 64%, transparent);
-}
-
 .desk-loop {
   counter-reset: desk-loop;
 }
@@ -793,20 +813,6 @@
   border: 1px solid
     color-mix(in oklch, oklch(20.94% 0.034 164.2) 10%, transparent);
   border-radius: var(--theme-radius-medium);
-}
-
-.desk-lead > div {
-  display: grid;
-  gap: var(--theme-spacing-hairline);
-}
-
-.desk-lead strong {
-  color: oklch(25.66% 0.046 163.6);
-}
-
-.desk-lead span,
-.desk-lead p {
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 68%, transparent);
 }
 
 .desk-lead p {
@@ -990,12 +996,6 @@
   justify-content: space-between;
   color: oklch(25.66% 0.046 163.6);
   background: oklch(96.64% 0.012 137.78);
-}
-
-.desk-next > div {
-  display: grid;
-  gap: var(--theme-spacing-sm);
-  max-width: 44rem;
 }
 
 .desk-next svg {
