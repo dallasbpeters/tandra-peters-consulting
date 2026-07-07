@@ -378,7 +378,7 @@
 
 /* eslint-disable-next-line css/use-baseline */
 .agent-chat
-  [data-slot="input-group-addon"][data-align="block-start"]:not(:has(> *)) {
+[data-slot="input-group-addon"][data-align="block-start"]:not(:has(> *)) {
   display: none;
   padding: 0;
 }

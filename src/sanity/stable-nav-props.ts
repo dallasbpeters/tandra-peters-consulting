@@ -8,9 +8,9 @@ let memoryCache: Partial<NavProps> | null = null;
 const isCompleteNavProps = (props: Partial<NavProps>): props is NavProps =>
   Boolean(
     props.ctaText &&
-    props.ctaHref &&
-    props.navItems &&
-    props.navItems.length > 0
+      props.ctaHref &&
+      props.navItems &&
+      props.navItems.length > 0
   );
 
 const readSessionCache = (): Partial<NavProps> | null => {

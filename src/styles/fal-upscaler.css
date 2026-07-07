@@ -19,11 +19,7 @@
   padding: clamp(var(--theme-spacing-lg), 3vw, var(--theme-spacing-xxl));
   color: var(--fal-text);
   background:
-    radial-gradient(
-      circle at top left,
-      rgb(157 207 117 / 16%),
-      transparent 30%
-    ),
+    radial-gradient(circle at top left, rgb(157 207 117 / 16%), transparent 30%),
     radial-gradient(
       circle at bottom right,
       rgb(78 127 255 / 12%),

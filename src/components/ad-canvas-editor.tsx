@@ -1,14 +1,14 @@
+import bebasNeueLatinUrl from "@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url";
+import ibmPlexSerifLatinItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-italic.woff2?url";
+import ibmPlexSerifLatinUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-normal.woff2?url";
+import ibmPlexSerifLatinExtItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-italic.woff2?url";
+import ibmPlexSerifLatinExtUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-normal.woff2?url";
 import caveatLatinExtUrl from "@fontsource-variable/caveat/files/caveat-latin-ext-wght-normal.woff2?url";
 import caveatLatinUrl from "@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2?url";
 import hankenLatinExtItalicUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-italic.woff2?url";
 import hankenLatinExtUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-normal.woff2?url";
 import hankenLatinItalicUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-italic.woff2?url";
 import hankenLatinUrl from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2?url";
-import bebasNeueLatinUrl from "@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url";
-import ibmPlexSerifLatinItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-italic.woff2?url";
-import ibmPlexSerifLatinUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-400-normal.woff2?url";
-import ibmPlexSerifLatinExtItalicUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-italic.woff2?url";
-import ibmPlexSerifLatinExtUrl from "@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-ext-400-normal.woff2?url";
 import { usePostHog } from "@posthog/react";
 import { toBlob } from "html-to-image";
 import {
