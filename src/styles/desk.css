@@ -1,3 +1,20 @@
+.desk-asset div {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  min-width: 0;
+}
+
+.desk-asset span {
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 62%, transparent);
+}
+
+.desk-canvass-row__body span {
+  font-size: 0.78rem;
+  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 60%, transparent);
+}
+
 .desk-next > div {
   display: grid;
   gap: var(--theme-spacing-sm);
@@ -75,7 +92,7 @@
     135deg,
     oklch(20.94% 0.034 164.2) 0%,
     oklch(35.31% 0.061 139.03) 48%,
-    oklch(56.679% 0.25529 299.051) 100%
+    oklch(56.679% 0.25 299.051) 100%
   );
   border-radius: var(--theme-radius-large);
 }
@@ -491,11 +508,6 @@
   white-space: nowrap;
 }
 
-.desk-canvass-row__body span {
-  font-size: 0.78rem;
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 60%, transparent);
-}
-
 .desk-canvass-row__homes {
   display: grid;
   justify-items: end;
@@ -724,7 +736,6 @@
 .desk-capture-form textarea {
   min-height: 7rem;
   line-height: 1.5;
-  resize: vertical;
 }
 
 .desk-capture-form input:focus-visible,
@@ -938,18 +949,6 @@
   padding-top: var(--theme-spacing-md);
   border-top: 1px solid
     color-mix(in oklch, oklch(20.94% 0.034 164.2) 10%, transparent);
-}
-
-.desk-asset div {
-  display: grid;
-  gap: var(--theme-spacing-hairline);
-  min-width: 0;
-}
-
-.desk-asset span {
-  font-size: 0.82rem;
-  font-weight: 750;
-  color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 62%, transparent);
 }
 
 .desk-channel-grid {
