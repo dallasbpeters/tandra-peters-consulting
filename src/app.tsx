@@ -40,6 +40,11 @@ const EstimatorPage = lazy(async () => {
   return { default: module.EstimatorPage };
 });
 
+const RoofCheckPage = lazy(async () => {
+  const module = await import("./pages/roof-check-page");
+  return { default: module.RoofCheckPage };
+});
+
 const PrivacyPolicyPage = lazy(async () => {
   const module = await import("./pages/privacy-policy-page");
   return { default: module.PrivacyPolicyPage };
@@ -58,6 +63,11 @@ const CookiePolicyPage = lazy(async () => {
 const SeoDashboardPage = lazy(async () => {
   const module = await import("./pages/seo-dashboard-page");
   return { default: module.SeoDashboardPage };
+});
+
+const DeskPage = lazy(async () => {
+  const module = await import("./pages/desk-page");
+  return { default: module.DeskPage };
 });
 
 const FeatureBuilderPage = lazy(async () => {
@@ -134,6 +144,7 @@ const appRouter = createBrowserRouter([
       { element: <ArticlesIndexPage />, path: "articles" },
       { element: <ArticlePage />, path: "articles/:slug" },
       { element: <SeoDashboardPage />, path: "seo" },
+      { element: <DeskPage />, path: "desk" },
       { element: <PrivacyPolicyPage />, path: "privacy" },
       { element: <TermsOfServicePage />, path: "terms" },
       { element: <CookiePolicyPage />, path: "cookies" },
@@ -141,6 +152,8 @@ const appRouter = createBrowserRouter([
       { element: <InsuranceFaqsPage />, path: "insurance-faqs" },
       { element: <RoofInspections />, path: "roof-inspection" },
       { element: <RoofInspections />, path: "roof-inspections" },
+      { element: <RoofCheckPage />, path: "roof-check" },
+      { element: <RoofCheckPage />, path: "roof-check/:areaSlug" },
       { element: <EstimatorPage />, path: "estimate" },
       { element: <FeatureBuilderPage />, path: "agent" },
       { element: <MarketingAgentPage />, path: "marketing" },

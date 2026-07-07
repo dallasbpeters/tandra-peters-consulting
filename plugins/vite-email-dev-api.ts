@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 
 import { createClient } from "@sanity/client";
 import { Resend } from "resend";
@@ -20,6 +20,7 @@ import {
   authorizeSeoDashboardRequest,
   DashboardAuthError,
 } from "../server/seo/googleAuth.js";
+import { readRequestBody } from "./request-body";
 
 const RENDER_PATH = "/api/email/render";
 const RECIPIENTS_PATH = "/api/email/recipients";
@@ -41,16 +42,6 @@ const TRAILING_SLASH_RE = /\/$/;
 
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const setCors = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -247,7 +238,7 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             json(res, 405, { error: "Method not allowed" });
             return;
           }
-          const body = parseJson(await readBody(req));
+          const body = parseJson(await readRequestBody(req));
           const provided = body.content as ClientEmailContent | undefined;
           const content = provided ?? (await fetchClientEmail()) ?? {};
           const html = await renderClientEmail(content, assetsFrom(env));
@@ -269,7 +260,7 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             });
             return;
           }
-          const body = parseJson(await readBody(req));
+          const body = parseJson(await readRequestBody(req));
           const recipients = parseRecipients(body.recipients);
           if (recipients.length === 0) {
             json(res, 400, { error: "Add at least one valid recipient." });
@@ -343,7 +334,7 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             });
             return;
           }
-          const body = parseJson(await readBody(req));
+          const body = parseJson(await readRequestBody(req));
           const content =
             (body.content as ClientEmailContent | undefined) ?? {};
           const fields = {

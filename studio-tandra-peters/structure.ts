@@ -65,6 +65,15 @@ export const structure: StructureResolver = (S) =>
             .title("SEO dashboard")
         ),
       S.listItem()
+        .title("Desk leads")
+        .id("desk-leads-section")
+        .child(
+          S.documentTypeList("deskLead")
+            .id("desk-leads-documents")
+            .title("Desk leads")
+            .defaultOrdering([{ direction: "desc", field: "capturedAt" }])
+        ),
+      S.listItem()
         .title("Insurance workflow")
         .child(
           S.document()
@@ -116,7 +125,7 @@ export const structure: StructureResolver = (S) =>
                     .id("articles-post-documents")
                     .title("Posts")
                     .defaultOrdering([
-                      { field: "publishedAt", direction: "desc" },
+                      { direction: "desc", field: "publishedAt" },
                     ])
                 ),
             ])
@@ -155,7 +164,7 @@ export const structure: StructureResolver = (S) =>
                     .id("email-contacts-documents")
                     .title("Contacts")
                     .defaultOrdering([
-                      { field: "lastContactedAt", direction: "desc" },
+                      { direction: "desc", field: "lastContactedAt" },
                     ])
                 ),
             ])
@@ -228,6 +237,11 @@ export const structure: StructureResolver = (S) =>
       ...S.documentTypeListItems().filter((item) => {
         const id = item.getId() || "";
         // `emailContact` is placed under the Emails hub above.
-        return !SINGLETONS.has(id) && id !== "post" && id !== "emailContact";
+        return (
+          !SINGLETONS.has(id) &&
+          id !== "post" &&
+          id !== "emailContact" &&
+          id !== "deskLead"
+        );
       }),
     ]);

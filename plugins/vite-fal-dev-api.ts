@@ -2,24 +2,16 @@
  * Serves Fal image and ad-copy routes during Vite dev without `vercel dev`.
  * Requires FAL_KEY in repo-root .env.local.
  */
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
+
+import { readRequestBody } from "./request-body";
 
 const FAL_IMAGE_PATH = "/api/fal/generate-image";
 const FAL_AD_COPY_PATH = "/api/fal/generate-ad-copy";
 const FAL_UPSCALE_PATH = "/api/fal/upscale-image";
 const FAL_PATHS = new Set([FAL_IMAGE_PATH, FAL_AD_COPY_PATH, FAL_UPSCALE_PATH]);
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const sendOptions = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -91,7 +83,7 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
         const { handler } = await loadFalHandler(pathname);
         const host = req.headers.host ?? "localhost:3001";
         const pathWithQuery = req.url ?? pathname;
-        const bodyBuf = await readBody(req);
+        const bodyBuf = await readRequestBody(req);
         const headers = new Headers();
         for (const [key, value] of Object.entries(req.headers)) {
           if (value == null) {

@@ -1,23 +1,12 @@
-import type { IncomingMessage } from "node:http";
-
 import type { Plugin } from "vite";
 
 import renderTandraIntro from "../api/render-tandra-intro.js";
+import { readRequestBody } from "./request-body";
 
 const RENDER_PATH = "/api/render-tandra-intro";
 
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
   if (!buffer.length) {
@@ -80,7 +69,7 @@ export const viteRenderTandraIntroApi = (
       }
 
       try {
-        const body = parseJson(await readBody(req));
+        const body = parseJson(await readRequestBody(req));
         const headers = {
           ...req.headers,
           ...(env.RENDER_VIDEO_SECRET

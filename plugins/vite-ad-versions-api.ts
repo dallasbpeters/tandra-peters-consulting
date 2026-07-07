@@ -1,9 +1,10 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 
 import { createClient } from "@sanity/client";
 import type { Plugin } from "vite";
 
 import { parseGoogleIdToken } from "../api/lib/google-auth";
+import { readRequestBody } from "./request-body";
 
 const AD_VERSIONS_PATH = "/api/ad-versions";
 const SANITY_PROJECT_ID = "7irm699i";
@@ -13,16 +14,6 @@ const MAX_CONFIG_BYTES = 200_000;
 
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const setCors = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -125,7 +116,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
       }
 
       try {
-        const bodyBuffer = await readBody(req);
+        const bodyBuffer = await readRequestBody(req);
         const body = bodyBuffer.length
           ? (JSON.parse(bodyBuffer.toString("utf8")) as {
               id?: unknown;

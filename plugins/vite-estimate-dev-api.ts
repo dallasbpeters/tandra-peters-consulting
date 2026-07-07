@@ -1,23 +1,12 @@
-import type { IncomingMessage } from "node:http";
-
 import type { Plugin } from "vite";
 
 import { processEstimateSubmission } from "../server/email/estimateSubmission.js";
+import { readRequestBody } from "./request-body";
 
 const ESTIMATE_PATH = "/api/estimate";
 
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer | string) => {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
   if (!buffer.length) {
@@ -66,7 +55,7 @@ export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
 
       try {
         const result = await processEstimateSubmission(
-          parseJson(await readBody(req)),
+          parseJson(await readRequestBody(req)),
           {
             resendApiKey: pick(env, "RESEND_API_KEY"),
             emailFrom: pick(env, "EMAIL_FROM"),

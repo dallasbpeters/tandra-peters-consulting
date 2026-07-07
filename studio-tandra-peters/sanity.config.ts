@@ -28,6 +28,7 @@ import {
   LazyGaDashboardTool,
   LazyImageManagerTool,
   LazyRemotionVideoTool,
+  LazyDeskTool,
 } from "./components/lazy-studio-tools";
 import { useStudioClient } from "./hooks/useStudioClient";
 import { schemaTypes } from "./schemaTypes";
@@ -40,7 +41,7 @@ import { studioFlags } from "./studioFlags";
 interface TransformTargetCreateIfNotExists {
   _id: string;
   _type?: string;
-  initialValues?: Record<string, any>;
+  initialValues?: Record<string, unknown>;
   operation: "createIfNotExists";
 }
 
@@ -491,6 +492,11 @@ export default defineConfig({
   tools: (prev) => [
     ...prev,
     {
+      component: LazyDeskTool,
+      name: "desk",
+      title: "Desk",
+    },
+    {
       component: LazyImageManagerTool,
       name: "image-manager",
       title: "Image Manager",
@@ -589,6 +595,7 @@ export default defineConfig({
                   resolve: () => ({
                     locations: [
                       { href: "/", title: "Home" },
+                      { href: "/desk", title: "Desk" },
                       { href: "/privacy", title: "Privacy" },
                       { href: "/terms", title: "Terms" },
                       { href: "/cookies", title: "Cookies" },
@@ -631,6 +638,7 @@ export default defineConfig({
                   route: "/articles/:slug",
                 },
                 { filter: `_type == "siteSettings"`, route: "/privacy" },
+                { filter: `_type == "siteSettings"`, route: "/desk" },
                 { filter: `_type == "siteSettings"`, route: "/terms" },
                 { filter: `_type == "siteSettings"`, route: "/cookies" },
               ]),

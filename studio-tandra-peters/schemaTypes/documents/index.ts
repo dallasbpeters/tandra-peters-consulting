@@ -12,6 +12,7 @@ export { aiContextType } from "./aiContext";
 export { articlesPageType } from "./articlesPage";
 export { default as beforeAfterGalleryType } from "./beforeAfterGallery";
 export { clientEmailType } from "./clientEmail";
+export { deskLeadType } from "./desk-lead";
 export { emailContactType } from "./emailContact";
 export { emailSignatureType } from "./emailSignature";
 export { estimatorPageType } from "./estimatorPage";

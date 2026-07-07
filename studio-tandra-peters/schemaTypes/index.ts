@@ -5,6 +5,7 @@ import {
   beforeAfterGalleryType,
   clientEmailType,
   customSlotsSettingsType,
+  deskLeadType,
   emailContactType,
   emailSignatureType,
   estimatorPageType,
@@ -62,6 +63,7 @@ import { workflowDiagramNodeType } from "./objects/workflowDiagramNode";
 import { workflowDiagramNodeSubsectionType } from "./objects/workflowDiagramNodeSubsection";
 import { postType } from "./postType";
 import { serviceAreaMapType } from "./serviceAreaMap";
+
 export const schemaTypes = [
   adCreativeVersionType,
   blockContentType,
@@ -113,6 +115,7 @@ export const schemaTypes = [
   aiContextType,
   seoDashboardInsightsType,
   clientEmailType,
+  deskLeadType,
   emailSignatureType,
   emailContactType,
   roofSceneSettingsType,

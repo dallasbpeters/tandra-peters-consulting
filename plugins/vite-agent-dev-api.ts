@@ -5,7 +5,7 @@
  * `vercel dev`. Requires SANITY_API_READ_TOKEN and GROQ_API_KEY in repo-root
  * `.env.local`.
  */
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
@@ -17,6 +17,7 @@ import {
 import { normalizeVisionMessages } from "../api/lib/normalize-vision-messages";
 import { pickResponseAgentModel } from "../api/lib/response-agent-models";
 import { RESPONSE_AGENT_SYSTEM_PROMPT } from "../api/lib/response-agent-prompt";
+import { readRequestBody } from "./request-body";
 
 const AGENT_PATHS = [
   "/api/agent",
@@ -25,16 +26,6 @@ const AGENT_PATHS = [
   "/api/response-agent",
 ] as const;
 type AgentPath = (typeof AGENT_PATHS)[number];
-
-const readBody = (req: IncomingMessage): Promise<Buffer> =>
-  new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (c: Buffer | string) => {
-      chunks.push(typeof c === "string" ? Buffer.from(c) : c);
-    });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
 
 const setCors = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -238,7 +229,7 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
       }
 
       try {
-        const raw = await readBody(req);
+        const raw = await readRequestBody(req);
         const body = JSON.parse(raw.toString()) as {
           messages?: unknown[];
           slug?: string;

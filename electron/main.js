@@ -1,8 +1,10 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createFalClient } from "@fal-ai/client";
+import { config as loadDotenv } from "dotenv";
 import { app, BrowserWindow } from "electron";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +20,28 @@ const APP_ICON_PATH = path.join(
   "assets",
   "app-icon.png"
 );
+
+const loadDesktopEnv = () => {
+  const roots = [
+    process.cwd(),
+    app.getAppPath(),
+    typeof process.resourcesPath === "string" ? process.resourcesPath : "",
+    path.dirname(process.execPath),
+    app.getPath("userData"),
+  ];
+
+  for (const root of roots) {
+    if (!root) {
+      continue;
+    }
+    for (const filename of [".env.local", ".env"]) {
+      const envPath = path.join(root, filename);
+      if (existsSync(envPath)) {
+        loadDotenv({ override: false, path: envPath });
+      }
+    }
+  }
+};
 
 const MODEL_OPTIONS = new Set([
   "RealESRGAN_x4plus",
@@ -255,6 +279,7 @@ const handleDesktopRequest = async (req, res, staticDir, falKey) => {
 };
 
 const startDesktopServer = async () => {
+  loadDesktopEnv();
   const falKey = process.env.FAL_KEY?.trim();
   const staticDir = path.join(app.getAppPath(), "dist");
 

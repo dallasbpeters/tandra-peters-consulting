@@ -15,7 +15,7 @@ const Footer = lazy(async () => {
 });
 
 const AGENT_PATHS = new Set([
-  "/agent",
+  "/desk",
   "/marketing",
   "/ads",
   "/advertising",
@@ -25,7 +25,7 @@ const AGENT_PATHS = new Set([
 ]);
 
 const agentNavItems: NavItem[] = [
-  { href: "/agent", name: "Feature Agent" },
+  { href: "/desk", name: "Desk" },
   { href: "/marketing", name: "Marketing Agent" },
   { href: "/response", name: "Response Agent" },
   { href: "/ads", name: "Ad Builder" },
