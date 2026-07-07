@@ -2,18 +2,30 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
-import { captureDeskLead, listDeskLeads } from "../api/lib/desk-capture.js";
+import {
+  deleteCanvassTarget,
+  listCanvassTargets,
+  saveCanvassTarget,
+} from "../api/lib/desk-targets.js";
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 import { readRequestBody } from "./request-body";
 
-const DESK_CAPTURE_PATH = "/api/desk-capture";
+const DESK_TARGETS_PATH = "/api/desk-targets";
 
 const pathnameOnly = (url: string | undefined): string =>
   (url ?? "").split("?")[0] ?? "";
 
+const queryParam = (url: string | undefined, key: string): string | null => {
+  const queryIndex = (url ?? "").indexOf("?");
+  if (queryIndex === -1) {
+    return null;
+  }
+  return new URLSearchParams((url ?? "").slice(queryIndex + 1)).get(key);
+};
+
 const setCors = (res: ServerResponse): void => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 };
 
@@ -71,13 +83,13 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
   }
 };
 
-const handleDeskCaptureRequest = async (
+const handleDeskTargetsRequest = async (
   req: IncomingMessage,
   res: ServerResponse,
   next: () => void,
   env: Record<string, string>
 ): Promise<void> => {
-  if (pathnameOnly(req.url) !== DESK_CAPTURE_PATH) {
+  if (pathnameOnly(req.url) !== DESK_TARGETS_PATH) {
     next();
     return;
   }
@@ -90,45 +102,57 @@ const handleDeskCaptureRequest = async (
     return;
   }
 
-  if (req.method !== "GET" && req.method !== "POST") {
+  const method = req.method ?? "GET";
+  if (!["GET", "POST", "DELETE"].includes(method)) {
     json(res, 405, { error: "Method not allowed", ok: false });
     return;
   }
 
   const bearer = parseBearerToken(req.headers.authorization);
   const user = bearer ? parseGoogleIdToken(bearer) : null;
-  const capturedBy =
+  const createdBy =
     user && isAllowedGoogleUserFromEnv(user, env) ? user.email : "local-dev";
 
   const sanityWriteToken = readWriteToken(env);
-  const result =
-    req.method === "GET"
-      ? await listDeskLeads({ sanityWriteToken })
-      : await captureDeskLead(parseJson(await readRequestBody(req)), {
-          capturedBy,
-          sanityWriteToken,
-        });
 
+  if (method === "GET") {
+    const result = await listCanvassTargets({ sanityWriteToken });
+    json(res, result.status, result.body);
+    return;
+  }
+
+  if (method === "DELETE") {
+    const id =
+      queryParam(req.url, "id") ?? parseJson(await readRequestBody(req)).id;
+    const result = await deleteCanvassTarget(id, { sanityWriteToken });
+    json(res, result.status, result.body);
+    return;
+  }
+
+  const result = await saveCanvassTarget(
+    parseJson(await readRequestBody(req)),
+    { createdBy, sanityWriteToken }
+  );
   json(res, result.status, result.body);
 };
 
-export const viteDeskCaptureApi = (env: Record<string, string>): Plugin => ({
+export const viteDeskTargetsApi = (env: Record<string, string>): Plugin => ({
   configureServer(server) {
     // oxlint-disable-next-line no-async-endpoint-handlers
     server.middlewares.use(async (req, res, next) => {
       try {
-        await handleDeskCaptureRequest(req, res, next, env);
+        await handleDeskTargetsRequest(req, res, next, env);
       } catch (error) {
-        console.error("[vite-desk-capture-api]", error);
+        console.error("[vite-desk-targets-api]", error);
         json(res, 500, {
           error:
             error instanceof Error
               ? error.message
-              : "Unexpected Desk capture API error.",
+              : "Unexpected Desk targets API error.",
           ok: false,
         });
       }
     });
   },
-  name: "vite-desk-capture-api",
+  name: "vite-desk-targets-api",
 });

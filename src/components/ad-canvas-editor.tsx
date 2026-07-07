@@ -1490,9 +1490,9 @@ export const AdCanvasEditor = ({
       }
       setSharing(true);
       await navigator.share(shareData);
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setShareError(err.message || "Could not share the image.");
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        setShareError(error.message || "Could not share the image.");
       }
     } finally {
       setSharing(false);
@@ -1772,7 +1772,7 @@ export const AdCanvasEditor = ({
             colors={el.colors}
             maxHeight={rowHeightPx}
             minHeight={rowHeightPx}
-            rotate={el.rotate}
+            rotate={false}
             scrollEnd={0}
             scrollStart={0}
           />

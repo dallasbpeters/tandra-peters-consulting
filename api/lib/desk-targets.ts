@@ -1,0 +1,232 @@
+import { randomUUID } from "node:crypto";
+
+import { createClient } from "@sanity/client";
+
+const SANITY_PROJECT_ID = "7irm699i";
+const SANITY_DATASET = "production";
+const SANITY_API_VERSION = "2026-05-29";
+
+const MAX_NAME_LENGTH = 120;
+const MAX_LABEL_LENGTH = 160;
+const MAX_NOTE_LENGTH = 1400;
+const MAX_NEIGHBORHOODS = 60;
+
+const STATUS_OPTIONS = new Set(["planned", "walking", "done"] as const);
+
+const ID_PREFIX = "drafts.deskCanvassTarget.";
+
+export interface CanvassNeighborhood {
+  county: string;
+  homes: number;
+  label: string;
+  latitude: number | null;
+  longitude: number | null;
+  neighborhood: string;
+  postalCode: string;
+  tractFips: string;
+}
+
+export interface CanvassTargetRecord {
+  createdAt: string;
+  createdBy: string;
+  homesTotal: number;
+  id: string;
+  name: string;
+  neighborhoods: CanvassNeighborhood[];
+  notes?: string;
+  status: string;
+  updatedAt: string;
+}
+
+export interface CanvassTargetBody {
+  error?: string;
+  ok: boolean;
+  target?: CanvassTargetRecord;
+  targets?: CanvassTargetRecord[];
+}
+
+export interface CanvassTargetResult {
+  body: CanvassTargetBody;
+  status: number;
+}
+
+interface SaveOptions {
+  createdBy: string;
+  sanityWriteToken: string | undefined;
+}
+
+type ListOptions = Pick<SaveOptions, "sanityWriteToken">;
+
+const sanityClient = (token: string) =>
+  createClient({
+    apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    perspective: "raw",
+    projectId: SANITY_PROJECT_ID,
+    token,
+    useCdn: false,
+  });
+
+const trimTo = (value: unknown, maxLength: number): string =>
+  typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+
+const optionalNumber = (value: unknown): number | null => {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const nonNegativeInt = (value: unknown): number => {
+  const parsed = optionalNumber(value);
+  return parsed === null ? 0 : Math.max(0, Math.round(parsed));
+};
+
+const ensureWriteToken = (token: string | undefined): token is string =>
+  Boolean(token?.trim());
+
+const missingTokenResult = (): CanvassTargetResult => ({
+  body: {
+    error: "SANITY_WRITE_TOKEN or SANITY_API_WRITE_TOKEN is not set.",
+    ok: false,
+  },
+  status: 500,
+});
+
+const normalizeNeighborhoods = (value: unknown): CanvassNeighborhood[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, MAX_NEIGHBORHOODS).map((raw) => {
+    const item =
+      raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    return {
+      county: trimTo(item.county, MAX_LABEL_LENGTH),
+      homes: nonNegativeInt(item.homes),
+      label: trimTo(item.label, MAX_LABEL_LENGTH),
+      latitude: optionalNumber(item.latitude),
+      longitude: optionalNumber(item.longitude),
+      neighborhood: trimTo(item.neighborhood, MAX_LABEL_LENGTH),
+      postalCode: trimTo(item.postalCode, 16),
+      tractFips: trimTo(item.tractFips, 32),
+    };
+  });
+};
+
+const toRecord = (
+  doc: Record<string, unknown>,
+  fallbackId: string
+): CanvassTargetRecord => {
+  const neighborhoods = normalizeNeighborhoods(doc.neighborhoods);
+  return {
+    createdAt: trimTo(doc.createdAt, 40),
+    createdBy: trimTo(doc.createdBy, MAX_NAME_LENGTH),
+    homesTotal: nonNegativeInt(doc.homesTotal),
+    id: trimTo(doc._id, 200) || fallbackId,
+    name: trimTo(doc.name, MAX_NAME_LENGTH),
+    neighborhoods,
+    notes: trimTo(doc.notes, MAX_NOTE_LENGTH) || undefined,
+    status: STATUS_OPTIONS.has(trimTo(doc.status, 20) as never)
+      ? trimTo(doc.status, 20)
+      : "planned",
+    updatedAt: trimTo(doc.updatedAt, 40) || trimTo(doc.createdAt, 40),
+  };
+};
+
+const LIST_QUERY = `*[_type == "deskCanvassTarget"] | order(updatedAt desc)[0...50]{
+  "id": _id,
+  name,
+  status,
+  homesTotal,
+  neighborhoods,
+  notes,
+  createdAt,
+  updatedAt,
+  createdBy
+}`;
+
+export const listCanvassTargets = async (
+  options: ListOptions
+): Promise<CanvassTargetResult> => {
+  if (!ensureWriteToken(options.sanityWriteToken)) {
+    return missingTokenResult();
+  }
+  const targets = await sanityClient(options.sanityWriteToken).fetch<
+    CanvassTargetRecord[]
+  >(LIST_QUERY);
+  return { body: { ok: true, targets }, status: 200 };
+};
+
+const validId = (value: unknown): string | null => {
+  const id = trimTo(value, 200);
+  return id.startsWith(ID_PREFIX) ? id : null;
+};
+
+export const saveCanvassTarget = async (
+  payload: Record<string, unknown>,
+  options: SaveOptions
+): Promise<CanvassTargetResult> => {
+  if (!ensureWriteToken(options.sanityWriteToken)) {
+    return missingTokenResult();
+  }
+
+  const name = trimTo(payload.name, MAX_NAME_LENGTH);
+  const neighborhoods = normalizeNeighborhoods(payload.neighborhoods);
+  if (!name) {
+    return {
+      body: { error: "Give the target a name.", ok: false },
+      status: 400,
+    };
+  }
+  if (neighborhoods.length === 0) {
+    return {
+      body: {
+        error: "Select at least one neighborhood on the map.",
+        ok: false,
+      },
+      status: 400,
+    };
+  }
+
+  const status = STATUS_OPTIONS.has(trimTo(payload.status, 20) as never)
+    ? trimTo(payload.status, 20)
+    : "planned";
+  const homesTotal = neighborhoods.reduce((sum, item) => sum + item.homes, 0);
+  const notes = trimTo(payload.notes, MAX_NOTE_LENGTH);
+  const now = new Date().toISOString();
+  const existingId = validId(payload.id);
+  const id = existingId ?? `${ID_PREFIX}${randomUUID()}`;
+
+  const client = sanityClient(options.sanityWriteToken);
+  const doc = await client.createOrReplace({
+    _id: id,
+    _type: "deskCanvassTarget",
+    createdAt: now,
+    createdBy: options.createdBy,
+    homesTotal,
+    name,
+    neighborhoods: neighborhoods.map((item) => ({
+      _key: item.tractFips || randomUUID(),
+      _type: "neighborhood",
+      ...item,
+    })),
+    notes: notes || undefined,
+    status,
+    updatedAt: now,
+  });
+
+  return { body: { ok: true, target: toRecord(doc, id) }, status: 200 };
+};
+
+export const deleteCanvassTarget = async (
+  rawId: unknown,
+  options: ListOptions
+): Promise<CanvassTargetResult> => {
+  if (!ensureWriteToken(options.sanityWriteToken)) {
+    return missingTokenResult();
+  }
+  const id = validId(rawId);
+  if (!id) {
+    return { body: { error: "Unknown target id.", ok: false }, status: 400 };
+  }
+  await sanityClient(options.sanityWriteToken).delete(id);
+  return { body: { ok: true }, status: 200 };
+};

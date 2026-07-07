@@ -35,7 +35,7 @@ export const deskLeadType = defineType({
   fields: [
     defineField({
       name: "contactName",
-      title: "Name or address",
+      title: "Name",
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
@@ -62,6 +62,39 @@ export const deskLeadType = defineType({
       title: "Neighborhood / city",
       type: "string",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "propertyAddress",
+      title: "Property address",
+      type: "string",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "mailingAddress",
+      title: "Mailing address",
+      type: "string",
+    }),
+    defineField({
+      name: "county",
+      title: "County",
+      type: "string",
+    }),
+    defineField({
+      name: "postalCode",
+      title: "Postal code",
+      type: "string",
+    }),
+    defineField({
+      name: "latitude",
+      readOnly: true,
+      title: "Latitude",
+      type: "number",
+    }),
+    defineField({
+      name: "longitude",
+      readOnly: true,
+      title: "Longitude",
+      type: "number",
     }),
     defineField({
       name: "need",

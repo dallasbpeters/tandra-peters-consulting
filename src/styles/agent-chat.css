@@ -46,8 +46,8 @@
 
 .agent-chat__header {
   max-width: 48rem;
+  margin-block: var(--theme-spacing-xxl);
   margin-inline: auto;
-  margin-bottom: var(--theme-spacing-xxl);
   text-align: center;
 }
 
@@ -337,6 +337,7 @@
 .agent-chat [data-slot="input-group"] {
   --tw-ring-shadow: 0 0 #0000;
   --tw-ring-width: 0;
+
   background-color: var(--agent-chat-bg-panel);
   border-color: var(--agent-chat-input-border);
   border-radius: var(--radius-lg);
@@ -352,6 +353,7 @@
 ) {
   --tw-ring-shadow: 0 0 #0000;
   --tw-ring-width: 0;
+
   border-color: transparent;
   border-width: 1px;
   border-radius: var(--radius-lg);

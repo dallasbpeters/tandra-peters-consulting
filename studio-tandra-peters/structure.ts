@@ -74,6 +74,15 @@ export const structure: StructureResolver = (S) =>
             .defaultOrdering([{ direction: "desc", field: "capturedAt" }])
         ),
       S.listItem()
+        .title("Canvassing targets")
+        .id("desk-canvass-targets-section")
+        .child(
+          S.documentTypeList("deskCanvassTarget")
+            .id("desk-canvass-targets-documents")
+            .title("Canvassing targets")
+            .defaultOrdering([{ direction: "desc", field: "updatedAt" }])
+        ),
+      S.listItem()
         .title("Insurance workflow")
         .child(
           S.document()
@@ -241,7 +250,8 @@ export const structure: StructureResolver = (S) =>
           !SINGLETONS.has(id) &&
           id !== "post" &&
           id !== "emailContact" &&
-          id !== "deskLead"
+          id !== "deskLead" &&
+          id !== "deskCanvassTarget"
         );
       }),
     ]);

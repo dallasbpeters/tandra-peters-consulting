@@ -1,6 +1,5 @@
-/** Absolute URL to the site's Fal API. Studio runs on a different origin than Vite. */
 const configuredFalApiEndpoint = process.env.SANITY_STUDIO_FAL_API_URL?.replace(
-  /\/$/,
+  /\/$/u,
   ""
 );
 const isLocalFalApiEndpoint =

@@ -1,3 +1,4 @@
+import { AddressAutofill } from "@mapbox/search-js-react";
 import { usePostHog } from "@posthog/react";
 import { CheckCircle, Home, Send, WarningTriangle } from "iconoir-react";
 import type { FormEvent } from "react";
@@ -31,6 +32,8 @@ const timingOptions = [
   "Not urgent",
 ] as const;
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
+
 const initialForm = (area: string): RoofCheckForm => ({
   address: "",
   area,
@@ -60,6 +63,16 @@ const parseRoofCheckResponse = async (
   } catch {
     return {};
   }
+};
+
+const getAutofillAddress = (res: unknown): string => {
+  const result = res as {
+    features?: {
+      properties?: { full_address?: string; place_name?: string };
+    }[];
+  } | null;
+  const props = result?.features?.[0]?.properties;
+  return props?.full_address ?? props?.place_name ?? "";
 };
 
 const ProofList = () => (
@@ -200,18 +213,46 @@ export const RoofCheckPage = () => {
               />
             </label>
 
-            <label>
+            <label htmlFor="roof-check-address">
               <span>Street address</span>
-              <input
-                autoComplete="street-address"
-                disabled={isSending}
-                onChange={(event) =>
-                  updateField("address", event.currentTarget.value)
-                }
-                placeholder="Optional"
-                type="text"
-                value={form.address}
-              />
+              {MAPBOX_TOKEN ? (
+                <AddressAutofill
+                  accessToken={MAPBOX_TOKEN}
+                  onRetrieve={(result) => {
+                    const address = getAutofillAddress(result);
+                    if (address) {
+                      updateField("address", address);
+                    }
+                  }}
+                  options={{ country: "US", language: "en" }}
+                >
+                  <input
+                    autoComplete="street-address"
+                    disabled={isSending}
+                    id="roof-check-address"
+                    onChange={(event) =>
+                      updateField("address", event.currentTarget.value)
+                    }
+                    placeholder="123 Main St, Georgetown, TX"
+                    required
+                    type="text"
+                    value={form.address}
+                  />
+                </AddressAutofill>
+              ) : (
+                <input
+                  autoComplete="street-address"
+                  disabled={isSending}
+                  id="roof-check-address"
+                  onChange={(event) =>
+                    updateField("address", event.currentTarget.value)
+                  }
+                  placeholder="123 Main St, Georgetown, TX"
+                  required
+                  type="text"
+                  value={form.address}
+                />
+              )}
             </label>
 
             <label>

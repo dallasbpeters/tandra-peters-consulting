@@ -1,6 +1,8 @@
+import { AddressAutofill } from "@mapbox/search-js-react";
 import { usePostHog } from "@posthog/react";
 import {
   ArrowRight,
+  BubbleDownload,
   Calendar,
   CheckCircle,
   Community,
@@ -12,9 +14,9 @@ import {
   VideoCamera,
   WarningTriangle,
 } from "iconoir-react";
-import type { FormEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { DeskAreaMap } from "../components/desk-area-map";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
@@ -29,16 +31,6 @@ interface Metric {
   label: string;
   note: string;
   value: string;
-}
-
-interface HotArea {
-  area: string;
-  audience: string;
-  cue: string;
-  firstMove: string;
-  priority: string;
-  signal: string;
-  tone: Tone;
 }
 
 interface ActionItem {
@@ -76,9 +68,15 @@ interface LeadFormState {
   area: string;
   contactMethod: string;
   contactName: string;
+  county: string;
+  latitude: number | null;
+  longitude: number | null;
+  mailingAddress: string;
   need: string;
   nextStep: string;
   notes: string;
+  postalCode: string;
+  propertyAddress: string;
   source: string;
 }
 
@@ -87,9 +85,13 @@ interface DeskLeadRecord {
   capturedAt: string;
   contactMethod: string;
   contactName: string;
+  county?: string;
   id: string;
+  mailingAddress?: string;
   need: string;
   nextStep: string;
+  postalCode?: string;
+  propertyAddress?: string;
   source: string;
   status: string;
 }
@@ -113,7 +115,102 @@ interface LeadFollowUp {
   postAngle: string;
 }
 
-const sourceOptions: readonly SelectOption[] = [
+interface DeskAreaTarget {
+  countyFips: string;
+  countyLabel: string;
+  firstMove: string;
+  geometry: {
+    coordinates: number[][][];
+    type: "Polygon";
+  } | null;
+  id: string;
+  latitude: number;
+  longitude: number;
+  mailingAudience: string;
+  mailingCity: string;
+  mailingOffer: string;
+  mailingRouteName: string;
+  neighborhoodLabel: string;
+  olderHomeEstimate: number;
+  olderHomeShare: number;
+  ownerOccupied: number;
+  ownerOccupiedShare: number;
+  postalCode: string;
+  priorityScore: number;
+  recommendedMailerCount: number;
+  roofCheckPath: string;
+  totalHousingUnits: number;
+  tractLabel: string;
+  why: string;
+}
+
+interface DeskAreaCounty {
+  countyFips: string;
+  label: string;
+  olderHomeEstimate: number;
+  olderHomeShare: number;
+  ownerOccupied: number;
+  ownerOccupiedShare: number;
+  roofCheckPath: string;
+  targetCount: number;
+  totalHousingUnits: number;
+}
+
+interface DeskAreaIntelResponse {
+  counties: DeskAreaCounty[];
+  error?: string;
+  generatedAt: string;
+  ok: boolean;
+  release: string;
+  source: string;
+  targets: DeskAreaTarget[];
+}
+
+interface CanvassNeighborhood {
+  county: string;
+  homes: number;
+  label: string;
+  latitude: number | null;
+  longitude: number | null;
+  neighborhood: string;
+  postalCode: string;
+  tractFips: string;
+}
+
+interface CanvassTargetRecord {
+  createdAt: string;
+  createdBy: string;
+  homesTotal: number;
+  id: string;
+  name: string;
+  neighborhoods: CanvassNeighborhood[];
+  notes?: string;
+  status: string;
+  updatedAt: string;
+}
+
+interface CanvassTargetResponse {
+  error?: string;
+  ok: boolean;
+  target?: CanvassTargetRecord;
+  targets?: CanvassTargetRecord[];
+}
+
+type CanvassStatus = "planned" | "walking" | "done";
+
+const canvassStatusLabels: Record<CanvassStatus, string> = {
+  done: "Done",
+  planned: "Planned",
+  walking: "Walking",
+};
+
+const canvassStatusOrder: readonly CanvassStatus[] = [
+  "planned",
+  "walking",
+  "done",
+];
+
+const _sourceOptions: readonly SelectOption[] = [
   { label: "Neighbor referral", value: "neighbor-referral" },
   { label: "Postcard", value: "postcard" },
   { label: "Neighborhood post", value: "neighborhood-post" },
@@ -124,7 +221,7 @@ const sourceOptions: readonly SelectOption[] = [
   { label: "Other", value: "other" },
 ] as const;
 
-const nextStepOptions: readonly SelectOption[] = [
+const _nextStepOptions: readonly SelectOption[] = [
   { label: "Call today", value: "call-today" },
   { label: "Send checklist", value: "send-checklist" },
   { label: "Book inspection", value: "book-inspection" },
@@ -133,14 +230,21 @@ const nextStepOptions: readonly SelectOption[] = [
 ] as const;
 
 const WHITESPACE_RE = /\s+/u;
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 
-const initialLeadForm: LeadFormState = {
+const _initialLeadForm: LeadFormState = {
   area: "",
   contactMethod: "",
   contactName: "",
+  county: "",
+  latitude: null,
+  longitude: null,
+  mailingAddress: "",
   need: "",
   nextStep: "call-today",
   notes: "",
+  postalCode: "",
+  propertyAddress: "",
   source: "neighbor-referral",
 };
 
@@ -171,39 +275,6 @@ const metrics: readonly Metric[] = [
     label: "Daily actions",
     note: "Concrete outreach tasks the desk should create.",
     value: "6",
-  },
-] as const;
-
-const hotAreas: readonly HotArea[] = [
-  {
-    area: "Georgetown / Round Rock",
-    audience: "Owner-occupied neighborhoods with older roof likelihood",
-    cue: "Roof age, growth, and recurring hail/wind exposure make this the best first test market.",
-    firstMove: "Roof-check landing page + postcard + Nextdoor post.",
-    priority: "Start here",
-    signal: "Roof age + weather exposure",
-    tone: "critical",
-  },
-  {
-    area: "Temple / Belton / Killeen",
-    audience:
-      "Affordable single-family neighborhoods with repair-or-replace questions",
-    cue: "Lower CPC pressure than Austin and enough roof age to justify education-first outreach.",
-    firstMove:
-      "Partner email to agents and inspectors + Facebook neighborhood post.",
-    priority: "Second wave",
-    signal: "Roof age + partner channel",
-    tone: "warm",
-  },
-  {
-    area: "Waco / McLennan",
-    audience:
-      "Homeowners and property managers who need a trusted local roof read",
-    cue: "Good fit for trust-building content before pushing a paid mail drop.",
-    firstMove: "Google Business Profile post + short inspection video ad.",
-    priority: "Content warmup",
-    signal: "Trust-building market",
-    tone: "neutral",
   },
 ] as const;
 
@@ -353,7 +424,7 @@ const campaignAssets: readonly CampaignAsset[] = [
 
 const toneClass = (tone: Tone) => `desk-pill desk-pill--${tone}`;
 
-const labelFor = (
+const _labelFor = (
   value: string,
   options: readonly SelectOption[],
   fallback: string
@@ -371,7 +442,180 @@ const truncateSentence = (value: string, maxLength: number): string => {
   return `${trimmed.slice(0, maxLength - 1).trim()}...`;
 };
 
-const formatLeadDate = (value: string): string => {
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+const formatNumber = (value: number): string => numberFormatter.format(value);
+
+interface MapboxAddressParts {
+  city: string;
+  coords: [number, number] | null;
+  county: string;
+  full: string;
+  neighborhood: string;
+  postalCode: string;
+}
+
+const toRecord = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+
+const stringValue = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
+
+const contextName = (
+  context: Record<string, unknown>,
+  keys: readonly string[]
+): string => {
+  for (const key of keys) {
+    const entry = toRecord(context[key]);
+    const name = stringValue(entry.name) || stringValue(entry.text);
+    if (name) {
+      return name;
+    }
+  }
+  return "";
+};
+
+const mapboxCoordinates = (
+  feature: Record<string, unknown>
+): [number, number] | null => {
+  const geometryCoords = toRecord(feature.geometry).coordinates;
+  if (
+    Array.isArray(geometryCoords) &&
+    typeof geometryCoords[0] === "number" &&
+    typeof geometryCoords[1] === "number"
+  ) {
+    return [geometryCoords[0], geometryCoords[1]];
+  }
+
+  const coordinates = toRecord(toRecord(feature.properties).coordinates);
+  const { latitude, longitude } = coordinates;
+  if (typeof longitude === "number" && typeof latitude === "number") {
+    return [longitude, latitude];
+  }
+
+  return null;
+};
+
+const _getMapboxAddressParts = (res: unknown): MapboxAddressParts => {
+  const { features } = toRecord(res);
+  const feature = Array.isArray(features) ? toRecord(features[0]) : {};
+  const props = toRecord(feature.properties);
+  const context = toRecord(props.context);
+
+  return {
+    city: contextName(context, ["place", "locality"]),
+    coords: mapboxCoordinates(feature),
+    county: contextName(context, ["district"]),
+    full: stringValue(props.full_address) || stringValue(props.place_name),
+    neighborhood: contextName(context, ["neighborhood"]),
+    postalCode: contextName(context, ["postcode"]),
+  };
+};
+
+const _coalesceArea = (parts: MapboxAddressParts, fallback: string): string =>
+  parts.neighborhood || parts.city || fallback;
+
+interface DeskAddressInputProps {
+  disabled: boolean;
+  id: string;
+  label: string;
+  onChange: (value: string) => void;
+  onRetrieve: (result: unknown) => void;
+  placeholder: string;
+  required?: boolean;
+  value: string;
+}
+
+const _DeskAddressInput = ({
+  disabled,
+  id,
+  label,
+  onChange,
+  onRetrieve,
+  placeholder,
+  required = false,
+  value,
+}: DeskAddressInputProps) => {
+  const input = (
+    <input
+      autoComplete="street-address"
+      disabled={disabled}
+      id={id}
+      maxLength={500}
+      onChange={(event) => onChange(event.currentTarget.value)}
+      placeholder={placeholder}
+      required={required}
+      type="text"
+      value={value}
+    />
+  );
+
+  return (
+    <label htmlFor={id}>
+      <span>{label}</span>
+      {MAPBOX_TOKEN ? (
+        <AddressAutofill
+          accessToken={MAPBOX_TOKEN}
+          onRetrieve={onRetrieve}
+          options={{ country: "US", language: "en" }}
+        >
+          {input}
+        </AddressAutofill>
+      ) : (
+        input
+      )}
+    </label>
+  );
+};
+
+const escapeCsvField = (value: number | string): string => {
+  const text = String(value);
+  if (!(text.includes(",") || text.includes('"') || text.includes("\n"))) {
+    return text;
+  }
+  return `"${text.replaceAll('"', '""')}"`;
+};
+
+const slugify = (value: string): string =>
+  value
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/gu, "-")
+    .replaceAll(/^-+|-+$/gu, "") || "target";
+
+const buildWalkSheetCsv = (target: CanvassTargetRecord): string => {
+  const rows: (number | string)[][] = [
+    ["neighborhood", "county", "zip", "homes_to_canvass", "walked"],
+  ];
+  for (const item of target.neighborhoods) {
+    rows.push([
+      item.neighborhood || item.label,
+      item.county,
+      item.postalCode,
+      item.homes,
+      "",
+    ]);
+  }
+  return rows
+    .map((row) => row.map((field) => escapeCsvField(field)).join(","))
+    .join("\n");
+};
+
+const downloadWalkSheet = (target: CanvassTargetRecord): void => {
+  const blob = new Blob([buildWalkSheetCsv(target)], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.download = `walk-sheet-${slugify(target.name)}.csv`;
+  link.href = url;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const _formatLeadDate = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return "Just now";
@@ -379,7 +623,7 @@ const formatLeadDate = (value: string): string => {
   return leadDateFormatter.format(date);
 };
 
-const parseDeskCaptureResponse = async (
+const _parseDeskCaptureResponse = async (
   response: Response
 ): Promise<DeskCaptureResponse> => {
   try {
@@ -414,7 +658,7 @@ const nextActionFor = (lead: DeskLeadRecord): string => {
   }
 };
 
-const buildLeadFollowUp = (lead: DeskLeadRecord): LeadFollowUp => {
+const _buildLeadFollowUp = (lead: DeskLeadRecord): LeadFollowUp => {
   const name = firstName(lead.contactName);
   const need = truncateSentence(lead.need, 140);
 
@@ -426,38 +670,29 @@ const buildLeadFollowUp = (lead: DeskLeadRecord): LeadFollowUp => {
   };
 };
 
+const parseDeskAreaIntelResponse = async (
+  response: Response
+): Promise<DeskAreaIntelResponse> => {
+  try {
+    return (await response.json()) as DeskAreaIntelResponse;
+  } catch {
+    return {
+      counties: [],
+      error: response.ok ? undefined : "Area intel returned an empty response.",
+      generatedAt: new Date().toISOString(),
+      ok: response.ok,
+      release: "Unavailable",
+      source: "Unavailable",
+      targets: [],
+    };
+  }
+};
+
 const MetricCard = ({ metric }: { metric: Metric }) => (
   <article className="desk-metric">
     <strong>{metric.value}</strong>
     <span>{metric.label}</span>
     <p>{metric.note}</p>
-  </article>
-);
-
-const HotAreaCard = ({ area }: { area: HotArea }) => (
-  <article className="desk-hot-area">
-    <div className="desk-hot-area__header">
-      <span className={toneClass(area.tone)}>{area.priority}</span>
-      <strong>{area.area}</strong>
-    </div>
-    <dl className="desk-facts">
-      <div>
-        <dt>Signal</dt>
-        <dd>{area.signal}</dd>
-      </div>
-      <div>
-        <dt>Audience</dt>
-        <dd>{area.audience}</dd>
-      </div>
-      <div>
-        <dt>Why now</dt>
-        <dd>{area.cue}</dd>
-      </div>
-    </dl>
-    <div className="desk-hot-area__move">
-      <CheckCircle aria-hidden height={18} width={18} />
-      <span>{area.firstMove}</span>
-    </div>
   </article>
 );
 
@@ -478,6 +713,578 @@ const ActionRow = ({ item }: { item: ActionItem }) => (
     </div>
   </li>
 );
+
+const neighborhoodLabelOf = (target: DeskAreaTarget): string =>
+  target.neighborhoodLabel || target.tractLabel;
+
+const targetToSnapshot = (target: DeskAreaTarget): CanvassNeighborhood => ({
+  county: target.countyLabel,
+  homes: target.olderHomeEstimate,
+  label: target.tractLabel,
+  latitude: target.latitude,
+  longitude: target.longitude,
+  neighborhood: neighborhoodLabelOf(target),
+  postalCode: target.postalCode,
+  tractFips: target.id,
+});
+
+const NeighborhoodRow = ({
+  onToggle,
+  selected,
+  target,
+}: {
+  onToggle: (id: string) => void;
+  selected: boolean;
+  target: DeskAreaTarget;
+}) => (
+  <button
+    aria-pressed={selected}
+    className={`desk-canvass-row${selected ? "desk-canvass-row--selected" : " "}`}
+    onClick={() => onToggle(target.id)}
+    type="button"
+  >
+    <span aria-hidden className="desk-canvass-row__check">
+      {selected ? <CheckCircle height={16} width={16} /> : null}
+    </span>
+    <span className="desk-canvass-row__body">
+      <strong>{neighborhoodLabelOf(target)}</strong>
+      <span>
+        {target.countyLabel}
+        {target.postalCode ? ` · ${target.postalCode}` : ""}
+      </span>
+    </span>
+    <span className="desk-canvass-row__homes">
+      {formatNumber(target.olderHomeEstimate)}
+      <small>homes</small>
+    </span>
+  </button>
+);
+
+const SavedTargetCard = ({
+  isBusy,
+  onDelete,
+  onExport,
+  onOpen,
+  onStatusChange,
+  target,
+}: {
+  isBusy: boolean;
+  onDelete: (target: CanvassTargetRecord) => void;
+  onExport: (target: CanvassTargetRecord) => void;
+  onOpen: (target: CanvassTargetRecord) => void;
+  onStatusChange: (target: CanvassTargetRecord, status: CanvassStatus) => void;
+  target: CanvassTargetRecord;
+}) => (
+  <article className="desk-saved-target">
+    <div className="desk-saved-target__head">
+      <div>
+        <strong>{target.name}</strong>
+        <span>
+          {formatNumber(target.homesTotal)} door hangers ·{" "}
+          {target.neighborhoods.length} neighborhood
+          {target.neighborhoods.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <span className={`desk-status desk-status--${target.status}`}>
+        {canvassStatusLabels[target.status as CanvassStatus] ?? target.status}
+      </span>
+    </div>
+    <div className="desk-saved-target__actions">
+      <button
+        className="desk-text-link"
+        onClick={() => onOpen(target)}
+        type="button"
+      >
+        Open on map
+      </button>
+      <label className="desk-status-select">
+        <span className="desk-visually-hidden">Status for {target.name}</span>
+        <select
+          disabled={isBusy}
+          onChange={(event) =>
+            onStatusChange(target, event.currentTarget.value as CanvassStatus)
+          }
+          value={target.status}
+        >
+          {canvassStatusOrder.map((status) => (
+            <option key={status} value={status}>
+              {canvassStatusLabels[status]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        className="desk-text-link"
+        onClick={() => onExport(target)}
+        type="button"
+      >
+        <BubbleDownload aria-hidden height={15} width={15} />
+        Walk sheet
+      </button>
+      <TransitionLink className="desk-text-link" to="/ads">
+        Door hanger
+      </TransitionLink>
+      <button
+        className="desk-text-link desk-text-link--danger"
+        disabled={isBusy}
+        onClick={() => onDelete(target)}
+        type="button"
+      >
+        Delete
+      </button>
+    </div>
+  </article>
+);
+
+const AreaCountyStrip = ({
+  counties,
+}: {
+  counties: readonly DeskAreaCounty[];
+}) => (
+  <ul aria-label="County home totals" className="desk-area-counties">
+    {counties.map((county) => (
+      <li className="desk-area-county" key={county.countyFips}>
+        <strong>{county.label}</strong>
+        <span>
+          {formatNumber(county.olderHomeEstimate)} likely owner-occupied older
+          homes
+        </span>
+      </li>
+    ))}
+  </ul>
+);
+
+type AuthHeader = { Authorization: string } | null;
+
+const useAreaIntel = () => {
+  const [intel, setIntel] = useState<DeskAreaIntelResponse | null>(null);
+  const [intelError, setIntelError] = useState<string | null>(null);
+  const [isLoadingIntel, setIsLoadingIntel] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+    const load = async () => {
+      try {
+        const response = await fetch("/api/desk-area-intel");
+        const body = await parseDeskAreaIntelResponse(response);
+        if (!isActive) {
+          return;
+        }
+        if (response.ok && body.ok) {
+          setIntel(body);
+        } else {
+          setIntelError(body.error ?? "Could not load neighborhood signals.");
+        }
+      } catch {
+        if (isActive) {
+          setIntelError("Could not load neighborhood signals.");
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingIntel(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  return { intel, intelError, isLoadingIntel };
+};
+
+interface SaveTargetPayload {
+  id?: string;
+  name: string;
+  neighborhoods: CanvassNeighborhood[];
+}
+
+const useCanvassTargets = (authHeader: AuthHeader) => {
+  const [saved, setSaved] = useState<CanvassTargetRecord[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const loadSaved = useCallback(async () => {
+    if (!authHeader) {
+      return;
+    }
+    setIsLoadingSaved(true);
+    try {
+      const response = await fetch("/api/desk-targets", {
+        headers: authHeader,
+      });
+      const body = (await response.json()) as CanvassTargetResponse;
+      if (response.ok && body.ok && body.targets) {
+        setSaved(body.targets);
+      }
+    } catch {
+      /* non-fatal — saved list stays empty */
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  }, [authHeader]);
+
+  useEffect(() => {
+    loadSaved();
+  }, [loadSaved]);
+
+  const saveTarget = useCallback(
+    async (
+      payload: SaveTargetPayload
+    ): Promise<{ error?: string; ok: boolean }> => {
+      if (!authHeader) {
+        return { error: "Sign in to save canvassing targets.", ok: false };
+      }
+      try {
+        const response = await fetch("/api/desk-targets", {
+          body: JSON.stringify(payload),
+          headers: { ...authHeader, "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const body = (await response.json()) as CanvassTargetResponse;
+        if (response.ok && body.ok && body.target) {
+          await loadSaved();
+          return { ok: true };
+        }
+        return { error: body.error, ok: false };
+      } catch {
+        return { error: "Could not save this target.", ok: false };
+      }
+    },
+    [authHeader, loadSaved]
+  );
+
+  const changeStatus = useCallback(
+    async (target: CanvassTargetRecord, status: CanvassStatus) => {
+      if (!authHeader) {
+        return;
+      }
+      setBusyId(target.id);
+      try {
+        await fetch("/api/desk-targets", {
+          body: JSON.stringify({
+            id: target.id,
+            name: target.name,
+            neighborhoods: target.neighborhoods,
+            notes: target.notes,
+            status,
+          }),
+          headers: { ...authHeader, "Content-Type": "application/json" },
+          method: "POST",
+        });
+        await loadSaved();
+      } catch {
+        /* non-fatal */
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [authHeader, loadSaved]
+  );
+
+  const deleteTarget = useCallback(
+    async (target: CanvassTargetRecord) => {
+      if (!authHeader) {
+        return;
+      }
+      setBusyId(target.id);
+      try {
+        await fetch(`/api/desk-targets?id=${encodeURIComponent(target.id)}`, {
+          headers: authHeader,
+          method: "DELETE",
+        });
+        await loadSaved();
+      } catch {
+        /* non-fatal */
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [authHeader, loadSaved]
+  );
+
+  return {
+    busyId,
+    changeStatus,
+    deleteTarget,
+    isLoadingSaved,
+    saveTarget,
+    saved,
+  };
+};
+
+const saveValidationError = (
+  signedIn: boolean,
+  selectedCount: number,
+  name: string
+): string | null => {
+  if (!signedIn) {
+    return "Sign in to save canvassing targets.";
+  }
+  if (selectedCount === 0) {
+    return "Pick neighborhoods on the map first.";
+  }
+  if (!name.trim()) {
+    return "Give this target a name.";
+  }
+  return null;
+};
+
+const CanvassingPlanner = ({
+  auth,
+}: {
+  auth: ReturnType<typeof useGoogleDashboardAuth>;
+}) => {
+  const { intel, intelError, isLoadingIntel } = useAreaIntel();
+  const authHeader = useMemo<AuthHeader>(
+    () => (auth.token ? { Authorization: `Bearer ${auth.token}` } : null),
+    [auth.token]
+  );
+  const {
+    busyId,
+    changeStatus,
+    deleteTarget: removeTarget,
+    isLoadingSaved,
+    saved,
+    saveTarget,
+  } = useCanvassTargets(authHeader);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [focusIds, setFocusIds] = useState<string[]>([]);
+  const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<CaptureMessage | null>(null);
+
+  const targets = useMemo(() => intel?.targets ?? [], [intel]);
+  const counties = useMemo(() => intel?.counties ?? [], [intel]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id]
+    );
+  }, []);
+
+  const selectedTargets = useMemo(
+    () => targets.filter((target) => selectedIds.includes(target.id)),
+    [targets, selectedIds]
+  );
+  const selectedHomes = selectedTargets.reduce(
+    (sum, target) => sum + target.olderHomeEstimate,
+    0
+  );
+
+  const resetForm = useCallback(() => {
+    setSelectedIds([]);
+    setName("");
+    setEditingId(null);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    const invalid = saveValidationError(
+      Boolean(authHeader),
+      selectedTargets.length,
+      name
+    );
+    if (invalid) {
+      setMessage({ text: invalid, tone: "error" });
+      return;
+    }
+    setIsSaving(true);
+    setMessage(null);
+    const result = await saveTarget({
+      id: editingId ?? undefined,
+      name,
+      neighborhoods: selectedTargets.map(targetToSnapshot),
+    });
+    setIsSaving(false);
+    if (result.ok) {
+      setMessage({
+        text: editingId ? "Target updated." : "Target saved.",
+        tone: "success",
+      });
+      resetForm();
+    } else {
+      setMessage({
+        text: result.error ?? "Could not save this target.",
+        tone: "error",
+      });
+    }
+  }, [authHeader, editingId, name, resetForm, saveTarget, selectedTargets]);
+
+  const openTarget = useCallback((target: CanvassTargetRecord) => {
+    const ids = target.neighborhoods
+      .map((item) => item.tractFips)
+      .filter(Boolean);
+    setSelectedIds(ids);
+    setFocusIds([...ids]);
+    setName(target.name);
+    setEditingId(target.id);
+    setMessage(null);
+  }, []);
+
+  const deleteTarget = useCallback(
+    async (target: CanvassTargetRecord) => {
+      await removeTarget(target);
+      setEditingId((current) => (current === target.id ? null : current));
+    },
+    [removeTarget]
+  );
+
+  const hasLoadedNoTargets =
+    !isLoadingIntel && intelError === null && targets.length === 0;
+
+  return (
+    <section className="desk-section desk-area-intel">
+      <div className="desk-section__heading">
+        <StatsUpSquare aria-hidden height={22} width={22} />
+        <div>
+          <span>Canvassing planner</span>
+          <h2>Where to hang door hangers</h2>
+        </div>
+      </div>
+
+      <div className="desk-area-intel__intro">
+        <p>
+          Neighborhoods ranked by public housing signals — owner-occupied
+          concentration and share of older homes. Click the ones worth walking,
+          name the route, and save it as a door-hanger target.
+        </p>
+        <div className="desk-area-intel__source">
+          <span>
+            {intel
+              ? `${intel.release} · ${intel.source}`
+              : "Loading neighborhood signals..."}
+          </span>
+        </div>
+      </div>
+
+      {intelError ? <p className="desk-empty">{intelError}</p> : null}
+
+      <div className="desk-area-intel__layout">
+        <DeskAreaMap
+          focusIds={focusIds}
+          onToggleSelect={toggleSelect}
+          selectedIds={selectedIds}
+          targets={targets}
+        />
+
+        <div className="desk-canvass-builder">
+          <div className="desk-canvass-summary">
+            <div>
+              <strong>{selectedTargets.length}</strong>
+              <span>selected</span>
+            </div>
+            <div>
+              <strong>{formatNumber(selectedHomes)}</strong>
+              <span>door hangers</span>
+            </div>
+          </div>
+
+          <label className="desk-canvass-name">
+            <span>Target name</span>
+            <input
+              onChange={(event) => setName(event.currentTarget.value)}
+              placeholder="Serenada — walk Saturday"
+              type="text"
+              value={name}
+            />
+          </label>
+
+          {message ? (
+            <p
+              className={`desk-capture-message desk-capture-message--${message.tone}`}
+            >
+              {message.text}
+            </p>
+          ) : null}
+
+          <div className="desk-canvass-builder__actions">
+            <button
+              className="desk-primary-link"
+              disabled={isSaving || selectedTargets.length === 0}
+              onClick={handleSave}
+              type="button"
+            >
+              <CheckCircle aria-hidden height={18} width={18} />
+              {(() => {
+                if (isSaving) {
+                  return "Saving...";
+                }
+                return editingId ? "Update target" : "Save target";
+              })()}
+            </button>
+            {selectedTargets.length > 0 || editingId ? (
+              <button
+                className="desk-text-link"
+                onClick={resetForm}
+                type="button"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+
+          <div className="desk-canvass-list">
+            {isLoadingIntel ? (
+              <p className="desk-empty">Loading neighborhoods...</p>
+            ) : null}
+            {targets.map((target) => (
+              <NeighborhoodRow
+                key={target.id}
+                onToggle={toggleSelect}
+                selected={selectedIds.includes(target.id)}
+                target={target}
+              />
+            ))}
+            {hasLoadedNoTargets ? (
+              <p className="desk-empty">
+                No neighborhoods passed the owner-occupied and older-home
+                filters.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="desk-saved-targets">
+        <h3>Saved canvassing targets</h3>
+        {authHeader ? null : (
+          <p className="desk-empty">Sign in to save and reopen targets.</p>
+        )}
+        {authHeader && isLoadingSaved && saved.length === 0 ? (
+          <p className="desk-empty">Loading saved targets...</p>
+        ) : null}
+        {authHeader && !isLoadingSaved && saved.length === 0 ? (
+          <p className="desk-empty">
+            No saved targets yet. Select neighborhoods above and save your first
+            door-hanger route.
+          </p>
+        ) : null}
+        {saved.length > 0 ? (
+          <div className="desk-saved-target-list">
+            {saved.map((target) => (
+              <SavedTargetCard
+                isBusy={busyId === target.id}
+                key={target.id}
+                onDelete={deleteTarget}
+                onExport={downloadWalkSheet}
+                onOpen={openTarget}
+                onStatusChange={changeStatus}
+                target={target}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {counties.length > 0 ? <AreaCountyStrip counties={counties} /> : null}
+    </section>
+  );
+};
 
 const ChannelCard = ({ channel }: { channel: Channel }) => (
   <article className="desk-channel">
@@ -511,372 +1318,6 @@ const CampaignAssetRow = ({ asset }: { asset: CampaignAsset }) => (
     </TransitionLink>
   </li>
 );
-
-const RecentLeadList = ({
-  isLoading,
-  leads,
-}: {
-  isLoading: boolean;
-  leads: readonly DeskLeadRecord[];
-}) => {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const copyText = async (id: string, text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-    } catch {
-      setCopiedId(null);
-    }
-  };
-
-  if (isLoading) {
-    return <p className="desk-empty">Loading captured follow-ups...</p>;
-  }
-
-  if (leads.length === 0) {
-    return (
-      <p className="desk-empty">
-        No captured follow-ups yet. Add the first one as soon as a name,
-        address, or referral comes in.
-      </p>
-    );
-  }
-
-  return (
-    <ul className="desk-lead-list">
-      {leads.map((lead) => {
-        const followUp = buildLeadFollowUp(lead);
-
-        return (
-          <li className="desk-lead" key={lead.id}>
-            <div>
-              <strong>{lead.contactName}</strong>
-              <span>{lead.area}</span>
-            </div>
-            <p>{lead.need}</p>
-            <dl>
-              <div>
-                <dt>Source</dt>
-                <dd>{labelFor(lead.source, sourceOptions, lead.source)}</dd>
-              </div>
-              <div>
-                <dt>Next</dt>
-                <dd>
-                  {labelFor(lead.nextStep, nextStepOptions, lead.nextStep)}
-                </dd>
-              </div>
-              <div>
-                <dt>Captured</dt>
-                <dd>{formatLeadDate(lead.capturedAt)}</dd>
-              </div>
-            </dl>
-            <div className="desk-lead-call-sheet">
-              <strong>Next action</strong>
-              <p>{followUp.nextAction}</p>
-              <div className="desk-lead-copy-grid">
-                <button
-                  onClick={async () => {
-                    await copyText(`${lead.id}:call`, followUp.callOpener);
-                  }}
-                  type="button"
-                >
-                  {copiedId === `${lead.id}:call`
-                    ? "Copied"
-                    : "Copy call opener"}
-                </button>
-                <button
-                  onClick={async () => {
-                    await copyText(`${lead.id}:message`, followUp.messageDraft);
-                  }}
-                  type="button"
-                >
-                  {copiedId === `${lead.id}:message`
-                    ? "Copied"
-                    : "Copy text/email"}
-                </button>
-                <button
-                  onClick={async () => {
-                    await copyText(`${lead.id}:post`, followUp.postAngle);
-                  }}
-                  type="button"
-                >
-                  {copiedId === `${lead.id}:post`
-                    ? "Copied"
-                    : "Copy post angle"}
-                </button>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
-
-const DeskCapturePanel = ({
-  auth,
-}: {
-  auth: ReturnType<typeof useGoogleDashboardAuth>;
-}) => {
-  const [form, setForm] = useState<LeadFormState>(initialLeadForm);
-  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [leads, setLeads] = useState<DeskLeadRecord[]>([]);
-  const [message, setMessage] = useState<CaptureMessage | null>(null);
-
-  const authHeader = useMemo(() => {
-    if (!auth.token) {
-      return null;
-    }
-    return { Authorization: `Bearer ${auth.token}` };
-  }, [auth.token]);
-
-  const updateField = useCallback(
-    (field: keyof LeadFormState, value: string) => {
-      setForm((current) => ({ ...current, [field]: value }));
-    },
-    []
-  );
-
-  const loadLeads = useCallback(async () => {
-    if (!authHeader) {
-      setLeads([]);
-      return;
-    }
-
-    setIsLoadingLeads(true);
-    try {
-      const response = await fetch("/api/desk-capture", {
-        headers: authHeader,
-      });
-      const body = await parseDeskCaptureResponse(response);
-      if (response.ok && body.ok && body.leads) {
-        setLeads(body.leads);
-        return;
-      }
-      setMessage({
-        text: body.error ?? "Could not load captured follow-ups.",
-        tone: "error",
-      });
-    } catch {
-      setMessage({
-        text: "Could not load captured follow-ups.",
-        tone: "error",
-      });
-    } finally {
-      setIsLoadingLeads(false);
-    }
-  }, [authHeader]);
-
-  useEffect(() => {
-    const run = async () => {
-      await loadLeads();
-    };
-    run();
-  }, [loadLeads]);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!authHeader) {
-      setMessage({
-        text: "Sign in before saving follow-ups.",
-        tone: "error",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch("/api/desk-capture", {
-        body: JSON.stringify(form),
-        headers: {
-          ...authHeader,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const body = await parseDeskCaptureResponse(response);
-      if (!(response.ok && body.ok && body.lead)) {
-        setMessage({
-          text: body.error ?? "Could not save this follow-up.",
-          tone: "error",
-        });
-        return;
-      }
-
-      const savedLead = body.lead;
-      setLeads((current) => [
-        savedLead,
-        ...current.filter((lead) => lead.id !== savedLead.id),
-      ]);
-      setForm(initialLeadForm);
-      setMessage({
-        text: "Captured. It is now in Desk leads.",
-        tone: "success",
-      });
-    } catch {
-      setMessage({
-        text: "Could not save this follow-up.",
-        tone: "error",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const formDisabled = isSaving || !authHeader;
-
-  return (
-    <section className="desk-section desk-capture" id="capture">
-      <div className="desk-section__heading">
-        <Mail aria-hidden height={22} width={22} />
-        <div>
-          <span>Capture</span>
-          <h2>Add a follow-up now</h2>
-        </div>
-      </div>
-
-      <div className="desk-capture__layout">
-        <form className="desk-capture-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Name or address</span>
-            <input
-              autoComplete="name"
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("contactName", event.currentTarget.value)
-              }
-              placeholder="Maria R. / 118 Oak Bend"
-              required
-              type="text"
-              value={form.contactName}
-            />
-          </label>
-
-          <label>
-            <span>Phone or email</span>
-            <input
-              autoComplete="email"
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("contactMethod", event.currentTarget.value)
-              }
-              placeholder="512-555-0198 or name@email.com"
-              required
-              type="text"
-              value={form.contactMethod}
-            />
-          </label>
-
-          <label>
-            <span>Neighborhood / city</span>
-            <input
-              autoComplete="address-level2"
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("area", event.currentTarget.value)
-              }
-              placeholder="Georgetown, Serenada, Round Rock..."
-              required
-              type="text"
-              value={form.area}
-            />
-          </label>
-
-          <label>
-            <span>Where it came from</span>
-            <select
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("source", event.currentTarget.value)
-              }
-              value={form.source}
-            >
-              {sourceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="desk-capture-form__wide">
-            <span>What needs follow-up</span>
-            <textarea
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("need", event.currentTarget.value)
-              }
-              placeholder="Roof is 14 years old, wants an inspection before listing..."
-              required
-              rows={4}
-              value={form.need}
-            />
-          </label>
-
-          <label>
-            <span>Next step</span>
-            <select
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("nextStep", event.currentTarget.value)
-              }
-              value={form.nextStep}
-            >
-              {nextStepOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="desk-capture-form__wide">
-            <span>Notes</span>
-            <textarea
-              disabled={formDisabled}
-              onChange={(event) =>
-                updateField("notes", event.currentTarget.value)
-              }
-              placeholder="Who mentioned them, timing, photos needed, best time to call..."
-              rows={3}
-              value={form.notes}
-            />
-          </label>
-
-          {message ? (
-            <p
-              className={`desk-capture-message desk-capture-message--${message.tone}`}
-            >
-              {message.text}
-            </p>
-          ) : null}
-
-          <button
-            className="desk-primary-link"
-            disabled={formDisabled}
-            type="submit"
-          >
-            <CheckCircle aria-hidden height={18} width={18} />
-            {isSaving ? "Saving..." : "Capture follow-up"}
-          </button>
-        </form>
-
-        <aside className="desk-capture-recent">
-          <div>
-            <span className="desk-pill desk-pill--good">Recent</span>
-            <h3>Captured follow-ups</h3>
-          </div>
-          <RecentLeadList isLoading={isLoadingLeads} leads={leads} />
-        </aside>
-      </div>
-    </section>
-  );
-};
 
 const AuthPanel = ({
   auth,
@@ -920,10 +1361,6 @@ const DeskDashboard = ({
           </p>
         </div>
         <nav aria-label="Desk shortcuts" className="desk-hero__actions">
-          <a className="desk-primary-link" href="#capture">
-            <CheckCircle aria-hidden height={18} width={18} />
-            Capture follow-up
-          </a>
           <TransitionLink
             className="desk-primary-link"
             to="/roof-check/georgetown"
@@ -948,51 +1385,8 @@ const DeskDashboard = ({
         ))}
       </section>
 
-      <DeskCapturePanel auth={auth} />
-
-      <section className="desk-grid desk-grid--wide-left">
-        <div className="desk-section">
-          <div className="desk-section__heading">
-            <StatsUpSquare aria-hidden height={22} width={22} />
-            <div>
-              <span>Priority areas</span>
-              <h2>Where to push first</h2>
-            </div>
-          </div>
-          <div className="desk-hot-list">
-            {hotAreas.map((area) => (
-              <HotAreaCard area={area} key={area.area} />
-            ))}
-          </div>
-        </div>
-
-        <aside className="desk-section desk-section--tight">
-          <div className="desk-section__heading">
-            <StatsUpSquare aria-hidden height={22} width={22} />
-            <div>
-              <span>Capture model</span>
-              <h2>The first loop</h2>
-            </div>
-          </div>
-          <ol className="desk-loop">
-            <li>
-              Roof age, local activity, partner, or weather signal creates a
-              priority-area card.
-            </li>
-            <li>
-              Postcards, neighborhood posts, Google updates, and partners send
-              people to one page.
-            </li>
-            <li>
-              The page or Desk captures the name, contact method, neighborhood,
-              issue, and next step.
-            </li>
-            <li>
-              Personal follow-up and useful email turn captured names into
-              inspection calls.
-            </li>
-          </ol>
-        </aside>
+      <section className="desk-grid">
+        <CanvassingPlanner auth={auth} />
       </section>
 
       <section className="desk-grid desk-grid--wide-right">
@@ -1001,7 +1395,7 @@ const DeskDashboard = ({
             <Calendar aria-hidden height={22} width={22} />
             <div>
               <span>Action queue</span>
-              <h2>Today's work</h2>
+              <h2>Today&apos;s work</h2>
             </div>
           </div>
           <ul className="desk-actions">
@@ -1063,6 +1457,7 @@ const DeskDashboard = ({
 export const DeskPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
+  const requireAuth = !import.meta.env.DEV && auth.clientId && !auth.token;
 
   usePageMetadata({
     description:
@@ -1077,7 +1472,7 @@ export const DeskPage = () => {
 
   return (
     <SitePageChrome>
-      {auth.clientId && !auth.token ? (
+      {requireAuth ? (
         <div className={layoutClass.containerWide}>
           <AuthPanel auth={auth} />
         </div>

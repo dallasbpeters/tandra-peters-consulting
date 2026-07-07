@@ -1,25 +1,56 @@
-import { existsSync } from "node:fs";
+import { once } from "node:events";
+import { existsSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+
 import { createFalClient } from "@fal-ai/client";
 import { config as loadDotenv } from "dotenv";
 import { app, BrowserWindow } from "electron";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const FAL_ENDPOINT = "fal-ai/esrgan";
+const DESKTOP_ENV_FILENAME = "desktop-env.json";
+const DESKTOP_ENV_KEYS = new Set([
+  "FAL_AD_COPY_MODEL",
+  "FAL_KEY",
+  "FAL_TXSHINGLE_LORA_URL",
+]);
 let mainWindow = null;
-const DATA_URL_REGEX = /^data:([^;,]+);base64,(.+)$/i;
-const STRIP_EXTENSION_REGEX = /\.[^.]+$/;
+const DATA_URL_REGEX = /^data:(?<mimeType>[^;,]+);base64,(?<base64>.+)$/iu;
+const STRIP_EXTENSION_REGEX = /\.[^.]+$/u;
 const APP_ICON_PATH = path.join(
   app.getAppPath(),
   "electron",
   "assets",
   "app-icon.png"
 );
+
+const applyDesktopEnvValues = (values) => {
+  if (!values || typeof values !== "object") {
+    return;
+  }
+  for (const [key, value] of Object.entries(values)) {
+    if (!DESKTOP_ENV_KEYS.has(key) || typeof value !== "string") {
+      continue;
+    }
+    const trimmed = value.trim();
+    if (trimmed && !process.env[key]) {
+      process.env[key] = trimmed;
+    }
+  }
+};
+
+const loadDesktopEnvJson = (root) => {
+  const envPath = path.join(root, "electron", DESKTOP_ENV_FILENAME);
+  if (!existsSync(envPath)) {
+    return;
+  }
+  try {
+    applyDesktopEnvValues(JSON.parse(readFileSync(envPath, "utf-8")));
+  } catch (error) {
+    console.error("[desktop-env]", error);
+  }
+};
 
 const loadDesktopEnv = () => {
   const roots = [
@@ -40,6 +71,7 @@ const loadDesktopEnv = () => {
         loadDotenv({ override: false, path: envPath });
       }
     }
+    loadDesktopEnvJson(root);
   }
 };
 
@@ -68,13 +100,12 @@ const MIME_TYPES = {
 
 const parseDataUrl = (value) => {
   const match = DATA_URL_REGEX.exec(String(value ?? "").trim());
-  if (!match) {
+  if (!match?.groups) {
     return null;
   }
-  const [, mimeType, base64] = match;
   return {
-    buffer: Buffer.from(base64, "base64"),
-    mimeType,
+    buffer: Buffer.from(match.groups.base64, "base64"),
+    mimeType: match.groups.mimeType,
   };
 };
 
@@ -96,8 +127,8 @@ const stripFileExtension = (value) => value.replace(STRIP_EXTENSION_REGEX, "");
 const sendJson = (res, statusCode, payload) => {
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
     "Content-Length": Buffer.byteLength(body),
+    "Content-Type": "application/json; charset=utf-8",
   });
   res.end(body);
 };
@@ -107,7 +138,7 @@ const _readRequestBody = async (req) => {
   for await (const chunk of req) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  const text = Buffer.concat(chunks).toString("utf8");
+  const text = Buffer.concat(chunks).toString("utf-8");
   return text ? JSON.parse(text) : {};
 };
 
@@ -152,7 +183,7 @@ const readJsonBody = async (req) => {
   for await (const chunk of req) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  const text = Buffer.concat(chunks).toString("utf8");
+  const text = Buffer.concat(chunks).toString("utf-8");
   return text ? JSON.parse(text) : {};
 };
 
@@ -278,33 +309,42 @@ const handleDesktopRequest = async (req, res, staticDir, falKey) => {
   }
 };
 
+const handleDesktopServerRequest = async (req, res, staticDir, falKey) => {
+  try {
+    await handleDesktopRequest(req, res, staticDir, falKey);
+  } catch (error) {
+    console.error("[desktop-server]", error);
+  }
+};
+
+const listenOnAvailablePort = async (server) => {
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  if (address && typeof address === "object") {
+    return address.port;
+  }
+  return 0;
+};
+
 const startDesktopServer = async () => {
   loadDesktopEnv();
   const falKey = process.env.FAL_KEY?.trim();
   const staticDir = path.join(app.getAppPath(), "dist");
 
   const server = createServer((req, res) => {
-    handleDesktopRequest(req, res, staticDir, falKey).catch(() => undefined);
+    handleDesktopServerRequest(req, res, staticDir, falKey);
   });
 
-  const port = await new Promise((resolve) => {
-    const listener = server.listen(0, "127.0.0.1", () => {
-      const address = listener.address();
-      if (address && typeof address === "object") {
-        resolve(address.port);
-        return;
-      }
-      resolve(0);
-    });
-  });
+  const port = await listenOnAvailablePort(server);
 
   mainWindow = new BrowserWindow({
-    width: 1560,
     height: 1040,
-    minWidth: 1180,
-    minHeight: 820,
     icon: APP_ICON_PATH,
+    minHeight: 820,
+    minWidth: 1180,
     title: "Fal Upscaler",
+    width: 1560,
   });
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -316,12 +356,12 @@ const createWindow = async () => {
   const devUrl = process.env.ELECTRON_START_URL?.trim();
   if (devUrl) {
     mainWindow = new BrowserWindow({
-      width: 1560,
       height: 1040,
-      minWidth: 1180,
-      minHeight: 820,
       icon: APP_ICON_PATH,
+      minHeight: 820,
+      minWidth: 1180,
       title: "Fal Upscaler",
+      width: 1560,
     });
     mainWindow.on("closed", () => {
       mainWindow = null;
@@ -333,16 +373,29 @@ const createWindow = async () => {
   await startDesktopServer();
 };
 
-app.whenReady().then(() => createWindow());
-
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow().catch(() => undefined);
+const createWindowOnActivate = async () => {
+  try {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      await createWindow();
+    }
+  } catch (error) {
+    console.error("[electron-activate]", error);
   }
+};
+
+app.on("activate", () => {
+  createWindowOnActivate();
 });
+
+try {
+  await app.whenReady();
+  await createWindow();
+} catch (error) {
+  console.error("[electron-startup]", error);
+}

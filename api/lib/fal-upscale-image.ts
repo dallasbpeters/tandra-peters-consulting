@@ -1,3 +1,4 @@
+// oxlint-disable require-unicode-regexp prefer-named-capture-group
 import { createFalClient } from "@fal-ai/client";
 
 const FAL_ENDPOINT = "fal-ai/esrgan";
@@ -43,7 +44,7 @@ interface FalUpscaleOutput {
 }
 
 const jsonResponse = (body: unknown, status: number) =>
-  new Response(JSON.stringify(body), {
+  Response.json(body, {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Content-Type": "application/json",

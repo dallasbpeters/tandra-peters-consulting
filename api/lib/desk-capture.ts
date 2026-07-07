@@ -9,6 +9,7 @@ const SANITY_API_VERSION = "2026-05-29";
 const MAX_NAME_LENGTH = 120;
 const MAX_METHOD_LENGTH = 120;
 const MAX_AREA_LENGTH = 140;
+const MAX_ADDRESS_LENGTH = 500;
 const MAX_TEXT_LENGTH = 900;
 const MAX_NOTE_LENGTH = 1400;
 
@@ -47,12 +48,18 @@ export interface DeskLeadRecord {
   capturedBy: string;
   contactMethod: string;
   contactName: string;
+  county?: string;
   email?: string;
   id: string;
+  latitude?: number;
+  longitude?: number;
+  mailingAddress?: string;
   need: string;
   nextStep: string;
   notes?: string;
   phone?: string;
+  postalCode?: string;
+  propertyAddress?: string;
   source: string;
   status: string;
 }
@@ -101,6 +108,11 @@ const normalizeContactMethod = (raw: string) => {
   return { email, phone };
 };
 
+const optionalNumber = (value: unknown): number | undefined => {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
 const contactDraftId = (email: string): string => {
   const key = email
     .trim()
@@ -120,12 +132,18 @@ const toLeadRecord = (
   capturedBy: trimTo(doc.capturedBy, MAX_METHOD_LENGTH),
   contactMethod: trimTo(doc.contactMethod, MAX_METHOD_LENGTH),
   contactName: trimTo(doc.contactName, MAX_NAME_LENGTH),
+  county: trimTo(doc.county, MAX_AREA_LENGTH) || undefined,
   email: trimTo(doc.email, MAX_METHOD_LENGTH) || undefined,
   id: trimTo(doc._id, MAX_METHOD_LENGTH) || fallbackId,
+  latitude: optionalNumber(doc.latitude),
+  longitude: optionalNumber(doc.longitude),
+  mailingAddress: trimTo(doc.mailingAddress, MAX_ADDRESS_LENGTH) || undefined,
   need: trimTo(doc.need, MAX_TEXT_LENGTH),
   nextStep: trimTo(doc.nextStep, MAX_METHOD_LENGTH),
   notes: trimTo(doc.notes, MAX_NOTE_LENGTH) || undefined,
   phone: trimTo(doc.phone, MAX_METHOD_LENGTH) || undefined,
+  postalCode: trimTo(doc.postalCode, MAX_METHOD_LENGTH) || undefined,
+  propertyAddress: trimTo(doc.propertyAddress, MAX_ADDRESS_LENGTH) || undefined,
   source: trimTo(doc.source, MAX_METHOD_LENGTH),
   status: trimTo(doc.status, MAX_METHOD_LENGTH) || "new",
 });
@@ -162,7 +180,7 @@ const upsertEmailContact = async (
           lastContactedAt: now,
           latestMessage: latestMessage(lead),
           ...(lead.phone ? { phoneNumber: lead.phone } : {}),
-          propertyAddress: lead.area,
+          propertyAddress: lead.propertyAddress ?? lead.area,
           serviceInterest: "Roof check",
         })
         .setIfMissing({
@@ -182,11 +200,15 @@ const normalizeLead = (
   const contactName = trimTo(payload.contactName, MAX_NAME_LENGTH);
   const contactMethod = trimTo(payload.contactMethod, MAX_METHOD_LENGTH);
   const area = trimTo(payload.area, MAX_AREA_LENGTH);
+  const county = trimTo(payload.county, MAX_AREA_LENGTH);
+  const mailingAddress = trimTo(payload.mailingAddress, MAX_ADDRESS_LENGTH);
   const need = trimTo(payload.need, MAX_TEXT_LENGTH);
   const notes = trimTo(payload.notes, MAX_NOTE_LENGTH);
+  const postalCode = trimTo(payload.postalCode, MAX_METHOD_LENGTH);
+  const propertyAddress = trimTo(payload.propertyAddress, MAX_ADDRESS_LENGTH);
 
-  if (!(contactName && contactMethod && area && need)) {
-    return "Add a name, phone or email, area, and what needs follow-up.";
+  if (!(contactName && contactMethod && propertyAddress && area && need)) {
+    return "Add a name, phone or email, property address, area, and what needs follow-up.";
   }
 
   const methodParts = normalizeContactMethod(contactMethod);
@@ -198,12 +220,18 @@ const normalizeLead = (
     capturedBy,
     contactMethod,
     contactName,
+    county: county || undefined,
     email: methodParts.email,
     id: `drafts.deskLead.${randomUUID()}`,
+    latitude: optionalNumber(payload.latitude),
+    longitude: optionalNumber(payload.longitude),
+    mailingAddress: mailingAddress || propertyAddress,
     need,
     nextStep: pickOption(payload.nextStep, NEXT_STEP_OPTIONS, "call-today"),
     notes: notes || undefined,
     phone: methodParts.phone,
+    postalCode: postalCode || undefined,
+    propertyAddress,
     source: pickOption(payload.source, SOURCE_OPTIONS, "other"),
     status: "new",
   };
@@ -240,11 +268,17 @@ export const captureDeskLead = async (
     capturedBy: normalized.capturedBy,
     contactMethod: normalized.contactMethod,
     contactName: normalized.contactName,
+    county: normalized.county,
     email: normalized.email,
+    latitude: normalized.latitude,
+    longitude: normalized.longitude,
+    mailingAddress: normalized.mailingAddress,
     need: normalized.need,
     nextStep: normalized.nextStep,
     notes: normalized.notes,
     phone: normalized.phone,
+    postalCode: normalized.postalCode,
+    propertyAddress: normalized.propertyAddress,
     source: normalized.source,
     status: normalized.status,
   });
@@ -262,6 +296,12 @@ const RECENT_LEADS_QUERY = `*[_type == "deskLead"] | order(capturedAt desc)[0...
   email,
   phone,
   area,
+  county,
+  propertyAddress,
+  mailingAddress,
+  postalCode,
+  latitude,
+  longitude,
   need,
   notes,
   source,

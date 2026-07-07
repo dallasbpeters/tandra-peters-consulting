@@ -56,8 +56,8 @@ export function DeskTool() {
         }}
       >
         <div>
-          Proactive campaign desk for priority areas, outreach actions, content
-          ideas, and acquisition channels.
+          Priority neighborhoods, homeowner capture, mailing routes, and
+          follow-up actions.
         </div>
         <a
           href={DESK_URL}

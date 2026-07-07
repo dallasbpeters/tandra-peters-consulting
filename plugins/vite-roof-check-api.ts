@@ -60,6 +60,7 @@ const normalizeCaptureBody = (body: Record<string, unknown>) => ({
   area: str(body.area),
   contactMethod: str(body.contactMethod),
   contactName: str(body.fullName),
+  mailingAddress: str(body.address),
   need: concernSummary(body),
   nextStep: str(body.timing) === "Not urgent" ? "send-checklist" : "call-today",
   notes: [
@@ -68,6 +69,7 @@ const normalizeCaptureBody = (body: Record<string, unknown>) => ({
   ]
     .filter(Boolean)
     .join("\n"),
+  propertyAddress: str(body.address),
   source: "roof-check-page",
 });
 

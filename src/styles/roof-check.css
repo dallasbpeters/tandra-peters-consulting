@@ -16,7 +16,7 @@
       135deg,
       color-mix(in oklch, oklch(20.94% 0.034 164.2) 92%, black) 0%,
       oklch(35.31% 0.061 139.03) 56%,
-      oklch(54.55% 0.194 33.93) 100%
+      oklch(62.426% 0.24312 310.223) 100%
     ),
     oklch(20.94% 0.034 164.2);
   border-radius: var(--theme-radius-large);
@@ -47,7 +47,7 @@
 .roof-check h1 {
   max-width: 50rem;
   margin-top: var(--theme-spacing-md);
-  font-size: clamp(2.5rem, 5vw, 5.2rem);
+  font-size: clamp(1.5rem, 4vw, 3.2rem);
   line-height: 0.96;
 }
 
@@ -126,6 +126,11 @@
 .roof-check-form label > span {
   font-size: 0.8rem;
   font-weight: 850;
+}
+
+.roof-check-form mapbox-address-autofill {
+  display: block;
+  width: 100%;
 }
 
 .roof-check-form input,

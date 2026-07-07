@@ -50,7 +50,8 @@ const MODEL_OPTIONS = [
   },
 ] as const;
 
-const STRIP_EXTENSION_REGEX = /\.[^.]+$/;
+const STRIP_EXTENSION_REGEX = /\.[^.]+$/u;
+const BASE64_CHUNK_SIZE = 32_768;
 
 const OUTPUT_FORMATS = [
   {
@@ -105,21 +106,21 @@ const formatBytes = (bytes: number): string => {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unit]}`;
 };
 
-const readFileAsDataUrl = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    const handleLoad = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error("Failed to read file."));
-    };
-    const handleError = () => reject(new Error("Failed to read file."));
-    reader.addEventListener("load", handleLoad, { once: true });
-    reader.addEventListener("error", handleError, { once: true });
-    reader.readAsDataURL(file);
-  });
+const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += BASE64_CHUNK_SIZE) {
+    binary += String.fromCodePoint(
+      ...bytes.subarray(index, index + BASE64_CHUNK_SIZE)
+    );
+  }
+  return btoa(binary);
+};
+
+const readFileAsDataUrl = async (file: File): Promise<string> => {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const mimeType = file.type || "application/octet-stream";
+  return `data:${mimeType};base64,${bytesToBase64(bytes)}`;
+};
 
 const postUpscaleJob = async ({
   dataUrl,
@@ -765,9 +766,9 @@ export const FalUpscalerPage = () => {
         status: "done",
       }));
       return result;
-    } catch (error) {
+    } catch (caughtError) {
       const message =
-        error instanceof Error ? error.message : "Upscale failed.";
+        caughtError instanceof Error ? caughtError.message : "Upscale failed.";
       updateItem(item.id, (current) => ({
         ...current,
         error: message,
@@ -796,9 +797,7 @@ export const FalUpscalerPage = () => {
     }
     setIsProcessing(true);
     try {
-      for (const item of queue) {
-        await runUpscale(item);
-      }
+      await Promise.all(queue.map((item) => runUpscale(item)));
     } finally {
       setIsProcessing(false);
     }

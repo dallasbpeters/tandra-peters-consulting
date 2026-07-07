@@ -118,7 +118,7 @@
 
 /* Block: site-page-main — routed pages under fixed chrome */
 .site-page-main {
-  --site-padding-inline-start: 80px;
+  --site-padding-inline-start: 120px;
 
   box-sizing: border-box;
   display: grid;

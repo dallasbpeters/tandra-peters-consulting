@@ -35,7 +35,7 @@ export const LazyImageManagerTool = lazyStudioTool(async () => {
 });
 
 export const LazyFalImageStudioTool = lazyStudioTool(async () => {
-  const module = await import("./FalImageStudioTool");
+  const module = await import("./fali-image-studio-tool");
   return {
     default: module.FalImageStudioTool,
   };

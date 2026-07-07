@@ -11,7 +11,9 @@ import { viteAdVersionsApi } from "./plugins/vite-ad-versions-api";
 import { viteAgentDevApi } from "./plugins/vite-agent-dev-api";
 import { viteAnalyticsApi } from "./plugins/vite-analytics-api";
 import { viteContactDevApi } from "./plugins/vite-contact-dev-api";
+import { viteDeskAreaIntelApi } from "./plugins/vite-desk-area-intel-api";
 import { viteDeskCaptureApi } from "./plugins/vite-desk-capture-api";
+import { viteDeskTargetsApi } from "./plugins/vite-desk-targets-api";
 import { viteEmailDevApi } from "./plugins/vite-email-dev-api";
 import { viteEstimateDevApi } from "./plugins/vite-estimate-dev-api";
 import { viteFalDevApi } from "./plugins/vite-fal-dev-api";
@@ -120,7 +122,9 @@ export default defineConfig(({ mode }) => {
     viteSeoDashboardApi(env) as unknown as PluginOption,
     viteWorkflowSaveApi(env) as unknown as PluginOption,
     viteAdVersionsApi(env) as unknown as PluginOption,
+    viteDeskAreaIntelApi(env) as unknown as PluginOption,
     viteDeskCaptureApi(env) as unknown as PluginOption,
+    viteDeskTargetsApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
     viteRoofCheckApi(env) as unknown as PluginOption,
     viteEstimateDevApi(env) as unknown as PluginOption,
