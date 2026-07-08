@@ -1,9 +1,6 @@
 import { defineField, defineType } from "sanity";
 
 export const faqItemType = defineType({
-  name: "faqItem",
-  title: "FAQ item",
-  type: "object",
   fields: [
     defineField({
       name: "question",
@@ -17,4 +14,7 @@ export const faqItemType = defineType({
       validation: (r) => r.required(),
     }),
   ],
+  name: "faqItem",
+  title: "FAQ item",
+  type: "object",
 });

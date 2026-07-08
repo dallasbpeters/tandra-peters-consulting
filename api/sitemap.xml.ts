@@ -16,8 +16,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).send(xml);
   } catch (error) {
     res.status(500).json({
-      error: "Could not generate sitemap",
       detail: error instanceof Error ? error.message : "Unknown error",
+      error: "Could not generate sitemap",
     });
   }
 }

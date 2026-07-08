@@ -1,3 +1,4 @@
+// oxlint-disable func-style
 "use client";
 
 import {
@@ -185,10 +186,7 @@ function VelocityText(props) {
 
 export default function ScrollVelocity(props) {
   const {
-    texts = [
-      { text: "Texas Solar and Roofing Pros" },
-      { text: "Texas Solar and Roofing Pros" },
-    ],
+    texts = [{ text: "Texas Solar and Roofing Pros" }],
     showIcon = false,
     velocity = 100,
     direction = "left",

@@ -247,7 +247,7 @@ export const Hotspot: React.FC<HotspotProps> = ({ chapter }) => {
     // the camera pans/rotates (e.g. after a rail click also sets focusChapterId).
     const mv = document.querySelector("#mv");
 
-    window.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("scroll", measure);
     window.addEventListener("resize", measure);
     mv?.addEventListener("camera-change", measure);
 

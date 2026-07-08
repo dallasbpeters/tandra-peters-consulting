@@ -1,6 +1,5 @@
 import {
   createContext,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -8,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { ReactNode } from "react";
 
 import type { GoogleAuthUser } from "../lib/google-auth-core";
 import {

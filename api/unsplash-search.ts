@@ -38,8 +38,8 @@ export default async function handler(
   try {
     const images = await searchUnsplashImages({
       accessKey,
-      query,
       page: Number(queryValue(req.query.page) ?? "1"),
+      query,
     });
     res.setHeader("Cache-Control", "public, max-age=300, s-maxage=900");
     res.status(200).json({ images });

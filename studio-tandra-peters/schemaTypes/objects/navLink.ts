@@ -1,9 +1,6 @@
 import { defineField, defineType } from "sanity";
 
 export const navLinkType = defineType({
-  name: "navLink",
-  title: "Navigation link",
-  type: "object",
   fields: [
     defineField({
       name: "name",
@@ -11,10 +8,13 @@ export const navLinkType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description: "e.g. #services, /privacy",
       name: "href",
       type: "string",
-      description: "e.g. #services, /privacy",
       validation: (rule) => rule.required(),
     }),
   ],
+  name: "navLink",
+  title: "Navigation link",
+  type: "object",
 });

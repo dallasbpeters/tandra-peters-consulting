@@ -28,13 +28,13 @@ import type {
 } from "./types.js";
 
 const colors = {
-  ink: "#0f1f18",
-  body: "#1a2b22",
-  muted: "#5b6b62",
   accent: "#3a7d5d",
+  body: "#1a2b22",
   border: "#e4e8e6",
-  surface: "#ffffff",
+  ink: "#0f1f18",
+  muted: "#5b6b62",
   page: "#f3f5f4",
+  surface: "#ffffff",
 };
 
 const main: CSSProperties = {
@@ -57,9 +57,9 @@ const container: CSSProperties = {
 const inner: CSSProperties = { padding: "32px 36px" };
 
 const greetingStyle: CSSProperties = {
+  color: colors.body,
   fontSize: "15px",
   lineHeight: "26px",
-  color: colors.body,
   margin: "0 0 16px",
 };
 
@@ -74,48 +74,48 @@ const buttonStyle: CSSProperties = {
 };
 
 const closingStyle: CSSProperties = {
+  color: colors.body,
   fontSize: "15px",
   lineHeight: "26px",
-  color: colors.body,
   margin: "8px 0 4px",
 };
 
 const sigName: CSSProperties = {
+  color: colors.ink,
   fontSize: "16px",
   fontWeight: 700,
-  color: colors.ink,
   margin: 0,
 };
 const sigRole: CSSProperties = {
-  fontSize: "13px",
   color: colors.accent,
+  fontSize: "13px",
   margin: "2px 0 0",
 };
 const sigTagline: CSSProperties = {
+  color: colors.muted,
   fontSize: "12px",
   lineHeight: "18px",
-  color: colors.muted,
   margin: "6px 0 0",
 };
 const sigContact: CSSProperties = {
-  fontSize: "12px",
   color: colors.muted,
+  fontSize: "12px",
   margin: "8px 0 0",
 };
 const sigLink: CSSProperties = { color: colors.accent, textDecoration: "none" };
 const legal: CSSProperties = {
+  color: "#8a958e",
   fontSize: "11px",
   lineHeight: "18px",
-  color: "#8a958e",
   margin: "20px 0 0",
 };
 
 const DEFAULTS = {
-  subject: "Your roof inspection summary & next steps",
-  greeting: "Hi there,",
+  closing: "Talk soon,",
   ctaLabel: "View your inspection report",
   ctaUrl: "https://www.tandra.me",
-  closing: "Talk soon,",
+  greeting: "Hi there,",
+  subject: "Your roof inspection summary & next steps",
 } as const;
 
 const NON_PHONE_CHARS_RE = /[^0-9+]/g;
@@ -170,11 +170,11 @@ const Signature = ({
     <Section>
       <Row>
         {headshotUrl ? (
-          <Column style={{ width: "64px", verticalAlign: "top" }}>
+          <Column style={{ verticalAlign: "top", width: "64px" }}>
             <Img
               alt={signature.name ?? "Headshot"}
               height="56"
-              src={sanityImage(headshotUrl, { w: 128, h: 128, fit: "crop" })}
+              src={sanityImage(headshotUrl, { fit: "crop", h: 128, w: 128 })}
               style={{ borderRadius: "50%", display: "block" }}
               width="56"
             />
@@ -182,8 +182,8 @@ const Signature = ({
         ) : null}
         <Column
           style={{
-            verticalAlign: "top",
             paddingLeft: headshotUrl ? "14px" : 0,
+            verticalAlign: "top",
           }}
         >
           <Text style={sigName}>{signature.name}</Text>
@@ -235,9 +235,9 @@ export const ClientEmailDocument = ({
   const ctaUrl = content.ctaUrl?.trim() || DEFAULTS.ctaUrl;
   const closing = content.closing?.trim() || DEFAULTS.closing;
   const signature: EmailSignature = content.signature ?? {
-    name: "Tandra Peters",
-    jobTitle: "Roofing Consultant",
     company: "Birdcreek Roofing",
+    jobTitle: "Roofing Consultant",
+    name: "Tandra Peters",
     tagline: "Helping Central Texas homeowners through the roofing process.",
     website: "https://www.tandra.me",
   };
@@ -261,10 +261,10 @@ export const ClientEmailDocument = ({
             <Heading
               as="h1"
               style={{
-                fontSize: "22px",
                 color: colors.ink,
-                margin: "0 0 20px",
+                fontSize: "22px",
                 lineHeight: "30px",
+                margin: "0 0 20px",
               }}
             >
               {subject}

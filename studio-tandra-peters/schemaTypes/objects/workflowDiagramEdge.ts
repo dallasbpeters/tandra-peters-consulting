@@ -8,15 +8,12 @@ const handleOptions = [
 ] as const;
 
 export const workflowDiagramEdgeType = defineType({
-  name: "workflowDiagramEdge",
-  title: "Workflow connection",
-  type: "object",
   fields: [
     defineField({
+      description: 'Stable connection id (e.g. "e1-2").',
       name: "edgeId",
       title: "Edge ID",
       type: "string",
-      description: 'Stable connection id (e.g. "e1-2").',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -32,39 +29,42 @@ export const workflowDiagramEdgeType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      initialValue: "right",
       name: "sourceHandle",
+      options: { layout: "radio", list: [...handleOptions] },
       title: "Source handle",
       type: "string",
-      options: { list: [...handleOptions], layout: "radio" },
-      initialValue: "right",
       validation: (rule) => rule.required(),
     }),
     defineField({
+      initialValue: "left",
       name: "targetHandle",
+      options: { layout: "radio", list: [...handleOptions] },
       title: "Target handle",
       type: "string",
-      options: { list: [...handleOptions], layout: "radio" },
-      initialValue: "left",
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description: "Short label on the arrow between steps.",
       name: "label",
       title: "Connection label",
       type: "string",
-      description: "Short label on the arrow between steps.",
       validation: (rule) => rule.required(),
     }),
   ],
+  name: "workflowDiagramEdge",
   preview: {
+    prepare: ({ label, sourceStep, targetStep }) => ({
+      subtitle:
+        sourceStep && targetStep ? `${sourceStep} → ${targetStep}` : undefined,
+      title: label || "Connection",
+    }),
     select: {
       label: "label",
       sourceStep: "sourceStep",
       targetStep: "targetStep",
     },
-    prepare: ({ label, sourceStep, targetStep }) => ({
-      title: label || "Connection",
-      subtitle:
-        sourceStep && targetStep ? `${sourceStep} → ${targetStep}` : undefined,
-    }),
   },
+  title: "Workflow connection",
+  type: "object",
 });

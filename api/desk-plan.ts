@@ -10,7 +10,8 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { type DeskPlanMode, generateBoardPlan } from "./lib/desk-plan.js";
+import { generateBoardPlan } from "./lib/desk-plan.js";
+import type { DeskPlanMode } from "./lib/desk-plan.js";
 import { isAllowedGoogleUser, parseGoogleIdToken } from "./lib/google-auth.js";
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {

@@ -52,8 +52,8 @@ export default async function seoDashboard(
     }
     const message = error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({
-      error: "Could not build SEO dashboard",
       detail: message,
+      error: "Could not build SEO dashboard",
     });
   }
 }

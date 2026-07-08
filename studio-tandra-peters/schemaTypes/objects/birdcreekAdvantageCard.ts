@@ -1,14 +1,11 @@
 import { defineField, defineType } from "sanity";
 
 export const birdcreekAdvantageCardType = defineType({
-  name: "birdcreekAdvantageCard",
-  title: "Birdcreek advantage card",
-  type: "object",
   fields: [
     defineField({
       name: "title",
-      type: "string",
       title: "Heading",
+      type: "string",
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -18,18 +15,21 @@ export const birdcreekAdvantageCardType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "ctaLabel",
-      type: "string",
-      title: "CTA label",
-      validation: (rule) => rule.required(),
       initialValue: "Learn More",
+      name: "ctaLabel",
+      title: "CTA label",
+      type: "string",
+      validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "ctaHref",
-      type: "string",
-      title: "CTA link",
-      validation: (rule) => rule.required(),
       initialValue: "https://birdcreekroofing.com",
+      name: "ctaHref",
+      title: "CTA link",
+      type: "string",
+      validation: (rule) => rule.required(),
     }),
   ],
+  name: "birdcreekAdvantageCard",
+  title: "Birdcreek advantage card",
+  type: "object",
 });

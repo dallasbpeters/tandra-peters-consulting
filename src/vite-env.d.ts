@@ -7,10 +7,10 @@ declare module "*.woff2?url" {
 
 interface SaveFilePickerOptions {
   suggestedName?: string;
-  types?: Array<{
+  types?: {
     accept: Record<string, string[]>;
     description?: string;
-  }>;
+  }[];
 }
 
 interface ImportMetaEnv {

@@ -283,9 +283,11 @@
 }
 
 .studio-tool
-  wa-button:not(.sim__asset-tile, .fis__asset-tile, [disabled]):hover::part(
-    base
-  ) {
+  wa-button:not(
+    .sim__asset-tile,
+    .fis__asset-tile,
+    [disabled]
+  ):hover::part(base) {
   color: var(--studio-tool-text);
   background: var(--studio-tool-brand-ring);
   border-color: var(--studio-tool-brand);

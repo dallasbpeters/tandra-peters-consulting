@@ -63,5 +63,6 @@
   },
   "[yaml]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
-  }
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

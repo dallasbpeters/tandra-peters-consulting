@@ -13,7 +13,7 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
     return {};
   }
   try {
-    return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
+    return JSON.parse(buffer.toString("utf-8")) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -28,7 +28,6 @@ const pick = (env: Record<string, string>, key: string): string | undefined =>
  * same shared `processEstimateSubmission` core as the serverless handler.
  */
 export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-estimate-dev-api",
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== ESTIMATE_PATH) {
@@ -49,7 +48,7 @@ export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
       if (req.method !== "POST") {
         res.statusCode = 405;
         res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ ok: false, error: "Method not allowed" }));
+        res.end(JSON.stringify({ error: "Method not allowed", ok: false }));
         return;
       }
 
@@ -57,10 +56,10 @@ export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
         const result = await processEstimateSubmission(
           parseJson(await readRequestBody(req)),
           {
-            resendApiKey: pick(env, "RESEND_API_KEY"),
+            assetBaseUrl: pick(env, "EMAIL_ASSET_BASE_URL"),
             emailFrom: pick(env, "EMAIL_FROM"),
             notificationTo: pick(env, "CONTACT_NOTIFICATION_TO"),
-            assetBaseUrl: pick(env, "EMAIL_ASSET_BASE_URL"),
+            resendApiKey: pick(env, "RESEND_API_KEY"),
             sanityWriteToken:
               pick(env, "SANITY_WRITE_TOKEN") ||
               pick(env, "SANITY_API_WRITE_TOKEN"),
@@ -75,11 +74,12 @@ export const viteEstimateDevApi = (env: Record<string, string>): Plugin => ({
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
-            ok: false,
             error: "Unexpected estimate API error.",
+            ok: false,
           })
         );
       }
     });
   },
+  name: "vite-estimate-dev-api",
 });

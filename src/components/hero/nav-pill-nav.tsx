@@ -36,7 +36,7 @@ export const NavPillNav: React.FC<NavProps> = ({
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 

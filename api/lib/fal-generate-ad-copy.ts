@@ -78,7 +78,7 @@ const sanitizeOutput = (value: unknown, maxLength: number): string =>
 const extractJson = (output: string): unknown => {
   const firstBrace = output.indexOf("{");
   const lastBrace = output.lastIndexOf("}");
-  if (firstBrace < 0 || lastBrace <= firstBrace) {
+  if (firstBrace === -1 || lastBrace <= firstBrace) {
     throw new Error("Fal returned ad copy without a JSON object.");
   }
   return JSON.parse(output.slice(firstBrace, lastBrace + 1)) as unknown;
@@ -89,9 +89,9 @@ const normalizeVariants = (value: unknown): AdCopyVariant[] => {
     throw new Error("Fal returned an invalid ad-copy payload.");
   }
 
-  const variants = (value as { variants?: unknown }).variants;
+  const { variants } = value as { variants?: unknown };
   if (!Array.isArray(variants)) {
-    throw new Error("Fal returned an invalid variants list.");
+    throw new TypeError("Fal returned an invalid variants list.");
   }
 
   const normalized = variants.slice(0, MAX_VARIANTS).map((variant, index) => {

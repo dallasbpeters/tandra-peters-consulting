@@ -33,7 +33,7 @@ import {
   SERVICES,
 } from "../server/seo/businessInfo.js";
 
-const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(import.meta.dirname);
 const distDir = path.join(repoRoot, "dist");
 
 // Module-level regex constants (avoids re-compilation on every call).
@@ -52,9 +52,9 @@ const RE_LEADING_SLASH = /^\//;
 const ORIGIN = normalizeOrigin(process.env.VITE_SITE_URL);
 
 const SANITY = {
-  projectId: "7irm699i",
-  dataset: "production",
   apiVersion: "2026-05-29",
+  dataset: "production",
+  projectId: "7irm699i",
 };
 
 const escapeHtml = (value: string): string =>
@@ -153,21 +153,21 @@ const fetchSanity = async (): Promise<{
         }`
       ),
     ]);
-    return { posts: posts ?? [], home: home ?? null };
+    return { home: home ?? null, posts: posts ?? [] };
   } catch (error) {
     console.warn(
       "[prerender] Sanity fetch failed; prerendering static routes only.",
       error instanceof Error ? error.message : error
     );
-    return { posts: [], home: null };
+    return { home: null, posts: [] };
   }
 };
 
 const faqPageSchema = (items: FaqItem[]): Jsonable | null => {
   const entries = items
     .map((item) => ({
-      q: (item.question ?? "").trim(),
       a: portableToPlain(item.answer),
+      q: (item.question ?? "").trim(),
     }))
     .filter((entry) => entry.q && entry.a);
   if (entries.length === 0) {
@@ -178,8 +178,8 @@ const faqPageSchema = (items: FaqItem[]): Jsonable | null => {
     "@type": "FAQPage",
     mainEntity: entries.map((entry) => ({
       "@type": "Question",
-      name: entry.q,
       acceptedAnswer: { "@type": "Answer", text: entry.a },
+      name: entry.q,
     })),
   };
 };
@@ -203,10 +203,6 @@ const homePage = (home: HomeDoc | null): PageMeta => {
   ).join("");
 
   return {
-    route: "/",
-    title: home?.seoTitle?.trim() || DEFAULT_TITLE,
-    description: home?.seoDescription?.trim() || DEFAULT_DESCRIPTION,
-    jsonLd,
     bodyHtml: `<main>
       <h1>${escapeHtml(PERSON.name)} — ${escapeHtml(PERSON.jobTitle)}, ${escapeHtml(PERSON.worksFor)}</h1>
       <p>${escapeHtml(PERSON.description)}</p>
@@ -217,6 +213,10 @@ const homePage = (home: HomeDoc | null): PageMeta => {
       <p>Contact: <a href="tel:${escapeAttr(BUSINESS.telephone)}">${escapeHtml(BUSINESS.telephone)}</a> ·
       <a href="mailto:${escapeAttr(BUSINESS.email)}">${escapeHtml(BUSINESS.email)}</a></p>
     </main>`,
+    description: home?.seoDescription?.trim() || DEFAULT_DESCRIPTION,
+    jsonLd,
+    route: "/",
+    title: home?.seoTitle?.trim() || DEFAULT_TITLE,
   };
 };
 
@@ -236,20 +236,20 @@ const articlesIndexPage = (posts: PostDoc[]): PageMeta => {
     .join("");
 
   return {
-    route: "/articles",
-    title: "Articles | Tandra Peters Roofing Consulting",
+    bodyHtml: `<main><h1>Articles</h1><ul>${items || "<li>Articles coming soon.</li>"}</ul></main>`,
     description:
       "Roofing guides on assessments, insurance claims, inspections, maintenance, and tips for Texas homeowners from Tandra Peters.",
     jsonLd: [
       {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
+        isPartOf: { "@type": "WebSite", name: BUSINESS.legalName, url: ORIGIN },
         name: "Articles",
         url: `${ORIGIN}/articles`,
-        isPartOf: { "@type": "WebSite", url: ORIGIN, name: BUSINESS.legalName },
       },
     ],
-    bodyHtml: `<main><h1>Articles</h1><ul>${items || "<li>Articles coming soon.</li>"}</ul></main>`,
+    route: "/articles",
+    title: "Articles | Tandra Peters Roofing Consulting",
   };
 };
 
@@ -268,17 +268,17 @@ const articlePage = (post: PostDoc): PageMeta | null => {
   const articleSchema: Jsonable = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: post.title,
-    description,
-    datePublished: post.publishedAt,
-    dateModified: post._updatedAt || post.publishedAt,
     author: { "@type": "Person", name: post.authorName || PERSON.name },
+    dateModified: post._updatedAt || post.publishedAt,
+    datePublished: post.publishedAt,
+    description,
+    headline: post.title,
+    mainEntityOfPage: { "@id": url, "@type": "WebPage" },
     publisher: {
       "@type": "Organization",
       name: BUSINESS.legalName,
       url: ORIGIN,
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
     ...(post.image ? { image: [post.image] } : {}),
   };
 
@@ -286,31 +286,31 @@ const articlePage = (post: PostDoc): PageMeta | null => {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "home", item: `${ORIGIN}/` },
+      { "@type": "ListItem", item: `${ORIGIN}/`, name: "home", position: 1 },
       {
         "@type": "ListItem",
-        position: 2,
-        name: "Articles",
         item: `${ORIGIN}/articles`,
+        name: "Articles",
+        position: 2,
       },
-      { "@type": "ListItem", position: 3, name: post.title, item: url },
+      { "@type": "ListItem", item: url, name: post.title, position: 3 },
     ],
   };
 
   return {
-    route: `/articles/${slug}`,
-    title: `${post.title} | Tandra Peters`,
-    description,
-    jsonLd: [articleSchema, breadcrumb],
     bodyHtml: `<main><article>
       <h1>${escapeHtml(post.title ?? "")}</h1>
-      ${post.publishedAt ? `<p><time datetime="${escapeAttr(post.publishedAt)}">${escapeHtml(new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}</time></p>` : ""}
+      ${post.publishedAt ? `<p><time datetime="${escapeAttr(post.publishedAt)}">${escapeHtml(new Date(post.publishedAt).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }))}</time></p>` : ""}
       ${bodyText
         .split("\n\n")
         .filter(Boolean)
         .map((p) => `<p>${escapeHtml(p)}</p>`)
         .join("")}
     </article></main>`,
+    description,
+    jsonLd: [articleSchema, breadcrumb],
+    route: `/articles/${slug}`,
+    title: `${post.title} | Tandra Peters`,
   };
 };
 
@@ -380,44 +380,39 @@ const writeRoute = async (route: string, html: string): Promise<void> => {
       : `${route.replace(RE_LEADING_SLASH, "")}/index.html`;
   const outPath = path.join(distDir, rel);
   await mkdir(path.dirname(outPath), { recursive: true });
-  await writeFile(outPath, html, "utf8");
+  await writeFile(outPath, html, "utf-8");
 };
 
 const buildLlmsTxt = (posts: PostDoc[]): string => {
   const lines: string[] = [];
-  lines.push(`# ${PERSON.name} — ${PERSON.jobTitle}, ${PERSON.worksFor}`);
-  lines.push("");
-  lines.push(`> ${PERSON.description}`);
-  lines.push("");
-  lines.push(`- Location: ${BUSINESS.city}, ${BUSINESS.state}`);
-  lines.push(`- Phone: ${BUSINESS.telephone}`);
-  lines.push(`- Email: ${BUSINESS.email}`);
-  lines.push(`- Website: ${ORIGIN}`);
-  lines.push("");
-  lines.push("## Services");
+  lines.push(
+    `# ${PERSON.name} — ${PERSON.jobTitle}, ${PERSON.worksFor}`,
+    "",
+    `> ${PERSON.description}`,
+    "",
+    `- Location: ${BUSINESS.city}, ${BUSINESS.state}`,
+    `- Phone: ${BUSINESS.telephone}`,
+    `- Email: ${BUSINESS.email}`,
+    `- Website: ${ORIGIN}`,
+    "",
+    "## Services"
+  );
   for (const service of SERVICES) {
     lines.push(`- **${service.name}**: ${service.description}`);
   }
-  lines.push("");
-  lines.push("## Service area");
+  lines.push("", "## Service area");
   for (const area of SERVICE_AREAS) {
     lines.push(`- ${area.city} (${area.county}), ${BUSINESS.state}`);
   }
-  lines.push("");
-  lines.push("## Key pages");
   lines.push(
-    `- [Home](${ORIGIN}/): Overview of roofing consultation services.`
+    "",
+    "## Key pages",
+    `- [Home](${ORIGIN}/): Overview of roofing consultation services.`,
+    `- [Articles](${ORIGIN}/articles): Roofing guides for Texas homeowners.`,
+    `- [Insurance FAQs](${ORIGIN}/insurance-faqs): Roof insurance claim questions answered.`,
+    `- [Roof inspection](${ORIGIN}/roof-inspection): What a roof inspection covers.`,
+    ""
   );
-  lines.push(
-    `- [Articles](${ORIGIN}/articles): Roofing guides for Texas homeowners.`
-  );
-  lines.push(
-    `- [Insurance FAQs](${ORIGIN}/insurance-faqs): Roof insurance claim questions answered.`
-  );
-  lines.push(
-    `- [Roof inspection](${ORIGIN}/roof-inspection): What a roof inspection covers.`
-  );
-  lines.push("");
   if (posts.length > 0) {
     lines.push("## Articles");
     for (const post of posts) {
@@ -439,7 +434,7 @@ const main = async (): Promise<void> => {
   const templatePath = path.join(distDir, "index.html");
   let template: string;
   try {
-    template = await readFile(templatePath, "utf8");
+    template = await readFile(templatePath, "utf-8");
   } catch {
     console.error(
       `[prerender] ${templatePath} not found. Run \`vite build\` first.`
@@ -464,7 +459,7 @@ const main = async (): Promise<void> => {
     count += 1;
   }
 
-  await writeFile(path.join(distDir, "llms.txt"), buildLlmsTxt(posts), "utf8");
+  await writeFile(path.join(distDir, "llms.txt"), buildLlmsTxt(posts), "utf-8");
 
   console.log(
     `[prerender] Wrote ${count} static route(s) and llms.txt for origin ${ORIGIN}.`

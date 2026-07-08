@@ -1,9 +1,6 @@
 import { defineField, defineType } from "sanity";
 
 export const workflowDiagramNodeSubsectionType = defineType({
-  name: "workflowDiagramNodeSubsection",
-  title: "Workflow node subsection",
-  type: "object",
   fields: [
     defineField({
       name: "title",
@@ -13,14 +10,17 @@ export const workflowDiagramNodeSubsectionType = defineType({
     }),
     defineField({
       name: "body",
+      rows: 3,
       title: "Subsection body",
       type: "text",
-      rows: 3,
       validation: (rule) => rule.required(),
     }),
   ],
+  name: "workflowDiagramNodeSubsection",
   preview: {
-    select: { title: "title" },
     prepare: ({ title }) => ({ title: title || "Subsection" }),
+    select: { title: "title" },
   },
+  title: "Workflow node subsection",
+  type: "object",
 });

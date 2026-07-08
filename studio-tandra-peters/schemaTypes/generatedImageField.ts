@@ -10,10 +10,10 @@ interface GeneratedImageOpts {
 
 export const defineGeneratedImage = (opts: GeneratedImageOpts) =>
   defineField({
-    name: opts.name,
-    title: opts.title,
     description: opts.description,
-    type: "image",
+    name: opts.name,
     options: { hotspot: true },
+    title: opts.title,
+    type: "image",
     validation: opts.validation,
   });

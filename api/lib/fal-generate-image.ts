@@ -1,17 +1,17 @@
 import { createFalClient } from "@fal-ai/client";
 
 import {
-  type BackgroundRemovalModel,
   removeBackground,
   removeSky,
   toStudioImage,
 } from "./fal-background-removal.js";
+import type { BackgroundRemovalModel } from "./fal-background-removal.js";
 import {
   aspectRatioFromImageSize,
-  type FalImageSize,
   isFalImageSize,
   pixelsFromImageSize,
 } from "./fal-image-size.js";
+import type { FalImageSize } from "./fal-image-size.js";
 import { prepareReferenceImageUrl } from "./fal-reference-image.js";
 import {
   buildTxshingleLoraInput,
@@ -42,8 +42,8 @@ const MODEL_OPTIONS = [
 ] as const;
 
 const LEGACY_MODEL_ALIASES = {
-  "fal-ai/flux-1/schnell": "fal-ai/flux/schnell",
   "fal-ai/flux-1/dev": "fal-ai/flux/dev",
+  "fal-ai/flux-1/schnell": "fal-ai/flux/schnell",
   "fal-ai/flux-2/pro": "fal-ai/flux-2-pro",
 } as const;
 
@@ -88,46 +88,9 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
     inputKind: "imageSize",
     promptEnhancementKey: "none",
   },
-  "fal-ai/flux/schnell": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "enhance_prompt",
-    supportsImageReference: true,
-    supportsReferenceStrength: true,
-  },
-  "fal-ai/flux/dev": {
-    imageEndpoint: "fal-ai/flux/dev/image-to-image",
-    inputKind: "imageSize",
-    promptEnhancementKey: "enhance_prompt",
-    supportsImageReference: true,
-    supportsReferenceStrength: true,
-  },
-  "fal-ai/flux-lora": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "none",
-  },
-  "fal-ai/flux/krea": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "none",
-  },
-  "fal-ai/flux-pro/v1.1": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "enhance_prompt",
-    safetyTolerance: "2",
-  },
-  "fal-ai/flux-pro/v1.1-ultra": {
-    inputKind: "aspectRatio",
-    promptEnhancementKey: "enhance_prompt",
-    safetyTolerance: "2",
-  },
-  "fal-ai/flux-pro/kontext/text-to-image": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "none",
-    safetyTolerance: "2",
-  },
-  "fal-ai/flux-2/flash": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "enable_prompt_expansion",
-    supportsWebp: true,
+  "fal-ai/bytedance/seedream/v4/text-to-image": {
+    inputKind: "seedream",
+    promptEnhancementKey: "enhance_prompt_mode",
   },
   "fal-ai/flux-2": {
     inputKind: "imageSize",
@@ -143,10 +106,44 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
     supportsImageReference: true,
     supportsReferenceStrength: false,
   },
-  "fal-ai/qwen-image": {
-    imageEndpoint: "fal-ai/qwen-image/image-to-image",
+  "fal-ai/flux-2/flash": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "enable_prompt_expansion",
+    supportsWebp: true,
+  },
+  "fal-ai/flux-lora": {
     inputKind: "imageSize",
     promptEnhancementKey: "none",
+  },
+  "fal-ai/flux-pro/kontext/text-to-image": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
+    safetyTolerance: "2",
+  },
+  "fal-ai/flux-pro/v1.1": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "enhance_prompt",
+    safetyTolerance: "2",
+  },
+  "fal-ai/flux-pro/v1.1-ultra": {
+    inputKind: "aspectRatio",
+    promptEnhancementKey: "enhance_prompt",
+    safetyTolerance: "2",
+  },
+  "fal-ai/flux/dev": {
+    imageEndpoint: "fal-ai/flux/dev/image-to-image",
+    inputKind: "imageSize",
+    promptEnhancementKey: "enhance_prompt",
+    supportsImageReference: true,
+    supportsReferenceStrength: true,
+  },
+  "fal-ai/flux/krea": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
+  },
+  "fal-ai/flux/schnell": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "enhance_prompt",
     supportsImageReference: true,
     supportsReferenceStrength: true,
   },
@@ -154,19 +151,22 @@ const IMAGE_MODEL_CONFIGS: Record<FalModel, ImageModelConfig> = {
     inputKind: "imageSize",
     promptEnhancementKey: "expand_prompt",
   },
-  "fal-ai/recraft/v4/text-to-image": {
-    inputKind: "imageSize",
-    promptEnhancementKey: "none",
-    supportsWebp: true,
-  },
-  "fal-ai/bytedance/seedream/v4/text-to-image": {
-    inputKind: "seedream",
-    promptEnhancementKey: "enhance_prompt_mode",
-  },
   "fal-ai/imagen4/preview": {
     inputKind: "aspectRatio",
     promptEnhancementKey: "none",
     safetyTolerance: "4",
+  },
+  "fal-ai/qwen-image": {
+    imageEndpoint: "fal-ai/qwen-image/image-to-image",
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
+    supportsImageReference: true,
+    supportsReferenceStrength: true,
+  },
+  "fal-ai/recraft/v4/text-to-image": {
+    inputKind: "imageSize",
+    promptEnhancementKey: "none",
+    supportsWebp: true,
   },
 };
 
@@ -222,11 +222,11 @@ interface NormalizedJob {
 
 const jsonResponse = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), {
-    status,
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Content-Type": "application/json",
     },
+    status,
   });
 
 const isFalModel = (value: unknown): value is FalModel =>
@@ -307,9 +307,9 @@ const buildTextInput = ({
 }) => {
   const config = IMAGE_MODEL_CONFIGS[model];
   const input: Record<string, unknown> = {
-    prompt,
     num_images: numImages,
     output_format: outputFormat,
+    prompt,
     ...(seed === null ? {} : { seed }),
   };
 
@@ -326,23 +326,29 @@ const buildTextInput = ({
   }
 
   switch (config.promptEnhancementKey) {
-    case "enable_prompt_expansion":
+    case "enable_prompt_expansion": {
       input.enable_prompt_expansion = enhancePrompt;
       break;
-    case "enhance_prompt":
+    }
+    case "enhance_prompt": {
       input.enhance_prompt = enhancePrompt;
       break;
-    case "enhance_prompt_mode":
+    }
+    case "enhance_prompt_mode": {
       input.enhance_prompt = enhancePrompt;
       input.enhance_prompt_mode = enhancePrompt ? "auto" : "none";
       break;
-    case "expand_prompt":
+    }
+    case "expand_prompt": {
       input.expand_prompt = enhancePrompt;
       break;
-    case "none":
+    }
+    case "none": {
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
 
   return input;
@@ -615,13 +621,13 @@ const normalizeFalError = (caught: unknown): string => {
 export const handler = async (request: Request): Promise<Response> => {
   if (request.method === "OPTIONS") {
     return new Response(null, {
-      status: 204,
       headers: {
         "Access-Control-Allow-Headers":
           "Content-Type, Authorization, X-API-Key",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Origin": "*",
       },
+      status: 204,
     });
   }
 
@@ -670,7 +676,6 @@ export const handler = async (request: Request): Promise<Response> => {
 
       return jsonResponse(
         {
-          ok: true,
           images: [studioImage],
           jobs: [
             {
@@ -680,6 +685,7 @@ export const handler = async (request: Request): Promise<Response> => {
               requestId: removalResult.requestId,
             },
           ],
+          ok: true,
         },
         200
       );
@@ -727,7 +733,6 @@ export const handler = async (request: Request): Promise<Response> => {
 
     return jsonResponse(
       {
-        ok: true,
         images,
         jobs: results.map(({ job, result }) => ({
           appliedLoraScale: job.appliedLoraScale,
@@ -738,10 +743,11 @@ export const handler = async (request: Request): Promise<Response> => {
           requestId: result.requestId,
           variation: job.variation,
         })),
+        ok: true,
       },
       200
     );
-  } catch (caught) {
-    return jsonResponse({ error: normalizeFalError(caught) }, 500);
+  } catch (error) {
+    return jsonResponse({ error: normalizeFalError(error) }, 500);
   }
 };

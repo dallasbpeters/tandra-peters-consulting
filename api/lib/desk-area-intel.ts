@@ -103,33 +103,33 @@ export interface DeskAreaIntelResult {
 
 const TARGET_COUNTIES: readonly TargetCounty[] = [
   {
+    capturePath: "/estimate",
     countyFips: "491",
     label: "Williamson County",
-    capturePath: "/estimate",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "027",
     label: "Bell County",
-    capturePath: "/estimate",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "309",
     label: "McLennan County",
-    capturePath: "/estimate",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "453",
     label: "Travis County",
-    capturePath: "/estimate",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "209",
     label: "Hays County",
-    capturePath: "/estimate",
     stateFips: "48",
   },
 ] as const;
@@ -411,6 +411,7 @@ const buildTarget = (
     olderHomeEstimate + ownerOccupiedShare * 1200 + olderHomeShare * 900;
 
   return {
+    capturePath: county.capturePath,
     countyFips: county.countyFips,
     countyLabel: county.label,
     firstMove: moveForCounty(county),
@@ -430,7 +431,6 @@ const buildTarget = (
     postalCode: "",
     priorityScore: round(rawScore),
     recommendedMailerCount: 0,
-    capturePath: county.capturePath,
     totalHousingUnits: round(totalHousingUnits),
     tractLabel: centroid.name,
     why: `${round(olderHomeEstimate).toLocaleString()} likely owner-occupied homes built before 2010.`,
@@ -454,13 +454,13 @@ const countySummary = (
     0
   );
   return {
+    capturePath: county.capturePath,
     countyFips: county.countyFips,
     label: county.label,
     olderHomeEstimate,
     olderHomeShare: percent(safeRatio(olderHomeEstimate, ownerOccupied)),
     ownerOccupied,
     ownerOccupiedShare: percent(safeRatio(ownerOccupied, totalHousingUnits)),
-    capturePath: county.capturePath,
     targetCount: targets.length,
     totalHousingUnits,
   };

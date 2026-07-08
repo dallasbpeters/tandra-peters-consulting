@@ -51,15 +51,15 @@ A headless CMS separates content management from presentation. Content is stored
 
 ### Common Marketing Content Types
 
-| Type             | Key Fields                                                     | Notes                                    |
-| ---------------- | -------------------------------------------------------------- | ---------------------------------------- |
-| **Landing Page** | title, slug, hero, sections[], seo                             | Modular sections for flexibility         |
-| **Blog Post**    | title, slug, body, author, category, tags, publishedAt, seo    | Rich text or Portable Text body          |
-| **Case Study**   | title, customer, challenge, solution, results, metrics[], logo | Link to related products/features        |
-| **Testimonial**  | quote, author, role, company, avatar, rating                   | Reference from landing pages             |
-| **FAQ**          | question, answer, category                                     | Group by category for programmatic pages |
-| **Author**       | name, bio, avatar, social links                                | Reference from blog posts                |
-| **CTA Block**    | heading, body, buttonText, buttonUrl, variant                  | Reusable across pages                    |
+| Type | Key Fields | Notes |
+| --- | --- | --- |
+| **Landing Page** | title, slug, hero, sections[], seo | Modular sections for flexibility |
+| **Blog Post** | title, slug, body, author, category, tags, publishedAt, seo | Rich text or Portable Text body |
+| **Case Study** | title, customer, challenge, solution, results, metrics[], logo | Link to related products/features |
+| **Testimonial** | quote, author, role, company, avatar, rating | Reference from landing pages |
+| **FAQ** | question, answer, category | Group by category for programmatic pages |
+| **Author** | name, bio, avatar, social links | Reference from blog posts |
+| **CTA Block** | heading, body, buttonText, buttonUrl, variant | Reusable across pages |
 
 ### SEO Fields Checklist
 
@@ -109,15 +109,15 @@ Exact permission models vary by platform. Sanity uses role-based access. Content
 
 ## Platform Comparison
 
-| Feature          | Sanity                | Contentful              | Strapi               |
-| ---------------- | --------------------- | ----------------------- | -------------------- |
-| Hosting          | Cloud (managed)       | Cloud (managed)         | Self-hosted or Cloud |
-| Query Language   | GROQ                  | REST / GraphQL          | REST / GraphQL       |
-| Free Tier        | Generous              | Limited                 | Open source (free)   |
-| Real-time Collab | Yes (built-in)        | Limited                 | No                   |
-| Best For         | Developer flexibility | Enterprise multi-locale | Budget / self-hosted |
-| Content Modeling | Schema-as-code        | Web UI                  | Web UI or code       |
-| Media Handling   | Built-in DAM          | Built-in                | Plugin-based         |
+| Feature | Sanity | Contentful | Strapi |
+| --- | --- | --- | --- |
+| Hosting | Cloud (managed) | Cloud (managed) | Self-hosted or Cloud |
+| Query Language | GROQ | REST / GraphQL | REST / GraphQL |
+| Free Tier | Generous | Limited | Open source (free) |
+| Real-time Collab | Yes (built-in) | Limited | No |
+| Best For | Developer flexibility | Enterprise multi-locale | Budget / self-hosted |
+| Content Modeling | Schema-as-code | Web UI | Web UI or code |
+| Media Handling | Built-in DAM | Built-in | Plugin-based |
 
 ### Sanity
 

@@ -4,8 +4,8 @@ import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 const repoRoot = path.resolve(__dirname, "..");
 const TRAILING_SEMICOLON = /;$/;
 
@@ -169,32 +169,40 @@ const renderSchemaField = (field) => {
   }
 
   if (field.type === "slug") {
-    lines.push('  type: "slug",');
-    lines.push("  options: {");
-    lines.push(`    source: "${field.slugSource || "title"}",`);
-    lines.push("  },");
+    lines.push(
+      '  type: "slug",',
+      "  options: {",
+      `    source: "${field.slugSource || "title"}",`,
+      "  },"
+    );
   }
 
   if (field.type === "reference") {
-    lines.push('  type: "reference",');
-    lines.push(`  to: [{ type: "${field.referenceTo}" }],`);
+    lines.push(
+      '  type: "reference",',
+      `  to: [{ type: "${field.referenceTo}" }],`
+    );
   }
 
   if (field.type === "array-string") {
-    lines.push('  type: "array",');
-    lines.push('  of: [defineArrayMember({ type: "string" })],');
+    lines.push(
+      '  type: "array",',
+      '  of: [defineArrayMember({ type: "string" })],'
+    );
   }
 
   if (field.type === "array-reference") {
-    lines.push('  type: "array",');
     lines.push(
+      '  type: "array",',
       `  of: [defineArrayMember({ type: "reference", to: [{ type: "${field.referenceTo}" }] })],`
     );
   }
 
   if (field.type === "portable-text") {
-    lines.push('  type: "array",');
-    lines.push('  of: [defineArrayMember({ type: "block" })],');
+    lines.push(
+      '  type: "array",',
+      '  of: [defineArrayMember({ type: "block" })],'
+    );
   }
 
   if (field.required) {
@@ -228,7 +236,7 @@ const discoverExistingSchemaTypes = async () => {
   const discovered = [];
 
   for (const filePath of files) {
-    const source = await readFile(filePath, "utf8");
+    const source = await readFile(filePath, "utf-8");
     const match = source.match(RE_DEFINE_TYPE_BLOCK);
 
     if (!match) {
@@ -237,11 +245,11 @@ const discoverExistingSchemaTypes = async () => {
 
     const [, name, title, kind] = match;
     discovered.push({
-      name,
-      title,
-      kind,
       filePath,
+      kind,
+      name,
       relativePath: path.relative(repoRoot, filePath),
+      title,
     });
   }
 
@@ -469,16 +477,16 @@ const autoWireHomeBirdcreek = async (fields) => {
 
   if (!includesBirdcreekRelatedField) {
     return {
-      updated: false,
       reason:
         "No Birdcreek-related fields were added (expected one of: vimeoUrl, birdcreekVimeoUrl, title, birdcreekVideoTitle).",
+      updated: false,
     };
   }
 
   const [querySource, mapperSource, homeSource] = await Promise.all([
-    readFile(homeQueryPath, "utf8"),
-    readFile(homeMapperPath, "utf8"),
-    readFile(homePagePath, "utf8"),
+    readFile(homeQueryPath, "utf-8"),
+    readFile(homeMapperPath, "utf-8"),
+    readFile(homePagePath, "utf-8"),
   ]);
 
   const nextQuerySource = ensureHomeQueryBirdcreekProjection(
@@ -489,9 +497,9 @@ const autoWireHomeBirdcreek = async (fields) => {
   const nextHomeSource = ensureHomePageBirdcreekConsumption(homeSource);
 
   await Promise.all([
-    writeFile(homeQueryPath, nextQuerySource, "utf8"),
-    writeFile(homeMapperPath, nextMapperSource, "utf8"),
-    writeFile(homePagePath, nextHomeSource, "utf8"),
+    writeFile(homeQueryPath, nextQuerySource, "utf-8"),
+    writeFile(homeMapperPath, nextMapperSource, "utf-8"),
+    writeFile(homePagePath, nextHomeSource, "utf-8"),
   ]);
 
   return { updated: true };
@@ -499,57 +507,70 @@ const autoWireHomeBirdcreek = async (fields) => {
 
 const toTypeScriptType = (field) => {
   switch (field.type) {
-    case "number":
+    case "number": {
       return "number";
-    case "boolean":
+    }
+    case "boolean": {
       return "boolean";
-    case "array-string":
+    }
+    case "array-string": {
       return "string[]";
-    case "array-reference":
+    }
+    case "array-reference": {
       return "Array<{ _id?: string; _type?: string }>;";
-    case "portable-text":
+    }
+    case "portable-text": {
       return "unknown[]";
-    case "image":
+    }
+    case "image": {
       return "{ asset?: { url?: string } }";
-    case "reference":
+    }
+    case "reference": {
       return "{ _id?: string; _type?: string }";
-    default:
+    }
+    default: {
       return "string";
+    }
   }
 };
 
 const toQueryProjectionLine = (field) => {
   switch (field.type) {
-    case "slug":
+    case "slug": {
       return `"${field.name}": ${field.name}.current`;
-    case "image":
+    }
+    case "image": {
       return `${field.name}{ asset->{ url } }`;
-    case "reference":
+    }
+    case "reference": {
       return `${field.name}->{ _id, _type }`;
-    case "array-reference":
+    }
+    case "array-reference": {
       return `${field.name}[]->{ _id, _type }`;
-    default:
+    }
+    default: {
       return field.name;
+    }
   }
 };
 
 const ensureFileWithExports = async (indexPath, exportLine) => {
   const exists = await fileExists(indexPath);
   if (!exists) {
-    await writeFile(indexPath, `${exportLine}\n`, "utf8");
+    await writeFile(indexPath, `${exportLine}\n`, "utf-8");
     return;
   }
 
-  const source = await readFile(indexPath, "utf8");
+  const source = await readFile(indexPath, "utf-8");
   if (source.includes(exportLine)) {
     return;
   }
 
-  await writeFile(indexPath, `${source.trimEnd()}\n${exportLine}\n`, "utf8");
+  await writeFile(indexPath, `${source.trimEnd()}\n${exportLine}\n`, "utf-8");
 };
 
 const registerSchemaType = async ({ importPath, exportName }) => {
-  const source = await readFile(schemaIndexPath, "utf8");
+  const source = await readFile(schemaIndexPath, "utf-8");
 
   const importLine = `import { ${exportName} } from "${importPath}";`;
   let nextSource = source;
@@ -572,7 +593,7 @@ const registerSchemaType = async ({ importPath, exportName }) => {
     );
   }
 
-  await writeFile(schemaIndexPath, nextSource, "utf8");
+  await writeFile(schemaIndexPath, nextSource, "utf-8");
 };
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
@@ -653,9 +674,9 @@ const main = async () => {
 
         const field = {
           name: fieldName,
+          required,
           title: fieldTitle,
           type: fieldType,
-          required,
         };
 
         if (fieldType === "reference" || fieldType === "array-reference") {
@@ -674,7 +695,7 @@ const main = async () => {
       }
 
       const fieldBlocks = fields.map((field) => renderSchemaField(field));
-      let schemaSource = await readFile(selected.filePath, "utf8");
+      let schemaSource = await readFile(selected.filePath, "utf-8");
 
       if (
         fields.some((field) =>
@@ -690,7 +711,7 @@ const main = async () => {
         schemaSource,
         fieldBlocks
       );
-      await writeFile(selected.filePath, updatedSource, "utf8");
+      await writeFile(selected.filePath, updatedSource, "utf-8");
 
       let autoWireSummary;
       if (selected.name === "homePage") {
@@ -777,9 +798,9 @@ const main = async () => {
 
       const field = {
         name: fieldName,
+        required,
         title: fieldTitle,
         type: fieldType,
-        required,
       };
 
       if (fieldType === "reference" || fieldType === "array-reference") {
@@ -827,10 +848,10 @@ const main = async () => {
       return;
     }
 
-    await writeFile(schemaFilePath, schemaSource, "utf8");
+    await writeFile(schemaFilePath, schemaSource, "utf-8");
     await registerSchemaType({
-      importPath: `./${schemaSubDir}/${typeName}`,
       exportName,
+      importPath: `./${schemaSubDir}/${typeName}`,
     });
 
     await mkdir(generatedSanityDir, { recursive: true });
@@ -849,7 +870,7 @@ const main = async () => {
         ? `import { defineQuery } from "groq";\n\nexport const ${constPrefix}_BY_ID_QUERY = defineQuery(/* groq */ \`*[_type == "${typeName}" && _id == $id][0]{\n${projection}\n  }\`);\n\nexport const ${constPrefix}_LIST_QUERY = defineQuery(/* groq */ \`*[_type == "${typeName}"] | order(_createdAt desc){\n${projection}\n  }\`);\n`
         : `export const ${constPrefix}_FRAGMENT = /* groq */ \`{\n${projection}\n  }\`;\n`;
 
-    await writeFile(queryFilePath, querySource, "utf8");
+    await writeFile(queryFilePath, querySource, "utf-8");
     await ensureFileWithExports(
       path.join(generatedSanityDir, "index.ts"),
       `export * from "./${typeName}.queries";`
@@ -900,8 +921,8 @@ const main = async () => {
       })
       .join("\n")}\n  };\n};\n`;
 
-    await writeFile(componentFilePath, componentSource, "utf8");
-    await writeFile(mapperFilePath, mapperSource, "utf8");
+    await writeFile(componentFilePath, componentSource, "utf-8");
+    await writeFile(mapperFilePath, mapperSource, "utf-8");
 
     await ensureFileWithExports(
       path.join(generatedComponentsDir, "index.ts"),

@@ -13,8 +13,8 @@ const FAL_TOOL_OPTIMIZED_DEPENDENCIES = [
 
 export default defineCliConfig({
   api: {
-    projectId: "7irm699i",
     dataset: "production",
+    projectId: "7irm699i",
   },
   deployment: {
     appId: "on6anif3y43e3t03oiwrgp30",

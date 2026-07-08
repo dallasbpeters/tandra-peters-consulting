@@ -19,64 +19,55 @@ import { defineField, defineType } from "sanity";
  * into a ± range so visitors always see "roughly $X – $Y", never one number.
  */
 export const estimatorOptionType = defineType({
-  name: "estimatorOption",
-  title: "Answer option",
-  type: "object",
   fields: [
     defineField({
+      description:
+        'What the visitor sees, e.g. "1,500 – 2,000 sq ft" or "Metal roofing".',
       name: "label",
       title: "Label",
       type: "string",
-      description:
-        'What the visitor sees, e.g. "1,500 – 2,000 sq ft" or "Metal roofing".',
       validation: (Rule) => Rule.required().max(120),
     }),
     defineField({
+      description:
+        "Optional small print shown under the label on the option card.",
       name: "description",
       title: "Helper text",
       type: "string",
-      description:
-        "Optional small print shown under the label on the option card.",
     }),
     defineField({
+      description:
+        'Only used on the question marked "Drives square footage". The middle of the range, e.g. enter 1750 for "1,500 – 2,000 sq ft".',
       name: "sqftMidpoint",
       title: "Square footage (midpoint)",
       type: "number",
-      description:
-        'Only used on the question marked "Drives square footage". The middle of the range, e.g. enter 1750 for "1,500 – 2,000 sq ft".',
       validation: (Rule) => Rule.min(0),
     }),
     defineField({
+      description:
+        "Adds this dollar amount per square foot to the estimate. Use for material/scope upgrades. Can be negative for a discount.",
       name: "pricePerSqftAdd",
       title: "Add $ per sq ft",
       type: "number",
-      description:
-        "Adds this dollar amount per square foot to the estimate. Use for material/scope upgrades. Can be negative for a discount.",
     }),
     defineField({
+      description:
+        "Adds a one-time flat dollar amount regardless of home size. Can be negative for a discount.",
       name: "flatAdd",
       title: "Add flat $",
       type: "number",
-      description:
-        "Adds a one-time flat dollar amount regardless of home size. Can be negative for a discount.",
     }),
     defineField({
+      description:
+        "Multiplies the running roof square footage. Used on questions marked 'Multiplies square footage' (stories, complexity, pitch). Examples: one-story = 1.0, two-story = 0.55, complex roof = 1.35, steep pitch = 1.3.",
       name: "sqftMultiplier",
       title: "Multiply roof area by",
       type: "number",
-      description:
-        "Multiplies the running roof square footage. Used on questions marked 'Multiplies square footage' (stories, complexity, pitch). Examples: one-story = 1.0, two-story = 0.55, complex roof = 1.35, steep pitch = 1.3.",
       validation: (Rule) => Rule.min(0.1).max(5),
     }),
   ],
+  name: "estimatorOption",
   preview: {
-    select: {
-      title: "label",
-      sqft: "sqftMidpoint",
-      mult: "sqftMultiplier",
-      perSqft: "pricePerSqftAdd",
-      flat: "flatAdd",
-    },
     prepare({
       title,
       sqft,
@@ -104,9 +95,18 @@ export const estimatorOptionType = defineType({
         bits.push(`${flat > 0 ? "+" : ""}$${flat.toLocaleString()}`);
       }
       return {
-        title: title ?? "Untitled option",
         subtitle: bits.length ? bits.join(" · ") : "No price effect",
+        title: title ?? "Untitled option",
       };
     },
+    select: {
+      flat: "flatAdd",
+      mult: "sqftMultiplier",
+      perSqft: "pricePerSqftAdd",
+      sqft: "sqftMidpoint",
+      title: "label",
+    },
   },
+  title: "Answer option",
+  type: "object",
 });

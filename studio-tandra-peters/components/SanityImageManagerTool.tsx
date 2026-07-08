@@ -153,11 +153,9 @@ export function SanityImageManagerTool() {
         await client.fetch<SanityImageAsset[]>(imageAssetListQuery);
       setAssets(nextAssets);
       setSelectedAssetId((current) => current ?? nextAssets[0]?._id ?? null);
-    } catch (caught) {
+    } catch (error) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not load Sanity images."
+        error instanceof Error ? error.message : "Could not load Sanity images."
       );
     } finally {
       setLoading(false);
@@ -191,7 +189,7 @@ export function SanityImageManagerTool() {
       })
       .catch(() => {
         if (!cancelled) {
-          setSelectedReferences({ usedBy: 0, references: [] });
+          setSelectedReferences({ references: [], usedBy: 0 });
         }
       })
       .finally(() => {
@@ -235,8 +233,8 @@ export function SanityImageManagerTool() {
 
     return {
       ...asset,
-      usedBy: selectedReferences?.usedBy,
       references: selectedReferences?.references,
+      usedBy: selectedReferences?.usedBy,
     };
   }, [assets, filteredAssets, selectedAssetId, selectedReferences]);
 
@@ -262,16 +260,16 @@ export function SanityImageManagerTool() {
 
     try {
       const asset = await client.assets.upload("image", file, {
-        filename: file.name,
         contentType: file.type,
+        filename: file.name,
       });
       await loadAssets();
       setSelectedAssetId(asset._id);
       setNotice("Image uploaded.");
       clearNotice();
-    } catch (caught) {
+    } catch (error) {
       setError(
-        caught instanceof Error ? caught.message : "Could not upload image."
+        error instanceof Error ? error.message : "Could not upload image."
       );
     } finally {
       setUploading(false);
@@ -302,11 +300,9 @@ export function SanityImageManagerTool() {
       await loadAssets();
       setNotice("Image details saved.");
       clearNotice();
-    } catch (caught) {
+    } catch (error) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not save image details."
+        error instanceof Error ? error.message : "Could not save image details."
       );
     } finally {
       setSaving(false);
@@ -350,10 +346,10 @@ export function SanityImageManagerTool() {
       await loadAssets();
       setNotice("Image deleted.");
       clearNotice();
-    } catch (caught) {
+    } catch (error) {
       setError(
-        caught instanceof Error
-          ? caught.message
+        error instanceof Error
+          ? error.message
           : "Could not delete the image. Check whether it is still referenced."
       );
     } finally {

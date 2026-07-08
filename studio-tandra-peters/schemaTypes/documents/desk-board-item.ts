@@ -34,17 +34,13 @@ const buyerStageOptions = [
  * as drafts so they stay out of public-read content.
  */
 export const deskBoardItemType = defineType({
-  name: "deskBoardItem",
-  title: "Desk board item",
-  type: "document",
-  icon: CheckmarkCircleIcon,
   fields: [
     defineField({
+      initialValue: "task",
       name: "kind",
+      options: { layout: "radio", list: kindOptions },
       title: "Kind",
       type: "string",
-      initialValue: "task",
-      options: { layout: "radio", list: kindOptions },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -54,103 +50,107 @@ export const deskBoardItemType = defineType({
       validation: (Rule) => Rule.required().max(200),
     }),
     defineField({
-      name: "detail",
-      title: "Detail",
-      type: "text",
-      rows: 3,
       description:
         "Task: the outcome it produces. Content: the angle or promise of the piece.",
+      name: "detail",
+      rows: 3,
+      title: "Detail",
+      type: "text",
     }),
     defineField({
+      description:
+        "Task: where the work happens (direct mail, video, partner email). Content: searchable, shareable, or both.",
       name: "channel",
       title: "Channel or content type",
       type: "string",
-      description:
-        "Task: where the work happens (direct mail, video, partner email). Content: searchable, shareable, or both.",
     }),
     defineField({
+      description: "Optional in-app path this item opens, e.g. /ads.",
       name: "href",
       title: "Deep link",
       type: "string",
-      description: "Optional in-app path this item opens, e.g. /ads.",
     }),
     defineField({
+      initialValue: "todo",
       name: "status",
+      options: { layout: "radio", list: statusOptions },
       title: "Status",
       type: "string",
-      initialValue: "todo",
-      options: { layout: "radio", list: statusOptions },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      initialValue: "manual",
       name: "origin",
+      options: { layout: "radio", list: originOptions },
       title: "Origin",
       type: "string",
-      initialValue: "manual",
-      options: { layout: "radio", list: originOptions },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "seedKey",
-      title: "Seed key",
-      type: "string",
-      readOnly: true,
       description:
         "Stable key that links a status back to a hard-coded seed card on the Desk page.",
+      name: "seedKey",
+      readOnly: true,
+      title: "Seed key",
+      type: "string",
     }),
     defineField({
+      description: "The topic cluster this content belongs to.",
+      hidden: ({ parent }) => parent?.kind !== "content",
       name: "pillar",
       title: "Content pillar",
       type: "string",
-      hidden: ({ parent }) => parent?.kind !== "content",
-      description: "The topic cluster this content belongs to.",
     }),
     defineField({
+      hidden: ({ parent }) => parent?.kind !== "content",
       name: "buyerStage",
+      options: { layout: "radio", list: buyerStageOptions },
       title: "Buyer stage",
       type: "string",
-      options: { layout: "radio", list: buyerStageOptions },
-      hidden: ({ parent }) => parent?.kind !== "content",
     }),
     defineField({
+      hidden: ({ parent }) => parent?.kind !== "content",
       name: "publishDate",
       title: "Publish date",
       type: "date",
-      hidden: ({ parent }) => parent?.kind !== "content",
     }),
     defineField({
       name: "createdBy",
+      readOnly: true,
       title: "Created by",
       type: "string",
-      readOnly: true,
     }),
     defineField({
       name: "createdAt",
+      readOnly: true,
       title: "Created at",
       type: "datetime",
-      readOnly: true,
     }),
     defineField({
       name: "completedAt",
+      readOnly: true,
       title: "Completed at",
       type: "datetime",
-      readOnly: true,
     }),
   ],
+  icon: CheckmarkCircleIcon,
+  name: "deskBoardItem",
   preview: {
-    select: {
-      title: "title",
-      kind: "kind",
-      status: "status",
-      publishDate: "publishDate",
-    },
     prepare({ title, kind, status, publishDate }) {
       const kindLabel = kind === "content" ? "Content" : "Task";
       const suffix = publishDate ? ` · ${publishDate}` : "";
       return {
-        title: title ?? "Untitled board item",
         subtitle: `${kindLabel} · ${status ?? "todo"}${suffix}`,
+        title: title ?? "Untitled board item",
       };
     },
+    select: {
+      kind: "kind",
+      publishDate: "publishDate",
+      status: "status",
+      title: "title",
+    },
   },
+  title: "Desk board item",
+  type: "document",
 });

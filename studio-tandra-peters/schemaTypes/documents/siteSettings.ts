@@ -3,54 +3,51 @@ import { defineField, defineType } from "sanity";
 import { defineGeneratedImage } from "../generatedImageField";
 
 export const siteSettingsType = defineType({
-  name: "siteSettings",
-  title: "Site settings",
-  type: "document",
   fields: [
     defineField({
       name: "navLogoText",
-      type: "string",
       title: "Nav logo text",
+      type: "string",
     }),
     defineField({
       name: "navLogoTagline",
-      type: "string",
       title: "Nav logo tagline",
+      type: "string",
     }),
     defineGeneratedImage({
-      name: "navLogoImage",
-      title: "Nav logo image",
       description:
         "Sanity image asset (upload or AI). Shown beside logo text in the nav.",
+      name: "navLogoImage",
+      title: "Nav logo image",
     }),
     defineField({
       name: "navItems",
-      type: "array",
       of: [{ type: "navLink" }],
+      type: "array",
     }),
     defineField({
       name: "navCtaText",
-      type: "string",
       title: "Nav primary CTA text",
+      type: "string",
     }),
     defineField({
-      name: "navCtaHref",
-      type: "string",
-      title: "Nav primary CTA link",
       initialValue: "#contact",
+      name: "navCtaHref",
+      title: "Nav primary CTA link",
+      type: "string",
     }),
     defineField({
-      name: "navSecondaryCtaText",
-      type: "string",
-      title: "Nav secondary CTA text",
       description:
         "Used by the dual-CTA rail nav variant (e.g. Explore Services).",
+      name: "navSecondaryCtaText",
+      title: "Nav secondary CTA text",
+      type: "string",
     }),
     defineField({
-      name: "navSecondaryCtaHref",
-      type: "string",
-      title: "Nav secondary CTA link",
       initialValue: "#services",
+      name: "navSecondaryCtaHref",
+      title: "Nav secondary CTA link",
+      type: "string",
     }),
     defineField({ name: "footerLogoText", type: "string" }),
     defineField({
@@ -60,24 +57,27 @@ export const siteSettingsType = defineType({
     }),
     defineField({
       name: "footerQuickLinks",
-      type: "array",
       of: [{ type: "navLink" }],
+      type: "array",
     }),
     defineField({
-      name: "footerLegalLinks",
-      type: "array",
-      of: [{ type: "navLink" }],
       description: "Typically /privacy, /terms, /cookies",
+      name: "footerLegalLinks",
+      of: [{ type: "navLink" }],
+      type: "array",
     }),
     defineField({
       name: "footerSocialLinks",
-      type: "array",
       of: [{ type: "socialLink" }],
+      type: "array",
     }),
     defineField({ name: "footerCopyrightText", type: "string" }),
     defineField({ name: "footerPartnerText", type: "string" }),
   ],
+  name: "siteSettings",
   preview: {
     prepare: () => ({ title: "Site settings" }),
   },
+  title: "Site settings",
+  type: "document",
 });

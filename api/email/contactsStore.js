@@ -19,9 +19,9 @@ const contactDraftId = (email) => {
   const key = email
     .trim()
     .toLowerCase()
-    .replace(/@/g, "-at-")
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^[-.]+|[-.]+$/g, "");
+    .replaceAll("@", "-at-")
+    .replaceAll(/[^a-z0-9._-]+/g, "-")
+    .replaceAll(/^[-.]+|[-.]+$/g, "");
   return `drafts.emailContact.${key}`;
 };
 
@@ -40,16 +40,16 @@ export const upsertContactLead = async (token, submission) => {
       _id: id,
       _type: "emailContact",
       email,
-      source: "Website contact form",
-      subscribed: true,
       firstContactedAt: now,
+      source: "Website contact form",
       submissionCount: 0,
+      subscribed: true,
     })
     .patch(id, (p) =>
       p
         .set({
-          fullName: submission.fullName,
           email,
+          fullName: submission.fullName,
           lastContactedAt: now,
           ...(submission.phoneNumber
             ? { phoneNumber: submission.phoneNumber }
@@ -84,9 +84,9 @@ export const listEmailContacts = async (token, options = {}) => {
   const recipients = rows
     .filter((r) => typeof r.email === "string" && r.email.includes("@"))
     .map((r) => ({
+      email: r.email.toLowerCase(),
       id: r.id,
       name: r.name?.trim() || r.email,
-      email: r.email.toLowerCase(),
     }));
 
   const search = options.search?.trim().toLowerCase();
@@ -106,7 +106,7 @@ export const mergeRecipients = (attio, sanity) => {
   for (const r of attio) {
     byEmail.set(r.email, r);
   }
-  return [...byEmail.values()].sort((a, b) =>
+  return [...byEmail.values()].toSorted((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
   );
 };

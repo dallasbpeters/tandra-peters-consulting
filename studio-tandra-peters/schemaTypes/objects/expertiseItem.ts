@@ -3,9 +3,6 @@ import { defineField, defineType } from "sanity";
 import { defineGeneratedImage } from "../generatedImageField";
 
 export const expertiseItemType = defineType({
-  name: "expertiseItem",
-  title: "Expertise item",
-  type: "object",
   fields: [
     defineField({
       name: "id",
@@ -24,10 +21,13 @@ export const expertiseItemType = defineType({
       validation: (r) => r.required(),
     }),
     defineGeneratedImage({
+      description: "Sanity image asset (upload or AI).",
       name: "image",
       title: "Image",
-      description: "Sanity image asset (upload or AI).",
       validation: (r) => r.required(),
     }),
   ],
+  name: "expertiseItem",
+  title: "Expertise item",
+  type: "object",
 });

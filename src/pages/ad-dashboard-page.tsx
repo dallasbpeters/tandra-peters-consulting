@@ -144,7 +144,7 @@ const PLATFORM_PRESETS: readonly PlatformPreset[] = [
   {
     cutout: {
       holeCenterFromTop: 1.3,
-      holeDiameter: 1.0,
+      holeDiameter: 1,
       slotWidth: 0.25,
       topRadius: 0.3,
     },
@@ -657,10 +657,10 @@ const AdVersionsList = ({
       return "Saved version";
     }
     return new Intl.DateTimeFormat(undefined, {
-      month: "short",
       day: "numeric",
       hour: "numeric",
       minute: "2-digit",
+      month: "short",
     }).format(date);
   };
 

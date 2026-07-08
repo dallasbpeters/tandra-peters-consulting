@@ -70,44 +70,6 @@ const SYSTEM_PROMPTS: Record<AgentPath, string> = {
 ## When you don't know
 Say so directly. For technical roofing facts, recommend the user verify with Tandra or a current industry source before publishing.`,
 
-  "/api/marketing-agent": `You are the marketing strategist for tandra.me — a roofing consultant website serving Central Texas homeowners.
-
-Your job is to help Dallas (the developer/site owner) grow Tandra's online visibility, attract more qualified leads, and build authority in the Texas roofing market.
-
-## Setup (every session)
-Call \`initial_context\` to load the current content schema. Use \`groq_query\` to inspect existing pages, posts, FAQs, and service descriptions before making recommendations — always base advice on what's actually live on the site, not assumptions. \`groq_query\` accepts one field only: \`query\` (the GROQ string). Do not pass \`params\`.
-
-## What you do
-
-**Content strategy** — Audit existing blog posts and FAQs. Identify topics that are missing, thin, or poorly optimised. Recommend new articles that target real search queries Central Texas homeowners use when dealing with roof damage, insurance claims, or contractor selection.
-
-**Local SEO** — Advise on Google Business Profile optimisation, citation building, and on-page local signals (NAP consistency, service-area pages, location modifiers in headings and copy). Prioritise tactics with the highest impact-to-effort ratio for a solo consultant.
-
-**Keyword opportunities** — Identify high-intent, low-competition keywords for Tandra's service area. Focus on roofing-specific queries in Austin, Georgetown, Round Rock, Cedar Park, Pflugerville, Kyle, Buda, and surrounding Central Texas cities. Use long-tail, question-format, and "near me" variants.
-
-**Service page optimisation** — Review existing service descriptions fetched via \`groq_query\`. Suggest specific improvements to H1s, meta descriptions, page structure, internal links, and CTAs that would improve both rankings and conversions.
-
-**Content calendar** — When asked, propose a realistic publishing schedule based on Tandra's bandwidth and seasonal roofing demand in Texas (spring/early-summer hail season, post-storm repair demand).
-
-**Competitive positioning** — Help articulate what makes Tandra's consulting approach different from standard roofing contractors: independent advice, insurance claim expertise, homeowner advocacy.
-
-## Brand guidelines (always apply)
-- Voice: honest craftsmanship + warm authority — plain speech Tandra would actually say on the job, never corporate jargon
-- Write copy in first-person for Tandra; never refer to her in the third person
-- Service area: Central Texas — Austin metro and surrounding counties. Fort Worth and Tarrant County are explicitly excluded from the service area
-- Brand name spelling: Birdcreek Roofing (one word, lowercase 'c') — never "BirdCreek"
-- Do not recommend design or layout changes — that is the feature-builder agent's role
-
-## Boundaries
-- You do not write to Sanity. All output is for the developer to review and implement manually.
-- Do not fabricate search volume numbers, CTR benchmarks, DA scores, or ranking timelines — frame all estimates clearly as estimates and recommend the user verify with Google Search Console or a keyword tool.
-- Stick to white-hat, sustainable SEO practices only. No link schemes, keyword stuffing, or doorway pages.
-- Do not recommend paid advertising unless explicitly asked.
-- Do not propose technical infrastructure changes (hosting, CDN, build tools).
-
-## Response format
-Use markdown. Start with a prioritised action summary (what to do first), then detailed guidance. For keyword lists, use tables with columns: Keyword | Intent | Difficulty (Low/Med/High) | Notes. For content recommendations, include the proposed H1, target keyword, and a one-sentence angle description.`,
-
   "/api/feature-agent": `You are the feature-planning assistant for tandra.me — a Vite + React + TypeScript roofing consultant website powered by Sanity CMS.
 
 ## Setup (every session)
@@ -145,6 +107,44 @@ You help Dallas (the developer) plan and implement new website features. Your jo
 
 ## Response format
 Use markdown. Lead with a concise summary, then structure and detail. Use code blocks with language tags for TypeScript, TSX, and GROQ.`,
+
+  "/api/marketing-agent": `You are the marketing strategist for tandra.me — a roofing consultant website serving Central Texas homeowners.
+
+Your job is to help Dallas (the developer/site owner) grow Tandra's online visibility, attract more qualified leads, and build authority in the Texas roofing market.
+
+## Setup (every session)
+Call \`initial_context\` to load the current content schema. Use \`groq_query\` to inspect existing pages, posts, FAQs, and service descriptions before making recommendations — always base advice on what's actually live on the site, not assumptions. \`groq_query\` accepts one field only: \`query\` (the GROQ string). Do not pass \`params\`.
+
+## What you do
+
+**Content strategy** — Audit existing blog posts and FAQs. Identify topics that are missing, thin, or poorly optimised. Recommend new articles that target real search queries Central Texas homeowners use when dealing with roof damage, insurance claims, or contractor selection.
+
+**Local SEO** — Advise on Google Business Profile optimisation, citation building, and on-page local signals (NAP consistency, service-area pages, location modifiers in headings and copy). Prioritise tactics with the highest impact-to-effort ratio for a solo consultant.
+
+**Keyword opportunities** — Identify high-intent, low-competition keywords for Tandra's service area. Focus on roofing-specific queries in Austin, Georgetown, Round Rock, Cedar Park, Pflugerville, Kyle, Buda, and surrounding Central Texas cities. Use long-tail, question-format, and "near me" variants.
+
+**Service page optimisation** — Review existing service descriptions fetched via \`groq_query\`. Suggest specific improvements to H1s, meta descriptions, page structure, internal links, and CTAs that would improve both rankings and conversions.
+
+**Content calendar** — When asked, propose a realistic publishing schedule based on Tandra's bandwidth and seasonal roofing demand in Texas (spring/early-summer hail season, post-storm repair demand).
+
+**Competitive positioning** — Help articulate what makes Tandra's consulting approach different from standard roofing contractors: independent advice, insurance claim expertise, homeowner advocacy.
+
+## Brand guidelines (always apply)
+- Voice: honest craftsmanship + warm authority — plain speech Tandra would actually say on the job, never corporate jargon
+- Write copy in first-person for Tandra; never refer to her in the third person
+- Service area: Central Texas — Austin metro and surrounding counties. Fort Worth and Tarrant County are explicitly excluded from the service area
+- Brand name spelling: Birdcreek Roofing (one word, lowercase 'c') — never "BirdCreek"
+- Do not recommend design or layout changes — that is the feature-builder agent's role
+
+## Boundaries
+- You do not write to Sanity. All output is for the developer to review and implement manually.
+- Do not fabricate search volume numbers, CTR benchmarks, DA scores, or ranking timelines — frame all estimates clearly as estimates and recommend the user verify with Google Search Console or a keyword tool.
+- Stick to white-hat, sustainable SEO practices only. No link schemes, keyword stuffing, or doorway pages.
+- Do not recommend paid advertising unless explicitly asked.
+- Do not propose technical infrastructure changes (hosting, CDN, build tools).
+
+## Response format
+Use markdown. Start with a prioritised action summary (what to do first), then detailed guidance. For keyword lists, use tables with columns: Keyword | Intent | Difficulty (Low/Med/High) | Notes. For content recommendations, include the proposed H1, target keyword, and a one-sentence angle description.`,
 
   "/api/response-agent": RESPONSE_AGENT_SYSTEM_PROMPT,
 };
@@ -193,7 +193,6 @@ const json = (res: ServerResponse, status: number, body: unknown) => {
 };
 
 export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-agent-dev-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
     server.middlewares.use(async (req, res, next) => {
@@ -253,13 +252,13 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         const mobbinMcpToken = env.MOBBIN_MCP_BEARER_TOKEN?.trim() ?? "";
 
         const sanityMcpHeaders = {
-          "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         };
         const mobbinMcpHeaders = {
-          "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
+          "Content-Type": "application/json",
           ...(mobbinMcpToken
             ? { Authorization: `Bearer ${mobbinMcpToken}` }
             : {}),
@@ -273,9 +272,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           id = 1
         ) => {
           const r = await fetch(url, {
-            method: "POST",
+            body: JSON.stringify({ id, jsonrpc: "2.0", method, params }),
             headers,
-            body: JSON.stringify({ jsonrpc: "2.0", method, params, id }),
+            method: "POST",
           });
           const text = await r.text();
           const dataLine = text
@@ -311,10 +310,10 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
               sanityMcpHeaders,
               "tools/call",
               {
-                name: mcpTool.name,
                 arguments: input,
+                name: mcpTool.name,
               }
-            )) as { content?: Array<{ type: string; text?: string }> };
+            )) as { content?: { type: string; text?: string }[] };
             return (
               result.content
                 ?.filter((c) => c.type === "text")
@@ -331,9 +330,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
           allToolEntries.push([
             NEXTDOOR_FETCH_TOOL.name,
             {
-              name: NEXTDOOR_FETCH_TOOL.name,
               description: NEXTDOOR_FETCH_TOOL.description,
               inputSchema: NEXTDOOR_FETCH_TOOL.inputSchema,
+              name: NEXTDOOR_FETCH_TOOL.name,
             },
             (input: Record<string, unknown>) => {
               const url = typeof input.url === "string" ? input.url : "";
@@ -365,10 +364,10 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
                   mobbinMcpHeaders,
                   "tools/call",
                   {
-                    name: mobbinTool.name,
                     arguments: input,
+                    name: mobbinTool.name,
                   }
-                )) as { content?: Array<{ type: string; text?: string }> };
+                )) as { content?: { type: string; text?: string }[] };
                 return (
                   result.content
                     ?.filter((c) => c.type === "text")
@@ -385,10 +384,10 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             toolName,
             {
               description: mcpTool.description,
+              execute,
               inputSchema: jsonSchema(
                 mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
               ),
-              execute,
             },
           ])
         );
@@ -408,14 +407,14 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             await import("@sanity/context/ai-sdk");
           const { createClient } = await import("@sanity/client");
           insights = sanityInsightsIntegration({
-            client: createClient({
-              projectId: PROJECT_ID,
-              dataset: DATASET,
-              apiVersion: "2026-01-01",
-              useCdn: false,
-              token: writeToken,
-            }),
             agentId: MCP_SLUGS[pathname],
+            client: createClient({
+              apiVersion: "2026-01-01",
+              dataset: DATASET,
+              projectId: PROJECT_ID,
+              token: writeToken,
+              useCdn: false,
+            }),
             threadId: body.threadId ?? crypto.randomUUID(),
           }) as unknown as Record<string, unknown>;
         }
@@ -446,9 +445,9 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
             ({ text: responseText } = await generateText({
               ...baseRequest,
               model: groq(modelId),
+              stopWhen: stepCountIs(10),
               system: getSystemPrompt(pathname),
               tools: tools as Parameters<typeof generateText>[0]["tools"],
-              stopWhen: stepCountIs(10),
               ...(pathname === "/api/response-agent"
                 ? { experimental_download: downloadVisionAssets }
                 : {}),
@@ -496,11 +495,12 @@ export const viteAgentDevApi = (env: Record<string, string>): Plugin => ({
         }
 
         json(res, 200, { response: text });
-      } catch (err) {
-        console.error("[vite-agent-dev-api]", err);
-        const message = err instanceof Error ? err.message : String(err);
+      } catch (error) {
+        console.error("[vite-agent-dev-api]", error);
+        const message = error instanceof Error ? error.message : String(error);
         json(res, 500, { error: message });
       }
     });
   },
+  name: "vite-agent-dev-api",
 });

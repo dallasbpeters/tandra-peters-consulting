@@ -2,7 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
-import { type DeskPlanMode, generateBoardPlan } from "../api/lib/desk-plan.js";
+import { generateBoardPlan } from "../api/lib/desk-plan.js";
+import type { DeskPlanMode } from "../api/lib/desk-plan.js";
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 import { readRequestBody } from "./request-body";
 

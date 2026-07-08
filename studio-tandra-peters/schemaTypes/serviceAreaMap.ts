@@ -11,68 +11,60 @@ import { defineField, defineType } from "sanity";
  *    in serviceAreas.json (e.g. "travis", "bexar", "mclennan")
  */
 export const serviceAreaMapType = defineType({
-  name: "serviceAreaMap",
-  title: "Service Area Map",
-  type: "object",
   fields: [
     defineField({
+      description: 'Small text shown above the title, e.g. "Where We Work"',
       name: "eyebrow",
       title: "Eyebrow label",
       type: "string",
-      description: 'Small text shown above the title, e.g. "Where We Work"',
     }),
     defineField({
+      description: "Section heading",
       name: "title",
       title: "Title",
       type: "string",
-      description: "Section heading",
     }),
     defineField({
+      description: "Optional intro sentence shown beneath the heading",
       name: "description",
+      rows: 3,
       title: "Description",
       type: "text",
-      rows: 3,
-      description: "Optional intro sentence shown beneath the heading",
     }),
     defineField({
-      name: "areas",
-      title: "Service areas",
-      type: "array",
       description:
         'One entry per county. countyKey must match the "id" property in serviceAreas.json.',
+      name: "areas",
       of: [
         {
-          type: "object",
-          name: "serviceArea",
-          title: "Service Area",
           fields: [
             defineField({
+              description:
+                'Matches GeoJSON feature.properties.id (e.g. "travis", "bexar")',
               name: "countyKey",
               title: "County key",
               type: "string",
-              description:
-                'Matches GeoJSON feature.properties.id (e.g. "travis", "bexar")',
               validation: (Rule) => Rule.required(),
             }),
             defineField({
+              description:
+                'Shown in the map tooltip (e.g. "Travis County — Austin")',
               name: "displayName",
               title: "Display name",
               type: "string",
-              description:
-                'Shown in the map tooltip (e.g. "Travis County — Austin")',
               validation: (Rule) => Rule.required(),
             }),
             defineField({
+              description:
+                "Drives the choropleth colour scale — higher = darker green",
               name: "clientCount",
               title: "Client count",
               type: "number",
-              description:
-                "Drives the choropleth colour scale — higher = darker green",
               validation: (Rule) => Rule.required().min(0).integer(),
             }),
           ],
+          name: "serviceArea",
           preview: {
-            select: { title: "displayName", subtitle: "clientCount" },
             prepare({
               title,
               subtitle,
@@ -81,14 +73,22 @@ export const serviceAreaMapType = defineType({
               subtitle?: number;
             }) {
               return {
-                title: title ?? "Unnamed area",
                 subtitle:
                   subtitle == null ? "No count set" : `${subtitle} clients`,
+                title: title ?? "Unnamed area",
               };
             },
+            select: { subtitle: "clientCount", title: "displayName" },
           },
+          title: "Service Area",
+          type: "object",
         },
       ],
+      title: "Service areas",
+      type: "array",
     }),
   ],
+  name: "serviceAreaMap",
+  title: "Service Area Map",
+  type: "object",
 });

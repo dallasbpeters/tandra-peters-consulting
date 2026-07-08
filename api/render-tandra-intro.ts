@@ -192,10 +192,10 @@ const hashRenderArtifact = (args: {
   createHash("sha256")
     .update(
       JSON.stringify({
-        version: RENDER_PIPELINE_VERSION,
+        bundle: getRenderBundleFingerprint(),
         compositionId: args.compositionId,
         contentHash: args.contentHash,
-        bundle: getRenderBundleFingerprint(),
+        version: RENDER_PIPELINE_VERSION,
       })
     )
     .digest("hex");
@@ -267,7 +267,7 @@ export default async function handler(
     if (!onVercel) {
       bundleRemotionProject();
       await sb.mkDir("remotion-bundle");
-      await addBundleToSandbox({ sandbox: sb, bundleDir: LOCAL_BUNDLE_DIR });
+      await addBundleToSandbox({ bundleDir: LOCAL_BUNDLE_DIR, sandbox: sb });
     }
     return sb;
   };
@@ -294,10 +294,10 @@ export default async function handler(
     : undefined;
 
   const blobSlug = compositionId
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replaceAll(/([a-z0-9])([A-Z])/g, "$1-$2")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/(^-|-$)/g, "");
 
   try {
     if (capturePoster) {
@@ -317,16 +317,16 @@ export default async function handler(
       }
 
       const { sandboxFilePath, contentType } = await renderStillOnVercel({
-        sandbox,
         compositionId,
-        inputProps: posterInputProps,
         frame: getPosterFrame(req),
         imageFormat: "png",
+        inputProps: posterInputProps,
         onProgress: (update) => {
           console.log(
             `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`
           );
         },
+        sandbox,
       });
 
       const image = await sandbox.readFileToBuffer({ path: sandboxFilePath });
@@ -336,7 +336,7 @@ export default async function handler(
         );
       }
 
-      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const stamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
       const filename = `${blobSlug}-${stamp}.png`;
       const posterPatch =
         compositionId === DEFAULT_COMPOSITION_ID
@@ -349,9 +349,9 @@ export default async function handler(
 
       res.status(200).json({
         compositionId,
-        posterUrl: posterPatch.thumbnailUrl || undefined,
         contentType,
         copySource: isAd ? "defaults" : "sanity",
+        posterUrl: posterPatch.thumbnailUrl || undefined,
         thumbnailUpdated: compositionId === DEFAULT_COMPOSITION_ID,
       });
       return;
@@ -370,20 +370,20 @@ export default async function handler(
         onProgress: logRenderProgress,
       });
 
-      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const stamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
       const blobPath = `videos/${blobSlug}/${stamp}.mp4`;
       const { url, size } = await uploadToVercelBlob({
+        access: "public",
+        blobPath,
+        blobToken,
+        contentType,
         sandbox,
         sandboxFilePath,
-        blobPath,
-        contentType,
-        blobToken,
-        access: "public",
       });
 
       res
         .status(200)
-        .json({ url, size, compositionId, copySource: "defaults" });
+        .json({ compositionId, copySource: "defaults", size, url });
       return;
     }
 
@@ -408,15 +408,15 @@ export default async function handler(
       thumbnailUrl
     ) {
       res.status(200).json({
-        skipped: true,
-        reason: "Intro video content has already been rendered.",
+        artifactHash,
         compositionId,
+        contentHash,
         copySource: source,
         documentId,
-        contentHash,
-        artifactHash,
-        url: renderedVideoUrl,
         posterUrl: thumbnailUrl,
+        reason: "Intro video content has already been rendered.",
+        skipped: true,
+        url: renderedVideoUrl,
       });
       return;
     }
@@ -424,22 +424,22 @@ export default async function handler(
     sandbox = await startSandbox();
 
     const { sandboxFilePath, contentType } = await renderMediaOnVercel({
-      sandbox,
       compositionId,
       inputProps: { content, showCaptions },
       onProgress: logRenderProgress,
+      sandbox,
     });
 
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const stamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
     const blobPath = `videos/tandra-intro/${stamp}.mp4`;
 
     const { url, size } = await uploadToVercelBlob({
+      access: "public",
+      blobPath,
+      blobToken,
+      contentType,
       sandbox,
       sandboxFilePath,
-      blobPath,
-      contentType,
-      blobToken,
-      access: "public",
     });
 
     const sanityPatch = await patchTandraIntroRenderedVideo(url, contentHash);
@@ -460,16 +460,16 @@ export default async function handler(
           sandboxFilePath: posterSandboxFilePath,
           contentType: posterContentType,
         } = await renderStillOnVercel({
-          sandbox,
           compositionId,
-          inputProps: { content, showCaptions },
           frame: getPosterFrame(req),
           imageFormat: "png",
+          inputProps: { content, showCaptions },
           onProgress: (update) => {
             console.log(
               `[render-still] ${update.stage} ${Math.round(update.overallProgress * 100)}%`
             );
           },
+          sandbox,
         });
 
         const posterImage = await sandbox.readFileToBuffer({
@@ -481,7 +481,7 @@ export default async function handler(
           );
         }
 
-        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const stamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
         const filename = `${blobSlug}-${stamp}.png`;
         const posterPatch = await patchTandraIntroThumbnail(
           posterImage,

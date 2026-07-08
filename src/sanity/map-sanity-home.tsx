@@ -466,7 +466,7 @@ export const mapContactBannerProps = (
           wrench: "wrench",
           "wrench-screwdriver-solid": "wrench",
         };
-        const normalizedName = iconName.toLowerCase().replaceAll(/_/g, "-");
+        const normalizedName = iconName.toLowerCase().replaceAll("_", "-");
         const mappedKey = iconMap[normalizedName] ?? iconMap[iconName];
         if (mappedKey && mappedKey in CONTACT_BANNER_ICONS) {
           return { ctaIcon: CONTACT_BANNER_ICONS[mappedKey] };

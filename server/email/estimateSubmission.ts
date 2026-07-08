@@ -61,7 +61,7 @@ const parseAnswers = (value: unknown): { prompt: string; answer: string }[] => {
   return value
     .map((row) => {
       const r = row as Record<string, unknown>;
-      return { prompt: str(r.prompt), answer: str(r.answer) };
+      return { answer: str(r.answer), prompt: str(r.prompt) };
     })
     .filter((r) => r.prompt && r.answer)
     .slice(0, 30);
@@ -78,15 +78,15 @@ export const processEstimateSubmission = async (
   // Honeypot: silently accept bot submissions.
   const honeypot = str(body._hp) || str(body.company);
   if (honeypot) {
-    return { status: 200, body: { ok: true } };
+    return { body: { ok: true }, status: 200 };
   }
 
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
   if (!(apiKey && from)) {
     return {
+      body: { error: "Service not configured", ok: false },
       status: 503,
-      body: { ok: false, error: "Service not configured" },
     };
   }
 
@@ -97,23 +97,23 @@ export const processEstimateSubmission = async (
 
   if (!fullName || fullName.length > 200) {
     return {
+      body: { error: "Please enter your name.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please enter your name." },
     };
   }
   if (!(email && EMAIL_RE.test(email)) || email.length > 320) {
     return {
+      body: { error: "Please enter a valid email.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please enter a valid email." },
     };
   }
   if (!rangeDisplay) {
     return {
-      status: 400,
       body: {
-        ok: false,
         error: "Missing estimate. Please finish the estimator.",
+        ok: false,
       },
+      status: 400,
     };
   }
 
@@ -149,19 +149,19 @@ export const processEstimateSubmission = async (
   // 1) Send the estimate to the visitor.
   const visitorResult = await resend.emails.send({
     from,
-    to: [email],
-    subject: `Your roof estimate · ${rangeDisplay}`,
     html: visitorHtml,
+    subject: `Your roof estimate · ${rangeDisplay}`,
+    to: [email],
   });
 
   if (visitorResult.error) {
     console.error("[estimate] Resend visitor error", visitorResult.error);
     return {
-      status: 502,
       body: {
-        ok: false,
         error: "Could not send your estimate. Try again later.",
+        ok: false,
       },
+      status: 502,
     };
   }
 
@@ -169,16 +169,16 @@ export const processEstimateSubmission = async (
   try {
     const leadResult = await resend.emails.send({
       from,
-      to: parseNotificationRecipients(env.notificationTo),
+      html: leadHtml,
       replyTo: email,
       subject: `New estimate lead · ${fullName} · ${rangeDisplay}`,
-      html: leadHtml,
+      to: parseNotificationRecipients(env.notificationTo),
     });
     if (leadResult.error) {
       console.error("[estimate] Resend lead error", leadResult.error);
     }
-  } catch (err) {
-    console.error("[estimate] lead notification failed", err);
+  } catch (error) {
+    console.error("[estimate] lead notification failed", error);
   }
 
   console.info("[estimate] estimate emailed", {
@@ -191,15 +191,15 @@ export const processEstimateSubmission = async (
   if (sanityToken) {
     try {
       const lead: ContactLeadSubmission = {
-        fullName,
         email,
-        serviceLabel: "Roof estimate",
+        fullName,
         message: `Estimate: ${rangeDisplay}\n${answers.map((a) => `${a.prompt}: ${a.answer}`).join("\n")}`,
+        serviceLabel: "Roof estimate",
         submittedAt: submission.submittedAt,
       };
       await upsertContactLead(sanityToken, lead);
-    } catch (err) {
-      console.error("[estimate] contact upsert failed", err);
+    } catch (error) {
+      console.error("[estimate] contact upsert failed", error);
     }
   } else {
     console.warn(
@@ -207,5 +207,5 @@ export const processEstimateSubmission = async (
     );
   }
 
-  return { status: 200, body: { ok: true } };
+  return { body: { ok: true }, status: 200 };
 };

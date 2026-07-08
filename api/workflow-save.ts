@@ -82,21 +82,21 @@ const sanitizeNodes = (input: unknown) => {
               }
 
               return {
+                _key: `${stepId}-${titleValue.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`,
                 _type: "workflowDiagramNodeSubsection",
-                _key: `${stepId}-${titleValue.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-                title: titleValue,
                 body: bodyValue,
+                title: titleValue,
               };
             })
             .filter(Boolean)
         : [];
 
       return {
-        _type: "workflowDiagramNode",
         _key: `node-${stepId}`,
+        _type: "workflowDiagramNode",
+        body,
         stepId,
         title,
-        body,
         wide: node.wide === true,
         ...(subsections.length > 0 ? { subsections } : {}),
         ...(posX === null ? {} : { posX }),
@@ -131,14 +131,14 @@ const sanitizeEdges = (input: unknown) => {
       }
 
       return {
-        _type: "workflowDiagramEdge",
         _key: `edge-${edgeId}`,
+        _type: "workflowDiagramEdge",
         edgeId,
-        sourceStep,
-        targetStep,
-        sourceHandle,
-        targetHandle,
         label,
+        sourceHandle,
+        sourceStep,
+        targetHandle,
+        targetStep,
       };
     })
     .filter(Boolean);
@@ -187,9 +187,9 @@ export default async function handler(
 
   try {
     const client = createClient({
-      projectId: SANITY_PROJECT_ID,
-      dataset: SANITY_DATASET,
       apiVersion: SANITY_API_VERSION,
+      dataset: SANITY_DATASET,
+      projectId: SANITY_PROJECT_ID,
       token,
       useCdn: false,
     });
@@ -197,14 +197,14 @@ export default async function handler(
     await client
       .patch(WORKFLOW_PAGE_DOCUMENT_ID)
       .set({
-        nodes,
         edges,
+        nodes,
       })
       .commit();
 
     res
       .status(200)
-      .json({ ok: true, nodeCount: nodes.length, edgeCount: edges.length });
+      .json({ edgeCount: edges.length, nodeCount: nodes.length, ok: true });
   } catch (error) {
     console.error("[workflow-save]", error);
     res.status(500).json({

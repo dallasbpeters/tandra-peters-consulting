@@ -4,9 +4,6 @@ import { defineGeneratedImage } from "../generatedImageField";
 import { SERVICE_ICON_OPTIONS } from "../serviceIconMeta";
 
 export const serviceCardType = defineType({
-  name: "serviceCard",
-  title: "Service card",
-  type: "object",
   fields: [
     defineField({
       name: "id",
@@ -25,20 +22,23 @@ export const serviceCardType = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
-      name: "icon",
-      type: "string",
-      title: "Icon (Iconoir)",
-      options: {
-        list: [...SERVICE_ICON_OPTIONS],
-        layout: "dropdown",
-      },
       initialValue: "search",
+      name: "icon",
+      options: {
+        layout: "dropdown",
+        list: [...SERVICE_ICON_OPTIONS],
+      },
+      title: "Icon (Iconoir)",
+      type: "string",
       validation: (r) => r.required(),
     }),
     defineGeneratedImage({
+      description: "Optional card image (upload or AI).",
       name: "image",
       title: "Image",
-      description: "Optional card image (upload or AI).",
     }),
   ],
+  name: "serviceCard",
+  title: "Service card",
+  type: "object",
 });

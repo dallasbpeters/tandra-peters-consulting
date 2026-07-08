@@ -46,8 +46,8 @@ if (mode === "studio") {
 }
 
 const result = spawnSync("pnpm", remotionArgs, {
-  stdio: "inherit",
   env: process.env,
+  stdio: "inherit",
 });
 
 process.exit(result.status ?? 1);

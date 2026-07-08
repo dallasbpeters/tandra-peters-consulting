@@ -14,13 +14,8 @@ import { createGroq } from "@ai-sdk/groq";
 import { createClient } from "@sanity/client";
 import { sanityInsightsIntegration } from "@sanity/context/ai-sdk";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import {
-  generateText,
-  jsonSchema,
-  type ModelMessage,
-  stepCountIs,
-  type ToolSet,
-} from "ai";
+import { generateText, jsonSchema, stepCountIs } from "ai";
+import type { ModelMessage, ToolSet } from "ai";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -84,9 +79,9 @@ const isModelAvailabilityFailure = (message: string): boolean =>
 // ─── MCP helpers ──────────────────────────────────────────────────────────────
 
 const mcpHeaders = (token: string) => ({
-  "Content-Type": "application/json",
   Accept: "application/json, text/event-stream",
   Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
 });
 
 async function callMcp(
@@ -96,9 +91,9 @@ async function callMcp(
   id = 1
 ): Promise<unknown> {
   const res = await fetch(MCP_URL, {
-    method: "POST",
+    body: JSON.stringify({ id, jsonrpc: "2.0", method, params }),
     headers: mcpHeaders(token),
-    body: JSON.stringify({ jsonrpc: "2.0", method, params, id }),
+    method: "POST",
   });
 
   if (!res.ok) {
@@ -163,34 +158,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const writeToken = process.env.SANITY_WRITE_TOKEN;
   const insights = writeToken
     ? sanityInsightsIntegration({
-        client: createClient({
-          projectId: PROJECT_ID,
-          dataset: DATASET,
-          apiVersion: "2026-01-01",
-          useCdn: false,
-          token: writeToken,
-        }),
         agentId: "marketing-agent",
+        client: createClient({
+          apiVersion: "2026-01-01",
+          dataset: DATASET,
+          projectId: PROJECT_ID,
+          token: writeToken,
+          useCdn: false,
+        }),
         threadId: body.threadId ?? crypto.randomUUID(),
       })
     : undefined;
 
   try {
     const toolsResult = (await callMcp(token, "tools/list")) as {
-      tools: Array<{
+      tools: {
         name: string;
         description: string;
         inputSchema: Record<string, unknown>;
-      }>;
+      }[];
     };
 
     const tools: ToolSet = Object.fromEntries(
       toolsResult.tools.map((mcpTool) => {
         const execute = async (input: Record<string, unknown>) => {
           const result = (await callMcp(token, "tools/call", {
-            name: mcpTool.name,
             arguments: input,
-          })) as { content?: Array<{ type: string; text?: string }> };
+            name: mcpTool.name,
+          })) as { content?: { type: string; text?: string }[] };
 
           return (
             result.content
@@ -204,10 +199,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           mcpTool.name,
           {
             description: mcpTool.description,
+            execute,
             inputSchema: jsonSchema(
               mcpTool.inputSchema as Parameters<typeof jsonSchema>[0]
             ),
-            execute,
           } as unknown as ToolSet[string],
         ];
       })
@@ -227,9 +222,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const model = groq(modelId);
       try {
         ({ text: responseText } = await generateText({
-          model,
-          messages: body.messages,
           experimental_telemetry: experimentalTelemetry,
+          messages: body.messages,
+          model,
           stopWhen: stepCountIs(10),
           system: SYSTEM_PROMPT,
           tools,
@@ -242,9 +237,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         ({ text: responseText } = await generateText({
-          model,
-          messages: body.messages,
           experimental_telemetry: experimentalTelemetry,
+          messages: body.messages,
+          model,
           system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
         }));
       }
@@ -264,9 +259,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(200).json({ response: text });
-  } catch (err) {
-    console.error("[/api/marketing-agent]", err);
-    const message = err instanceof Error ? err.message : String(err);
+  } catch (error) {
+    console.error("[/api/marketing-agent]", error);
+    const message = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ error: message });
   }
 }

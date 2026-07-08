@@ -1,12 +1,8 @@
 import { createGroq } from "@ai-sdk/groq";
 import { generateText } from "ai";
 
-import {
-  type DeskBoardItemRecord,
-  type DeskBoardKind,
-  listBoardItems,
-  saveBoardItem,
-} from "./desk-board.js";
+import { listBoardItems, saveBoardItem } from "./desk-board.js";
+import type { DeskBoardItemRecord, DeskBoardKind } from "./desk-board.js";
 
 const GROQ_MODEL = "openai/gpt-oss-120b";
 const GROQ_MODEL_FALLBACK = "llama-3.3-70b-versatile";

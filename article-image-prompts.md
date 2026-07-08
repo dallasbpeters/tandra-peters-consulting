@@ -25,10 +25,7 @@ These templates define the visual composition system. Every article image should
 
 ### Template A — "Overhead Plan View"
 
-**Composition:** Top-down / bird's-eye view looking straight down at a scene
-**Layout:** Objects arranged on a flat surface, slightly asymmetric, with breathing room
-**Angle:** Perfectly overhead, flat lay style
-**Feel:** Organized, informative, "here's the whole picture"
+**Composition:** Top-down / bird's-eye view looking straight down at a scene **Layout:** Objects arranged on a flat surface, slightly asymmetric, with breathing room **Angle:** Perfectly overhead, flat lay style **Feel:** Organized, informative, "here's the whole picture"
 
 **When to use:** Articles about process, planning, or comparing options
 
@@ -46,10 +43,7 @@ These templates define the visual composition system. Every article image should
 
 ### Template B — "Texas Horizon Line"
 
-**Composition:** Wide landscape with a strong horizontal line at the lower third
-**Layout:** Big sky / atmosphere on top, grounded subject below
-**Angle:** Eye-level or slightly low, looking across the scene
-**Feel:** Open, confident, Texan, "we've got this handled"
+**Composition:** Wide landscape with a strong horizontal line at the lower third **Layout:** Big sky / atmosphere on top, grounded subject below **Angle:** Eye-level or slightly low, looking across the scene **Feel:** Open, confident, Texan, "we've got this handled"
 
 **When to use:** Articles about Texas weather, regional topics, or big-picture overviews
 
@@ -67,10 +61,7 @@ These templates define the visual composition system. Every article image should
 
 ### Template C — "Close-Up Detail"
 
-**Composition:** Tight crop on a single subject with shallow depth of field (illustrated equivalent: sharp foreground, soft/blurred background)
-**Layout:** Subject fills 60-70% of frame, off-center
-**Angle:** 30-45° angle, as if leaning in to inspect something
-**Feel:** Expert eye, attention to detail, "let me show you what I see"
+**Composition:** Tight crop on a single subject with shallow depth of field (illustrated equivalent: sharp foreground, soft/blurred background) **Layout:** Subject fills 60-70% of frame, off-center **Angle:** 30-45° angle, as if leaning in to inspect something **Feel:** Expert eye, attention to detail, "let me show you what I see"
 
 **When to use:** Articles about inspections, damage assessment, specific components
 
@@ -88,10 +79,7 @@ These templates define the visual composition system. Every article image should
 
 ### Template D — "Split / Comparison"
 
-**Composition:** Image divided into two halves (vertical split or diagonal)
-**Layout:** Left side vs. right side, or before/after, or Option A / Option B
-**Angle:** Straight-on, graphic, slightly abstracted
-**Feel:** Decision-making, clarity, "here are your options"
+**Composition:** Image divided into two halves (vertical split or diagonal) **Layout:** Left side vs. right side, or before/after, or Option A / Option B **Angle:** Straight-on, graphic, slightly abstracted **Feel:** Decision-making, clarity, "here are your options"
 
 **When to use:** Articles comparing materials, repair vs. replace, or any either/or decision
 
@@ -110,10 +98,7 @@ These templates define the visual composition system. Every article image should
 
 ### Template E — "Hands-On / People-Forward"
 
-**Composition:** A figure (abstracted, not photorealistic) interacting with a roof or home element
-**Layout:** Person positioned at 1/3 mark, action/gesture leading the eye across the frame
-**Angle:** Mid-level, as if you're standing nearby watching
-**Feel:** Personal, trustworthy, "I'm here helping you," human connection
+**Composition:** A figure (abstracted, not photorealistic) interacting with a roof or home element **Layout:** Person positioned at 1/3 mark, action/gesture leading the eye across the frame **Angle:** Mid-level, as if you're standing nearby watching **Feel:** Personal, trustworthy, "I'm here helping you," human connection
 
 **When to use:** Articles about working with a consultant, the project management process, or Tandra's personal approach
 
@@ -140,8 +125,7 @@ Each prompt specifies the recommended template and a complete image generation p
 
 **Template:** B — Texas Horizon Line
 
-**Prompt:**
-Flat illustration, 4:3 landscape ratio. A wide Texas skyline of simplified residential rooftops in deep teal (#092A1D) silhouetted along the lower third. Above, a dramatic gradient sky shifting from warm cream (#F4F4F1) on the left through sage green (#A5CA9B) to soft purple (#9C99FF) on the right. Stylized weather elements distributed across the sky: a bold sun with radiating lines on the left, angular hail stones in the center, and diagonal wind/rain lines on the right — each in a different brand accent color (coral #C82F05 for sun heat, sage #69A758 for hail, purple #9C99FF for wind). One rooftop in the center is slightly larger and highlighted with a sage green accent edge. Clean vector illustration style, no text, no people, minimal detail, strong shapes.
+**Prompt:** Flat illustration, 4:3 landscape ratio. A wide Texas skyline of simplified residential rooftops in deep teal (#092A1D) silhouetted along the lower third. Above, a dramatic gradient sky shifting from warm cream (#F4F4F1) on the left through sage green (#A5CA9B) to soft purple (#9C99FF) on the right. Stylized weather elements distributed across the sky: a bold sun with radiating lines on the left, angular hail stones in the center, and diagonal wind/rain lines on the right — each in a different brand accent color (coral #C82F05 for sun heat, sage #69A758 for hail, purple #9C99FF for wind). One rooftop in the center is slightly larger and highlighted with a sage green accent edge. Clean vector illustration style, no text, no people, minimal detail, strong shapes.
 
 ---
 
@@ -149,8 +133,7 @@ Flat illustration, 4:3 landscape ratio. A wide Texas skyline of simplified resid
 
 **Template:** A — Overhead Plan View
 
-**Prompt:**
-Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) surface with maintenance items arranged in a neat but natural flat-lay composition: a simplified gutter cross-section, a pair of pruning shears, a small illustrated roof vent, binoculars, a seasonal calendar page, and a few scattered oak leaves. All objects illustrated in deep teal (#092A1D) with sage green (#69A758) accent fills and details. Thin geometric lines in light sage (#A5CA9B) connect some objects subtly like a visual checklist. Soft shadows directly beneath each item. Clean, minimal, no text, no people, editorial flat-lay style.
+**Prompt:** Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) surface with maintenance items arranged in a neat but natural flat-lay composition: a simplified gutter cross-section, a pair of pruning shears, a small illustrated roof vent, binoculars, a seasonal calendar page, and a few scattered oak leaves. All objects illustrated in deep teal (#092A1D) with sage green (#69A758) accent fills and details. Thin geometric lines in light sage (#A5CA9B) connect some objects subtly like a visual checklist. Soft shadows directly beneath each item. Clean, minimal, no text, no people, editorial flat-lay style.
 
 ---
 
@@ -158,8 +141,7 @@ Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) surface with 
 
 **Template:** E — Hands-On / People-Forward
 
-**Prompt:**
-Flat illustration, 4:3 landscape. An abstracted female figure in deep teal (#092A1D) silhouette, standing at the left third of the frame, holding a clipboard and gesturing toward a simplified house on the right. The house is drawn with clean geometric lines in everglade teal (#12533A) with the roof highlighted in sage green (#69A758). Between the figure and the house, three small floating icons represent key qualities: a checkmark in a circle (trust), a magnifying glass (inspection), and a shield (insurance) — all in sage green and coral (#C82F05) accents. Warm cream (#F4F4F1) background with subtle paper texture. No facial features on the figure. Clean vector style, no text.
+**Prompt:** Flat illustration, 4:3 landscape. An abstracted female figure in deep teal (#092A1D) silhouette, standing at the left third of the frame, holding a clipboard and gesturing toward a simplified house on the right. The house is drawn with clean geometric lines in everglade teal (#12533A) with the roof highlighted in sage green (#69A758). Between the figure and the house, three small floating icons represent key qualities: a checkmark in a circle (trust), a magnifying glass (inspection), and a shield (insurance) — all in sage green and coral (#C82F05) accents. Warm cream (#F4F4F1) background with subtle paper texture. No facial features on the figure. Clean vector style, no text.
 
 ---
 
@@ -167,8 +149,7 @@ Flat illustration, 4:3 landscape. An abstracted female figure in deep teal (#092
 
 **Template:** D — Split / Comparison
 
-**Prompt:**
-Flat illustration, 4:3 landscape. The image is divided by a clean diagonal line from upper-left to lower-right. Left half (repair side): a simplified roof section in teal (#12533A) with a small highlighted patch area in sage green (#69A758) and a bandage/patch icon. Background wash is light cream (#F4F4F1). Right half (replace side): a complete new roof in sage green (#69A758) with clean lines and a small "new" sparkle accent in coral (#C82F05). Background wash shifts slightly warmer. The diagonal dividing line itself is a subtle gradient from teal to sage. Both sides sit on the same cream base. Clean vector style, geometric, no text, no people.
+**Prompt:** Flat illustration, 4:3 landscape. The image is divided by a clean diagonal line from upper-left to lower-right. Left half (repair side): a simplified roof section in teal (#12533A) with a small highlighted patch area in sage green (#69A758) and a bandage/patch icon. Background wash is light cream (#F4F4F1). Right half (replace side): a complete new roof in sage green (#69A758) with clean lines and a small "new" sparkle accent in coral (#C82F05). Background wash shifts slightly warmer. The diagonal dividing line itself is a subtle gradient from teal to sage. Both sides sit on the same cream base. Clean vector style, geometric, no text, no people.
 
 ---
 
@@ -176,8 +157,7 @@ Flat illustration, 4:3 landscape. The image is divided by a clean diagonal line 
 
 **Template:** D — Split / Comparison
 
-**Prompt:**
-Flat illustration, 4:3 landscape. Vertical split composition. Left half: a close-up of overlapping asphalt shingle texture rendered in deep teal (#092A1D) and everglade (#12533A) tones, with subtle granule texture. Right half: clean parallel lines of a standing seam metal roof in sage green (#69A758) and light sage (#A5CA9B), with a slight metallic sheen effect. A thin vertical dividing line in soft purple (#9C99FF) separates the two halves. Both sit on a shared cream (#F4F4F1) base. Below each texture, a simplified icon: a dollar sign on the left (cost), an infinity/longevity symbol on the right (durability) — both in coral (#C82F05). Flat vector, geometric, no text, no people.
+**Prompt:** Flat illustration, 4:3 landscape. Vertical split composition. Left half: a close-up of overlapping asphalt shingle texture rendered in deep teal (#092A1D) and everglade (#12533A) tones, with subtle granule texture. Right half: clean parallel lines of a standing seam metal roof in sage green (#69A758) and light sage (#A5CA9B), with a slight metallic sheen effect. A thin vertical dividing line in soft purple (#9C99FF) separates the two halves. Both sit on a shared cream (#F4F4F1) base. Below each texture, a simplified icon: a dollar sign on the left (cost), an infinity/longevity symbol on the right (durability) — both in coral (#C82F05). Flat vector, geometric, no text, no people.
 
 ---
 
@@ -185,8 +165,7 @@ Flat illustration, 4:3 landscape. Vertical split composition. Left half: a close
 
 **Template:** A — Overhead Plan View
 
-**Prompt:**
-Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) desk surface with insurance-related items arranged in a flat-lay: a simplified insurance policy document in deep teal (#092A1D), a smartphone showing a camera icon (for documenting damage), a small roof cross-section diagram, a magnifying glass over a line-item estimate, and a pen. Accent details in sage green (#69A758): checkmarks on the document, a highlighted line on the estimate. One coral (#C82F05) warning icon near a "common mistakes" sticky note. Thin connecting lines in light sage (#A5CA9B) suggest a workflow path between items. Clean vector, no text on documents (abstract lines only), no people.
+**Prompt:** Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) desk surface with insurance-related items arranged in a flat-lay: a simplified insurance policy document in deep teal (#092A1D), a smartphone showing a camera icon (for documenting damage), a small roof cross-section diagram, a magnifying glass over a line-item estimate, and a pen. Accent details in sage green (#69A758): checkmarks on the document, a highlighted line on the estimate. One coral (#C82F05) warning icon near a "common mistakes" sticky note. Thin connecting lines in light sage (#A5CA9B) suggest a workflow path between items. Clean vector, no text on documents (abstract lines only), no people.
 
 ---
 
@@ -194,8 +173,7 @@ Flat illustration, 4:3 landscape, top-down view. A cream (#F4F4F1) desk surface 
 
 **Template:** C — Close-Up Detail
 
-**Prompt:**
-Flat illustration, 4:3 landscape. A tight close-up view angled at roughly 35 degrees showing a section of roof where shingles meet a chimney flashing detail. The shingles are rendered in deep teal (#092A1D) with subtle overlapping texture. The chimney is everglade (#12533A). The flashing is sage green (#69A758). A small coral (#C82F05) dotted circle highlights a gap in the flashing sealant — like a professional inspection callout. The background behind the roof detail fades to a soft cream (#F4F4F1) wash. One small sage green arrow points to the highlighted area. Clean vector illustration, detailed foreground, soft abstract background, no text, no people.
+**Prompt:** Flat illustration, 4:3 landscape. A tight close-up view angled at roughly 35 degrees showing a section of roof where shingles meet a chimney flashing detail. The shingles are rendered in deep teal (#092A1D) with subtle overlapping texture. The chimney is everglade (#12533A). The flashing is sage green (#69A758). A small coral (#C82F05) dotted circle highlights a gap in the flashing sealant — like a professional inspection callout. The background behind the roof detail fades to a soft cream (#F4F4F1) wash. One small sage green arrow points to the highlighted area. Clean vector illustration, detailed foreground, soft abstract background, no text, no people.
 
 ---
 
@@ -203,23 +181,22 @@ Flat illustration, 4:3 landscape. A tight close-up view angled at roughly 35 deg
 
 **Template:** E — Hands-On / People-Forward
 
-**Prompt:**
-Flat illustration, 4:3 landscape. A simplified house in the center shown in cross-section/cutaway view revealing roof layers: decking in paper-dark (#D2D2C6), underlayment in light sage (#A5CA9B), shingles in sage green (#69A758), and ridge cap in deep teal (#092A1D). An abstracted figure in teal silhouette stands to the left with a hard hat, pointing at the roof layers with one hand and holding a clipboard in the other. To the right of the house, 3-4 small step icons stacked vertically (numbered circles in sage and coral) represent the process stages. Warm cream (#F4F4F1) background. No facial features. Clean vector, architectural diagram feel, no text.
+**Prompt:** Flat illustration, 4:3 landscape. A simplified house in the center shown in cross-section/cutaway view revealing roof layers: decking in paper-dark (#D2D2C6), underlayment in light sage (#A5CA9B), shingles in sage green (#69A758), and ridge cap in deep teal (#092A1D). An abstracted figure in teal silhouette stands to the left with a hard hat, pointing at the roof layers with one hand and holding a clipboard in the other. To the right of the house, 3-4 small step icons stacked vertically (numbered circles in sage and coral) represent the process stages. Warm cream (#F4F4F1) background. No facial features. Clean vector, architectural diagram feel, no text.
 
 ---
 
 ## Template-to-Article Mapping
 
-| Article               | Template             | Rationale                                       |
-| --------------------- | -------------------- | ----------------------------------------------- |
-| Texas Weather & Roof  | B — Texas Horizon    | Big-picture Texas weather story, landscape feel |
-| Maintaining Your Roof | A — Overhead Plan    | Checklist/maintenance items, organized flat-lay |
-| Choosing a Consultant | E — Hands-On         | Personal trust, human connection                |
-| Repair vs. Replace    | D — Split/Comparison | Direct A/B decision                             |
-| Shingle vs. Metal     | D — Split/Comparison | Material comparison                             |
-| Insurance Guide       | A — Overhead Plan    | Process documents, organized information        |
-| Roof Inspection       | C — Close-Up Detail  | Expert eye, attention to detail                 |
-| Replacement Process   | E — Hands-On         | Project management, guided experience           |
+| Article | Template | Rationale |
+| --- | --- | --- |
+| Texas Weather & Roof | B — Texas Horizon | Big-picture Texas weather story, landscape feel |
+| Maintaining Your Roof | A — Overhead Plan | Checklist/maintenance items, organized flat-lay |
+| Choosing a Consultant | E — Hands-On | Personal trust, human connection |
+| Repair vs. Replace | D — Split/Comparison | Direct A/B decision |
+| Shingle vs. Metal | D — Split/Comparison | Material comparison |
+| Insurance Guide | A — Overhead Plan | Process documents, organized information |
+| Roof Inspection | C — Close-Up Detail | Expert eye, attention to detail |
+| Replacement Process | E — Hands-On | Project management, guided experience |
 
 ---
 

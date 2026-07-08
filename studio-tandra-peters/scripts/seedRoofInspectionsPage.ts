@@ -7,12 +7,12 @@ import { config } from "dotenv";
 
 import { roofInspectionsPageSeed } from "./seedDefaults";
 
-const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const studioRoot = resolve(import.meta.dirname, "..");
 
 config({ path: resolve(studioRoot, ".env"), quiet: true });
 config({
-  path: resolve(studioRoot, ".env.local"),
   override: true,
+  path: resolve(studioRoot, ".env.local"),
   quiet: true,
 });
 
@@ -25,9 +25,9 @@ if (!token) {
 }
 
 const client = createClient({
-  projectId: "7irm699i",
-  dataset: "production",
   apiVersion: "2026-05-29",
+  dataset: "production",
+  projectId: "7irm699i",
   token,
   useCdn: false,
 });
@@ -37,7 +37,7 @@ async function main() {
   console.log("Seeded roofInspectionsPage only (_id: roofInspectionsPage)");
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

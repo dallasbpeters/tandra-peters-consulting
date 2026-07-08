@@ -39,8 +39,7 @@ const mergeIntroContent = (
   const managed = mergeScene(defaults.managed, raw.managed);
   const proof = mergeScene(defaults.proof, raw.proof);
   return {
-    storm: mergeScene(defaults.storm, raw.storm),
-    straightAnswers: mergeScene(defaults.straightAnswers, raw.straightAnswers),
+    closing: mergeScene(defaults.closing, raw.closing),
     inspection: mergeScene(defaults.inspection, raw.inspection),
     managed: {
       ...managed,
@@ -56,7 +55,8 @@ const mergeIntroContent = (
         defaults.proof.items
       ),
     },
-    closing: mergeScene(defaults.closing, raw.closing),
+    storm: mergeScene(defaults.storm, raw.storm),
+    straightAnswers: mergeScene(defaults.straightAnswers, raw.straightAnswers),
   };
 };
 
@@ -81,39 +81,39 @@ interface CompositionMeta {
 
 const COMPOSITIONS: CompositionMeta[] = [
   {
+    cms: true,
+    description: "30s · 16:9 · plays on the home page hero. Copy from Sanity.",
     id: "tandra-intro",
     label: "Homepage intro",
-    description: "30s · 16:9 · plays on the home page hero. Copy from Sanity.",
     orientation: "landscape",
-    cms: true,
   },
   {
+    cms: false,
+    description: "29s · 4:5 · storm damage / insurance claim CTA.",
     id: "TandraStormSpot",
     label: "Storm spot ad",
-    description: "29s · 4:5 · storm damage / insurance claim CTA.",
     orientation: "portrait",
-    cms: false,
   },
   {
+    cms: false,
+    description: "42s · 4:5 · roof investment / free inspection CTA.",
     id: "TandraRoofValue",
     label: "Roof value ad",
-    description: "42s · 4:5 · roof investment / free inspection CTA.",
     orientation: "portrait",
-    cms: false,
   },
   {
+    cms: false,
+    description: "4:5 · animated 3D roof walkthrough (heavier preview).",
     id: "roof-scene",
     label: "3D roof inspection",
-    description: "4:5 · animated 3D roof walkthrough (heavier preview).",
     orientation: "portrait",
-    cms: false,
   },
   {
+    cms: false,
+    description: "4:5 · multi-scene reel with helping-homeowners intro.",
     id: "HelpingTexasHomeowners",
     label: "Helping Texas homeowners",
-    description: "4:5 · multi-scene reel with helping-homeowners intro.",
     orientation: "portrait",
-    cms: false,
   },
 ];
 
@@ -159,12 +159,12 @@ const RENDER_SECRET =
   process.env.SANITY_STUDIO_RENDER_VIDEO_SECRET?.trim() || "";
 
 const DEFAULT_PROPS: Record<string, any> = {
+  CustomSlots: CUSTOM_SLOTS_DEFAULTS,
+  HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
   TandraRoofValue: ROOF_VALUE_DEFAULTS,
   TandraStormSpot: STORM_SPOT_DEFAULTS,
   "roof-scene": ROOF_SCENE_DEFAULTS,
-  CustomSlots: CUSTOM_SLOTS_DEFAULTS,
-  HelpingTexasHomeowners: HELPING_TEXAS_DEFAULTS,
-  "tandra-intro": { showCaptions: false, content: defaultTandraIntroContent },
+  "tandra-intro": { content: defaultTandraIntroContent, showCaptions: false },
 };
 
 const isStructuredRoofSceneDoc = (
@@ -182,11 +182,11 @@ const isStructuredRoofSceneDoc = (
   );
 
 const COMPOSITION_TO_SCHEMA: Record<string, string> = {
-  "roof-scene": "roofSceneSettings",
-  TandraStormSpot: "stormSpotSettings",
-  TandraRoofValue: "roofValueSettings",
   CustomSlots: "customSlotsSettings",
   HelpingTexasHomeowners: "helpingTexasHomeownersSettings",
+  TandraRoofValue: "roofValueSettings",
+  TandraStormSpot: "stormSpotSettings",
+  "roof-scene": "roofSceneSettings",
   "tandra-intro": "tandraIntroSettings",
 };
 
@@ -244,14 +244,14 @@ export function RemotionVideoTool() {
         .then((doc) => {
           const base = doc?.tandraIntroVideo
             ? {
-                showCaptions:
-                  typeof doc.tandraIntroVideo.showCaptions === "boolean"
-                    ? doc.tandraIntroVideo.showCaptions
-                    : false,
                 content: mergeIntroContent(
                   doc.tandraIntroVideo,
                   defaultTandraIntroContent
                 ),
+                showCaptions:
+                  typeof doc.tandraIntroVideo.showCaptions === "boolean"
+                    ? doc.tandraIntroVideo.showCaptions
+                    : false,
               }
             : defaults;
           // Now overlay saved settings if they exist.
@@ -344,7 +344,7 @@ export function RemotionVideoTool() {
   useEffect(() => {
     const timer = setTimeout(() => {
       iframeRef.current?.contentWindow?.postMessage(
-        { type: "remotion:updateProps", props: formProps },
+        { props: formProps, type: "remotion:updateProps" },
         "*"
       );
     }, 100);
@@ -379,8 +379,8 @@ export function RemotionVideoTool() {
       setSaveState({ status: "saved" });
     } catch (error) {
       setSaveState({
-        status: "error",
         message: error instanceof Error ? error.message : "Save failed.",
+        status: "error",
       });
     }
   }, [activeId, client, formProps]);
@@ -391,12 +391,12 @@ export function RemotionVideoTool() {
       const response = await fetch(
         `${RENDER_BASE}/api/render-tandra-intro?force=true`,
         {
-          method: "POST",
+          body: JSON.stringify({ compositionId: active.id }),
           headers: {
             "Content-Type": "application/json",
             ...(RENDER_SECRET ? { "x-render-secret": RENDER_SECRET } : {}),
           },
-          body: JSON.stringify({ compositionId: active.id }),
+          method: "POST",
         }
       );
       const payload = (await response.json().catch(() => ({}))) as {
@@ -410,7 +410,7 @@ export function RemotionVideoTool() {
         );
       }
       if (payload.skipped) {
-        setRender({ status: "done", url: payload.url ?? "", skipped: true });
+        setRender({ skipped: true, status: "done", url: payload.url ?? "" });
       } else if (payload.url) {
         setRender({ status: "done", url: payload.url });
       } else {
@@ -418,64 +418,64 @@ export function RemotionVideoTool() {
       }
     } catch (error) {
       setRender({
-        status: "error",
         message:
           error instanceof Error ? error.message : "Unexpected render error.",
+        status: "error",
       });
     }
   }, [active.id]);
 
   const colors = isDark
     ? {
-        bg: "#101112",
-        panel: "#16181a",
-        border: "#1f2123",
-        text: "#e4e8e6",
-        subtle: "#aab2ad",
         activeBg: "#10533a",
         activeText: "#d5f6e9",
+        bg: "#101112",
+        border: "#1f2123",
         inputBg: "#0f1110",
         inputBorder: "#2a2f2c",
+        panel: "#16181a",
+        subtle: "#aab2ad",
+        text: "#e4e8e6",
       }
     : {
-        bg: "#f3f5f4",
-        panel: "#ffffff",
-        border: "#e4e8e6",
-        text: "#1a241f",
-        subtle: "#5b6b62",
         activeBg: "#0a2a1d",
         activeText: "#d5f6e9",
+        bg: "#f3f5f4",
+        border: "#e4e8e6",
         inputBg: "#ffffff",
         inputBorder: "#d4d8d4",
+        panel: "#ffffff",
+        subtle: "#5b6b62",
+        text: "#1a241f",
       };
 
   return (
     <div
       style={{
-        display: "flex",
-        height: "100%",
         background: colors.bg,
         color: colors.text,
+        display: "flex",
+        height: "100%",
       }}
     >
       {/* Sidebar: composition picker */}
       <aside
         style={{
-          width: 220,
-          flex: "0 0 220px",
           borderRight: `1px solid ${colors.border}`,
-          padding: "1rem",
-          overflowY: "auto",
           boxSizing: "border-box",
+          flex: "0 0 220px",
+          overflowY: "auto",
+          padding: "1rem",
+          width: 220,
         }}
       >
         <h2
           style={{
-            fontSize: "0.8125rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
             color: colors.subtle,
+            fontSize: "0.8125rem",
+            letterSpacing: "0.08em",
             margin: "0 0 0.75rem",
+            textTransform: "uppercase",
           }}
         >
           Compositions
@@ -491,37 +491,37 @@ export function RemotionVideoTool() {
                   setRender({ status: "idle" });
                 }}
                 style={{
-                  textAlign: "left",
-                  cursor: "pointer",
-                  borderRadius: 8,
-                  border: `1px solid ${isActive ? "transparent" : colors.border}`,
                   background: isActive ? colors.activeBg : colors.panel,
+                  border: `1px solid ${isActive ? "transparent" : colors.border}`,
+                  borderRadius: 8,
                   color: isActive ? colors.activeText : colors.text,
+                  cursor: "pointer",
                   padding: "0.625rem 0.75rem",
+                  textAlign: "left",
                   width: "100%",
                 }}
                 type="button"
               >
                 <div
                   style={{
-                    display: "flex",
                     alignItems: "center",
-                    gap: 6,
-                    fontWeight: 600,
+                    display: "flex",
                     fontSize: "0.875rem",
+                    fontWeight: 600,
+                    gap: 6,
                   }}
                 >
                   {c.label}
                   {c.cms ? (
                     <span
                       style={{
-                        fontSize: "0.625rem",
-                        padding: "1px 6px",
-                        borderRadius: 999,
                         background: isActive
                           ? "rgba(255,255,255,0.18)"
                           : colors.border,
+                        borderRadius: 999,
                         color: isActive ? colors.activeText : colors.subtle,
+                        fontSize: "0.625rem",
+                        padding: "1px 6px",
                       }}
                     >
                       CMS
@@ -530,10 +530,10 @@ export function RemotionVideoTool() {
                 </div>
                 <div
                   style={{
-                    fontSize: "0.75rem",
                     color: isActive ? colors.activeText : colors.subtle,
-                    marginTop: 2,
+                    fontSize: "0.75rem",
                     lineHeight: 1.4,
+                    marginTop: 2,
                   }}
                 >
                   {c.description}
@@ -547,26 +547,26 @@ export function RemotionVideoTool() {
       {/* Preview area */}
       <div
         style={{
-          flex: 1,
           display: "flex",
+          flex: 1,
           flexDirection: "column",
           minWidth: 0,
         }}
       >
         <div
           style={{
-            display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: "0.75rem 1rem",
             borderBottom: `1px solid ${colors.border}`,
+            display: "flex",
+            gap: 12,
+            justifyContent: "space-between",
+            padding: "0.75rem 1rem",
           }}
         >
           <div
             style={{
-              fontSize: "0.8125rem",
               color: colors.subtle,
+              fontSize: "0.8125rem",
               lineHeight: 1.5,
             }}
           >
@@ -578,10 +578,10 @@ export function RemotionVideoTool() {
           </div>
           <div
             style={{
-              display: "flex",
               alignItems: "center",
-              gap: 10,
+              display: "flex",
               flex: "0 0 auto",
+              gap: 10,
             }}
           >
             <SaveStatus
@@ -594,15 +594,15 @@ export function RemotionVideoTool() {
                 disabled={saveState.status === "saving"}
                 onClick={onSave}
                 style={{
-                  cursor: saveState.status === "saving" ? "wait" : "pointer",
-                  borderRadius: 8,
-                  border: `1px solid ${colors.border}`,
                   background: colors.panel,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 8,
                   color: colors.text,
-                  fontWeight: 600,
+                  cursor: saveState.status === "saving" ? "wait" : "pointer",
                   fontSize: "0.8125rem",
-                  padding: "0.5rem 1rem",
+                  fontWeight: 600,
                   opacity: saveState.status === "saving" ? 0.7 : 1,
+                  padding: "0.5rem 1rem",
                 }}
                 type="button"
               >
@@ -614,15 +614,15 @@ export function RemotionVideoTool() {
               disabled={render.status === "rendering"}
               onClick={onRender}
               style={{
-                cursor: render.status === "rendering" ? "wait" : "pointer",
-                borderRadius: 8,
-                border: "none",
                 background: "#10533a",
+                border: "none",
+                borderRadius: 8,
                 color: "#d5f6e9",
-                fontWeight: 700,
+                cursor: render.status === "rendering" ? "wait" : "pointer",
                 fontSize: "0.8125rem",
-                padding: "0.5rem 1rem",
+                fontWeight: 700,
                 opacity: render.status === "rendering" ? 0.7 : 1,
+                padding: "0.5rem 1rem",
               }}
               type="button"
             >
@@ -633,11 +633,11 @@ export function RemotionVideoTool() {
 
         <div
           style={{
-            flex: 1,
-            minHeight: 0,
-            display: "flex",
-            justifyContent: "center",
             background: isDark ? "#0b0b09" : "#22251f",
+            display: "flex",
+            flex: 1,
+            justifyContent: "center",
+            minHeight: 0,
           }}
         >
           <iframe
@@ -646,9 +646,9 @@ export function RemotionVideoTool() {
             src={previewUrl}
             style={{
               border: "none",
-              width: "100%",
-              height: "100%",
               display: "block",
+              height: "100%",
+              width: "100%",
             }}
             title={`${active.label} preview`}
           />
@@ -659,22 +659,22 @@ export function RemotionVideoTool() {
       {schema.length > 0 && (
         <aside
           style={{
-            width: 320,
-            flex: "0 0 320px",
-            borderLeft: `1px solid ${colors.border}`,
-            padding: "1rem",
-            overflowY: "auto",
-            boxSizing: "border-box",
             background: colors.panel,
+            borderLeft: `1px solid ${colors.border}`,
+            boxSizing: "border-box",
+            flex: "0 0 320px",
+            overflowY: "auto",
+            padding: "1rem",
+            width: 320,
           }}
         >
           <h2
             style={{
-              fontSize: "0.8125rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
               color: colors.subtle,
+              fontSize: "0.8125rem",
+              letterSpacing: "0.08em",
               margin: "0 0 0.75rem",
+              textTransform: "uppercase",
             }}
           >
             Edit copy
@@ -722,18 +722,18 @@ function EditorSection({
       <button
         onClick={() => setCollapsed((v) => !v)}
         style={{
-          width: "100%",
-          textAlign: "left",
-          cursor: "pointer",
-          border: "none",
-          background: colors.bg,
-          color: colors.text,
-          padding: "0.5rem 0.75rem",
-          fontWeight: 600,
-          fontSize: "0.8125rem",
-          display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
+          background: colors.bg,
+          border: "none",
+          color: colors.text,
+          cursor: "pointer",
+          display: "flex",
+          fontSize: "0.8125rem",
+          fontWeight: 600,
+          justifyContent: "space-between",
+          padding: "0.5rem 0.75rem",
+          textAlign: "left",
+          width: "100%",
         }}
         type="button"
       >
@@ -745,10 +745,10 @@ function EditorSection({
       {!collapsed && (
         <div
           style={{
-            padding: "0.5rem 0.75rem",
             display: "flex",
             flexDirection: "column",
             gap: 10,
+            padding: "0.5rem 0.75rem",
           }}
         >
           {section.fields.map((field) => (
@@ -780,28 +780,28 @@ function EditorFieldRow({
   colors: Record<string, string>;
 }) {
   const inputStyle: React.CSSProperties = {
-    width: "100%",
-    boxSizing: "border-box",
+    background: colors.inputBg,
     border: `1px solid ${colors.inputBorder}`,
     borderRadius: 6,
-    background: colors.inputBg,
+    boxSizing: "border-box",
     color: colors.text,
-    fontSize: "0.8125rem",
-    padding: "0.375rem 0.5rem",
     fontFamily: "inherit",
+    fontSize: "0.8125rem",
     lineHeight: 1.4,
+    padding: "0.375rem 0.5rem",
+    width: "100%",
   };
 
   const labelStyle: React.CSSProperties = {
+    color: colors.subtle,
+    display: "block",
     fontSize: "0.75rem",
     fontWeight: 600,
-    color: colors.subtle,
     marginBottom: 4,
-    display: "block",
   };
 
   switch (field.type) {
-    case "text":
+    case "text": {
       return (
         <div>
           <label style={labelStyle}>{field.label}</label>
@@ -813,8 +813,9 @@ function EditorFieldRow({
           />
         </div>
       );
+    }
 
-    case "textarea":
+    case "textarea": {
       return (
         <div>
           <label style={labelStyle}>{field.label}</label>
@@ -825,32 +826,34 @@ function EditorFieldRow({
           />
         </div>
       );
+    }
 
-    case "boolean":
+    case "boolean": {
       return (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ alignItems: "center", display: "flex", gap: 8 }}>
           <input
             checked={value === true}
             id={`field-${field.key}`}
             onChange={(e) => onChange(e.target.checked)}
             style={{
               accentColor: "#10533a",
-              width: 16,
-              height: 16,
               cursor: "pointer",
+              height: 16,
+              width: 16,
             }}
             type="checkbox"
           />
           <label
             htmlFor={`field-${field.key}`}
-            style={{ ...labelStyle, marginBottom: 0, cursor: "pointer" }}
+            style={{ ...labelStyle, cursor: "pointer", marginBottom: 0 }}
           >
             {field.label}
           </label>
         </div>
       );
+    }
 
-    case "select":
+    case "select": {
       return (
         <div>
           <label style={labelStyle}>{field.label}</label>
@@ -867,8 +870,9 @@ function EditorFieldRow({
           </select>
         </div>
       );
+    }
 
-    case "number":
+    case "number": {
       return (
         <div>
           <label style={labelStyle}>{field.label}</label>
@@ -880,9 +884,11 @@ function EditorFieldRow({
           />
         </div>
       );
+    }
 
-    default:
+    default: {
       return null;
+    }
   }
 }
 
@@ -902,12 +908,12 @@ function SaveStatus({
   }
   if (state.status === "saving") {
     return (
-      <span style={{ fontSize: "0.75rem", color: colors.subtle }}>Saving…</span>
+      <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>Saving…</span>
     );
   }
   if (state.status === "error") {
     return (
-      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>
+      <span style={{ color: "#f3a61e", fontSize: "0.75rem", maxWidth: 360 }}>
         {state.message}
       </span>
     );
@@ -916,10 +922,10 @@ function SaveStatus({
     <span
       onClick={onDismiss}
       style={{
-        fontSize: "0.75rem",
         color: "#69a758",
-        fontWeight: 600,
         cursor: "pointer",
+        fontSize: "0.75rem",
+        fontWeight: 600,
       }}
     >
       ✓ Saved
@@ -939,21 +945,21 @@ function RenderStatus({
   }
   if (state.status === "rendering") {
     return (
-      <span style={{ fontSize: "0.75rem", color: colors.subtle }}>
+      <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>
         Rendering in a Vercel Sandbox — this can take a minute…
       </span>
     );
   }
   if (state.status === "error") {
     return (
-      <span style={{ fontSize: "0.75rem", color: "#f3a61e", maxWidth: 360 }}>
+      <span style={{ color: "#f3a61e", fontSize: "0.75rem", maxWidth: 360 }}>
         {state.message}
       </span>
     );
   }
   if (state.skipped) {
     return (
-      <span style={{ fontSize: "0.75rem", color: colors.subtle }}>
+      <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>
         Already up to date — no re-render needed.
       </span>
     );
@@ -962,7 +968,7 @@ function RenderStatus({
     <a
       href={state.url}
       rel="noreferrer"
-      style={{ fontSize: "0.75rem", color: "#69a758", fontWeight: 600 }}
+      style={{ color: "#69a758", fontSize: "0.75rem", fontWeight: 600 }}
       target="_blank"
     >
       Done — open MP4 ↗

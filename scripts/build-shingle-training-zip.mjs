@@ -120,9 +120,9 @@ async function main() {
     const dir = join(TRAINING_DIR, sub);
     try {
       images.push(...(await collectImages(dir)));
-    } catch (err) {
-      if (/** @type {NodeJS.ErrnoException} */ (err).code !== "ENOENT") {
-        throw err;
+    } catch (error) {
+      if (/** @type {NodeJS.ErrnoException} */ (error).code !== "ENOENT") {
+        throw error;
       }
     }
   }
@@ -136,15 +136,15 @@ async function main() {
 
   await mkdir(STAGING_DIR, { recursive: true });
 
-  for (const imagePath of images.sort()) {
+  for (const imagePath of images.toSorted()) {
     const caption = captionFor(imagePath);
     const txtPath = imagePath.replace(RE_FILE_EXT, ".txt");
-    await writeFile(txtPath, `${caption}\n`, "utf8");
+    await writeFile(txtPath, `${caption}\n`, "utf-8");
 
     const imageName = basename(imagePath);
     const txtName = basename(txtPath);
     await writeFile(join(STAGING_DIR, imageName), await readFile(imagePath));
-    await writeFile(join(STAGING_DIR, txtName), `${caption}\n`, "utf8");
+    await writeFile(join(STAGING_DIR, txtName), `${caption}\n`, "utf-8");
   }
 
   try {
@@ -169,7 +169,7 @@ async function main() {
   console.log(`Created ${OUTPUT_ZIP}`);
 }
 
-main().catch((err) => {
-  console.error(err);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

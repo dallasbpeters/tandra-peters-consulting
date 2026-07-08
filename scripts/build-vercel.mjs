@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(import.meta.dirname);
 const distDir = path.join(repoRoot, "dist");
 const studioTempDir = path.join(repoRoot, ".studio-dist");
 const studioDir = path.join(repoRoot, "studio-tandra-peters");
@@ -12,8 +12,8 @@ const run = (command, args, cwd = repoRoot) => {
   try {
     execFileSync(command, args, {
       cwd,
-      stdio: "inherit",
       env: process.env,
+      stdio: "inherit",
     });
   } catch (error) {
     const stderr = error.stderr?.toString?.().trim();
@@ -28,8 +28,8 @@ const run = (command, args, cwd = repoRoot) => {
   }
 };
 
-rmSync(distDir, { recursive: true, force: true });
-rmSync(studioTempDir, { recursive: true, force: true });
+rmSync(distDir, { force: true, recursive: true });
+rmSync(studioTempDir, { force: true, recursive: true });
 
 run("pnpm", ["exec", "vite", "build"]);
 
@@ -75,7 +75,7 @@ if (existsSync(path.join(studioTempDir, "vendor"))) {
   });
 }
 
-rmSync(studioTempDir, { recursive: true, force: true });
+rmSync(studioTempDir, { force: true, recursive: true });
 
 if (process.env.SKIP_REMOTION_SNAPSHOT === "1") {
   console.log(

@@ -58,9 +58,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const client = createClient({
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    projectId: SANITY_PROJECT_ID,
     token,
     useCdn: false,
   });
@@ -80,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       await client.delete(id);
-      res.status(200).json({ ok: true, id });
+      res.status(200).json({ id, ok: true });
       return;
     }
 
@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(400).json({ error: "Missing version name or config." });
       return;
     }
-    if (Buffer.byteLength(config, "utf8") > MAX_CONFIG_BYTES) {
+    if (Buffer.byteLength(config, "utf-8") > MAX_CONFIG_BYTES) {
       res.status(413).json({ error: "Config payload is too large." });
       return;
     }
@@ -106,7 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       savedBy: user.email,
     });
 
-    res.status(200).json({ ok: true, id: created._id, name: created.name });
+    res.status(200).json({ id: created._id, name: created.name, ok: true });
   } catch (error) {
     console.error("[api/ad-versions]", error);
     res.status(500).json({

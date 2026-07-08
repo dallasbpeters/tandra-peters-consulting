@@ -173,6 +173,48 @@
   background: white;
 }
 
+wa-button.desk-primary-link {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+wa-button.desk-primary-link::part(base) {
+  display: inline-flex;
+  gap: var(--theme-spacing-xs);
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  font-size: 0.88rem;
+  font-weight: 850;
+  color: oklch(20.94% 0.034 164.2);
+  background: white;
+  border: 0;
+  border-radius: var(--theme-radius-pill);
+}
+
+wa-button.desk-action-button::part(base) {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0;
+  font: inherit;
+  font-weight: 850;
+  color: oklch(44.3% 0.155 34.4);
+  background: none;
+  border: 0;
+}
+
+wa-button.desk-action-button--danger::part(base) {
+  color: oklch(52% 0.2 25.5);
+}
+
+wa-button.desk-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .desk-secondary-link {
   color: white;
   background: color-mix(in oklch, white 14%, transparent);
@@ -449,14 +491,6 @@
   align-items: center;
 }
 
-.desk-canvass-builder__actions .desk-text-link {
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  background: none;
-  border: 0;
-}
-
 .desk-canvass-list {
   display: grid;
   gap: var(--theme-spacing-xs);
@@ -467,10 +501,6 @@
 }
 
 .desk-canvass-row {
-  display: grid;
-  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
-  gap: var(--theme-spacing-sm);
-  align-items: center;
   padding: var(--theme-spacing-sm) var(--theme-spacing-md);
   text-align: left;
   cursor: pointer;
@@ -480,6 +510,24 @@
   border-radius: var(--theme-radius-medium);
 }
 
+.desk-canvass-row::part(base) {
+  gap: var(--theme-spacing-sm);
+  align-items: center;
+}
+
+.desk-canvass-row::part(control) {
+  flex: 0 0 auto;
+}
+
+.desk-canvass-row::part(label) {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--theme-spacing-sm);
+  align-items: center;
+  min-width: 0;
+}
+
 .desk-canvass-row:hover {
   border-color: color-mix(in oklch, oklch(20.94% 0.034 164.2) 30%, transparent);
 }
@@ -487,12 +535,6 @@
 .desk-canvass-row--selected {
   background: oklch(96.1% 0.044 89.7);
   border-color: oklch(68% 0.13 68);
-}
-
-.desk-canvass-row__check {
-  display: grid;
-  place-items: center;
-  color: oklch(50% 0.12 58);
 }
 
 .desk-canvass-row__body {
@@ -584,10 +626,6 @@
   cursor: pointer;
   background: none;
   border: 0;
-}
-
-.desk-text-link--danger {
-  color: oklch(52% 0.2 25.5);
 }
 
 .desk-status {
@@ -900,6 +938,7 @@
   gap: var(--theme-spacing-md);
   align-items: center;
   min-width: 0;
+  margin-inline-start: 0;
 }
 
 .desk-action {
@@ -1122,22 +1161,35 @@
 }
 
 .desk-status-toggle {
-  display: inline-flex;
-  gap: var(--theme-spacing-xs);
-  align-items: center;
   align-self: start;
-  padding: var(--theme-spacing-xs) var(--theme-spacing-sm);
+  --checked-icon-color: white;
   font-size: 0.78rem;
   font-weight: 850;
   color: oklch(25.66% 0.046 163.6);
   cursor: pointer;
+}
+
+.desk-status-toggle::part(base) {
+  gap: var(--theme-spacing-xs);
+  align-items: center;
+  padding: var(--theme-spacing-xs) var(--theme-spacing-sm);
   background: oklch(96.64% 0.012 137.78);
   border: 1px solid
     color-mix(in oklch, oklch(20.94% 0.034 164.2) 12%, transparent);
   border-radius: var(--theme-radius-pill);
 }
 
-.desk-status-toggle:disabled {
+.desk-status-toggle::part(control) {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: white;
+  background: white;
+  border: 2px solid
+    color-mix(in oklch, oklch(20.94% 0.034 164.2) 32%, transparent);
+  border-radius: 999px;
+}
+
+.desk-status-toggle:state(disabled) {
   cursor: progress;
   opacity: 0.55;
 }
@@ -1148,20 +1200,7 @@
   outline-offset: 2px;
 }
 
-.desk-status-toggle__box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.15rem;
-  height: 1.15rem;
-  color: white;
-  background: white;
-  border: 2px solid
-    color-mix(in oklch, oklch(20.94% 0.034 164.2) 32%, transparent);
-  border-radius: 999px;
-}
-
-.desk-status-toggle[aria-pressed="true"] {
+.desk-status-toggle:state(checked)::part(base) {
   color: oklch(23.14% 0.033 139.46);
   background: oklch(86.73% 0.051 138.85);
   border-color: color-mix(
@@ -1171,7 +1210,7 @@
   );
 }
 
-.desk-status-toggle[aria-pressed="true"] .desk-status-toggle__box {
+.desk-status-toggle:state(checked)::part(control) {
   background: oklch(46.26% 0.084 139.21);
   border-color: oklch(46.26% 0.084 139.21);
 }
@@ -1200,23 +1239,25 @@
 }
 
 .desk-generate-button {
-  display: inline-flex;
-  gap: var(--theme-spacing-xs);
-  align-items: center;
-  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
   margin-left: auto;
-  font-size: 0.82rem;
-  font-weight: 850;
-  color: white;
-  cursor: pointer;
-  background: oklch(54.55% 0.194 33.93);
-  border: 0;
-  border-radius: var(--theme-radius-pill);
 }
 
 .desk-generate-button:disabled {
   cursor: progress;
   opacity: 0.6;
+}
+
+wa-button.desk-generate-button::part(base) {
+  display: inline-flex;
+  gap: var(--theme-spacing-xs);
+  align-items: center;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  font-size: 0.82rem;
+  font-weight: 850;
+  color: white;
+  background: oklch(54.55% 0.194 33.93);
+  border: 0;
+  border-radius: var(--theme-radius-pill);
 }
 
 .desk-generate-button:focus-visible {
@@ -1353,9 +1394,6 @@
   font-weight: 750;
   color: oklch(25.66% 0.046 163.6);
   background: white;
-  border: 1px solid
-    color-mix(in oklch, oklch(20.94% 0.034 164.2) 18%, transparent);
-  border-radius: var(--theme-radius-medium);
 }
 
 .desk-calendar-empty {

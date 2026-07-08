@@ -143,19 +143,19 @@ export default async function handler(
     const content = (body.content as ClientEmailContent | undefined) ?? {};
 
     const fields = {
-      subject: str(content.subject),
-      previewText: str(content.previewText),
-      greeting: str(content.greeting),
       body: normalizeBlocks(content.body),
+      closing: str(content.closing),
       ctaLabel: str(content.ctaLabel),
       ctaUrl: str(content.ctaUrl),
-      closing: str(content.closing),
+      greeting: str(content.greeting),
+      previewText: str(content.previewText),
+      subject: str(content.subject),
     };
 
     const client = createClient({
-      projectId: SANITY_PROJECT_ID,
-      dataset: SANITY_DATASET,
       apiVersion: SANITY_API_VERSION,
+      dataset: SANITY_DATASET,
+      projectId: SANITY_PROJECT_ID,
       token,
       useCdn: false,
     });

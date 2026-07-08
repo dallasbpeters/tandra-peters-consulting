@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { theme } from "../src/theme.ts";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.dirname;
 const outPath = path.join(__dirname, "../src/styles/theme-variables.css");
 
 const UPPER_CASE_RE = /[A-Z]/g;
@@ -38,5 +38,5 @@ ${tokenLines("shadow", theme.shadow).join("\n")}
 }
 `;
 
-writeFileSync(outPath, css, "utf8");
+writeFileSync(outPath, css, "utf-8");
 console.log("[generate-theme-css] src/styles/theme-variables.css");

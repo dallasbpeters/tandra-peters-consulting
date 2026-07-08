@@ -35,12 +35,12 @@ const normalizeUrl = (raw: string): string => {
 
 const decodeHtml = (value: string): string =>
   value
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll(/\s+/g, " ")
     .trim();
 
 const readMetaContent = (
@@ -58,9 +58,9 @@ const readMetaContent = (
 const stripHtml = (html: string): string =>
   decodeHtml(
     html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
+      .replaceAll(/<script[\s\S]*?<\/script>/gi, " ")
+      .replaceAll(/<style[\s\S]*?<\/style>/gi, " ")
+      .replaceAll(/<[^>]+>/g, " ")
   );
 
 const collectStrings = (
@@ -125,7 +125,7 @@ const extractFromNextData = (
       comments
     );
 
-    const uniqueBodies = [...new Set(bodies)].sort(
+    const uniqueBodies = [...new Set(bodies)].toSorted(
       (a, b) => b.length - a.length
     );
     const uniqueComments = [...new Set(comments)].filter(
@@ -133,9 +133,9 @@ const extractFromNextData = (
     );
 
     return {
-      title: titles[0],
       body: uniqueBodies[0],
       comments: uniqueComments.slice(0, 12),
+      title: titles[0],
     };
   } catch {
     return { comments: [] };
@@ -216,27 +216,27 @@ export const fetchNextdoorThread = async (
     const jinaText = await fetchViaJinaReader(url, options?.jinaApiKey);
     if (jinaText && !LOGIN_WALL_RE.test(jinaText.slice(0, 2000))) {
       return formatResult({
-        url,
-        status: "success",
         body: jinaText,
         message: "Fetched via reader proxy.",
+        status: "success",
+        url,
       });
     }
 
     const response = await fetchHtml(url, options?.cookie);
     if (response.status === 404) {
       return formatResult({
-        url,
-        status: "not_found",
         message: "Nextdoor returned 404 for this link.",
+        status: "not_found",
+        url,
       });
     }
 
     if (!response.ok) {
       return formatResult({
-        url,
-        status: "error",
         message: `Nextdoor returned HTTP ${response.status}.`,
+        status: "error",
+        url,
       });
     }
 
@@ -251,54 +251,54 @@ export const fetchNextdoorThread = async (
 
     if (looksLikeLoginWall(html, title) && !nextData.body && !description) {
       return formatResult({
-        url,
-        status: "login_required",
         message:
           "This post requires a signed-in Nextdoor session. If the user did not attach a screenshot or paste the thread, ask them to attach a screenshot (tap + in the chat) or paste the post and comments.",
+        status: "login_required",
+        url,
       });
     }
 
     const body = nextData.body ?? description ?? stripHtml(html).slice(0, 6000);
     if (!body || body.length < 40) {
       return formatResult({
-        url,
-        status: "login_required",
-        title,
         message:
           "Could not extract readable post text from the page. The thread may be private or require sign-in.",
+        status: "login_required",
+        title,
+        url,
       });
     }
 
     return formatResult({
-      url,
-      status: "success",
-      title: nextData.title ?? title,
       body,
       comments: nextData.comments,
+      status: "success",
+      title: nextData.title ?? title,
+      url,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return formatResult({
-      url,
-      status: "error",
       message,
+      status: "error",
+      url,
     });
   }
 };
 
 export const NEXTDOOR_FETCH_TOOL = {
-  name: "fetch_nextdoor_post",
   description:
     "Fetch the text of a Nextdoor post or comment thread from a nextdoor.com URL. Call this when the user shares a Nextdoor link before drafting a reply. Returns post body and any comments found, or a login_required status if the page is not publicly readable.",
   inputSchema: {
-    type: "object",
+    additionalProperties: false,
     properties: {
       url: {
-        type: "string",
         description: "Full nextdoor.com URL for the post or thread",
+        type: "string",
       },
     },
     required: ["url"],
-    additionalProperties: false,
+    type: "object",
   },
+  name: "fetch_nextdoor_post",
 } as const;

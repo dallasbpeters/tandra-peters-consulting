@@ -16,7 +16,7 @@ export const uploadImageFromFile = async (
   const asset = await client.assets.upload("image", buffer, { filename });
   return {
     _type: "image",
-    asset: { _type: "reference", _ref: asset._id },
+    asset: { _ref: asset._id, _type: "reference" },
   };
 };
 
@@ -33,6 +33,6 @@ export const uploadImageFromUrl = async (
   const asset = await client.assets.upload("image", buffer, { filename });
   return {
     _type: "image",
-    asset: { _type: "reference", _ref: asset._id },
+    asset: { _ref: asset._id, _type: "reference" },
   };
 };

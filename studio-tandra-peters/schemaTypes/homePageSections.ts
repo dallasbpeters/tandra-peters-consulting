@@ -3,121 +3,118 @@ import { defineField, defineType } from "sanity";
 import { defineGeneratedImage } from "./generatedImageField";
 
 export const roofInspectionSectionType = defineType({
-  name: "roofInspectionSection",
-  title: "Roof Inspection",
-  type: "object",
   description: 'The "The Inspection" interactive diagram section.',
   fields: [
     defineField({
+      description: "Small all-caps label above the title.",
+      initialValue: "Tandra Peters · Roof Basics",
       name: "kicker",
       title: "Kicker label",
       type: "string",
-      description: "Small all-caps label above the title.",
-      initialValue: "Tandra Peters · Roof Basics",
     }),
     defineField({
+      description: "First line of the section heading (roman weight).",
+      initialValue: "The",
       name: "titleLine1",
       title: "Title — line 1 (plain)",
       type: "string",
-      description: "First line of the section heading (roman weight).",
-      initialValue: "The",
     }),
     defineField({
+      description: "Second line, rendered in italic accent style.",
+      initialValue: "Inspection.",
       name: "titleLine2",
       title: "Title — line 2 (italic accent)",
       type: "string",
-      description: "Second line, rendered in italic accent style.",
-      initialValue: "Inspection.",
     }),
     defineField({
-      name: "subtitle",
-      title: "Title — line 3 (plain)",
-      type: "string",
       description:
         'Third line under the main heading in the left rail (e.g. "Seven things I check on every roof.").',
       initialValue: "Seven things I check on every roof.",
+      name: "subtitle",
+      title: "Title — line 3 (plain)",
+      type: "string",
     }),
     defineField({
+      description: "Short paragraph shown under the title.",
       name: "lede",
+      rows: 3,
       title: "Lede",
       type: "text",
-      rows: 3,
-      description: "Short paragraph shown under the title.",
     }),
     defineGeneratedImage({
-      name: "diagramImage",
-      title: "Diagram image",
       description:
         "Roof cutaway illustration. Defaults to /roof-sidecut.svg when not set.",
+      name: "diagramImage",
+      title: "Diagram image",
     }),
     defineField({
-      name: "hotspots",
-      title: "Hotspots",
-      type: "array",
-      of: [{ type: "roofInspectionHotspot" }],
       description:
         "Interactive annotation points on the diagram. Leave empty to use built-in defaults.",
+      name: "hotspots",
+      of: [{ type: "roofInspectionHotspot" }],
+      title: "Hotspots",
+      type: "array",
       validation: (Rule) => Rule.max(12),
     }),
   ],
+  name: "roofInspectionSection",
+  title: "Roof Inspection",
+  type: "object",
 });
 
 export const heroSectionType = defineType({
-  name: "heroSection",
-  title: "Hero",
-  type: "object",
   fields: [
-    defineField({ name: "badge", type: "string", title: "Badge text" }),
-    defineField({ name: "titleLine1", type: "string", title: "Title line 1" }),
+    defineField({ name: "badge", title: "Badge text", type: "string" }),
+    defineField({ name: "titleLine1", title: "Title line 1", type: "string" }),
     defineField({
       name: "titleLine2",
-      type: "string",
       title: "Title line 2 (muted accent)",
+      type: "string",
     }),
     defineField({
+      description:
+        "Supporting paragraph under the headline (bold, links, lists).",
       name: "subtitle",
       title: "Subtitle",
       type: "blockContent",
-      description:
-        "Supporting paragraph under the headline (bold, links, lists).",
     }),
     defineField({ name: "ctaText", type: "string" }),
-    defineField({ name: "ctaHref", type: "string", initialValue: "#contact" }),
+    defineField({ initialValue: "#contact", name: "ctaHref", type: "string" }),
     defineField({
+      initialValue: "Explore Services",
       name: "secondaryCtaText",
       type: "string",
-      initialValue: "Explore Services",
     }),
     defineField({
+      initialValue: "#services",
       name: "secondaryCtaHref",
       type: "string",
-      initialValue: "#services",
     }),
     defineGeneratedImage({
-      name: "backgroundImage",
-      title: "Background image",
       description:
         "Sanity image asset used by all hero variants (upload, Media Library, or Generate with AI).",
+      name: "backgroundImage",
+      title: "Background image",
     }),
     defineGeneratedImage({
-      name: "skyImage",
-      title: "Sky image — Pill Nav background (parallax 0.3×)",
       description:
         "Wide sky/exterior photo used as the receding background layer in the Dark Floating Pill Nav variant. Scrolls slower than the page to create depth.",
+      name: "skyImage",
+      title: "Sky image — Pill Nav background (parallax 0.3×)",
     }),
     defineGeneratedImage({
-      name: "foregroundImage",
-      title: "House cutout — Pill Nav foreground (parallax −0.5×)",
       description:
         "Roof/house PNG cutout layered in front of the sky with inverse parallax — rises toward the viewer as the user scrolls. Only used by the Dark Floating Pill Nav variant.",
+      name: "foregroundImage",
+      title: "House cutout — Pill Nav foreground (parallax −0.5×)",
     }),
     defineField({
-      name: "heroStyle",
-      title: "Hero style override",
-      type: "string",
       description:
         "Force a specific hero layout for CMS preview and QA. Leave blank to use the live PostHog A/B test (hero-banner-style flag).",
+      initialValue: "",
+      name: "heroStyle",
       options: {
+        layout: "radio",
         list: [
           { title: "— Use PostHog experiment (default) —", value: "" },
           { title: "Control — Original hero", value: "control" },
@@ -134,67 +131,67 @@ export const heroSectionType = defineType({
             value: "dark-floating-pill",
           },
         ],
-        layout: "radio",
       },
-      initialValue: "",
+      title: "Hero style override",
+      type: "string",
     }),
   ],
+  name: "heroSection",
+  title: "Hero",
+  type: "object",
 });
 export const videoSectionType = defineType({
-  name: "videoSection",
-  title: "Video",
-  type: "object",
   fields: [
     defineField({
-      name: "video",
-      type: "file",
-      title: "Video upload",
       description: "Video file (upload, Media Library, or Generate with AI).",
+      name: "video",
       options: {
         accept: "video/*",
       },
+      title: "Video upload",
+      type: "file",
     }),
-    defineField({ name: "title", type: "string", title: "Title" }),
+    defineField({ name: "title", title: "Title", type: "string" }),
     defineField({
-      name: "posterUrl",
-      type: "image",
-      title: "Poster image",
       description:
         "Sanity image asset (upload, Media Library, or Generate with AI).",
+      name: "posterUrl",
+      title: "Poster image",
+      type: "image",
     }),
   ],
+  name: "videoSection",
+  title: "Video",
+  type: "object",
 });
 
 export const birdcreekVideoBannerSectionType = defineType({
-  name: "birdcreekVideoBannerSection",
-  title: "Birdcreek video banner",
-  type: "object",
   fields: [
     defineField({
+      description: "Vimeo link or player URL used by the embedded banner.",
       name: "vimeoUrl",
       title: "Vimeo URL",
       type: "url",
-      description: "Vimeo link or player URL used by the embedded banner.",
     }),
     defineField({
+      description: "Optional heading shown above the video banner.",
       name: "title",
       title: "Title",
       type: "string",
-      description: "Optional heading shown above the video banner.",
     }),
   ],
+  name: "birdcreekVideoBannerSection",
   preview: {
-    select: { title: "title" },
     prepare: ({ title }) => ({
       title: `Birdcreek video banner${title ? `: ${title}` : ""}`,
     }),
+    select: { title: "title" },
   },
+  title: "Birdcreek video banner",
+  type: "object",
 });
 
 export const contactBannerSectionType = defineType({
-  name: "contactBannerSection",
-  title: "Contact banner",
-  type: "object",
   fields: [
     defineField({ name: "eyebrow", title: "Eyebrow", type: "string" }),
     defineField({ name: "headline", title: "Headline", type: "string" }),
@@ -222,133 +219,133 @@ export const contactBannerSectionType = defineType({
     }),
     defineField({
       name: "ctaIcon",
-      title: "CTA icon",
-      type: "iconPicker",
       options: {
         providers: ["f7", "fa", "mdi", "sa", "hi", "fi", "si"],
       },
+      title: "CTA icon",
+      type: "iconPicker",
     }),
   ],
+  name: "contactBannerSection",
+  title: "Contact banner",
+  type: "object",
 });
 
 export const certificationsSectionType = defineType({
-  name: "certificationsSection",
-  title: "Certifications",
-  type: "object",
   fields: [
     defineField({
+      initialValue: "Certifications",
       name: "title",
       title: "Heading",
       type: "string",
-      initialValue: "Certifications",
     }),
   ],
+  name: "certificationsSection",
   preview: {
     prepare: () => ({ title: "Certifications" }),
   },
+  title: "Certifications",
+  type: "object",
 });
 
 export const marqueeSectionType = defineType({
-  name: "marqueeSection",
-  title: "Scroll marquee",
-  type: "object",
   fields: [
     defineField({
-      name: "text",
-      type: "text",
-      rows: 2,
       description: "Single line of locations / ticker copy",
+      name: "text",
+      rows: 2,
+      type: "text",
     }),
     defineField({
+      initialValue: "right",
       name: "direction",
-      type: "string",
       options: {
         list: [
           { title: "Right", value: "right" },
           { title: "Left", value: "left" },
         ],
       },
-      initialValue: "right",
+      type: "string",
     }),
-    defineField({ name: "velocity", type: "number", initialValue: 80 }),
+    defineField({ initialValue: 80, name: "velocity", type: "number" }),
   ],
+  name: "marqueeSection",
   preview: {
-    select: { title: "text" },
     prepare: ({ title }) => ({
       title: `Marquee: ${title}`,
     }),
+    select: { title: "text" },
   },
+  title: "Scroll marquee",
+  type: "object",
 });
 
 export const aboutSectionType = defineType({
-  name: "aboutSection",
-  title: "About",
-  type: "object",
   fields: [
     defineField({ name: "badgeText", type: "string" }),
     defineField({ name: "badgeSubtext", type: "string" }),
     defineGeneratedImage({
+      description: "Sanity image asset (upload or AI).",
       name: "image",
       title: "Portrait / main image",
-      description: "Sanity image asset (upload or AI).",
     }),
     defineField({ name: "titleLine1", type: "string" }),
     defineField({ name: "titleLine2", type: "string" }),
     defineField({
+      description: "Main copy (replaces legacy “paragraphs” list).",
       name: "body",
       title: "Body",
       type: "blockContent",
-      description: "Main copy (replaces legacy “paragraphs” list).",
     }),
   ],
+  name: "aboutSection",
   preview: {
-    select: { title: "titleLine1", subtitle: "titleLine2", media: "image" },
     prepare: ({ title, media }) => ({
-      title: `About section: ${title}`,
       media,
+      title: `About section: ${title}`,
     }),
+    select: { media: "image", subtitle: "titleLine2", title: "titleLine1" },
   },
+  title: "About",
+  type: "object",
 });
 
 export const statsSectionType = defineType({
-  name: "statsSection",
-  title: "Stats strip",
-  type: "object",
   fields: [
     defineField({
-      name: "title",
-      type: "string",
-      title: "Heading",
       description:
         "Short label shown beside the numbers (e.g. Birdcreek Roofing in Austin).",
+      name: "title",
+      title: "Heading",
+      type: "string",
     }),
     defineField({
       name: "items",
+      of: [{ type: "statRow" }],
       title: "Stats",
       type: "array",
-      of: [{ type: "statRow" }],
       validation: (rule) => rule.min(1).max(8),
     }),
   ],
+  name: "statsSection",
   preview: {
-    select: { title: "title", subtitle: "items.length" },
     prepare: ({ title, subtitle }) => ({
-      title: `Stats strip: ${title}`,
       subtitle: `${subtitle} stat rows`,
+      title: `Stats strip: ${title}`,
     }),
+    select: { subtitle: "items.length", title: "title" },
   },
+  title: "Stats strip",
+  type: "object",
 });
 
 export const servicesSectionType = defineType({
-  name: "servicesSection",
-  title: "Services",
-  type: "object",
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({
       name: "titleLines",
-      type: "array",
       of: [{ type: "string" }],
+      type: "array",
       validation: (rule) => rule.max(5),
     }),
     defineField({
@@ -358,23 +355,23 @@ export const servicesSectionType = defineType({
     }),
     defineField({
       name: "services",
-      type: "array",
       of: [{ type: "serviceCard" }],
+      type: "array",
       validation: (rule) => rule.min(1).max(6),
     }),
     defineField({
+      description: "Large branded card shown beneath the services grid.",
       name: "birdcreekAdvantage",
       title: "Birdcreek advantage",
       type: "birdcreekAdvantageCard",
-      description: "Large branded card shown beneath the services grid.",
     }),
     defineField({
-      name: "servicesStyle",
-      title: "Services layout override",
-      type: "string",
       description:
         "Force a specific services layout for CMS preview and QA. Leave blank to use the live PostHog A/B test (services-section-style flag).",
+      initialValue: "",
+      name: "servicesStyle",
       options: {
+        layout: "radio",
         list: [
           { title: "— Use PostHog experiment (default) —", value: "" },
           { title: "Control — Services grid", value: "control" },
@@ -383,45 +380,45 @@ export const servicesSectionType = defineType({
             value: "typographic-alt",
           },
         ],
-        layout: "radio",
       },
-      initialValue: "",
+      title: "Services layout override",
+      type: "string",
     }),
     defineField({
-      name: "typographicArt",
-      title: "Typographic layout headline art",
-      type: "object",
       description:
         "Photos that fill the giant BIRDCREEK headline in the typographic-alt services layout. Base image shows through the full letterforms; overlay image appears in the circular patches.",
       fields: [
         defineGeneratedImage({
-          name: "overlayMaskImage",
-          title: "Overlay mask image",
           description:
             "Image revealed inside the circular patches on the headline. Defaults to /metal-roof.jpg when empty.",
+          name: "overlayMaskImage",
+          title: "Overlay mask image",
         }),
       ],
+      name: "typographicArt",
+      title: "Typographic layout headline art",
+      type: "object",
     }),
   ],
+  name: "servicesSection",
   preview: {
     prepare: () => ({
       title: "Services",
     }),
   },
+  title: "Services",
+  type: "object",
 });
 
 export const missionSectionType = defineType({
-  name: "missionSection",
-  title: "Mission",
-  type: "object",
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({
+      description:
+        "Headline beside the tagline (use Normal style for a single line, or structure as needed).",
       name: "title",
       title: "Title",
       type: "blockContent",
-      description:
-        "Headline beside the tagline (use Normal style for a single line, or structure as needed).",
     }),
     defineField({
       name: "description",
@@ -430,52 +427,52 @@ export const missionSectionType = defineType({
     }),
     defineField({
       name: "values",
-      type: "array",
       of: [{ type: "missionValue" }],
+      type: "array",
       validation: (rule) => rule.min(1).max(6),
     }),
   ],
+  name: "missionSection",
+  title: "Mission",
+  type: "object",
 });
 
 export const expertiseSectionType = defineType({
-  name: "expertiseSection",
-  title: "Expertise",
-  type: "object",
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({ name: "title", type: "string" }),
     defineField({
       name: "items",
-      type: "array",
       of: [{ type: "expertiseItem" }],
+      type: "array",
       validation: (rule) => rule.min(1),
     }),
   ],
+  name: "expertiseSection",
+  title: "Expertise",
+  type: "object",
 });
 
 export const testimonialsSectionType = defineType({
-  name: "testimonialsSection",
-  title: "Testimonials",
-  type: "object",
   fields: [
     defineField({
+      description: "Overrides VITE_ELFSIGHT_WIDGET_ID when set (UUID only)",
       name: "elfsightWidgetId",
       type: "string",
-      description: "Overrides VITE_ELFSIGHT_WIDGET_ID when set (UUID only)",
     }),
     defineField({
+      description: "Optional copy when no widget id (usually leave empty).",
       name: "emptyStateNote",
       title: "Empty state note",
       type: "blockContent",
-      description: "Optional copy when no widget id (usually leave empty).",
     }),
   ],
+  name: "testimonialsSection",
+  title: "Testimonials",
+  type: "object",
 });
 
 export const faqSectionType = defineType({
-  name: "faqSection",
-  title: "FAQ",
-  type: "object",
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({ name: "title", type: "string" }),
@@ -486,17 +483,17 @@ export const faqSectionType = defineType({
     }),
     defineField({
       name: "items",
-      type: "array",
       of: [{ type: "faqItem" }],
+      type: "array",
       validation: (rule) => rule.min(1),
     }),
   ],
+  name: "faqSection",
+  title: "FAQ",
+  type: "object",
 });
 
 export const contactSectionType = defineType({
-  name: "contactSection",
-  title: "Contact",
-  type: "object",
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({ name: "title", type: "string" }),
@@ -504,170 +501,173 @@ export const contactSectionType = defineType({
     defineField({ name: "phone", type: "string" }),
     defineField({ name: "location", type: "string" }),
   ],
+  name: "contactSection",
+  title: "Contact",
+  type: "object",
 });
 
 export const socialShareSectionType = defineType({
-  name: "socialShareSection",
-  title: "Social share bar",
-  type: "object",
   fields: [
     defineField({ name: "heading", type: "string" }),
     defineField({
+      description:
+        "Plain text is used for Twitter/email share strings (formatting is stripped for URLs).",
       name: "shareText",
       title: "Share text",
       type: "blockContent",
-      description:
-        "Plain text is used for Twitter/email share strings (formatting is stripped for URLs).",
     }),
   ],
+  name: "socialShareSection",
   preview: {
     prepare: () => ({
       title: "Social share bar",
     }),
   },
+  title: "Social share bar",
+  type: "object",
 });
 
 export const beforeAfterPairType = defineType({
-  name: "beforeAfterPair",
-  title: "Before / After Pair",
-  type: "object",
   fields: [
     defineField({
+      description:
+        'Short label shown under the pair (e.g. "Hail damage repair, North Austin").',
       name: "title",
       title: "Title",
       type: "string",
-      description:
-        'Short label shown under the pair (e.g. "Hail damage repair, North Austin").',
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "beforeImage",
+      options: { hotspot: true },
       title: "Before image",
       type: "image",
-      options: { hotspot: true },
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "afterImage",
+      options: { hotspot: true },
       title: "After image",
       type: "image",
-      options: { hotspot: true },
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "description",
+      rows: 2,
       title: "Description",
       type: "text",
-      rows: 2,
     }),
   ],
+  name: "beforeAfterPair",
   preview: {
-    select: { title: "title", media: "afterImage" },
     prepare: ({ title, media }) => ({
-      title: title || "Before / After pair",
       media,
+      title: title || "Before / After pair",
     }),
+    select: { media: "afterImage", title: "title" },
   },
+  title: "Before / After Pair",
+  type: "object",
 });
 
 export const beforeAfterSectionType = defineType({
-  name: "beforeAfterSection",
-  title: "Before / After",
-  type: "object",
   description: "Image-pair slider. Add as many pairs as you like.",
   fields: [
-    defineField({ name: "eyebrow", type: "string", title: "Eyebrow label" }),
-    defineField({ name: "title", type: "string", title: "Heading" }),
+    defineField({ name: "eyebrow", title: "Eyebrow label", type: "string" }),
+    defineField({ name: "title", title: "Heading", type: "string" }),
     defineField({
+      description: "Optional short paragraph beside the heading.",
       name: "intro",
       title: "Intro",
       type: "blockContent",
-      description: "Optional short paragraph beside the heading.",
     }),
     defineField({
       name: "items",
+      of: [{ type: "beforeAfterPair" }],
       title: "Image pairs",
       type: "array",
-      of: [{ type: "beforeAfterPair" }],
       validation: (rule) => rule.unique(),
     }),
   ],
+  name: "beforeAfterSection",
+  title: "Before / After",
+  type: "object",
 });
 
 export const articlesTeaserSectionType = defineType({
-  name: "articlesTeaserSection",
-  title: "Articles teaser",
-  type: "object",
   description:
     "Pick which articles appear as cards on the home page, or leave the list empty to use the newest posts automatically.",
   fields: [
     defineField({
-      name: "eyebrow",
-      type: "string",
-      title: "Eyebrow label",
       initialValue: "Guides & insights",
-    }),
-    defineField({
-      name: "title",
+      name: "eyebrow",
+      title: "Eyebrow label",
       type: "string",
-      title: "Heading",
-      initialValue: "Roofing articles",
     }),
     defineField({
+      initialValue: "Roofing articles",
+      name: "title",
+      title: "Heading",
+      type: "string",
+    }),
+    defineField({
+      description: "Short blurb beside the heading; links and bold allowed.",
       name: "intro",
       title: "Intro (right column)",
       type: "blockContent",
-      description: "Short blurb beside the heading; links and bold allowed.",
     }),
     defineField({
-      name: "viewAllLabel",
-      type: "string",
-      title: "“View all” link label",
       initialValue: "View all articles",
+      name: "viewAllLabel",
+      title: "“View all” link label",
+      type: "string",
     }),
     defineField({
-      name: "articles",
-      title: "Articles on the home page",
-      type: "array",
       description:
         "Add posts here to choose exactly what shows and in what order (drag to reorder). Leave empty to show the newest posts instead — then use the number field below.",
+      name: "articles",
       of: [
         {
-          type: "reference",
-          to: [{ type: "post" }],
           options: {
             disableNew: true,
           },
+          to: [{ type: "post" }],
+          type: "reference",
         },
       ],
+      title: "Articles on the home page",
+      type: "array",
       validation: (rule) => rule.unique().max(50),
     }),
     defineField({
-      name: "maxPosts",
-      type: "number",
-      title: "How many article cards",
       description:
         "Maximum cards on the home page — for both the picked list above and automatic newest posts when that list is empty.",
       initialValue: 8,
+      name: "maxPosts",
+      title: "How many article cards",
+      type: "number",
       validation: (rule) => rule.required().min(1).max(50).integer(),
     }),
     defineField({
-      name: "enabled",
-      type: "boolean",
-      hidden: true,
       deprecated: {
         reason:
           "No longer used — the articles block is always shown when posts exist.",
       },
+      hidden: true,
+      name: "enabled",
+      type: "boolean",
     }),
     defineField({
-      name: "featuredPosts",
-      type: "array",
-      hidden: true,
       deprecated: {
         reason: "No longer used — remove when convenient (optional).",
       },
-      of: [{ type: "reference", to: [{ type: "post" }] }],
+      hidden: true,
+      name: "featuredPosts",
+      of: [{ to: [{ type: "post" }], type: "reference" }],
+      type: "array",
     }),
   ],
+  name: "articlesTeaserSection",
+  title: "Articles teaser",
+  type: "object",
 });

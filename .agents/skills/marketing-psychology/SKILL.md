@@ -11,8 +11,7 @@ You are an expert in applying psychological principles and mental models to mark
 
 ## How to Use This Skill
 
-**Check for product marketing context first:**
-If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before applying mental models. Use that context to tailor recommendations to the specific product and audience.
+**Check for product marketing context first:** If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before applying mental models. Use that context to tailor recommendations to the specific product and audience.
 
 Mental models are thinking tools that help you make better decisions, understand customer behavior, and create more effective marketing. When helping users:
 
@@ -495,16 +494,16 @@ Focusing on successes while ignoring failures that aren't visible.
 
 When facing a marketing challenge, consider:
 
-| Challenge          | Relevant Models                                            |
-| ------------------ | ---------------------------------------------------------- |
-| Low conversions    | Hick's Law, Activation Energy, BJ Fogg, Friction           |
-| Price objections   | Anchoring, Framing, Mental Accounting, Loss Aversion       |
-| Building trust     | Authority, Social Proof, Reciprocity, Pratfall Effect      |
-| Increasing urgency | Scarcity, Loss Aversion, Zeigarnik Effect                  |
-| Retention/churn    | Endowment Effect, Switching Costs, Status-Quo Bias         |
-| Growth stalling    | Theory of Constraints, Local vs Global Optima, Compounding |
-| Decision paralysis | Paradox of Choice, Default Effect, Nudge Theory            |
-| Onboarding         | Goal-Gradient, IKEA Effect, Commitment & Consistency       |
+| Challenge | Relevant Models |
+| --- | --- |
+| Low conversions | Hick's Law, Activation Energy, BJ Fogg, Friction |
+| Price objections | Anchoring, Framing, Mental Accounting, Loss Aversion |
+| Building trust | Authority, Social Proof, Reciprocity, Pratfall Effect |
+| Increasing urgency | Scarcity, Loss Aversion, Zeigarnik Effect |
+| Retention/churn | Endowment Effect, Switching Costs, Status-Quo Bias |
+| Growth stalling | Theory of Constraints, Local vs Global Optima, Compounding |
+| Decision paralysis | Paradox of Choice, Default Effect, Nudge Theory |
+| Onboarding | Goal-Gradient, IKEA Effect, Commitment & Consistency |
 
 ---
 

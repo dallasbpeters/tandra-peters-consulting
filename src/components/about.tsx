@@ -23,7 +23,7 @@ const DEFAULT_ABOUT_PARAGRAPHS = [
 const ABOUT_MOBILE_BREAKPOINT = 800;
 const ABOUT_STACKED_BREAKPOINT = 1224;
 
-const cssUrl = (url: string) => `url("${url.replaceAll(/"/g, '\\"')}")`;
+const cssUrl = (url: string) => `url("${url.replaceAll('"', '\\"')}")`;
 
 export const About: React.FC<AboutProps> = ({
   badgeText,

@@ -1,16 +1,13 @@
 import { defineField, defineType } from "sanity";
 
 export const workflowDiagramNodeType = defineType({
-  name: "workflowDiagramNode",
-  title: "Workflow diagram node",
-  type: "object",
   fields: [
     defineField({
+      description:
+        'Stable ID used by connection lines (e.g. "1", "2"). Must match edge source/target.',
       name: "stepId",
       title: "Step ID",
       type: "string",
-      description:
-        'Stable ID used by connection lines (e.g. "1", "2"). Must match edge source/target.',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -21,45 +18,48 @@ export const workflowDiagramNodeType = defineType({
     }),
     defineField({
       name: "body",
+      rows: 4,
       title: "Body",
       type: "text",
-      rows: 4,
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description: "Use the wider card style (e.g. final payment step).",
+      initialValue: false,
       name: "wide",
       title: "Wide layout",
       type: "boolean",
-      description: "Use the wider card style (e.g. final payment step).",
-      initialValue: false,
     }),
     defineField({
+      description:
+        "Optional manual X position (pixels) used by the on-page editor.",
       name: "posX",
       title: "Canvas position X",
       type: "number",
-      description:
-        "Optional manual X position (pixels) used by the on-page editor.",
     }),
     defineField({
+      description:
+        "Optional manual Y position (pixels) used by the on-page editor.",
       name: "posY",
       title: "Canvas position Y",
       type: "number",
-      description:
-        "Optional manual Y position (pixels) used by the on-page editor.",
     }),
     defineField({
       name: "subsections",
+      of: [{ type: "workflowDiagramNodeSubsection" }],
       title: "Subsections",
       type: "array",
-      of: [{ type: "workflowDiagramNodeSubsection" }],
     }),
   ],
+  name: "workflowDiagramNode",
   preview: {
-    select: { title: "title", stepId: "stepId" },
     prepare: ({ title, stepId }) => ({
       title: stepId
         ? `${stepId}. ${title || "Step"}`
         : title || "Workflow step",
     }),
+    select: { stepId: "stepId", title: "title" },
   },
+  title: "Workflow diagram node",
+  type: "object",
 });

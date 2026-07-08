@@ -4,7 +4,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 const ENV_ALLOWED_ORIGINS = "GA_DASHBOARD_ALLOWED_ORIGINS";
 // Matches any Sanity-hosted studio: https://{anything}.sanity.studio
 const SANITY_STUDIO_RE = /^https:\/\/[a-z0-9-]+\.sanity\.studio$/iu;
-const LOCAL_ORIGINS = ["http://localhost:3333", "http://127.0.0.1:3333"];
+const LOCAL_ORIGINS = new Set([
+  "http://localhost:3333",
+  "http://127.0.0.1:3333",
+]);
 
 const parseAllowedOrigins = (): string[] => {
   const fromEnv = process.env[ENV_ALLOWED_ORIGINS]?.trim();
@@ -21,7 +24,7 @@ const isTrustedOrigin = (origin: string): boolean => {
   if (SANITY_STUDIO_RE.test(origin)) {
     return true;
   }
-  if (LOCAL_ORIGINS.includes(origin)) {
+  if (LOCAL_ORIGINS.has(origin)) {
     return true;
   }
   return parseAllowedOrigins().includes(origin);
@@ -46,7 +49,7 @@ const applyCors = (res: VercelResponse, origin: string | undefined) => {
 };
 
 function createGaClient() {
-  const privateKey = process.env.GA_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const privateKey = process.env.GA_PRIVATE_KEY?.replaceAll("\\n", "\n");
   return new BetaAnalyticsDataClient({
     credentials: {
       client_email: process.env.GA_SERVICE_ACCOUNT_EMAIL,
@@ -63,8 +66,7 @@ async function fetchAnalytics(days: number) {
 
   const [overview, topPages, topSources, dailyTrend] = await Promise.all([
     client.runReport({
-      property,
-      dateRanges: [{ startDate, endDate }],
+      dateRanges: [{ endDate, startDate }],
       metrics: [
         { name: "totalUsers" },
         { name: "sessions" },
@@ -72,55 +74,35 @@ async function fetchAnalytics(days: number) {
         { name: "bounceRate" },
         { name: "averageSessionDuration" },
       ],
+      property,
     }),
     client.runReport({
-      property,
-      dateRanges: [{ startDate, endDate }],
+      dateRanges: [{ endDate, startDate }],
       dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
-      metrics: [{ name: "screenPageViews" }, { name: "totalUsers" }],
-      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
       limit: 10,
+      metrics: [{ name: "screenPageViews" }, { name: "totalUsers" }],
+      orderBys: [{ desc: true, metric: { metricName: "screenPageViews" } }],
+      property,
     }),
     client.runReport({
-      property,
-      dateRanges: [{ startDate, endDate }],
+      dateRanges: [{ endDate, startDate }],
       dimensions: [{ name: "sessionDefaultChannelGroup" }],
-      metrics: [{ name: "sessions" }, { name: "totalUsers" }],
-      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
       limit: 8,
+      metrics: [{ name: "sessions" }, { name: "totalUsers" }],
+      orderBys: [{ desc: true, metric: { metricName: "sessions" } }],
+      property,
     }),
     client.runReport({
-      property,
-      dateRanges: [{ startDate, endDate }],
+      dateRanges: [{ endDate, startDate }],
       dimensions: [{ name: "date" }],
       metrics: [{ name: "screenPageViews" }, { name: "sessions" }],
       orderBys: [{ dimension: { dimensionName: "date" } }],
+      property,
     }),
   ]);
 
   const overviewRow = overview[0]?.rows?.[0];
   return {
-    period: `${days}d`,
-    overview: {
-      totalUsers: Number(overviewRow?.metricValues?.[0]?.value ?? 0),
-      sessions: Number(overviewRow?.metricValues?.[1]?.value ?? 0),
-      screenPageViews: Number(overviewRow?.metricValues?.[2]?.value ?? 0),
-      bounceRate: Number(overviewRow?.metricValues?.[3]?.value ?? 0),
-      averageSessionDuration: Number(
-        overviewRow?.metricValues?.[4]?.value ?? 0
-      ),
-    },
-    topPages: (topPages[0]?.rows ?? []).map((row) => ({
-      pagePath: row.dimensionValues?.[0]?.value ?? "",
-      pageTitle: row.dimensionValues?.[1]?.value ?? "",
-      screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
-      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
-    })),
-    topSources: (topSources[0]?.rows ?? []).map((row) => ({
-      channel: row.dimensionValues?.[0]?.value ?? "",
-      sessions: Number(row.metricValues?.[0]?.value ?? 0),
-      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
-    })),
     dailyTrend: (dailyTrend[0]?.rows ?? []).map((row) => {
       const raw = row.dimensionValues?.[0]?.value ?? "";
       const date =
@@ -133,6 +115,27 @@ async function fetchAnalytics(days: number) {
         sessions: Number(row.metricValues?.[1]?.value ?? 0),
       };
     }),
+    overview: {
+      averageSessionDuration: Number(
+        overviewRow?.metricValues?.[4]?.value ?? 0
+      ),
+      bounceRate: Number(overviewRow?.metricValues?.[3]?.value ?? 0),
+      screenPageViews: Number(overviewRow?.metricValues?.[2]?.value ?? 0),
+      sessions: Number(overviewRow?.metricValues?.[1]?.value ?? 0),
+      totalUsers: Number(overviewRow?.metricValues?.[0]?.value ?? 0),
+    },
+    period: `${days}d`,
+    topPages: (topPages[0]?.rows ?? []).map((row) => ({
+      pagePath: row.dimensionValues?.[0]?.value ?? "",
+      pageTitle: row.dimensionValues?.[1]?.value ?? "",
+      screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
+      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+    })),
+    topSources: (topSources[0]?.rows ?? []).map((row) => ({
+      channel: row.dimensionValues?.[0]?.value ?? "",
+      sessions: Number(row.metricValues?.[0]?.value ?? 0),
+      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+    })),
   };
 }
 

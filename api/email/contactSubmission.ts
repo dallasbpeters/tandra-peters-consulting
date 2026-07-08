@@ -14,13 +14,13 @@ import { upsertContactLead } from "./contactsStore.js";
 import type { ContactLeadSubmission, EmailAssets } from "./types.js";
 
 const CONTACT_SERVICE_ROWS = [
-  { value: "shingle-roofing", label: "Shingle Roofing" },
-  { value: "metal-roofing", label: "Metal Roofing" },
-  { value: "storm-damage-restoration", label: "Storm Damage Restoration" },
-  { value: "commercial-roofing", label: "Commercial Roofing" },
+  { label: "Shingle Roofing", value: "shingle-roofing" },
+  { label: "Metal Roofing", value: "metal-roofing" },
+  { label: "Storm Damage Restoration", value: "storm-damage-restoration" },
+  { label: "Commercial Roofing", value: "commercial-roofing" },
   {
-    value: "hail-wind-damage-roof-inspection",
     label: "Hail & Wind Damage Roof Inspection",
+    value: "hail-wind-damage-roof-inspection",
   },
 ] as const;
 
@@ -80,15 +80,15 @@ Promise<ContactResult> => {
   // Honeypot: silently accept bot submissions.
   const honeypot = str(body._hp) || str(body.company);
   if (honeypot) {
-    return { status: 200, body: { ok: true } };
+    return { body: { ok: true }, status: 200 };
   }
 
   const apiKey = env.resendApiKey?.trim();
   const from = env.emailFrom?.trim();
   if (!(apiKey && from)) {
     return {
+      body: { error: "Service not configured", ok: false },
       status: 503,
-      body: { ok: false, error: "Service not configured" },
     };
   }
 
@@ -102,58 +102,58 @@ Promise<ContactResult> => {
 
   if (!consentToContact) {
     return {
-      status: 400,
       body: {
-        ok: false,
         error: "Please confirm you agree to be contacted before submitting.",
+        ok: false,
       },
+      status: 400,
     };
   }
   if (!fullName || fullName.length > 200) {
     return {
+      body: { error: "Please enter your name.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please enter your name." },
     };
   }
   if (!(email && EMAIL_RE.test(email)) || email.length > 320) {
     return {
+      body: { error: "Please enter a valid email.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please enter a valid email." },
     };
   }
   if (!isValidContactServiceValue(serviceInterestRaw)) {
     return {
+      body: { error: "Please select a service.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please select a service." },
     };
   }
   const serviceLine = contactServiceLabel(serviceInterestRaw);
   if (!message || message.length > 8000) {
     return {
+      body: { error: "Please enter a message.", ok: false },
       status: 400,
-      body: { ok: false, error: "Please enter a message." },
     };
   }
   if (propertyAddress.length > 500) {
     return {
+      body: { error: "Property address is too long.", ok: false },
       status: 400,
-      body: { ok: false, error: "Property address is too long." },
     };
   }
   if (phoneNumber.length > 80) {
     return {
+      body: { error: "Phone number is too long.", ok: false },
       status: 400,
-      body: { ok: false, error: "Phone number is too long." },
     };
   }
 
   const submission: ContactLeadSubmission = {
-    fullName,
     email: email.toLowerCase(),
-    phoneNumber: phoneNumber || undefined,
-    serviceLabel: serviceLine ?? serviceInterestRaw,
+    fullName,
     message,
+    phoneNumber: phoneNumber || undefined,
     propertyAddress: propertyAddress || undefined,
+    serviceLabel: serviceLine ?? serviceInterestRaw,
     submittedAt: new Date().toISOString(),
   };
 
@@ -172,21 +172,21 @@ Promise<ContactResult> => {
   const resend = new Resend(apiKey);
   const result = await resend.emails.send({
     from,
-    to: parseNotificationRecipients(env.notificationTo),
+    html,
     replyTo: submission.email,
     subject,
-    html,
+    to: parseNotificationRecipients(env.notificationTo),
   });
 
   if (result.error) {
     console.error("[contact] Resend error", result.error);
     return {
-      status: 502,
       body: {
-        ok: false,
         error:
           "Could not send your message. Try again later or contact us by phone or email.",
+        ok: false,
       },
+      status: 502,
     };
   }
 
@@ -201,8 +201,8 @@ Promise<ContactResult> => {
   if (sanityToken) {
     try {
       await upsertContactLead(sanityToken, submission);
-    } catch (err) {
-      console.error("[contact] contact upsert failed", err);
+    } catch (error) {
+      console.error("[contact] contact upsert failed", error);
     }
   } else {
     console.warn(
@@ -210,5 +210,5 @@ Promise<ContactResult> => {
     );
   }
 
-  return { status: 200, body: { ok: true } };
+  return { body: { ok: true }, status: 200 };
 };

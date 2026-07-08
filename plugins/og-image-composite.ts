@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import type { Connect, Plugin } from "vite";
 
-const pluginDir = path.dirname(fileURLToPath(import.meta.url));
+const pluginDir = import.meta.dirname;
 const projectRoot = path.resolve(pluginDir, "..");
 
 const backgroundImageName = "photo-8.png";
@@ -16,8 +16,8 @@ const backgroundImageName = "photo-8.png";
  */
 const OG_COLORS = {
   background: "#0a1a16",
-  title: "#f7f6f1",
   subtitle: "#e4d9f0",
+  title: "#f7f6f1",
 } as const;
 const OG_OVERLAY_COLOR = "#1e5b4a";
 const OG_OVERLAY_OPACITY = 0.72;
@@ -42,8 +42,8 @@ const hexToRgb = (hex: string) => {
  * - Twitter/X summary_large_image: 2:1 → 1200×600
  */
 const SHARE_ROUTES: Record<string, readonly [number, number]> = {
-  "/og-image.png": [1200, 630],
   "/og-image-linkedin.png": [1200, 627],
+  "/og-image.png": [1200, 630],
   "/twitter-image.png": [1200, 600],
 };
 
@@ -96,17 +96,17 @@ async function renderSharePng(
     .resize(w, h, { fit: "cover", position: "centre" })
     .composite([
       {
+        blend: "multiply",
         input: {
           create: {
-            width: w,
-            height: h,
-            channels: 4,
             background: { ...overlayRgb, alpha: OG_OVERLAY_OPACITY },
+            channels: 4,
+            height: h,
+            width: w,
           },
         },
-        blend: "multiply",
       },
-      { input: Buffer.from(buildCardSvg(w, h), "utf8") },
+      { input: Buffer.from(buildCardSvg(w, h), "utf-8") },
     ])
     .png()
     .toBuffer();
@@ -119,8 +119,19 @@ async function renderSharePng(
  * Build: writes the same files under `dist/`.
  */
 export const ogImageComposite = (): Plugin => ({
-  name: "og-image-composite",
-  enforce: "pre",
+  async closeBundle() {
+    const outDir = path.join(projectRoot, "dist");
+    await fs.promises.mkdir(outDir, { recursive: true });
+
+    for (const [route, [w, h]] of Object.entries(SHARE_ROUTES)) {
+      const name = path.basename(route);
+      const buffer = await renderSharePng(projectRoot, w, h);
+      if (!buffer) {
+        continue;
+      }
+      await fs.promises.writeFile(path.join(outDir, name), buffer);
+    }
+  },
   configureServer(server) {
     server.middlewares.use((async (req, res, next) => {
       const pathname = req.url?.split("?")[0] ?? "";
@@ -145,17 +156,6 @@ export const ogImageComposite = (): Plugin => ({
       }
     }) as Connect.NextHandleFunction);
   },
-  async closeBundle() {
-    const outDir = path.join(projectRoot, "dist");
-    await fs.promises.mkdir(outDir, { recursive: true });
-
-    for (const [route, [w, h]] of Object.entries(SHARE_ROUTES)) {
-      const name = path.basename(route);
-      const buffer = await renderSharePng(projectRoot, w, h);
-      if (!buffer) {
-        continue;
-      }
-      await fs.promises.writeFile(path.join(outDir, name), buffer);
-    }
-  },
+  enforce: "pre",
+  name: "og-image-composite",
 });

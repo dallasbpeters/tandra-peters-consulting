@@ -66,7 +66,6 @@ const sanitizeString = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
 
 export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-ad-versions-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -118,7 +117,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
       try {
         const bodyBuffer = await readRequestBody(req);
         const body = bodyBuffer.length
-          ? (JSON.parse(bodyBuffer.toString("utf8")) as {
+          ? (JSON.parse(bodyBuffer.toString("utf-8")) as {
               id?: unknown;
               name?: unknown;
               config?: unknown;
@@ -127,9 +126,9 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
           : {};
 
         const client = createClient({
-          projectId: SANITY_PROJECT_ID,
-          dataset: SANITY_DATASET,
           apiVersion: SANITY_API_VERSION,
+          dataset: SANITY_DATASET,
+          projectId: SANITY_PROJECT_ID,
           token,
           useCdn: false,
         });
@@ -141,7 +140,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
             return;
           }
           await client.delete(id);
-          json(res, 200, { ok: true, id });
+          json(res, 200, { id, ok: true });
           return;
         }
 
@@ -155,7 +154,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
           json(res, 400, { error: "Missing version name or config." });
           return;
         }
-        if (Buffer.byteLength(config, "utf8") > MAX_CONFIG_BYTES) {
+        if (Buffer.byteLength(config, "utf-8") > MAX_CONFIG_BYTES) {
           json(res, 413, { error: "Config payload is too large." });
           return;
         }
@@ -169,7 +168,7 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
           savedBy: user.email,
         });
 
-        json(res, 200, { ok: true, id: created._id, name: created.name });
+        json(res, 200, { id: created._id, name: created.name, ok: true });
       } catch (error) {
         console.error("[vite-ad-versions-api]", error);
         json(res, 500, {
@@ -181,4 +180,5 @@ export const viteAdVersionsApi = (env: Record<string, string>): Plugin => ({
       }
     });
   },
+  name: "vite-ad-versions-api",
 });

@@ -21,22 +21,22 @@ const recordToRecipient = (record) => {
       .trim() ||
     email;
 
-  return { id: recordId, name, email: email.toLowerCase() };
+  return { email: email.toLowerCase(), id: recordId, name };
 };
 
 export const listAttioPeople = async (token, options = {}) => {
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500);
 
   const res = await fetch(ATTIO_QUERY_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       limit,
       sorts: [{ attribute: "name", direction: "asc" }],
     }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
   });
 
   if (!res.ok) {
@@ -63,20 +63,20 @@ export const listAttioPeople = async (token, options = {}) => {
 export const postAttioPersonNote = async (token, recordId, title, content) => {
   try {
     const res = await fetch(ATTIO_NOTES_URL, {
-      method: "POST",
+      body: JSON.stringify({
+        data: {
+          content: content.replaceAll("\0", "").slice(0, 100_000),
+          format: "plaintext",
+          parent_object: "people",
+          parent_record_id: recordId,
+          title: title.slice(0, 500),
+        },
+      }),
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        data: {
-          parent_object: "people",
-          parent_record_id: recordId,
-          title: title.slice(0, 500),
-          format: "plaintext",
-          content: content.replace(/\0/g, "").slice(0, 100_000),
-        },
-      }),
+      method: "POST",
     });
     return res.ok;
   } catch {

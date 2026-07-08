@@ -3,21 +3,6 @@ import { defineField, defineType } from "sanity";
 import { defineGeneratedImage } from "./generatedImageField";
 
 export const postType = defineType({
-  name: "post",
-  title: "Post",
-  type: "document",
-  orderings: [
-    {
-      title: "Published (newest first)",
-      name: "publishedAtDesc",
-      by: [{ field: "publishedAt", direction: "desc" }],
-    },
-    {
-      title: "Published (oldest first)",
-      name: "publishedAtAsc",
-      by: [{ field: "publishedAt", direction: "asc" }],
-    },
-  ],
   fields: [
     defineField({
       name: "title",
@@ -26,21 +11,20 @@ export const postType = defineType({
     }),
     defineField({
       name: "slug",
-      type: "slug",
       options: { source: "title" },
+      type: "slug",
       validation: (rule) => rule.required(),
     }),
     defineField({
+      initialValue: () => new Date().toISOString(),
       name: "publishedAt",
       type: "datetime",
-      initialValue: () => new Date().toISOString(),
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "category",
-      title: "Category",
-      type: "string",
       options: {
+        layout: "dropdown",
         list: [
           { title: "Roof replacement", value: "roof-replacement" },
           { title: "Insurance & claims", value: "insurance-claims" },
@@ -48,38 +32,39 @@ export const postType = defineType({
           { title: "Maintenance", value: "maintenance" },
           { title: "Texas homeowners", value: "texas-homeowners" },
         ],
-        layout: "dropdown",
       },
+      title: "Category",
+      type: "string",
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description: "Short summary for article cards and meta (1–2 sentences).",
       name: "excerpt",
+      rows: 3,
       title: "Excerpt",
       type: "text",
-      rows: 3,
-      description: "Short summary for article cards and meta (1–2 sentences).",
       validation: (rule) => rule.required().max(320),
     }),
     defineField({
-      name: "seoDescription",
-      title: "SEO description",
-      type: "text",
-      rows: 2,
       description:
         "Meta description (~150 characters). Falls back to excerpt if empty.",
+      name: "seoDescription",
+      rows: 2,
+      title: "SEO description",
+      type: "text",
       validation: (rule) => rule.max(200),
     }),
     defineField({
+      initialValue: "Tandra Peters",
       name: "authorName",
       title: "Author name",
       type: "string",
-      initialValue: "Tandra Peters",
     }),
     defineGeneratedImage({
-      name: "image",
-      title: "Cover image",
       description:
         "Optional; used on listing cards and social previews when set.",
+      name: "image",
+      title: "Cover image",
     }),
     defineField({
       name: "body",
@@ -87,25 +72,40 @@ export const postType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description:
+        "Optional article-specific FAQ for the bottom of the article page. Leave empty to use the generated fallback FAQs.",
       name: "faq",
       title: "Article FAQ",
       type: "faqSection",
-      description:
-        "Optional article-specific FAQ for the bottom of the article page. Leave empty to use the generated fallback FAQs.",
     }),
   ],
-  preview: {
-    select: {
-      title: "title",
-      category: "category",
-      publishedAt: "publishedAt",
+  name: "post",
+  orderings: [
+    {
+      by: [{ direction: "desc", field: "publishedAt" }],
+      name: "publishedAtDesc",
+      title: "Published (newest first)",
     },
+    {
+      by: [{ direction: "asc", field: "publishedAt" }],
+      name: "publishedAtAsc",
+      title: "Published (oldest first)",
+    },
+  ],
+  preview: {
     prepare({ title, category, publishedAt }) {
       const subtitle = [category, publishedAt].filter(Boolean).join(" · ");
       return {
-        title: title || "Untitled post",
         subtitle: subtitle || undefined,
+        title: title || "Untitled post",
       };
     },
+    select: {
+      category: "category",
+      publishedAt: "publishedAt",
+      title: "title",
+    },
   },
+  title: "Post",
+  type: "document",
 });

@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(import.meta.dirname);
 const source = path.join(
   repoRoot,
   "node_modules",

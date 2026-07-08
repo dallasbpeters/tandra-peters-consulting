@@ -53,7 +53,7 @@ const fmtPct = (rate: number) => `${(rate * 100).toFixed(1)}%`;
 
 const fmtDate = (iso: string) => {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
 };
 
 const CARD: React.CSSProperties = {
@@ -90,18 +90,25 @@ export const GaDashboardTool = () => {
     setError(null);
     fetch(`${GA_API_URL}?days=${days}`)
       .then((r) => {
-        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        if (!r.ok) {
+          throw new Error(`${r.status} ${r.statusText}`);
+        }
         return r.json() as Promise<AnalyticsData>;
       })
       .then((d) => {
-        if (!cancelled) setData(d);
+        if (!cancelled) {
+          setData(d);
+        }
       })
-      .catch((e: unknown) => {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : "Unknown error");
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setError(error instanceof Error ? error.message : "Unknown error");
+        }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -297,11 +304,7 @@ export const GaDashboardTool = () => {
                 {data.dailyTrend.length > 0 && (
                   <>
                     <span>{fmtDate(data.dailyTrend[0].date)}</span>
-                    <span>
-                      {fmtDate(
-                        data.dailyTrend[data.dailyTrend.length - 1].date
-                      )}
-                    </span>
+                    <span>{fmtDate(data.dailyTrend.at(-1).date)}</span>
                   </>
                 )}
               </div>

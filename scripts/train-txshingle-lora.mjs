@@ -112,7 +112,7 @@ const main = async () => {
     startTimeout: 120,
   });
 
-  const data = result.data;
+  const { data } = result;
   const loraUrl = data?.diffusers_lora_file?.url;
   const configUrl = data?.config_file?.url;
 
@@ -144,38 +144,38 @@ const main = async () => {
   }
 
   const manifest = {
-    endpoint: ENDPOINT,
-    triggerWord: TRIGGER_WORD,
-    requestId: result.requestId,
-    trainedAt: new Date().toISOString(),
-    steps,
-    imagesDataUrl,
-    diffusersLoraFile: {
-      url: loraUrl,
-      localPath: localLoraPath,
-      fileName: loraFileName,
-      fileSize: data.diffusers_lora_file.file_size,
-    },
     configFile: configUrl
       ? {
-          url: configUrl,
-          localPath: localConfigPath,
           fileName: configFileName,
           fileSize: data.config_file?.file_size,
+          localPath: localConfigPath,
+          url: configUrl,
         }
       : undefined,
     debugPreprocessedOutput: data.debug_preprocessed_output?.url,
+    diffusersLoraFile: {
+      fileName: loraFileName,
+      fileSize: data.diffusers_lora_file.file_size,
+      localPath: localLoraPath,
+      url: loraUrl,
+    },
+    endpoint: ENDPOINT,
+    imagesDataUrl,
     inference: {
       endpoint: "fal-ai/flux-lora",
-      promptExample: `${TRIGGER_WORD}, weathered wood architectural shingle roof on a Texas home, natural daylight`,
       loraUrl,
+      promptExample: `${TRIGGER_WORD}, weathered wood architectural shingle roof on a Texas home, natural daylight`,
     },
+    requestId: result.requestId,
+    steps,
+    trainedAt: new Date().toISOString(),
+    triggerWord: TRIGGER_WORD,
   };
 
   await writeFile(
     MANIFEST_PATH,
     `${JSON.stringify(manifest, null, 2)}\n`,
-    "utf8"
+    "utf-8"
   );
 
   console.info("");
@@ -189,7 +189,10 @@ const main = async () => {
   console.info(`  FAL_TXSHINGLE_LORA_URL=${loraUrl}`);
 };
 
-main().catch((err) => {
-  console.error("[lora] Failed:", err instanceof Error ? err.message : err);
+main().catch((error) => {
+  console.error(
+    "[lora] Failed:",
+    error instanceof Error ? error.message : error
+  );
   process.exit(1);
 });

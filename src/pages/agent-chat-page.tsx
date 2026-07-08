@@ -1,13 +1,8 @@
 import { usePostHog } from "@posthog/react";
 import type { FileUIPart } from "ai";
 import { Check, Copy, Download, Globe } from "iconoir-react";
-import {
-  type CSSProperties,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -65,8 +60,8 @@ import { usePageMetadata } from "../hooks/use-page-metadata";
 import {
   buildApiMessages,
   filePartsToImages,
-  type StoredChatImage,
 } from "../lib/build-agent-api-messages";
+import type { StoredChatImage } from "../lib/build-agent-api-messages";
 import { mix, theme } from "../theme";
 
 import "../styles/agent-chat.css";
@@ -136,24 +131,24 @@ interface PersistedConversation {
 const isChatPart = (value: unknown): value is ChatPart =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      ("type" in value && (value as { type?: unknown }).type === "text"
-        ? typeof (value as { text?: unknown }).text === "string"
-        : "type" in value &&
-          (value as { type?: unknown }).type === "reasoning" &&
-          typeof (value as { text?: unknown }).text === "string")
+    typeof value === "object" &&
+    ("type" in value && (value as { type?: unknown }).type === "text"
+      ? typeof (value as { text?: unknown }).text === "string"
+      : "type" in value &&
+        (value as { type?: unknown }).type === "reasoning" &&
+        typeof (value as { text?: unknown }).text === "string")
   );
 
 const isChatMessage = (value: unknown): value is ChatMessage =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      typeof (value as { id?: unknown }).id === "string" &&
-      ((value as { role?: unknown }).role === "user" ||
-        (value as { role?: unknown }).role === "assistant") &&
-      typeof (value as { content?: unknown }).content === "string" &&
-      Array.isArray((value as { parts?: unknown }).parts) &&
-      (value as { parts: unknown[] }).parts.every(isChatPart)
+    typeof value === "object" &&
+    typeof (value as { id?: unknown }).id === "string" &&
+    ((value as { role?: unknown }).role === "user" ||
+      (value as { role?: unknown }).role === "assistant") &&
+    typeof (value as { content?: unknown }).content === "string" &&
+    Array.isArray((value as { parts?: unknown }).parts) &&
+    (value as { parts: unknown[] }).parts.every(isChatPart)
   );
 
 const getStorageKey = (agentSlug: string) =>
@@ -407,8 +402,10 @@ export const AgentChatPage = ({ config }: Props) => {
             role: "assistant",
           },
         ]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+      } catch (error) {
+        setError(
+          error instanceof Error ? error.message : "Something went wrong."
+        );
       } finally {
         setLoading(false);
       }
@@ -448,8 +445,8 @@ export const AgentChatPage = ({ config }: Props) => {
         await navigator.clipboard.writeText(message.content);
         markCopied();
         return;
-      } catch (err) {
-        console.warn("[copy] clipboard API failed, falling back", err);
+      } catch (error) {
+        console.warn("[copy] clipboard API failed, falling back", error);
       }
     }
 
@@ -460,13 +457,13 @@ export const AgentChatPage = ({ config }: Props) => {
       textarea.setAttribute("readonly", "");
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
+      document.body.append(textarea);
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
       markCopied();
-    } catch (err) {
-      console.error("[copy] fallback failed", err);
+    } catch (error) {
+      console.error("[copy] fallback failed", error);
     }
   }, []);
 
@@ -481,15 +478,15 @@ export const AgentChatPage = ({ config }: Props) => {
         });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
-        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const stamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
         anchor.href = url;
         anchor.download = `${config.agentSlug}-${stamp}.md`;
-        document.body.appendChild(anchor);
+        document.body.append(anchor);
         anchor.click();
         document.body.removeChild(anchor);
         URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error("[download] failed", err);
+      } catch (error) {
+        console.error("[download] failed", error);
       }
     },
     [config.agentSlug]

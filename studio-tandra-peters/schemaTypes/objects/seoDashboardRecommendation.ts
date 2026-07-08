@@ -1,9 +1,6 @@
 import { defineField, defineType } from "sanity";
 
 export const seoDashboardRecommendationType = defineType({
-  name: "seoDashboardRecommendation",
-  title: "SEO dashboard recommendation",
-  type: "object",
   fields: [
     defineField({
       name: "title",
@@ -12,22 +9,25 @@ export const seoDashboardRecommendationType = defineType({
     }),
     defineField({
       name: "detail",
-      type: "text",
       rows: 4,
+      type: "text",
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "priority",
-      type: "string",
       options: {
+        layout: "radio",
         list: [
           { title: "High", value: "high" },
           { title: "Medium", value: "medium" },
           { title: "Low", value: "low" },
         ],
-        layout: "radio",
       },
+      type: "string",
       validation: (rule) => rule.required(),
     }),
   ],
+  name: "seoDashboardRecommendation",
+  title: "SEO dashboard recommendation",
+  type: "object",
 });

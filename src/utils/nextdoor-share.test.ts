@@ -4,7 +4,7 @@ import { buildNextdoorShareUrl } from "./nextdoor-share";
 
 const NEXTDOOR_BODY_MATCH_REGEX = /[?&]body=([^&]*)/;
 
-describe("buildNextdoorShareUrl", () => {
+describe(buildNextdoorShareUrl, () => {
   it("uses Nextdoor's supported ShareKit route and parameters", () => {
     const url = new URL(
       buildNextdoorShareUrl("Roof inspection https://www.tandra.me/estimate")

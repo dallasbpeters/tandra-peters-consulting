@@ -11,8 +11,7 @@ You are a content strategist. Your goal is to help plan content that drives traf
 
 ## Before Planning
 
-**Check for product marketing context first:**
-If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check for product marketing context first:** If `.agents/product-marketing.md` exists (or `.claude/product-marketing.md`, or the legacy `product-marketing-context.md` filename, in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 Gather this context (ask if not provided):
 
@@ -77,15 +76,13 @@ Every piece of content must be searchable, shareable, or both. Prioritize in tha
 
 ### Searchable Content Types
 
-**Use-Case Content**
-Formula: [persona] + [use-case]. Targets long-tail keywords.
+**Use-Case Content** Formula: [persona] + [use-case]. Targets long-tail keywords.
 
 - "Project management for designers"
 - "Task tracking for developers"
 - "Client collaboration for freelancers"
 
-**Hub and Spoke**
-Hub = comprehensive overview. Spokes = related subtopics.
+**Hub and Spoke** Hub = comprehensive overview. Spokes = related subtopics.
 
 ```
 /topic (hub)
@@ -98,8 +95,7 @@ Create hub first, then build spokes. Interlink strategically.
 
 **Note:** Most content works fine under `/blog`. Only use dedicated hub/spoke URL structures for major topics with layered depth (e.g., Atlassian's `/agile` guide). For typical blog posts, `/blog/post-title` is sufficient.
 
-**Template Libraries**
-High-intent keywords + product adoption.
+**Template Libraries** High-intent keywords + product adoption.
 
 - Target searches like "marketing plan template"
 - Provide immediate standalone value
@@ -119,14 +115,11 @@ High-intent keywords + product adoption.
 - Public data analysis (uncover patterns)
 - Original research (run experiments, share results)
 
-**Expert Roundups**
-15-30 experts answering one specific question. Built-in distribution.
+**Expert Roundups** 15-30 experts answering one specific question. Built-in distribution.
 
-**Case Studies**
-Structure: Challenge → Solution → Results → Key learnings
+**Case Studies** Structure: Challenge → Solution → Results → Key learnings
 
-**Meta Content**
-Behind-the-scenes transparency. "How We Got Our First $5k MRR," "Why We Chose Debt Over VC."
+**Meta Content** Behind-the-scenes transparency. "How We Got Our First $5k MRR," "Why We Chose Debt Over VC."
 
 For programmatic content at scale, see **programmatic-seo** skill.
 
@@ -232,8 +225,7 @@ If user provides keyword exports (Ahrefs, SEMrush, GSC), analyze for:
 - Quick wins (low competition + decent volume + high relevance)
 - Content gaps (keywords competitors rank for that you don't)
 
-Output as prioritized table:
-| Keyword | Volume | Difficulty | Buyer Stage | Content Type | Priority |
+Output as prioritized table: | Keyword | Volume | Difficulty | Buyer Stage | Content Type | Priority |
 
 ### 2. Call Transcripts
 
@@ -340,10 +332,10 @@ Score each idea on four factors:
 
 ### Scoring Template
 
-| Idea    | Customer Impact (40%) | Content-Market Fit (30%) | Search Potential (20%) | Resources (10%) | Total |
-| ------- | --------------------- | ------------------------ | ---------------------- | --------------- | ----- |
-| Topic A | 8                     | 9                        | 7                      | 6               | 8.0   |
-| Topic B | 6                     | 7                        | 9                      | 8               | 7.1   |
+| Idea | Customer Impact (40%) | Content-Market Fit (30%) | Search Potential (20%) | Resources (10%) | Total |
+| --- | --- | --- | --- | --- | --- |
+| Topic A | 8 | 9 | 7 | 6 | 8.0 |
+| Topic B | 6 | 7 | 9 | 8 | 7.1 |
 
 ---
 

@@ -25,7 +25,7 @@ export interface LoadedAdVersionConfig {
 
 const extractFirstJsonObject = (value: string): string => {
   const start = value.indexOf("{");
-  if (start < 0) {
+  if (start === -1) {
     throw new SyntaxError("No JSON object in config.");
   }
   let depth = 0;

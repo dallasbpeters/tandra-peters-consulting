@@ -1,4 +1,8 @@
-import { AddressAutofill } from "@mapbox/search-js-react";
+import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import { usePostHog } from "@posthog/react";
 import {
   ArrowRight,
@@ -23,6 +27,9 @@ import { usePageMetadata } from "../hooks/use-page-metadata";
 import { layoutClass } from "../styles/layout-classes";
 
 import "../styles/desk.css";
+
+const waFieldValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
 
 type Tone = "critical" | "warm" | "good" | "neutral";
 
@@ -84,60 +91,9 @@ interface DeskBoardResponse {
   ok: boolean;
 }
 
-interface SelectOption {
-  label: string;
-  value: string;
-}
-
-interface LeadFormState {
-  area: string;
-  contactMethod: string;
-  contactName: string;
-  county: string;
-  latitude: number | null;
-  longitude: number | null;
-  mailingAddress: string;
-  need: string;
-  nextStep: string;
-  notes: string;
-  postalCode: string;
-  propertyAddress: string;
-  source: string;
-}
-
-interface DeskLeadRecord {
-  area: string;
-  capturedAt: string;
-  contactMethod: string;
-  contactName: string;
-  county?: string;
-  id: string;
-  mailingAddress?: string;
-  need: string;
-  nextStep: string;
-  postalCode?: string;
-  propertyAddress?: string;
-  source: string;
-  status: string;
-}
-
-interface DeskCaptureResponse {
-  error?: string;
-  lead?: DeskLeadRecord;
-  leads?: DeskLeadRecord[];
-  ok: boolean;
-}
-
 interface CaptureMessage {
   text: string;
   tone: "error" | "neutral" | "success";
-}
-
-interface LeadFollowUp {
-  callOpener: string;
-  messageDraft: string;
-  nextAction: string;
-  postAngle: string;
 }
 
 interface DeskAreaTarget {
@@ -235,50 +191,6 @@ const canvassStatusOrder: readonly CanvassStatus[] = [
   "done",
 ];
 
-const _sourceOptions: readonly SelectOption[] = [
-  { label: "Neighbor referral", value: "neighbor-referral" },
-  { label: "Postcard", value: "postcard" },
-  { label: "Neighborhood post", value: "neighborhood-post" },
-  { label: "Google post", value: "google-post" },
-  { label: "Partner referral", value: "partner" },
-  { label: "Website estimate", value: "website-estimate" },
-  { label: "Other", value: "other" },
-] as const;
-
-const _nextStepOptions: readonly SelectOption[] = [
-  { label: "Call today", value: "call-today" },
-  { label: "Send checklist", value: "send-checklist" },
-  { label: "Book inspection", value: "book-inspection" },
-  { label: "Ask for photos", value: "ask-for-photos" },
-  { label: "No action yet", value: "no-action-yet" },
-] as const;
-
-const WHITESPACE_RE = /\s+/u;
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-
-const _initialLeadForm: LeadFormState = {
-  area: "",
-  contactMethod: "",
-  contactName: "",
-  county: "",
-  latitude: null,
-  longitude: null,
-  mailingAddress: "",
-  need: "",
-  nextStep: "call-today",
-  notes: "",
-  postalCode: "",
-  propertyAddress: "",
-  source: "neighbor-referral",
-};
-
-const leadDateFormatter = new Intl.DateTimeFormat("en-US", {
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  month: "short",
-});
-
 const metrics: readonly Metric[] = [
   {
     label: "Current lead base",
@@ -361,12 +273,6 @@ const actionItems: readonly ActionItem[] = [
 
 const campaignAssets: readonly CampaignAsset[] = [
   {
-    action: "Use live page",
-    href: "/estimate",
-    label: "Estimate capture page",
-    status: "Live",
-  },
-  {
     action: "Design",
     href: "/ads",
     label: "Postcard / door hanger",
@@ -431,149 +337,9 @@ const formatPublishDate = (value: string | undefined): string => {
   return publishDateFormatter.format(date);
 };
 
-const _labelFor = (
-  value: string,
-  options: readonly SelectOption[],
-  fallback: string
-): string =>
-  options.find((option) => option.value === value)?.label ?? fallback;
-
-const firstName = (value: string): string =>
-  value.trim().split(WHITESPACE_RE)[0] ?? value;
-
-const truncateSentence = (value: string, maxLength: number): string => {
-  const trimmed = value.trim();
-  if (trimmed.length <= maxLength) {
-    return trimmed;
-  }
-  return `${trimmed.slice(0, maxLength - 1).trim()}...`;
-};
-
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 const formatNumber = (value: number): string => numberFormatter.format(value);
-
-interface MapboxAddressParts {
-  city: string;
-  coords: [number, number] | null;
-  county: string;
-  full: string;
-  neighborhood: string;
-  postalCode: string;
-}
-
-const toRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-
-const stringValue = (value: unknown): string =>
-  typeof value === "string" ? value.trim() : "";
-
-const contextName = (
-  context: Record<string, unknown>,
-  keys: readonly string[]
-): string => {
-  for (const key of keys) {
-    const entry = toRecord(context[key]);
-    const name = stringValue(entry.name) || stringValue(entry.text);
-    if (name) {
-      return name;
-    }
-  }
-  return "";
-};
-
-const mapboxCoordinates = (
-  feature: Record<string, unknown>
-): [number, number] | null => {
-  const geometryCoords = toRecord(feature.geometry).coordinates;
-  if (
-    Array.isArray(geometryCoords) &&
-    typeof geometryCoords[0] === "number" &&
-    typeof geometryCoords[1] === "number"
-  ) {
-    return [geometryCoords[0], geometryCoords[1]];
-  }
-
-  const coordinates = toRecord(toRecord(feature.properties).coordinates);
-  const { latitude, longitude } = coordinates;
-  if (typeof longitude === "number" && typeof latitude === "number") {
-    return [longitude, latitude];
-  }
-
-  return null;
-};
-
-const _getMapboxAddressParts = (res: unknown): MapboxAddressParts => {
-  const { features } = toRecord(res);
-  const feature = Array.isArray(features) ? toRecord(features[0]) : {};
-  const props = toRecord(feature.properties);
-  const context = toRecord(props.context);
-
-  return {
-    city: contextName(context, ["place", "locality"]),
-    coords: mapboxCoordinates(feature),
-    county: contextName(context, ["district"]),
-    full: stringValue(props.full_address) || stringValue(props.place_name),
-    neighborhood: contextName(context, ["neighborhood"]),
-    postalCode: contextName(context, ["postcode"]),
-  };
-};
-
-const _coalesceArea = (parts: MapboxAddressParts, fallback: string): string =>
-  parts.neighborhood || parts.city || fallback;
-
-interface DeskAddressInputProps {
-  disabled: boolean;
-  id: string;
-  label: string;
-  onChange: (value: string) => void;
-  onRetrieve: (result: unknown) => void;
-  placeholder: string;
-  required?: boolean;
-  value: string;
-}
-
-const _DeskAddressInput = ({
-  disabled,
-  id,
-  label,
-  onChange,
-  onRetrieve,
-  placeholder,
-  required = false,
-  value,
-}: DeskAddressInputProps) => {
-  const input = (
-    <input
-      autoComplete="street-address"
-      disabled={disabled}
-      id={id}
-      maxLength={500}
-      onChange={(event) => onChange(event.currentTarget.value)}
-      placeholder={placeholder}
-      required={required}
-      type="text"
-      value={value}
-    />
-  );
-
-  return (
-    <label htmlFor={id}>
-      <span>{label}</span>
-      {MAPBOX_TOKEN ? (
-        <AddressAutofill
-          accessToken={MAPBOX_TOKEN}
-          onRetrieve={onRetrieve}
-          options={{ country: "US", language: "en" }}
-        >
-          {input}
-        </AddressAutofill>
-      ) : (
-        input
-      )}
-    </label>
-  );
-};
 
 const escapeCsvField = (value: number | string): string => {
   const text = String(value);
@@ -622,61 +388,6 @@ const downloadWalkSheet = (target: CanvassTargetRecord): void => {
   URL.revokeObjectURL(url);
 };
 
-const _formatLeadDate = (value: string): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Just now";
-  }
-  return leadDateFormatter.format(date);
-};
-
-const _parseDeskCaptureResponse = async (
-  response: Response
-): Promise<DeskCaptureResponse> => {
-  try {
-    return (await response.json()) as DeskCaptureResponse;
-  } catch {
-    return {
-      error: response.ok
-        ? undefined
-        : "Desk capture returned an empty response.",
-      ok: response.ok,
-    };
-  }
-};
-
-const nextActionFor = (lead: DeskLeadRecord): string => {
-  switch (lead.nextStep) {
-    case "send-checklist": {
-      return "Send the estimate checklist, then ask for exterior photos and any ceiling-stain photos.";
-    }
-    case "book-inspection": {
-      return "Offer two inspection windows and ask who should be there for the roof walk.";
-    }
-    case "ask-for-photos": {
-      return "Ask for roof, attic, ceiling, and damage photos before recommending an inspection.";
-    }
-    case "no-action-yet": {
-      return "Hold this as a warm record, then follow up when the neighborhood campaign goes out.";
-    }
-    default: {
-      return "Call today, confirm the concern, and offer a clear next step without pushing a claim.";
-    }
-  }
-};
-
-const _buildLeadFollowUp = (lead: DeskLeadRecord): LeadFollowUp => {
-  const name = firstName(lead.contactName);
-  const need = truncateSentence(lead.need, 140);
-
-  return {
-    callOpener: `Hi ${name}, this is Tandra with Birdcreek Roofing. I saw the note about ${need}. I'm calling to help you get a plain read on whether this needs a repair, an inspection, or just watching for now.`,
-    messageDraft: `Hi ${name}, this is Tandra with Birdcreek Roofing. I can help you get a clear read on the roof around ${lead.area}. If you can send a few photos and the main concern, I'll tell you what I'd check first and whether it is worth scheduling an inspection.`,
-    nextAction: nextActionFor(lead),
-    postAngle: `For homeowners around ${lead.area}: if your roof is older, recently repaired, or you are seeing stains, missing shingles, or soft spots, I can help you understand what is urgent and what can wait before you call insurance or sign anything.`,
-  };
-};
-
 const parseDeskAreaIntelResponse = async (
   response: Response
 ): Promise<DeskAreaIntelResponse> => {
@@ -712,18 +423,14 @@ const StatusToggleButton = ({
   done: boolean;
   onToggle: () => void;
 }) => (
-  <button
-    aria-pressed={done}
+  <WaCheckbox
+    checked={done}
     className="desk-status-toggle"
     disabled={busy}
-    onClick={onToggle}
-    type="button"
+    onChange={onToggle}
   >
-    <span aria-hidden className="desk-status-toggle__box">
-      {done ? <CheckCircle height={16} width={16} /> : null}
-    </span>
-    <span>{done ? "Done" : "To do"}</span>
-  </button>
+    {done ? "Done" : "To do"}
+  </WaCheckbox>
 );
 
 const ActionRow = ({
@@ -739,7 +446,7 @@ const ActionRow = ({
 }) => {
   const done = status === "done";
   return (
-    <li className={`desk-action${done ? "desk-action--done" : ""}`}>
+    <li className={done ? "desk-action desk-action--done" : "desk-action"}>
       <StatusToggleButton busy={busy} done={done} onToggle={onToggle} />
       <div>
         <span className={toneClass(item.tone)}>{item.due}</span>
@@ -820,21 +527,23 @@ const CalendarRow = ({
         ) : null}
       </div>
     </div>
-    <select
+    <WaSelect
       aria-label="Content status"
+      appearance="outlined"
       className="desk-calendar-row__status"
       disabled={busy}
       onChange={(event) =>
-        onStatusChange(event.currentTarget.value as DeskBoardStatusValue)
+        onStatusChange(waFieldValue(event) as DeskBoardStatusValue)
       }
+      size="small"
       value={record.status}
     >
       {CONTENT_STATUS_ORDER.map((value) => (
-        <option key={value} value={value}>
+        <WaOption key={value} value={value}>
           {CONTENT_STATUS_LABELS[value]}
-        </option>
+        </WaOption>
       ))}
-    </select>
+    </WaSelect>
   </li>
 );
 
@@ -861,15 +570,15 @@ const NeighborhoodRow = ({
   selected: boolean;
   target: DeskAreaTarget;
 }) => (
-  <button
-    aria-pressed={selected}
-    className={`desk-canvass-row${selected ? "desk-canvass-row--selected" : " "}`}
-    onClick={() => onToggle(target.id)}
-    type="button"
+  <WaCheckbox
+    checked={selected}
+    className={
+      selected
+        ? "desk-canvass-row desk-canvass-row--selected"
+        : "desk-canvass-row"
+    }
+    onChange={() => onToggle(target.id)}
   >
-    <span aria-hidden className="desk-canvass-row__check">
-      {selected ? <CheckCircle height={16} width={16} /> : null}
-    </span>
     <span className="desk-canvass-row__body">
       <strong>{neighborhoodLabelOf(target)}</strong>
       <span>
@@ -881,7 +590,7 @@ const NeighborhoodRow = ({
       {formatNumber(target.olderHomeEstimate)}
       <small>homes</small>
     </span>
-  </button>
+  </WaCheckbox>
 );
 
 const SavedTargetCard = ({
@@ -914,48 +623,50 @@ const SavedTargetCard = ({
       </span>
     </div>
     <div className="desk-saved-target__actions">
-      <button
-        className="desk-text-link"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button"
         onClick={() => onOpen(target)}
-        type="button"
       >
         Open on map
-      </button>
+      </WaButton>
       <label className="desk-status-select">
         <span className="desk-visually-hidden">Status for {target.name}</span>
-        <select
+        <WaSelect
+          appearance="outlined"
           disabled={isBusy}
           onChange={(event) =>
-            onStatusChange(target, event.currentTarget.value as CanvassStatus)
+            onStatusChange(target, waFieldValue(event) as CanvassStatus)
           }
+          size="small"
           value={target.status}
         >
           {canvassStatusOrder.map((status) => (
-            <option key={status} value={status}>
+            <WaOption key={status} value={status}>
               {canvassStatusLabels[status]}
-            </option>
+            </WaOption>
           ))}
-        </select>
+        </WaSelect>
       </label>
-      <button
-        className="desk-text-link"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button"
         onClick={() => onExport(target)}
-        type="button"
       >
-        <BubbleDownload aria-hidden height={15} width={15} />
+        <BubbleDownload aria-hidden height={15} slot="start" width={15} />
         Walk sheet
-      </button>
+      </WaButton>
       <TransitionLink className="desk-text-link" to="/ads">
         Door hanger
       </TransitionLink>
-      <button
-        className="desk-text-link desk-text-link--danger"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button desk-action-button--danger"
         disabled={isBusy}
         onClick={() => onDelete(target)}
-        type="button"
       >
         Delete
-      </button>
+      </WaButton>
     </div>
   </article>
 );
@@ -1424,15 +1135,15 @@ const CanvassingPlanner = ({
             </div>
           </div>
 
-          <label className="desk-canvass-name">
+          <div className="desk-canvass-name">
             <span>Target name</span>
-            <input
-              onChange={(event) => setName(event.currentTarget.value)}
+            <WaInput
+              onChange={(event) => setName(waFieldValue(event))}
               placeholder="Serenada — walk Saturday"
               type="text"
               value={name}
             />
-          </label>
+          </div>
 
           {message ? (
             <p
@@ -1443,28 +1154,28 @@ const CanvassingPlanner = ({
           ) : null}
 
           <div className="desk-canvass-builder__actions">
-            <button
+            <WaButton
+              appearance="plain"
               className="desk-primary-link"
               disabled={isSaving || selectedTargets.length === 0}
               onClick={handleSave}
-              type="button"
             >
-              <CheckCircle aria-hidden height={18} width={18} />
+              <CheckCircle aria-hidden height={18} slot="start" width={18} />
               {(() => {
                 if (isSaving) {
                   return "Saving...";
                 }
                 return editingId ? "Update target" : "Save target";
               })()}
-            </button>
+            </WaButton>
             {selectedTargets.length > 0 || editingId ? (
-              <button
-                className="desk-text-link"
+              <WaButton
+                appearance="plain"
+                className="desk-action-button"
                 onClick={resetForm}
-                type="button"
               >
                 Clear
-              </button>
+              </WaButton>
             ) : null}
           </div>
 
@@ -1539,7 +1250,7 @@ const CampaignAssetRow = ({
 }) => {
   const done = status === "done";
   return (
-    <li className={`desk-asset${done ? "desk-asset--done" : ""}`}>
+    <li className={done ? " desk-asset desk-asset--done" : "desk-asset"}>
       <StatusToggleButton busy={busy} done={done} onToggle={onToggle} />
       <div>
         <strong>{asset.label}</strong>
@@ -1765,17 +1476,22 @@ const DeskDashboard = ({
                 <span>Action queue</span>
                 <h2>Today&apos;s work</h2>
               </div>
-              <button
+              <WaButton
+                appearance="plain"
                 className="desk-generate-button"
                 disabled={generatingMode !== null}
                 onClick={() => generate("tasks")}
-                type="button"
               >
-                <StatsUpSquare aria-hidden height={16} width={16} />
+                <StatsUpSquare
+                  aria-hidden
+                  height={16}
+                  slot="start"
+                  width={16}
+                />
                 {generatingMode === "tasks"
                   ? "Assessing…"
                   : "Generate next work"}
-              </button>
+              </WaButton>
             </div>
             <ul className="desk-actions">
               {actionItems.map((item) => (
@@ -1847,17 +1563,17 @@ const DeskDashboard = ({
               <span>Content calendar</span>
               <h2>Searchable-first content plan</h2>
             </div>
-            <button
+            <WaButton
+              appearance="plain"
               className="desk-generate-button"
               disabled={generatingMode !== null}
               onClick={() => generate("content")}
-              type="button"
             >
-              <StatsUpSquare aria-hidden height={16} width={16} />
+              <StatsUpSquare aria-hidden height={16} slot="start" width={16} />
               {generatingMode === "content"
                 ? "Planning…"
                 : "Generate content ideas"}
-            </button>
+            </WaButton>
           </div>
           {contentRecords.length > 0 ? (
             <ul className="desk-calendar-list">

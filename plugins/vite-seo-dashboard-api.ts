@@ -25,7 +25,6 @@ const applyCors = (res: {
 };
 
 export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-seo-dashboard-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -104,11 +103,12 @@ export const viteSeoDashboardApi = (env: Record<string, string>): Plugin => ({
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
-            error: "Could not build SEO dashboard",
             detail: error instanceof Error ? error.message : "Unknown error",
+            error: "Could not build SEO dashboard",
           })
         );
       }
     });
   },
+  name: "vite-seo-dashboard-api",
 });

@@ -1,22 +1,19 @@
 import { defineField, defineType } from "sanity";
 
 export const roofInspectionsPageType = defineType({
-  name: "roofInspectionsPage",
-  title: "Roof inspections page",
-  type: "document",
   fields: [
     defineField({
+      description: "Browser tab title for /roof-inspections.",
       name: "seoTitle",
       title: "SEO title",
       type: "string",
-      description: "Browser tab title for /roof-inspections.",
     }),
     defineField({
+      description: "Meta description for the roof inspections page.",
       name: "seoDescription",
+      rows: 3,
       title: "SEO description",
       type: "text",
-      rows: 3,
-      description: "Meta description for the roof inspections page.",
     }),
     defineField({
       name: "roofInspection",
@@ -25,7 +22,10 @@ export const roofInspectionsPageType = defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
+  name: "roofInspectionsPage",
   preview: {
     prepare: () => ({ title: "Roof inspections page" }),
   },
+  title: "Roof inspections page",
+  type: "document",
 });
