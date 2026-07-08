@@ -18,11 +18,9 @@ function ringToD(ring) {
   if (ring.length < 2) {
     return "";
   }
-  return (
-    "M" +
-    ring.map(([x, y]) => `${+x.toFixed(2)},${+y.toFixed(2)}`).join("L") +
-    "Z"
-  );
+  return `M${ring
+    .map(([x, y]) => `${+x.toFixed(2)},${+y.toFixed(2)}`)
+    .join("L")}Z`;
 }
 
 function featureToD(geometry, project) {
@@ -60,27 +58,27 @@ const PADDING = 36;
 
 /** Counties kept in texas-service-counties.geojson — Amarillo, Lubbock, Austin + 4 neighbors. */
 const NAME_TO_KEY = {
-  Potter: "potter",
-  Lubbock: "lubbock",
-  Travis: "travis",
-  Williamson: "williamson",
-  Hays: "hays",
   Bastrop: "bastrop",
   Caldwell: "caldwell",
+  Hays: "hays",
+  Lubbock: "lubbock",
+  Potter: "potter",
+  Travis: "travis",
+  Williamson: "williamson",
 };
 
 const KEY_TO_CITY = {
-  travis: "Austin",
-  williamson: "Round Rock",
-  hays: "San Marcos",
   bastrop: "Bastrop",
   caldwell: "Lockhart",
+  hays: "San Marcos",
   lubbock: "Lubbock",
   potter: "Amarillo",
+  travis: "Austin",
+  williamson: "Round Rock",
 };
 
 const geo = JSON.parse(
-  readFileSync("./src/data/texas-service-counties.geojson", "utf8")
+  readFileSync("./src/data/texas-service-counties.geojson", "utf-8")
 );
 
 const features = geo.features.filter((f) => NAME_TO_KEY[f.properties?.name]);
@@ -90,7 +88,7 @@ if (features.length !== Object.keys(NAME_TO_KEY).length) {
   throw new Error(`Missing counties in geojson: ${missing.join(", ")}`);
 }
 
-const collection = { type: "FeatureCollection", features };
+const collection = { features, type: "FeatureCollection" };
 const [[west, south], [east, north]] = geoBounds(collection);
 
 const projection = geoMercator().fitExtent(
@@ -102,19 +100,19 @@ const projection = geoMercator().fitExtent(
 );
 
 const counties = features.map((f) => {
-  const name = f.properties.name;
+  const { name } = f.properties;
   const key = NAME_TO_KEY[name];
   const fips = String(f.properties.geoid ?? "");
   const [cx, cy] = centroidOf(f.geometry, projection);
 
   return {
-    fips,
-    key,
-    name,
     city: KEY_TO_CITY[key] ?? null,
     cx,
     cy,
     d: featureToD(f.geometry, projection),
+    fips,
+    key,
+    name,
   };
 });
 
@@ -137,26 +135,26 @@ const projectedBounds = counties.reduce(
     return acc;
   },
   {
-    minX: Number.POSITIVE_INFINITY,
-    minY: Number.POSITIVE_INFINITY,
     maxX: Number.NEGATIVE_INFINITY,
     maxY: Number.NEGATIVE_INFINITY,
+    minX: Number.POSITIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
   }
 );
 
 const vbPad = 24;
 const defaultViewBox = {
+  h: Math.ceil(projectedBounds.maxY - projectedBounds.minY + vbPad * 2),
+  w: Math.ceil(projectedBounds.maxX - projectedBounds.minX + vbPad * 2),
   x: Math.floor(projectedBounds.minX - vbPad),
   y: Math.floor(projectedBounds.minY - vbPad),
-  w: Math.ceil(projectedBounds.maxX - projectedBounds.minX + vbPad * 2),
-  h: Math.ceil(projectedBounds.maxY - projectedBounds.minY + vbPad * 2),
 };
 
 const texasOutput = {
-  mapW: MAP_W,
-  mapH: MAP_H,
-  defaultViewBox,
   counties,
+  defaultViewBox,
+  mapH: MAP_H,
+  mapW: MAP_W,
 };
 
 writeFileSync(
@@ -165,20 +163,20 @@ writeFileSync(
 );
 
 const serviceAreasOutput = {
-  type: "FeatureCollection",
   features: features.map((f) => {
     const key = NAME_TO_KEY[f.properties.name];
     return {
-      type: "Feature",
+      geometry: f.geometry,
       properties: {
-        id: key,
-        name: f.properties.name,
         city: KEY_TO_CITY[key] ?? null,
         geoid: f.properties.geoid,
+        id: key,
+        name: f.properties.name,
       },
-      geometry: f.geometry,
+      type: "Feature",
     };
   }),
+  type: "FeatureCollection",
 };
 
 writeFileSync(
@@ -187,7 +185,7 @@ writeFileSync(
 );
 
 const statesTopo = JSON.parse(
-  readFileSync("./node_modules/us-atlas/states-10m.json", "utf8")
+  readFileSync("./node_modules/us-atlas/states-10m.json", "utf-8")
 );
 const stateFeatures = feature(statesTopo, statesTopo.objects.states).features;
 const texasState = stateFeatures.find((f) => String(f.id) === "48");
@@ -198,8 +196,8 @@ if (!texasState) {
 writeFileSync(
   "./src/components/texasStateOutline.json",
   JSON.stringify({
-    type: "FeatureCollection",
     features: [texasState],
+    type: "FeatureCollection",
   })
 );
 
@@ -208,4 +206,4 @@ console.log("✓  Written src/components/serviceAreas.json");
 console.log("✓  Written src/components/texasStateOutline.json");
 console.log("   Counties:", counties.map((c) => c.key).join(", "));
 console.log("   defaultViewBox:", defaultViewBox);
-console.log("   WGS84 bounds:", { west, south, east, north });
+console.log("   WGS84 bounds:", { east, north, south, west });

@@ -59,7 +59,6 @@ const createResponseAdapter = (res: ServerResponse) => {
 };
 
 export const viteAnalyticsApi = (env: Record<string, string> = {}): Plugin => ({
-  name: "vite-analytics-api",
   configureServer(server) {
     // Hydrate process.env from the Vite-loaded env (.env.local) so the
     // ga-dashboard plugin's GET handler can read its GA_* config.
@@ -111,4 +110,5 @@ export const viteAnalyticsApi = (env: Record<string, string> = {}): Plugin => ({
       }
     });
   },
+  name: "vite-analytics-api",
 });

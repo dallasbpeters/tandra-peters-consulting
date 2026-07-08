@@ -58,14 +58,14 @@ export default async function handler(
 
     const [attio, sanity] = await Promise.all([
       attioToken
-        ? listAttioPeople(attioToken, { search }).catch((err) => {
-            console.error("[api/email/recipients] Attio", err);
+        ? listAttioPeople(attioToken, { search }).catch((error) => {
+            console.error("[api/email/recipients] Attio", error);
             return [];
           })
         : Promise.resolve([]),
       sanityToken
-        ? listEmailContacts(sanityToken, { search }).catch((err) => {
-            console.error("[api/email/recipients] Sanity", err);
+        ? listEmailContacts(sanityToken, { search }).catch((error) => {
+            console.error("[api/email/recipients] Sanity", error);
             return [];
           })
         : Promise.resolve([]),

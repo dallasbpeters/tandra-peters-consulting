@@ -15,27 +15,25 @@ export const normalizeOrigin = (value?: string): string =>
   (value?.trim() || DEFAULT_SITE_URL).replace(TRAILING_SLASH_RE, "");
 
 export const BUSINESS = {
-  name: "Tandra Peters — Roofing consultation",
-  legalName: "Tandra Peters Consulting",
+  city: "Austin",
+  country: "US",
   description:
     "Birdcreek Roofing consultant in Austin, Texas: roof assessments, insurance claim advocacy, and project oversight—with installation by the same Birdcreek team.",
-  telephone: "+1-512-968-3965",
   email: "tandra@birdcreekroofing.com",
-  priceRange: "$$",
   facebook: "https://www.facebook.com/tandra.peters.3",
-  city: "Austin",
+  legalName: "Tandra Peters Consulting",
+  name: "Tandra Peters — Roofing consultation",
+  parentOrganization: "Birdcreek Roofing",
+  priceRange: "$$",
   state: "Texas",
   stateCode: "TX",
-  country: "US",
-  parentOrganization: "Birdcreek Roofing",
+  telephone: "+1-512-968-3965",
 } as const;
 
 export const PERSON = {
-  name: "Tandra Peters",
-  jobTitle: "Roofing Consultant",
-  worksFor: "Birdcreek Roofing",
   description:
     "Tandra Peters is a roofing consultant with Birdcreek Roofing in Austin, Texas. She helps homeowners with roof assessments, insurance claim advocacy, and project oversight—paired with installation by the Birdcreek team.",
+  jobTitle: "Roofing Consultant",
   knowsAbout: [
     "Roof assessments and inspections",
     "Insurance claim advocacy for roof damage",
@@ -45,6 +43,8 @@ export const PERSON = {
     "Commercial roofing",
     "Roof replacement project oversight",
   ],
+  name: "Tandra Peters",
+  worksFor: "Birdcreek Roofing",
 } as const;
 
 /**
@@ -61,33 +61,33 @@ export const SERVICE_AREAS: { city: string; county: string }[] = [
 
 export const SERVICES: { name: string; description: string }[] = [
   {
-    name: "Roof assessment",
     description:
       "On-site roof inspection to document condition, damage, and remaining life before a claim or replacement.",
+    name: "Roof assessment",
   },
   {
-    name: "Insurance claim advocacy",
     description:
       "Help filing and supporting roof insurance claims, including supplements, so homeowners get a fair outcome.",
+    name: "Insurance claim advocacy",
   },
   {
-    name: "Project oversight",
     description:
       "Oversight of the roof replacement from approval through installation by the Birdcreek Roofing team.",
+    name: "Project oversight",
   },
 ];
 
 const areaServedNodes = () => [
   {
     "@type": "City",
-    name: BUSINESS.city,
     containedInPlace: { "@type": "State", name: BUSINESS.state },
+    name: BUSINESS.city,
   },
   { "@type": "State", name: BUSINESS.state },
   ...SERVICE_AREAS.map((area) => ({
     "@type": "AdministrativeArea",
-    name: area.county,
     containedInPlace: { "@type": "State", name: BUSINESS.state },
+    name: area.county,
   })),
 ];
 
@@ -98,34 +98,34 @@ export const buildLocalBusinessSchema = (
   const url = normalizeOrigin(siteUrlEnv);
   return {
     "@context": "https://schema.org",
-    "@type": "RoofingContractor",
     "@id": `${url}/#business`,
-    name: BUSINESS.name,
-    description: BUSINESS.description,
-    url,
-    telephone: BUSINESS.telephone,
-    email: BUSINESS.email,
-    priceRange: BUSINESS.priceRange,
+    "@type": "RoofingContractor",
     address: {
       "@type": "PostalAddress",
+      addressCountry: BUSINESS.country,
       addressLocality: BUSINESS.city,
       addressRegion: BUSINESS.stateCode,
-      addressCountry: BUSINESS.country,
     },
     areaServed: areaServedNodes(),
-    parentOrganization: {
-      "@type": "Organization",
-      name: BUSINESS.parentOrganization,
-    },
+    description: BUSINESS.description,
+    email: BUSINESS.email,
     makesOffer: SERVICES.map((service) => ({
       "@type": "Offer",
       itemOffered: {
         "@type": "Service",
-        name: service.name,
         description: service.description,
+        name: service.name,
       },
     })),
+    name: BUSINESS.name,
+    parentOrganization: {
+      "@type": "Organization",
+      name: BUSINESS.parentOrganization,
+    },
+    priceRange: BUSINESS.priceRange,
     sameAs: [BUSINESS.facebook],
+    telephone: BUSINESS.telephone,
+    url,
   };
 };
 
@@ -136,25 +136,25 @@ export const buildPersonSchema = (
   const url = normalizeOrigin(siteUrlEnv);
   return {
     "@context": "https://schema.org",
-    "@type": "Person",
     "@id": `${url}/#tandra-peters`,
-    name: PERSON.name,
-    jobTitle: PERSON.jobTitle,
+    "@type": "Person",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: BUSINESS.country,
+      addressLocality: BUSINESS.city,
+      addressRegion: BUSINESS.stateCode,
+    },
     description: PERSON.description,
-    url,
-    telephone: BUSINESS.telephone,
     email: BUSINESS.email,
+    jobTitle: PERSON.jobTitle,
     knowsAbout: [...PERSON.knowsAbout],
+    name: PERSON.name,
+    sameAs: [BUSINESS.facebook],
+    telephone: BUSINESS.telephone,
+    url,
     worksFor: {
       "@type": "Organization",
       name: PERSON.worksFor,
     },
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: BUSINESS.city,
-      addressRegion: BUSINESS.stateCode,
-      addressCountry: BUSINESS.country,
-    },
-    sameAs: [BUSINESS.facebook],
   };
 };

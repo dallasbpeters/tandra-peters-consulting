@@ -82,12 +82,12 @@ const parseRecipients = (value: unknown): EmailRecipient[] => {
     }
     seen.add(email);
     out.push({
+      email,
       id: typeof rec.id === "string" ? rec.id : "",
       name:
         typeof rec.name === "string" && rec.name.trim()
           ? rec.name.trim()
           : email,
-      email,
     });
   }
   return out;
@@ -153,9 +153,9 @@ export default async function handler(
       try {
         const result = await resend.emails.send({
           from,
-          to: [recipient.email],
-          subject,
           html,
+          subject,
+          to: [recipient.email],
           ...(replyTo ? { replyTo } : {}),
         });
         if (result.error) {
@@ -172,21 +172,21 @@ export default async function handler(
             `Subject: ${subject}\nSent to: ${recipient.email}\nSource: Email composer`
           );
         }
-      } catch (err) {
+      } catch (error) {
         failed.push({
           email: recipient.email,
-          error: err instanceof Error ? err.message : "Send failed",
+          error: error instanceof Error ? error.message : "Send failed",
         });
       }
     }
 
     console.info("[api/email/send]", {
-      sent: sent.length,
       failed: failed.length,
+      sent: sent.length,
     });
     res.status(failed.length && !sent.length ? 502 : 200).json({
-      sent,
       failed,
+      sent,
     });
   } catch (error) {
     if (error instanceof DashboardAuthError) {

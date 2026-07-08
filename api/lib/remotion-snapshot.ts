@@ -27,7 +27,7 @@ export const restoreRemotionSnapshot = async (): Promise<Sandbox> => {
 
   const response = new Response(blob.stream);
   const cache = (await response.json()) as { snapshotId?: string };
-  const snapshotId = cache.snapshotId;
+  const { snapshotId } = cache;
 
   if (!snapshotId) {
     throw new Error(
@@ -36,7 +36,7 @@ export const restoreRemotionSnapshot = async (): Promise<Sandbox> => {
   }
 
   return Sandbox.create({
-    source: { type: "snapshot", snapshotId },
+    source: { snapshotId, type: "snapshot" },
     timeout: SANDBOX_CREATING_TIMEOUT,
   });
 };

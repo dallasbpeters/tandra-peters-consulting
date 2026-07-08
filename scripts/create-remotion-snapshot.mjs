@@ -6,7 +6,7 @@ import { addBundleToSandbox, createSandbox } from "@remotion/vercel";
 import { put } from "@vercel/blob";
 import { config as loadEnv } from "dotenv";
 
-const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(import.meta.dirname);
 const bundleDir = path.join(repoRoot, ".remotion");
 
 loadEnv({ path: path.join(repoRoot, ".env.local") });
@@ -25,8 +25,8 @@ if (!blobToken) {
 console.log("[create-remotion-snapshot] Bundling Remotion project...");
 execFileSync("pnpm", ["exec", "remotion", "bundle", "--out-dir", bundleDir], {
   cwd: repoRoot,
-  stdio: "inherit",
   env: process.env,
+  stdio: "inherit",
 });
 
 console.log("[create-remotion-snapshot] Creating sandbox...");
@@ -40,7 +40,7 @@ const sandbox = await createSandbox({
 try {
   console.log("[create-remotion-snapshot] Adding bundle to sandbox...");
   await sandbox.mkDir("remotion-bundle");
-  await addBundleToSandbox({ sandbox, bundleDir });
+  await addBundleToSandbox({ bundleDir, sandbox });
 
   console.log("[create-remotion-snapshot] Taking snapshot...");
   const snapshot = await sandbox.snapshot({ expiration: 0 });
@@ -49,9 +49,9 @@ try {
   const blobKey = getSnapshotBlobKey();
   await put(blobKey, JSON.stringify({ snapshotId }), {
     access: "public",
-    contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
+    contentType: "application/json",
     token: blobToken,
   });
 

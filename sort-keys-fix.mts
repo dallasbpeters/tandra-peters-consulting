@@ -19,7 +19,7 @@ interface Transform {
 }
 
 function sortFile(file: string) {
-  const original = readFileSync(file, "utf8");
+  const original = readFileSync(file, "utf-8");
   const sourceFile = ts.createSourceFile(
     file,
     original,
@@ -51,7 +51,7 @@ function sortFile(file: string) {
     const keys = props.map((p) =>
       ts.isIdentifier(p.name) ? p.name.text : (p.name as ts.StringLiteral).text
     );
-    const sortedKeys = [...keys].sort((a, b) => a.localeCompare(b));
+    const sortedKeys = [...keys].toSorted((a, b) => a.localeCompare(b));
     if (keys.join("\0") === sortedKeys.join("\0")) {
       return;
     }
@@ -84,8 +84,8 @@ function sortFile(file: string) {
     }
 
     transforms.push({
-      fullStart: nodeFullStart,
       end: nodeEnd,
+      fullStart: nodeFullStart,
       newText:
         leadingTrivia +
         original[node.getStart(sourceFile)] +
@@ -108,7 +108,7 @@ function sortFile(file: string) {
   }
 
   if (result !== original) {
-    writeFileSync(file, result, "utf8");
+    writeFileSync(file, result, "utf-8");
     console.log(`Fixed: ${file}`);
   }
 }
@@ -116,7 +116,7 @@ function sortFile(file: string) {
 for (const file of files) {
   try {
     sortFile(file);
-  } catch (err) {
-    console.error(`Error in ${file}:`, err);
+  } catch (error) {
+    console.error(`Error in ${file}:`, error);
   }
 }

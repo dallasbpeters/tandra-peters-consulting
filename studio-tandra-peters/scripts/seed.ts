@@ -13,11 +13,8 @@ import {
   siteSettingsSeed,
   workflowPageSeed,
 } from "./seedDefaults";
-import {
-  type SanityImageValue,
-  uploadImageFromFile,
-  uploadImageFromUrl,
-} from "./uploadSanityImages";
+import { uploadImageFromFile, uploadImageFromUrl } from "./uploadSanityImages";
+import type { SanityImageValue } from "./uploadSanityImages";
 
 type ServiceRow = (typeof homePageSeed.services.services)[number] & {
   image?: SanityImageValue;
@@ -56,14 +53,14 @@ type HomePageSection = Record<string, unknown> & {
   _type: string;
 };
 
-const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const studioRoot = resolve(import.meta.dirname, "..");
 const repoRoot = resolve(studioRoot, "..");
 const publicDir = resolve(repoRoot, "public");
 
 config({ path: resolve(studioRoot, ".env"), quiet: true });
 config({
-  path: resolve(studioRoot, ".env.local"),
   override: true,
+  path: resolve(studioRoot, ".env.local"),
   quiet: true,
 });
 
@@ -76,9 +73,9 @@ if (!token) {
 }
 
 const client = createClient({
-  projectId: "7irm699i",
-  dataset: "production",
   apiVersion: "2026-05-29",
+  dataset: "production",
+  projectId: "7irm699i",
   token,
   useCdn: false,
 });
@@ -105,14 +102,14 @@ const buildHomePageDocument = (homePayload: HomePageSeedWithImages) => ({
     {
       _key: "home-section-estimator-banner",
       _type: "contactBannerSection",
-      eyebrow: "Ballpark Pricing · 60 Seconds",
-      headline: "Estimate Your Roof",
-      phoneLabel: "No obligation",
-      phoneDisplay: "Start estimate",
-      phoneHref: "/estimate",
-      phoneAriaLabel: "Open the roof cost estimator",
       ariaLabel: "Estimate your roof cost",
       ctaIcon: "calculator",
+      eyebrow: "Ballpark Pricing · 60 Seconds",
+      headline: "Estimate Your Roof",
+      phoneAriaLabel: "Open the roof cost estimator",
+      phoneDisplay: "Start estimate",
+      phoneHref: "/estimate",
+      phoneLabel: "No obligation",
     },
     withSectionKey(homePayload.mission, "home-section-mission"),
     withSectionKey(homePayload.expertise, "home-section-expertise"),
@@ -223,7 +220,7 @@ async function main() {
   await patchHomePageArticleRefs(client);
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

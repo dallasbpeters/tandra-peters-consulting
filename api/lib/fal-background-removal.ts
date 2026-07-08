@@ -142,8 +142,8 @@ export const removeSky = async ({
 
   const source = sharp(sourceBuffer).ensureAlpha();
   const meta = await source.metadata();
-  const width = meta.width;
-  const height = meta.height;
+  const { width } = meta;
+  const { height } = meta;
   if (!(width && height)) {
     throw new Error("Could not read source image dimensions.");
   }

@@ -140,12 +140,12 @@ const parseRecipients = (value: unknown): EmailRecipient[] => {
     }
     seen.add(email);
     out.push({
+      email,
       id: typeof rec.id === "string" ? rec.id : "",
       name:
         typeof rec.name === "string" && rec.name.trim()
           ? rec.name.trim()
           : email,
-      email,
     });
   }
   return out;
@@ -156,7 +156,7 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
     return {};
   }
   try {
-    return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
+    return JSON.parse(buffer.toString("utf-8")) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -168,7 +168,6 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
  * `pnpm dev`. Reuses the same shared `server/email/*` modules and Google auth.
  */
 export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-email-dev-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -217,14 +216,14 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
           const search = requestUrl.searchParams.get("search") ?? undefined;
           const [attio, sanity] = await Promise.all([
             attioToken
-              ? listAttioPeople(attioToken, { search }).catch((err) => {
-                  console.error("[vite-email-dev-api] Attio", err);
+              ? listAttioPeople(attioToken, { search }).catch((error) => {
+                  console.error("[vite-email-dev-api] Attio", error);
                   return [];
                 })
               : Promise.resolve([]),
             sanityToken
-              ? listEmailContacts(sanityToken, { search }).catch((err) => {
-                  console.error("[vite-email-dev-api] Sanity", err);
+              ? listEmailContacts(sanityToken, { search }).catch((error) => {
+                  console.error("[vite-email-dev-api] Sanity", error);
                   return [];
                 })
               : Promise.resolve([]),
@@ -284,9 +283,9 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
             try {
               const result = await resend.emails.send({
                 from,
-                to: [recipient.email],
-                subject,
                 html,
+                subject,
+                to: [recipient.email],
                 ...(replyTo ? { replyTo } : {}),
               });
               if (result.error) {
@@ -305,16 +304,16 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
                   `Subject: ${subject}\nSent to: ${recipient.email}\nSource: Email composer (dev)`
                 );
               }
-            } catch (err) {
+            } catch (error) {
               failed.push({
                 email: recipient.email,
-                error: err instanceof Error ? err.message : "Send failed",
+                error: error instanceof Error ? error.message : "Send failed",
               });
             }
           }
           json(res, failed.length && !sent.length ? 502 : 200, {
-            sent,
             failed,
+            sent,
           });
           return;
         }
@@ -338,18 +337,18 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
           const content =
             (body.content as ClientEmailContent | undefined) ?? {};
           const fields = {
-            subject: str(content.subject),
-            previewText: str(content.previewText),
-            greeting: str(content.greeting),
             body: normalizeBlocks(content.body),
+            closing: str(content.closing),
             ctaLabel: str(content.ctaLabel),
             ctaUrl: str(content.ctaUrl),
-            closing: str(content.closing),
+            greeting: str(content.greeting),
+            previewText: str(content.previewText),
+            subject: str(content.subject),
           };
           const client = createClient({
-            projectId: SANITY_PROJECT_ID,
-            dataset: SANITY_DATASET,
             apiVersion: SANITY_API_VERSION,
+            dataset: SANITY_DATASET,
+            projectId: SANITY_PROJECT_ID,
             token,
             useCdn: false,
           });
@@ -381,4 +380,5 @@ export const viteEmailDevApi = (env: Record<string, string>): Plugin => ({
       }
     });
   },
+  name: "vite-email-dev-api",
 });

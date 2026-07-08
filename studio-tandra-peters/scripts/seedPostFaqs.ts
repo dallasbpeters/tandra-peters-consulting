@@ -9,12 +9,12 @@ import { buildArticleFaqProps } from "../../src/article/buildArticleFaq";
 import type { PostDetail } from "../../src/types/article";
 import { blocksFromParagraphs } from "./blocksFromText";
 
-const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const studioRoot = resolve(import.meta.dirname, "..");
 
 config({ path: resolve(studioRoot, ".env"), quiet: true });
 config({
-  path: resolve(studioRoot, ".env.local"),
   override: true,
+  path: resolve(studioRoot, ".env.local"),
   quiet: true,
 });
 
@@ -29,9 +29,9 @@ if (!token) {
 const overwrite = process.argv.includes("--overwrite");
 
 const client = createClient({
-  projectId: "7irm699i",
-  dataset: "production",
   apiVersion: "2026-05-29",
+  dataset: "production",
+  projectId: "7irm699i",
   token,
   useCdn: false,
 });
@@ -46,11 +46,13 @@ interface SanityFaqItem {
 type PostSeedInput = PostDetail & {
   _id: string;
   faq?: {
-    items?: Array<{
-      _key?: string | null;
-      question?: string | null;
-      answer?: PortableTextBlock[] | string | null;
-    }> | null;
+    items?:
+      | {
+          _key?: string | null;
+          question?: string | null;
+          answer?: PortableTextBlock[] | string | null;
+        }[]
+      | null;
   } | null;
 };
 
@@ -92,8 +94,8 @@ const toSanityFaq = (post: PostSeedInput) => {
     faq.items?.map((item, index) => ({
       _key: `${post._id}-faq-${index}`,
       _type: "faqItem",
-      question: item.question,
       answer: toBlocks(item.answer, `${post._id}-faq-answer-${index}`) ?? [],
+      question: item.question,
     })) ?? [];
 
   return {

@@ -1,11 +1,14 @@
-import { AddressAutofill } from "@mapbox/search-js-react";
+import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
+import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
+import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
+import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
 import { usePostHog } from "@posthog/react";
 import {
   ArrowRight,
   BubbleDownload,
   Calendar,
   CheckCircle,
-  Community,
   Desk,
   Home,
   Mail,
@@ -21,16 +24,12 @@ import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
-import {
-  type ContentCalendarEntry,
-  channelLabels,
-  entriesForNextDays,
-  statusLabels,
-  toIsoDate,
-} from "../lib/content-calendar";
 import { layoutClass } from "../styles/layout-classes";
 
 import "../styles/desk.css";
+
+const waFieldValue = (event: unknown): string =>
+  (event as { target: { value: string } }).target.value;
 
 type Tone = "critical" | "warm" | "good" | "neutral";
 
@@ -50,15 +49,6 @@ interface ActionItem {
   tone: Tone;
 }
 
-interface Channel {
-  cost: string;
-  firstUse: string;
-  fit: string;
-  name: string;
-  risk: string;
-  source: string;
-}
-
 interface CampaignAsset {
   action: string;
   href: string;
@@ -66,47 +56,38 @@ interface CampaignAsset {
   status: string;
 }
 
-interface SelectOption {
-  label: string;
-  value: string;
-}
+type DeskBoardKindValue = "content" | "task";
+type DeskBoardStatusValue =
+  | "done"
+  | "idea"
+  | "published"
+  | "scheduled"
+  | "todo";
+type DeskPlanModeValue = "content" | "tasks";
 
-interface LeadFormState {
-  area: string;
-  contactMethod: string;
-  contactName: string;
-  county: string;
-  latitude: number | null;
-  longitude: number | null;
-  mailingAddress: string;
-  need: string;
-  nextStep: string;
-  notes: string;
-  postalCode: string;
-  propertyAddress: string;
-  source: string;
-}
-
-interface DeskLeadRecord {
-  area: string;
-  capturedAt: string;
-  contactMethod: string;
-  contactName: string;
-  county?: string;
+interface DeskBoardRecord {
+  buyerStage?: string;
+  channel?: string;
+  completedAt?: string;
+  createdAt: string;
+  createdBy: string;
+  detail?: string;
+  href?: string;
   id: string;
-  mailingAddress?: string;
-  need: string;
-  nextStep: string;
-  postalCode?: string;
-  propertyAddress?: string;
-  source: string;
-  status: string;
+  kind: DeskBoardKindValue;
+  origin: string;
+  pillar?: string;
+  publishDate?: string;
+  seedKey?: string;
+  status: DeskBoardStatusValue;
+  title: string;
+  updatedAt: string;
 }
 
-interface DeskCaptureResponse {
+interface DeskBoardResponse {
   error?: string;
-  lead?: DeskLeadRecord;
-  leads?: DeskLeadRecord[];
+  item?: DeskBoardRecord;
+  items?: DeskBoardRecord[];
   ok: boolean;
 }
 
@@ -115,14 +96,8 @@ interface CaptureMessage {
   tone: "error" | "neutral" | "success";
 }
 
-interface LeadFollowUp {
-  callOpener: string;
-  messageDraft: string;
-  nextAction: string;
-  postAngle: string;
-}
-
 interface DeskAreaTarget {
+  capturePath: string;
   countyFips: string;
   countyLabel: string;
   firstMove: string;
@@ -145,20 +120,19 @@ interface DeskAreaTarget {
   postalCode: string;
   priorityScore: number;
   recommendedMailerCount: number;
-  roofCheckPath: string;
   totalHousingUnits: number;
   tractLabel: string;
   why: string;
 }
 
 interface DeskAreaCounty {
+  capturePath: string;
   countyFips: string;
   label: string;
   olderHomeEstimate: number;
   olderHomeShare: number;
   ownerOccupied: number;
   ownerOccupiedShare: number;
-  roofCheckPath: string;
   targetCount: number;
   totalHousingUnits: number;
 }
@@ -217,51 +191,6 @@ const canvassStatusOrder: readonly CanvassStatus[] = [
   "done",
 ];
 
-const _sourceOptions: readonly SelectOption[] = [
-  { label: "Neighbor referral", value: "neighbor-referral" },
-  { label: "Postcard", value: "postcard" },
-  { label: "Neighborhood post", value: "neighborhood-post" },
-  { label: "Google post", value: "google-post" },
-  { label: "Partner referral", value: "partner" },
-  { label: "Roof-check page", value: "roof-check-page" },
-  { label: "Website estimate", value: "website-estimate" },
-  { label: "Other", value: "other" },
-] as const;
-
-const _nextStepOptions: readonly SelectOption[] = [
-  { label: "Call today", value: "call-today" },
-  { label: "Send checklist", value: "send-checklist" },
-  { label: "Book inspection", value: "book-inspection" },
-  { label: "Ask for photos", value: "ask-for-photos" },
-  { label: "No action yet", value: "no-action-yet" },
-] as const;
-
-const WHITESPACE_RE = /\s+/u;
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-
-const _initialLeadForm: LeadFormState = {
-  area: "",
-  contactMethod: "",
-  contactName: "",
-  county: "",
-  latitude: null,
-  longitude: null,
-  mailingAddress: "",
-  need: "",
-  nextStep: "call-today",
-  notes: "",
-  postalCode: "",
-  propertyAddress: "",
-  source: "neighbor-referral",
-};
-
-const leadDateFormatter = new Intl.DateTimeFormat("en-US", {
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  month: "short",
-});
-
 const metrics: readonly Metric[] = [
   {
     label: "Current lead base",
@@ -270,7 +199,7 @@ const metrics: readonly Metric[] = [
   },
   {
     label: "First useful target",
-    note: "Email captures from one focused roof-check page.",
+    note: "Email captures from one focused estimate page.",
     value: "25",
   },
   {
@@ -289,8 +218,8 @@ const actionItems: readonly ActionItem[] = [
   {
     channel: "Landing page",
     due: "Today",
-    href: "/roof-check/georgetown",
-    label: "Use /roof-check/georgetown for capture",
+    href: "/estimate",
+    label: "Use /estimate for homeowner capture",
     outcome: "Live homeowner capture page for proactive campaigns",
     owner: "Dallas",
     tone: "critical",
@@ -317,7 +246,7 @@ const actionItems: readonly ActionItem[] = [
     channel: "Video",
     due: "Tomorrow",
     href: "/advertising",
-    label: "Render 15-second roof-check ad",
+    label: "Render 15-second estimate ad",
     outcome: "Use on Facebook, Reels, and Google posts",
     owner: "Dallas",
     tone: "neutral",
@@ -335,74 +264,14 @@ const actionItems: readonly ActionItem[] = [
     channel: "Lead capture",
     due: "This week",
     href: "/estimate",
-    label: "Connect roof-check CTA to the Desk capture flow",
+    label: "Connect estimate CTA to the Desk capture flow",
     outcome: "First follow-up list from proactive traffic",
     owner: "Dallas",
     tone: "good",
   },
 ] as const;
 
-const channels: readonly Channel[] = [
-  {
-    cost: "Free area data, paid postage",
-    firstUse:
-      "Pick 1-3 Georgetown mailing areas and send a scan-link postcard.",
-    fit: "Best proactive homeowner reach without buying bad email lists.",
-    name: "Neighborhood postcards",
-    risk: "Low",
-    source: "USPS mailing areas",
-  },
-  {
-    cost: "Free / manual",
-    firstUse:
-      "Post short repair-vs-replace and inspection checklists around common homeowner triggers.",
-    fit: "Neighborhood trust, roof-age questions, and timely weather follow-up.",
-    name: "Nextdoor + Facebook",
-    risk: "Low",
-    source: "Community feeds",
-  },
-  {
-    cost: "Free / manual",
-    firstUse: "Send short personal notes to realtors, inspectors, and agents.",
-    fit: "B2B relationships that can refer homeowners before they search.",
-    name: "Partner email",
-    risk: "Medium",
-    source: "Public business contacts",
-  },
-  {
-    cost: "Free",
-    firstUse: "Publish the same roof-check angle as a Google profile update.",
-    fit: "Local visibility and fresh proof that Tandra is actively helping homeowners.",
-    name: "Google profile",
-    risk: "Low",
-    source: "Owned profile",
-  },
-  {
-    cost: "Free public data",
-    firstUse: "Use county records only to choose neighborhoods first.",
-    fit: "Target neighborhoods by property age and owner/address patterns.",
-    name: "County property records",
-    risk: "Medium",
-    source: "Property records",
-  },
-  {
-    cost: "Free",
-    firstUse:
-      "Track hail/wind by county and generate daily priority-area cards.",
-    fit: "One trigger for timing routes and choosing the message angle.",
-    name: "Weather signals",
-    risk: "Low",
-    source: "NOAA / NWS",
-  },
-] as const;
-
 const campaignAssets: readonly CampaignAsset[] = [
-  {
-    action: "Use live page",
-    href: "/roof-check/georgetown",
-    label: "Roof-check landing page",
-    status: "Live",
-  },
   {
     action: "Design",
     href: "/ads",
@@ -431,149 +300,46 @@ const campaignAssets: readonly CampaignAsset[] = [
 
 const toneClass = (tone: Tone) => `desk-pill desk-pill--${tone}`;
 
-const _labelFor = (
-  value: string,
-  options: readonly SelectOption[],
-  fallback: string
-): string =>
-  options.find((option) => option.value === value)?.label ?? fallback;
+const assetSeedKey = (label: string): string => `asset:${label}`;
 
-const firstName = (value: string): string =>
-  value.trim().split(WHITESPACE_RE)[0] ?? value;
+const SEED_ACTION_KEYS = new Set(actionItems.map((item) => item.label));
 
-const truncateSentence = (value: string, maxLength: number): string => {
-  const trimmed = value.trim();
-  if (trimmed.length <= maxLength) {
-    return trimmed;
+const SEED_ASSET_KEYS = new Set(
+  campaignAssets.map((asset) => assetSeedKey(asset.label))
+);
+
+const CONTENT_STATUS_ORDER: readonly DeskBoardStatusValue[] = [
+  "idea",
+  "scheduled",
+  "published",
+];
+
+const CONTENT_STATUS_LABELS: Record<string, string> = {
+  idea: "Idea",
+  published: "Published",
+  scheduled: "Scheduled",
+};
+
+const publishDateFormatter = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+const formatPublishDate = (value: string | undefined): string => {
+  if (!value) {
+    return "Unscheduled";
   }
-  return `${trimmed.slice(0, maxLength - 1).trim()}...`;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Unscheduled";
+  }
+  return publishDateFormatter.format(date);
 };
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 const formatNumber = (value: number): string => numberFormatter.format(value);
-
-interface MapboxAddressParts {
-  city: string;
-  coords: [number, number] | null;
-  county: string;
-  full: string;
-  neighborhood: string;
-  postalCode: string;
-}
-
-const toRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-
-const stringValue = (value: unknown): string =>
-  typeof value === "string" ? value.trim() : "";
-
-const contextName = (
-  context: Record<string, unknown>,
-  keys: readonly string[]
-): string => {
-  for (const key of keys) {
-    const entry = toRecord(context[key]);
-    const name = stringValue(entry.name) || stringValue(entry.text);
-    if (name) {
-      return name;
-    }
-  }
-  return "";
-};
-
-const mapboxCoordinates = (
-  feature: Record<string, unknown>
-): [number, number] | null => {
-  const geometryCoords = toRecord(feature.geometry).coordinates;
-  if (
-    Array.isArray(geometryCoords) &&
-    typeof geometryCoords[0] === "number" &&
-    typeof geometryCoords[1] === "number"
-  ) {
-    return [geometryCoords[0], geometryCoords[1]];
-  }
-
-  const coordinates = toRecord(toRecord(feature.properties).coordinates);
-  const { latitude, longitude } = coordinates;
-  if (typeof longitude === "number" && typeof latitude === "number") {
-    return [longitude, latitude];
-  }
-
-  return null;
-};
-
-const _getMapboxAddressParts = (res: unknown): MapboxAddressParts => {
-  const { features } = toRecord(res);
-  const feature = Array.isArray(features) ? toRecord(features[0]) : {};
-  const props = toRecord(feature.properties);
-  const context = toRecord(props.context);
-
-  return {
-    city: contextName(context, ["place", "locality"]),
-    coords: mapboxCoordinates(feature),
-    county: contextName(context, ["district"]),
-    full: stringValue(props.full_address) || stringValue(props.place_name),
-    neighborhood: contextName(context, ["neighborhood"]),
-    postalCode: contextName(context, ["postcode"]),
-  };
-};
-
-const _coalesceArea = (parts: MapboxAddressParts, fallback: string): string =>
-  parts.neighborhood || parts.city || fallback;
-
-interface DeskAddressInputProps {
-  disabled: boolean;
-  id: string;
-  label: string;
-  onChange: (value: string) => void;
-  onRetrieve: (result: unknown) => void;
-  placeholder: string;
-  required?: boolean;
-  value: string;
-}
-
-const _DeskAddressInput = ({
-  disabled,
-  id,
-  label,
-  onChange,
-  onRetrieve,
-  placeholder,
-  required = false,
-  value,
-}: DeskAddressInputProps) => {
-  const input = (
-    <input
-      autoComplete="street-address"
-      disabled={disabled}
-      id={id}
-      maxLength={500}
-      onChange={(event) => onChange(event.currentTarget.value)}
-      placeholder={placeholder}
-      required={required}
-      type="text"
-      value={value}
-    />
-  );
-
-  return (
-    <label htmlFor={id}>
-      <span>{label}</span>
-      {MAPBOX_TOKEN ? (
-        <AddressAutofill
-          accessToken={MAPBOX_TOKEN}
-          onRetrieve={onRetrieve}
-          options={{ country: "US", language: "en" }}
-        >
-          {input}
-        </AddressAutofill>
-      ) : (
-        input
-      )}
-    </label>
-  );
-};
 
 const escapeCsvField = (value: number | string): string => {
   const text = String(value);
@@ -622,61 +388,6 @@ const downloadWalkSheet = (target: CanvassTargetRecord): void => {
   URL.revokeObjectURL(url);
 };
 
-const _formatLeadDate = (value: string): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Just now";
-  }
-  return leadDateFormatter.format(date);
-};
-
-const _parseDeskCaptureResponse = async (
-  response: Response
-): Promise<DeskCaptureResponse> => {
-  try {
-    return (await response.json()) as DeskCaptureResponse;
-  } catch {
-    return {
-      error: response.ok
-        ? undefined
-        : "Desk capture returned an empty response.",
-      ok: response.ok,
-    };
-  }
-};
-
-const nextActionFor = (lead: DeskLeadRecord): string => {
-  switch (lead.nextStep) {
-    case "send-checklist": {
-      return "Send the roof-check checklist, then ask for exterior photos and any ceiling-stain photos.";
-    }
-    case "book-inspection": {
-      return "Offer two inspection windows and ask who should be there for the roof walk.";
-    }
-    case "ask-for-photos": {
-      return "Ask for roof, attic, ceiling, and damage photos before recommending an inspection.";
-    }
-    case "no-action-yet": {
-      return "Hold this as a warm record, then follow up when the neighborhood campaign goes out.";
-    }
-    default: {
-      return "Call today, confirm the concern, and offer a clear next step without pushing a claim.";
-    }
-  }
-};
-
-const _buildLeadFollowUp = (lead: DeskLeadRecord): LeadFollowUp => {
-  const name = firstName(lead.contactName);
-  const need = truncateSentence(lead.need, 140);
-
-  return {
-    callOpener: `Hi ${name}, this is Tandra with Birdcreek Roofing. I saw the note about ${need}. I'm calling to help you get a plain read on whether this needs a repair, an inspection, or just watching for now.`,
-    messageDraft: `Hi ${name}, this is Tandra with Birdcreek Roofing. I can help you get a clear read on the roof around ${lead.area}. If you can send a few photos and the main concern, I'll tell you what I'd check first and whether it is worth scheduling an inspection.`,
-    nextAction: nextActionFor(lead),
-    postAngle: `For homeowners around ${lead.area}: if your roof is older, recently repaired, or you are seeing stains, missing shingles, or soft spots, I can help you understand what is urgent and what can wait before you call insurance or sign anything.`,
-  };
-};
-
 const parseDeskAreaIntelResponse = async (
   response: Response
 ): Promise<DeskAreaIntelResponse> => {
@@ -703,21 +414,136 @@ const MetricCard = ({ metric }: { metric: Metric }) => (
   </article>
 );
 
-const ActionRow = ({ item }: { item: ActionItem }) => (
-  <li className="desk-action">
-    <div>
-      <span className={toneClass(item.tone)}>{item.due}</span>
-      <h3>{item.label}</h3>
-      <p>{item.outcome}</p>
+const StatusToggleButton = ({
+  busy,
+  done,
+  onToggle,
+}: {
+  busy: boolean;
+  done: boolean;
+  onToggle: () => void;
+}) => (
+  <WaCheckbox
+    checked={done}
+    className="desk-status-toggle"
+    disabled={busy}
+    onChange={onToggle}
+  >
+    {done ? "Done" : "To do"}
+  </WaCheckbox>
+);
+
+const ActionRow = ({
+  busy,
+  item,
+  onToggle,
+  status,
+}: {
+  busy: boolean;
+  item: ActionItem;
+  onToggle: () => void;
+  status: DeskBoardStatusValue;
+}) => {
+  const done = status === "done";
+  return (
+    <li className={done ? "desk-action desk-action--done" : "desk-action"}>
+      <StatusToggleButton busy={busy} done={done} onToggle={onToggle} />
+      <div>
+        <span className={toneClass(item.tone)}>{item.due}</span>
+        <h3>{item.label}</h3>
+        <p>{item.outcome}</p>
+      </div>
+      <div className="desk-action__meta">
+        <span>{item.channel}</span>
+        <span>{item.owner}</span>
+        <TransitionLink className="desk-link-button" to={item.href}>
+          Open
+          <ArrowRight aria-hidden height={16} width={16} />
+        </TransitionLink>
+      </div>
+    </li>
+  );
+};
+
+const GeneratedTaskRow = ({
+  busy,
+  onToggle,
+  record,
+}: {
+  busy: boolean;
+  onToggle: () => void;
+  record: DeskBoardRecord;
+}) => {
+  const done = record.status === "done";
+  return (
+    <li className={`desk-action${done ? "desk-action--done" : ""}`}>
+      <StatusToggleButton busy={busy} done={done} onToggle={onToggle} />
+      <div>
+        <span className="desk-pill desk-pill--neutral">
+          {record.origin === "generated" ? "AI" : "Added"}
+        </span>
+        <h3>{record.title}</h3>
+        {record.detail ? <p>{record.detail}</p> : null}
+      </div>
+      <div className="desk-action__meta">
+        {record.channel ? <span>{record.channel}</span> : null}
+        {record.href ? (
+          <TransitionLink className="desk-link-button" to={record.href}>
+            Open
+            <ArrowRight aria-hidden height={16} width={16} />
+          </TransitionLink>
+        ) : null}
+      </div>
+    </li>
+  );
+};
+
+const CalendarRow = ({
+  busy,
+  onStatusChange,
+  record,
+}: {
+  busy: boolean;
+  onStatusChange: (status: DeskBoardStatusValue) => void;
+  record: DeskBoardRecord;
+}) => (
+  <li className="desk-calendar-row">
+    <div className="desk-calendar-row__date">
+      <Calendar aria-hidden height={16} width={16} />
+      <span>{formatPublishDate(record.publishDate)}</span>
     </div>
-    <div className="desk-action__meta">
-      <span>{item.channel}</span>
-      <span>{item.owner}</span>
-      <TransitionLink className="desk-link-button" to={item.href}>
-        Open
-        <ArrowRight aria-hidden height={16} width={16} />
-      </TransitionLink>
+    <div className="desk-calendar-row__body">
+      <h3>{record.title}</h3>
+      {record.detail ? <p>{record.detail}</p> : null}
+      <div className="desk-calendar-row__tags">
+        {record.pillar ? (
+          <span className="desk-tag">{record.pillar}</span>
+        ) : null}
+        {record.buyerStage ? (
+          <span className="desk-tag desk-tag--muted">{record.buyerStage}</span>
+        ) : null}
+        {record.channel ? (
+          <span className="desk-tag desk-tag--muted">{record.channel}</span>
+        ) : null}
+      </div>
     </div>
+    <WaSelect
+      aria-label="Content status"
+      appearance="outlined"
+      className="desk-calendar-row__status"
+      disabled={busy}
+      onChange={(event) =>
+        onStatusChange(waFieldValue(event) as DeskBoardStatusValue)
+      }
+      size="small"
+      value={record.status}
+    >
+      {CONTENT_STATUS_ORDER.map((value) => (
+        <WaOption key={value} value={value}>
+          {CONTENT_STATUS_LABELS[value]}
+        </WaOption>
+      ))}
+    </WaSelect>
   </li>
 );
 
@@ -744,15 +570,15 @@ const NeighborhoodRow = ({
   selected: boolean;
   target: DeskAreaTarget;
 }) => (
-  <button
-    aria-pressed={selected}
-    className={`desk-canvass-row${selected ? "desk-canvass-row--selected" : " "}`}
-    onClick={() => onToggle(target.id)}
-    type="button"
+  <WaCheckbox
+    checked={selected}
+    className={
+      selected
+        ? "desk-canvass-row desk-canvass-row--selected"
+        : "desk-canvass-row"
+    }
+    onChange={() => onToggle(target.id)}
   >
-    <span aria-hidden className="desk-canvass-row__check">
-      {selected ? <CheckCircle height={16} width={16} /> : null}
-    </span>
     <span className="desk-canvass-row__body">
       <strong>{neighborhoodLabelOf(target)}</strong>
       <span>
@@ -764,7 +590,7 @@ const NeighborhoodRow = ({
       {formatNumber(target.olderHomeEstimate)}
       <small>homes</small>
     </span>
-  </button>
+  </WaCheckbox>
 );
 
 const SavedTargetCard = ({
@@ -797,48 +623,50 @@ const SavedTargetCard = ({
       </span>
     </div>
     <div className="desk-saved-target__actions">
-      <button
-        className="desk-text-link"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button"
         onClick={() => onOpen(target)}
-        type="button"
       >
         Open on map
-      </button>
+      </WaButton>
       <label className="desk-status-select">
         <span className="desk-visually-hidden">Status for {target.name}</span>
-        <select
+        <WaSelect
+          appearance="outlined"
           disabled={isBusy}
           onChange={(event) =>
-            onStatusChange(target, event.currentTarget.value as CanvassStatus)
+            onStatusChange(target, waFieldValue(event) as CanvassStatus)
           }
+          size="small"
           value={target.status}
         >
           {canvassStatusOrder.map((status) => (
-            <option key={status} value={status}>
+            <WaOption key={status} value={status}>
               {canvassStatusLabels[status]}
-            </option>
+            </WaOption>
           ))}
-        </select>
+        </WaSelect>
       </label>
-      <button
-        className="desk-text-link"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button"
         onClick={() => onExport(target)}
-        type="button"
       >
-        <BubbleDownload aria-hidden height={15} width={15} />
+        <BubbleDownload aria-hidden height={15} slot="start" width={15} />
         Walk sheet
-      </button>
+      </WaButton>
       <TransitionLink className="desk-text-link" to="/ads">
         Door hanger
       </TransitionLink>
-      <button
-        className="desk-text-link desk-text-link--danger"
+      <WaButton
+        appearance="plain"
+        className="desk-action-button desk-action-button--danger"
         disabled={isBusy}
         onClick={() => onDelete(target)}
-        type="button"
       >
         Delete
-      </button>
+      </WaButton>
     </div>
   </article>
 );
@@ -862,136 +690,6 @@ const AreaCountyStrip = ({
 );
 
 type AuthHeader = { Authorization: string } | null;
-
-const DESK_CALENDAR_PREVIEW_DAYS = 30;
-const DESK_CALENDAR_PREVIEW_LIMIT = 6;
-
-interface CalendarEntriesResponse {
-  entries?: ContentCalendarEntry[];
-  error?: string;
-  ok: boolean;
-}
-
-const useDeskCalendarEntries = (authHeader: AuthHeader) => {
-  const [entries, setEntries] = useState<ContentCalendarEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    if (!authHeader) {
-      return;
-    }
-    setIsLoading(true);
-    setLoadError(null);
-    try {
-      const today = new Date();
-      const rangeEnd = new Date(today);
-      rangeEnd.setDate(rangeEnd.getDate() + DESK_CALENDAR_PREVIEW_DAYS);
-      const params = new URLSearchParams({
-        end: toIsoDate(rangeEnd),
-        start: toIsoDate(today),
-      });
-      const response = await fetch(`/api/content-calendar?${params}`, {
-        headers: authHeader,
-      });
-      const body = (await response.json()) as CalendarEntriesResponse;
-      if (response.ok && body.ok && body.entries) {
-        setEntries(
-          entriesForNextDays(
-            body.entries,
-            DESK_CALENDAR_PREVIEW_DAYS,
-            today
-          ).slice(0, DESK_CALENDAR_PREVIEW_LIMIT)
-        );
-      } else {
-        setLoadError(body.error ?? "Could not load the content calendar.");
-      }
-    } catch {
-      setLoadError("Could not load the content calendar.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [authHeader]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return { entries, isLoading, loadError };
-};
-
-const readableCalendarDate = (iso: string): string => {
-  const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
-  if (!(year && month && day)) {
-    return iso;
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(year, month - 1, day));
-};
-
-const ContentCalendarWidget = ({
-  auth,
-}: {
-  auth: ReturnType<typeof useGoogleDashboardAuth>;
-}) => {
-  const authHeader = useMemo<AuthHeader>(
-    () => (auth.token ? { Authorization: `Bearer ${auth.token}` } : null),
-    [auth.token]
-  );
-  const { entries, isLoading, loadError } = useDeskCalendarEntries(authHeader);
-
-  return (
-    <div className="desk-section">
-      <div className="desk-section__heading">
-        <Calendar aria-hidden height={22} width={22} />
-        <div>
-          <span>Content calendar</span>
-          <h2>Upcoming planned content</h2>
-        </div>
-      </div>
-
-      {authHeader ? null : (
-        <p className="desk-empty">Sign in to load the content calendar.</p>
-      )}
-      {loadError ? <p className="desk-empty">{loadError}</p> : null}
-      {authHeader && !loadError && isLoading && entries.length === 0 ? (
-        <p className="desk-empty">Loading the content calendar...</p>
-      ) : null}
-      {authHeader && !isLoading && !loadError && entries.length === 0 ? (
-        <p className="desk-empty">Nothing planned in the next 30 days.</p>
-      ) : null}
-
-      {entries.length > 0 ? (
-        <ul className="desk-actions">
-          {entries.map((entry) => (
-            <li className="desk-action" key={entry.id}>
-              <div>
-                <time
-                  className="desk-pill desk-pill--neutral"
-                  dateTime={entry.scheduledFor}
-                >
-                  {readableCalendarDate(entry.scheduledFor)}
-                </time>
-                <h3>{entry.title}</h3>
-                {entry.area ? <p>{entry.area}</p> : null}
-              </div>
-              <div className="desk-action__meta">
-                <span>{channelLabels[entry.channel]}</span>
-                <span>{statusLabels[entry.status]}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <TransitionLink className="desk-primary-link" to="/calendar">
-        Manage calendar
-      </TransitionLink>
-    </div>
-  );
-};
 
 const useAreaIntel = () => {
   const [intel, setIntel] = useState<DeskAreaIntelResponse | null>(null);
@@ -1148,6 +846,122 @@ const useCanvassTargets = (authHeader: AuthHeader) => {
     isLoadingSaved,
     saveTarget,
     saved,
+  };
+};
+
+const useDeskBoard = (authHeader: AuthHeader) => {
+  const [records, setRecords] = useState<DeskBoardRecord[]>([]);
+  const [isLoadingBoard, setIsLoadingBoard] = useState(true);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [generatingMode, setGeneratingMode] =
+    useState<DeskPlanModeValue | null>(null);
+  const [boardMessage, setBoardMessage] = useState<CaptureMessage | null>(null);
+
+  const loadBoard = useCallback(async () => {
+    setIsLoadingBoard(true);
+    try {
+      const response = await fetch("/api/desk-board", {
+        headers: authHeader ?? undefined,
+      });
+      const body = (await response.json()) as DeskBoardResponse;
+      if (response.ok && body.ok && body.items) {
+        setRecords(body.items);
+      }
+    } catch {
+      /* non-fatal — seed cards stay with default status */
+    } finally {
+      setIsLoadingBoard(false);
+    }
+  }, [authHeader]);
+
+  useEffect(() => {
+    loadBoard();
+  }, [loadBoard]);
+
+  const saveItem = useCallback(
+    async (payload: Record<string, unknown>, busy: string): Promise<void> => {
+      setBusyKey(busy);
+      setBoardMessage(null);
+      try {
+        const response = await fetch("/api/desk-board", {
+          body: JSON.stringify(payload),
+          headers: authHeader
+            ? { ...authHeader, "Content-Type": "application/json" }
+            : { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const body = (await response.json()) as DeskBoardResponse;
+        if (response.ok && body.ok && body.item) {
+          const saved = body.item;
+          setRecords((current) => [
+            ...current.filter((entry) => entry.id !== saved.id),
+            saved,
+          ]);
+        } else {
+          setBoardMessage({
+            text: body.error ?? "Could not save this item.",
+            tone: "error",
+          });
+        }
+      } catch {
+        setBoardMessage({ text: "Could not save this item.", tone: "error" });
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [authHeader]
+  );
+
+  const generate = useCallback(
+    async (mode: DeskPlanModeValue): Promise<void> => {
+      setGeneratingMode(mode);
+      setBoardMessage(null);
+      try {
+        const response = await fetch("/api/desk-plan", {
+          body: JSON.stringify({ mode }),
+          headers: authHeader
+            ? { ...authHeader, "Content-Type": "application/json" }
+            : { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const body = (await response.json()) as DeskBoardResponse;
+        if (response.ok && body.ok && body.items) {
+          await loadBoard();
+          const count = body.items.length;
+          const plural = count === 1 ? "" : "s";
+          setBoardMessage({
+            text:
+              mode === "content"
+                ? `Added ${count} content idea${plural}.`
+                : `Added ${count} task${plural}.`,
+            tone: "success",
+          });
+        } else {
+          setBoardMessage({
+            text: body.error ?? "Could not generate new work.",
+            tone: "error",
+          });
+        }
+      } catch {
+        setBoardMessage({
+          text: "Could not generate new work.",
+          tone: "error",
+        });
+      } finally {
+        setGeneratingMode(null);
+      }
+    },
+    [authHeader, loadBoard]
+  );
+
+  return {
+    boardMessage,
+    busyKey,
+    generate,
+    generatingMode,
+    isLoadingBoard,
+    records,
+    saveItem,
   };
 };
 
@@ -1321,15 +1135,15 @@ const CanvassingPlanner = ({
             </div>
           </div>
 
-          <label className="desk-canvass-name">
+          <div className="desk-canvass-name">
             <span>Target name</span>
-            <input
-              onChange={(event) => setName(event.currentTarget.value)}
+            <WaInput
+              onChange={(event) => setName(waFieldValue(event))}
               placeholder="Serenada — walk Saturday"
               type="text"
               value={name}
             />
-          </label>
+          </div>
 
           {message ? (
             <p
@@ -1340,28 +1154,28 @@ const CanvassingPlanner = ({
           ) : null}
 
           <div className="desk-canvass-builder__actions">
-            <button
+            <WaButton
+              appearance="plain"
               className="desk-primary-link"
               disabled={isSaving || selectedTargets.length === 0}
               onClick={handleSave}
-              type="button"
             >
-              <CheckCircle aria-hidden height={18} width={18} />
+              <CheckCircle aria-hidden height={18} slot="start" width={18} />
               {(() => {
                 if (isSaving) {
                   return "Saving...";
                 }
                 return editingId ? "Update target" : "Save target";
               })()}
-            </button>
+            </WaButton>
             {selectedTargets.length > 0 || editingId ? (
-              <button
-                className="desk-text-link"
+              <WaButton
+                appearance="plain"
+                className="desk-action-button"
                 onClick={resetForm}
-                type="button"
               >
                 Clear
-              </button>
+              </WaButton>
             ) : null}
           </div>
 
@@ -1423,38 +1237,31 @@ const CanvassingPlanner = ({
   );
 };
 
-const ChannelCard = ({ channel }: { channel: Channel }) => (
-  <article className="desk-channel">
-    <div className="desk-channel__topline">
-      <span>{channel.source}</span>
-      <span>{channel.risk} risk</span>
-    </div>
-    <h3>{channel.name}</h3>
-    <p>{channel.fit}</p>
-    <dl>
+const CampaignAssetRow = ({
+  asset,
+  busy,
+  onToggle,
+  status,
+}: {
+  asset: CampaignAsset;
+  busy: boolean;
+  onToggle: () => void;
+  status: DeskBoardStatusValue;
+}) => {
+  const done = status === "done";
+  return (
+    <li className={done ? " desk-asset desk-asset--done" : "desk-asset"}>
+      <StatusToggleButton busy={busy} done={done} onToggle={onToggle} />
       <div>
-        <dt>Cost</dt>
-        <dd>{channel.cost}</dd>
+        <strong>{asset.label}</strong>
+        <span>{asset.status}</span>
       </div>
-      <div>
-        <dt>First use</dt>
-        <dd>{channel.firstUse}</dd>
-      </div>
-    </dl>
-  </article>
-);
-
-const CampaignAssetRow = ({ asset }: { asset: CampaignAsset }) => (
-  <li className="desk-asset">
-    <div>
-      <strong>{asset.label}</strong>
-      <span>{asset.status}</span>
-    </div>
-    <TransitionLink className="desk-text-link" to={asset.href}>
-      {asset.action}
-    </TransitionLink>
-  </li>
-);
+      <TransitionLink className="desk-text-link" to={asset.href}>
+        {asset.action}
+      </TransitionLink>
+    </li>
+  );
+};
 
 const AuthPanel = ({
   auth,
@@ -1465,7 +1272,7 @@ const AuthPanel = ({
     <WarningTriangle aria-hidden height={22} width={22} />
     <div>
       <h1>Sign in to Desk</h1>
-      <p>Private acquisition planning for Tandra's outreach work.</p>
+      <p>Private acquisition planning for Tandra&apos;s outreach work.</p>
       {auth.clientId ? <div ref={auth.buttonRef} /> : null}
       {auth.clientId ? null : (
         <p>
@@ -1473,7 +1280,6 @@ const AuthPanel = ({
         </p>
       )}
       {auth.authError ? <p>{auth.authError}</p> : null}
-      {auth.clientId && !auth.ready ? <p>Loading Google sign-in...</p> : null}
     </div>
   </section>
 );
@@ -1482,123 +1288,336 @@ const DeskDashboard = ({
   auth,
 }: {
   auth: ReturnType<typeof useGoogleDashboardAuth>;
-}) => (
-  <div className={layoutClass.containerFull}>
-    <div className="desk">
-      <header className="desk-hero">
-        <div>
-          <span className="desk-eyebrow">
-            <Desk aria-hidden height={18} width={18} />
-            Desk
-          </span>
-          <h1>Proactive demand before the first form fill.</h1>
-          <p>
-            Build daily outreach from roof-age signals, neighborhood targeting,
-            partner relationships, weather moments, and opt-in capture instead
-            of waiting for leads that do not exist yet.
-          </p>
-        </div>
-        <nav aria-label="Desk shortcuts" className="desk-hero__actions">
-          <TransitionLink
-            className="desk-primary-link"
-            to="/roof-check/georgetown"
-          >
-            <Home aria-hidden height={18} width={18} />
-            Open roof-check page
-          </TransitionLink>
-          <TransitionLink className="desk-primary-link" to="/ads">
-            <MediaImage aria-hidden height={18} width={18} />
-            Build creative
-          </TransitionLink>
-          <TransitionLink className="desk-secondary-link" to="/emails">
-            <Mail aria-hidden height={18} width={18} />
-            Compose outreach
-          </TransitionLink>
-          <TransitionLink className="desk-secondary-link" to="/calendar">
-            <Calendar aria-hidden height={18} width={18} />
-            Plan content calendar
-          </TransitionLink>
-        </nav>
-      </header>
+}) => {
+  const authHeader = useMemo<AuthHeader>(
+    () => (auth.token ? { Authorization: `Bearer ${auth.token}` } : null),
+    [auth.token]
+  );
+  const {
+    boardMessage,
+    busyKey,
+    generate,
+    generatingMode,
+    isLoadingBoard,
+    records,
+    saveItem,
+  } = useDeskBoard(authHeader);
 
-      <section aria-label="Desk metrics" className="desk-metrics">
-        {metrics.map((metric) => (
-          <MetricCard key={metric.label} metric={metric} />
-        ))}
-      </section>
+  const recordBySeedKey = useMemo(() => {
+    const map = new Map<string, DeskBoardRecord>();
+    for (const record of records) {
+      if (record.seedKey) {
+        map.set(record.seedKey, record);
+      }
+    }
+    return map;
+  }, [records]);
 
-      <section className="desk-grid">
-        <ContentCalendarWidget auth={auth} />
-      </section>
+  const extraTasks = useMemo(
+    () =>
+      records.filter(
+        (record) =>
+          record.kind === "task" &&
+          !(
+            record.seedKey &&
+            (SEED_ACTION_KEYS.has(record.seedKey) ||
+              SEED_ASSET_KEYS.has(record.seedKey))
+          )
+      ),
+    [records]
+  );
 
-      <section className="desk-grid">
-        <CanvassingPlanner auth={auth} />
-      </section>
+  const contentRecords = useMemo(
+    () =>
+      records
+        .filter((record) => record.kind === "content")
+        .sort((a, b) =>
+          (a.publishDate ?? "").localeCompare(b.publishDate ?? "")
+        ),
+    [records]
+  );
 
-      <section className="desk-grid desk-grid--wide-right">
-        <div className="desk-section">
+  const toggleAction = useCallback(
+    (item: ActionItem) => {
+      const existing = recordBySeedKey.get(item.label);
+      const nextStatus = existing?.status === "done" ? "todo" : "done";
+      saveItem(
+        {
+          channel: item.channel,
+          detail: item.outcome,
+          href: item.href,
+          id: existing?.id,
+          kind: "task",
+          origin: existing?.origin ?? "seed",
+          seedKey: item.label,
+          status: nextStatus,
+          title: item.label,
+        },
+        item.label
+      );
+    },
+    [recordBySeedKey, saveItem]
+  );
+
+  const toggleAsset = useCallback(
+    (asset: CampaignAsset) => {
+      const key = assetSeedKey(asset.label);
+      const existing = recordBySeedKey.get(key);
+      const nextStatus = existing?.status === "done" ? "todo" : "done";
+      saveItem(
+        {
+          channel: "Campaign asset",
+          detail: asset.status,
+          href: asset.href,
+          id: existing?.id,
+          kind: "task",
+          origin: existing?.origin ?? "seed",
+          seedKey: key,
+          status: nextStatus,
+          title: asset.label,
+        },
+        key
+      );
+    },
+    [recordBySeedKey, saveItem]
+  );
+
+  const toggleGenerated = useCallback(
+    (record: DeskBoardRecord) => {
+      const nextStatus = record.status === "done" ? "todo" : "done";
+      saveItem(
+        {
+          channel: record.channel,
+          detail: record.detail,
+          href: record.href,
+          id: record.id,
+          kind: "task",
+          origin: record.origin,
+          seedKey: record.seedKey,
+          status: nextStatus,
+          title: record.title,
+        },
+        record.id
+      );
+    },
+    [saveItem]
+  );
+
+  const changeContentStatus = useCallback(
+    (record: DeskBoardRecord, status: DeskBoardStatusValue) => {
+      saveItem(
+        {
+          buyerStage: record.buyerStage,
+          channel: record.channel,
+          detail: record.detail,
+          href: record.href,
+          id: record.id,
+          kind: "content",
+          origin: record.origin,
+          pillar: record.pillar,
+          publishDate: record.publishDate,
+          seedKey: record.seedKey,
+          status,
+          title: record.title,
+        },
+        record.id
+      );
+    },
+    [saveItem]
+  );
+
+  return (
+    <div className={layoutClass.containerFull}>
+      <div className="desk">
+        <header className="desk-hero">
+          <div>
+            <span className="desk-eyebrow">
+              <Desk aria-hidden height={18} width={18} />
+              Desk
+            </span>
+            <h1>Proactive demand before the first form fill.</h1>
+            <p>
+              Build daily outreach from roof-age signals, neighborhood
+              targeting, partner relationships, weather moments, and opt-in
+              capture instead of waiting for leads that do not exist yet.
+            </p>
+          </div>
+          <nav aria-label="Desk shortcuts" className="desk-hero__actions">
+            <TransitionLink className="desk-primary-link" to="/estimate">
+              <Home aria-hidden height={18} width={18} />
+              Open estimate page
+            </TransitionLink>
+            <TransitionLink className="desk-primary-link" to="/ads">
+              <MediaImage aria-hidden height={18} width={18} />
+              Build creative
+            </TransitionLink>
+            <TransitionLink className="desk-secondary-link" to="/emails">
+              <Mail aria-hidden height={18} width={18} />
+              Compose outreach
+            </TransitionLink>
+            <TransitionLink className="desk-secondary-link" to="/calendar">
+              <Calendar aria-hidden height={18} width={18} />
+              Plan content calendar
+            </TransitionLink>
+          </nav>
+        </header>
+
+        <section aria-label="Desk metrics" className="desk-metrics">
+          {metrics.map((metric) => (
+            <MetricCard key={metric.label} metric={metric} />
+          ))}
+        </section>
+
+        <section className="desk-grid">
+          <CanvassingPlanner auth={auth} />
+        </section>
+
+        <section className="desk-grid desk-grid--wide-right">
+          <div className="desk-section">
+            <div className="desk-section__heading">
+              <Calendar aria-hidden height={22} width={22} />
+              <div>
+                <span>Action queue</span>
+                <h2>Today&apos;s work</h2>
+              </div>
+              <WaButton
+                appearance="plain"
+                className="desk-generate-button"
+                disabled={generatingMode !== null}
+                onClick={() => generate("tasks")}
+              >
+                <StatsUpSquare
+                  aria-hidden
+                  height={16}
+                  slot="start"
+                  width={16}
+                />
+                {generatingMode === "tasks"
+                  ? "Assessing…"
+                  : "Generate next work"}
+              </WaButton>
+            </div>
+            <ul className="desk-actions">
+              {actionItems.map((item) => (
+                <ActionRow
+                  busy={busyKey === item.label}
+                  item={item}
+                  key={item.label}
+                  onToggle={() => toggleAction(item)}
+                  status={recordBySeedKey.get(item.label)?.status ?? "todo"}
+                />
+              ))}
+            </ul>
+            {extraTasks.length > 0 ? (
+              <div className="desk-generated">
+                <h3 className="desk-generated__title">
+                  Generated &amp; added work
+                </h3>
+                <ul className="desk-actions">
+                  {extraTasks.map((record) => (
+                    <GeneratedTaskRow
+                      busy={busyKey === record.id}
+                      key={record.id}
+                      onToggle={() => toggleGenerated(record)}
+                      record={record}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {boardMessage ? (
+              <p
+                className={`desk-board-message desk-board-message--${boardMessage.tone}`}
+              >
+                {boardMessage.text}
+              </p>
+            ) : null}
+          </div>
+
+          <aside className="desk-campaign">
+            <span className="desk-pill desk-pill--critical">
+              First campaign
+            </span>
+            <h2>Georgetown estimate pack</h2>
+            <p>
+              One market, one message, one scan link. This is the first campaign
+              to prove the desk can create traffic before a lead list exists.
+            </p>
+            <ul>
+              {campaignAssets.map((asset) => (
+                <CampaignAssetRow
+                  asset={asset}
+                  busy={busyKey === assetSeedKey(asset.label)}
+                  key={asset.label}
+                  onToggle={() => toggleAsset(asset)}
+                  status={
+                    recordBySeedKey.get(assetSeedKey(asset.label))?.status ??
+                    "todo"
+                  }
+                />
+              ))}
+            </ul>
+          </aside>
+        </section>
+
+        <section className="desk-calendar">
           <div className="desk-section__heading">
             <Calendar aria-hidden height={22} width={22} />
             <div>
-              <span>Action queue</span>
-              <h2>Today&apos;s work</h2>
+              <span>Content calendar</span>
+              <h2>Upcoming planned content</h2>
             </div>
+            <WaButton
+              appearance="plain"
+              className="desk-generate-button"
+              disabled={generatingMode !== null}
+              onClick={() => generate("content")}
+            >
+              <StatsUpSquare aria-hidden height={16} slot="start" width={16} />
+              {generatingMode === "content" ? "Planning…" : "Generate content"}
+            </WaButton>
           </div>
-          <ul className="desk-actions">
-            {actionItems.map((item) => (
-              <ActionRow item={item} key={item.label} />
-            ))}
-          </ul>
-        </div>
+          {contentRecords.length > 0 ? (
+            <ul className="desk-calendar-list">
+              {contentRecords.map((record) => (
+                <CalendarRow
+                  busy={busyKey === record.id}
+                  key={record.id}
+                  onStatusChange={(status) =>
+                    changeContentStatus(record, status)
+                  }
+                  record={record}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="desk-calendar-empty">
+              {isLoadingBoard
+                ? "Loading the content calendar…"
+                : "No content planned yet."}
+            </p>
+          )}
+        </section>
 
-        <aside className="desk-campaign">
-          <span className="desk-pill desk-pill--critical">First campaign</span>
-          <h2>Georgetown roof-check pack</h2>
-          <p>
-            One market, one message, one scan link. This is the first campaign
-            to prove the desk can create traffic before a lead list exists.
-          </p>
-          <ul>
-            {campaignAssets.map((asset) => (
-              <CampaignAssetRow asset={asset} key={asset.label} />
-            ))}
-          </ul>
-        </aside>
-      </section>
-
-      <section className="desk-section">
-        <div className="desk-section__heading">
-          <Community aria-hidden height={22} width={22} />
+        <section className="desk-next">
           <div>
-            <span>Cheap/free sources</span>
-            <h2>Acquisition channels to wire in</h2>
+            <CheckCircle aria-hidden height={24} width={24} />
+            <h2>Next build step</h2>
+            <p>
+              Replace seed cards with stored campaign documents: signal, area,
+              audience, channel, asset links, spend, scan URL, captured
+              follow-ups, and booked calls.
+            </p>
           </div>
-        </div>
-        <div className="desk-channel-grid">
-          {channels.map((channel) => (
-            <ChannelCard channel={channel} key={channel.name} />
-          ))}
-        </div>
-      </section>
-
-      <section className="desk-next">
-        <div>
-          <CheckCircle aria-hidden height={24} width={24} />
-          <h2>Next build step</h2>
-          <p>
-            Replace seed cards with stored campaign documents: signal, area,
-            audience, channel, asset links, spend, scan URL, captured
-            follow-ups, and booked calls.
-          </p>
-        </div>
-        <TransitionLink className="desk-primary-link" to="/marketing">
-          <VideoCamera aria-hidden height={18} width={18} />
-          Draft the first campaign
-        </TransitionLink>
-      </section>
+          <TransitionLink className="desk-primary-link" to="/marketing">
+            <VideoCamera aria-hidden height={18} width={18} />
+            Draft the first campaign
+          </TransitionLink>
+        </section>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const DeskPage = () => {
   const auth = useGoogleDashboardAuth();

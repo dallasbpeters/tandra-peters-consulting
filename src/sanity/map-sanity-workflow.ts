@@ -37,7 +37,7 @@ export interface WorkflowPageDoc {
     wide?: boolean;
     posX?: number;
     posY?: number;
-    subsections?: Array<{ title?: string; body?: string }>;
+    subsections?: { title?: string; body?: string }[];
   }[];
   pageLede?: string;
   pageTitle?: string;

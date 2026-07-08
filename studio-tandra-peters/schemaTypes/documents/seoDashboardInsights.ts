@@ -1,67 +1,67 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const seoDashboardInsightsType = defineType({
-  name: "seoDashboardInsights",
-  title: "SEO dashboard insights",
-  type: "document",
   fields: [
     defineField({
-      name: "title",
-      type: "string",
       initialValue: "SEO Dashboard Insights",
+      name: "title",
       readOnly: true,
+      type: "string",
     }),
     defineField({
       name: "lastGeneratedAt",
+      readOnly: true,
       title: "Last generated at",
       type: "datetime",
-      readOnly: true,
     }),
     defineField({
       name: "model",
-      type: "string",
       readOnly: true,
+      type: "string",
     }),
     defineField({
       name: "siteUrl",
-      type: "string",
       readOnly: true,
+      type: "string",
     }),
     defineField({
       name: "summary",
-      type: "text",
       rows: 6,
+      type: "text",
     }),
     defineField({
-      name: "snapshotPayload",
-      title: "Snapshot payload",
-      type: "text",
-      rows: 12,
-      readOnly: true,
       description:
         "Cached full dashboard payload used for fast loads until a manual regenerate is requested.",
+      name: "snapshotPayload",
+      readOnly: true,
+      rows: 12,
+      title: "Snapshot payload",
+      type: "text",
     }),
     defineField({
       name: "recommendations",
-      type: "array",
       of: [defineArrayMember({ type: "seoDashboardRecommendation" })],
+      type: "array",
     }),
     defineField({
       name: "opportunities",
-      type: "array",
       of: [defineArrayMember({ type: "seoDashboardOpportunity" })],
+      type: "array",
     }),
   ],
+  name: "seoDashboardInsights",
   preview: {
-    select: {
-      title: "title",
-      subtitle: "lastGeneratedAt",
-    },
     prepare({ title, subtitle }) {
       return {
-        title: title || "SEO Dashboard Insights",
         subtitle: subtitle ? `Updated ${subtitle}` : "Not generated yet",
+        title: title || "SEO Dashboard Insights",
       };
     },
+    select: {
+      subtitle: "lastGeneratedAt",
+      title: "title",
+    },
   },
+  title: "SEO dashboard insights",
+  type: "document",
 });

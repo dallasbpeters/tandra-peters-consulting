@@ -810,9 +810,7 @@ const seedDoorHanger = (
   // without a photo the solid canvas background shows through.
   if (creative.imageUrl) {
     elements.push(
-      seedImageEl(creative.imageUrl, { height: 100, width: 100, x: 0, y: 0 })
-    );
-    elements.push(
+      seedImageEl(creative.imageUrl, { height: 100, width: 100, x: 0, y: 0 }),
       seedRectEl(
         ROLE_IDS.tint,
         "Tint",

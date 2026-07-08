@@ -70,11 +70,42 @@ export interface TandraIntroContent {
 }
 
 export const defaultTandraIntroContent: TandraIntroContent = {
+  closing: {
+    cta: "Call or text 512-968-3965",
+    kicker: "Tandra Peters · Austin roofing consultant",
+    line1: "Your roof,",
+    line2: "handled right.",
+  },
+  inspection: {
+    body: "You get the real condition of your roof, what matters now, and what can wait.",
+    kicker: "On your roof",
+    line1: "Inspect.",
+    line2: "Document.",
+    line3: "Explain.",
+  },
+  managed: {
+    items: [
+      "Claim guidance",
+      "Paperwork review",
+      "Birdcreek crews",
+      "Final walkthrough",
+    ],
+    kicker: "What homeowners need",
+    line1: "EXPERIENCE AND PROFESSIONALISM",
+    line2: "HIGH-QUALITY MATERIALS",
+    line3: "Exceptional Customer Service",
+  },
+  proof: {
+    items: ["Roof assessments", "Insurance help", "Project oversight"],
+    kicker: "Built for Austin-area homeowners",
+    line1: "Local roof know-how.",
+    line2: "Backed by Birdcreek.",
+  },
   storm: {
+    body: "Hail, heat, wind, and insurance paperwork can turn one bad storm into weeks of second-guessing.",
     kicker: "Austin homeowners",
     line1: "Texas roofs",
     line2: "take a beating.",
-    body: "Hail, heat, wind, and insurance paperwork can turn one bad storm into weeks of second-guessing.",
   },
   straightAnswers: {
     kicker: "Why Tandra?",
@@ -82,37 +113,6 @@ export const defaultTandraIntroContent: TandraIntroContent = {
     line2: "answers.",
     line3: "No pressure.",
     quote: "If your roof just needs a repair, I'll tell you that.",
-  },
-  inspection: {
-    kicker: "On your roof",
-    line1: "Inspect.",
-    line2: "Document.",
-    line3: "Explain.",
-    body: "You get the real condition of your roof, what matters now, and what can wait.",
-  },
-  managed: {
-    kicker: "What homeowners need",
-    line1: "EXPERIENCE AND PROFESSIONALISM",
-    line2: "HIGH-QUALITY MATERIALS",
-    line3: "Exceptional Customer Service",
-    items: [
-      "Claim guidance",
-      "Paperwork review",
-      "Birdcreek crews",
-      "Final walkthrough",
-    ],
-  },
-  proof: {
-    kicker: "Built for Austin-area homeowners",
-    line1: "Local roof know-how.",
-    line2: "Backed by Birdcreek.",
-    items: ["Roof assessments", "Insurance help", "Project oversight"],
-  },
-  closing: {
-    kicker: "Tandra Peters · Austin roofing consultant",
-    line1: "Your roof,",
-    line2: "handled right.",
-    cta: "Call or text 512-968-3965",
   },
 };
 
@@ -143,11 +143,7 @@ export const mergeTandraIntroContent = (
   const proof = mergeScene(defaultTandraIntroContent.proof, incoming.proof);
 
   return {
-    storm: mergeScene(defaultTandraIntroContent.storm, incoming.storm),
-    straightAnswers: mergeScene(
-      defaultTandraIntroContent.straightAnswers,
-      incoming.straightAnswers
-    ),
+    closing: mergeScene(defaultTandraIntroContent.closing, incoming.closing),
     inspection: mergeScene(
       defaultTandraIntroContent.inspection,
       incoming.inspection
@@ -166,7 +162,11 @@ export const mergeTandraIntroContent = (
         defaultTandraIntroContent.proof.items
       ),
     },
-    closing: mergeScene(defaultTandraIntroContent.closing, incoming.closing),
+    storm: mergeScene(defaultTandraIntroContent.storm, incoming.storm),
+    straightAnswers: mergeScene(
+      defaultTandraIntroContent.straightAnswers,
+      incoming.straightAnswers
+    ),
   };
 };
 
@@ -205,9 +205,9 @@ export const fetchTandraIntroContent =
           `[render-tandra-intro] Sanity fetch failed (${response.status}); using default video copy.`
         );
         return {
-          showCaptions: false,
           content: defaultTandraIntroContent,
           contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+          showCaptions: false,
           source: "fallback",
         };
       }
@@ -228,9 +228,9 @@ export const fetchTandraIntroContent =
           "[render-tandra-intro] No homepage tandraIntroVideo content; using default video copy."
         );
         return {
-          showCaptions: false,
           content: defaultTandraIntroContent,
           contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+          showCaptions: false,
           source: "fallback",
         };
       }
@@ -260,27 +260,27 @@ export const fetchTandraIntroContent =
           : undefined;
 
       return {
+        content,
+        contentHash: hashTandraIntroContent(content),
+        documentId,
+        renderArtifactHash,
+        renderContentHash,
+        renderedVideoUrl,
         showCaptions:
           typeof result.showCaptions === "boolean"
             ? result.showCaptions
             : false,
-        content,
-        contentHash: hashTandraIntroContent(content),
-        renderContentHash,
-        renderArtifactHash,
-        renderedVideoUrl,
-        thumbnailUrl,
         source: token ? "sanity-draft-or-published" : "sanity-published",
-        documentId,
+        thumbnailUrl,
       };
     } catch (error) {
       console.warn(
         `[render-tandra-intro] Sanity fetch failed; using default video copy. ${error}`
       );
       return {
-        showCaptions: false,
         content: defaultTandraIntroContent,
         contentHash: hashTandraIntroContent(defaultTandraIntroContent),
+        showCaptions: false,
         source: "fallback",
       };
     }

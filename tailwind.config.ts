@@ -7,8 +7,8 @@ export default {
     "./components/**/*.{ts,tsx,js,jsx}",
     "./lib/**/*.{ts,tsx,js,jsx}",
   ],
+  plugins: [],
   theme: {
     extend: {},
   },
-  plugins: [],
 } satisfies Config;

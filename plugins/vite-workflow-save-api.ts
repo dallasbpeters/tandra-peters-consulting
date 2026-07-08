@@ -130,21 +130,21 @@ const sanitizeNodes = (input: unknown) => {
               }
 
               return {
+                _key: `${stepId}-${titleValue.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`,
                 _type: "workflowDiagramNodeSubsection",
-                _key: `${stepId}-${titleValue.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-                title: titleValue,
                 body: bodyValue,
+                title: titleValue,
               };
             })
             .filter(Boolean)
         : [];
 
       return {
-        _type: "workflowDiagramNode",
         _key: `node-${stepId}`,
+        _type: "workflowDiagramNode",
+        body,
         stepId,
         title,
-        body,
         wide: node.wide === true,
         ...(subsections.length > 0 ? { subsections } : {}),
         ...(posX === null ? {} : { posX }),
@@ -179,21 +179,20 @@ const sanitizeEdges = (input: unknown) => {
       }
 
       return {
-        _type: "workflowDiagramEdge",
         _key: `edge-${edgeId}`,
+        _type: "workflowDiagramEdge",
         edgeId,
-        sourceStep,
-        targetStep,
-        sourceHandle,
-        targetHandle,
         label,
+        sourceHandle,
+        sourceStep,
+        targetHandle,
+        targetStep,
       };
     })
     .filter(Boolean);
 };
 
 export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-workflow-save-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -245,7 +244,7 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
       try {
         const bodyBuffer = await readRequestBody(req);
         const body = bodyBuffer.length
-          ? (JSON.parse(bodyBuffer.toString("utf8")) as {
+          ? (JSON.parse(bodyBuffer.toString("utf-8")) as {
               nodes?: unknown;
               edges?: unknown;
             })
@@ -260,9 +259,9 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
         }
 
         const client = createClient({
-          projectId: SANITY_PROJECT_ID,
-          dataset: SANITY_DATASET,
           apiVersion: SANITY_API_VERSION,
+          dataset: SANITY_DATASET,
+          projectId: SANITY_PROJECT_ID,
           token,
           useCdn: false,
         });
@@ -270,15 +269,15 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
         await client
           .patch(WORKFLOW_PAGE_DOCUMENT_ID)
           .set({
-            nodes,
             edges,
+            nodes,
           })
           .commit();
 
         json(res, 200, {
-          ok: true,
-          nodeCount: nodes.length,
           edgeCount: edges.length,
+          nodeCount: nodes.length,
+          ok: true,
         });
       } catch (error) {
         console.error("[vite-workflow-save-api]", error);
@@ -291,4 +290,5 @@ export const viteWorkflowSaveApi = (env: Record<string, string>): Plugin => ({
       }
     });
   },
+  name: "vite-workflow-save-api",
 });

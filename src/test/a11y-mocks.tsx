@@ -71,7 +71,7 @@ Object.defineProperty(window, "localStorage", {
       localStorageStore.clear();
     },
     getItem: (key: string) => localStorageStore.get(key) ?? null,
-    key: (index: number) => Array.from(localStorageStore.keys())[index] ?? null,
+    key: (index: number) => [...localStorageStore.keys()][index] ?? null,
     get length() {
       return localStorageStore.size;
     },

@@ -1,12 +1,14 @@
 import { Plus } from "iconoir-react";
 import { useMemo } from "react";
 
+import type {
+  ContentCalendarEntry,
+  MonthRef,
+} from "../../lib/content-calendar";
 import {
   buildMonthGrid,
-  type ContentCalendarEntry,
   channelLabels,
   groupEntriesByDay,
-  type MonthRef,
 } from "../../lib/content-calendar";
 
 const WEEKDAY_LABELS = [

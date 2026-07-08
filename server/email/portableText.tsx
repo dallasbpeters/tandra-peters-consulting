@@ -1,30 +1,31 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource react */
 import { Heading, Link, Text } from "@react-email/components";
-import { type CSSProperties, Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { PortableTextBlock, PortableTextSpan } from "./types.js";
 
 const paragraph: CSSProperties = {
+  color: "#1a2b22",
   fontSize: "15px",
   lineHeight: "26px",
-  color: "#1a2b22",
   margin: "0 0 16px",
 };
 
 const heading: CSSProperties = {
+  color: "#0f1f18",
   fontSize: "18px",
   fontWeight: 700,
-  color: "#0f1f18",
   margin: "24px 0 8px",
 };
 
 const quote: CSSProperties = {
   ...paragraph,
   borderLeft: "3px solid #d8dedb",
-  paddingLeft: "14px",
-  fontStyle: "italic",
   color: "#46554d",
+  fontStyle: "italic",
+  paddingLeft: "14px",
 };
 
 const renderSpan = (

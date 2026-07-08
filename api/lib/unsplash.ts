@@ -73,7 +73,7 @@ const readLocalAustinLeadsUnsplashKey = (): string | undefined => {
       process.cwd(),
       "../austin-leads-platform/.env.development.local"
     );
-    return parseEnvFile(readFileSync(envPath, "utf8")).UNSPLASH_ACCESS_KEY;
+    return parseEnvFile(readFileSync(envPath, "utf-8")).UNSPLASH_ACCESS_KEY;
   } catch {
     return;
   }
@@ -98,16 +98,16 @@ const toImageAsset = (photo: UnsplashPhoto): UnsplashImageAsset | null => {
     (authorName ? `Photo by ${authorName}` : "Unsplash photo");
 
   return {
-    id: `unsplash:${photo.id}`,
-    url,
-    label,
-    width: photo.width,
-    height: photo.height,
-    createdAt: photo.updated_at,
     attribution: authorName ? `Photo by ${authorName}` : undefined,
     authorName,
     authorUrl: photo.user?.links?.html,
+    createdAt: photo.updated_at,
     downloadLocation: photo.links?.download_location,
+    height: photo.height,
+    id: `unsplash:${photo.id}`,
+    label,
+    url,
+    width: photo.width,
   };
 };
 
@@ -133,8 +133,8 @@ export const searchUnsplashImages = async ({
 
   const response = await fetch(url, {
     headers: {
-      Authorization: `Client-ID ${accessKey}`,
       "Accept-Version": "v1",
+      Authorization: `Client-ID ${accessKey}`,
     },
   });
 

@@ -72,9 +72,9 @@ export const generateSitemapXml = async (
   const origin = normalizeOrigin(siteUrlEnv);
 
   const client = createClient({
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    projectId: SANITY_PROJECT_ID,
     useCdn: true,
   });
 
@@ -91,49 +91,49 @@ export const generateSitemapXml = async (
 
   const staticUrls = [
     buildUrlEntry({
-      loc: `${origin}/`,
       changefreq: "weekly",
+      loc: `${origin}/`,
       priority: "1.0",
     }),
     buildUrlEntry({
-      loc: `${origin}/articles`,
       changefreq: "weekly",
+      loc: `${origin}/articles`,
       priority: "0.9",
     }),
     buildUrlEntry({
+      changefreq: "monthly",
       loc: `${origin}/insurance-faqs`,
-      changefreq: "monthly",
       priority: "0.6",
     }),
     buildUrlEntry({
+      changefreq: "monthly",
       loc: `${origin}/roof-inspection`,
-      changefreq: "monthly",
       priority: "0.6",
     }),
     buildUrlEntry({
+      changefreq: "monthly",
       loc: `${origin}/privacy`,
-      changefreq: "monthly",
       priority: "0.3",
     }),
     buildUrlEntry({
+      changefreq: "monthly",
       loc: `${origin}/terms`,
-      changefreq: "monthly",
       priority: "0.3",
     }),
     buildUrlEntry({
-      loc: `${origin}/cookies`,
       changefreq: "monthly",
+      loc: `${origin}/cookies`,
       priority: "0.3",
     }),
   ];
 
   const postUrls = [...uniquePosts.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
+    .toSorted((a, b) => a[0].localeCompare(b[0]))
     .map(([slug, post]) =>
       buildUrlEntry({
-        loc: `${origin}/articles/${encodeURIComponent(slug)}`,
-        lastmod: toIsoDate(post._updatedAt ?? post.publishedAt),
         changefreq: "monthly",
+        lastmod: toIsoDate(post._updatedAt ?? post.publishedAt),
+        loc: `${origin}/articles/${encodeURIComponent(slug)}`,
         priority: "0.7",
       })
     );

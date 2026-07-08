@@ -50,13 +50,15 @@ const buildUserContent = (
     | { type: "image"; image: string }
   )[] = [];
 
-  parts.push({
-    text:
-      trimmed ||
-      "Screenshot of a Nextdoor conversation. Read the post and comments in the image, then draft an on-brand reply for Tandra.",
-    type: "text",
-  });
-  parts.push(...imageParts);
+  parts.push(
+    {
+      text:
+        trimmed ||
+        "Screenshot of a Nextdoor conversation. Read the post and comments in the image, then draft an on-brand reply for Tandra.",
+      type: "text",
+    },
+    ...imageParts
+  );
 
   return parts;
 };

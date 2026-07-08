@@ -38,7 +38,6 @@ const loadFalHandler = (pathname: string) => {
 };
 
 export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-fal-dev-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -99,7 +98,7 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
         }
 
         const webReq = new Request(`http://${host}${pathWithQuery}`, {
-          body: bodyBuf.length > 0 ? bodyBuf.toString("utf8") : undefined,
+          body: bodyBuf.length > 0 ? bodyBuf.toString("utf-8") : undefined,
           headers,
           method: "POST",
         });
@@ -119,9 +118,8 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
           "Content-Type, Authorization, X-API-Key"
         );
         res.end(Buffer.from(await webRes.arrayBuffer()));
-      } catch (caught) {
-        const message =
-          caught instanceof Error ? caught.message : String(caught);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         res.statusCode = 500;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Content-Type", "application/json");
@@ -129,4 +127,5 @@ export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
       }
     });
   },
+  name: "vite-fal-dev-api",
 });

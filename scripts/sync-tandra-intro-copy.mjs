@@ -25,7 +25,7 @@ const serialized = JSON.stringify({ content }, null, 2)
   .map((line, index) => (index === 0 ? line : `        ${line}`))
   .join("\n");
 
-const sourceText = readFileSync(ROOT_FILE, "utf8");
+const sourceText = readFileSync(ROOT_FILE, "utf-8");
 const pattern = /defaultProps=\{\{[\s\S]*?\}\}\s*\n\s*durationInFrames=/;
 
 if (!pattern.test(sourceText)) {

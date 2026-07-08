@@ -11,15 +11,15 @@ import { fileURLToPath } from "node:url";
  */
 import { config as loadEnv } from "dotenv";
 
-const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(import.meta.dirname);
 loadEnv({ path: path.join(repoRoot, ".env.local") });
 
 const args = process.argv.slice(2);
 const urlFlagIndex = args.indexOf("--url");
 const baseUrl =
-  urlFlagIndex >= 0
-    ? args[urlFlagIndex + 1]
-    : process.env.VITE_RENDER_SITE_URL?.trim() || "https://www.tandra.me";
+  urlFlagIndex === -1
+    ? process.env.VITE_RENDER_SITE_URL?.trim() || "https://www.tandra.me"
+    : args[urlFlagIndex + 1];
 
 const secret = process.env.RENDER_VIDEO_SECRET?.trim();
 const endpoint = `${baseUrl.replace(/\/$/, "")}/api/render-tandra-intro`;
@@ -32,7 +32,7 @@ if (secret) {
 }
 
 const started = Date.now();
-const response = await fetch(endpoint, { method: "POST", headers });
+const response = await fetch(endpoint, { headers, method: "POST" });
 const body = await response.text();
 
 let payload;

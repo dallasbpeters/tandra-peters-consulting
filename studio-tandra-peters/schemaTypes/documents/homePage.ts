@@ -22,23 +22,20 @@ const HOMEPAGE_SECTION_TYPES = [
 ] as const;
 
 export const homePageType = defineType({
-  name: "homePage",
-  title: "Home page",
-  type: "object",
   fields: [
     defineField({
+      initialValue: [],
       name: "sections",
+      of: HOMEPAGE_SECTION_TYPES.map((type) => ({ type })),
       title: "Sections",
       type: "array",
-      initialValue: [],
-      of: HOMEPAGE_SECTION_TYPES.map((type) => ({ type })),
     }),
     defineField({
-      name: "tandraIntroVideo",
-      type: "tandraIntroVideo",
-      title: "Intro video",
       description:
         "Remotion-powered intro video copy, thumbnail, and latest Vercel render output. Add a Video section above where this video should appear on the home page.",
+      name: "tandraIntroVideo",
+      title: "Intro video",
+      type: "tandraIntroVideo",
     }),
     defineField({
       name: "seoTitle",
@@ -47,9 +44,12 @@ export const homePageType = defineType({
     }),
     defineField({
       name: "seoDescription",
+      rows: 3,
       title: "SEO description",
       type: "text",
-      rows: 3,
     }),
   ],
+  name: "homePage",
+  title: "Home page",
+  type: "object",
 });

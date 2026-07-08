@@ -22,13 +22,13 @@ import type { CSSProperties } from "react";
 import type { EmailAssets, EstimateSubmission } from "./types.js";
 
 const colors = {
-  ink: "#0f1f18",
-  body: "#1a2b22",
-  muted: "#5b6b62",
   accent: "#3a7d5d",
+  body: "#1a2b22",
   border: "#e4e8e6",
-  surface: "#ffffff",
+  ink: "#0f1f18",
+  muted: "#5b6b62",
   page: "#f3f5f4",
+  surface: "#ffffff",
 };
 
 const main: CSSProperties = {
@@ -53,25 +53,25 @@ const inner: CSSProperties = { padding: "28px 36px 32px" };
 const rangeBox: CSSProperties = {
   backgroundColor: "#eef4f0",
   borderRadius: "10px",
-  padding: "22px 24px",
   margin: "0 0 22px",
+  padding: "22px 24px",
   textAlign: "center",
 };
 
 const labelCell: CSSProperties = {
-  fontSize: "13px",
-  color: colors.muted,
-  padding: "8px 0",
   borderBottom: `1px solid ${colors.border}`,
+  color: colors.muted,
+  fontSize: "13px",
+  padding: "8px 0",
 };
 
 const valueCell: CSSProperties = {
+  borderBottom: `1px solid ${colors.border}`,
+  color: colors.body,
   fontSize: "13px",
   fontWeight: 700,
-  color: colors.body,
-  textAlign: "right",
   padding: "8px 0",
-  borderBottom: `1px solid ${colors.border}`,
+  textAlign: "right",
 };
 
 const buttonStyle: CSSProperties = {
@@ -85,9 +85,9 @@ const buttonStyle: CSSProperties = {
 };
 
 const legal: CSSProperties = {
+  color: "#8a958e",
   fontSize: "11px",
   lineHeight: "18px",
-  color: "#8a958e",
   margin: "20px 0 0",
 };
 
@@ -153,10 +153,10 @@ export const EstimateEmail = ({
             <Heading
               as="h1"
               style={{
-                fontSize: "21px",
                 color: colors.ink,
-                margin: "0 0 6px",
+                fontSize: "21px",
                 lineHeight: "28px",
+                margin: "0 0 6px",
               }}
             >
               {isVisitor
@@ -165,8 +165,8 @@ export const EstimateEmail = ({
             </Heading>
             <Text
               style={{
-                fontSize: "13px",
                 color: colors.muted,
+                fontSize: "13px",
                 margin: "0 0 18px",
               }}
             >
@@ -178,20 +178,20 @@ export const EstimateEmail = ({
             <Section style={rangeBox}>
               <Text
                 style={{
-                  fontSize: "12px",
                   color: colors.muted,
+                  fontSize: "12px",
+                  letterSpacing: "0.08em",
                   margin: "0 0 4px",
                   textTransform: "uppercase",
-                  letterSpacing: "0.08em",
                 }}
               >
                 Estimated range
               </Text>
               <Text
                 style={{
+                  color: colors.ink,
                   fontSize: "28px",
                   fontWeight: 800,
-                  color: colors.ink,
                   margin: 0,
                 }}
               >
@@ -205,9 +205,9 @@ export const EstimateEmail = ({
               <>
                 <Text
                   style={{
+                    color: colors.body,
                     fontSize: "14px",
                     lineHeight: "22px",
-                    color: colors.body,
                     margin: "18px 0",
                   }}
                 >

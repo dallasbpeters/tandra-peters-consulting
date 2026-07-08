@@ -1,9 +1,6 @@
 import { defineField, defineType } from "sanity";
 
 export const adCreativeVersionType = defineType({
-  name: "adCreativeVersion",
-  title: "Ad version",
-  type: "document",
   fields: [
     defineField({
       name: "name",
@@ -18,35 +15,38 @@ export const adCreativeVersionType = defineType({
     }),
     defineField({
       name: "savedBy",
+      readOnly: true,
       title: "Saved by",
       type: "string",
-      readOnly: true,
     }),
     defineField({
-      name: "config",
-      title: "Creative configuration (JSON)",
-      type: "text",
-      rows: 12,
       description:
         "Serialized ad creative state. Edited from the Ad Builder, not here.",
+      name: "config",
+      rows: 12,
+      title: "Creative configuration (JSON)",
+      type: "text",
       validation: (rule) => rule.required(),
     }),
     defineField({
+      description: "Base64 preview thumbnail captured at save time.",
+      hidden: true,
       name: "thumbnail",
       title: "Thumbnail",
       type: "text",
-      hidden: true,
-      description: "Base64 preview thumbnail captured at save time.",
     }),
   ],
+  name: "adCreativeVersion",
   orderings: [
     {
-      title: "Saved (newest)",
+      by: [{ direction: "desc", field: "savedAt" }],
       name: "savedAtDesc",
-      by: [{ field: "savedAt", direction: "desc" }],
+      title: "Saved (newest)",
     },
   ],
   preview: {
-    select: { title: "name", subtitle: "savedAt" },
+    select: { subtitle: "savedAt", title: "name" },
   },
+  title: "Ad version",
+  type: "document",
 });

@@ -8,7 +8,6 @@ const pathnameOnly = (url: string | undefined) =>
   (url ?? "").split("?")[0] ?? "";
 
 export const viteSitemapApi = (env: Record<string, string>): Plugin => ({
-  name: "vite-sitemap-api",
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
       if (pathnameOnly(req.url) !== SITEMAP_PATH) {
@@ -34,11 +33,12 @@ export const viteSitemapApi = (env: Record<string, string>): Plugin => ({
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
-            error: "Could not generate sitemap",
             detail: error instanceof Error ? error.message : "Unknown error",
+            error: "Could not generate sitemap",
           })
         );
       }
     });
   },
+  name: "vite-sitemap-api",
 });

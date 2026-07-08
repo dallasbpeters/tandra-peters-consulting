@@ -331,6 +331,41 @@ vi.mock("@awesome.me/webawesome/dist/react/switch/index.js", () => ({
   },
 }));
 
+vi.mock("@awesome.me/webawesome/dist/react/checkbox/index.js", () => ({
+  default: ({
+    name,
+    checked,
+    onChange,
+    disabled,
+    className,
+    children,
+  }: {
+    name?: string;
+    checked?: boolean;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled?: boolean;
+    className?: string;
+    children?: React.ReactNode;
+  }) => {
+    const childLabel = typeof children === "string" ? children : undefined;
+    const fieldId = waFieldId(childLabel, name);
+    return (
+      <label className={className} htmlFor={fieldId}>
+        <input
+          aria-checked={Boolean(checked)}
+          checked={Boolean(checked)}
+          disabled={Boolean(disabled)}
+          id={fieldId}
+          name={(name as string) ?? fieldId}
+          onChange={onChange}
+          type="checkbox"
+        />
+        {children}
+      </label>
+    );
+  },
+}));
+
 vi.mock("@awesome.me/webawesome/dist/react/color-picker/index.js", () => ({
   default: ({
     label,

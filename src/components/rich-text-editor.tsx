@@ -1,14 +1,16 @@
 import {
   defineSchema,
   EditorProvider,
-  type PortableTextBlock,
   PortableTextEditable,
-  type RenderAnnotationFunction,
-  type RenderDecoratorFunction,
-  type RenderListItemFunction,
-  type RenderStyleFunction,
   useEditor,
   useEditorSelector,
+} from "@portabletext/editor";
+import type {
+  PortableTextBlock,
+  RenderAnnotationFunction,
+  RenderDecoratorFunction,
+  RenderListItemFunction,
+  RenderStyleFunction,
 } from "@portabletext/editor";
 import { EventListenerPlugin } from "@portabletext/editor/plugins";
 import {

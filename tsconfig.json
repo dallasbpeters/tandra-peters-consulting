@@ -29,6 +29,7 @@
       "@/data": ["./src/data"]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "strictNullChecks": true
   }
 }

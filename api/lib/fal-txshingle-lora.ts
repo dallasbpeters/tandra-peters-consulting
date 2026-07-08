@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type FalImageSize, pixelsFromImageSize } from "./fal-image-size.js";
+import { pixelsFromImageSize } from "./fal-image-size.js";
+import type { FalImageSize } from "./fal-image-size.js";
 
 const REPO_ROOT = join(fileURLToPath(new URL("../..", import.meta.url)));
 const MANIFEST_PATH = join(REPO_ROOT, "training", "txshingle-lora.json");
@@ -24,7 +25,7 @@ export const resolveTxshingleLoraUrl = (): string => {
 
   if (existsSync(MANIFEST_PATH)) {
     const manifest = JSON.parse(
-      readFileSync(MANIFEST_PATH, "utf8")
+      readFileSync(MANIFEST_PATH, "utf-8")
     ) as TxshingleLoraManifest;
     const fromManifest =
       manifest.diffusersLoraFile?.url?.trim() ||

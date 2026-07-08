@@ -13,7 +13,7 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
     return {};
   }
   try {
-    return JSON.parse(buffer.toString("utf8")) as Record<string, unknown>;
+    return JSON.parse(buffer.toString("utf-8")) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -27,7 +27,6 @@ const parseJson = (buffer: Buffer): Record<string, unknown> => {
 export const viteRenderTandraIntroApi = (
   env: Record<string, string>
 ): Plugin => ({
-  name: "vite-render-tandra-intro-api",
   configureServer(server) {
     for (const key of [
       "BLOB_READ_WRITE_TOKEN",
@@ -83,12 +82,8 @@ export const viteRenderTandraIntroApi = (
           .searchParams;
 
         const devRes = {
-          setHeader(name: string, value: string | number | readonly string[]) {
-            res.setHeader(name, value);
-            return devRes;
-          },
-          status(code: number) {
-            res.statusCode = code;
+          end(payload?: string) {
+            res.end(payload);
             return devRes;
           },
           json(payload: unknown) {
@@ -98,18 +93,22 @@ export const viteRenderTandraIntroApi = (
             res.end(JSON.stringify(payload));
             return devRes;
           },
-          end(payload?: string) {
-            res.end(payload);
+          setHeader(name: string, value: string | number | readonly string[]) {
+            res.setHeader(name, value);
+            return devRes;
+          },
+          status(code: number) {
+            res.statusCode = code;
             return devRes;
           },
         };
 
         await renderTandraIntro(
           {
-            method: req.method,
-            headers,
-            query: Object.fromEntries(query.entries()),
             body,
+            headers,
+            method: req.method,
+            query: Object.fromEntries(query.entries()),
           } as never,
           devRes as never
         );
@@ -121,4 +120,5 @@ export const viteRenderTandraIntroApi = (
       }
     });
   },
+  name: "vite-render-tandra-intro-api",
 });

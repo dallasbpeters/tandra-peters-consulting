@@ -12,12 +12,11 @@
 
 import { createClient } from "@sanity/client";
 
-import {
-  type CalendarPlanProposal,
-  type MonthRef,
-  monthKey,
-  parsePlanProposals,
+import type {
+  CalendarPlanProposal,
+  MonthRef,
 } from "../../src/lib/content-calendar";
+import { monthKey, parsePlanProposals } from "../../src/lib/content-calendar";
 
 const SANITY_PROJECT_ID = "7irm699i";
 const SANITY_DATASET = "production";
@@ -63,7 +62,7 @@ interface DeskLeadSignal {
 
 interface CanvassTargetSignal {
   name?: string;
-  neighborhoods?: Array<{ county?: string; neighborhood?: string }>;
+  neighborhoods?: { county?: string; neighborhood?: string }[];
   status?: string;
 }
 
@@ -96,8 +95,8 @@ const CONTEXT_QUERY = `{
   "posts": *[_type == "post"] | order(publishedAt desc)[0...12]{
     title, category, publishedAt
   },
-  "existingEntries": *[_type == "contentCalendarEntry" && scheduledFor >= $start && scheduledFor <= $end] | order(scheduledFor asc)[0...50]{
-    title, channel, scheduledFor
+  "existingEntries": *[_type == "deskBoardItem" && kind == "content" && publishDate >= $start && publishDate <= $end] | order(publishDate asc)[0...50]{
+    title, channel, "scheduledFor": publishDate
   }
 }`;
 
@@ -243,7 +242,7 @@ export const extractJsonPayload = (text: string): unknown => {
   const cleaned = text.replaceAll(FENCE_RE, "").trim();
   const candidates: string[] = [cleaned];
 
-  const blocks: Array<{ slice: string; start: number }> = [];
+  const blocks: { slice: string; start: number }[] = [];
   const arrayStart = cleaned.indexOf("[");
   const arrayEnd = cleaned.lastIndexOf("]");
   if (arrayStart !== -1 && arrayEnd > arrayStart) {
@@ -319,11 +318,12 @@ export const generateCalendarPlan = async (
       ? payload.focus.trim().slice(0, MAX_FOCUS_LENGTH)
       : "";
 
-  const context = await fetchPlanningContext(options.sanityToken, month);
-
   // Dynamic imports keep the AI SDK out of cold paths that never plan.
-  const { createGroq } = await import("@ai-sdk/groq");
-  const { generateText } = await import("ai");
+  const [context, { createGroq }, { generateText }] = await Promise.all([
+    fetchPlanningContext(options.sanityToken, month),
+    import("@ai-sdk/groq"),
+    import("ai"),
+  ]);
 
   const groq = createGroq({
     apiKey: options.groqApiKey,

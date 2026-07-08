@@ -47,8 +47,8 @@ interface SeoDashboardPayload {
     ctaClicks7d: number | null;
     deltaPageviews: number | null;
     deltaLeads: number | null;
-    topPages: Array<{ path: string; pageviews: number }>;
-    dailyPageviews: Array<{ date: string; pageviews: number }>;
+    topPages: { path: string; pageviews: number }[];
+    dailyPageviews: { date: string; pageviews: number }[];
   };
   audits: SeoAuditItem[];
   content: {
@@ -60,7 +60,7 @@ interface SeoDashboardPayload {
     thinContentPosts: number;
     postsWithoutInternalLinks: number;
     postsWithWeakStructure: number;
-    categories: Array<{ slug: string; label: string; count: number }>;
+    categories: { slug: string; label: string; count: number }[];
   };
   contentAnalyses: SeoContentAnalysisItem[];
   generatedAt: string;
@@ -205,10 +205,10 @@ const DEFAULT_SITE_URL = "https://www.tandra.me";
 const AI_MODEL = "gemini-2.5-flash";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  "roof-replacement": "Roof replacement",
-  "insurance-claims": "Insurance claims",
   inspections: "Inspections",
+  "insurance-claims": "Insurance claims",
   maintenance: "Maintenance",
+  "roof-replacement": "Roof replacement",
   "texas-homeowners": "Texas homeowners",
 };
 
@@ -299,7 +299,7 @@ const hasPortableTextContent = (value: unknown): boolean => {
     if (!block || typeof block !== "object") {
       return false;
     }
-    const children = (block as { children?: unknown }).children;
+    const { children } = block as { children?: unknown };
     if (!Array.isArray(children)) {
       return false;
     }
@@ -307,7 +307,7 @@ const hasPortableTextContent = (value: unknown): boolean => {
       if (!child || typeof child !== "object") {
         return false;
       }
-      const text = (child as { text?: unknown }).text;
+      const { text } = child as { text?: unknown };
       return typeof text === "string" && text.trim().length > 0;
     });
   });
@@ -452,7 +452,7 @@ const countLinks = (
     }
   }
 
-  return { internalLinks, externalLinks };
+  return { externalLinks, internalLinks };
 };
 
 const formatArticlePath = (slug: string | null | undefined): string =>
@@ -479,7 +479,7 @@ const getAnalyticsHostnames = (siteUrl: string): string[] => {
     } else {
       values.add(`www.${hostname}`);
     }
-    return Array.from(values);
+    return [...values];
   } catch {
     return ["www.tandra.me", "tandra.me"];
   }
@@ -608,24 +608,24 @@ const normalizePath = (
 };
 
 const aggregateTopPages = (
-  rows: Array<{ path: string; pageviews: number }>
-): Array<{ path: string; pageviews: number }> => {
+  rows: { path: string; pageviews: number }[]
+): { path: string; pageviews: number }[] => {
   const totals = new Map<string, number>();
   for (const row of rows) {
     totals.set(row.path, (totals.get(row.path) ?? 0) + row.pageviews);
   }
 
-  return Array.from(totals.entries())
-    .map(([path, pageviews]) => ({ path, pageviews }))
-    .sort((a, b) => b.pageviews - a.pageviews)
+  return [...totals.entries()]
+    .map(([path, pageviews]) => ({ pageviews, path }))
+    .toSorted((a, b) => b.pageviews - a.pageviews)
     .slice(0, 8);
 };
 
 const buildSanityClient = (useCdn = true) =>
   createClient({
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    projectId: SANITY_PROJECT_ID,
     useCdn,
   });
 
@@ -636,9 +636,9 @@ const buildSanityWriteClient = () => {
   }
 
   return createClient({
-    projectId: SANITY_PROJECT_ID,
-    dataset: SANITY_DATASET,
     apiVersion: SANITY_API_VERSION,
+    dataset: SANITY_DATASET,
+    projectId: SANITY_PROJECT_ID,
     token,
     useCdn: false,
   });
@@ -648,11 +648,11 @@ const fetchSanityContent = async (): Promise<SanityDashboardQuery> => {
   const client = buildSanityClient();
   const result = await client.fetch<SanityDashboardQuery>(DASHBOARD_QUERY);
   return {
-    homePage: result?.homePage ?? null,
-    articlesPage: result?.articlesPage ?? null,
-    siteSettings: result?.siteSettings ?? null,
     aiContext: result?.aiContext ?? null,
+    articlesPage: result?.articlesPage ?? null,
+    homePage: result?.homePage ?? null,
     posts: Array.isArray(result?.posts) ? result.posts : [],
+    siteSettings: result?.siteSettings ?? null,
   };
 };
 
@@ -706,7 +706,7 @@ const readIndexHtml = async (): Promise<string> => {
   try {
     return await fs.readFile(
       new URL("../../index.html", import.meta.url),
-      "utf8"
+      "utf-8"
     );
   } catch {
     return "";
@@ -752,10 +752,10 @@ const cleanText = (value: unknown): string =>
 const formatSnapshotTimestamp = (value: string): string => {
   try {
     return new Intl.DateTimeFormat("en-US", {
-      month: "short",
       day: "numeric",
       hour: "numeric",
       minute: "2-digit",
+      month: "short",
     }).format(new Date(value));
   } catch {
     return value;
@@ -794,10 +794,10 @@ const sanitizeAiRecommendations = (value: unknown): SeoRecommendation[] => {
     }
 
     recommendations.push({
-      title,
       detail,
       priority: sanitizePriority((item as { priority?: unknown }).priority),
       source: "ai",
+      title,
     });
   }
 
@@ -828,11 +828,11 @@ const sanitizeAiOpportunities = (value: unknown): SeoOpportunity[] => {
     }
 
     opportunities.push({
-      type: sanitizeOpportunityType((item as { type?: unknown }).type),
-      title,
       detail,
-      target,
       impact: sanitizeImpact((item as { impact?: unknown }).impact),
+      target,
+      title,
+      type: sanitizeOpportunityType((item as { type?: unknown }).type),
     });
   }
 
@@ -858,28 +858,28 @@ const persistDashboardSnapshot = async (args: {
   await client.createOrReplace({
     _id: "seoDashboardInsights",
     _type: "seoDashboardInsights",
-    title: "SEO Dashboard Insights",
     lastGeneratedAt: args.payload.generatedAt,
     model: args.model ?? "",
-    siteUrl: args.payload.sourceStatus.siteUrl,
-    summary: args.payload.aiSummary ?? "",
-    snapshotPayload: JSON.stringify(args.payload),
-    recommendations: args.payload.recommendations.map((item, index) => ({
-      _type: "seoDashboardRecommendation",
-      _key: `rec-${Date.parse(args.payload.generatedAt)}-${index}`,
+    opportunities: args.payload.opportunities.map((item, index) => ({
+      _key: `opp-${Date.parse(args.payload.generatedAt)}-${index}`,
+      _type: "seoDashboardOpportunity",
+      detail: item.detail,
+      impact: item.impact,
+      target: item.target,
       title: item.title,
+      type: item.type,
+    })),
+    recommendations: args.payload.recommendations.map((item, index) => ({
+      _key: `rec-${Date.parse(args.payload.generatedAt)}-${index}`,
+      _type: "seoDashboardRecommendation",
       detail: item.detail,
       priority: item.priority,
-    })),
-    opportunities: args.payload.opportunities.map((item, index) => ({
-      _type: "seoDashboardOpportunity",
-      _key: `opp-${Date.parse(args.payload.generatedAt)}-${index}`,
-      type: item.type,
       title: item.title,
-      detail: item.detail,
-      target: item.target,
-      impact: item.impact,
     })),
+    siteUrl: args.payload.sourceStatus.siteUrl,
+    snapshotPayload: JSON.stringify(args.payload),
+    summary: args.payload.aiSummary ?? "",
+    title: "SEO Dashboard Insights",
   });
 
   return true;
@@ -901,56 +901,56 @@ const generateAiInsights = async (args: {
     return {
       connected: false,
       model: null,
-      summary: null,
-      recommendations: [],
-      opportunities: [],
       note: "AI recommendations are disabled because GEMINI_API_KEY is missing in the API runtime.",
+      opportunities: [],
       persisted: false,
+      recommendations: [],
+      summary: null,
     };
   }
 
   const evidence = {
-    generatedAt: args.generatedAt,
-    siteUrl: args.siteUrl,
-    analytics: args.analytics,
-    content: args.content,
-    overview: {
-      technicalScore: args.technicalScore,
-      contentScore: args.contentScore,
-    },
-    audits: args.audits.map((audit) => ({
-      path: audit.path,
-      title: audit.title,
-      score: audit.score,
-      status: audit.status,
-      issues: audit.issues,
-      actions: audit.actions,
-    })),
-    contentAnalyses: args.contentAnalyses.map((item) => ({
-      path: item.path,
-      title: item.title,
-      categoryLabel: item.categoryLabel,
-      score: item.score,
-      wordCount: item.wordCount,
-      headingCount: item.headingCount,
-      internalLinks: item.internalLinks,
-      externalLinks: item.externalLinks,
-      issues: item.issues,
-      actions: item.actions,
-    })),
     aiContext: args.aiContext
       ? {
-          instructions: cleanText(args.aiContext.instructions),
           businessPriorities: cleanStringList(
             args.aiContext.businessPriorities
           ),
           guardrails: cleanStringList(args.aiContext.guardrails),
-          targetKeywords: cleanStringList(args.aiContext.targetKeywords),
+          instructions: cleanText(args.aiContext.instructions),
           preferredInternalLinks: cleanStringList(
             args.aiContext.preferredInternalLinks
           ),
+          targetKeywords: cleanStringList(args.aiContext.targetKeywords),
         }
       : null,
+    analytics: args.analytics,
+    audits: args.audits.map((audit) => ({
+      actions: audit.actions,
+      issues: audit.issues,
+      path: audit.path,
+      score: audit.score,
+      status: audit.status,
+      title: audit.title,
+    })),
+    content: args.content,
+    contentAnalyses: args.contentAnalyses.map((item) => ({
+      actions: item.actions,
+      categoryLabel: item.categoryLabel,
+      externalLinks: item.externalLinks,
+      headingCount: item.headingCount,
+      internalLinks: item.internalLinks,
+      issues: item.issues,
+      path: item.path,
+      score: item.score,
+      title: item.title,
+      wordCount: item.wordCount,
+    })),
+    generatedAt: args.generatedAt,
+    overview: {
+      contentScore: args.contentScore,
+      technicalScore: args.technicalScore,
+    },
+    siteUrl: args.siteUrl,
   };
 
   const prompt = `You are generating SEO recommendations for a live dashboard.
@@ -984,8 +984,8 @@ ${JSON.stringify(evidence, null, 2)}`;
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: AI_MODEL,
       contents: prompt,
+      model: AI_MODEL,
     });
 
     const rawText = cleanText(response.text);
@@ -1007,21 +1007,21 @@ ${JSON.stringify(evidence, null, 2)}`;
     return {
       connected: true,
       model: AI_MODEL,
-      summary,
-      recommendations,
-      opportunities,
       note: `AI recommendations were generated with ${AI_MODEL} from live dashboard data.`,
+      opportunities,
       persisted: false,
+      recommendations,
+      summary,
     };
   } catch (error) {
     return {
       connected: false,
       model: AI_MODEL,
-      summary: null,
-      recommendations: [],
-      opportunities: [],
       note: `AI recommendation generation failed on this refresh: ${error instanceof Error ? error.message : "Unknown error"}.`,
+      opportunities: [],
       persisted: false,
+      recommendations: [],
+      summary: null,
     };
   }
 };
@@ -1039,19 +1039,19 @@ const fetchPosthogRows = async <T extends Record<string, unknown>>(
   const response = await fetch(
     `${getPosthogHost()}/api/projects/${projectId}/query/`,
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${personalApiKey}`,
-      },
       body: JSON.stringify({
+        name,
         query: {
           kind: "HogQLQuery",
           query: sql,
         },
-        name,
         refresh: "force_blocking",
       }),
+      headers: {
+        Authorization: `Bearer ${personalApiKey}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
     }
   );
 
@@ -1071,18 +1071,18 @@ const buildAnalytics = async (siteUrl: string) => {
 
   if (!connected) {
     return {
-      status: "missing_config" as AnalyticsStatus,
       connected: false,
-      timeframeLabel: "Last 7 days",
-      scopeLabel,
-      pageviews7d: null,
-      visitors7d: null,
-      leads7d: null,
       ctaClicks7d: null,
-      deltaPageviews: null,
-      deltaLeads: null,
-      topPages: [],
       dailyPageviews: [],
+      deltaLeads: null,
+      deltaPageviews: null,
+      leads7d: null,
+      pageviews7d: null,
+      scopeLabel,
+      status: "missing_config" as AnalyticsStatus,
+      timeframeLabel: "Last 7 days",
+      topPages: [],
+      visitors7d: null,
     };
   }
 
@@ -1152,48 +1152,48 @@ const buildAnalytics = async (siteUrl: string) => {
     const delta = deltaRows[0] ?? {};
 
     return {
-      status: "connected" as AnalyticsStatus,
       connected: true,
-      timeframeLabel: "Last 7 days",
-      scopeLabel,
-      pageviews7d: parseNumber(overview.pageviews_7d),
-      visitors7d: parseNumber(overview.visitors_7d),
-      leads7d: parseNumber(overview.leads_7d),
       ctaClicks7d: parseNumber(overview.cta_clicks_7d),
-      deltaPageviews:
-        parseNumber(overview.pageviews_7d) -
-        parseNumber(delta.pageviews_prev_7d),
-      deltaLeads:
-        parseNumber(overview.leads_7d) - parseNumber(delta.leads_prev_7d),
-      topPages: aggregateTopPages(
-        topPageRows
-          .map((row) => ({
-            path: normalizePath(row.url, siteUrl),
-            pageviews: parseNumber(row.pageviews),
-          }))
-          .filter((row) => row.pageviews > 0)
-      ),
       dailyPageviews: dailyRows
         .map((row) => ({
           date: trim(row.day),
           pageviews: parseNumber(row.pageviews),
         }))
         .filter((row) => row.date.length > 0),
+      deltaLeads:
+        parseNumber(overview.leads_7d) - parseNumber(delta.leads_prev_7d),
+      deltaPageviews:
+        parseNumber(overview.pageviews_7d) -
+        parseNumber(delta.pageviews_prev_7d),
+      leads7d: parseNumber(overview.leads_7d),
+      pageviews7d: parseNumber(overview.pageviews_7d),
+      scopeLabel,
+      status: "connected" as AnalyticsStatus,
+      timeframeLabel: "Last 7 days",
+      topPages: aggregateTopPages(
+        topPageRows
+          .map((row) => ({
+            pageviews: parseNumber(row.pageviews),
+            path: normalizePath(row.url, siteUrl),
+          }))
+          .filter((row) => row.pageviews > 0)
+      ),
+      visitors7d: parseNumber(overview.visitors_7d),
     };
   } catch {
     return {
-      status: "error" as AnalyticsStatus,
       connected: false,
-      timeframeLabel: "Last 7 days",
-      scopeLabel,
-      pageviews7d: null,
-      visitors7d: null,
-      leads7d: null,
       ctaClicks7d: null,
-      deltaPageviews: null,
-      deltaLeads: null,
-      topPages: [],
       dailyPageviews: [],
+      deltaLeads: null,
+      deltaPageviews: null,
+      leads7d: null,
+      pageviews7d: null,
+      scopeLabel,
+      status: "error" as AnalyticsStatus,
+      timeframeLabel: "Last 7 days",
+      topPages: [],
+      visitors7d: null,
     };
   }
 };
@@ -1332,26 +1332,26 @@ const buildContentAnalysis = (args: {
   }
 
   return {
-    path: formatArticlePath(args.post.slug),
-    title: trim(args.post.title) || "Untitled article",
+    actions,
     categoryLabel:
       (CATEGORY_LABELS[trim(args.post.category)] ??
         trim(args.post.category).replace(RE_HYPHEN_G, " ")) ||
       "Uncategorized",
-    score: clampScore(score),
-    status: scoreToStatus(score),
-    wordCount,
-    readingMinutes,
-    headingCount,
-    listCount,
-    internalLinks,
-    externalLinks,
-    titleLength,
     excerptLength,
-    seoDescriptionLength,
-    updatedAt: getPostFreshnessDate(args.post) ?? undefined,
+    externalLinks,
+    headingCount,
+    internalLinks,
     issues,
-    actions,
+    listCount,
+    path: formatArticlePath(args.post.slug),
+    readingMinutes,
+    score: clampScore(score),
+    seoDescriptionLength,
+    status: scoreToStatus(score),
+    title: trim(args.post.title) || "Untitled article",
+    titleLength,
+    updatedAt: getPostFreshnessDate(args.post) ?? undefined,
+    wordCount,
   };
 };
 
@@ -1398,18 +1398,18 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
 
   const categories = Object.entries(CATEGORY_LABELS)
     .map(([slug, label]) => ({
-      slug,
-      label,
       count: categoryCounts.get(slug) ?? 0,
+      label,
+      slug,
     }))
-    .sort((a, b) => b.count - a.count);
+    .toSorted((a, b) => b.count - a.count);
 
   const uncategorizedCount = categoryCounts.get("uncategorized") ?? 0;
   if (uncategorizedCount > 0) {
     categories.push({
-      slug: "uncategorized",
-      label: "Uncategorized",
       count: uncategorizedCount,
+      label: "Uncategorized",
+      slug: "uncategorized",
     });
   }
 
@@ -1425,12 +1425,12 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
     .map((post) =>
       buildContentAnalysis({
         post,
-        siteUrl,
         siblingPosts:
           postsByCategory.get(trim(post.category) || "uncategorized") ?? [],
+        siteUrl,
       })
     )
-    .sort((a, b) => a.score - b.score);
+    .toSorted((a, b) => a.score - b.score);
 
   const thinContentPosts = contentAnalyses.filter(
     (post) => post.wordCount < 800
@@ -1462,9 +1462,9 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
 
   const shellChecks = {
     hasCanonical: RE_CANONICAL.test(indexHtml),
+    hasFbAppId: RE_FB_APP_ID.test(indexHtml),
     hasOgImage: RE_OG_IMAGE.test(indexHtml),
     hasTwitterImage: RE_TWITTER_IMAGE.test(indexHtml),
-    hasFbAppId: RE_FB_APP_ID.test(indexHtml),
   };
 
   const globalIssues: string[] = [];
@@ -1562,60 +1562,60 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   const postAudits = contentAnalyses
     .map<SeoAuditItem>((analysis) =>
       buildAudit({
-        path: analysis.path,
-        title: analysis.title,
-        score: analysis.score,
-        issues: analysis.issues,
         actions: analysis.actions,
+        issues: analysis.issues,
+        path: analysis.path,
+        score: analysis.score,
+        title: analysis.title,
         updatedAt: analysis.updatedAt,
       })
     )
-    .sort((a, b) => a.score - b.score)
+    .toSorted((a, b) => a.score - b.score)
     .slice(0, 6);
 
   const audits: SeoAuditItem[] = [
     buildAudit({
-      path: "global",
-      title: "Global meta shell",
-      score: clampScore(100 - globalIssues.length * 18),
-      issues:
-        globalIssues.length > 0
-          ? globalIssues
-          : ["Static social and canonical tags are present."],
       actions:
         globalActions.length > 0
           ? globalActions
           : [
               "Keep the current shell tags in sync with any future branding changes.",
             ],
+      issues:
+        globalIssues.length > 0
+          ? globalIssues
+          : ["Static social and canonical tags are present."],
+      path: "global",
+      score: clampScore(100 - globalIssues.length * 18),
+      title: "Global meta shell",
     }),
     buildAudit({
-      path: "/",
-      title: "Homepage",
-      score: clampScore(100 - homeIssues.length * 18),
-      issues:
-        homeIssues.length > 0
-          ? homeIssues
-          : ["Homepage metadata and hero content are populated."],
       actions:
         homeActions.length > 0
           ? homeActions
           : ["Refresh the homepage copy whenever service positioning changes."],
+      issues:
+        homeIssues.length > 0
+          ? homeIssues
+          : ["Homepage metadata and hero content are populated."],
+      path: "/",
+      score: clampScore(100 - homeIssues.length * 18),
+      title: "Homepage",
     }),
     buildAudit({
-      path: "/articles",
-      title: "Articles hub",
-      score: clampScore(100 - articlesIssues.length * 20),
-      issues:
-        articlesIssues.length > 0
-          ? articlesIssues
-          : ["Articles index has SEO fields and published content behind it."],
       actions:
         articlesActions.length > 0
           ? articlesActions
           : [
               "Keep category coverage balanced so the hub serves multiple search intents.",
             ],
+      issues:
+        articlesIssues.length > 0
+          ? articlesIssues
+          : ["Articles index has SEO fields and published content behind it."],
+      path: "/articles",
+      score: clampScore(100 - articlesIssues.length * 20),
+      title: "Articles hub",
     }),
     ...postAudits,
   ];
@@ -1636,27 +1636,27 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   );
 
   const contentSnapshot = {
-    publishedPosts,
-    stalePosts: stalePosts.length,
-    missingSeoDescription,
+    categories,
     missingExcerpt,
     missingImage,
-    thinContentPosts: thinContentPosts.length,
-    postsWithoutInternalLinks: postsWithoutInternalLinks.length,
+    missingSeoDescription,
     postsWithWeakStructure: postsWithWeakStructure.length,
-    categories,
+    postsWithoutInternalLinks: postsWithoutInternalLinks.length,
+    publishedPosts,
+    stalePosts: stalePosts.length,
+    thinContentPosts: thinContentPosts.length,
   };
 
   const aiInsights = await generateAiInsights({
+    aiContext: contentData.aiContext,
+    analytics,
+    audits,
+    content: contentSnapshot,
+    contentAnalyses: contentAnalyses.slice(0, 6),
+    contentScore,
     generatedAt,
     siteUrl,
-    analytics,
-    content: contentSnapshot,
-    audits,
-    contentAnalyses: contentAnalyses.slice(0, 6),
     technicalScore,
-    contentScore,
-    aiContext: contentData.aiContext,
   });
 
   let analyticsStatusNote: string;
@@ -1671,37 +1671,37 @@ const buildSeoDashboardSnapshot = async (): Promise<SeoDashboardPayload> => {
   }
 
   const payload: SeoDashboardPayload = {
+    aiSummary: aiInsights.summary,
+    analytics,
+    audits,
+    content: contentSnapshot,
+    contentAnalyses: contentAnalyses.slice(0, 6),
     generatedAt,
-    sourceStatus: {
-      posthogConnected: analytics.connected,
-      aiConnected: aiInsights.connected,
-      siteUrl,
-      notes: [analyticsStatusNote, aiInsights.note],
-    },
+    opportunities: aiInsights.opportunities,
     overview: {
-      technicalScore,
       contentScore,
-      opportunities:
-        aiInsights.opportunities.length + aiInsights.recommendations.length,
-      totalPages: publishedPosts + 5,
-      totalPublishedPosts: publishedPosts,
       criticalIssues: audits.filter((audit) => audit.status === "critical")
         .length,
+      opportunities:
+        aiInsights.opportunities.length + aiInsights.recommendations.length,
+      technicalScore,
+      totalPages: publishedPosts + 5,
+      totalPublishedPosts: publishedPosts,
       warningIssues: audits.filter((audit) => audit.status === "warning")
         .length,
     },
-    analytics,
-    content: contentSnapshot,
-    contentAnalyses: contentAnalyses.slice(0, 6),
-    audits,
     recommendations: aiInsights.recommendations,
-    opportunities: aiInsights.opportunities,
-    aiSummary: aiInsights.summary,
+    sourceStatus: {
+      aiConnected: aiInsights.connected,
+      notes: [analyticsStatusNote, aiInsights.note],
+      posthogConnected: analytics.connected,
+      siteUrl,
+    },
   };
 
   const persisted = await persistDashboardSnapshot({
-    payload,
     model: aiInsights.model,
+    payload,
   }).catch(() => false);
 
   return {

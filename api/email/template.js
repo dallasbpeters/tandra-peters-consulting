@@ -21,13 +21,13 @@ import { PortableTextToEmail } from "./portableText.js";
 import { sanityImage } from "./sanity.js";
 
 const colors = {
-  ink: "#0f1f18",
-  body: "#1a2b22",
-  muted: "#5b6b62",
   accent: "#3a7d5d",
+  body: "#1a2b22",
   border: "#e4e8e6",
-  surface: "#ffffff",
+  ink: "#0f1f18",
+  muted: "#5b6b62",
   page: "#f3f5f4",
+  surface: "#ffffff",
 };
 
 const main = {
@@ -50,9 +50,9 @@ const container = {
 const inner = { padding: "32px 36px" };
 
 const greetingStyle = {
+  color: colors.body,
   fontSize: "15px",
   lineHeight: "26px",
-  color: colors.body,
   margin: "0 0 16px",
 };
 
@@ -67,53 +67,53 @@ const buttonStyle = {
 };
 
 const closingStyle = {
+  color: colors.body,
   fontSize: "15px",
   lineHeight: "26px",
-  color: colors.body,
   margin: "8px 0 4px",
 };
 
 const sigName = {
+  color: colors.ink,
   fontSize: "16px",
   fontWeight: 700,
-  color: colors.ink,
   margin: 0,
 };
 
 const sigRole = {
-  fontSize: "13px",
   color: colors.accent,
+  fontSize: "13px",
   margin: "2px 0 0",
 };
 
 const sigTagline = {
+  color: colors.muted,
   fontSize: "12px",
   lineHeight: "18px",
-  color: colors.muted,
   margin: "6px 0 0",
 };
 
 const sigContact = {
-  fontSize: "12px",
   color: colors.muted,
+  fontSize: "12px",
   margin: "8px 0 0",
 };
 
 const sigLink = { color: colors.accent, textDecoration: "none" };
 
 const legal = {
+  color: "#8a958e",
   fontSize: "11px",
   lineHeight: "18px",
-  color: "#8a958e",
   margin: "20px 0 0",
 };
 
 const DEFAULTS = {
-  subject: "Your roof inspection summary & next steps",
-  greeting: "Hi there,",
+  closing: "Talk soon,",
   ctaLabel: "View your inspection report",
   ctaUrl: "https://www.tandra.me",
-  closing: "Talk soon,",
+  greeting: "Hi there,",
+  subject: "Your roof inspection summary & next steps",
 };
 
 const NON_PHONE_CHARS_RE = /[^0-9+]/g;
@@ -127,9 +127,9 @@ const Signature = ({ signature, assets }) => {
       ? {
           id: "phone",
           node: jsx(Link, {
+            children: signature.phone,
             href: `tel:${signature.phone.replace(NON_PHONE_CHARS_RE, "")}`,
             style: sigLink,
-            children: signature.phone,
           }),
         }
       : null,
@@ -137,9 +137,9 @@ const Signature = ({ signature, assets }) => {
       ? {
           id: "email",
           node: jsx(Link, {
+            children: signature.email,
             href: `mailto:${signature.email}`,
             style: sigLink,
-            children: signature.email,
           }),
         }
       : null,
@@ -147,9 +147,9 @@ const Signature = ({ signature, assets }) => {
       ? {
           id: "web",
           node: jsx(Link, {
+            children: signature.website.replace(PROTOCOL_RE, ""),
             href: signature.website,
             style: sigLink,
-            children: signature.website.replace(PROTOCOL_RE, ""),
           }),
         }
       : null,
@@ -160,35 +160,30 @@ const Signature = ({ signature, assets }) => {
       children: [
         headshotUrl
           ? jsx(Column, {
-              style: { width: "64px", verticalAlign: "top" },
               children: jsx(Img, {
                 alt: signature.name ?? "Headshot",
                 height: "56",
-                src: sanityImage(headshotUrl, { w: 128, h: 128, fit: "crop" }),
+                src: sanityImage(headshotUrl, { fit: "crop", h: 128, w: 128 }),
                 style: { borderRadius: "50%", display: "block" },
                 width: "56",
               }),
+              style: { verticalAlign: "top", width: "64px" },
             })
           : null,
         jsxs(Column, {
-          style: {
-            verticalAlign: "top",
-            paddingLeft: headshotUrl ? "14px" : 0,
-          },
           children: [
-            jsx(Text, { style: sigName, children: signature.name }),
+            jsx(Text, { children: signature.name, style: sigName }),
             jsx(Text, {
-              style: sigRole,
               children: [signature.jobTitle, signature.company]
                 .filter(Boolean)
-                .join(" \u00b7 "),
+                .join(" \u00B7 "),
+              style: sigRole,
             }),
             signature.tagline
-              ? jsx(Text, { style: sigTagline, children: signature.tagline })
+              ? jsx(Text, { children: signature.tagline, style: sigTagline })
               : null,
             contacts.length
               ? jsx(Text, {
-                  style: sigContact,
                   children: contacts.map(({ id, node }, i) =>
                     jsxs(
                       "span",
@@ -196,8 +191,8 @@ const Signature = ({ signature, assets }) => {
                         children: [
                           i > 0
                             ? jsxs("span", {
+                                children: [" ", "\u00A0|\u00A0", " "],
                                 style: { color: colors.border },
-                                children: [" ", "\u00a0|\u00a0", " "],
                               })
                             : null,
                           node,
@@ -206,9 +201,14 @@ const Signature = ({ signature, assets }) => {
                       id
                     )
                   ),
+                  style: sigContact,
                 })
               : null,
           ],
+          style: {
+            paddingLeft: headshotUrl ? "14px" : 0,
+            verticalAlign: "top",
+          },
         }),
       ],
     }),
@@ -223,9 +223,9 @@ export const ClientEmailDocument = ({ content, assets }) => {
   const ctaUrl = content.ctaUrl?.trim() || DEFAULTS.ctaUrl;
   const closing = content.closing?.trim() || DEFAULTS.closing;
   const signature = content.signature ?? {
-    name: "Tandra Peters",
-    jobTitle: "Roofing Consultant",
     company: "Birdcreek Roofing",
+    jobTitle: "Roofing Consultant",
+    name: "Tandra Peters",
     tagline: "Helping Central Texas homeowners through the roofing process.",
     website: "https://www.tandra.me",
   };
@@ -235,71 +235,71 @@ export const ClientEmailDocument = ({ content, assets }) => {
       jsx(Head, {}),
       jsx(Preview, { children: previewText }),
       jsx(Body, {
-        style: main,
         children: jsxs(Container, {
-          style: container,
           children: [
             jsx(Section, {
-              style: { padding: "24px 36px 0" },
               children: jsx(Img, {
                 alt: "Birdcreek Roofing",
                 height: "60",
                 src: assets.headerLogoUrl,
                 style: { display: "block" },
               }),
+              style: { padding: "24px 36px 0" },
             }),
             jsxs(Section, {
-              style: inner,
               children: [
                 jsx(Heading, {
                   as: "h1",
-                  style: {
-                    fontSize: "22px",
-                    color: colors.ink,
-                    margin: "0 0 20px",
-                    lineHeight: "30px",
-                  },
                   children: subject,
+                  style: {
+                    color: colors.ink,
+                    fontSize: "22px",
+                    lineHeight: "30px",
+                    margin: "0 0 20px",
+                  },
                 }),
-                jsx(Text, { style: greetingStyle, children: greeting }),
+                jsx(Text, { children: greeting, style: greetingStyle }),
                 content.body?.length
                   ? jsx(PortableTextToEmail, { blocks: content.body })
                   : jsxs(Fragment, {
                       children: [
                         jsx(Text, {
-                          style: greetingStyle,
                           children:
                             "Thank you for letting me take a look at your roof. I've put together a clear summary of what I found, along with photos and my honest recommendation for next steps \u2014 no pressure, just the facts you need to make a confident decision.",
+                          style: greetingStyle,
                         }),
                         jsx(Text, {
-                          style: greetingStyle,
                           children:
                             "Take a look whenever you have a few minutes, and reply to this email with any questions. I'm happy to walk through it with you.",
+                          style: greetingStyle,
                         }),
                       ],
                     }),
                 jsx(Section, {
-                  style: { margin: "24px 0", textAlign: "center" },
                   children: jsx(Button, {
+                    children: ctaLabel,
                     href: ctaUrl,
                     style: buttonStyle,
-                    children: ctaLabel,
                   }),
+                  style: { margin: "24px 0", textAlign: "center" },
                 }),
-                jsx(Text, { style: closingStyle, children: closing }),
+                jsx(Text, { children: closing, style: closingStyle }),
                 jsx(Hr, {
                   style: { borderColor: colors.border, margin: "12px 0 20px" },
                 }),
                 jsx(Signature, { assets, signature }),
                 jsx(Text, {
-                  style: legal,
                   children:
                     "You're receiving this because you requested a roof inspection or consultation with Birdcreek Roofing. If this reached you by mistake, just reply and let me know.",
+                  style: legal,
                 }),
               ],
+              style: inner,
             }),
           ],
+          style: container,
         }),
+        style: main,
       }),
     ],
   });

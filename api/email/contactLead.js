@@ -56,7 +56,7 @@ export const renderContactLeadEmail = (submission, assets) => {
     <title>New roofing inquiry</title>
   </head>
   <body style="background:#f3f5f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;margin:0;padding:24px 0;color:#1a2b22;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">New roofing inquiry from ${escapeHtml(name)}${service ? ` \u00b7 ${escapeHtml(service)}` : ""}</div>
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">New roofing inquiry from ${escapeHtml(name)}${service ? ` \u00B7 ${escapeHtml(service)}` : ""}</div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
       <tr>
         <td align="center">

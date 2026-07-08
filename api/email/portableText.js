@@ -3,25 +3,25 @@ import { Fragment } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 
 const paragraph = {
+  color: "#1a2b22",
   fontSize: "15px",
   lineHeight: "26px",
-  color: "#1a2b22",
   margin: "0 0 16px",
 };
 
 const heading = {
+  color: "#0f1f18",
   fontSize: "18px",
   fontWeight: 700,
-  color: "#0f1f18",
   margin: "24px 0 8px",
 };
 
 const quote = {
   ...paragraph,
   borderLeft: "3px solid #d8dedb",
-  paddingLeft: "14px",
-  fontStyle: "italic",
   color: "#46554d",
+  fontStyle: "italic",
+  paddingLeft: "14px",
 };
 
 const renderSpan = (span, block) => {
@@ -37,9 +37,9 @@ const renderSpan = (span, block) => {
       const def = block.markDefs?.find((m) => m._key === mark);
       if (def?.href) {
         node = jsx(Link, {
+          children: node,
           href: def.href,
           style: { color: "#3a7d5d", textDecoration: "underline" },
-          children: node,
         });
       }
     }
@@ -82,8 +82,8 @@ export const PortableTextToEmail = ({ blocks }) => {
       return jsxs(
         Text,
         {
-          style: { ...paragraph, margin: "0 0 8px", paddingLeft: "12px" },
           children: [marker, " ", children],
+          style: { ...paragraph, margin: "0 0 8px", paddingLeft: "12px" },
         },
         block._key
       );
@@ -94,15 +94,15 @@ export const PortableTextToEmail = ({ blocks }) => {
     if (block.style === "h2" || block.style === "h3") {
       return jsx(
         Heading,
-        { as: block.style, style: heading, children },
+        { as: block.style, children, style: heading },
         block._key
       );
     }
 
     if (block.style === "blockquote") {
-      return jsx(Text, { style: quote, children }, block._key);
+      return jsx(Text, { children, style: quote }, block._key);
     }
 
-    return jsx(Text, { style: paragraph, children }, block._key);
+    return jsx(Text, { children, style: paragraph }, block._key);
   });
 };

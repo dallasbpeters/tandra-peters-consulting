@@ -27,7 +27,6 @@ const sendJson = (
 export const viteUnsplashApi = (
   env: Record<string, string | undefined>
 ): Plugin => ({
-  name: "vite-unsplash-api",
   configureServer(server) {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
@@ -75,8 +74,8 @@ export const viteUnsplashApi = (
         try {
           const images = await searchUnsplashImages({
             accessKey,
-            query,
             page: Number(requestUrl.searchParams.get("page") ?? "1"),
+            query,
           });
           res.setHeader("Cache-Control", "no-store");
           sendJson(res, 200, { images });
@@ -125,4 +124,5 @@ export const viteUnsplashApi = (
       }
     });
   },
+  name: "vite-unsplash-api",
 });

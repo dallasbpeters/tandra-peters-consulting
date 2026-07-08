@@ -8,20 +8,20 @@ import {
 } from "iconoir-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  CalendarEntryForm,
-  type EntryFormSubmit,
-} from "../components/content-calendar/calendar-entry-form";
+import { CalendarEntryForm } from "../components/content-calendar/calendar-entry-form";
+import type { EntryFormSubmit } from "../components/content-calendar/calendar-entry-form";
 import { CalendarMonthGrid } from "../components/content-calendar/calendar-month-grid";
 import { CalendarPlanPanel } from "../components/content-calendar/calendar-plan-panel";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
+import type {
+  CalendarPlanProposal,
+  ContentCalendarEntry,
+} from "../lib/content-calendar";
 import {
   addMonths,
-  type CalendarPlanProposal,
-  type ContentCalendarEntry,
   monthGridRange,
   monthRefFromDate,
   monthTitle,

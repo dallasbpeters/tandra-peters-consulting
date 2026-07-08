@@ -80,27 +80,27 @@ All gated to allowlisted Google accounts (`tandra@birdcreekroofing.com`, `tandra
 
 Access: `https://www.tandra.me/studio` (sign in with Sanity account; member of project `7irm699i`).
 
-| Tool                                | What it does                                                           |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| Structure / content                 | Edit every page, article, FAQ, service, setting                        |
+| Tool | What it does |
+| --- | --- |
+| Structure / content | Edit every page, article, FAQ, service, setting |
 | ✨ Brand voice rewrites (AI Assist) | Rewrite in brand voice / warm up / tighten / strengthen trust / custom |
-| Image Manager                       | Manage image assets                                                    |
-| AI Image Studio                     | Generate images (fal)                                                  |
-| Email Preview                       | Preview client email templates                                         |
-| Videos                              | Render Remotion intro/marketing videos                                 |
-| Analytics                           | Google Analytics dashboard in-Studio                                   |
+| Image Manager | Manage image assets |
+| AI Image Studio | Generate images (fal) |
+| Email Preview | Preview client email templates |
+| Videos | Render Remotion intro/marketing videos |
+| Analytics | Google Analytics dashboard in-Studio |
 
 ### B. In-app dashboards & agents (direct URLs, sign in with allowlisted Google account)
 
-| URL                        | Tool                                                              |
-| -------------------------- | ----------------------------------------------------------------- |
-| `/seo`                     | SEO Dashboard — insights, opportunities, recommendations          |
-| `/marketing`               | Marketing Agent                                                   |
-| `/ads` (or `/advertising`) | Ad creative studio/editor — FB/IG sizes, 11 saved creatives       |
-| `/response`                | Response Agent — drafting lead replies                            |
-| `/emails` (or `/email`)    | Email Composer (Resend)                                           |
-| `/agent`                   | Feature Builder                                                   |
-| `/upscaler`                | Image upscaler (fal)                                              |
-| `/estimate`                | Roof cost estimator (public lead tool; config in `estimatorPage`) |
-| `/workflow`                | Insurance claims process page                                     |
-| Contact form               | Writes leads into `emailContact` (CRM in Studio)                  |
+| URL | Tool |
+| --- | --- |
+| `/seo` | SEO Dashboard — insights, opportunities, recommendations |
+| `/marketing` | Marketing Agent |
+| `/ads` (or `/advertising`) | Ad creative studio/editor — FB/IG sizes, 11 saved creatives |
+| `/response` | Response Agent — drafting lead replies |
+| `/emails` (or `/email`) | Email Composer (Resend) |
+| `/agent` | Feature Builder |
+| `/upscaler` | Image upscaler (fal) |
+| `/estimate` | Roof cost estimator (public lead tool; config in `estimatorPage`) |
+| `/workflow` | Insurance claims process page |
+| Contact form | Writes leads into `emailContact` (CRM in Studio) |

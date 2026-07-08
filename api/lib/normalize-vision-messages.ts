@@ -28,7 +28,7 @@ const normalizeImagePart = (part: {
     return part;
   }
 
-  const image = part.image;
+  const { image } = part;
   if (image instanceof URL) {
     if (image.protocol !== "data:") {
       return part;

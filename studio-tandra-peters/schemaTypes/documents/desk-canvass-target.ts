@@ -16,41 +16,32 @@ const statusOptions = [
  * owner-occupied older-home counts) used to prioritize where to hang door hangers.
  */
 export const deskCanvassTargetType = defineType({
-  name: "deskCanvassTarget",
-  title: "Canvassing target",
-  type: "document",
-  icon: PinIcon,
   fields: [
     defineField({
+      description: "e.g. “Serenada — walk Saturday”.",
       name: "name",
       title: "Name",
       type: "string",
-      description: "e.g. “Serenada — walk Saturday”.",
       validation: (Rule) => Rule.required().max(120),
     }),
     defineField({
+      initialValue: "planned",
       name: "status",
+      options: { layout: "radio", list: statusOptions },
       title: "Status",
       type: "string",
-      initialValue: "planned",
-      options: { layout: "radio", list: statusOptions },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      description: "Estimated owner-occupied older homes across the selection.",
       name: "homesTotal",
       title: "Homes to canvass",
       type: "number",
-      description: "Estimated owner-occupied older homes across the selection.",
     }),
     defineField({
       name: "neighborhoods",
-      title: "Neighborhoods",
-      type: "array",
       of: [
         defineArrayMember({
-          name: "neighborhood",
-          title: "Neighborhood",
-          type: "object",
           fields: [
             defineField({
               name: "tractFips",
@@ -77,70 +68,79 @@ export const deskCanvassTargetType = defineType({
               type: "number",
             }),
           ],
+          name: "neighborhood",
           preview: {
-            select: {
-              title: "neighborhood",
-              subtitle: "county",
-              homes: "homes",
-            },
             prepare: ({ title, subtitle, homes }) => ({
-              title: title || "Neighborhood",
               subtitle: [subtitle, homes ? `${homes} homes` : null]
                 .filter(Boolean)
                 .join(" · "),
+              title: title || "Neighborhood",
             }),
+            select: {
+              homes: "homes",
+              subtitle: "county",
+              title: "neighborhood",
+            },
           },
+          title: "Neighborhood",
+          type: "object",
         }),
       ],
+      title: "Neighborhoods",
+      type: "array",
     }),
     defineField({
       name: "notes",
+      rows: 3,
       title: "Notes",
       type: "text",
-      rows: 3,
     }),
     defineField({
       name: "createdAt",
+      readOnly: true,
       title: "Created at",
       type: "datetime",
-      readOnly: true,
     }),
     defineField({
       name: "updatedAt",
+      readOnly: true,
       title: "Updated at",
       type: "datetime",
-      readOnly: true,
     }),
     defineField({
       name: "createdBy",
+      readOnly: true,
       title: "Created by",
       type: "string",
-      readOnly: true,
     }),
   ],
+  icon: PinIcon,
+  name: "deskCanvassTarget",
   orderings: [
     {
+      by: [{ direction: "desc", field: "updatedAt" }],
       name: "updatedAtDesc",
       title: "Recently updated",
-      by: [{ field: "updatedAt", direction: "desc" }],
     },
     {
+      by: [{ direction: "asc", field: "status" }],
       name: "statusAsc",
       title: "Status",
-      by: [{ field: "status", direction: "asc" }],
     },
   ],
   preview: {
-    select: {
-      title: "name",
-      status: "status",
-      homes: "homesTotal",
-    },
     prepare: ({ title, status, homes }) => ({
-      title: title || "Canvassing target",
       subtitle: [status, homes ? `${homes} homes` : null]
         .filter(Boolean)
         .join(" · "),
+      title: title || "Canvassing target",
     }),
+    select: {
+      homes: "homesTotal",
+      status: "status",
+      title: "name",
+    },
   },
+  title: "Canvassing target",
+  type: "document",
 });

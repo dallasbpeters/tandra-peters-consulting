@@ -1,41 +1,41 @@
 import { defineField, defineType } from "sanity";
 
 export const articlesPageType = defineType({
-  name: "articlesPage",
-  title: "Articles page",
-  type: "document",
   fields: [
     defineField({
+      description: "Shown as the main H1 on /articles.",
+      initialValue: "Articles",
       name: "pageTitle",
       title: "Page heading",
       type: "string",
-      description: "Shown as the main H1 on /articles.",
-      initialValue: "Articles",
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      description: "Short text below the heading.",
       name: "intro",
       title: "Introduction",
       type: "blockContent",
-      description: "Short text below the heading.",
     }),
     defineField({
+      description:
+        "Browser tab title. If empty, the page heading is used with the site name.",
       name: "seoTitle",
       title: "SEO title",
       type: "string",
-      description:
-        "Browser tab title. If empty, the page heading is used with the site name.",
     }),
     defineField({
+      description: "Meta description for search and social previews.",
       name: "seoDescription",
+      rows: 3,
       title: "SEO description",
       type: "text",
-      rows: 3,
-      description: "Meta description for search and social previews.",
     }),
   ],
+  name: "articlesPage",
   preview: {
-    select: { title: "pageTitle" },
     prepare: ({ title }) => ({ title: title || "Articles page" }),
+    select: { title: "pageTitle" },
   },
+  title: "Articles page",
+  type: "document",
 });

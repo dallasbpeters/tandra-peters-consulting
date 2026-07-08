@@ -2,9 +2,6 @@
 import { defineField, defineType } from "sanity";
 
 const beforeAfterGalleryType = defineType({
-  name: "beforeAfterGallery",
-  title: "Before/After Gallery",
-  type: "document",
   fields: [
     defineField({
       name: "title",
@@ -27,6 +24,9 @@ const beforeAfterGalleryType = defineType({
       type: "text",
     }),
   ],
+  name: "beforeAfterGallery",
+  title: "Before/After Gallery",
+  type: "document",
 });
 
 export default beforeAfterGalleryType;

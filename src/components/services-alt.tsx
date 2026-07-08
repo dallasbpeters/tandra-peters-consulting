@@ -272,7 +272,7 @@ const BirdcreekAdvantageItem = ({
 
   return (
     <article className="services-alt-item" style={itemStyle}>
-      <div style={metaStyle}>{"CORE // ADV"}</div>
+      <div style={metaStyle}>CORE // ADV</div>
       <h2 style={titleStyle}>{birdcreekAdvantage.title}</h2>
       <div style={descStyle}>
         <RichText

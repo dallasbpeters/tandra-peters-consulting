@@ -12,9 +12,9 @@ const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   }
 
   try {
-    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const base64 = parts[1].replaceAll("-", "+").replaceAll("_", "/");
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-    const json = Buffer.from(padded, "base64").toString("utf8");
+    const json = Buffer.from(padded, "base64").toString("utf-8");
     return JSON.parse(json) as Record<string, unknown>;
   } catch {
     return null;
@@ -57,7 +57,7 @@ const readAllowlist = () => {
       ""
   );
 
-  return { emails, domain };
+  return { domain, emails };
 };
 
 export const isAllowedGoogleUser = (user: GoogleAuthUser): boolean => {

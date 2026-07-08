@@ -1,13 +1,15 @@
-import { PortableText, type PortableTextComponents } from "@portabletext/react";
+import { PortableText } from "@portabletext/react";
+import type { PortableTextComponents } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
-import { type CSSProperties, type ReactNode, useMemo } from "react";
+import { useMemo } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { theme } from "../theme";
 import { coercePortableTextInput } from "./value";
 
 /** Strip zero-width and invisible unicode chars that pollute SplitText word splitting. */
 const cleanText = (text: string): string =>
-  text.replace(/[\u200B-\u200D\uFEFF\u2060-\u206F]/g, "");
+  text.replaceAll(/[\u200B-\u200D\uFEFF\u2060-\u206F]/g, "");
 
 const EXTERNAL_LINK_RE = /^https?:\/\//i;
 

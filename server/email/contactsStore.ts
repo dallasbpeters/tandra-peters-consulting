@@ -8,7 +8,8 @@
  * requests carrying a Sanity token (the Studio, the auth-gated composer
  * endpoints) can read them.
  */
-import { createClient, type SanityClient } from "@sanity/client";
+import { createClient } from "@sanity/client";
+import type { SanityClient } from "@sanity/client";
 
 import type { ContactLeadSubmission, EmailRecipient } from "./types.js";
 
@@ -32,9 +33,9 @@ const contactDraftId = (email: string): string => {
   const key = email
     .trim()
     .toLowerCase()
-    .replace(/@/g, "-at-")
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^[-.]+|[-.]+$/g, "");
+    .replaceAll("@", "-at-")
+    .replaceAll(/[^a-z0-9._-]+/g, "-")
+    .replaceAll(/^[-.]+|[-.]+$/g, "");
   return `drafts.emailContact.${key}`;
 };
 
@@ -61,16 +62,16 @@ export const upsertContactLead = async (
       _id: id,
       _type: "emailContact",
       email,
-      source: "Website contact form",
-      subscribed: true,
       firstContactedAt: now,
+      source: "Website contact form",
       submissionCount: 0,
+      subscribed: true,
     })
     .patch(id, (p) =>
       p
         .set({
-          fullName: submission.fullName,
           email,
+          fullName: submission.fullName,
           lastContactedAt: now,
           ...(submission.phoneNumber
             ? { phoneNumber: submission.phoneNumber }
@@ -115,9 +116,9 @@ export const listEmailContacts = async (
         typeof r.email === "string" && r.email.includes("@")
     )
     .map((r) => ({
+      email: r.email.toLowerCase(),
       id: r.id,
       name: r.name?.trim() || r.email,
-      email: r.email.toLowerCase(),
     }));
 
   const search = options.search?.trim().toLowerCase();
@@ -145,7 +146,7 @@ export const mergeRecipients = (
   for (const r of attio) {
     byEmail.set(r.email, r);
   }
-  return [...byEmail.values()].sort((a, b) =>
+  return [...byEmail.values()].toSorted((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
   );
 };

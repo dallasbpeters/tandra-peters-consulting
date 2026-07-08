@@ -7,7 +7,6 @@ const sourceOptions = [
   { title: "Neighborhood post", value: "neighborhood-post" },
   { title: "Google post", value: "google-post" },
   { title: "Partner referral", value: "partner" },
-  { title: "Roof-check page", value: "roof-check-page" },
   { title: "Website estimate", value: "website-estimate" },
   { title: "Other", value: "other" },
 ] as const;

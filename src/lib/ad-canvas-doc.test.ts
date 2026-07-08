@@ -4,10 +4,10 @@ import {
   applyCopyToElements,
   buildCanvasReseedKey,
   ROLE_IDS,
-  type TextCanvasElement,
 } from "./ad-canvas-doc";
+import type { TextCanvasElement } from "./ad-canvas-doc";
 
-describe("buildCanvasReseedKey", () => {
+describe(buildCanvasReseedKey, () => {
   const creative = {
     fontPresetId: "brand-serif" as const,
     layout: "photo-fill" as const,
@@ -68,7 +68,7 @@ const copy = {
   headline: "See What the Storm Left Behind",
 };
 
-describe("applyCopyToElements", () => {
+describe(applyCopyToElements, () => {
   it("updates stable copy roles without changing element geometry", () => {
     const original = [
       textElement(ROLE_IDS.headline, "Old headline"),
@@ -80,7 +80,7 @@ describe("applyCopyToElements", () => {
 
     expect(
       result.map((element) => (element.kind === "text" ? element.text : ""))
-    ).toEqual([copy.headline, copy.body, copy.cta]);
+    ).toStrictEqual([copy.headline, copy.body, copy.cta]);
     expect(result[0]).toMatchObject({ width: 60, x: 12, y: 24 });
   });
 
@@ -95,6 +95,6 @@ describe("applyCopyToElements", () => {
 
     expect(
       result.map((element) => (element.kind === "text" ? element.text : ""))
-    ).toEqual([copy.headline, ""]);
+    ).toStrictEqual([copy.headline, ""]);
   });
 });

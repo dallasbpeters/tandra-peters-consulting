@@ -1,13 +1,15 @@
 import { SendDiagonal } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 
+import type {
+  ContentCalendarEntry,
+  ContentChannel,
+  ContentStatus,
+} from "../../lib/content-calendar";
 import {
   buildCalendarEntryAction,
   CONTENT_CHANNELS,
   CONTENT_STATUSES,
-  type ContentCalendarEntry,
-  type ContentChannel,
-  type ContentStatus,
   channelLabels,
   statusLabels,
 } from "../../lib/content-calendar";

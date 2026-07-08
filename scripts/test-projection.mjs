@@ -6,7 +6,7 @@ import {
 } from "../node_modules/.pnpm/d3-geo@3.1.1/node_modules/d3-geo/src/index.js";
 
 const data = JSON.parse(
-  readFileSync("./src/components/texasCounties.json", "utf8")
+  readFileSync("./src/components/texasCounties.json", "utf-8")
 );
 
 console.log("Features:", data.features.length);

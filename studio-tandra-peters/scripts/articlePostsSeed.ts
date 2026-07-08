@@ -28,17 +28,6 @@ export const articlePostsSeed: ArticleSeed[] = [
   {
     _id: "post-texas-roof-replacement-process",
     _type: "post",
-    title: "The Texas Roof Replacement Process: What Homeowners Should Expect",
-    slug: {
-      _type: "slug",
-      current: "texas-roof-replacement-process-homeowners-guide",
-    },
-    publishedAt: "2025-11-18T15:00:00.000Z",
-    category: "roof-replacement",
-    excerpt:
-      "From inspection through insurance coordination and final documentation, here is how a professional roof replacement typically unfolds when you work with an experienced Texas roofing team.",
-    seoDescription:
-      "Step-by-step guide to the roof replacement process in Texas: inspections, insurance adjusters, scopes of work, and project closeout with Birdcreek-style clarity.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -50,21 +39,21 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-tx-replace"
     ),
+    category: "roof-replacement",
+    excerpt:
+      "From inspection through insurance coordination and final documentation, here is how a professional roof replacement typically unfolds when you work with an experienced Texas roofing team.",
+    publishedAt: "2025-11-18T15:00:00.000Z",
+    seoDescription:
+      "Step-by-step guide to the roof replacement process in Texas: inspections, insurance adjusters, scopes of work, and project closeout with Birdcreek-style clarity.",
+    slug: {
+      _type: "slug",
+      current: "texas-roof-replacement-process-homeowners-guide",
+    },
+    title: "The Texas Roof Replacement Process: What Homeowners Should Expect",
   },
   {
     _id: "post-professional-roof-inspection",
     _type: "post",
-    title: "What to Expect During a Professional Roof Inspection",
-    slug: {
-      _type: "slug",
-      current: "what-to-expect-professional-roof-inspection",
-    },
-    publishedAt: "2025-11-05T15:00:00.000Z",
-    category: "inspections",
-    excerpt:
-      "A quality inspection looks at the whole roof system—not just missing shingles—so you can prioritize repairs, plan replacement, or support an insurance scope with clear documentation.",
-    seoDescription:
-      "Learn what a professional roof inspection covers: attic signs, flashing, penetrations, ventilation, and photo documentation for Texas homeowners.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -75,21 +64,21 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-insp"
     ),
+    category: "inspections",
+    excerpt:
+      "A quality inspection looks at the whole roof system—not just missing shingles—so you can prioritize repairs, plan replacement, or support an insurance scope with clear documentation.",
+    publishedAt: "2025-11-05T15:00:00.000Z",
+    seoDescription:
+      "Learn what a professional roof inspection covers: attic signs, flashing, penetrations, ventilation, and photo documentation for Texas homeowners.",
+    slug: {
+      _type: "slug",
+      current: "what-to-expect-professional-roof-inspection",
+    },
+    title: "What to Expect During a Professional Roof Inspection",
   },
   {
     _id: "post-insurance-roof-claims",
     _type: "post",
-    title: "Homeowners Insurance and Roof Damage: A Practical Guide",
-    slug: {
-      _type: "slug",
-      current: "homeowners-insurance-roof-damage-claims-guide",
-    },
-    publishedAt: "2025-10-22T15:00:00.000Z",
-    category: "insurance-claims",
-    excerpt:
-      "Understanding timelines, documentation, and how carrier estimates relate to real-world scopes can reduce stress after hail, wind, or leak-related damage.",
-    seoDescription:
-      "Practical insurance tips for roof damage: documentation, adjuster visits, estimate review, and working with a Texas roofing consultant.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -100,18 +89,21 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-ins"
     ),
+    category: "insurance-claims",
+    excerpt:
+      "Understanding timelines, documentation, and how carrier estimates relate to real-world scopes can reduce stress after hail, wind, or leak-related damage.",
+    publishedAt: "2025-10-22T15:00:00.000Z",
+    seoDescription:
+      "Practical insurance tips for roof damage: documentation, adjuster visits, estimate review, and working with a Texas roofing consultant.",
+    slug: {
+      _type: "slug",
+      current: "homeowners-insurance-roof-damage-claims-guide",
+    },
+    title: "Homeowners Insurance and Roof Damage: A Practical Guide",
   },
   {
     _id: "post-shingle-vs-metal",
     _type: "post",
-    title: "Asphalt Shingle vs. Metal Roofing: Planning a Replacement in Texas",
-    slug: { _type: "slug", current: "asphalt-shingle-vs-metal-roofing-texas" },
-    publishedAt: "2025-10-08T15:00:00.000Z",
-    category: "roof-replacement",
-    excerpt:
-      "Both systems can perform well in Texas when designed and installed correctly. Here is how to compare cost, longevity, wind performance, and aesthetics before you commit.",
-    seoDescription:
-      "Compare asphalt shingles and metal roofing for Texas homes: performance in heat and hail, warranties, and how to plan replacement with confidence.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -122,18 +114,18 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-shingle-metal"
     ),
+    category: "roof-replacement",
+    excerpt:
+      "Both systems can perform well in Texas when designed and installed correctly. Here is how to compare cost, longevity, wind performance, and aesthetics before you commit.",
+    publishedAt: "2025-10-08T15:00:00.000Z",
+    seoDescription:
+      "Compare asphalt shingles and metal roofing for Texas homes: performance in heat and hail, warranties, and how to plan replacement with confidence.",
+    slug: { _type: "slug", current: "asphalt-shingle-vs-metal-roofing-texas" },
+    title: "Asphalt Shingle vs. Metal Roofing: Planning a Replacement in Texas",
   },
   {
     _id: "post-storm-repair-vs-replace",
     _type: "post",
-    title: "Storm Damage: When to Repair vs. When to Replace the Roof",
-    slug: { _type: "slug", current: "storm-damage-repair-vs-roof-replacement" },
-    publishedAt: "2025-09-20T15:00:00.000Z",
-    category: "texas-homeowners",
-    excerpt:
-      "Not every bruised shingle means full replacement—but widespread damage, aged materials, or hidden deck issues can tip the scale. Here is how to think it through.",
-    seoDescription:
-      "Deciding between roof repair and replacement after Texas storms: damage patterns, roof age, and how professionals document what insurers need.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -144,21 +136,18 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-storm"
     ),
+    category: "texas-homeowners",
+    excerpt:
+      "Not every bruised shingle means full replacement—but widespread damage, aged materials, or hidden deck issues can tip the scale. Here is how to think it through.",
+    publishedAt: "2025-09-20T15:00:00.000Z",
+    seoDescription:
+      "Deciding between roof repair and replacement after Texas storms: damage patterns, roof age, and how professionals document what insurers need.",
+    slug: { _type: "slug", current: "storm-damage-repair-vs-roof-replacement" },
+    title: "Storm Damage: When to Repair vs. When to Replace the Roof",
   },
   {
     _id: "post-choose-consultant-austin",
     _type: "post",
-    title: "How to Choose a Roofing Consultant in Austin (and Across Texas)",
-    slug: {
-      _type: "slug",
-      current: "how-to-choose-roofing-consultant-austin-texas",
-    },
-    publishedAt: "2025-09-01T15:00:00.000Z",
-    category: "texas-homeowners",
-    excerpt:
-      "Look for clear communication, alignment with a reputable installer, and a process that educates you instead of rushing a signature.",
-    seoDescription:
-      "Tips for choosing a roofing consultant in Austin: credentials, transparency, insurance literacy, and why installer alignment matters.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -169,21 +158,21 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-consultant"
     ),
+    category: "texas-homeowners",
+    excerpt:
+      "Look for clear communication, alignment with a reputable installer, and a process that educates you instead of rushing a signature.",
+    publishedAt: "2025-09-01T15:00:00.000Z",
+    seoDescription:
+      "Tips for choosing a roofing consultant in Austin: credentials, transparency, insurance literacy, and why installer alignment matters.",
+    slug: {
+      _type: "slug",
+      current: "how-to-choose-roofing-consultant-austin-texas",
+    },
+    title: "How to Choose a Roofing Consultant in Austin (and Across Texas)",
   },
   {
     _id: "post-maintain-new-roof",
     _type: "post",
-    title: "Maintaining Your Roof After Installation",
-    slug: {
-      _type: "slug",
-      current: "maintaining-your-roof-after-installation",
-    },
-    publishedAt: "2025-08-15T15:00:00.000Z",
-    category: "maintenance",
-    excerpt:
-      "Simple habits—gutter care, tree clearance, and occasional visual checks—protect the investment you just made in a new roof system.",
-    seoDescription:
-      "Post-installation roof maintenance tips for Texas homeowners: gutters, trees, ventilation, and when to schedule follow-up inspections.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -194,21 +183,21 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-maintain"
     ),
+    category: "maintenance",
+    excerpt:
+      "Simple habits—gutter care, tree clearance, and occasional visual checks—protect the investment you just made in a new roof system.",
+    publishedAt: "2025-08-15T15:00:00.000Z",
+    seoDescription:
+      "Post-installation roof maintenance tips for Texas homeowners: gutters, trees, ventilation, and when to schedule follow-up inspections.",
+    slug: {
+      _type: "slug",
+      current: "maintaining-your-roof-after-installation",
+    },
+    title: "Maintaining Your Roof After Installation",
   },
   {
     _id: "post-texas-weather-lifespan",
     _type: "post",
-    title: "Texas Weather and Your Roof: Lifespan and Warning Signs",
-    slug: {
-      _type: "slug",
-      current: "texas-weather-roof-lifespan-warning-signs",
-    },
-    publishedAt: "2025-08-01T15:00:00.000Z",
-    category: "texas-homeowners",
-    excerpt:
-      "Heat, UV, wind, and hail all age roofs faster than mild climates. Learn the warning signs that suggest it is time for a closer look.",
-    seoDescription:
-      "How Texas heat and storms affect roof lifespan: curling shingles, granule loss, flashing fatigue, and when to call a professional.",
     authorName: "Tandra Peters",
     body: bp(
       [
@@ -219,6 +208,17 @@ export const articlePostsSeed: ArticleSeed[] = [
       ],
       "art-weather"
     ),
+    category: "texas-homeowners",
+    excerpt:
+      "Heat, UV, wind, and hail all age roofs faster than mild climates. Learn the warning signs that suggest it is time for a closer look.",
+    publishedAt: "2025-08-01T15:00:00.000Z",
+    seoDescription:
+      "How Texas heat and storms affect roof lifespan: curling shingles, granule loss, flashing fatigue, and when to call a professional.",
+    slug: {
+      _type: "slug",
+      current: "texas-weather-roof-lifespan-warning-signs",
+    },
+    title: "Texas Weather and Your Roof: Lifespan and Warning Signs",
   },
 ];
 
@@ -226,8 +226,8 @@ export const articlePostsSeed: ArticleSeed[] = [
 export const homePageArticleReferences = () =>
   articlePostsSeed.map((p) => ({
     _key: p._id,
-    _type: "reference" as const,
     _ref: p._id,
+    _type: "reference" as const,
   }));
 
 const HOME_PAGE_IDS = ["homePage", "drafts.homePage"] as const;
@@ -263,8 +263,8 @@ export const patchHomePageArticleRefs = async (client: SanityClient) => {
       }
       await client.patch(id).set({ sections: nextSections }).commit();
       updated.push(id);
-    } catch (e) {
-      console.warn(`patchHomePageArticleRefs: ${id}`, e);
+    } catch (error) {
+      console.warn(`patchHomePageArticleRefs: ${id}`, error);
     }
   }
   if (updated.length > 0) {

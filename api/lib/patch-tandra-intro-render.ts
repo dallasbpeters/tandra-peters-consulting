@@ -45,9 +45,9 @@ export const patchTandraIntroRenderedVideo = async (
 
   try {
     const client = createClient({
-      projectId: SANITY_PROJECT_ID,
-      dataset: SANITY_DATASET,
       apiVersion: SANITY_API_VERSION,
+      dataset: SANITY_DATASET,
+      projectId: SANITY_PROJECT_ID,
       token,
       useCdn: false,
     });
@@ -66,8 +66,8 @@ export const patchTandraIntroRenderedVideo = async (
           tandraIntroVideo: { _type: "tandraIntroVideo" },
         })
         .set({
-          "tandraIntroVideo.renderedVideoUrl": sanitizedUrl,
           "tandraIntroVideo.renderedAt": new Date().toISOString(),
+          "tandraIntroVideo.renderedVideoUrl": sanitizedUrl,
         });
 
       if (contentHash) {

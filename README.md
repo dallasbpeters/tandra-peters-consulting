@@ -179,12 +179,12 @@ Requires `BLOB_READ_WRITE_TOKEN` in `.env.local` (pull from Vercel after linking
 
 ### Remotion env vars (summary)
 
-| Variable                   | Where                        | Purpose                                        |
-| -------------------------- | ---------------------------- | ---------------------------------------------- |
-| `BLOB_READ_WRITE_TOKEN`    | Vercel (auto) / `.env.local` | Blob uploads + snapshot metadata               |
-| `SANITY_API_READ_TOKEN`    | Vercel / `.env.local`        | Include draft CMS copy in renders              |
-| `SANITY_WRITE_TOKEN`       | Vercel / `.env.local`        | Save rendered video URL to Sanity after render |
-| `RENDER_VIDEO_SECRET`      | Vercel / `.env.local`        | Auth for `/api/render-tandra-intro`            |
-| `SKIP_REMOTION_SNAPSHOT=1` | Vercel build env only        | Skip snapshot step (emergency bypass)          |
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `BLOB_READ_WRITE_TOKEN` | Vercel (auto) / `.env.local` | Blob uploads + snapshot metadata |
+| `SANITY_API_READ_TOKEN` | Vercel / `.env.local` | Include draft CMS copy in renders |
+| `SANITY_WRITE_TOKEN` | Vercel / `.env.local` | Save rendered video URL to Sanity after render |
+| `RENDER_VIDEO_SECRET` | Vercel / `.env.local` | Auth for `/api/render-tandra-intro` |
+| `SKIP_REMOTION_SNAPSHOT=1` | Vercel build env only | Skip snapshot step (emergency bypass) |
 
 See [`.env.example`](.env.example) for the full list of project environment variables.

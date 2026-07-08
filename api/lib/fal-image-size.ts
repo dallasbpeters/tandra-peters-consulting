@@ -20,42 +20,52 @@ export const pixelsFromImageSize = (
   imageSize: FalImageSize
 ): { height: number; width: number } => {
   switch (imageSize) {
-    case "landscape_16_9":
+    case "landscape_16_9": {
       return {
-        width: FAL_IMAGE_LONG_EDGE_PX,
         height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
-      };
-    case "landscape_4_3":
-      return {
         width: FAL_IMAGE_LONG_EDGE_PX,
+      };
+    }
+    case "landscape_4_3": {
+      return {
         height: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
+        width: FAL_IMAGE_LONG_EDGE_PX,
       };
-    case "portrait_16_9":
+    }
+    case "portrait_16_9": {
       return {
+        height: FAL_IMAGE_LONG_EDGE_PX,
         width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 9) / 16),
-        height: FAL_IMAGE_LONG_EDGE_PX,
       };
-    case "portrait_4_3":
+    }
+    case "portrait_4_3": {
       return {
-        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
         height: FAL_IMAGE_LONG_EDGE_PX,
+        width: Math.round((FAL_IMAGE_LONG_EDGE_PX * 3) / 4),
       };
-    default:
-      return { width: FAL_IMAGE_LONG_EDGE_PX, height: FAL_IMAGE_LONG_EDGE_PX };
+    }
+    default: {
+      return { height: FAL_IMAGE_LONG_EDGE_PX, width: FAL_IMAGE_LONG_EDGE_PX };
+    }
   }
 };
 
 export const aspectRatioFromImageSize = (imageSize: FalImageSize) => {
   switch (imageSize) {
-    case "landscape_16_9":
+    case "landscape_16_9": {
       return "16:9";
-    case "landscape_4_3":
+    }
+    case "landscape_4_3": {
       return "4:3";
-    case "portrait_16_9":
+    }
+    case "portrait_16_9": {
       return "9:16";
-    case "portrait_4_3":
+    }
+    case "portrait_4_3": {
       return "3:4";
-    default:
+    }
+    default: {
       return "1:1";
+    }
   }
 };

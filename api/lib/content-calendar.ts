@@ -101,20 +101,27 @@ const pickOption = (
 
 const channelLabel = (channel: string): string => {
   switch (channel) {
-    case "ad":
+    case "ad": {
       return "Ad";
-    case "email":
+    }
+    case "email": {
       return "Email";
-    case "google-post":
+    }
+    case "google-post": {
       return "Google post";
-    case "neighborhood-post":
+    }
+    case "neighborhood-post": {
       return "Neighborhood post";
-    case "postcard":
+    }
+    case "postcard": {
       return "Postcard";
-    case "video":
+    }
+    case "video": {
       return "Video";
-    default:
+    }
+    default: {
       return "Blog";
+    }
   }
 };
 
@@ -363,16 +370,21 @@ type FieldValidation = { error: string } | { value: unknown };
 
 const fieldToDeskPatchKey = (field: UpdatableField): string => {
   switch (field) {
-    case "area":
+    case "area": {
       return "pillar";
-    case "brief":
+    }
+    case "brief": {
       return "detail";
-    case "scheduledFor":
+    }
+    case "scheduledFor": {
       return "publishDate";
-    case "targetKeyword":
+    }
+    case "targetKeyword": {
       return "buyerStage";
-    default:
+    }
+    default: {
       return field;
+    }
   }
 };
 
@@ -405,14 +417,17 @@ const validateUpdatableField = (
         ? { value: status }
         : { error: "Pick a valid status for this entry." };
     }
-    case "brief":
+    case "brief": {
       return { value: trimTo(payload.brief, MAX_BRIEF_LENGTH) || undefined };
-    case "area":
+    }
+    case "area": {
       return { value: trimTo(payload.area, MAX_AREA_LENGTH) || undefined };
-    default:
+    }
+    default: {
       return {
         value: trimTo(payload.targetKeyword, MAX_KEYWORD_LENGTH) || undefined,
       };
+    }
   }
 };
 

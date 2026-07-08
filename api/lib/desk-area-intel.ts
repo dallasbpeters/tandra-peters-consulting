@@ -23,9 +23,9 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const MAX_TARGETS = 12;
 
 interface TargetCounty {
+  capturePath: string;
   countyFips: string;
   label: string;
-  roofCheckPath: string;
   stateFips: string;
 }
 
@@ -49,18 +49,19 @@ interface AreaPlaceContext {
 }
 
 interface CountyIntel {
+  capturePath: string;
   countyFips: string;
   label: string;
   olderHomeEstimate: number;
   olderHomeShare: number;
   ownerOccupied: number;
   ownerOccupiedShare: number;
-  roofCheckPath: string;
   targetCount: number;
   totalHousingUnits: number;
 }
 
 export interface DeskAreaTarget {
+  capturePath: string;
   countyFips: string;
   countyLabel: string;
   firstMove: string;
@@ -80,7 +81,6 @@ export interface DeskAreaTarget {
   postalCode: string;
   priorityScore: number;
   recommendedMailerCount: number;
-  roofCheckPath: string;
   totalHousingUnits: number;
   tractLabel: string;
   why: string;
@@ -103,33 +103,33 @@ export interface DeskAreaIntelResult {
 
 const TARGET_COUNTIES: readonly TargetCounty[] = [
   {
+    capturePath: "/estimate",
     countyFips: "491",
     label: "Williamson County",
-    roofCheckPath: "/roof-check/georgetown",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "027",
     label: "Bell County",
-    roofCheckPath: "/roof-check/temple-belton",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "309",
     label: "McLennan County",
-    roofCheckPath: "/roof-check/waco",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "453",
     label: "Travis County",
-    roofCheckPath: "/roof-check/austin",
     stateFips: "48",
   },
   {
+    capturePath: "/estimate",
     countyFips: "209",
     label: "Hays County",
-    roofCheckPath: "/roof-check/kyle-buda",
     stateFips: "48",
   },
 ] as const;
@@ -277,7 +277,7 @@ const releaseName = (payload: unknown): string => {
 
 const moveForCounty = (county: TargetCounty): string => {
   if (county.countyFips === "491") {
-    return "Start with the roof-check page, one postcard route, and a neighborhood post.";
+    return "Start with the estimate page, one postcard route, and a neighborhood post.";
   }
   if (county.countyFips === "027") {
     return "Use partner email plus a repair-or-replace post before paid mail.";
@@ -285,7 +285,7 @@ const moveForCounty = (county: TargetCounty): string => {
   if (county.countyFips === "309") {
     return "Warm the area with inspection education and one short trust-building video.";
   }
-  return "Use a roof-check post and save paid outreach for the highest-scoring tracts.";
+  return "Use an estimate post and save paid outreach for the highest-scoring tracts.";
 };
 
 const mapboxToken = (): string =>
@@ -411,6 +411,7 @@ const buildTarget = (
     olderHomeEstimate + ownerOccupiedShare * 1200 + olderHomeShare * 900;
 
   return {
+    capturePath: county.capturePath,
     countyFips: county.countyFips,
     countyLabel: county.label,
     firstMove: moveForCounty(county),
@@ -421,7 +422,7 @@ const buildTarget = (
     mailingAudience: "Owner-occupied homes likely built before 2010",
     mailingCity: "",
     mailingOffer: mailingOfferForCounty(county),
-    mailingRouteName: `${centroid.name} roof-check route`,
+    mailingRouteName: `${centroid.name} estimate route`,
     neighborhoodLabel: "",
     olderHomeEstimate: round(olderHomeEstimate),
     olderHomeShare: percent(olderHomeShare),
@@ -430,7 +431,6 @@ const buildTarget = (
     postalCode: "",
     priorityScore: round(rawScore),
     recommendedMailerCount: 0,
-    roofCheckPath: county.roofCheckPath,
     totalHousingUnits: round(totalHousingUnits),
     tractLabel: centroid.name,
     why: `${round(olderHomeEstimate).toLocaleString()} likely owner-occupied homes built before 2010.`,
@@ -454,13 +454,13 @@ const countySummary = (
     0
   );
   return {
+    capturePath: county.capturePath,
     countyFips: county.countyFips,
     label: county.label,
     olderHomeEstimate,
     olderHomeShare: percent(safeRatio(olderHomeEstimate, ownerOccupied)),
     ownerOccupied,
     ownerOccupiedShare: percent(safeRatio(ownerOccupied, totalHousingUnits)),
-    roofCheckPath: county.roofCheckPath,
     targetCount: targets.length,
     totalHousingUnits,
   };
@@ -498,7 +498,7 @@ const enrichTarget = async (
   return {
     ...target,
     mailingCity: context.city,
-    mailingRouteName: `${neighborhoodLabel} roof-check route`,
+    mailingRouteName: `${neighborhoodLabel} estimate route`,
     neighborhoodLabel,
     postalCode: context.postcode,
     recommendedMailerCount: recommendedMailerCount(target),

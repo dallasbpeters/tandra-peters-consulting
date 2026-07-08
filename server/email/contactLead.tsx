@@ -23,13 +23,13 @@ const RE_NEWLINE = /\r?\n/;
 const RE_WHITESPACE = /\s+/;
 
 const colors = {
-  ink: "#0f1f18",
-  body: "#1a2b22",
-  muted: "#5b6b62",
   accent: "#3a7d5d",
+  body: "#1a2b22",
   border: "#e4e8e6",
-  surface: "#ffffff",
+  ink: "#0f1f18",
+  muted: "#5b6b62",
   page: "#f3f5f4",
+  surface: "#ffffff",
 };
 
 const main: CSSProperties = {
@@ -52,19 +52,19 @@ const container: CSSProperties = {
 const inner: CSSProperties = { padding: "28px 36px 32px" };
 
 const labelCell: CSSProperties = {
+  color: colors.muted,
   fontSize: "11px",
   fontWeight: 700,
   letterSpacing: "0.06em",
-  textTransform: "uppercase",
-  color: colors.muted,
-  padding: "0 0 4px",
   margin: 0,
+  padding: "0 0 4px",
+  textTransform: "uppercase",
 };
 
 const valueText: CSSProperties = {
+  color: colors.body,
   fontSize: "15px",
   lineHeight: "24px",
-  color: colors.body,
   margin: "0 0 18px",
 };
 
@@ -84,9 +84,9 @@ const buttonStyle: CSSProperties = {
 };
 
 const legal: CSSProperties = {
+  color: "#8a958e",
   fontSize: "11px",
   lineHeight: "18px",
-  color: "#8a958e",
   margin: "20px 0 0",
 };
 
@@ -101,9 +101,9 @@ const Field = ({ label, children }: { label: string; children: ReactNode }) => (
 const messageLines = (message: string): ReactNode[] => {
   const raw = message.split(RE_NEWLINE);
   const last = raw.length - 1;
-  return Array.from(raw.entries()).map(([n, line]) => (
+  return [...raw.entries()].map(([n, line]) => (
     <span key={`msg-${n}-${line.slice(0, 20)}`}>
-      {line || "\u00a0"}
+      {line || "\u00A0"}
       {n < last ? <br /> : null}
     </span>
   ));
@@ -160,18 +160,18 @@ export const ContactLeadEmail = ({
             <Heading
               as="h1"
               style={{
-                fontSize: "21px",
                 color: colors.ink,
-                margin: "0 0 6px",
+                fontSize: "21px",
                 lineHeight: "28px",
+                margin: "0 0 6px",
               }}
             >
               New roofing inquiry
             </Heading>
             <Text
               style={{
-                fontSize: "13px",
                 color: colors.muted,
+                fontSize: "13px",
                 margin: "0 0 22px",
               }}
             >
@@ -188,7 +188,7 @@ export const ContactLeadEmail = ({
             {phone ? (
               <Field label="Phone">
                 <Link
-                  href={`tel:${phone.replace(/[^0-9+]/g, "")}`}
+                  href={`tel:${phone.replaceAll(/[^0-9+]/g, "")}`}
                   style={linkStyle}
                 >
                   {phone}

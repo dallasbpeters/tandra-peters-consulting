@@ -19,7 +19,6 @@ const SOURCE_OPTIONS = new Set([
   "neighborhood-post",
   "google-post",
   "partner",
-  "roof-check-page",
   "website-estimate",
   "other",
 ] as const);

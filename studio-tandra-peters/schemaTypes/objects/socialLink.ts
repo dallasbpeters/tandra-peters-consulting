@@ -1,21 +1,18 @@
 import { defineField, defineType } from "sanity";
 
 export const socialLinkType = defineType({
-  name: "socialLink",
-  title: "Social link",
-  type: "object",
   fields: [
     defineField({
       name: "platform",
-      type: "string",
       options: {
+        layout: "radio",
         list: [
           { title: "Facebook", value: "facebook" },
           { title: "Email", value: "email" },
           { title: "Phone", value: "phone" },
         ],
-        layout: "radio",
       },
+      type: "string",
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -28,4 +25,7 @@ export const socialLinkType = defineType({
         }),
     }),
   ],
+  name: "socialLink",
+  title: "Social link",
+  type: "object",
 });

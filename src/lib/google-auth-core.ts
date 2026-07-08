@@ -59,7 +59,7 @@ export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
     if (!payload) {
       return null;
     }
-    const base64 = payload.replaceAll(/-/g, "+").replaceAll(/_/g, "/");
+    const base64 = payload.replaceAll("-", "+").replaceAll("_", "/");
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
     const json = JSON.parse(window.atob(padded)) as {
       email?: string;

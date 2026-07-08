@@ -33,9 +33,9 @@ export const patchTandraIntroThumbnail = async (
 
   try {
     const client = createClient({
-      projectId: SANITY_PROJECT_ID,
-      dataset: SANITY_DATASET,
       apiVersion: SANITY_API_VERSION,
+      dataset: SANITY_DATASET,
+      projectId: SANITY_PROJECT_ID,
       token,
       useCdn: false,
     });
@@ -58,7 +58,7 @@ export const patchTandraIntroThumbnail = async (
         .set({
           "tandraIntroVideo.thumbnail": {
             _type: "image",
-            asset: { _type: "reference", _ref: asset._id },
+            asset: { _ref: asset._id, _type: "reference" },
           },
         })
         .commit();

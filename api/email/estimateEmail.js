@@ -27,7 +27,7 @@ export const renderEstimateEmail = (submission, assets, variant) => {
   const isVisitor = variant === "visitor";
   const previewText = isVisitor
     ? `Your roof estimate: roughly ${submission.rangeDisplay}`
-    : `New estimate lead \u00b7 ${submission.fullName} \u00b7 ${submission.rangeDisplay}`;
+    : `New estimate lead \u00B7 ${submission.fullName} \u00B7 ${submission.rangeDisplay}`;
   const scheduleUrl = "https://www.tandra.me/#contact";
 
   return `<!doctype html>
@@ -69,7 +69,7 @@ export const renderEstimateEmail = (submission, assets, variant) => {
                          <a href="${escapeAttr(scheduleUrl)}" style="display:inline-block;background:#3a7d5d;border-radius:8px;color:#ffffff;font-size:15px;font-weight:600;padding:12px 22px;text-decoration:none;">Schedule a free inspection</a>
                        </p>
                        <hr style="border:0;border-top:1px solid #e4e8e6;margin:22px 0 0;" />
-                       <p style="font-size:11px;line-height:18px;color:#8a958e;margin:20px 0 0;">\u2014 Tandra Peters, Roofing Consultant \u00b7 Birdcreek Roofing</p>`
+                       <p style="font-size:11px;line-height:18px;color:#8a958e;margin:20px 0 0;">\u2014 Tandra Peters, Roofing Consultant \u00B7 Birdcreek Roofing</p>`
                     : `<p style="margin:8px 0 4px;">
                          <a href="mailto:${escapeAttr(submission.email)}?subject=${encodeURIComponent("Your roof estimate")}" style="display:inline-block;background:#3a7d5d;border-radius:8px;color:#ffffff;font-size:15px;font-weight:600;padding:12px 22px;text-decoration:none;">Reply to ${escapeHtml(firstName)}</a>
                        </p>

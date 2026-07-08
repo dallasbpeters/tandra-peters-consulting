@@ -1,18 +1,18 @@
 /** Build Sanity Portable Text blocks for `pnpm seed` (matches `blockContent` schema). */
 
 export const paragraphBlock = (_key: string, text: string) => ({
-  _type: "block" as const,
   _key,
-  style: "normal" as const,
-  markDefs: [] as { _key: string; _type: string; href?: string }[],
+  _type: "block" as const,
   children: [
     {
-      _type: "span" as const,
       _key: `${_key}-span`,
+      _type: "span" as const,
       marks: [] as string[],
       text,
     },
   ],
+  markDefs: [] as { _key: string; _type: string; href?: string }[],
+  style: "normal" as const,
 });
 
 /**

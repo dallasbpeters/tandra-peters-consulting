@@ -106,20 +106,20 @@ const estimateHandler = async (
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST, OPTIONS");
-    res.status(405).json({ ok: false, error: "Method not allowed" });
+    res.status(405).json({ error: "Method not allowed", ok: false });
     return;
   }
 
   if (!isAllowedRequest(req)) {
-    res.status(403).json({ ok: false, error: "Forbidden" });
+    res.status(403).json({ error: "Forbidden", ok: false });
     return;
   }
 
   const result = await processEstimateSubmission(parseBody(req), {
-    resendApiKey: process.env.RESEND_API_KEY,
+    assetBaseUrl: process.env.EMAIL_ASSET_BASE_URL,
     emailFrom: process.env.EMAIL_FROM,
     notificationTo: process.env.CONTACT_NOTIFICATION_TO,
-    assetBaseUrl: process.env.EMAIL_ASSET_BASE_URL,
+    resendApiKey: process.env.RESEND_API_KEY,
     sanityWriteToken:
       process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
   });
@@ -133,14 +133,14 @@ export default async function handler(
 ): Promise<void> {
   try {
     await estimateHandler(req, res);
-  } catch (err) {
-    console.error("[api/estimate]", err);
+  } catch (error) {
+    console.error("[api/estimate]", error);
     if (!res.headersSent) {
       const origin = req.headers.origin as string | undefined;
       applyCors(res, origin);
       res.status(500).json({
-        ok: false,
         error: "Internal server error. Please try again or call.",
+        ok: false,
       });
     }
   }

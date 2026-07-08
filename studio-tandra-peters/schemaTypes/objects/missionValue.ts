@@ -3,9 +3,6 @@ import { defineField, defineType } from "sanity";
 import { defineGeneratedImage } from "../generatedImageField";
 
 export const missionValueType = defineType({
-  name: "missionValue",
-  title: "Mission value",
-  type: "object",
   fields: [
     defineField({
       name: "id",
@@ -24,9 +21,12 @@ export const missionValueType = defineType({
       validation: (r) => r.required(),
     }),
     defineGeneratedImage({
+      description: "Optional card background (upload or AI).",
       name: "image",
       title: "Background image",
-      description: "Optional card background (upload or AI).",
     }),
   ],
+  name: "missionValue",
+  title: "Mission value",
+  type: "object",
 });

@@ -12,55 +12,47 @@ import { defineField, defineType } from "sanity";
  * roof complexity, and pitch (which affects both area and labor rate).
  */
 export const estimatorQuestionType = defineType({
-  name: "estimatorQuestion",
-  title: "Question",
-  type: "object",
   fields: [
     defineField({
+      description:
+        'The question shown to the visitor, e.g. "How big is your home?"',
       name: "prompt",
       title: "Question",
       type: "string",
-      description:
-        'The question shown to the visitor, e.g. "How big is your home?"',
       validation: (Rule) => Rule.required().max(200),
     }),
     defineField({
+      description: "Optional sentence under the question for extra guidance.",
       name: "helpText",
       title: "Help text",
       type: "string",
-      description: "Optional sentence under the question for extra guidance.",
     }),
     defineField({
+      description:
+        "Turn ON for the home-size question. The chosen option's square footage drives the whole estimate. Only turn this on for ONE question.",
+      initialValue: false,
       name: "drivesSquareFootage",
       title: "Drives square footage",
       type: "boolean",
-      initialValue: false,
-      description:
-        "Turn ON for the home-size question. The chosen option's square footage drives the whole estimate. Only turn this on for ONE question.",
     }),
     defineField({
+      description:
+        "Turn ON for questions that scale the roof area (stories, complexity, pitch). The chosen option's 'Multiply roof area by' value multiplies the running roof square footage.",
+      initialValue: false,
       name: "multipliesSquareFootage",
       title: "Multiplies square footage",
       type: "boolean",
-      initialValue: false,
-      description:
-        "Turn ON for questions that scale the roof area (stories, complexity, pitch). The chosen option's 'Multiply roof area by' value multiplies the running roof square footage.",
     }),
     defineField({
       name: "options",
+      of: [{ type: "estimatorOption" }],
       title: "Answer options",
       type: "array",
-      of: [{ type: "estimatorOption" }],
       validation: (Rule) => Rule.required().min(2),
     }),
   ],
+  name: "estimatorQuestion",
   preview: {
-    select: {
-      title: "prompt",
-      drives: "drivesSquareFootage",
-      multiplies: "multipliesSquareFootage",
-      options: "options",
-    },
     prepare({
       title,
       drives,
@@ -81,9 +73,17 @@ export const estimatorQuestionType = defineType({
         tags.push("multiplies square footage");
       }
       return {
-        title: title ?? "Untitled question",
         subtitle: `${count} option${count === 1 ? "" : "s"}${tags.length ? ` · ${tags.join(" · ")}` : ""}`,
+        title: title ?? "Untitled question",
       };
     },
+    select: {
+      drives: "drivesSquareFootage",
+      multiplies: "multipliesSquareFootage",
+      options: "options",
+      title: "prompt",
+    },
   },
+  title: "Question",
+  type: "object",
 });

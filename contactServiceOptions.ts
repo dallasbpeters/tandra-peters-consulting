@@ -4,13 +4,13 @@
  * serverless function can import it reliably (`../contactServiceOptions`).
  */
 export const CONTACT_SERVICE_OPTIONS = [
-  { value: "shingle-roofing", label: "Shingle Roofing" },
-  { value: "metal-roofing", label: "Metal Roofing" },
-  { value: "storm-damage-restoration", label: "Storm Damage Restoration" },
-  { value: "commercial-roofing", label: "Commercial Roofing" },
+  { label: "Shingle Roofing", value: "shingle-roofing" },
+  { label: "Metal Roofing", value: "metal-roofing" },
+  { label: "Storm Damage Restoration", value: "storm-damage-restoration" },
+  { label: "Commercial Roofing", value: "commercial-roofing" },
   {
-    value: "hail-wind-damage-roof-inspection",
     label: "Hail & Wind Damage Roof Inspection",
+    value: "hail-wind-damage-roof-inspection",
   },
 ] as const;
 

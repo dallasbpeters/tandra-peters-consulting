@@ -306,7 +306,7 @@ export const entriesForNextDays = (
       const day = entry.scheduledFor.slice(0, 10);
       return day >= start && day <= end;
     })
-    .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor));
+    .toSorted((a, b) => a.scheduledFor.localeCompare(b.scheduledFor));
 };
 
 const isContentChannel = (value: unknown): value is ContentChannel =>

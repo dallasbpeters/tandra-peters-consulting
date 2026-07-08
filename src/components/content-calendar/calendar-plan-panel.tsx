@@ -1,12 +1,11 @@
 import { SparksSolid } from "iconoir-react";
 import { useCallback, useState } from "react";
 
-import {
-  type CalendarPlanProposal,
-  channelLabels,
-  type MonthRef,
-  monthTitle,
+import type {
+  CalendarPlanProposal,
+  MonthRef,
 } from "../../lib/content-calendar";
+import { channelLabels, monthTitle } from "../../lib/content-calendar";
 
 type AuthHeader = { Authorization: string } | null;
 
@@ -108,7 +107,7 @@ export const CalendarPlanPanel = ({
     setIsAcceptingAll(true);
     // Sequential on purpose: each accept persists a Sanity draft and we stop
     // on the first failure so nothing is silently dropped.
-    for (const proposal of [...proposals]) {
+    for (const proposal of proposals) {
       // eslint-disable-next-line no-await-in-loop
       const accepted = await accept(proposal);
       if (!accepted) {

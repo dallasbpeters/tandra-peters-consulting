@@ -1,4 +1,5 @@
-import { type LoginTicket, OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
+import type { LoginTicket } from "google-auth-library";
 
 type EnvSource = Record<string, string | undefined> | NodeJS.ProcessEnv;
 
@@ -34,9 +35,9 @@ const getConfig = (env?: EnvSource) => {
   const allowedDomain = envValue(env, "GOOGLE_ALLOWED_DOMAIN").toLowerCase();
 
   return {
-    clientId,
-    allowedEmails,
     allowedDomain,
+    allowedEmails,
+    clientId,
   };
 };
 
@@ -75,8 +76,8 @@ export const authorizeSeoDashboardRequest = async (
   let ticket: LoginTicket;
   try {
     ticket = await client.verifyIdToken({
-      idToken,
       audience: config.clientId,
+      idToken,
     });
   } catch {
     // Expired token, rotated signing key ("No pem found"), or bad signature.
