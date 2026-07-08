@@ -483,9 +483,21 @@ export const DeskAreaMap = ({
     zoneRef.current = zoneData;
   }, [pointData, polygonData, targets, zoneData]);
 
+  const createZoneFromClick = useCallback((event: MapMouseEvent): boolean => {
+    if (!zoneModeRef.current) {
+      return false;
+    }
+    onCreateZoneRef.current?.({
+      latitude: event.lngLat.lat,
+      longitude: event.lngLat.lng,
+    });
+    return true;
+  }, []);
+
   const handleFillClick = useCallback(
     (event: MapMouseEvent & { features?: GeoJSON.Feature[] }) => {
-      if (zoneModeRef.current) {
+      if (createZoneFromClick(event)) {
+        event.preventDefault();
         return;
       }
       const id = event.features?.[0]?.properties?.id;
@@ -493,18 +505,18 @@ export const DeskAreaMap = ({
         onToggleRef.current?.(id);
       }
     },
-    []
+    [createZoneFromClick]
   );
 
-  const handleMapClick = useCallback((event: MapMouseEvent) => {
-    if (!zoneModeRef.current) {
-      return;
-    }
-    onCreateZoneRef.current?.({
-      latitude: event.lngLat.lat,
-      longitude: event.lngLat.lng,
-    });
-  }, []);
+  const handleMapClick = useCallback(
+    (event: MapMouseEvent) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+      createZoneFromClick(event);
+    },
+    [createZoneFromClick]
+  );
 
   useEffect(() => {
     const container = containerRef.current;
@@ -584,9 +596,13 @@ export const DeskAreaMap = ({
       readyRef.current = true;
       map.on("click", handleMapClick);
       map.on("click", "desk-area-target-fill", handleFillClick);
+      map.on("click", "desk-area-target-dot", handleFillClick);
       map.on("mouseenter", "desk-area-target-fill", onEnter);
+      map.on("mouseenter", "desk-area-target-dot", onEnter);
       map.on("mousemove", "desk-area-target-fill", onMove);
+      map.on("mousemove", "desk-area-target-dot", onMove);
       map.on("mouseleave", "desk-area-target-fill", onLeave);
+      map.on("mouseleave", "desk-area-target-dot", onLeave);
     });
 
     return () => {
