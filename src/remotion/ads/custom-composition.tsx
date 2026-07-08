@@ -164,7 +164,10 @@ export const CustomSlots: React.FC<CustomCompositionProps> = ({ scenes }) => {
 
   let offset = 0;
   return (
-    <AbsoluteFill style={{ backgroundColor: "var(--color-everglade)" }}>
+    <AbsoluteFill
+      className="remotion-ad-theme"
+      style={{ backgroundColor: "var(--color-everglade)" }}
+    >
       {safeScenes.map((scene, _i) => {
         const from = offset;
         offset += scene.durationInFrames ?? 180;

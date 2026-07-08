@@ -294,6 +294,8 @@
   flex-wrap: wrap;
   gap: var(--theme-spacing-sm);
   align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .ad-canvas-add-btn {

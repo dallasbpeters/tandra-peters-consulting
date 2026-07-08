@@ -4,9 +4,9 @@ import { mix, theme } from "../../theme";
 
 // ── Layout className strings (WA utilities) ───────────────────────────────
 export const estimatorCardLayoutClass = "wa-stack wa-gap-l";
-export const estimatorOptionsClass = "wa-grid wa-gap-xs";
+export const estimatorOptionsClass = "wa-grid wa-gap-xs estimator-options-grid";
 export const estimatorOptionClass = "wa-stack wa-gap-3xs";
-export const estimatorEmailRowClass = "wa-grid wa-gap-xs";
+export const estimatorEmailRowClass = "wa-grid wa-gap-xs estimator-email-row";
 export const estimatorFooterClass = "wa-split wa-gap-s";
 export const foundStatusClass = "wa-cluster wa-gap-2xs wa-align-items-start";
 

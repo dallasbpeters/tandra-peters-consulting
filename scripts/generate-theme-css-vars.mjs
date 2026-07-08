@@ -4,14 +4,22 @@
  * and are preserved when this script regenerates base tokens.
  * Output: src/styles/theme-variables.css
  */
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { theme } from "../src/theme.ts";
 
 const __dirname = import.meta.dirname;
-const outPath = path.join(__dirname, "../src/styles/theme-variables.css");
+const repoRoot = path.join(__dirname, "..");
+const outPath = path.join(repoRoot, "src/styles/theme-variables.css");
 const SCOPED_VARIABLES_MARKER = "/* Scoped app variables */";
+const oxfmtBin = path.join(
+  repoRoot,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "oxfmt.cmd" : "oxfmt"
+);
 
 const UPPER_CASE_RE = /[A-Z]/g;
 const WHITESPACE_RE = /\s+/g;
@@ -67,4 +75,10 @@ ${readScopedVariables()}
 `;
 
 writeFileSync(outPath, css, "utf-8");
+if (existsSync(oxfmtBin)) {
+  execFileSync(oxfmtBin, ["--write", outPath], {
+    cwd: repoRoot,
+    stdio: "ignore",
+  });
+}
 console.log("[generate-theme-css] src/styles/theme-variables.css");

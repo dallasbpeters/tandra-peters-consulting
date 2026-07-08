@@ -159,20 +159,6 @@ export const Faq: React.FC<FaqProps> = ({
           </div>
         </motion.div>
 
-        <style>{`
-          .faq-details {
-            --spacing: 12px;
-            --hide-duration: 200ms;
-            --show-duration: 200ms;
-          }
-
-          .faq-details-container {
-            display: flex;
-            flex-direction: column;
-            gap: var(--theme-spacing-sm);
-          }
-        `}</style>
-
         <div className="faq-details-container">
           {items.map((item: FaqItem, index: number) => (
             <WaDetails

@@ -251,6 +251,128 @@ a.wa-button {
   --wa-form-control-border-width: 1px;
 }
 
+@property --article-link-underline-start {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklch(45.31% 0.312 264.58);
+}
+
+@property --article-link-underline-end {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: oklch(82.55% 0.096 35.89);
+}
+
+.article-rich-text a {
+  position: relative;
+  contain: paint;
+  background-color: var(--theme-palette-blue-100) !important;
+  border-radius: var(--theme-radius-small);
+  text-decoration: none !important;
+  transition: background-color 0.3s ease;
+}
+
+.article-rich-text a::after {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 3px;
+  content: "";
+  background: linear-gradient(
+    to right,
+    var(--article-link-underline-start),
+    var(--article-link-underline-end)
+  );
+  transition:
+    --article-link-underline-start 0.5s ease,
+    --article-link-underline-end 0.5s ease;
+}
+
+.article-rich-text a:hover {
+  background-color: color-mix(
+    in oklch,
+    var(--theme-palette-blue-100) 50%,
+    transparent
+  ) !important;
+}
+
+.article-rich-text a:hover::after {
+  --article-link-underline-start: var(--theme-palette-coral-600);
+  --article-link-underline-end: var(--theme-palette-blue-200);
+}
+
+.article-rich-text a:focus-visible {
+  border-radius: var(--theme-radius-small);
+  outline: 2px solid var(--theme-palette-blue-600);
+  outline-offset: 2px;
+}
+
+.faq-details {
+  --spacing: var(--theme-spacing-md);
+  --hide-duration: 200ms;
+  --show-duration: 200ms;
+}
+
+.faq-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--theme-spacing-sm);
+}
+
+.estimator-options-grid {
+  --min-column-size: 16rem;
+}
+
+.estimator-email-row {
+  --min-column-size: 14rem;
+}
+
+.roof-inspection-model-viewer {
+  --poster-color: var(--theme-color-paper);
+  --progress-bar-color: var(--theme-palette-purple-500);
+  --progress-mask: none;
+}
+
+.contact-banner {
+  --contact-banner-accent-glow: color-mix(
+    in oklch,
+    var(--theme-color-black) 20%,
+    transparent
+  );
+  --contact-banner-grid-color: color-mix(
+    in oklch,
+    var(--theme-color-white) 5%,
+    transparent
+  );
+  --contact-banner-icon-hover-bg: var(--theme-palette-accent-500);
+  --contact-banner-pulse: var(--theme-palette-everglade-700);
+  --contact-banner-pulse-ping: color-mix(
+    in oklch,
+    var(--theme-palette-accent-500) 75%,
+    transparent
+  );
+}
+
+.contact-banner__cta {
+  --contact-banner-cta-focus: var(--theme-palette-accent-300);
+  --contact-banner-cta-hover-bg: color-mix(
+    in oklch,
+    var(--theme-color-black) 60%,
+    transparent
+  );
+  --contact-banner-cta-hover-label-color: var(--theme-color-white);
+  --contact-banner-cta-hover-shadow: color-mix(
+    in oklch,
+    var(--theme-color-white) 15%,
+    transparent
+  );
+  --contact-banner-cta-hover-text-color: var(--theme-color-white);
+  --contact-banner-cta-label-color: var(--theme-color-white);
+  --contact-banner-cta-text-color: var(--theme-color-white);
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Figtree Variable", sans-serif;
@@ -447,7 +569,7 @@ a.wa-button {
 }
 
 /* src/remotion/ads/ads.vars.css */
-:root {
+.remotion-ad-theme {
   --color-primary: var(--theme-color-everglade);
   --color-white: var(--theme-color-white);
   --color-black: var(--theme-color-black);
@@ -981,19 +1103,8 @@ a.wa-button {
   --color: var(--theme-palette-blue-200);
 }
 
-/* src/styles/ad-dashboard.css */
-:root {
-  --nav-bar-offset: 84px;
-  --shadow-small: var(--theme-shadow-sm);
-  --shadow-medium: var(--theme-shadow-md);
-  --shadow-large: var(--theme-shadow-lg);
-}
-
-.desktop-app {
-  --nav-bar-offset: 0px;
-}
-
 .ad-dashboard-shell {
+  --nav-bar-offset: 84px;
   --studio-bg: var(--backend-page);
   --studio-panel: var(--backend-surface);
   --studio-panel-raised: var(--backend-surface-raised);
@@ -1007,6 +1118,10 @@ a.wa-button {
   --shadow-small: var(--theme-shadow-sm);
   --shadow-medium: var(--theme-shadow-md);
   --shadow-large: var(--backend-shadow);
+}
+
+.desktop-app .ad-dashboard-shell {
+  --nav-bar-offset: 0px;
 }
 
 .ad-toolbar-popover {

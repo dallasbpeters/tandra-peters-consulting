@@ -520,12 +520,7 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
 
       <div
         className={estimatorOptionsClass}
-        style={
-          {
-            "--min-column-size": "16rem",
-            marginTop: theme.spacing.xxl,
-          } as React.CSSProperties
-        }
+        style={{ marginTop: theme.spacing.xxl }}
       >
         {question.options.map((option) => (
           <QuestionOption
@@ -619,12 +614,7 @@ const EmailEstimateForm: React.FC<EmailEstimateFormProps> = ({
       </p>
       <div
         className={estimatorEmailRowClass}
-        style={
-          {
-            "--min-column-size": "14rem",
-            marginBottom: theme.spacing.md,
-          } as React.CSSProperties
-        }
+        style={{ marginBottom: theme.spacing.md }}
       >
         <WaInput
           label="Your name"

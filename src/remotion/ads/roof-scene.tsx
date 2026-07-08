@@ -633,8 +633,9 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
 
   return (
     <AbsoluteFill
+      className="remotion-ad-theme"
       style={{
-        backgroundColor: "#061d14",
+        backgroundColor: "var(--color-everglade)",
         borderBlockEnd: "20px solid var(--color-purple-dark)",
       }}
     >
@@ -677,7 +678,7 @@ export const RoofScene: React.FC<RoofSceneProps> = (rawProps) => {
       {/* ── intro veil ───────────────────────────────────────── */}
       <AbsoluteFill
         style={{
-          backgroundColor: "#061d14",
+          backgroundColor: "var(--color-everglade)",
           opacity: 1 - introFade,
           pointerEvents: introFade >= 1 ? "none" : "auto",
         }}

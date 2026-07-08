@@ -58,12 +58,7 @@ export const EstimatorQuestion = ({
 
       <div
         className={estimatorOptionsClass}
-        style={
-          {
-            "--min-column-size": "16rem",
-            marginTop: theme.spacing.xxl,
-          } as React.CSSProperties
-        }
+        style={{ marginTop: theme.spacing.xxl }}
       >
         {question.options.map((option) => {
           const optionKey = option._key ?? option.label;

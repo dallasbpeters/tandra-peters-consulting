@@ -1646,7 +1646,10 @@ export const TandraStormSpot: React.FC<StormSpotProps> = ({
   }, [src, handle]);
 
   return (
-    <AbsoluteFill style={{ background: "var(--color-everglade)" }}>
+    <AbsoluteFill
+      className="remotion-ad-theme"
+      style={{ background: "var(--color-everglade)" }}
+    >
       <Sequence durationInFrames={150}>
         <SsSceneImpact {...impact} />
       </Sequence>
@@ -1729,7 +1732,10 @@ export const TandraRoofValue: React.FC<RoofValueProps> = ({
   ]);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "var(--color-everglade)" }}>
+    <AbsoluteFill
+      className="remotion-ad-theme"
+      style={{ backgroundColor: "var(--color-everglade)" }}
+    >
       <Sequence durationInFrames={180}>
         <SceneHook {...hook} />
       </Sequence>
