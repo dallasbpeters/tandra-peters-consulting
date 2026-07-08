@@ -277,6 +277,12 @@ const hideGestureBlockers = (container: HTMLElement): void => {
   }
 };
 
+const resizeMapToContainer = (map: mapboxgl.Map): void => {
+  window.requestAnimationFrame(() => {
+    map.resize();
+  });
+};
+
 export const DeskAreaMap = ({
   focusIds,
   onToggleSelect,
@@ -340,6 +346,8 @@ export const DeskAreaMap = ({
     });
     hideGestureBlockers(container);
     mapRef.current = map;
+    const observer = new ResizeObserver(() => resizeMapToContainer(map));
+    observer.observe(container);
     map.addControl(
       new mapboxgl.NavigationControl({ showCompass: false }),
       "top-right"
@@ -403,6 +411,7 @@ export const DeskAreaMap = ({
 
     return () => {
       readyRef.current = false;
+      observer.disconnect();
       popup.remove();
       map.remove();
       mapRef.current = null;

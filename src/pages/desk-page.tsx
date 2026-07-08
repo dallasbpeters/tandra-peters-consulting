@@ -202,8 +202,12 @@ interface CanvassTargetResponse {
 
 interface DirectMailProviderOption {
   fit: string;
+  key: string;
   name: string;
+  ready: boolean;
   requiredEnv: string[];
+  setupLabel: string;
+  setupUrl: string;
 }
 
 interface DirectMailPlanResponse {
@@ -212,6 +216,7 @@ interface DirectMailPlanResponse {
   nextSteps: string[];
   ok: boolean;
   provider: string;
+  providerKey: string;
   providerReady: boolean;
   providers: DirectMailProviderOption[];
   rentcast: {
@@ -815,6 +820,13 @@ const AreaCountyStrip = ({
   </ul>
 );
 
+const directMailProviderStatus = (plan: DirectMailPlanResponse): string => {
+  if (plan.providerKey === "mock") {
+    return "planning only";
+  }
+  return plan.providerReady ? "send service ready" : "setup needed";
+};
+
 const DirectMailPlanPanel = ({
   isPreparing,
   onPrepare,
@@ -822,11 +834,12 @@ const DirectMailPlanPanel = ({
   selectedCount,
 }: {
   isPreparing: boolean;
-  onPrepare: () => void;
+  onPrepare: (provider?: string) => void;
   plan: DirectMailPlanResponse | null;
   selectedCount: number;
 }) => {
   const hasSelection = selectedCount > 0;
+  const selectedProviderKey = plan?.providerKey ?? "";
   return (
     <div className="desk-mail-plan">
       <div>
@@ -846,7 +859,7 @@ const DirectMailPlanPanel = ({
         appearance="plain"
         className="desk-primary-link"
         disabled={isPreparing || !hasSelection}
-        onClick={onPrepare}
+        onClick={() => onPrepare()}
       >
         <Mail aria-hidden height={18} slot="start" width={18} />
         {isPreparing ? "Preparing..." : "Prepare mail batch"}
@@ -859,9 +872,7 @@ const DirectMailPlanPanel = ({
           </div>
           <div>
             <strong>{plan.provider}</strong>
-            <span>
-              {plan.providerReady ? "send service ready" : "setup needed"}
-            </span>
+            <span>{directMailProviderStatus(plan)}</span>
           </div>
           <div>
             <strong>{formatNumber(plan.rentcast.recipientReadyCount)}</strong>
@@ -879,9 +890,38 @@ const DirectMailPlanPanel = ({
               <span>Print/mail services</span>
               <ul>
                 {plan.providers.map((provider) => (
-                  <li key={provider.name}>
-                    <strong>{provider.name}</strong>
-                    <small>{provider.fit}</small>
+                  <li
+                    className={
+                      provider.key === selectedProviderKey ? "is-selected" : ""
+                    }
+                    key={provider.key}
+                  >
+                    <div>
+                      <strong>{provider.name}</strong>
+                      <small>{provider.fit}</small>
+                      <em>{provider.ready ? "Connected" : "Setup needed"}</em>
+                    </div>
+                    <div className="desk-mail-plan__provider-actions">
+                      <WaButton
+                        appearance="plain"
+                        className="desk-action-button"
+                        disabled={isPreparing}
+                        onClick={() => onPrepare(provider.key)}
+                      >
+                        {provider.key === selectedProviderKey
+                          ? "Recheck"
+                          : "Use this"}
+                      </WaButton>
+                      {provider.setupUrl ? (
+                        <a
+                          href={provider.setupUrl}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          {provider.setupLabel}
+                        </a>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -1314,53 +1354,57 @@ const CanvassingPlanner = ({
     }
   }, [authHeader, editingId, name, resetForm, saveTarget, selectedTargets]);
 
-  const handlePrepareMail = useCallback(async () => {
-    const invalid = saveValidationError(
-      Boolean(authHeader),
-      selectedTargets.length,
-      name || "Mail batch"
-    );
-    if (invalid) {
-      setMessage({ text: invalid, tone: "error" });
-      return;
-    }
-
-    setIsPreparingMail(true);
-    setMessage(null);
-    setMailPlan(null);
-    try {
-      const response = await fetch("/api/desk-direct-mail", {
-        body: JSON.stringify({
-          includeRecipients: true,
-          name: name || "Austin neighborhood mail batch",
-          neighborhoods: selectedTargets.map(targetToSnapshot),
-        }),
-        headers: {
-          ...authHeader,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const body = (await response.json()) as DirectMailPlanResponse & {
-        error?: string;
-      };
-      if (response.ok && body.ok) {
-        setMailPlan(body);
+  const handlePrepareMail = useCallback(
+    async (provider?: string) => {
+      const invalid = saveValidationError(
+        Boolean(authHeader),
+        selectedTargets.length,
+        name || "Mail batch"
+      );
+      if (invalid) {
+        setMessage({ text: invalid, tone: "error" });
         return;
       }
-      setMessage({
-        text: body.error ?? "Could not prepare this mail batch.",
-        tone: "error",
-      });
-    } catch {
-      setMessage({
-        text: "Could not prepare this mail batch.",
-        tone: "error",
-      });
-    } finally {
-      setIsPreparingMail(false);
-    }
-  }, [authHeader, name, selectedTargets]);
+
+      setIsPreparingMail(true);
+      setMessage(null);
+      setMailPlan(null);
+      try {
+        const response = await fetch("/api/desk-direct-mail", {
+          body: JSON.stringify({
+            includeRecipients: true,
+            name: name || "Austin neighborhood mail batch",
+            neighborhoods: selectedTargets.map(targetToSnapshot),
+            provider,
+          }),
+          headers: {
+            ...authHeader,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const body = (await response.json()) as DirectMailPlanResponse & {
+          error?: string;
+        };
+        if (response.ok && body.ok) {
+          setMailPlan(body);
+          return;
+        }
+        setMessage({
+          text: body.error ?? "Could not prepare this mail batch.",
+          tone: "error",
+        });
+      } catch {
+        setMessage({
+          text: "Could not prepare this mail batch.",
+          tone: "error",
+        });
+      } finally {
+        setIsPreparingMail(false);
+      }
+    },
+    [authHeader, name, selectedTargets]
+  );
 
   const openTarget = useCallback((target: CanvassTargetRecord) => {
     const ids = target.neighborhoods

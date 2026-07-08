@@ -9,26 +9,36 @@ const PROVIDERS = {
     env: ["CLICK2MAIL_USERNAME", "CLICK2MAIL_PASSWORD"],
     fit: "Budget-friendly print workflow with REST and Batch XML options.",
     name: "Click2Mail",
+    setupLabel: "Open setup",
+    setupUrl: "https://developers.click2mail.com/",
   },
   lob: {
     env: ["LOB_API_KEY", "LOB_FROM_ADDRESS_ID"],
     fit: "Best first developer API for postcards, letters, address verification, and simple send primitives.",
     name: "Lob",
+    setupLabel: "Open setup",
+    setupUrl: "https://www.lob.com/docs",
   },
   mock: {
     env: [],
     fit: "Local planning mode. Builds a batch plan without sending mail.",
     name: "Planning mode",
+    setupLabel: "Use planning mode",
+    setupUrl: "",
   },
   postalytics: {
     env: ["POSTALYTICS_API_KEY"],
     fit: "Campaign-oriented direct mail automation with contacts, templates, and sends.",
     name: "Postalytics",
+    setupLabel: "Open setup",
+    setupUrl: "https://www.postalytics.com/direct-mail-api/",
   },
   postgrid: {
     env: ["POSTGRID_API_KEY"],
     fit: "Good fit when address verification, audit trail, and print/mail API coverage matter.",
     name: "PostGrid",
+    setupLabel: "Open setup",
+    setupUrl: "https://www.postgrid.com/docs/",
   },
 } as const;
 
@@ -58,8 +68,12 @@ interface RentCastAudience {
 
 interface ProviderRecommendation {
   fit: string;
+  key: ProviderKey;
   name: string;
+  ready: boolean;
   requiredEnv: string[];
+  setupLabel: string;
+  setupUrl: string;
 }
 
 export interface DirectMailPlanBody {
@@ -68,6 +82,7 @@ export interface DirectMailPlanBody {
   nextSteps: string[];
   ok: boolean;
   provider: string;
+  providerKey: ProviderKey;
   providerReady: boolean;
   providers: ProviderRecommendation[];
   rentcast: RentCastAudience;
@@ -92,9 +107,23 @@ const numberValue = (value: unknown): number => {
 const boolValue = (value: unknown): boolean =>
   value === true || value === "true";
 
-const providerKey = (): ProviderKey => {
-  const raw = process.env.DIRECT_MAIL_PROVIDER?.trim().toLowerCase();
-  return raw && raw in PROVIDERS ? (raw as ProviderKey) : DEFAULT_MAIL_PROVIDER;
+const providerKeyFromValue = (value: unknown): ProviderKey | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const raw = value.trim().toLowerCase();
+  return raw && raw in PROVIDERS ? (raw as ProviderKey) : null;
+};
+
+const providerKey = (override: unknown): ProviderKey => {
+  const configuredProvider = providerKeyFromValue(
+    process.env.DIRECT_MAIL_PROVIDER
+  );
+  return (
+    providerKeyFromValue(override) ??
+    configuredProvider ??
+    DEFAULT_MAIL_PROVIDER
+  );
 };
 
 const missingEnv = (keys: readonly string[]): string[] =>
@@ -227,8 +256,12 @@ const providerRecommendations = (): ProviderRecommendation[] =>
     .filter((key) => key !== "mock")
     .map((key) => ({
       fit: PROVIDERS[key].fit,
+      key,
       name: PROVIDERS[key].name,
+      ready: missingEnv(PROVIDERS[key].env).length === 0,
       requiredEnv: [...PROVIDERS[key].env],
+      setupLabel: PROVIDERS[key].setupLabel,
+      setupUrl: PROVIDERS[key].setupUrl,
     }));
 
 const nextStepsFor = ({
@@ -275,7 +308,7 @@ export const prepareDirectMailBatch = async (
   payload: Record<string, unknown>
 ): Promise<DirectMailPlanResult> => {
   const neighborhoods = normalizeNeighborhoods(payload.neighborhoods);
-  const selectedProvider = providerKey();
+  const selectedProvider = providerKey(payload.provider);
   const provider = PROVIDERS[selectedProvider];
   const requiredEnv = [...provider.env];
   const missing = missingEnv(requiredEnv);
@@ -298,6 +331,7 @@ export const prepareDirectMailBatch = async (
       }),
       ok: true,
       provider: provider.name,
+      providerKey: selectedProvider,
       providerReady,
       providers: providerRecommendations(),
       rentcast,
