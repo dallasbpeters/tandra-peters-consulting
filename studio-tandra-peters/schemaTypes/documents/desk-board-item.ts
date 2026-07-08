@@ -132,6 +132,12 @@ export const deskBoardItemType = defineType({
       title: "Completed at",
       type: "datetime",
     }),
+    defineField({
+      name: "updatedAt",
+      readOnly: true,
+      title: "Updated at",
+      type: "datetime",
+    }),
   ],
   icon: CheckmarkCircleIcon,
   name: "deskBoardItem",

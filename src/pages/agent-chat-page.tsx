@@ -1,8 +1,9 @@
 import { usePostHog } from "@posthog/react";
 import type { FileUIPart } from "ai";
 import { Check, Copy, Download, Globe } from "iconoir-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,11 +58,11 @@ import { Suggestion, Suggestions } from "../components/ai-elements/suggestion";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
+import type { StoredChatImage } from "../lib/build-agent-api-messages";
 import {
   buildApiMessages,
   filePartsToImages,
 } from "../lib/build-agent-api-messages";
-import type { StoredChatImage } from "../lib/build-agent-api-messages";
 import { mix, theme } from "../theme";
 
 import "../styles/agent-chat.css";
@@ -279,6 +280,9 @@ export const AgentChatPage = ({ config }: Props) => {
   const [model, setModel] = useState<string>("gpt-4o");
   const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
   const auth = useGoogleDashboardAuth();
+  const [searchParams] = useSearchParams();
+  const calendarPrompt = searchParams.get("calendarPrompt");
+  const appliedCalendarPromptRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -305,6 +309,17 @@ export const AgentChatPage = ({ config }: Props) => {
       setHasHydratedConversation(true);
     }
   }, [config.agentSlug]);
+
+  useEffect(() => {
+    if (
+      !calendarPrompt ||
+      appliedCalendarPromptRef.current === calendarPrompt
+    ) {
+      return;
+    }
+    appliedCalendarPromptRef.current = calendarPrompt;
+    setInput(calendarPrompt);
+  }, [calendarPrompt]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

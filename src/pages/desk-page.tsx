@@ -1455,6 +1455,10 @@ const DeskDashboard = ({
               <Mail aria-hidden height={18} width={18} />
               Compose outreach
             </TransitionLink>
+            <TransitionLink className="desk-secondary-link" to="/calendar">
+              <Calendar aria-hidden height={18} width={18} />
+              Plan content calendar
+            </TransitionLink>
           </nav>
         </header>
 
@@ -1561,7 +1565,7 @@ const DeskDashboard = ({
             <Calendar aria-hidden height={22} width={22} />
             <div>
               <span>Content calendar</span>
-              <h2>Searchable-first content plan</h2>
+              <h2>Upcoming planned content</h2>
             </div>
             <WaButton
               appearance="plain"
@@ -1570,9 +1574,7 @@ const DeskDashboard = ({
               onClick={() => generate("content")}
             >
               <StatsUpSquare aria-hidden height={16} slot="start" width={16} />
-              {generatingMode === "content"
-                ? "Planning…"
-                : "Generate content ideas"}
+              {generatingMode === "content" ? "Planning…" : "Generate content"}
             </WaButton>
           </div>
           {contentRecords.length > 0 ? (
@@ -1592,7 +1594,7 @@ const DeskDashboard = ({
             <p className="desk-calendar-empty">
               {isLoadingBoard
                 ? "Loading the content calendar…"
-                : "No content planned yet. Generate ideas to build a searchable-first calendar."}
+                : "No content planned yet."}
             </p>
           )}
         </section>
@@ -1620,7 +1622,7 @@ const DeskDashboard = ({
 export const DeskPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
-  const requireAuth = !import.meta.env.DEV && auth.clientId && !auth.token;
+  const requireAuth = !auth.token;
 
   usePageMetadata({
     description:

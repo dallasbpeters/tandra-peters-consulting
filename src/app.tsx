@@ -65,6 +65,11 @@ const DeskPage = lazy(async () => {
   return { default: module.DeskPage };
 });
 
+const ContentCalendarPage = lazy(async () => {
+  const module = await import("./pages/content-calendar-page");
+  return { default: module.ContentCalendarPage };
+});
+
 const FeatureBuilderPage = lazy(async () => {
   const module = await import("./pages/feature-builder-page");
   return { default: module.FeatureBuilderPage };
@@ -140,6 +145,7 @@ const appRouter = createBrowserRouter([
       { element: <ArticlePage />, path: "articles/:slug" },
       { element: <SeoDashboardPage />, path: "seo" },
       { element: <DeskPage />, path: "desk" },
+      { element: <ContentCalendarPage />, path: "calendar" },
       { element: <PrivacyPolicyPage />, path: "privacy" },
       { element: <TermsOfServicePage />, path: "terms" },
       { element: <CookiePolicyPage />, path: "cookies" },

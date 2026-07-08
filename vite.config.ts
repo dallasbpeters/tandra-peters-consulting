@@ -10,7 +10,9 @@ import { ogImageComposite } from "./plugins/og-image-composite";
 import { viteAdVersionsApi } from "./plugins/vite-ad-versions-api";
 import { viteAgentDevApi } from "./plugins/vite-agent-dev-api";
 import { viteAnalyticsApi } from "./plugins/vite-analytics-api";
+import { viteCalendarAgentApi } from "./plugins/vite-calendar-agent-api";
 import { viteContactDevApi } from "./plugins/vite-contact-dev-api";
+import { viteContentCalendarApi } from "./plugins/vite-content-calendar-api";
 import { viteDeskAreaIntelApi } from "./plugins/vite-desk-area-intel-api";
 import { viteDeskBoardApi } from "./plugins/vite-desk-board-api";
 import { viteDeskCaptureApi } from "./plugins/vite-desk-capture-api";
@@ -128,6 +130,8 @@ export default defineConfig(({ mode }) => {
     viteDeskCaptureApi(env) as unknown as PluginOption,
     viteDeskPlanApi(env) as unknown as PluginOption,
     viteDeskTargetsApi(env) as unknown as PluginOption,
+    viteContentCalendarApi(env) as unknown as PluginOption,
+    viteCalendarAgentApi(env) as unknown as PluginOption,
     viteEmailDevApi(env) as unknown as PluginOption,
     viteEstimateDevApi(env) as unknown as PluginOption,
     viteRenderTandraIntroApi(env) as unknown as PluginOption,

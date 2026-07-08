@@ -260,7 +260,8 @@ export const structure: StructureResolver = (S) =>
           id !== "post" &&
           id !== "emailContact" &&
           id !== "deskLead" &&
-          id !== "deskCanvassTarget"
+          id !== "deskCanvassTarget" &&
+          id !== "deskBoardItem"
         );
       }),
     ]);
