@@ -87,6 +87,7 @@ export const CONTACT_BANNER_WORKFLOW_FAQ: ContactBannerProps = {
   accentGlowColor: theme.palette.gold["900"],
   ariaLabel: "Insurance claim FAQ",
   backgroundColor: theme.palette.gold["500"],
+  className: "contact-banner--workflow-faq",
   ctaIcon: HelpCircle,
   eyebrow: "After the diagram",
   eyebrowColor: theme.colors.everglade["900"],

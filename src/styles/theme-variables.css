@@ -356,6 +356,11 @@ a.wa-button {
 }
 
 .contact-banner__cta {
+  --contact-banner-cta-bg: color-mix(
+    in oklch,
+    var(--theme-color-everglade) 40%,
+    transparent
+  );
   --contact-banner-cta-focus: var(--theme-palette-accent-300);
   --contact-banner-cta-hover-bg: color-mix(
     in oklch,
@@ -371,6 +376,41 @@ a.wa-button {
   --contact-banner-cta-hover-text-color: var(--theme-color-white);
   --contact-banner-cta-label-color: var(--theme-color-white);
   --contact-banner-cta-text-color: var(--theme-color-white);
+}
+
+.contact-banner--workflow-faq {
+  --contact-banner-accent-glow: color-mix(
+    in oklch,
+    var(--theme-palette-gold-900) 20%,
+    transparent
+  );
+  --contact-banner-grid-color: color-mix(
+    in oklch,
+    var(--theme-palette-purple-300) 10%,
+    transparent
+  );
+  --contact-banner-icon-hover-bg: var(--theme-palette-coral-600);
+  --contact-banner-pulse: var(--theme-palette-everglade-500);
+  --contact-banner-pulse-ping: var(--theme-palette-everglade-800);
+}
+
+.contact-banner--workflow-faq .contact-banner__cta {
+  --contact-banner-cta-bg: var(--theme-palette-purple-200);
+  --contact-banner-cta-focus: var(--theme-palette-purple-500);
+  --contact-banner-cta-hover-bg: var(--theme-palette-purple-400);
+  --contact-banner-cta-hover-label-color: color-mix(
+    in oklch,
+    var(--theme-color-white) 75%,
+    transparent
+  );
+  --contact-banner-cta-hover-shadow: color-mix(
+    in oklch,
+    var(--theme-palette-purple-500) 25%,
+    transparent
+  );
+  --contact-banner-cta-hover-text-color: var(--theme-color-white);
+  --contact-banner-cta-label-color: var(--theme-palette-everglade-300);
+  --contact-banner-cta-text-color: var(--theme-color-black);
 }
 
 @theme inline {
@@ -1004,6 +1044,10 @@ a.wa-button {
   --site-padding-inline-start: var(--theme-spacing-xl);
 }
 
+.ad-canvas-frame {
+  --canvas-scale: 1;
+}
+
 .ad-canvas-handle {
   --handle-size: calc(12px / var(--canvas-scale, 1));
 }
@@ -1077,14 +1121,6 @@ a.wa-button {
 /* src/styles/site-layout.css */
 .site-page-main {
   --site-padding-inline-start: 120px;
-}
-
-.services-alt-massive-type-layer--base .services-alt-massive-type--masked {
-  --services-alt-mask-image: var(--services-alt-mask-image-base);
-}
-
-.services-alt-massive-type-layer--overlay .services-alt-massive-type--masked {
-  --services-alt-mask-image: var(--services-alt-mask-image-overlay);
 }
 
 .featured-video__play {

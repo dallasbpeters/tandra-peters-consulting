@@ -80,8 +80,11 @@ const buildDisplayItems = (
     title: service.title,
   }));
 
-const MassiveType = () => (
-  <div className="services-alt-massive-type services-alt-massive-type--masked">
+const MassiveType = ({ maskImage }: { maskImage: string }) => (
+  <div
+    className="services-alt-massive-type services-alt-massive-type--masked"
+    style={{ backgroundImage: `url("${maskImage}")` }}
+  >
     <div>BIRD</div>
     <div>CREEK</div>
     <div>ROOF</div>
@@ -95,21 +98,12 @@ interface ArtContainerProps {
 }
 
 const ArtContainer = ({ baseImage, overlayImage }: ArtContainerProps) => (
-  <div
-    aria-hidden="true"
-    className="services-alt-art"
-    style={
-      {
-        "--services-alt-mask-image-base": `url("${baseImage}")`,
-        "--services-alt-mask-image-overlay": `url("${overlayImage}")`,
-      } as React.CSSProperties
-    }
-  >
+  <div aria-hidden="true" className="services-alt-art">
     <div className="services-alt-massive-type-layer services-alt-massive-type-layer--base">
-      <MassiveType />
+      <MassiveType maskImage={baseImage} />
     </div>
     <div className="services-alt-massive-type-layer services-alt-massive-type-layer--overlay">
-      <MassiveType />
+      <MassiveType maskImage={overlayImage} />
     </div>
   </div>
 );

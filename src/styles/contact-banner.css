@@ -69,6 +69,10 @@
   transition: color 0.3s ease;
 }
 
+.contact-banner__cta {
+  background: var(--contact-banner-cta-bg);
+}
+
 .contact-banner__cta-label {
   color: var(--contact-banner-cta-label-color);
 }
@@ -79,14 +83,10 @@
 
 .contact-banner__cta:hover,
 .contact-banner__cta:focus-visible {
-  /* eslint-disable-next-line css/no-important */
   outline: 2px solid var(--contact-banner-cta-focus);
   outline-offset: 3px;
-  /* eslint-disable-next-line css/no-important */
-  background: var(--contact-banner-cta-hover-bg) !important;
-
-  /* eslint-disable-next-line css/no-important */
-  box-shadow: 0 8px 32px 0 var(--contact-banner-cta-hover-shadow) !important;
+  background: var(--contact-banner-cta-hover-bg);
+  box-shadow: 0 8px 32px 0 var(--contact-banner-cta-hover-shadow);
 }
 
 .contact-banner__cta:hover .contact-banner__cta-label,

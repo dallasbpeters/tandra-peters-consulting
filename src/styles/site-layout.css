@@ -267,7 +267,6 @@ main {
 .services-alt-massive-type--masked {
   color: transparent;
   -webkit-text-fill-color: transparent;
-  background-image: var(--services-alt-mask-image);
   background-repeat: no-repeat;
   background-position: center;
   /* stylelint-disable-next-line property-no-vendor-prefix -- Safari text background clip */

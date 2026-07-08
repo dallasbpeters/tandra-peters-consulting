@@ -256,7 +256,6 @@ const buildStyles = (palette: ContactBannerPalette, isMobile: boolean) =>
     phoneLink: {
       alignItems: "center",
       backdropFilter: "blur(16px)",
-      background: palette.phoneLinkBackground,
       border: `1px solid ${mix(palette.text, 10)}`,
       borderRadius: theme.radius.pill,
       color: "inherit",
@@ -271,7 +270,7 @@ const buildStyles = (palette: ContactBannerPalette, isMobile: boolean) =>
       position: "relative",
       textDecoration: "none",
       transition:
-        "background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease",
+        "background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease",
       width: isMobile ? "100%" : undefined,
       zIndex: 1,
     },
@@ -369,29 +368,6 @@ export const ContactBanner = ({
     () => buildStyles(palette, isMobile),
     [palette, isMobile]
   );
-  const themeVars = useMemo((): CSSProperties => {
-    const vars: Record<string, string> = {
-      "--contact-banner-accent-glow": mix(palette.accentGlow, 20),
-      "--contact-banner-grid-color": palette.gridColor,
-      "--contact-banner-icon-hover-bg": palette.phoneIconHoverBackground,
-      "--contact-banner-pulse": palette.pulse,
-      "--contact-banner-pulse-ping": palette.pulsePing,
-    };
-    return vars as CSSProperties;
-  }, [palette]);
-  const ctaThemeVars = useMemo((): CSSProperties => {
-    const vars: Record<string, string> = {
-      "--contact-banner-cta-focus": palette.phoneLinkHoverOutline,
-      "--contact-banner-cta-hover-bg": palette.phoneLinkHoverBackground,
-      "--contact-banner-cta-hover-label-color":
-        palette.phoneLinkHoverLabelColor,
-      "--contact-banner-cta-hover-shadow": palette.phoneLinkHoverShadow,
-      "--contact-banner-cta-hover-text-color": palette.phoneLinkHoverTextColor,
-      "--contact-banner-cta-label-color": palette.phoneLinkLabelColor,
-      "--contact-banner-cta-text-color": palette.phoneLinkTextColor,
-    };
-    return vars as CSSProperties;
-  }, [palette]);
   const resolvedCtaHref = phoneHref ?? `tel:${phoneTel}`;
   const resolvedCtaAriaLabel = phoneAriaLabel ?? `Call or text ${phoneDisplay}`;
   const iconSize = isMobile ? 22 : 28;
@@ -430,7 +406,7 @@ export const ContactBanner = ({
     <section
       aria-label={ariaLabel}
       className={sectionClassName}
-      style={{ ...styles.card, ...themeVars }}
+      style={styles.card}
     >
       <div className="contact-banner__grid" style={styles.banner}>
         <div style={styles.inner}>
@@ -448,7 +424,7 @@ export const ContactBanner = ({
             <Link
               aria-label={resolvedCtaAriaLabel}
               className="contact-banner__cta"
-              style={{ ...styles.phoneLink, ...ctaThemeVars }}
+              style={styles.phoneLink}
               to={resolvedCtaHref}
             >
               {ctaContent}
@@ -458,7 +434,7 @@ export const ContactBanner = ({
               aria-label={resolvedCtaAriaLabel}
               className="contact-banner__cta"
               href={resolvedCtaHref}
-              style={{ ...styles.phoneLink, ...ctaThemeVars }}
+              style={styles.phoneLink}
             >
               {ctaContent}
             </a>
