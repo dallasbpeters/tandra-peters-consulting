@@ -7,17 +7,19 @@ const RENTCAST_RADIUS_MILES = 0.45;
 const PROVIDERS = {
   click2mail: {
     env: ["CLICK2MAIL_USERNAME", "CLICK2MAIL_PASSWORD"],
-    fit: "Budget-friendly print workflow with REST and Batch XML options.",
+    fit: "Budget-friendly print workflow that can receive uploaded documents and mailing lists.",
     name: "Click2Mail",
     setupLabel: "Open setup",
     setupUrl: "https://developers.click2mail.com/",
+    uploadMode: "PDF/document upload plus mailing list API",
   },
   lob: {
     env: ["LOB_API_KEY", "LOB_FROM_ADDRESS_ID"],
-    fit: "Best first developer API for postcards, letters, address verification, and simple send primitives.",
+    fit: "Best first developer API for postcards, address verification, templates, and send primitives.",
     name: "Lob",
     setupLabel: "Open setup",
     setupUrl: "https://www.lob.com/docs",
+    uploadMode: "HTML/PDF creative plus address objects",
   },
   mock: {
     env: [],
@@ -25,6 +27,7 @@ const PROVIDERS = {
     name: "Planning mode",
     setupLabel: "Use planning mode",
     setupUrl: "",
+    uploadMode: "No live upload",
   },
   postalytics: {
     env: ["POSTALYTICS_API_KEY"],
@@ -32,13 +35,15 @@ const PROVIDERS = {
     name: "Postalytics",
     setupLabel: "Open setup",
     setupUrl: "https://www.postalytics.com/direct-mail-api/",
+    uploadMode: "Contacts, templates, campaigns, and sends",
   },
   postgrid: {
     env: ["POSTGRID_API_KEY"],
-    fit: "Good fit when address verification, audit trail, and print/mail API coverage matter.",
+    fit: "Good fit when address verification, audit trail, templates, and print/mail API coverage matter.",
     name: "PostGrid",
     setupLabel: "Open setup",
     setupUrl: "https://www.postgrid.com/docs/",
+    uploadMode: "Template/contact API with PDF support",
   },
 } as const;
 
@@ -74,6 +79,7 @@ interface ProviderRecommendation {
   requiredEnv: string[];
   setupLabel: string;
   setupUrl: string;
+  uploadMode: string;
 }
 
 export interface DirectMailPlanBody {
@@ -262,6 +268,7 @@ const providerRecommendations = (): ProviderRecommendation[] =>
       requiredEnv: [...PROVIDERS[key].env],
       setupLabel: PROVIDERS[key].setupLabel,
       setupUrl: PROVIDERS[key].setupUrl,
+      uploadMode: PROVIDERS[key].uploadMode,
     }));
 
 const nextStepsFor = ({

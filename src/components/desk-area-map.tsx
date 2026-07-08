@@ -10,6 +10,11 @@ const DEFAULT_CENTER: [number, number] = [-97.74, 30.62];
 
 const NORMAL_FILL = "#92d66f";
 const SELECTED_FILL = "#f2a63d";
+const ZONE_FILL = "#1f6f4a";
+const ZONE_LINE = "#073320";
+const ACTIVE_ZONE_FILL = "#f2a63d";
+const EARTH_RADIUS_MILES = 3958.8;
+const ZONE_CIRCLE_SEGMENTS = 72;
 
 interface TractPolygon {
   coordinates: number[][][];
@@ -40,11 +45,30 @@ export interface DeskAreaMapTarget {
   tractLabel: string;
 }
 
+export interface DeskAreaMapZone {
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  mailPieces: number;
+  radiusMiles: number;
+  selected: boolean;
+  targetCount: number;
+}
+
+export interface DeskAreaMapZonePoint {
+  latitude: number;
+  longitude: number;
+}
+
 interface DeskAreaMapProps {
   focusIds?: readonly string[];
+  onCreateZone?: (point: DeskAreaMapZonePoint) => void;
   onToggleSelect?: (id: string) => void;
   selectedIds?: readonly string[];
   targets: readonly DeskAreaMapTarget[];
+  zoneMode?: boolean;
+  zones?: readonly DeskAreaMapZone[];
 }
 
 interface DeskAreaMapProperties {
@@ -60,6 +84,15 @@ interface DeskAreaMapProperties {
   recommendedMailerCount: number;
   selected: boolean;
   tractLabel: string;
+}
+
+interface DeskAreaMapZoneProperties {
+  id: string;
+  label: string;
+  mailPieces: number;
+  radiusMiles: number;
+  selected: boolean;
+  targetCount: number;
 }
 
 const buildProperties = (
@@ -112,6 +145,65 @@ const toPolygonGeoJson = (
   type: "FeatureCollection",
 });
 
+const degreesToRadians = (value: number): number => (value * Math.PI) / 180;
+
+const radiansToDegrees = (value: number): number => (value * 180) / Math.PI;
+
+const zoneCirclePoint = (
+  longitude: number,
+  latitude: number,
+  radiusMiles: number,
+  bearingDegrees: number
+): [number, number] => {
+  const distance = radiusMiles / EARTH_RADIUS_MILES;
+  const bearing = degreesToRadians(bearingDegrees);
+  const lat1 = degreesToRadians(latitude);
+  const lng1 = degreesToRadians(longitude);
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(distance) +
+      Math.cos(lat1) * Math.sin(distance) * Math.cos(bearing)
+  );
+  const lng2 =
+    lng1 +
+    Math.atan2(
+      Math.sin(bearing) * Math.sin(distance) * Math.cos(lat1),
+      Math.cos(distance) - Math.sin(lat1) * Math.sin(lat2)
+    );
+  return [radiansToDegrees(lng2), radiansToDegrees(lat2)];
+};
+
+const zoneCircleCoordinates = (zone: DeskAreaMapZone): GeoJSON.Position[][] => [
+  Array.from({ length: ZONE_CIRCLE_SEGMENTS + 1 }, (_, index) =>
+    zoneCirclePoint(
+      zone.longitude,
+      zone.latitude,
+      zone.radiusMiles,
+      (index / ZONE_CIRCLE_SEGMENTS) * 360
+    )
+  ),
+];
+
+const toZoneGeoJson = (
+  zones: readonly DeskAreaMapZone[]
+): GeoJSON.FeatureCollection<GeoJSON.Polygon, DeskAreaMapZoneProperties> => ({
+  features: zones.map((zone) => ({
+    geometry: {
+      coordinates: zoneCircleCoordinates(zone),
+      type: "Polygon",
+    },
+    properties: {
+      id: zone.id,
+      label: zone.label,
+      mailPieces: zone.mailPieces,
+      radiusMiles: zone.radiusMiles,
+      selected: zone.selected,
+      targetCount: zone.targetCount,
+    },
+    type: "Feature",
+  })),
+  type: "FeatureCollection",
+});
+
 const boundsFor = (
   targets: readonly DeskAreaMapTarget[]
 ): mapboxgl.LngLatBounds => {
@@ -145,6 +237,57 @@ const fitTo = (
     maxZoom: 12,
     padding: { bottom: 56, left: 56, right: 56, top: 56 },
   });
+};
+
+const addZoneLayers = (
+  map: mapboxgl.Map,
+  zoneData: GeoJSON.FeatureCollection<
+    GeoJSON.Polygon,
+    DeskAreaMapZoneProperties
+  >
+): void => {
+  map.addSource("desk-area-zones", { data: zoneData, type: "geojson" });
+  map.addLayer(
+    {
+      id: "desk-area-zone-fill",
+      paint: {
+        "fill-color": [
+          "case",
+          ["boolean", ["get", "selected"], false],
+          ACTIVE_ZONE_FILL,
+          ZONE_FILL,
+        ],
+        "fill-opacity": [
+          "case",
+          ["boolean", ["get", "selected"], false],
+          0.28,
+          0.18,
+        ],
+      },
+      source: "desk-area-zones",
+      type: "fill",
+    },
+    "desk-area-target-outline"
+  );
+  map.addLayer(
+    {
+      id: "desk-area-zone-line",
+      paint: {
+        "line-color": ZONE_LINE,
+        "line-dasharray": [2, 1],
+        "line-opacity": 0.9,
+        "line-width": [
+          "case",
+          ["boolean", ["get", "selected"], false],
+          2.8,
+          1.8,
+        ],
+      },
+      source: "desk-area-zones",
+      type: "line",
+    },
+    "desk-area-target-dot"
+  );
 };
 
 const addTargetLayers = (
@@ -285,15 +428,20 @@ const resizeMapToContainer = (map: mapboxgl.Map): void => {
 
 export const DeskAreaMap = ({
   focusIds,
+  onCreateZone,
   onToggleSelect,
   selectedIds,
   targets,
+  zoneMode = false,
+  zones = [],
 }: DeskAreaMapProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const onCreateZoneRef = useRef(onCreateZone);
   const onToggleRef = useRef(onToggleSelect);
   const readyRef = useRef(false);
+  const zoneModeRef = useRef(zoneMode);
 
   const selectedSet = useMemo(() => new Set(selectedIds ?? []), [selectedIds]);
 
@@ -305,23 +453,41 @@ export const DeskAreaMap = ({
     () => toPolygonGeoJson(targets, selectedSet),
     [targets, selectedSet]
   );
+  const zoneData = useMemo(() => toZoneGeoJson(zones), [zones]);
 
   const pointRef = useRef(pointData);
   const polygonRef = useRef(polygonData);
   const targetsRef = useRef(targets);
+  const zoneRef = useRef(zoneData);
 
   useEffect(() => {
     onToggleRef.current = onToggleSelect;
   }, [onToggleSelect]);
 
   useEffect(() => {
+    onCreateZoneRef.current = onCreateZone;
+  }, [onCreateZone]);
+
+  useEffect(() => {
+    zoneModeRef.current = zoneMode;
+    const map = mapRef.current;
+    if (map) {
+      map.getCanvas().style.cursor = zoneMode ? "crosshair" : "";
+    }
+  }, [zoneMode]);
+
+  useEffect(() => {
     pointRef.current = pointData;
     polygonRef.current = polygonData;
     targetsRef.current = targets;
-  }, [pointData, polygonData, targets]);
+    zoneRef.current = zoneData;
+  }, [pointData, polygonData, targets, zoneData]);
 
   const handleFillClick = useCallback(
     (event: MapMouseEvent & { features?: GeoJSON.Feature[] }) => {
+      if (zoneModeRef.current) {
+        return;
+      }
       const id = event.features?.[0]?.properties?.id;
       if (typeof id === "string") {
         onToggleRef.current?.(id);
@@ -329,6 +495,16 @@ export const DeskAreaMap = ({
     },
     []
   );
+
+  const handleMapClick = useCallback((event: MapMouseEvent) => {
+    if (!zoneModeRef.current) {
+      return;
+    }
+    onCreateZoneRef.current?.({
+      latitude: event.lngLat.lat,
+      longitude: event.lngLat.lng,
+    });
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -362,7 +538,9 @@ export const DeskAreaMap = ({
     popupRef.current = popup;
 
     const onEnter = () => {
-      map.getCanvas().style.cursor = "pointer";
+      map.getCanvas().style.cursor = zoneModeRef.current
+        ? "crosshair"
+        : "pointer";
     };
     const onMove = (
       event: MapMouseEvent & { features?: GeoJSON.Feature[] }
@@ -401,8 +579,10 @@ export const DeskAreaMap = ({
     map.on("load", () => {
       hideGestureBlockers(container);
       addTargetLayers(map, pointRef.current, polygonRef.current);
+      addZoneLayers(map, zoneRef.current);
       fitTo(map, targetsRef.current, 0);
       readyRef.current = true;
+      map.on("click", handleMapClick);
       map.on("click", "desk-area-target-fill", handleFillClick);
       map.on("mouseenter", "desk-area-target-fill", onEnter);
       map.on("mousemove", "desk-area-target-fill", onMove);
@@ -417,7 +597,7 @@ export const DeskAreaMap = ({
       mapRef.current = null;
       popupRef.current = null;
     };
-  }, [handleFillClick]);
+  }, [handleFillClick, handleMapClick]);
 
   // Push new / re-selected data to the map.
   useEffect(() => {
@@ -431,7 +611,10 @@ export const DeskAreaMap = ({
     (map.getSource("desk-area-targets") as GeoJSONSource | undefined)?.setData(
       pointData
     );
-  }, [pointData, polygonData]);
+    (map.getSource("desk-area-zones") as GeoJSONSource | undefined)?.setData(
+      zoneData
+    );
+  }, [pointData, polygonData, zoneData]);
 
   // Fit to all targets when the underlying set changes.
   useEffect(() => {
@@ -464,5 +647,12 @@ export const DeskAreaMap = ({
     );
   }
 
-  return <div className="desk-area-map" ref={containerRef} />;
+  return (
+    <div
+      className={
+        zoneMode ? "desk-area-map desk-area-map--zoning" : "desk-area-map"
+      }
+      ref={containerRef}
+    />
+  );
 };

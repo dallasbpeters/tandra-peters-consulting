@@ -21,6 +21,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { DeskAreaMap } from "../components/desk-area-map";
+import type { DeskAreaMapZonePoint } from "../components/desk-area-map";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
@@ -208,6 +209,7 @@ interface DirectMailProviderOption {
   requiredEnv: string[];
   setupLabel: string;
   setupUrl: string;
+  uploadMode: string;
 }
 
 interface DirectMailPlanResponse {
@@ -228,6 +230,23 @@ interface DirectMailPlanResponse {
   requiredEnv: string[];
   sendEnabled: boolean;
   status: "draft" | "ready-for-recipients" | "send-disabled";
+}
+
+interface DeskTargetZone {
+  createdAt: string;
+  id: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  radiusMiles: number;
+  targetIds: string[];
+}
+
+interface ZoneValidationResult {
+  detail: string;
+  items: string[];
+  title: string;
+  tone: "error" | "good" | "neutral";
 }
 
 type CanvassStatus = "planned" | "walking" | "done";
@@ -400,11 +419,196 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
 });
 
+const DEFAULT_ZONE_RADIUS_MILES = 0.4;
+const MAX_STORED_ZONES = 8;
+const MIN_ZONE_MAIL_PIECES = 35;
+const MAX_ZONE_MAIL_PIECES = 275;
+const MAX_ZONE_TARGET_COUNT = 5;
+const EARTH_RADIUS_MILES = 3958.8;
+
+const zoneRadiusOptions: readonly { label: string; value: number }[] = [
+  { label: "0.25 mi", value: 0.25 },
+  { label: "0.4 mi", value: DEFAULT_ZONE_RADIUS_MILES },
+  { label: "0.6 mi", value: 0.6 },
+] as const;
+
+const postcardReturnAddressLines = [
+  "Tandra Peters",
+  "Birdcreek Roofing",
+  "{{return_address_line1}}",
+  "{{return_address_city}}, {{return_address_state}} {{return_address_zip}}",
+] as const;
+
 const formatCurrencyValue = (value: number | null | undefined): string =>
   typeof value === "number" ? currencyFormatter.format(value) : "No data";
 
 const formatYearValue = (value: number | null | undefined): string =>
   typeof value === "number" ? String(value) : "No data";
+
+const degreesToRadians = (value: number): number => (value * Math.PI) / 180;
+
+const milesBetween = (
+  first: DeskAreaMapZonePoint,
+  second: DeskAreaMapZonePoint
+): number => {
+  const lat1 = degreesToRadians(first.latitude);
+  const lat2 = degreesToRadians(second.latitude);
+  const deltaLat = degreesToRadians(second.latitude - first.latitude);
+  const deltaLng = degreesToRadians(second.longitude - first.longitude);
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+  return (
+    EARTH_RADIUS_MILES *
+    2 *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  );
+};
+
+const createZoneId = (): string =>
+  globalThis.crypto?.randomUUID?.() ?? `zone-${Date.now().toString(36)}`;
+
+const closestTargets = (
+  point: DeskAreaMapZonePoint,
+  targets: readonly DeskAreaTarget[]
+): DeskAreaTarget[] =>
+  targets
+    .map((target) => ({
+      distance: milesBetween(point, {
+        latitude: target.latitude,
+        longitude: target.longitude,
+      }),
+      target,
+    }))
+    .toSorted((first, second) => first.distance - second.distance)
+    .slice(0, 1)
+    .map(({ target }) => target);
+
+const targetsInsideZone = (
+  point: DeskAreaMapZonePoint,
+  radiusMiles: number,
+  targets: readonly DeskAreaTarget[]
+): DeskAreaTarget[] => {
+  const inside = targets.filter(
+    (target) =>
+      milesBetween(point, {
+        latitude: target.latitude,
+        longitude: target.longitude,
+      }) <= radiusMiles
+  );
+  return inside.length > 0 ? inside : closestTargets(point, targets);
+};
+
+const zoneLabelFor = (
+  zoneTargets: readonly DeskAreaTarget[],
+  radiusMiles: number
+): string => {
+  const primary = zoneTargets[0]?.neighborhoodLabel ?? "Austin";
+  return `${primary} ${radiusMiles} mi mail zone`;
+};
+
+const selectedZoneTargets = (
+  zone: DeskTargetZone | null,
+  targets: readonly DeskAreaTarget[]
+): DeskAreaTarget[] => {
+  if (!zone) {
+    return [];
+  }
+  const zoneIds = new Set(zone.targetIds);
+  return targets.filter((target) => zoneIds.has(target.id));
+};
+
+const averageValue = (
+  values: readonly (number | null | undefined)[]
+): number | null => {
+  const usable = values.filter(
+    (value): value is number => typeof value === "number"
+  );
+  if (usable.length === 0) {
+    return null;
+  }
+  return Math.round(
+    usable.reduce((sum, value) => sum + value, 0) / usable.length
+  );
+};
+
+const uniqueText = (values: readonly string[]): string[] => [
+  ...new Set(values.filter(Boolean)),
+];
+
+const zoneValidationFor = (
+  zone: DeskTargetZone | null,
+  targets: readonly DeskAreaTarget[],
+  mailPieces: number
+): ZoneValidationResult => {
+  if (!zone) {
+    return {
+      detail: "Turn on zone mode, choose a radius, then click the map.",
+      items: ["No zone has been created yet."],
+      title: "Create a small send zone",
+      tone: "neutral",
+    };
+  }
+  if (targets.length === 0 || mailPieces === 0) {
+    return {
+      detail: "This click did not land close enough to a mapped mail target.",
+      items: ["Try a larger radius or click closer to a labeled area."],
+      title: "No sendable homes found",
+      tone: "error",
+    };
+  }
+  if (
+    mailPieces > MAX_ZONE_MAIL_PIECES ||
+    targets.length > MAX_ZONE_TARGET_COUNT
+  ) {
+    return {
+      detail: "This is likely bigger than Tandra should test first.",
+      items: [
+        "Lower the radius and click again.",
+        "Split the area into two smaller postcard tests.",
+      ],
+      title: "Zone is too broad",
+      tone: "error",
+    };
+  }
+  if (mailPieces < MIN_ZONE_MAIL_PIECES) {
+    return {
+      detail:
+        "This is small enough to be safe, but may be inefficient to print.",
+      items: [
+        "Increase the radius if the provider minimum is higher.",
+        "Keep it if this is a hand-picked street cluster.",
+      ],
+      title: "Zone is very small",
+      tone: "neutral",
+    };
+  }
+  return {
+    detail: "This is a reasonable first-send size for creative validation.",
+    items: [
+      "Save this target before changing the map.",
+      "Prepare the mail batch and review addresses before sending.",
+    ],
+    title: "Zone is testable",
+    tone: "good",
+  };
+};
+
+const zoneNotes = (
+  zone: DeskTargetZone | null,
+  mailPieces: number
+): string | undefined => {
+  if (!zone) {
+    return undefined;
+  }
+  return [
+    "Small-zone mail target",
+    `Center: ${zone.latitude.toFixed(5)}, ${zone.longitude.toFixed(5)}`,
+    `Radius: ${zone.radiusMiles} miles`,
+    `Estimated pieces: ${mailPieces}`,
+    `Mapped target ids: ${zone.targetIds.join(", ")}`,
+  ].join("\n");
+};
 
 const escapeCsvField = (value: number | string): string => {
   const text = String(value);
@@ -827,16 +1031,297 @@ const directMailProviderStatus = (plan: DirectMailPlanResponse): string => {
   return plan.providerReady ? "send service ready" : "setup needed";
 };
 
+const validationMessageTone = (
+  tone: ZoneValidationResult["tone"]
+): CaptureMessage["tone"] => {
+  if (tone === "good") {
+    return "success";
+  }
+  if (tone === "error") {
+    return "error";
+  }
+  return "neutral";
+};
+
+const buildProviderPayload = ({
+  batchName,
+  plan,
+  selectedMailPieces,
+  selectedTargets,
+  zone,
+}: {
+  batchName: string;
+  plan: DirectMailPlanResponse | null;
+  selectedMailPieces: number;
+  selectedTargets: readonly DeskAreaTarget[];
+  zone: DeskTargetZone | null;
+}) => {
+  const neighborhoodNames = uniqueText(
+    selectedTargets.map((target) => target.neighborhoodLabel)
+  );
+  const postalCodes = uniqueText(
+    selectedTargets.map((target) => target.postalCode)
+  );
+  const averageHomeAge = averageValue(
+    selectedTargets.map((target) => target.medianHomeAge)
+  );
+  return {
+    campaign: {
+      estimatedPieces: plan?.estimatedPieces ?? selectedMailPieces,
+      name: batchName || zone?.label || "Austin roof check postcard test",
+      provider: plan?.providerKey ?? "choose-provider",
+      sendEnabled: Boolean(plan?.sendEnabled),
+    },
+    creative: {
+      format: "6x9 postcard",
+      front: {
+        upload:
+          "Attach the finished front-side postcard PDF from the Ads tool.",
+      },
+      back: {
+        callToAction: "Scan for a roof check or text 512-968-3965.",
+        message:
+          "I’m checking older roofs in {{zone_name}} this week. If your roof is 15+ years old or recent weather has you wondering, I can take a look and explain what matters before you file anything.",
+        postageArea: "Provider postage or indicia block",
+        recipientAddressBlock: [
+          "{{recipient_full_name}}",
+          "{{mailing_address_line1}}",
+          "{{mailing_address_line2}}",
+          "{{mailing_city}}, {{mailing_state}} {{mailing_zip}}",
+        ],
+        returnAddressBlock: postcardReturnAddressLines,
+        trackingUrl:
+          "https://www.tandra.me/estimate?utm_source=postcard&utm_medium=direct_mail&utm_campaign={{campaign_id}}",
+      },
+    },
+    recipientSource: {
+      fallback: "Upload a reviewed CSV if API matching is not connected.",
+      matchMode: "Owner mailing addresses around clicked zone",
+      rentcastStatus: plan?.rentcast.status ?? "not-requested",
+    },
+    target: {
+      averageHomeAge,
+      center: zone
+        ? { latitude: zone.latitude, longitude: zone.longitude }
+        : undefined,
+      neighborhoods: neighborhoodNames,
+      postalCodes,
+      radiusMiles: zone?.radiusMiles,
+      zoneId: zone?.id,
+      zoneName: zone?.label ?? batchName,
+    },
+  };
+};
+
+const ZoneBuilderPanel = ({
+  activeZone,
+  isZoneMode,
+  onOpenZone,
+  onRadiusChange,
+  onToggleZoneMode,
+  onValidate,
+  radiusMiles,
+  validation,
+  zones,
+}: {
+  activeZone: DeskTargetZone | null;
+  isZoneMode: boolean;
+  onOpenZone: (zone: DeskTargetZone) => void;
+  onRadiusChange: (value: string) => void;
+  onToggleZoneMode: () => void;
+  onValidate: () => void;
+  radiusMiles: number;
+  validation: ZoneValidationResult;
+  zones: readonly DeskTargetZone[];
+}) => (
+  <div className="desk-zone-builder">
+    <div className="desk-zone-builder__header">
+      <div>
+        <span>Small zone builder</span>
+        <strong>Click a street cluster, not a whole neighborhood.</strong>
+      </div>
+      <WaButton
+        appearance="plain"
+        className={isZoneMode ? "desk-primary-link" : "desk-action-button"}
+        onClick={onToggleZoneMode}
+      >
+        {isZoneMode ? "Clicking map" : "Create zone"}
+      </WaButton>
+    </div>
+    <label className="desk-zone-radius">
+      <span>Radius</span>
+      <WaSelect
+        appearance="outlined"
+        onChange={(event) => onRadiusChange(waFieldValue(event))}
+        size="small"
+        value={String(radiusMiles)}
+      >
+        {zoneRadiusOptions.map((option) => (
+          <WaOption key={option.value} value={String(option.value)}>
+            {option.label}
+          </WaOption>
+        ))}
+      </WaSelect>
+    </label>
+    <div
+      className={`desk-zone-validation desk-zone-validation--${validation.tone}`}
+    >
+      <strong>{validation.title}</strong>
+      <p>{validation.detail}</p>
+      <ul>
+        {validation.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <WaButton
+        appearance="plain"
+        className="desk-action-button"
+        disabled={!activeZone}
+        onClick={onValidate}
+      >
+        Validate zone
+      </WaButton>
+    </div>
+    {zones.length > 0 ? (
+      <ul className="desk-zone-list" aria-label="Clicked zones">
+        {zones.map((zone) => (
+          <li key={zone.id}>
+            <button
+              className={zone.id === activeZone?.id ? "is-active" : ""}
+              onClick={() => onOpenZone(zone)}
+              type="button"
+            >
+              <strong>{zone.label}</strong>
+              <span>{zone.radiusMiles} mi radius</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    ) : null}
+  </div>
+);
+
+const PostcardBackTemplate = ({
+  batchName,
+  plan,
+  selectedMailPieces,
+  selectedTargets,
+  zone,
+}: {
+  batchName: string;
+  plan: DirectMailPlanResponse | null;
+  selectedMailPieces: number;
+  selectedTargets: readonly DeskAreaTarget[];
+  zone: DeskTargetZone | null;
+}) => {
+  const [copyStatus, setCopyStatus] = useState("");
+  const payload = useMemo(
+    () =>
+      buildProviderPayload({
+        batchName,
+        plan,
+        selectedMailPieces,
+        selectedTargets,
+        zone,
+      }),
+    [batchName, plan, selectedMailPieces, selectedTargets, zone]
+  );
+  const payloadText = useMemo(
+    () => JSON.stringify(payload, null, 2),
+    [payload]
+  );
+  const zoneName = zone?.label ?? (batchName || "selected Austin area");
+  const averageHomeAge = averageValue(
+    selectedTargets.map((target) => target.medianHomeAge)
+  );
+  const roofAgePhrase = averageHomeAge
+    ? `around ${averageHomeAge} years old`
+    : "15+ years old";
+  const copyPayload = async () => {
+    if (!navigator.clipboard) {
+      setCopyStatus("Clipboard is unavailable in this browser.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(payloadText);
+      setCopyStatus("Provider payload copied.");
+    } catch {
+      setCopyStatus("Could not copy payload.");
+    }
+  };
+
+  return (
+    <div className="desk-postcard-template">
+      <div className="desk-postcard-template__heading">
+        <div>
+          <span>Postcard back</span>
+          <strong>Address-ready back side for print upload.</strong>
+        </div>
+        <WaButton
+          appearance="plain"
+          className="desk-action-button"
+          onClick={copyPayload}
+        >
+          Copy provider payload
+        </WaButton>
+      </div>
+      <div
+        aria-label="Postcard back preview"
+        className="desk-postcard-back"
+        role="group"
+      >
+        <div className="desk-postcard-back__return">
+          {postcardReturnAddressLines.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
+        </div>
+        <div className="desk-postcard-back__postage">postage / indicia</div>
+        <div className="desk-postcard-back__message">
+          <strong>Roof age check for {zoneName}</strong>
+          <p>
+            I’m checking older roofs in this area this week. If your roof is{" "}
+            {roofAgePhrase}, I can take a look and explain what matters before
+            you file anything.
+          </p>
+          <span>Scan for a roof check or text 512-968-3965.</span>
+        </div>
+        <div className="desk-postcard-back__qr">QR / pURL</div>
+        <address className="desk-postcard-back__recipient">
+          <span>{"{{recipient_full_name}}"}</span>
+          <span>{"{{mailing_address_line1}}"}</span>
+          <span>{"{{mailing_address_line2}}"}</span>
+          <span>{"{{mailing_city}}, {{mailing_state}} {{mailing_zip}}"}</span>
+        </address>
+      </div>
+      <div className="desk-provider-payload">
+        <span>
+          {copyStatus ||
+            "Use this JSON as the upload/send handoff once provider keys are connected."}
+        </span>
+        <pre>{payloadText}</pre>
+      </div>
+    </div>
+  );
+};
+
 const DirectMailPlanPanel = ({
+  batchName,
   isPreparing,
   onPrepare,
   plan,
   selectedCount,
+  selectedMailPieces,
+  selectedTargets,
+  zone,
 }: {
+  batchName: string;
   isPreparing: boolean;
   onPrepare: (provider?: string) => void;
   plan: DirectMailPlanResponse | null;
   selectedCount: number;
+  selectedMailPieces: number;
+  selectedTargets: readonly DeskAreaTarget[];
+  zone: DeskTargetZone | null;
 }) => {
   const hasSelection = selectedCount > 0;
   const selectedProviderKey = plan?.providerKey ?? "";
@@ -846,13 +1331,13 @@ const DirectMailPlanPanel = ({
         <span>Mail batch</span>
         <strong>
           {hasSelection
-            ? "Prepare these neighborhoods for a print send."
-            : "Pick neighborhoods first."}
+            ? "Prepare this zone for a print send."
+            : "Create a zone first."}
         </strong>
         <p>
           {hasSelection
-            ? "Build a mailing count, household matching summary, and provider handoff notes for the selected areas."
-            : "Click neighborhoods on the map or in the list. Then this turns the selection into a mailing list plan."}
+            ? "Build a mailing count, household matching summary, and provider handoff notes for the selected area."
+            : "Turn on zone mode and click the map, or manually select areas from the list."}
         </p>
       </div>
       <WaButton
@@ -899,6 +1384,7 @@ const DirectMailPlanPanel = ({
                     <div>
                       <strong>{provider.name}</strong>
                       <small>{provider.fit}</small>
+                      <small>Auto-upload: {provider.uploadMode}</small>
                       <em>{provider.ready ? "Connected" : "Setup needed"}</em>
                     </div>
                     <div className="desk-mail-plan__provider-actions">
@@ -928,6 +1414,15 @@ const DirectMailPlanPanel = ({
             </div>
           ) : null}
         </div>
+      ) : null}
+      {hasSelection ? (
+        <PostcardBackTemplate
+          batchName={batchName}
+          plan={plan}
+          selectedMailPieces={selectedMailPieces}
+          selectedTargets={selectedTargets}
+          zone={zone}
+        />
       ) : null}
     </div>
   );
@@ -977,6 +1472,7 @@ interface SaveTargetPayload {
   id?: string;
   name: string;
   neighborhoods: CanvassNeighborhood[];
+  notes?: string;
 }
 
 const useCanvassTargets = (authHeader: AuthHeader) => {
@@ -1293,11 +1789,19 @@ const CanvassingPlanner = ({
   const [isPreparingMail, setIsPreparingMail] = useState(false);
   const [mailPlan, setMailPlan] = useState<DirectMailPlanResponse | null>(null);
   const [message, setMessage] = useState<CaptureMessage | null>(null);
+  const [zones, setZones] = useState<DeskTargetZone[]>([]);
+  const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
+  const [isZoneMode, setIsZoneMode] = useState(false);
+  const [zoneRadiusMiles, setZoneRadiusMiles] = useState(
+    DEFAULT_ZONE_RADIUS_MILES
+  );
 
   const targets = useMemo(() => intel?.targets ?? [], [intel]);
   const counties = useMemo(() => intel?.counties ?? [], [intel]);
 
   const toggleSelect = useCallback((id: string) => {
+    setActiveZoneId(null);
+    setMailPlan(null);
     setSelectedIds((current) =>
       current.includes(id)
         ? current.filter((value) => value !== id)
@@ -1314,13 +1818,101 @@ const CanvassingPlanner = ({
     0
   );
   const hasSelection = selectedTargets.length > 0;
+  const activeZone = useMemo(
+    () => zones.find((zone) => zone.id === activeZoneId) ?? null,
+    [activeZoneId, zones]
+  );
+  const zoneValidation = useMemo(
+    () => zoneValidationFor(activeZone, selectedTargets, selectedMailPieces),
+    [activeZone, selectedMailPieces, selectedTargets]
+  );
+  const mapZones = useMemo(
+    () =>
+      zones.map((zone) => {
+        const zoneTargets = selectedZoneTargets(zone, targets);
+        const mailPieces = zoneTargets.reduce(
+          (sum, target) => sum + target.recommendedMailerCount,
+          0
+        );
+        return {
+          id: zone.id,
+          label: zone.label,
+          latitude: zone.latitude,
+          longitude: zone.longitude,
+          mailPieces,
+          radiusMiles: zone.radiusMiles,
+          selected: zone.id === activeZoneId,
+          targetCount: zoneTargets.length,
+        };
+      }),
+    [activeZoneId, targets, zones]
+  );
 
   const resetForm = useCallback(() => {
     setSelectedIds([]);
+    setActiveZoneId(null);
     setName("");
     setEditingId(null);
     setMailPlan(null);
   }, []);
+
+  const openZone = useCallback(
+    (zone: DeskTargetZone) => {
+      const zoneTargets = selectedZoneTargets(zone, targets);
+      const ids = zoneTargets.map((target) => target.id);
+      setActiveZoneId(zone.id);
+      setSelectedIds(ids);
+      setFocusIds([...ids]);
+      setName(zone.label);
+      setMailPlan(null);
+      setMessage(null);
+    },
+    [targets]
+  );
+
+  const handleCreateZone = useCallback(
+    (point: DeskAreaMapZonePoint) => {
+      const zoneTargets = targetsInsideZone(point, zoneRadiusMiles, targets);
+      const targetIds = zoneTargets.map((target) => target.id);
+      const zone: DeskTargetZone = {
+        createdAt: new Date().toISOString(),
+        id: createZoneId(),
+        label: zoneLabelFor(zoneTargets, zoneRadiusMiles),
+        latitude: point.latitude,
+        longitude: point.longitude,
+        radiusMiles: zoneRadiusMiles,
+        targetIds,
+      };
+      setZones((current) => [zone, ...current].slice(0, MAX_STORED_ZONES));
+      setActiveZoneId(zone.id);
+      setSelectedIds(targetIds);
+      setFocusIds([...targetIds]);
+      setName(zone.label);
+      setMailPlan(null);
+      setMessage({
+        text:
+          targetIds.length > 0
+            ? "Zone created. Validate it before sending."
+            : "No mapped mail targets were found near that click.",
+        tone: targetIds.length > 0 ? "success" : "error",
+      });
+    },
+    [targets, zoneRadiusMiles]
+  );
+
+  const handleRadiusChange = useCallback((value: string) => {
+    const nextRadius = Number(value);
+    if (Number.isFinite(nextRadius)) {
+      setZoneRadiusMiles(nextRadius);
+    }
+  }, []);
+
+  const handleValidateZone = useCallback(() => {
+    setMessage({
+      text: `${zoneValidation.title}: ${zoneValidation.detail}`,
+      tone: validationMessageTone(zoneValidation.tone),
+    });
+  }, [zoneValidation]);
 
   const handleSave = useCallback(async () => {
     const invalid = saveValidationError(
@@ -1338,6 +1930,7 @@ const CanvassingPlanner = ({
       id: editingId ?? undefined,
       name,
       neighborhoods: selectedTargets.map(targetToSnapshot),
+      notes: zoneNotes(activeZone, selectedMailPieces),
     });
     setIsSaving(false);
     if (result.ok) {
@@ -1352,7 +1945,16 @@ const CanvassingPlanner = ({
         tone: "error",
       });
     }
-  }, [authHeader, editingId, name, resetForm, saveTarget, selectedTargets]);
+  }, [
+    activeZone,
+    authHeader,
+    editingId,
+    name,
+    resetForm,
+    saveTarget,
+    selectedMailPieces,
+    selectedTargets,
+  ]);
 
   const handlePrepareMail = useCallback(
     async (provider?: string) => {
@@ -1376,6 +1978,15 @@ const CanvassingPlanner = ({
             name: name || "Austin neighborhood mail batch",
             neighborhoods: selectedTargets.map(targetToSnapshot),
             provider,
+            zone: activeZone
+              ? {
+                  id: activeZone.id,
+                  label: activeZone.label,
+                  latitude: activeZone.latitude,
+                  longitude: activeZone.longitude,
+                  radiusMiles: activeZone.radiusMiles,
+                }
+              : undefined,
           }),
           headers: {
             ...authHeader,
@@ -1403,7 +2014,7 @@ const CanvassingPlanner = ({
         setIsPreparingMail(false);
       }
     },
-    [authHeader, name, selectedTargets]
+    [activeZone, authHeader, name, selectedTargets]
   );
 
   const openTarget = useCallback((target: CanvassTargetRecord) => {
@@ -1411,6 +2022,7 @@ const CanvassingPlanner = ({
       .map((item) => item.tractFips)
       .filter(Boolean);
     setSelectedIds(ids);
+    setActiveZoneId(null);
     setFocusIds([...ids]);
     setName(target.name);
     setEditingId(target.id);
@@ -1443,8 +2055,8 @@ const CanvassingPlanner = ({
         <p>
           Every City of Austin neighborhood boundary is mapped with household
           income, median home age, owner-occupied concentration, and older-home
-          share. Pick the neighborhoods worth mailing first, then prepare a
-          recipient batch.
+          share. Click the map to create a smaller send zone, validate the
+          count, then prepare a recipient batch.
         </p>
         <div className="desk-area-intel__source">
           <span>
@@ -1460,9 +2072,12 @@ const CanvassingPlanner = ({
       <div className="desk-area-intel__layout">
         <DeskAreaMap
           focusIds={focusIds}
+          onCreateZone={handleCreateZone}
           onToggleSelect={toggleSelect}
           selectedIds={selectedIds}
           targets={targets}
+          zoneMode={isZoneMode}
+          zones={mapZones}
         />
 
         <div className="desk-canvass-builder">
@@ -1477,6 +2092,18 @@ const CanvassingPlanner = ({
             </div>
           </div>
 
+          <ZoneBuilderPanel
+            activeZone={activeZone}
+            isZoneMode={isZoneMode}
+            onOpenZone={openZone}
+            onRadiusChange={handleRadiusChange}
+            onToggleZoneMode={() => setIsZoneMode((current) => !current)}
+            onValidate={handleValidateZone}
+            radiusMiles={zoneRadiusMiles}
+            validation={zoneValidation}
+            zones={zones}
+          />
+
           {hasSelection ? (
             <div className="desk-canvass-name">
               <span>Target name</span>
@@ -1489,8 +2116,8 @@ const CanvassingPlanner = ({
             </div>
           ) : (
             <p className="desk-selection-empty">
-              Select neighborhoods on the map or list to unlock saving and mail
-              batch prep.
+              Create a zone from the map, or manually select areas from the
+              list, to unlock saving and mail batch prep.
             </p>
           )}
 
@@ -1529,10 +2156,14 @@ const CanvassingPlanner = ({
           ) : null}
 
           <DirectMailPlanPanel
+            batchName={name}
             isPreparing={isPreparingMail}
             onPrepare={handlePrepareMail}
             plan={mailPlan}
             selectedCount={selectedTargets.length}
+            selectedMailPieces={selectedMailPieces}
+            selectedTargets={selectedTargets}
+            zone={activeZone}
           />
 
           <div className="desk-canvass-list">
