@@ -8,12 +8,12 @@ const statusOptions = [
 ] as const;
 
 /**
- * A saved door-hanger canvassing target: a named set of neighborhoods (Census
- * tracts) Tandra plans to walk. Created from the Desk canvassing planner by
+ * A saved outreach target: a named set of neighborhoods Tandra can mail or
+ * walk. Created from the Desk neighborhood planner by
  * `/api/desk-targets`, written as drafts so they stay out of public-read content.
  *
  * These hold no homeowner PII — only aggregate neighborhood signals (estimated
- * owner-occupied older-home counts) used to prioritize where to hang door hangers.
+ * owner-occupied older-home counts) used to prioritize where to send print.
  */
 export const deskCanvassTargetType = defineType({
   fields: [
@@ -33,9 +33,9 @@ export const deskCanvassTargetType = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      description: "Estimated owner-occupied older homes across the selection.",
+      description: "Planned mail pieces across the selection.",
       name: "homesTotal",
-      title: "Homes to canvass",
+      title: "Mail pieces",
       type: "number",
     }),
     defineField({
@@ -56,7 +56,37 @@ export const deskCanvassTargetType = defineType({
             }),
             defineField({ name: "county", title: "County", type: "string" }),
             defineField({ name: "postalCode", title: "ZIP", type: "string" }),
-            defineField({ name: "homes", title: "Homes", type: "number" }),
+            defineField({
+              name: "homes",
+              title: "Older owner homes",
+              type: "number",
+            }),
+            defineField({
+              name: "recommendedMailerCount",
+              title: "Recommended mail pieces",
+              type: "number",
+            }),
+            defineField({
+              name: "medianIncome",
+              title: "Median household income",
+              type: "number",
+            }),
+            defineField({
+              name: "medianYearBuilt",
+              title: "Median year built",
+              type: "number",
+            }),
+            defineField({
+              name: "medianHomeAge",
+              title: "Median home age",
+              type: "number",
+            }),
+            defineField({
+              name: "dataStatus",
+              rows: 2,
+              title: "Data status",
+              type: "text",
+            }),
             defineField({
               name: "latitude",
               title: "Latitude",

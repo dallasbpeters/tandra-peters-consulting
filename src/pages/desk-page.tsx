@@ -97,15 +97,26 @@ interface CaptureMessage {
   tone: "error" | "neutral" | "success";
 }
 
+interface AreaPolygon {
+  coordinates: number[][][];
+  type: "Polygon";
+}
+
+interface AreaMultiPolygon {
+  coordinates: number[][][][];
+  type: "MultiPolygon";
+}
+
+type AreaGeometry = AreaMultiPolygon | AreaPolygon;
+
 interface DeskAreaTarget {
   capturePath: string;
   countyFips: string;
   countyLabel: string;
+  dataMethod: string;
+  dataStatus: string;
   firstMove: string;
-  geometry: {
-    coordinates: number[][][];
-    type: "Polygon";
-  } | null;
+  geometry: AreaGeometry | null;
   id: string;
   latitude: number;
   longitude: number;
@@ -113,6 +124,9 @@ interface DeskAreaTarget {
   mailingCity: string;
   mailingOffer: string;
   mailingRouteName: string;
+  medianHomeAge: number | null;
+  medianIncome: number | null;
+  medianYearBuilt: number | null;
   neighborhoodLabel: string;
   olderHomeEstimate: number;
   olderHomeShare: number;
@@ -121,7 +135,9 @@ interface DeskAreaTarget {
   postalCode: string;
   priorityScore: number;
   recommendedMailerCount: number;
+  squareMiles: number | null;
   totalHousingUnits: number;
+  tractCount: number;
   tractLabel: string;
   why: string;
 }
@@ -144,18 +160,24 @@ interface DeskAreaIntelResponse {
   generatedAt: string;
   ok: boolean;
   release: string;
+  rentcastReady: boolean;
   source: string;
   targets: DeskAreaTarget[];
 }
 
 interface CanvassNeighborhood {
   county: string;
+  dataStatus?: string;
   homes: number;
   label: string;
   latitude: number | null;
   longitude: number | null;
+  medianHomeAge?: number | null;
+  medianIncome?: number | null;
+  medianYearBuilt?: number | null;
   neighborhood: string;
   postalCode: string;
+  recommendedMailerCount?: number;
   tractFips: string;
 }
 
@@ -176,6 +198,31 @@ interface CanvassTargetResponse {
   ok: boolean;
   target?: CanvassTargetRecord;
   targets?: CanvassTargetRecord[];
+}
+
+interface DirectMailProviderOption {
+  fit: string;
+  name: string;
+  requiredEnv: string[];
+}
+
+interface DirectMailPlanResponse {
+  estimatedPieces: number;
+  generatedAt: string;
+  nextSteps: string[];
+  ok: boolean;
+  provider: string;
+  providerReady: boolean;
+  providers: DirectMailProviderOption[];
+  rentcast: {
+    matchedProperties: number;
+    neighborhoodsQueried: number;
+    recipientReadyCount: number;
+    status: "configured" | "missing-key" | "not-requested" | "unavailable";
+  };
+  requiredEnv: string[];
+  sendEnabled: boolean;
+  status: "draft" | "ready-for-recipients" | "send-disabled";
 }
 
 type CanvassStatus = "planned" | "walking" | "done";
@@ -342,6 +389,18 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 
 const formatNumber = (value: number): string => numberFormatter.format(value);
 
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  currency: "USD",
+  maximumFractionDigits: 0,
+  style: "currency",
+});
+
+const formatCurrencyValue = (value: number | null | undefined): string =>
+  typeof value === "number" ? currencyFormatter.format(value) : "No ACS value";
+
+const formatYearValue = (value: number | null | undefined): string =>
+  typeof value === "number" ? String(value) : "No ACS value";
+
 const escapeCsvField = (value: number | string): string => {
   const text = String(value);
   if (!(text.includes(",") || text.includes('"') || text.includes("\n"))) {
@@ -358,14 +417,28 @@ const slugify = (value: string): string =>
 
 const buildWalkSheetCsv = (target: CanvassTargetRecord): string => {
   const rows: (number | string)[][] = [
-    ["neighborhood", "county", "zip", "homes_to_canvass", "walked"],
+    [
+      "neighborhood",
+      "county",
+      "zip",
+      "mail_pieces",
+      "older_owner_homes",
+      "median_income",
+      "median_year_built",
+      "median_home_age",
+      "walked",
+    ],
   ];
   for (const item of target.neighborhoods) {
     rows.push([
       item.neighborhood || item.label,
       item.county,
       item.postalCode,
+      item.recommendedMailerCount ?? item.homes,
       item.homes,
+      item.medianIncome ?? "",
+      item.medianYearBuilt ?? "",
+      item.medianHomeAge ?? "",
       "",
     ]);
   }
@@ -401,6 +474,7 @@ const parseDeskAreaIntelResponse = async (
       generatedAt: new Date().toISOString(),
       ok: response.ok,
       release: "Unavailable",
+      rentcastReady: false,
       source: "Unavailable",
       targets: [],
     };
@@ -594,12 +668,17 @@ const neighborhoodLabelOf = (target: DeskAreaTarget): string =>
 
 const targetToSnapshot = (target: DeskAreaTarget): CanvassNeighborhood => ({
   county: target.countyLabel,
+  dataStatus: target.dataStatus,
   homes: target.olderHomeEstimate,
   label: target.tractLabel,
   latitude: target.latitude,
   longitude: target.longitude,
+  medianHomeAge: target.medianHomeAge,
+  medianIncome: target.medianIncome,
+  medianYearBuilt: target.medianYearBuilt,
   neighborhood: neighborhoodLabelOf(target),
   postalCode: target.postalCode,
+  recommendedMailerCount: target.recommendedMailerCount,
   tractFips: target.id,
 });
 
@@ -627,10 +706,15 @@ const NeighborhoodRow = ({
         {target.countyLabel}
         {target.postalCode ? ` · ${target.postalCode}` : ""}
       </span>
+      <span>
+        Income {formatCurrencyValue(target.medianIncome)} · Built{" "}
+        {formatYearValue(target.medianYearBuilt)}
+        {target.medianHomeAge ? ` · ${target.medianHomeAge} yrs` : ""}
+      </span>
     </span>
     <span className="desk-canvass-row__homes">
-      {formatNumber(target.olderHomeEstimate)}
-      <small>homes</small>
+      {formatNumber(target.recommendedMailerCount)}
+      <small>mail pieces</small>
     </span>
   </WaCheckbox>
 );
@@ -655,7 +739,7 @@ const SavedTargetCard = ({
       <div>
         <strong>{target.name}</strong>
         <span>
-          {formatNumber(target.homesTotal)} door hangers ·{" "}
+          {formatNumber(target.homesTotal)} mail pieces ·{" "}
           {target.neighborhoods.length} neighborhood
           {target.neighborhoods.length === 1 ? "" : "s"}
         </span>
@@ -699,7 +783,7 @@ const SavedTargetCard = ({
         Walk sheet
       </WaButton>
       <TransitionLink className="desk-text-link" to="/ads">
-        Door hanger
+        Creative
       </TransitionLink>
       <WaButton
         appearance="plain"
@@ -729,6 +813,76 @@ const AreaCountyStrip = ({
       </li>
     ))}
   </ul>
+);
+
+const DirectMailPlanPanel = ({
+  isPreparing,
+  onPrepare,
+  plan,
+  selectedCount,
+}: {
+  isPreparing: boolean;
+  onPrepare: () => void;
+  plan: DirectMailPlanResponse | null;
+  selectedCount: number;
+}) => (
+  <div className="desk-mail-plan">
+    <div>
+      <span>Print mail batch</span>
+      <strong>Turn selected neighborhoods into a sendable list.</strong>
+      <p>
+        Uses the selected Austin neighborhood boundaries, ACS scoring, and
+        RentCast recipient matching when <code>RENTCAST_API_KEY</code> is set.
+      </p>
+    </div>
+    <WaButton
+      appearance="plain"
+      className="desk-primary-link"
+      disabled={isPreparing || selectedCount === 0}
+      onClick={onPrepare}
+    >
+      <Mail aria-hidden height={18} slot="start" width={18} />
+      {isPreparing ? "Preparing..." : "Prepare mail batch"}
+    </WaButton>
+    {plan ? (
+      <div className="desk-mail-plan__result">
+        <div>
+          <strong>{formatNumber(plan.estimatedPieces)}</strong>
+          <span>planned mail pieces</span>
+        </div>
+        <div>
+          <strong>{plan.provider}</strong>
+          <span>
+            {plan.providerReady ? "provider ready" : "provider missing keys"}
+          </span>
+        </div>
+        <div>
+          <strong>{formatNumber(plan.rentcast.recipientReadyCount)}</strong>
+          <span>RentCast recipient-ready properties</span>
+        </div>
+        {plan.nextSteps.length > 0 ? (
+          <ul>
+            {plan.nextSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ul>
+        ) : null}
+        {plan.providers.length > 0 ? (
+          <div className="desk-mail-plan__providers">
+            <span>API services researched</span>
+            <ul>
+              {plan.providers.map((provider) => (
+                <li key={provider.name}>
+                  <strong>{provider.name}</strong>
+                  <small>{provider.fit}</small>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    ) : null}
+  </div>
 );
 
 type AuthHeader = { Authorization: string } | null;
@@ -1088,6 +1242,8 @@ const CanvassingPlanner = ({
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreparingMail, setIsPreparingMail] = useState(false);
+  const [mailPlan, setMailPlan] = useState<DirectMailPlanResponse | null>(null);
   const [message, setMessage] = useState<CaptureMessage | null>(null);
 
   const targets = useMemo(() => intel?.targets ?? [], [intel]);
@@ -1105,8 +1261,8 @@ const CanvassingPlanner = ({
     () => targets.filter((target) => selectedIds.includes(target.id)),
     [targets, selectedIds]
   );
-  const selectedHomes = selectedTargets.reduce(
-    (sum, target) => sum + target.olderHomeEstimate,
+  const selectedMailPieces = selectedTargets.reduce(
+    (sum, target) => sum + target.recommendedMailerCount,
     0
   );
 
@@ -1114,6 +1270,7 @@ const CanvassingPlanner = ({
     setSelectedIds([]);
     setName("");
     setEditingId(null);
+    setMailPlan(null);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -1148,6 +1305,54 @@ const CanvassingPlanner = ({
     }
   }, [authHeader, editingId, name, resetForm, saveTarget, selectedTargets]);
 
+  const handlePrepareMail = useCallback(async () => {
+    const invalid = saveValidationError(
+      Boolean(authHeader),
+      selectedTargets.length,
+      name || "Mail batch"
+    );
+    if (invalid) {
+      setMessage({ text: invalid, tone: "error" });
+      return;
+    }
+
+    setIsPreparingMail(true);
+    setMessage(null);
+    setMailPlan(null);
+    try {
+      const response = await fetch("/api/desk-direct-mail", {
+        body: JSON.stringify({
+          includeRecipients: true,
+          name: name || "Austin neighborhood mail batch",
+          neighborhoods: selectedTargets.map(targetToSnapshot),
+        }),
+        headers: {
+          ...authHeader,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const body = (await response.json()) as DirectMailPlanResponse & {
+        error?: string;
+      };
+      if (response.ok && body.ok) {
+        setMailPlan(body);
+        return;
+      }
+      setMessage({
+        text: body.error ?? "Could not prepare this mail batch.",
+        tone: "error",
+      });
+    } catch {
+      setMessage({
+        text: "Could not prepare this mail batch.",
+        tone: "error",
+      });
+    } finally {
+      setIsPreparingMail(false);
+    }
+  }, [authHeader, name, selectedTargets]);
+
   const openTarget = useCallback((target: CanvassTargetRecord) => {
     const ids = target.neighborhoods
       .map((item) => item.tractFips)
@@ -1156,6 +1361,7 @@ const CanvassingPlanner = ({
     setFocusIds([...ids]);
     setName(target.name);
     setEditingId(target.id);
+    setMailPlan(null);
     setMessage(null);
   }, []);
 
@@ -1175,16 +1381,17 @@ const CanvassingPlanner = ({
       <div className="desk-section__heading">
         <StatsUpSquare aria-hidden height={22} width={22} />
         <div>
-          <span>Canvassing planner</span>
-          <h2>Where to hang door hangers</h2>
+          <span>Austin neighborhood map</span>
+          <h2>Where to send first postcards</h2>
         </div>
       </div>
 
       <div className="desk-area-intel__intro">
         <p>
-          Neighborhoods ranked by public housing signals — owner-occupied
-          concentration and share of older homes. Click the ones worth walking,
-          name the route, and save it as a door-hanger target.
+          Every City of Austin neighborhood boundary is mapped with ACS median
+          household income, median home age, owner-occupied concentration, and
+          older-home share. Pick the neighborhoods worth mailing first, then
+          prepare a recipient batch.
         </p>
         <div className="desk-area-intel__source">
           <span>
@@ -1212,8 +1419,8 @@ const CanvassingPlanner = ({
               <span>selected</span>
             </div>
             <div>
-              <strong>{formatNumber(selectedHomes)}</strong>
-              <span>door hangers</span>
+              <strong>{formatNumber(selectedMailPieces)}</strong>
+              <span>mail pieces</span>
             </div>
           </div>
 
@@ -1261,6 +1468,13 @@ const CanvassingPlanner = ({
             ) : null}
           </div>
 
+          <DirectMailPlanPanel
+            isPreparing={isPreparingMail}
+            onPrepare={handlePrepareMail}
+            plan={mailPlan}
+            selectedCount={selectedTargets.length}
+          />
+
           <div className="desk-canvass-list">
             {isLoadingIntel ? (
               <p className="desk-empty">Loading neighborhoods...</p>
@@ -1275,8 +1489,7 @@ const CanvassingPlanner = ({
             ))}
             {hasLoadedNoTargets ? (
               <p className="desk-empty">
-                No neighborhoods passed the owner-occupied and older-home
-                filters.
+                No Austin neighborhoods returned from the live data APIs.
               </p>
             ) : null}
           </div>
@@ -1294,7 +1507,7 @@ const CanvassingPlanner = ({
         {authHeader && !isLoadingSaved && saved.length === 0 ? (
           <p className="desk-empty">
             No saved targets yet. Select neighborhoods above and save your first
-            door-hanger route.
+            postcard test.
           </p>
         ) : null}
         {saved.length > 0 ? (

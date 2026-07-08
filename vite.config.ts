@@ -16,6 +16,7 @@ import { viteContentCalendarApi } from "./plugins/vite-content-calendar-api";
 import { viteDeskAreaIntelApi } from "./plugins/vite-desk-area-intel-api";
 import { viteDeskBoardApi } from "./plugins/vite-desk-board-api";
 import { viteDeskCaptureApi } from "./plugins/vite-desk-capture-api";
+import { viteDeskDirectMailApi } from "./plugins/vite-desk-direct-mail-api";
 import { viteDeskPlanApi } from "./plugins/vite-desk-plan-api";
 import { viteDeskTargetsApi } from "./plugins/vite-desk-targets-api";
 import { viteEmailDevApi } from "./plugins/vite-email-dev-api";
@@ -128,6 +129,7 @@ export default defineConfig(({ mode }) => {
     viteDeskAreaIntelApi(env) as unknown as PluginOption,
     viteDeskBoardApi(env) as unknown as PluginOption,
     viteDeskCaptureApi(env) as unknown as PluginOption,
+    viteDeskDirectMailApi(env) as unknown as PluginOption,
     viteDeskPlanApi(env) as unknown as PluginOption,
     viteDeskTargetsApi(env) as unknown as PluginOption,
     viteContentCalendarApi(env) as unknown as PluginOption,

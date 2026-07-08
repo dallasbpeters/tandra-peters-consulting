@@ -16,15 +16,27 @@ interface TractPolygon {
   type: "Polygon";
 }
 
+interface TractMultiPolygon {
+  coordinates: number[][][][];
+  type: "MultiPolygon";
+}
+
+type AreaGeometry = TractMultiPolygon | TractPolygon;
+
 export interface DeskAreaMapTarget {
   countyLabel: string;
-  geometry: TractPolygon | null;
+  dataStatus: string;
+  geometry: AreaGeometry | null;
   id: string;
   latitude: number;
   longitude: number;
+  medianHomeAge: number | null;
+  medianIncome: number | null;
+  medianYearBuilt: number | null;
   neighborhoodLabel: string;
   olderHomeEstimate: number;
   priorityScore: number;
+  recommendedMailerCount: number;
   tractLabel: string;
 }
 
@@ -37,10 +49,15 @@ interface DeskAreaMapProps {
 
 interface DeskAreaMapProperties {
   countyLabel: string;
+  dataStatus: string;
   homes: number;
   id: string;
+  medianHomeAge: number | null;
+  medianIncome: number | null;
+  medianYearBuilt: number | null;
   neighborhoodLabel: string;
   priorityScore: number;
+  recommendedMailerCount: number;
   selected: boolean;
   tractLabel: string;
 }
@@ -50,10 +67,15 @@ const buildProperties = (
   selected: boolean
 ): DeskAreaMapProperties => ({
   countyLabel: target.countyLabel,
+  dataStatus: target.dataStatus,
   homes: target.olderHomeEstimate,
   id: target.id,
+  medianHomeAge: target.medianHomeAge,
+  medianIncome: target.medianIncome,
+  medianYearBuilt: target.medianYearBuilt,
   neighborhoodLabel: target.neighborhoodLabel,
   priorityScore: target.priorityScore,
+  recommendedMailerCount: target.recommendedMailerCount,
   selected,
   tractLabel: target.tractLabel,
 });
@@ -76,11 +98,14 @@ const toPointGeoJson = (
 const toPolygonGeoJson = (
   targets: readonly DeskAreaMapTarget[],
   selected: ReadonlySet<string>
-): GeoJSON.FeatureCollection<GeoJSON.Polygon, DeskAreaMapProperties> => ({
+): GeoJSON.FeatureCollection<
+  GeoJSON.MultiPolygon | GeoJSON.Polygon,
+  DeskAreaMapProperties
+> => ({
   features: targets
     .filter((target) => target.geometry)
     .map((target) => ({
-      geometry: target.geometry as GeoJSON.Polygon,
+      geometry: target.geometry as GeoJSON.MultiPolygon | GeoJSON.Polygon,
       properties: buildProperties(target, selected.has(target.id)),
       type: "Feature",
     })),
@@ -93,7 +118,11 @@ const boundsFor = (
   const bounds = new mapboxgl.LngLatBounds();
   for (const target of targets) {
     bounds.extend([target.longitude, target.latitude]);
-    for (const ring of target.geometry?.coordinates ?? []) {
+    const polygons =
+      target.geometry?.type === "MultiPolygon"
+        ? target.geometry.coordinates.flat()
+        : (target.geometry?.coordinates ?? []);
+    for (const ring of polygons) {
       for (const [lng, lat] of ring) {
         bounds.extend([lng, lat]);
       }
@@ -121,7 +150,10 @@ const fitTo = (
 const addTargetLayers = (
   map: mapboxgl.Map,
   pointData: GeoJSON.FeatureCollection<GeoJSON.Point, DeskAreaMapProperties>,
-  polygonData: GeoJSON.FeatureCollection<GeoJSON.Polygon, DeskAreaMapProperties>
+  polygonData: GeoJSON.FeatureCollection<
+    GeoJSON.MultiPolygon | GeoJSON.Polygon,
+    DeskAreaMapProperties
+  >
 ): void => {
   map.addSource("desk-area-target-polygons", {
     data: polygonData,
@@ -214,6 +246,26 @@ const addTargetLayers = (
   });
 };
 
+const formatCurrency = (value: number | null): string =>
+  value === null ? "No ACS value" : `$${value.toLocaleString()}`;
+
+const formatHomeAge = (
+  age: number | null,
+  yearBuilt: number | null
+): string => {
+  if (age === null || yearBuilt === null) {
+    return "No ACS build-year value";
+  }
+  return `${age.toLocaleString()} yrs · built ${yearBuilt}`;
+};
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
 export const DeskAreaMap = ({
   focusIds,
   onToggleSelect,
@@ -271,7 +323,7 @@ export const DeskAreaMap = ({
       attributionControl: false,
       center: DEFAULT_CENTER,
       container,
-      cooperativeGestures: true,
+      cooperativeGestures: false,
       style: MAP_STYLE,
       zoom: 6.6,
     });
@@ -304,12 +356,19 @@ export const DeskAreaMap = ({
       const picked = props.selected
         ? "Selected · click to remove"
         : "Click to add";
+      const title = props.neighborhoodLabel || props.tractLabel;
       popup
         .setLngLat(event.lngLat)
         .setHTML(
-          `<strong>${props.neighborhoodLabel || props.tractLabel}</strong>` +
-            `<span>${props.countyLabel}</span>` +
-            `<span>${props.homes.toLocaleString()} homes to canvass</span>` +
+          `<strong>${escapeHtml(title)}</strong>` +
+            `<span>${escapeHtml(props.countyLabel)}</span>` +
+            `<span>Median income: ${formatCurrency(props.medianIncome)}</span>` +
+            `<span>Median home age: ${formatHomeAge(
+              props.medianHomeAge,
+              props.medianYearBuilt
+            )}</span>` +
+            `<span>${props.homes.toLocaleString()} older owner homes · ${props.recommendedMailerCount.toLocaleString()} mail pieces</span>` +
+            `<small>${escapeHtml(props.dataStatus)}</small>` +
             `<em>${picked}</em>`
         )
         .addTo(map);

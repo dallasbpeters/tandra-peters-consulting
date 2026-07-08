@@ -218,6 +218,12 @@ wa-button.desk-primary-link::part(base) {
   border-radius: var(--theme-radius-pill);
 }
 
+.desk-primary-link:hover:not(:disabled),
+wa-button.desk-primary-link:not([disabled]):hover::part(base) {
+  color: var(--theme-color-white);
+  background: var(--theme-color-everglade);
+}
+
 wa-button.desk-action-button::part(base) {
   display: inline-flex;
   gap: 4px;
@@ -489,10 +495,37 @@ wa-button.desk-action-button:disabled {
   background: var(--theme-color-paper);
 }
 
+.desk-area-map .mapboxgl-popup-content {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  min-width: 13rem;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  color: var(--theme-color-everglade);
+  background: var(--theme-color-white);
+  border-radius: var(--theme-radius-small);
+  box-shadow: var(--theme-shadow-sm);
+}
+
+.desk-area-map .mapboxgl-popup-content span,
+.desk-area-map .mapboxgl-popup-content small,
+.desk-area-map .mapboxgl-popup-content em {
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.desk-area-map .mapboxgl-popup-content small {
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 58%,
+    transparent
+  );
+}
+
 /* Canvassing planner: selection builder + neighborhood list */
 .desk-canvass-builder {
   display: grid;
-  grid-template-rows: auto auto auto 1fr;
+  grid-template-rows: auto auto auto auto 1fr;
   gap: var(--theme-spacing-md);
   min-width: 0;
   min-height: 0;
@@ -530,6 +563,98 @@ wa-button.desk-action-button:disabled {
   display: flex;
   gap: var(--theme-spacing-md);
   align-items: center;
+}
+
+.desk-mail-plan {
+  display: grid;
+  gap: var(--theme-spacing-sm);
+  padding: var(--theme-spacing-md);
+  background: var(--theme-color-paper);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-palette-everglade-950) 12%, transparent);
+  border-radius: var(--theme-radius-medium);
+}
+
+.desk-mail-plan > div:first-child {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+}
+
+.desk-mail-plan span {
+  font-size: 0.72rem;
+  font-weight: 850;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 58%,
+    transparent
+  );
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.desk-mail-plan strong {
+  color: var(--theme-color-everglade);
+}
+
+.desk-mail-plan p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 68%,
+    transparent
+  );
+}
+
+.desk-mail-plan__result {
+  display: grid;
+  gap: var(--theme-spacing-sm);
+}
+
+.desk-mail-plan__result > div {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  padding: var(--theme-spacing-sm);
+  background: var(--theme-color-white);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-palette-everglade-950) 10%, transparent);
+  border-radius: var(--theme-radius-small);
+}
+
+.desk-mail-plan__result ul {
+  display: grid;
+  gap: var(--theme-spacing-xs);
+  padding-left: var(--theme-spacing-lg);
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.desk-mail-plan__providers {
+  display: grid;
+  gap: var(--theme-spacing-xs);
+  padding-top: var(--theme-spacing-xs);
+  border-top: 1px solid
+    color-mix(in oklch, var(--theme-palette-everglade-950) 10%, transparent);
+}
+
+.desk-mail-plan__providers ul {
+  padding: 0;
+  list-style: none;
+}
+
+.desk-mail-plan__providers li {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+}
+
+.desk-mail-plan__providers small {
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 64%,
+    transparent
+  );
 }
 
 .desk-canvass-list {
@@ -1602,15 +1727,15 @@ wa-button.desk-generate-button::part(base) {
 }
 
 .backend-theme .desk-hero :where(h1, span, a, button) {
-  color: var(--backend-inverse-text) !important;
+  color: var(--backend-inverse-text);
 }
 
 .backend-theme .desk-hero .desk-eyebrow {
-  color: var(--theme-palette-gold-400) !important;
+  color: var(--theme-palette-gold-400);
 }
 
 .backend-theme .desk-hero p {
-  color: var(--backend-inverse-muted) !important;
+  color: var(--backend-inverse-muted);
 }
 
 .backend-theme .desk-section,
@@ -1634,6 +1759,7 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-canvass-row__body strong,
 .backend-theme .desk-canvass-row__homes,
 .backend-theme .desk-lead strong,
+.backend-theme .desk-mail-plan strong,
 .backend-theme .desk-metric span,
 .backend-theme .desk-generated__title,
 .backend-theme .desk-auth h1,
@@ -1653,6 +1779,8 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-canvass-name span,
 .backend-theme .desk-lead span,
 .backend-theme .desk-lead p,
+.backend-theme .desk-mail-plan span,
+.backend-theme .desk-mail-plan p,
 .backend-theme .desk-saved-target__head > div span {
   color: var(--backend-muted);
 }
@@ -1663,20 +1791,38 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-capture-form,
 .backend-theme .desk-capture-recent,
 .backend-theme .desk-generated,
+.backend-theme .desk-mail-plan,
 .backend-theme .desk-map-shell {
   background: var(--backend-page-soft);
+  border-color: var(--backend-border);
+}
+
+.backend-theme .desk-mail-plan__result > div {
+  background: var(--backend-surface);
   border-color: var(--backend-border);
 }
 
 .backend-theme .desk-primary-link,
 .backend-theme wa-button.desk-primary-link::part(base),
 .backend-theme wa-button.desk-generate-button::part(base) {
-  color: var(--backend-accent-contrast) !important;
+  color: var(--backend-accent-contrast);
   background: var(--backend-accent);
 }
 
+.backend-theme .desk-primary-link:hover:not(:disabled),
+.backend-theme wa-button.desk-primary-link:not([disabled]):hover::part(base),
+.backend-theme
+  wa-button.desk-generate-button:not([disabled]):hover::part(base) {
+  color: var(--backend-accent-contrast);
+  background: color-mix(
+    in oklch,
+    var(--backend-accent) 84%,
+    var(--backend-text)
+  );
+}
+
 .backend-theme .desk-primary-link :where(svg) {
-  color: currentcolor !important;
+  color: currentcolor;
 }
 
 .backend-theme .desk-secondary-link,

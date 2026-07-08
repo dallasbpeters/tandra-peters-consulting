@@ -69,14 +69,10 @@ const envValue = (env: Record<string, string>, key: string): string =>
   readLocalEnv()[key]?.trim() ||
   "";
 
-const exposeMapboxEnv = (env: Record<string, string>): void => {
-  const privateToken = envValue(env, "MAPBOX_ACCESS_TOKEN");
-  const publicToken = envValue(env, "VITE_MAPBOX_ACCESS_TOKEN");
-  if (privateToken) {
-    process.env.MAPBOX_ACCESS_TOKEN = privateToken;
-  }
-  if (publicToken) {
-    process.env.VITE_MAPBOX_ACCESS_TOKEN = publicToken;
+const exposeDeskEnv = (env: Record<string, string>): void => {
+  const rentcastKey = envValue(env, "RENTCAST_API_KEY");
+  if (rentcastKey) {
+    process.env.RENTCAST_API_KEY = rentcastKey;
   }
 };
 
@@ -104,7 +100,7 @@ const handleDeskAreaIntelRequest = async (
     return;
   }
 
-  exposeMapboxEnv(env);
+  exposeDeskEnv(env);
   const result = await getDeskAreaIntel();
   res.setHeader("Cache-Control", "no-store");
   json(res, result.status, result.body);

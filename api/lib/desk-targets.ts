@@ -17,12 +17,17 @@ const ID_PREFIX = "drafts.deskCanvassTarget.";
 
 export interface CanvassNeighborhood {
   county: string;
+  dataStatus?: string;
   homes: number;
   label: string;
   latitude: number | null;
   longitude: number | null;
+  medianHomeAge?: number | null;
+  medianIncome?: number | null;
+  medianYearBuilt?: number | null;
   neighborhood: string;
   postalCode: string;
+  recommendedMailerCount?: number;
   tractFips: string;
 }
 
@@ -98,14 +103,23 @@ const normalizeNeighborhoods = (value: unknown): CanvassNeighborhood[] => {
   return value.slice(0, MAX_NEIGHBORHOODS).map((raw) => {
     const item =
       raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    const recommendedMailerCount = optionalNumber(item.recommendedMailerCount);
     return {
       county: trimTo(item.county, MAX_LABEL_LENGTH),
+      dataStatus: trimTo(item.dataStatus, MAX_NOTE_LENGTH) || undefined,
       homes: nonNegativeInt(item.homes),
       label: trimTo(item.label, MAX_LABEL_LENGTH),
       latitude: optionalNumber(item.latitude),
       longitude: optionalNumber(item.longitude),
+      medianHomeAge: optionalNumber(item.medianHomeAge),
+      medianIncome: optionalNumber(item.medianIncome),
+      medianYearBuilt: optionalNumber(item.medianYearBuilt),
       neighborhood: trimTo(item.neighborhood, MAX_LABEL_LENGTH),
       postalCode: trimTo(item.postalCode, 16),
+      recommendedMailerCount:
+        recommendedMailerCount === null
+          ? undefined
+          : Math.max(0, Math.round(recommendedMailerCount)),
       tractFips: trimTo(item.tractFips, 32),
     };
   });
@@ -189,7 +203,10 @@ export const saveCanvassTarget = async (
   const status = STATUS_OPTIONS.has(trimTo(payload.status, 20) as never)
     ? trimTo(payload.status, 20)
     : "planned";
-  const homesTotal = neighborhoods.reduce((sum, item) => sum + item.homes, 0);
+  const homesTotal = neighborhoods.reduce(
+    (sum, item) => sum + (item.recommendedMailerCount ?? item.homes),
+    0
+  );
   const notes = trimTo(payload.notes, MAX_NOTE_LENGTH);
   const now = new Date().toISOString();
   const existingId = validId(payload.id);

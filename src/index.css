@@ -359,7 +359,7 @@ kbd {
     [class*="__value"],
     [class*="__eyebrow"]
   ) {
-  color: var(--backend-text) !important;
+  color: var(--backend-text);
 }
 
 .backend-theme
@@ -373,11 +373,11 @@ kbd {
     [class*="__date"],
     [class*="__source"]
   ) {
-  color: var(--backend-muted) !important;
+  color: var(--backend-muted);
 }
 
 .backend-theme .site-page-main--backend :where(input, textarea)::placeholder {
-  color: var(--backend-muted) !important;
+  color: var(--backend-muted);
 }
 
 .backend-theme .site-page-main--backend :where(wa-button)::part(base),
@@ -392,7 +392,7 @@ kbd {
 .backend-theme .site-page-main--backend :where(wa-option)::part(base),
 .backend-theme .site-page-main--backend :where(wa-checkbox)::part(base),
 .backend-theme .site-page-main--backend :where(wa-checkbox)::part(label) {
-  color: var(--backend-text) !important;
+  color: var(--backend-text);
 }
 
 @layer base {

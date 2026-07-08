@@ -319,10 +319,16 @@
 
 .ad-canvas-add-btn:hover {
   background: var(--theme-color-everglade);
+  color: var(--theme-color-white);
   border-color: var(
     --studio-border-strong,
     color-mix(in oklch, var(--theme-color-white) 18%, transparent)
   );
+}
+
+.ad-canvas-add-btn:hover svg {
+  color: currentcolor;
+  stroke: currentcolor;
 }
 
 /* ─── Context bar ──────────────────────────────────────────────────────────── */

@@ -266,9 +266,9 @@ a.wa-button {
 .article-rich-text a {
   position: relative;
   contain: paint;
-  background-color: var(--theme-palette-blue-100) !important;
+  background-color: var(--theme-palette-blue-100);
   border-radius: var(--theme-radius-small);
-  text-decoration: none !important;
+  text-decoration: none;
   transition: background-color 0.3s ease;
 }
 
@@ -295,7 +295,7 @@ a.wa-button {
     in oklch,
     var(--theme-palette-blue-100) 50%,
     transparent
-  ) !important;
+  );
 }
 
 .article-rich-text a:hover::after {
