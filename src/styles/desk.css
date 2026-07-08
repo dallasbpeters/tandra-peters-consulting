@@ -487,6 +487,11 @@ wa-button.desk-action-button:disabled {
   border-radius: var(--theme-radius-medium);
 }
 
+.desk-area-map .mapboxgl-scroll-zoom-blocker,
+.desk-area-map .mapboxgl-touch-pan-blocker {
+  display: none;
+}
+
 .desk-area-map--fallback {
   display: grid;
   place-items: center;
@@ -563,6 +568,22 @@ wa-button.desk-action-button:disabled {
   display: flex;
   gap: var(--theme-spacing-md);
   align-items: center;
+}
+
+.desk-selection-empty {
+  margin: 0;
+  padding: var(--theme-spacing-md);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 70%,
+    transparent
+  );
+  background: var(--theme-palette-accent-50);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-palette-accent-800) 14%, transparent);
+  border-radius: var(--theme-radius-medium);
 }
 
 .desk-mail-plan {
@@ -1781,6 +1802,7 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-lead p,
 .backend-theme .desk-mail-plan span,
 .backend-theme .desk-mail-plan p,
+.backend-theme .desk-selection-empty,
 .backend-theme .desk-saved-target__head > div span {
   color: var(--backend-muted);
 }
@@ -1792,6 +1814,7 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-capture-recent,
 .backend-theme .desk-generated,
 .backend-theme .desk-mail-plan,
+.backend-theme .desk-selection-empty,
 .backend-theme .desk-map-shell {
   background: var(--backend-page-soft);
   border-color: var(--backend-border);

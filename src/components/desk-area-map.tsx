@@ -247,14 +247,14 @@ const addTargetLayers = (
 };
 
 const formatCurrency = (value: number | null): string =>
-  value === null ? "No ACS value" : `$${value.toLocaleString()}`;
+  value === null ? "No income data" : `$${value.toLocaleString()}`;
 
 const formatHomeAge = (
   age: number | null,
   yearBuilt: number | null
 ): string => {
   if (age === null || yearBuilt === null) {
-    return "No ACS build-year value";
+    return "No home-age data";
   }
   return `${age.toLocaleString()} yrs · built ${yearBuilt}`;
 };
@@ -265,6 +265,17 @@ const escapeHtml = (value: string): string =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+
+const hideGestureBlockers = (container: HTMLElement): void => {
+  const blockers = container.querySelectorAll<HTMLElement>(
+    ".mapboxgl-scroll-zoom-blocker, .mapboxgl-touch-pan-blocker"
+  );
+  for (const blocker of blockers) {
+    blocker.setAttribute("aria-hidden", "true");
+    blocker.setAttribute("role", "presentation");
+    blocker.style.display = "none";
+  }
+};
 
 export const DeskAreaMap = ({
   focusIds,
@@ -327,6 +338,7 @@ export const DeskAreaMap = ({
       style: MAP_STYLE,
       zoom: 6.6,
     });
+    hideGestureBlockers(container);
     mapRef.current = map;
     map.addControl(
       new mapboxgl.NavigationControl({ showCompass: false }),
@@ -379,6 +391,7 @@ export const DeskAreaMap = ({
     };
 
     map.on("load", () => {
+      hideGestureBlockers(container);
       addTargetLayers(map, pointRef.current, polygonRef.current);
       fitTo(map, targetsRef.current, 0);
       readyRef.current = true;

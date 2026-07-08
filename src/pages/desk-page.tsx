@@ -396,10 +396,10 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 });
 
 const formatCurrencyValue = (value: number | null | undefined): string =>
-  typeof value === "number" ? currencyFormatter.format(value) : "No ACS value";
+  typeof value === "number" ? currencyFormatter.format(value) : "No data";
 
 const formatYearValue = (value: number | null | undefined): string =>
-  typeof value === "number" ? String(value) : "No ACS value";
+  typeof value === "number" ? String(value) : "No data";
 
 const escapeCsvField = (value: number | string): string => {
   const text = String(value);
@@ -825,65 +825,73 @@ const DirectMailPlanPanel = ({
   onPrepare: () => void;
   plan: DirectMailPlanResponse | null;
   selectedCount: number;
-}) => (
-  <div className="desk-mail-plan">
-    <div>
-      <span>Print mail batch</span>
-      <strong>Turn selected neighborhoods into a sendable list.</strong>
-      <p>
-        Uses the selected Austin neighborhood boundaries, ACS scoring, and
-        RentCast recipient matching when <code>RENTCAST_API_KEY</code> is set.
-      </p>
-    </div>
-    <WaButton
-      appearance="plain"
-      className="desk-primary-link"
-      disabled={isPreparing || selectedCount === 0}
-      onClick={onPrepare}
-    >
-      <Mail aria-hidden height={18} slot="start" width={18} />
-      {isPreparing ? "Preparing..." : "Prepare mail batch"}
-    </WaButton>
-    {plan ? (
-      <div className="desk-mail-plan__result">
-        <div>
-          <strong>{formatNumber(plan.estimatedPieces)}</strong>
-          <span>planned mail pieces</span>
-        </div>
-        <div>
-          <strong>{plan.provider}</strong>
-          <span>
-            {plan.providerReady ? "provider ready" : "provider missing keys"}
-          </span>
-        </div>
-        <div>
-          <strong>{formatNumber(plan.rentcast.recipientReadyCount)}</strong>
-          <span>RentCast recipient-ready properties</span>
-        </div>
-        {plan.nextSteps.length > 0 ? (
-          <ul>
-            {plan.nextSteps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ul>
-        ) : null}
-        {plan.providers.length > 0 ? (
-          <div className="desk-mail-plan__providers">
-            <span>API services researched</span>
+}) => {
+  const hasSelection = selectedCount > 0;
+  return (
+    <div className="desk-mail-plan">
+      <div>
+        <span>Mail batch</span>
+        <strong>
+          {hasSelection
+            ? "Prepare these neighborhoods for a print send."
+            : "Pick neighborhoods first."}
+        </strong>
+        <p>
+          {hasSelection
+            ? "Build a mailing count, household matching summary, and provider handoff notes for the selected areas."
+            : "Click neighborhoods on the map or in the list. Then this turns the selection into a mailing list plan."}
+        </p>
+      </div>
+      <WaButton
+        appearance="plain"
+        className="desk-primary-link"
+        disabled={isPreparing || !hasSelection}
+        onClick={onPrepare}
+      >
+        <Mail aria-hidden height={18} slot="start" width={18} />
+        {isPreparing ? "Preparing..." : "Prepare mail batch"}
+      </WaButton>
+      {plan ? (
+        <div className="desk-mail-plan__result">
+          <div>
+            <strong>{formatNumber(plan.estimatedPieces)}</strong>
+            <span>planned mail pieces</span>
+          </div>
+          <div>
+            <strong>{plan.provider}</strong>
+            <span>
+              {plan.providerReady ? "send service ready" : "setup needed"}
+            </span>
+          </div>
+          <div>
+            <strong>{formatNumber(plan.rentcast.recipientReadyCount)}</strong>
+            <span>matched mailing addresses</span>
+          </div>
+          {plan.nextSteps.length > 0 ? (
             <ul>
-              {plan.providers.map((provider) => (
-                <li key={provider.name}>
-                  <strong>{provider.name}</strong>
-                  <small>{provider.fit}</small>
-                </li>
+              {plan.nextSteps.map((step) => (
+                <li key={step}>{step}</li>
               ))}
             </ul>
-          </div>
-        ) : null}
-      </div>
-    ) : null}
-  </div>
-);
+          ) : null}
+          {plan.providers.length > 0 ? (
+            <div className="desk-mail-plan__providers">
+              <span>Print/mail services</span>
+              <ul>
+                {plan.providers.map((provider) => (
+                  <li key={provider.name}>
+                    <strong>{provider.name}</strong>
+                    <small>{provider.fit}</small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 type AuthHeader = { Authorization: string } | null;
 
@@ -1265,6 +1273,7 @@ const CanvassingPlanner = ({
     (sum, target) => sum + target.recommendedMailerCount,
     0
   );
+  const hasSelection = selectedTargets.length > 0;
 
   const resetForm = useCallback(() => {
     setSelectedIds([]);
@@ -1388,15 +1397,15 @@ const CanvassingPlanner = ({
 
       <div className="desk-area-intel__intro">
         <p>
-          Every City of Austin neighborhood boundary is mapped with ACS median
-          household income, median home age, owner-occupied concentration, and
-          older-home share. Pick the neighborhoods worth mailing first, then
-          prepare a recipient batch.
+          Every City of Austin neighborhood boundary is mapped with household
+          income, median home age, owner-occupied concentration, and older-home
+          share. Pick the neighborhoods worth mailing first, then prepare a
+          recipient batch.
         </p>
         <div className="desk-area-intel__source">
           <span>
             {intel
-              ? `${intel.release} · ${intel.source}`
+              ? "Live neighborhood and household signals"
               : "Loading neighborhood signals..."}
           </span>
         </div>
@@ -1424,15 +1433,22 @@ const CanvassingPlanner = ({
             </div>
           </div>
 
-          <div className="desk-canvass-name">
-            <span>Target name</span>
-            <WaInput
-              onChange={(event) => setName(waFieldValue(event))}
-              placeholder="Serenada — walk Saturday"
-              type="text"
-              value={name}
-            />
-          </div>
+          {hasSelection ? (
+            <div className="desk-canvass-name">
+              <span>Target name</span>
+              <WaInput
+                onChange={(event) => setName(waFieldValue(event))}
+                placeholder="Serenada — walk Saturday"
+                type="text"
+                value={name}
+              />
+            </div>
+          ) : (
+            <p className="desk-selection-empty">
+              Select neighborhoods on the map or list to unlock saving and mail
+              batch prep.
+            </p>
+          )}
 
           {message ? (
             <p
@@ -1442,22 +1458,22 @@ const CanvassingPlanner = ({
             </p>
           ) : null}
 
-          <div className="desk-canvass-builder__actions">
-            <WaButton
-              appearance="plain"
-              className="desk-primary-link"
-              disabled={isSaving || selectedTargets.length === 0}
-              onClick={handleSave}
-            >
-              <CheckCircle aria-hidden height={18} slot="start" width={18} />
-              {(() => {
-                if (isSaving) {
-                  return "Saving...";
-                }
-                return editingId ? "Update target" : "Save target";
-              })()}
-            </WaButton>
-            {selectedTargets.length > 0 || editingId ? (
+          {hasSelection ? (
+            <div className="desk-canvass-builder__actions">
+              <WaButton
+                appearance="plain"
+                className="desk-primary-link"
+                disabled={isSaving}
+                onClick={handleSave}
+              >
+                <CheckCircle aria-hidden height={18} slot="start" width={18} />
+                {(() => {
+                  if (isSaving) {
+                    return "Saving...";
+                  }
+                  return editingId ? "Update target" : "Save target";
+                })()}
+              </WaButton>
               <WaButton
                 appearance="plain"
                 className="desk-action-button"
@@ -1465,8 +1481,8 @@ const CanvassingPlanner = ({
               >
                 Clear
               </WaButton>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           <DirectMailPlanPanel
             isPreparing={isPreparingMail}

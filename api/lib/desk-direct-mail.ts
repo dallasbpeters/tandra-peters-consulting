@@ -248,29 +248,25 @@ const nextStepsFor = ({
   }
   if (rentcast.status === "missing-key") {
     steps.push(
-      "Add RENTCAST_API_KEY to pull property-level homeowner recipients."
+      "Connect homeowner matching or upload a recipient list before sending."
     );
   }
   if (rentcast.status === "not-requested") {
-    steps.push("Request recipient matching before sending.");
+    steps.push("Run recipient matching before sending.");
   }
   if (rentcast.status === "configured" && rentcast.recipientReadyCount === 0) {
     steps.push(
-      "Review RentCast filters; no recipient-ready properties were returned."
+      "No mailing addresses matched these filters; widen the area or review the recipient rules."
     );
   }
   if (selectedProvider === "mock") {
-    steps.push(
-      "Set DIRECT_MAIL_PROVIDER to lob, click2mail, postgrid, or postalytics."
-    );
+    steps.push("Choose a print/mail service before sending live mail.");
   }
   if (!providerReady) {
-    steps.push("Add the selected direct-mail provider API credentials.");
+    steps.push("Finish the selected print/mail service setup before sending.");
   }
   if (!sendEnabled()) {
-    steps.push(
-      "Keep DIRECT_MAIL_SEND_ENABLED=false until creative and recipients are reviewed."
-    );
+    steps.push("Keep sending off until creative and recipients are reviewed.");
   }
   return steps;
 };
