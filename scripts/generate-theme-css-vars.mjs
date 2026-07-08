@@ -4,7 +4,6 @@
  */
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { theme } from "../src/theme.ts";
 
@@ -30,8 +29,18 @@ const tokenLines = (prefix, tokens) =>
       `  --theme-${prefix}-${toKebab(key)}: ${normalizeCSSValue(value)};`
   );
 
+const paletteLines = (palette) =>
+  Object.entries(palette).flatMap(([scaleName, scale]) =>
+    Object.entries(scale).map(
+      ([step, value]) =>
+        `  --theme-palette-${toKebab(scaleName)}-${step}: ${normalizeCSSValue(value)};`
+    )
+  );
+
 const css = `/* Generated from src/theme.ts — do not edit; run pnpm generate:theme-css */
 :root {
+${tokenLines("color", theme.colors).join("\n")}
+${paletteLines(theme.palette).join("\n")}
 ${tokenLines("radius", theme.radius).join("\n")}
 ${tokenLines("spacing", theme.spacing).join("\n")}
 ${tokenLines("shadow", theme.shadow).join("\n")}

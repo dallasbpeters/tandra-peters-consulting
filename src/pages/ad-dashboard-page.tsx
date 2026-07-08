@@ -1497,7 +1497,7 @@ export const AdDashboardPage = () => {
   // the --ad-dashboard modifier comes from getMainRouteClass.
   return (
     <SitePageChrome>
-      <div className="ad-dashboard-shell wa-dark">
+      <div className="ad-dashboard-shell">
         {auth.token ? null : <AuthPanel auth={auth} />}
 
         {auth.token ? (

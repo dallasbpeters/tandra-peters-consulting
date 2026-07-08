@@ -130,7 +130,7 @@ const shadow = {
   sm: "0.3px 0.5px 0.7px hsl(60deg 12% 66% / 27%), 0.4px 0.8px 1px -1.2px hsl(60deg 12% 66% / 28%), 0.9px 1.8px 2.3px -2.4px hsl(60deg 12% 66% / 29%)",
 } as const;
 
-/** CSS mirrors (radius, spacing, shadow): `pnpm generate:theme-css` → `src/styles/theme-variables.css` */
+/** CSS mirrors (colors, palette, radius, spacing, shadow): `pnpm generate:theme-css` → `src/styles/theme-variables.css` */
 const radius = {
   large: "1rem",
   medium: "0.5rem",

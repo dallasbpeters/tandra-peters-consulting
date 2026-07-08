@@ -10,18 +10,23 @@
   font-family: "SF Mono", Menlo, monospace;
   font-size: 0.625rem;
   line-height: 1.45;
-  color: oklch(96% 0.01 260);
+  color: var(--theme-palette-granite-50);
   pointer-events: none;
-  background: color-mix(in oklch, oklch(18% 0.02 260) 88%, transparent);
+  background: color-mix(
+    in oklch,
+    var(--theme-palette-blue-950) 88%,
+    transparent
+  );
   border-radius: var(--theme-radius-small);
-  box-shadow: 0 4px 16px color-mix(in oklch, oklch(0% 0 0) 35%, transparent);
+  box-shadow: 0 4px 16px
+    color-mix(in oklch, var(--theme-palette-purple-950) 35%, transparent);
 }
 
 .ri-dev-compass__title {
   margin: 0 0 var(--theme-spacing-tight);
   font-size: 0.5625rem;
   font-weight: 700;
-  color: oklch(78% 0.04 260);
+  color: var(--theme-palette-granite-300);
   text-transform: uppercase;
   letter-spacing: 0.14em;
 }
@@ -63,62 +68,63 @@
 }
 
 .ri-dev-compass__swatch--x {
-  background: #ff5c5c;
+  background: var(--theme-palette-coral-400);
 }
 
 .ri-dev-compass__swatch--y {
-  background: #6ee07a;
+  background: var(--theme-palette-gold-900);
 }
 
 .ri-dev-compass__swatch--z {
-  background: #6eb5ff;
+  background: var(--theme-palette-blue-200);
 }
 
 .ri-dev-compass__swatch--nx {
   background: repeating-linear-gradient(
     135deg,
-    #ffb86c 0 2px,
+    var(--theme-palette-gold-700) 0 2px,
     transparent 2px 4px
   );
-  border: 1px solid #ffb86c;
+  border: 1px solid var(--theme-palette-gold-700);
 }
 
 .ri-dev-compass__swatch--ny {
   background: repeating-linear-gradient(
     135deg,
-    #c8f075 0 2px,
+    var(--theme-palette-gold-700) 0 2px,
     transparent 2px 4px
   );
-  border: 1px solid #c8f075;
+  border: 1px solid var(--theme-palette-gold-700);
 }
 
 .ri-dev-compass__swatch--nz {
   background: repeating-linear-gradient(
     135deg,
-    #a8d4ff 0 2px,
+    var(--theme-color-purple) 0 2px,
     transparent 2px 4px
   );
-  border: 1px solid #a8d4ff;
+  border: 1px solid var(--theme-color-purple);
 }
 
 .ri-dev-compass__hint {
   padding-top: var(--theme-spacing-tight);
   margin: var(--theme-spacing-sm) 0 0;
-  color: oklch(72% 0.02 260);
-  border-top: 1px solid color-mix(in oklch, oklch(100% 0 0) 12%, transparent);
+  color: var(--theme-palette-granite-400);
+  border-top: 1px solid
+    color-mix(in oklch, var(--theme-color-white) 12%, transparent);
 }
 
 .ri-dev-compass__sample {
   padding: var(--theme-spacing-tight);
   margin-top: var(--theme-spacing-tight);
-  background: color-mix(in oklch, oklch(100% 0 0) 6%, transparent);
+  background: color-mix(in oklch, var(--theme-color-white) 6%, transparent);
   border-radius: var(--theme-radius-small);
 }
 
 .ri-dev-compass__sample dt {
   margin: var(--theme-spacing-xs) 0 0;
   font-weight: 600;
-  color: oklch(82% 0.03 260);
+  color: var(--theme-color-purple);
 }
 
 .ri-dev-compass__sample dt:first-child {

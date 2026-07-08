@@ -14,6 +14,7 @@ import {
   Mail,
   MediaImage,
   StatsUpSquare,
+  Trash,
   VideoCamera,
   WarningTriangle,
 } from "iconoir-react";
@@ -500,10 +501,18 @@ const GeneratedTaskRow = ({
 
 const CalendarRow = ({
   busy,
+  deletePending,
+  onCancelDelete,
+  onConfirmDelete,
+  onRequestDelete,
   onStatusChange,
   record,
 }: {
   busy: boolean;
+  deletePending: boolean;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
+  onRequestDelete: () => void;
   onStatusChange: (status: DeskBoardStatusValue) => void;
   record: DeskBoardRecord;
 }) => (
@@ -527,23 +536,56 @@ const CalendarRow = ({
         ) : null}
       </div>
     </div>
-    <WaSelect
-      aria-label="Content status"
-      appearance="outlined"
-      className="desk-calendar-row__status"
-      disabled={busy}
-      onChange={(event) =>
-        onStatusChange(waFieldValue(event) as DeskBoardStatusValue)
-      }
-      size="small"
-      value={record.status}
-    >
-      {CONTENT_STATUS_ORDER.map((value) => (
-        <WaOption key={value} value={value}>
-          {CONTENT_STATUS_LABELS[value]}
-        </WaOption>
-      ))}
-    </WaSelect>
+    <div className="desk-calendar-row__actions">
+      <WaSelect
+        aria-label="Content status"
+        appearance="outlined"
+        className="desk-calendar-row__status"
+        disabled={busy}
+        onChange={(event) =>
+          onStatusChange(waFieldValue(event) as DeskBoardStatusValue)
+        }
+        size="small"
+        value={record.status}
+      >
+        {CONTENT_STATUS_ORDER.map((value) => (
+          <WaOption key={value} value={value}>
+            {CONTENT_STATUS_LABELS[value]}
+          </WaOption>
+        ))}
+      </WaSelect>
+      {deletePending ? (
+        <div className="desk-calendar-row__delete-confirm">
+          <button
+            className="desk-delete-button desk-delete-button--confirm"
+            disabled={busy}
+            onClick={onConfirmDelete}
+            type="button"
+          >
+            Delete
+          </button>
+          <button
+            className="desk-delete-button"
+            disabled={busy}
+            onClick={onCancelDelete}
+            type="button"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          aria-label={`Delete ${record.title}`}
+          className="desk-delete-button"
+          disabled={busy}
+          onClick={onRequestDelete}
+          type="button"
+        >
+          <Trash aria-hidden height={15} width={15} />
+          Delete
+        </button>
+      )}
+    </div>
   </li>
 );
 
@@ -954,9 +996,49 @@ const useDeskBoard = (authHeader: AuthHeader) => {
     [authHeader, loadBoard]
   );
 
+  const deleteItem = useCallback(
+    async (record: DeskBoardRecord): Promise<void> => {
+      setBusyKey(record.id);
+      setBoardMessage(null);
+      try {
+        const response = await fetch(
+          `/api/desk-board?id=${encodeURIComponent(record.id)}`,
+          {
+            headers: authHeader ?? undefined,
+            method: "DELETE",
+          }
+        );
+        const body = (await response.json()) as DeskBoardResponse;
+        if (response.ok && body.ok) {
+          setRecords((current) =>
+            current.filter((entry) => entry.id !== record.id)
+          );
+          setBoardMessage({
+            text: "Deleted planned content.",
+            tone: "success",
+          });
+          return;
+        }
+        setBoardMessage({
+          text: body.error ?? "Could not delete this planned content.",
+          tone: "error",
+        });
+      } catch {
+        setBoardMessage({
+          text: "Could not delete this planned content.",
+          tone: "error",
+        });
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [authHeader]
+  );
+
   return {
     boardMessage,
     busyKey,
+    deleteItem,
     generate,
     generatingMode,
     isLoadingBoard,
@@ -1296,12 +1378,14 @@ const DeskDashboard = ({
   const {
     boardMessage,
     busyKey,
+    deleteItem,
     generate,
     generatingMode,
     isLoadingBoard,
     records,
     saveItem,
   } = useDeskBoard(authHeader);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const recordBySeedKey = useMemo(() => {
     const map = new Map<string, DeskBoardRecord>();
@@ -1403,8 +1487,25 @@ const DeskDashboard = ({
     [saveItem]
   );
 
+  const requestContentDelete = useCallback((record: DeskBoardRecord) => {
+    setDeleteConfirmId(record.id);
+  }, []);
+
+  const cancelContentDelete = useCallback(() => {
+    setDeleteConfirmId(null);
+  }, []);
+
+  const confirmContentDelete = useCallback(
+    (record: DeskBoardRecord) => {
+      setDeleteConfirmId(null);
+      deleteItem(record);
+    },
+    [deleteItem]
+  );
+
   const changeContentStatus = useCallback(
     (record: DeskBoardRecord, status: DeskBoardStatusValue) => {
+      setDeleteConfirmId(null);
       saveItem(
         {
           buyerStage: record.buyerStage,
@@ -1443,10 +1544,6 @@ const DeskDashboard = ({
             </p>
           </div>
           <nav aria-label="Desk shortcuts" className="desk-hero__actions">
-            <TransitionLink className="desk-primary-link" to="/estimate">
-              <Home aria-hidden height={18} width={18} />
-              Open estimate page
-            </TransitionLink>
             <TransitionLink className="desk-primary-link" to="/ads">
               <MediaImage aria-hidden height={18} width={18} />
               Build creative
@@ -1582,7 +1679,11 @@ const DeskDashboard = ({
               {contentRecords.map((record) => (
                 <CalendarRow
                   busy={busyKey === record.id}
+                  deletePending={deleteConfirmId === record.id}
                   key={record.id}
+                  onCancelDelete={cancelContentDelete}
+                  onConfirmDelete={() => confirmContentDelete(record)}
+                  onRequestDelete={() => requestContentDelete(record)}
                   onStatusChange={(status) =>
                     changeContentStatus(record, status)
                   }

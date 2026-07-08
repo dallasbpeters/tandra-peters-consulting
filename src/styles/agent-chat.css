@@ -1,10 +1,10 @@
 /* Agent chat — BEM block `.agent-chat`. Unlayered rules beat Web Awesome @layer wa-native. */
 
 .agent-chat {
-  --agent-chat-bg-page: #f4f4f2;
-  --agent-chat-bg-panel: oklch(100% 0 0);
-  --agent-chat-bg-composer: #f4f4f2;
-  --agent-chat-everglade: oklch(25.66% 0.046 163.6);
+  --agent-chat-bg-page: var(--theme-color-paper);
+  --agent-chat-bg-panel: var(--theme-color-white);
+  --agent-chat-bg-composer: var(--theme-color-paper);
+  --agent-chat-everglade: var(--theme-color-everglade);
   --agent-chat-everglade-muted: color-mix(
     in oklch,
     var(--agent-chat-everglade) 65%,
@@ -15,15 +15,40 @@
     var(--agent-chat-everglade) 12%,
     transparent
   );
-  --agent-chat-accent-eyebrow: oklch(56.84% 0.108 139.09);
-  --agent-chat-purple-border: oklch(60.15% 0.22 278.91deg);
-  --agent-chat-focus-ring-soft: oklch(72.81% 0.146 283.49deg / 45%);
-  --agent-chat-focus-ring: oklch(60.15% 0.22 278.91deg);
-  --agent-chat-input-border: #ccc;
-  --agent-chat-coral-50: oklch(95.38% 0.022 35.12);
-  --agent-chat-coral-200: oklch(82.55% 0.096 35.89);
-  --agent-chat-coral-800: oklch(33.44% 0.113 35.39);
+  --agent-chat-accent-eyebrow: var(--theme-palette-accent-600);
+  --agent-chat-purple-border: var(--theme-palette-purple-300);
+  --agent-chat-focus-ring-soft: color-mix(
+    in oklch,
+    var(--theme-color-hero-accent) 45%,
+    transparent
+  );
+  --agent-chat-focus-ring: var(--theme-palette-purple-300);
+  --agent-chat-input-border: var(--theme-palette-paper-light-200);
+  --agent-chat-coral-50: var(--theme-palette-coral-50);
+  --agent-chat-coral-200: var(--theme-palette-coral-200);
+  --agent-chat-coral-800: var(--theme-palette-coral-800);
   --agent-chat-font-title: "IBM Plex Serif", serif;
+}
+
+.backend-theme .agent-chat {
+  --agent-chat-bg-page: var(--backend-page);
+  --agent-chat-bg-panel: var(--backend-surface);
+  --agent-chat-bg-composer: var(--backend-page);
+  --agent-chat-everglade: var(--backend-text);
+  --agent-chat-everglade-muted: var(--backend-muted);
+  --agent-chat-everglade-border: var(--backend-border);
+  --agent-chat-accent-eyebrow: var(--backend-accent);
+  --agent-chat-purple-border: var(--backend-border-strong);
+  --agent-chat-focus-ring-soft: color-mix(
+    in oklch,
+    var(--theme-palette-accent-400) 38%,
+    transparent
+  );
+  --agent-chat-focus-ring: var(--backend-accent);
+  --agent-chat-input-border: var(--backend-border-strong);
+  --agent-chat-coral-50: var(--theme-palette-coral-900);
+  --agent-chat-coral-200: var(--theme-palette-coral-700);
+  --agent-chat-coral-800: var(--backend-danger);
 }
 
 .agent-chat p {
@@ -146,17 +171,17 @@
 .agent-chat__suggestion {
   font-size: 0.875rem;
   font-weight: 500;
-  color: oklch(0% 0 0);
+  color: var(--agent-chat-everglade);
   cursor: pointer;
-  background-color: oklch(100% 0 0);
+  background-color: var(--agent-chat-bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--theme-radius-pill);
 }
 
 .agent-chat__suggestion:hover {
-  color: oklch(0.06% 0 271.32deg);
-  background-color: oklch(72.81% 0.146 283.49deg);
-  border-color: oklch(72.81% 0.146 283.49deg);
+  color: var(--primary-foreground);
+  background-color: var(--primary);
+  border-color: var(--primary);
 }
 
 /* Messages */
@@ -173,7 +198,7 @@
 
 .agent-chat__message-content--user {
   max-width: 90%;
-  color: oklch(100% 0 0);
+  color: var(--theme-color-white);
   background-color: var(--agent-chat-everglade);
   border-color: var(--agent-chat-everglade);
 }
@@ -208,7 +233,8 @@
   max-height: 18rem;
   object-fit: contain;
   object-position: top left;
-  border: 1px solid color-mix(in oklch, oklch(100% 0 0) 20%, transparent);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-color-white) 20%, transparent);
   border-radius: var(--radius-lg);
 }
 
@@ -335,7 +361,7 @@
 }
 
 .agent-chat [data-slot="input-group"] {
-  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 transparent;
   --tw-ring-width: 0;
 
   background-color: var(--agent-chat-bg-panel);
@@ -351,7 +377,7 @@
 .agent-chat [data-slot="input-group"]:has(
   [data-slot="input-group-control"]:focus-visible
 ) {
-  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 transparent;
   --tw-ring-width: 0;
 
   border-color: transparent;

@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
+import { BackendThemeScope } from "./components/backend-theme-scope";
 import { GoogleAuthGateProvider } from "./components/google-auth-gate";
 import { RouteScrollManager } from "./components/route-scroll-manager";
 import { SanityVisualEditing } from "./components/sanity-visual-editing";
@@ -110,6 +111,7 @@ const RootLayout = () => (
     <DashboardAuthProvider>
       <GoogleAuthGateProvider>
         <SanityContentProvider>
+          <BackendThemeScope />
           <SanityVisualEditing />
           <SiteShell />
           <Analytics />
@@ -121,7 +123,8 @@ const RootLayout = () => (
 
 const EmailComposerEmbed = () => (
   <DashboardAuthProvider>
-    <main className={layoutClass.pageMain}>
+    <BackendThemeScope />
+    <main className={`${layoutClass.pageMain} site-page-main--backend`}>
       <EmailComposerPage />
     </main>
   </DashboardAuthProvider>

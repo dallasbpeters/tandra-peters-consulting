@@ -28,6 +28,28 @@ const shellStyle: CSSProperties = {
   gap: theme.spacing.xxl,
 };
 
+const cssVar = (name: string, fallback: string): string =>
+  `var(${name}, ${fallback})`;
+
+const backendSurfaceColor = cssVar("--backend-surface", theme.colors.white);
+const backendSurfaceRaisedColor = cssVar(
+  "--backend-surface-raised",
+  theme.palette.paper["100"]
+);
+const backendBorderColor = cssVar(
+  "--backend-border",
+  mix(theme.colors.everglade, 10)
+);
+const backendTextColor = cssVar("--backend-text", theme.colors.everglade);
+const backendMutedColor = cssVar(
+  "--backend-muted",
+  mix(theme.colors.everglade, 70)
+);
+const backendDangerColor = cssVar(
+  "--backend-danger",
+  theme.palette.coral["700"]
+);
+
 const heroCardStyle: CSSProperties = {
   background: `linear-gradient(135deg, ${theme.palette.everglade["900"]} 0%, ${theme.palette.everglade["700"]} 55%, ${theme.palette.accent["600"]} 100%)`,
   borderRadius: theme.radius.xlarge,
@@ -38,10 +60,10 @@ const heroCardStyle: CSSProperties = {
 };
 
 const cardStyle: CSSProperties = {
-  backgroundColor: theme.colors.white,
-  border: `1px solid ${mix(theme.colors.everglade, 10)}`,
+  backgroundColor: backendSurfaceColor,
+  border: `1px solid ${backendBorderColor}`,
   borderRadius: theme.radius.xlarge,
-  boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
+  boxShadow: "var(--backend-shadow, 0 16px 40px rgb(30 50 44 / 7%))",
   padding: theme.spacing.xl,
 };
 
@@ -76,12 +98,12 @@ const chipStyle = (
       text: theme.palette.accent["800"],
     },
     neutral: {
-      bg: theme.palette.paper["200"],
-      text: theme.palette.everglade["800"],
+      bg: backendSurfaceRaisedColor,
+      text: backendTextColor,
     },
     warning: {
       bg: theme.palette.coral["100"],
-      text: theme.palette.coral["800"],
+      text: backendDangerColor,
     },
   } as const;
 
@@ -102,12 +124,12 @@ const chipStyle = (
 
 const deltaToneColor = (value: number | null): string => {
   if (value === null) {
-    return mix(theme.colors.everglade, 60);
+    return backendMutedColor;
   }
   if (value >= 0) {
     return theme.palette.accent["700"];
   }
-  return theme.palette.coral["700"];
+  return backendDangerColor;
 };
 
 const deltaTone = (value: number | null): CSSProperties => ({
@@ -155,9 +177,7 @@ const MiniBars = ({
 }) => {
   if (points.length === 0) {
     return (
-      <div
-        style={{ color: mix(theme.colors.everglade, 60), fontSize: "0.95rem" }}
-      >
+      <div style={{ color: backendMutedColor, fontSize: "0.95rem" }}>
         Traffic trend will appear here once PostHog server metrics are
         available.
       </div>
@@ -180,7 +200,7 @@ const MiniBars = ({
         >
           <span
             style={{
-              color: mix(theme.colors.everglade, 65),
+              color: backendMutedColor,
               fontSize: "0.82rem",
             }}
           >
@@ -188,7 +208,7 @@ const MiniBars = ({
           </span>
           <div
             style={{
-              backgroundColor: theme.palette.paper["200"],
+              backgroundColor: backendSurfaceRaisedColor,
               borderRadius: theme.radius.pill,
               height: "0.65rem",
               overflow: "hidden",
@@ -205,7 +225,7 @@ const MiniBars = ({
           </div>
           <span
             style={{
-              color: theme.colors.everglade,
+              color: backendTextColor,
               fontSize: "0.82rem",
               fontWeight: 700,
             }}
@@ -230,7 +250,7 @@ const MetricCard = ({
   <article style={cardStyle}>
     <p
       style={{
-        color: mix(theme.colors.everglade, 60),
+        color: backendMutedColor,
         fontSize: "0.8rem",
         letterSpacing: "0.08em",
         marginBottom: theme.spacing.md,
@@ -241,7 +261,7 @@ const MetricCard = ({
     </p>
     <div
       style={{
-        color: theme.colors.everglade,
+        color: backendTextColor,
         fontSize: "2rem",
         fontWeight: 700,
         marginBottom: theme.spacing.sm,
@@ -251,7 +271,7 @@ const MetricCard = ({
     </div>
     <p
       style={{
-        color: mix(theme.colors.everglade, 70),
+        color: backendMutedColor,
         fontSize: "0.92rem",
         lineHeight: 1.5,
       }}
@@ -276,7 +296,7 @@ const opportunityChip = (
 const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
   <div
     style={{
-      borderTop: `1px solid ${mix(theme.colors.everglade, 10)}`,
+      borderTop: `1px solid ${backendBorderColor}`,
       display: "grid",
       gap: theme.spacing.md,
       padding: `${theme.spacing.lg} 0`,
@@ -292,12 +312,12 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
       }}
     >
       <div>
-        <div style={{ color: theme.colors.everglade, fontWeight: 700 }}>
+        <div style={{ color: backendTextColor, fontWeight: 700 }}>
           {audit.title}
         </div>
         <div
           style={{
-            color: mix(theme.colors.everglade, 55),
+            color: backendMutedColor,
             fontSize: "0.86rem",
           }}
         >
@@ -313,12 +333,12 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
         }}
       >
         <span style={chipStyle(audit.status)}>{audit.status}</span>
-        <span style={{ color: theme.colors.everglade, fontWeight: 700 }}>
+        <span style={{ color: backendTextColor, fontWeight: 700 }}>
           {audit.score}/100
         </span>
       </div>
     </div>
-    <div style={{ color: mix(theme.colors.everglade, 80), lineHeight: 1.6 }}>
+    <div style={{ color: backendMutedColor, lineHeight: 1.6 }}>
       {audit.issues.map((issue) => (
         <div key={issue}>• {issue}</div>
       ))}
@@ -326,7 +346,7 @@ const AuditRow = ({ audit }: { audit: SeoAuditItem }) => (
     {audit.actions.length > 0 ? (
       <div
         style={{
-          color: mix(theme.colors.everglade, 68),
+          color: backendMutedColor,
           fontSize: "0.92rem",
           lineHeight: 1.6,
         }}
@@ -344,8 +364,8 @@ const ContentAnalysisCard = ({
 }) => (
   <article
     style={{
-      backgroundColor: theme.palette.paper["100"],
-      border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+      backgroundColor: backendSurfaceRaisedColor,
+      border: `1px solid ${backendBorderColor}`,
       borderRadius: theme.radius.large,
       display: "grid",
       gap: theme.spacing.md,
@@ -362,12 +382,12 @@ const ContentAnalysisCard = ({
       }}
     >
       <div>
-        <div style={{ color: theme.colors.everglade, fontWeight: 700 }}>
+        <div style={{ color: backendTextColor, fontWeight: 700 }}>
           {analysis.title}
         </div>
         <div
           style={{
-            color: mix(theme.colors.everglade, 58),
+            color: backendMutedColor,
             fontSize: "0.84rem",
           }}
         >
@@ -383,7 +403,7 @@ const ContentAnalysisCard = ({
         }}
       >
         <span style={chipStyle(analysis.status)}>{analysis.status}</span>
-        <span style={{ color: theme.colors.everglade, fontWeight: 700 }}>
+        <span style={{ color: backendTextColor, fontWeight: 700 }}>
           {analysis.score}/100
         </span>
       </div>
@@ -407,15 +427,15 @@ const ContentAnalysisCard = ({
         <div
           key={`${analysis.path}-${metric.label}`}
           style={{
-            backgroundColor: theme.colors.white,
-            border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+            backgroundColor: backendSurfaceColor,
+            border: `1px solid ${backendBorderColor}`,
             borderRadius: theme.radius.large,
             padding: `${theme.spacing.md} ${theme.spacing.md}`,
           }}
         >
           <div
             style={{
-              color: mix(theme.colors.everglade, 58),
+              color: backendMutedColor,
               fontSize: "0.78rem",
               letterSpacing: "0.06em",
               marginBottom: theme.spacing.sm,
@@ -424,14 +444,14 @@ const ContentAnalysisCard = ({
           >
             {metric.label}
           </div>
-          <div style={{ color: theme.colors.everglade, fontWeight: 700 }}>
+          <div style={{ color: backendTextColor, fontWeight: 700 }}>
             {metric.value}
           </div>
         </div>
       ))}
     </div>
 
-    <div style={{ color: mix(theme.colors.everglade, 78), lineHeight: 1.65 }}>
+    <div style={{ color: backendMutedColor, lineHeight: 1.65 }}>
       {analysis.issues.map((issue) => (
         <div key={`${analysis.path}-${issue}`}>• {issue}</div>
       ))}
@@ -439,7 +459,7 @@ const ContentAnalysisCard = ({
 
     <div
       style={{
-        color: mix(theme.colors.everglade, 68),
+        color: backendMutedColor,
         fontSize: "0.92rem",
         lineHeight: 1.6,
       }}
@@ -494,7 +514,7 @@ export const SeoDashboardPage = () => {
             <div
               style={{
                 alignItems: "center",
-                color: theme.palette.coral["800"],
+                color: backendDangerColor,
                 display: "flex",
                 gap: theme.spacing.md,
                 marginBottom: theme.spacing.md,
@@ -505,7 +525,7 @@ export const SeoDashboardPage = () => {
             </div>
             <p
               style={{
-                color: mix(theme.colors.everglade, 75),
+                color: backendMutedColor,
                 lineHeight: 1.6,
               }}
             >
@@ -527,7 +547,7 @@ export const SeoDashboardPage = () => {
               <div>
                 <h2
                   style={{
-                    color: theme.colors.everglade,
+                    color: backendTextColor,
                     fontSize: "1.2rem",
                     marginBottom: theme.spacing.sm,
                   }}
@@ -536,7 +556,7 @@ export const SeoDashboardPage = () => {
                 </h2>
                 <p
                   style={{
-                    color: mix(theme.colors.everglade, 72),
+                    color: backendMutedColor,
                     lineHeight: 1.7,
                     maxWidth: "36rem",
                   }}
@@ -550,7 +570,7 @@ export const SeoDashboardPage = () => {
               {auth.authError ? (
                 <p
                   style={{
-                    color: theme.palette.coral["800"],
+                    color: backendDangerColor,
                     lineHeight: 1.6,
                   }}
                 >
@@ -558,7 +578,7 @@ export const SeoDashboardPage = () => {
                 </p>
               ) : null}
               {auth.ready ? null : (
-                <p style={{ color: mix(theme.colors.everglade, 60) }}>
+                <p style={{ color: backendMutedColor }}>
                   Loading Google sign-in…
                 </p>
               )}
@@ -598,14 +618,12 @@ export const SeoDashboardPage = () => {
                   />
                 ) : null}
                 <div>
-                  <div
-                    style={{ color: theme.colors.everglade, fontWeight: 700 }}
-                  >
+                  <div style={{ color: backendTextColor, fontWeight: 700 }}>
                     {auth.user.name || auth.user.email}
                   </div>
                   <div
                     style={{
-                      color: mix(theme.colors.everglade, 60),
+                      color: backendMutedColor,
                       fontSize: "0.9rem",
                     }}
                   >
@@ -616,10 +634,10 @@ export const SeoDashboardPage = () => {
               <button
                 onClick={() => auth.signOut()}
                 style={{
-                  backgroundColor: theme.colors.white,
-                  border: `1px solid ${mix(theme.colors.everglade, 16)}`,
+                  backgroundColor: backendSurfaceColor,
+                  border: `1px solid ${backendBorderColor}`,
                   borderRadius: theme.radius.pill,
-                  color: theme.colors.everglade,
+                  color: backendTextColor,
                   cursor: "pointer",
                   fontWeight: 700,
                   padding: `${theme.spacing.md} ${theme.spacing.lg}`,
@@ -632,7 +650,7 @@ export const SeoDashboardPage = () => {
             {auth.authError ? (
               <p
                 style={{
-                  color: theme.palette.coral["800"],
+                  color: backendDangerColor,
                   lineHeight: 1.6,
                   marginTop: theme.spacing.md,
                 }}
@@ -647,7 +665,7 @@ export const SeoDashboardPage = () => {
           <>
             {loading && !data ? (
               <section style={cardStyle}>
-                <p style={{ color: theme.colors.everglade }}>
+                <p style={{ color: backendTextColor }}>
                   Loading saved dashboard snapshot…
                 </p>
               </section>
@@ -663,7 +681,7 @@ export const SeoDashboardPage = () => {
                 <div
                   style={{
                     alignItems: "center",
-                    color: theme.palette.coral["800"],
+                    color: backendDangerColor,
                     display: "flex",
                     gap: theme.spacing.md,
                     marginBottom: theme.spacing.md,
@@ -674,7 +692,7 @@ export const SeoDashboardPage = () => {
                 </div>
                 <p
                   style={{
-                    color: mix(theme.colors.everglade, 75),
+                    color: backendMutedColor,
                     lineHeight: 1.6,
                   }}
                 >
@@ -780,7 +798,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -792,9 +810,9 @@ export const SeoDashboardPage = () => {
                         <div
                           key={note}
                           style={{
-                            backgroundColor: theme.palette.paper["100"],
+                            backgroundColor: backendSurfaceRaisedColor,
                             borderRadius: theme.radius.large,
-                            color: mix(theme.colors.everglade, 76),
+                            color: backendMutedColor,
                             lineHeight: 1.6,
                             padding: `${theme.spacing.lg} ${theme.spacing.lg}`,
                           }}
@@ -808,7 +826,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -888,7 +906,7 @@ export const SeoDashboardPage = () => {
                         </div>
                         <h2
                           style={{
-                            color: theme.colors.everglade,
+                            color: backendTextColor,
                             fontSize: "1.2rem",
                             marginBottom: theme.spacing.sm,
                             marginTop: theme.spacing.md,
@@ -898,7 +916,7 @@ export const SeoDashboardPage = () => {
                         </h2>
                         <div
                           style={{
-                            color: mix(theme.colors.everglade, 58),
+                            color: backendMutedColor,
                             fontSize: "0.82rem",
                             marginTop: theme.spacing.sm,
                           }}
@@ -908,7 +926,7 @@ export const SeoDashboardPage = () => {
                       </div>
                       <div
                         style={{
-                          color: mix(theme.colors.everglade, 58),
+                          color: backendMutedColor,
                           fontSize: "0.82rem",
                         }}
                       >
@@ -925,7 +943,7 @@ export const SeoDashboardPage = () => {
                       <div>
                         <div
                           style={{
-                            color: mix(theme.colors.everglade, 58),
+                            color: backendMutedColor,
                             fontSize: "0.82rem",
                             marginBottom: theme.spacing.sm,
                           }}
@@ -934,7 +952,7 @@ export const SeoDashboardPage = () => {
                         </div>
                         <div
                           style={{
-                            color: theme.colors.everglade,
+                            color: backendTextColor,
                             fontSize: "1.6rem",
                             fontWeight: 700,
                           }}
@@ -951,7 +969,7 @@ export const SeoDashboardPage = () => {
                       <div>
                         <div
                           style={{
-                            color: mix(theme.colors.everglade, 58),
+                            color: backendMutedColor,
                             fontSize: "0.82rem",
                             marginBottom: theme.spacing.sm,
                           }}
@@ -960,7 +978,7 @@ export const SeoDashboardPage = () => {
                         </div>
                         <div
                           style={{
-                            color: theme.colors.everglade,
+                            color: backendTextColor,
                             fontSize: "1.6rem",
                             fontWeight: 700,
                           }}
@@ -971,7 +989,7 @@ export const SeoDashboardPage = () => {
                       <div>
                         <div
                           style={{
-                            color: mix(theme.colors.everglade, 58),
+                            color: backendMutedColor,
                             fontSize: "0.82rem",
                             marginBottom: theme.spacing.sm,
                           }}
@@ -980,7 +998,7 @@ export const SeoDashboardPage = () => {
                         </div>
                         <div
                           style={{
-                            color: theme.colors.everglade,
+                            color: backendTextColor,
                             fontSize: "1.6rem",
                             fontWeight: 700,
                           }}
@@ -991,7 +1009,7 @@ export const SeoDashboardPage = () => {
                       <div>
                         <div
                           style={{
-                            color: mix(theme.colors.everglade, 58),
+                            color: backendMutedColor,
                             fontSize: "0.82rem",
                             marginBottom: theme.spacing.sm,
                           }}
@@ -1000,7 +1018,7 @@ export const SeoDashboardPage = () => {
                         </div>
                         <div
                           style={{
-                            color: theme.colors.everglade,
+                            color: backendTextColor,
                             fontSize: "1.6rem",
                             fontWeight: 700,
                           }}
@@ -1023,7 +1041,7 @@ export const SeoDashboardPage = () => {
                     </div>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.2rem",
                         marginBottom: theme.spacing.sm,
                         marginTop: theme.spacing.md,
@@ -1033,7 +1051,7 @@ export const SeoDashboardPage = () => {
                     </h2>
                     <p
                       style={{
-                        color: mix(theme.colors.everglade, 78),
+                        color: backendMutedColor,
                         lineHeight: 1.75,
                       }}
                     >
@@ -1041,7 +1059,7 @@ export const SeoDashboardPage = () => {
                     </p>
                     <div
                       style={{
-                        color: mix(theme.colors.everglade, 60),
+                        color: backendMutedColor,
                         fontSize: "0.88rem",
                         lineHeight: 1.6,
                         marginTop: theme.spacing.lg,
@@ -1056,7 +1074,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -1068,8 +1086,8 @@ export const SeoDashboardPage = () => {
                         <div
                           key={`${opportunity.type}-${opportunity.title}`}
                           style={{
-                            backgroundColor: theme.palette.paper["100"],
-                            border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                            backgroundColor: backendSurfaceRaisedColor,
+                            border: `1px solid ${backendBorderColor}`,
                             borderRadius: theme.radius.large,
                             padding: theme.spacing.lg,
                           }}
@@ -1083,7 +1101,7 @@ export const SeoDashboardPage = () => {
                               marginBottom: theme.spacing.md,
                             }}
                           >
-                            <strong style={{ color: theme.colors.everglade }}>
+                            <strong style={{ color: backendTextColor }}>
                               {opportunity.title}
                             </strong>
                             <span style={opportunityChip(opportunity.type)}>
@@ -1092,7 +1110,7 @@ export const SeoDashboardPage = () => {
                           </div>
                           <p
                             style={{
-                              color: mix(theme.colors.everglade, 75),
+                              color: backendMutedColor,
                               lineHeight: 1.65,
                               marginBottom: theme.spacing.md,
                             }}
@@ -1101,7 +1119,7 @@ export const SeoDashboardPage = () => {
                           </p>
                           <div
                             style={{
-                              color: mix(theme.colors.everglade, 60),
+                              color: backendMutedColor,
                               display: "flex",
                               fontSize: "0.84rem",
                               gap: theme.spacing.lg,
@@ -1123,7 +1141,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -1138,9 +1156,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Published posts
                         </span>
                         <strong>{data.content.publishedPosts}</strong>
@@ -1152,9 +1168,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Missing SEO descriptions
                         </span>
                         <strong>{data.content.missingSeoDescription}</strong>
@@ -1166,9 +1180,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Missing excerpts
                         </span>
                         <strong>{data.content.missingExcerpt}</strong>
@@ -1180,9 +1192,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Missing lead images
                         </span>
                         <strong>{data.content.missingImage}</strong>
@@ -1194,9 +1204,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Stale posts
                         </span>
                         <strong>{data.content.stalePosts}</strong>
@@ -1208,9 +1216,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Thin articles
                         </span>
                         <strong>{data.content.thinContentPosts}</strong>
@@ -1222,9 +1228,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Posts with no internal links
                         </span>
                         <strong>
@@ -1238,9 +1242,7 @@ export const SeoDashboardPage = () => {
                           justifyContent: "space-between",
                         }}
                       >
-                        <span
-                          style={{ color: mix(theme.colors.everglade, 68) }}
-                        >
+                        <span style={{ color: backendMutedColor }}>
                           Posts with weak structure
                         </span>
                         <strong>{data.content.postsWithWeakStructure}</strong>
@@ -1251,7 +1253,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -1270,14 +1272,14 @@ export const SeoDashboardPage = () => {
                                 marginBottom: theme.spacing.sm,
                               }}
                             >
-                              <span style={{ color: theme.colors.everglade }}>
+                              <span style={{ color: backendTextColor }}>
                                 {category.label}
                               </span>
                               <strong>{category.count}</strong>
                             </div>
                             <div
                               style={{
-                                backgroundColor: theme.palette.paper["200"],
+                                backgroundColor: backendSurfaceRaisedColor,
                                 borderRadius: theme.radius.pill,
                                 height: "0.5rem",
                                 overflow: "hidden",
@@ -1295,7 +1297,7 @@ export const SeoDashboardPage = () => {
                           </div>
                         ))
                       ) : (
-                        <p style={{ color: mix(theme.colors.everglade, 65) }}>
+                        <p style={{ color: backendMutedColor }}>
                           Publish some categorized articles and this cluster
                           view will fill in.
                         </p>
@@ -1307,7 +1309,7 @@ export const SeoDashboardPage = () => {
                 <section style={cardStyle}>
                   <h2
                     style={{
-                      color: theme.colors.everglade,
+                      color: backendTextColor,
                       fontSize: "1.15rem",
                       marginBottom: theme.spacing.xs,
                     }}
@@ -1316,7 +1318,7 @@ export const SeoDashboardPage = () => {
                   </h2>
                   <p
                     style={{
-                      color: mix(theme.colors.everglade, 65),
+                      color: backendMutedColor,
                       lineHeight: 1.6,
                       marginBottom: theme.spacing.md,
                     }}
@@ -1336,7 +1338,7 @@ export const SeoDashboardPage = () => {
                     ) : (
                       <p
                         style={{
-                          color: mix(theme.colors.everglade, 65),
+                          color: backendMutedColor,
                           lineHeight: 1.6,
                         }}
                       >
@@ -1351,7 +1353,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -1363,8 +1365,8 @@ export const SeoDashboardPage = () => {
                         <div
                           key={`${recommendation.source}-${recommendation.title}`}
                           style={{
-                            backgroundColor: theme.palette.paper["100"],
-                            border: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                            backgroundColor: backendSurfaceRaisedColor,
+                            border: `1px solid ${backendBorderColor}`,
                             borderRadius: theme.radius.large,
                             padding: theme.spacing.lg,
                           }}
@@ -1378,7 +1380,7 @@ export const SeoDashboardPage = () => {
                               marginBottom: theme.spacing.md,
                             }}
                           >
-                            <strong style={{ color: theme.colors.everglade }}>
+                            <strong style={{ color: backendTextColor }}>
                               {recommendation.title}
                             </strong>
                             <span style={priorityTone(recommendation.priority)}>
@@ -1387,7 +1389,7 @@ export const SeoDashboardPage = () => {
                           </div>
                           <p
                             style={{
-                              color: mix(theme.colors.everglade, 75),
+                              color: backendMutedColor,
                               lineHeight: 1.65,
                             }}
                           >
@@ -1401,7 +1403,7 @@ export const SeoDashboardPage = () => {
                   <article style={cardStyle}>
                     <h2
                       style={{
-                        color: theme.colors.everglade,
+                        color: backendTextColor,
                         fontSize: "1.15rem",
                         marginBottom: theme.spacing.lg,
                       }}
@@ -1420,7 +1422,7 @@ export const SeoDashboardPage = () => {
                               justifyContent: "space-between",
                             }}
                           >
-                            <span style={{ color: theme.colors.everglade }}>
+                            <span style={{ color: backendTextColor }}>
                               {page.path}
                             </span>
                             <strong>{page.pageviews}</strong>
@@ -1429,7 +1431,7 @@ export const SeoDashboardPage = () => {
                       ) : (
                         <p
                           style={{
-                            color: mix(theme.colors.everglade, 65),
+                            color: backendMutedColor,
                             lineHeight: 1.6,
                           }}
                         >
@@ -1445,7 +1447,7 @@ export const SeoDashboardPage = () => {
                 <section style={cardStyle}>
                   <h2
                     style={{
-                      color: theme.colors.everglade,
+                      color: backendTextColor,
                       fontSize: "1.15rem",
                       marginBottom: theme.spacing.xs,
                     }}
@@ -1454,7 +1456,7 @@ export const SeoDashboardPage = () => {
                   </h2>
                   <p
                     style={{
-                      color: mix(theme.colors.everglade, 65),
+                      color: backendMutedColor,
                       lineHeight: 1.6,
                       marginBottom: theme.spacing.md,
                     }}

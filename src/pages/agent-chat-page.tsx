@@ -112,11 +112,29 @@ interface Props {
 
 const CHAT_STORAGE_PREFIX = "agent-chat:v1";
 
+const cssVar = (name: string, fallback: string): string =>
+  `var(${name}, ${fallback})`;
+
+const backendSurfaceColor = cssVar("--backend-surface", theme.colors.white);
+const backendBorderColor = cssVar(
+  "--backend-border",
+  mix(theme.colors.everglade, 10)
+);
+const backendTextColor = cssVar("--backend-text", theme.colors.everglade);
+const backendMutedColor = cssVar(
+  "--backend-muted",
+  mix(theme.colors.everglade, 72)
+);
+const backendDangerColor = cssVar(
+  "--backend-danger",
+  theme.palette.coral["800"]
+);
+
 const cardStyle: CSSProperties = {
-  backgroundColor: theme.colors.white,
-  border: `1px solid ${mix(theme.colors.everglade, 10)}`,
+  backgroundColor: backendSurfaceColor,
+  border: `1px solid ${backendBorderColor}`,
   borderRadius: theme.radius.xlarge,
-  boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
+  boxShadow: "var(--backend-shadow, 0 16px 40px rgb(30 50 44 / 7%))",
   display: "grid",
   minHeight: "80vh",
   padding: theme.spacing.xl,
@@ -539,7 +557,7 @@ export const AgentChatPage = ({ config }: Props) => {
             <div>
               <h2
                 style={{
-                  color: theme.colors.everglade,
+                  color: backendTextColor,
                   fontSize: "1.2rem",
                   marginBottom: theme.spacing.sm,
                 }}
@@ -548,7 +566,7 @@ export const AgentChatPage = ({ config }: Props) => {
               </h2>
               <p
                 style={{
-                  color: mix(theme.colors.everglade, 72),
+                  color: backendMutedColor,
                   lineHeight: 1.7,
                   maxWidth: "36rem",
                 }}
@@ -562,7 +580,7 @@ export const AgentChatPage = ({ config }: Props) => {
             {auth.authError ? (
               <p
                 style={{
-                  color: theme.palette.coral["800"],
+                  color: backendDangerColor,
                   lineHeight: 1.6,
                 }}
               >
@@ -570,7 +588,7 @@ export const AgentChatPage = ({ config }: Props) => {
               </p>
             ) : null}
             {auth.ready ? null : (
-              <p style={{ color: mix(theme.colors.everglade, 60) }}>
+              <p style={{ color: backendMutedColor }}>
                 Loading Google sign-in…
               </p>
             )}

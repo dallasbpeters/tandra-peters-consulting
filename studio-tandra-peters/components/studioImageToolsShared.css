@@ -1,56 +1,93 @@
+@import "../../src/styles/theme-variables.css";
 /* Shared design tokens + WebAwesome tuning for Studio image tools */
 .studio-tool {
-  --studio-tool-accent: #7d4c35;
-  --studio-tool-alert-bg: #fff1ee;
-  --studio-tool-alert-border: rgb(142 40 30 / 24%);
-  --studio-tool-alert-text: #8e281e;
-  --studio-tool-border: rgb(22 36 30 / 12%);
-  --studio-tool-border-strong: rgb(22 36 30 / 18%);
-  --studio-tool-brand: lch(40.09% 86.16 297.78);
-  --studio-tool-brand-ring: rgb(23 75 53 / 18%);
-  --studio-tool-bg: #fff;
-  --studio-tool-checker: #c2c2c2;
-  --studio-tool-checker-bg: #ededed;
-  --studio-tool-danger: #8e281e;
-  --studio-tool-empty-bg: #fffdf8;
-  --studio-tool-image-bg: #e6e6e6;
-  --studio-tool-muted: rgb(22 36 30 / 62%);
-  --studio-tool-muted-strong: rgb(22 36 30 / 76%);
-  --studio-tool-notice-bg: #eef8f1;
-  --studio-tool-notice-border: rgb(22 94 53 / 20%);
-  --studio-tool-notice-text: #165e35;
-  --studio-tool-panel: #fff;
+  --studio-tool-accent: var(--theme-palette-paper-700);
+  --studio-tool-alert-bg: var(--theme-palette-coral-50);
+  --studio-tool-alert-border: color-mix(
+    in oklch,
+    var(--theme-palette-coral-700) 24%,
+    transparent
+  );
+  --studio-tool-alert-text: var(--theme-palette-coral-700);
+  --studio-tool-border: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 12%,
+    transparent
+  );
+  --studio-tool-border-strong: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 18%,
+    transparent
+  );
+  --studio-tool-brand: var(--theme-palette-purple-500);
+  --studio-tool-brand-ring: color-mix(
+    in oklch,
+    var(--theme-color-everglade-light) 18%,
+    transparent
+  );
+  --studio-tool-bg: var(--theme-color-white);
+  --studio-tool-checker: var(--theme-palette-paper-300);
+  --studio-tool-checker-bg: var(--theme-palette-paper-100);
+  --studio-tool-danger: var(--theme-palette-coral-700);
+  --studio-tool-empty-bg: var(--theme-color-white);
+  --studio-tool-image-bg: var(--theme-color-paper-dim);
+  --studio-tool-muted: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 62%,
+    transparent
+  );
+  --studio-tool-muted-strong: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 76%,
+    transparent
+  );
+  --studio-tool-notice-bg: var(--theme-palette-accent-50);
+  --studio-tool-notice-border: color-mix(
+    in oklch,
+    var(--theme-palette-accent-700) 20%,
+    transparent
+  );
+  --studio-tool-notice-text: var(--theme-palette-accent-700);
+  --studio-tool-panel: var(--theme-color-white);
   --studio-tool-radius-lg: 0.65rem;
   --studio-tool-radius-md: 0.45rem;
   --studio-tool-radius-sm: 0.35rem;
-  --studio-tool-shadow: rgb(22 36 30 / 8%);
+  --studio-tool-shadow: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 8%,
+    transparent
+  );
   --studio-tool-space-lg: 1.25rem;
   --studio-tool-space-md: 1rem;
   --studio-tool-space-sm: 0.75rem;
   --studio-tool-space-xs: 0.45rem;
-  --studio-tool-surface: #fbfbfb;
-  --studio-tool-text: #16241e;
-  --studio-tool-wa-focus: #b983ec;
+  --studio-tool-surface: var(--theme-color-white);
+  --studio-tool-text: var(--theme-palette-granite-900);
+  --studio-tool-wa-focus: var(--theme-color-hero-accent);
   --wa-font-size-scale: 50%;
   --wa-border-radius-m: var(--studio-tool-radius-md);
   --wa-border-style: solid;
   --wa-border-width-s: 1px;
-  --wa-color-neutral-fill-normal: #e9efe7;
+  --wa-color-neutral-fill-normal: var(--theme-palette-paper-100);
   --wa-color-neutral-fill-quiet: var(--studio-tool-empty-bg);
   --wa-color-neutral-on-normal: var(--studio-tool-text);
-  --wa-color-neutral-on-quiet: rgb(22 36 30 / 72%);
+  --wa-color-neutral-on-quiet: color-mix(
+    in oklch,
+    var(--theme-palette-granite-900) 72%,
+    transparent
+  );
   --wa-color-surface-border: var(--studio-tool-border-strong);
   --wa-color-surface-raised: var(--studio-tool-panel);
   --wa-color-text-normal: var(--studio-tool-text);
   --wa-color-text-quiet: var(--studio-tool-muted);
-  --wa-color-brand-fill-loud: lch(40.09% 86.16 297.78);
-  --wa-color-brand-fill-normal: #7e33a6;
-  --wa-color-brand-fill-quiet: #b08ae9;
-  --wa-color-brand-border-loud: #1e0a33;
-  --wa-color-brand-border-normal: #2f3272;
-  --wa-color-brand-on-loud: #fff;
-  --wa-color-brand-on-normal: #fff;
-  --wa-color-brand-on-quiet: #0a0b33;
+  --wa-color-brand-fill-loud: var(--theme-palette-purple-500);
+  --wa-color-brand-fill-normal: var(--theme-palette-coral-700);
+  --wa-color-brand-fill-quiet: var(--theme-color-hero-accent);
+  --wa-color-brand-border-loud: var(--theme-palette-blue-900);
+  --wa-color-brand-border-normal: var(--theme-palette-blue-800);
+  --wa-color-brand-on-loud: var(--theme-color-white);
+  --wa-color-brand-on-normal: var(--theme-color-white);
+  --wa-color-brand-on-quiet: var(--theme-palette-blue-900);
   --wa-color-focus: var(--studio-tool-wa-focus);
   --wa-focus-ring-offset: 2px;
   --wa-focus-ring-style: solid;
@@ -75,7 +112,8 @@
   --wa-form-control-value-font-weight: 500;
   --wa-form-control-value-line-height: 1.35;
   --wa-line-height-condensed: 1.2;
-  --wa-shadow-m: 0 1rem 2.5rem rgb(22 36 30 / 14%);
+  --wa-shadow-m: 0 1rem 2.5rem
+    color-mix(in oklch, var(--theme-palette-granite-900) 14%, transparent);
   --wa-transition-easing: ease;
   --wa-transition-fast: 120ms;
   --wa-transition-normal: 160ms;
@@ -85,86 +123,168 @@
 }
 
 .studio-tool--dark {
-  --studio-tool-accent: #a8afd5;
-  --studio-tool-alert-bg: #351510;
-  --studio-tool-alert-border: rgb(255 134 106 / 32%);
-  --studio-tool-alert-text: #ffb4a1;
-  --studio-tool-border: rgb(239 237 228 / 14%);
-  --studio-tool-border-strong: rgb(239 237 228 / 24%);
-  --studio-tool-brand: #a8afd5;
-  --studio-tool-brand-ring: rgb(168 175 213 / 26%);
-  --studio-tool-bg: #101017;
-  --studio-tool-checker: rgb(255 255 255 / 5%);
-  --studio-tool-checker-bg: #14161d;
-  --studio-tool-danger: #ffb4a1;
-  --studio-tool-empty-bg: #171721;
-  --studio-tool-image-bg: #242530;
-  --studio-tool-muted: rgb(239 237 228 / 68%);
-  --studio-tool-muted-strong: rgb(239 237 228 / 82%);
-  --studio-tool-notice-bg: #101129;
-  --studio-tool-notice-border: rgb(168 175 213 / 28%);
-  --studio-tool-notice-text: #a8aad5;
-  --studio-tool-panel: #171921;
-  --studio-tool-shadow: rgb(0 0 0 / 28%);
-  --studio-tool-surface: #12131b;
-  --studio-tool-text: #efede4;
-  --studio-tool-wa-focus: #a8abd5;
-  --wa-color-neutral-fill-normal: #292a42;
-  --wa-color-neutral-fill-quiet: #171725;
-  --wa-color-neutral-on-normal: #efede4;
-  --wa-color-neutral-on-quiet: rgb(239 237 228 / 76%);
-  --wa-color-brand-fill-loud: #aba8d5;
-  --wa-color-brand-fill-normal: #7978a2;
-  --wa-color-brand-fill-quiet: #22243b;
-  --wa-color-brand-border-loud: #a8acd5;
-  --wa-color-brand-border-normal: #7878a2;
-  --wa-color-brand-on-loud: #08110d;
-  --wa-color-brand-on-normal: #08110d;
-  --wa-color-brand-on-quiet: #dad8ef;
-  --wa-shadow-m: 0 1rem 2.5rem rgb(0 0 0 / 36%);
+  --studio-tool-accent: var(--theme-palette-blue-200);
+  --studio-tool-alert-bg: var(--theme-palette-coral-900);
+  --studio-tool-alert-border: color-mix(
+    in oklch,
+    var(--theme-palette-coral-300) 32%,
+    transparent
+  );
+  --studio-tool-alert-text: var(--theme-palette-coral-200);
+  --studio-tool-border: color-mix(
+    in oklch,
+    var(--theme-palette-paper-100) 14%,
+    transparent
+  );
+  --studio-tool-border-strong: color-mix(
+    in oklch,
+    var(--theme-palette-paper-100) 24%,
+    transparent
+  );
+  --studio-tool-brand: var(--theme-palette-blue-200);
+  --studio-tool-brand-ring: color-mix(
+    in oklch,
+    var(--theme-palette-blue-200) 26%,
+    transparent
+  );
+  --studio-tool-bg: var(--theme-palette-granite-950);
+  --studio-tool-checker: color-mix(
+    in oklch,
+    var(--theme-color-white) 5%,
+    transparent
+  );
+  --studio-tool-checker-bg: var(--theme-palette-granite-950);
+  --studio-tool-danger: var(--theme-palette-coral-200);
+  --studio-tool-empty-bg: var(--theme-palette-blue-950);
+  --studio-tool-image-bg: var(--theme-color-everglade);
+  --studio-tool-muted: color-mix(
+    in oklch,
+    var(--theme-palette-paper-100) 68%,
+    transparent
+  );
+  --studio-tool-muted-strong: color-mix(
+    in oklch,
+    var(--theme-palette-paper-100) 82%,
+    transparent
+  );
+  --studio-tool-notice-bg: var(--theme-palette-blue-900);
+  --studio-tool-notice-border: color-mix(
+    in oklch,
+    var(--theme-palette-blue-200) 28%,
+    transparent
+  );
+  --studio-tool-notice-text: var(--theme-palette-blue-200);
+  --studio-tool-panel: var(--theme-palette-blue-950);
+  --studio-tool-shadow: color-mix(
+    in oklch,
+    var(--theme-palette-purple-950) 28%,
+    transparent
+  );
+  --studio-tool-surface: var(--theme-palette-blue-950);
+  --studio-tool-text: var(--theme-palette-paper-100);
+  --studio-tool-wa-focus: var(--theme-palette-blue-200);
+  --wa-color-neutral-fill-normal: var(--theme-color-everglade);
+  --wa-color-neutral-fill-quiet: var(--theme-palette-blue-900);
+  --wa-color-neutral-on-normal: var(--theme-palette-paper-100);
+  --wa-color-neutral-on-quiet: color-mix(
+    in oklch,
+    var(--theme-palette-paper-100) 76%,
+    transparent
+  );
+  --wa-color-brand-fill-loud: var(--theme-palette-blue-200);
+  --wa-color-brand-fill-normal: var(--theme-color-everglade-muted);
+  --wa-color-brand-fill-quiet: var(--theme-palette-blue-900);
+  --wa-color-brand-border-loud: var(--theme-palette-blue-200);
+  --wa-color-brand-border-normal: var(--theme-color-everglade-muted);
+  --wa-color-brand-on-loud: var(--theme-palette-granite-950);
+  --wa-color-brand-on-normal: var(--theme-palette-granite-950);
+  --wa-color-brand-on-quiet: var(--theme-palette-blue-100);
+  --wa-shadow-m: 0 1rem 2.5rem
+    color-mix(in oklch, var(--theme-palette-purple-950) 36%, transparent);
 
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   .studio-tool:not(.studio-tool--light) {
-    --studio-tool-accent: #a8afd5;
-    --studio-tool-alert-bg: #351510;
-    --studio-tool-alert-border: rgb(255 134 106 / 32%);
-    --studio-tool-alert-text: #ffb4a1;
-    --studio-tool-border: rgb(239 237 228 / 14%);
-    --studio-tool-border-strong: rgb(239 237 228 / 24%);
-    --studio-tool-brand: #a8b1d5;
-    --studio-tool-brand-ring: rgb(168 175 213 / 26%);
-    --studio-tool-bg: #101017;
-    --studio-tool-checker: rgb(255 255 255 / 5%);
-    --studio-tool-checker-bg: #14161d;
-    --studio-tool-danger: #ffb4a1;
-    --studio-tool-empty-bg: #171721;
-    --studio-tool-image-bg: #242530;
-    --studio-tool-muted: rgb(239 237 228 / 68%);
-    --studio-tool-muted-strong: rgb(239 237 228 / 82%);
-    --studio-tool-notice-bg: #101029;
-    --studio-tool-notice-border: rgb(168 175 213 / 28%);
-    --studio-tool-notice-text: #a8afd5;
-    --studio-tool-panel: #171921;
-    --studio-tool-shadow: rgb(0 0 0 / 28%);
-    --studio-tool-surface: #12131b;
-    --studio-tool-text: #efede4;
-    --studio-tool-wa-focus: #a8b7d5;
-    --wa-color-neutral-fill-normal: #292e42;
-    --wa-color-neutral-fill-quiet: #171725;
-    --wa-color-neutral-on-normal: #efede4;
-    --wa-color-neutral-on-quiet: rgb(239 237 228 / 76%);
-    --wa-color-brand-fill-loud: #a8acd5;
-    --wa-color-brand-fill-normal: #787ba2;
-    --wa-color-brand-fill-quiet: #22243b;
-    --wa-color-brand-border-loud: #a8add5;
-    --wa-color-brand-border-normal: #787ea2;
-    --wa-color-brand-on-loud: #08110d;
-    --wa-color-brand-on-normal: #080911;
-    --wa-color-brand-on-quiet: #d9d8ef;
-    --wa-shadow-m: 0 1rem 2.5rem rgb(0 0 0 / 36%);
+    --studio-tool-accent: var(--theme-palette-blue-200);
+    --studio-tool-alert-bg: var(--theme-palette-coral-900);
+    --studio-tool-alert-border: color-mix(
+      in oklch,
+      var(--theme-palette-coral-300) 32%,
+      transparent
+    );
+    --studio-tool-alert-text: var(--theme-palette-coral-200);
+    --studio-tool-border: color-mix(
+      in oklch,
+      var(--theme-palette-paper-100) 14%,
+      transparent
+    );
+    --studio-tool-border-strong: color-mix(
+      in oklch,
+      var(--theme-palette-paper-100) 24%,
+      transparent
+    );
+    --studio-tool-brand: var(--theme-palette-blue-200);
+    --studio-tool-brand-ring: color-mix(
+      in oklch,
+      var(--theme-palette-blue-200) 26%,
+      transparent
+    );
+    --studio-tool-bg: var(--theme-palette-granite-950);
+    --studio-tool-checker: color-mix(
+      in oklch,
+      var(--theme-color-white) 5%,
+      transparent
+    );
+    --studio-tool-checker-bg: var(--theme-palette-granite-950);
+    --studio-tool-danger: var(--theme-palette-coral-200);
+    --studio-tool-empty-bg: var(--theme-palette-blue-950);
+    --studio-tool-image-bg: var(--theme-color-everglade);
+    --studio-tool-muted: color-mix(
+      in oklch,
+      var(--theme-palette-paper-100) 68%,
+      transparent
+    );
+    --studio-tool-muted-strong: color-mix(
+      in oklch,
+      var(--theme-palette-paper-100) 82%,
+      transparent
+    );
+    --studio-tool-notice-bg: var(--theme-palette-blue-900);
+    --studio-tool-notice-border: color-mix(
+      in oklch,
+      var(--theme-palette-blue-200) 28%,
+      transparent
+    );
+    --studio-tool-notice-text: var(--theme-palette-blue-200);
+    --studio-tool-panel: var(--theme-palette-blue-950);
+    --studio-tool-shadow: color-mix(
+      in oklch,
+      var(--theme-palette-purple-950) 28%,
+      transparent
+    );
+    --studio-tool-surface: var(--theme-palette-blue-950);
+    --studio-tool-text: var(--theme-palette-paper-100);
+    --studio-tool-wa-focus: var(--theme-palette-blue-200);
+    --wa-color-neutral-fill-normal: var(--theme-palette-granite-800);
+    --wa-color-neutral-fill-quiet: var(--theme-palette-blue-900);
+    --wa-color-neutral-on-normal: var(--theme-palette-paper-100);
+    --wa-color-neutral-on-quiet: color-mix(
+      in oklch,
+      var(--theme-palette-paper-100) 76%,
+      transparent
+    );
+    --wa-color-brand-fill-loud: var(--theme-palette-blue-200);
+    --wa-color-brand-fill-normal: var(--theme-color-everglade-muted);
+    --wa-color-brand-fill-quiet: var(--theme-palette-blue-900);
+    --wa-color-brand-border-loud: var(--theme-palette-blue-200);
+    --wa-color-brand-border-normal: var(--theme-color-everglade-muted);
+    --wa-color-brand-on-loud: var(--theme-palette-granite-950);
+    --wa-color-brand-on-normal: var(--theme-palette-blue-950);
+    --wa-color-brand-on-quiet: var(--theme-palette-blue-100);
+    --wa-shadow-m: 0 1rem 2.5rem
+      color-mix(in oklch, var(--theme-palette-purple-950) 36%, transparent);
 
     color-scheme: dark;
   }

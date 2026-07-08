@@ -96,7 +96,7 @@
   margin: 0;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: var(--card-muted-fg-color, #6b7280);
+  color: var(--card-muted-fg-color, var(--theme-palette-granite-600));
 }
 
 .fis__control-group > label {

@@ -1,4 +1,5 @@
 import { layoutClass } from "../styles/layout-classes";
+import { isBackendRoutePath } from "./backend-routes";
 
 const LEGAL_PATHS = new Set(["/privacy", "/terms", "/cookies"]);
 const AD_DASHBOARD_PATHS = new Set(["/ads", "/advertising"]);
@@ -19,11 +20,15 @@ export const getMainRouteClass = (pathname: string): string => {
   }
 
   if (AD_DASHBOARD_PATHS.has(pathname)) {
-    return layoutClass.pageMainAdDashboard;
+    return `${layoutClass.pageMainAdDashboard} site-page-main--backend`;
   }
 
   if (TOOL_PATHS.has(pathname)) {
-    return layoutClass.pageMainAdDashboard;
+    return `${layoutClass.pageMainAdDashboard} site-page-main--backend`;
+  }
+
+  if (isBackendRoutePath(pathname)) {
+    return `${layoutClass.pageMain} site-page-main--backend`;
   }
 
   return layoutClass.pageMain;

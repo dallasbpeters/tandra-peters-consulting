@@ -135,16 +135,48 @@ const fetchPublishedEmail = async (): Promise<EmailContent | null> => {
   }
 };
 
+const cssVar = (name: string, fallback: string): string =>
+  `var(${name}, ${fallback})`;
+
+const backendSurfaceColor = cssVar("--backend-surface", theme.colors.white);
+const backendSurfaceRaisedColor = cssVar(
+  "--backend-surface-raised",
+  theme.colors.white
+);
+const backendPageSoftColor = cssVar("--backend-page-soft", theme.colors.white);
+const backendBorderColor = cssVar(
+  "--backend-border",
+  mix(theme.colors.everglade, 10)
+);
+const backendBorderStrongColor = cssVar(
+  "--backend-border-strong",
+  mix(theme.colors.everglade, 18)
+);
+const backendTextColor = cssVar("--backend-text", theme.colors.everglade);
+const backendMutedColor = cssVar(
+  "--backend-muted",
+  mix(theme.colors.everglade, 70)
+);
+const backendAccentColor = cssVar(
+  "--backend-accent",
+  theme.palette.accent["600"]
+);
+const backendAccentOnColor = cssVar("--backend-accent-on", theme.colors.white);
+const backendDangerColor = cssVar(
+  "--backend-danger",
+  theme.palette.coral["800"]
+);
+
 const cardStyle: CSSProperties = {
-  backgroundColor: theme.colors.white,
-  border: `1px solid ${mix(theme.colors.everglade, 10)}`,
+  backgroundColor: backendSurfaceColor,
+  border: `1px solid ${backendBorderColor}`,
   borderRadius: theme.radius.xlarge,
-  boxShadow: `0 16px 40px ${mix(theme.colors.everglade, 7)}`,
+  boxShadow: "var(--backend-shadow, 0 16px 40px rgb(30 50 44 / 7%))",
   padding: theme.spacing.xl,
 };
 
 const labelStyle: CSSProperties = {
-  color: mix(theme.colors.everglade, 70),
+  color: backendMutedColor,
   display: "block",
   fontSize: "0.8rem",
   fontWeight: 700,
@@ -154,11 +186,11 @@ const labelStyle: CSSProperties = {
 };
 
 const inputStyle: CSSProperties = {
-  backgroundColor: theme.colors.white,
-  border: `1px solid ${mix(theme.colors.everglade, 18)}`,
+  backgroundColor: backendPageSoftColor,
+  border: `1px solid ${backendBorderStrongColor}`,
   borderRadius: theme.radius.medium,
   boxSizing: "border-box",
-  color: theme.colors.everglade,
+  color: backendTextColor,
   fontFamily: "inherit",
   fontSize: "0.95rem",
   padding: `${theme.spacing.sm} ${theme.spacing.md}`,
@@ -169,12 +201,10 @@ const fieldStyle: CSSProperties = { marginBottom: theme.spacing.lg };
 
 const primaryButton = (disabled: boolean): CSSProperties => ({
   alignItems: "center",
-  backgroundColor: disabled
-    ? mix(theme.colors.everglade, 30)
-    : theme.palette.accent["600"],
+  backgroundColor: disabled ? backendSurfaceRaisedColor : backendAccentColor,
   border: "none",
   borderRadius: theme.radius.pill,
-  color: theme.colors.white,
+  color: disabled ? backendMutedColor : backendAccentOnColor,
   cursor: disabled ? "not-allowed" : "pointer",
   display: "inline-flex",
   fontSize: "0.95rem",
@@ -524,7 +554,7 @@ export const EmailComposerPage = () => {
           <Mail color={theme.palette.accent["600"]} height={26} width={26} />
           <h1
             style={{
-              color: theme.colors.everglade,
+              color: backendTextColor,
               fontSize: "1.6rem",
               margin: 0,
             }}
@@ -542,7 +572,7 @@ export const EmailComposerPage = () => {
             <div
               style={{
                 alignItems: "center",
-                color: theme.palette.coral["800"],
+                color: backendDangerColor,
                 display: "flex",
                 gap: theme.spacing.md,
               }}
@@ -552,7 +582,7 @@ export const EmailComposerPage = () => {
             </div>
             <p
               style={{
-                color: mix(theme.colors.everglade, 75),
+                color: backendMutedColor,
                 lineHeight: 1.6,
               }}
             >
@@ -573,7 +603,7 @@ export const EmailComposerPage = () => {
               <div>
                 <h2
                   style={{
-                    color: theme.colors.everglade,
+                    color: backendTextColor,
                     fontSize: "1.2rem",
                     marginBottom: theme.spacing.sm,
                   }}
@@ -582,7 +612,7 @@ export const EmailComposerPage = () => {
                 </h2>
                 <p
                   style={{
-                    color: mix(theme.colors.everglade, 72),
+                    color: backendMutedColor,
                     lineHeight: 1.7,
                     maxWidth: "36rem",
                   }}
@@ -593,14 +623,12 @@ export const EmailComposerPage = () => {
               </div>
               <div ref={auth.buttonRef} />
               {auth.authError ? (
-                <p
-                  style={{ color: theme.palette.coral["800"], lineHeight: 1.6 }}
-                >
+                <p style={{ color: backendDangerColor, lineHeight: 1.6 }}>
                   {auth.authError}
                 </p>
               ) : null}
               {auth.ready ? null : (
-                <p style={{ color: mix(theme.colors.everglade, 60) }}>
+                <p style={{ color: backendMutedColor }}>
                   Loading Google sign-in…
                 </p>
               )}
@@ -624,7 +652,7 @@ export const EmailComposerPage = () => {
               <section style={cardStyle}>
                 <h2
                   style={{
-                    color: theme.colors.everglade,
+                    color: backendTextColor,
                     fontSize: "1.05rem",
                     margin: `0 0 ${theme.spacing.lg}`,
                   }}
@@ -699,7 +727,7 @@ export const EmailComposerPage = () => {
                 </Field>
                 <p
                   style={{
-                    color: mix(theme.colors.everglade, 55),
+                    color: backendMutedColor,
                     fontSize: "0.8rem",
                     margin: `0 0 ${theme.spacing.lg}`,
                   }}
@@ -711,7 +739,7 @@ export const EmailComposerPage = () => {
                 <div
                   style={{
                     alignItems: "center",
-                    borderTop: `1px solid ${mix(theme.colors.everglade, 10)}`,
+                    borderTop: `1px solid ${backendBorderColor}`,
                     display: "flex",
                     flexWrap: "wrap",
                     gap: theme.spacing.lg,
@@ -725,10 +753,10 @@ export const EmailComposerPage = () => {
                     }}
                     style={{
                       alignItems: "center",
-                      backgroundColor: theme.colors.white,
-                      border: `1px solid ${mix(theme.colors.everglade, 20)}`,
+                      backgroundColor: backendSurfaceRaisedColor,
+                      border: `1px solid ${backendBorderStrongColor}`,
                       borderRadius: theme.radius.pill,
-                      color: theme.colors.everglade,
+                      color: backendTextColor,
                       cursor:
                         savingDefault || !defaultsLoaded
                           ? "not-allowed"
@@ -751,7 +779,7 @@ export const EmailComposerPage = () => {
                       return (
                         <span
                           style={{
-                            color: mix(theme.colors.everglade, 55),
+                            color: backendMutedColor,
                             fontSize: "0.8rem",
                           }}
                         >
@@ -778,7 +806,7 @@ export const EmailComposerPage = () => {
                       <span
                         style={{
                           alignItems: "center",
-                          color: theme.palette.coral["800"],
+                          color: backendDangerColor,
                           display: "inline-flex",
                           fontSize: "0.85rem",
                           gap: theme.spacing.sm,
@@ -805,7 +833,7 @@ export const EmailComposerPage = () => {
                 >
                   <h2
                     style={{
-                      color: theme.colors.everglade,
+                      color: backendTextColor,
                       fontSize: "1.05rem",
                       margin: 0,
                     }}
@@ -813,7 +841,7 @@ export const EmailComposerPage = () => {
                     Recipients{" "}
                     <span
                       style={{
-                        color: mix(theme.colors.everglade, 55),
+                        color: backendMutedColor,
                         fontWeight: 400,
                       }}
                     >
@@ -825,10 +853,10 @@ export const EmailComposerPage = () => {
                       loadRecipients();
                     }}
                     style={{
-                      backgroundColor: theme.colors.white,
-                      border: `1px solid ${mix(theme.colors.everglade, 16)}`,
+                      backgroundColor: backendSurfaceRaisedColor,
+                      border: `1px solid ${backendBorderColor}`,
                       borderRadius: theme.radius.pill,
-                      color: theme.colors.everglade,
+                      color: backendTextColor,
                       cursor: "pointer",
                       fontSize: "0.85rem",
                       fontWeight: 600,
@@ -847,7 +875,7 @@ export const EmailComposerPage = () => {
                   }}
                 >
                   <Search
-                    color={mix(theme.colors.everglade, 50)}
+                    color={backendMutedColor}
                     height={16}
                     style={{
                       left: 12,
@@ -870,7 +898,7 @@ export const EmailComposerPage = () => {
                     return (
                       <p
                         style={{
-                          color: theme.palette.coral["800"],
+                          color: backendDangerColor,
                           lineHeight: 1.6,
                           margin: 0,
                         }}
@@ -883,7 +911,7 @@ export const EmailComposerPage = () => {
                     return (
                       <p
                         style={{
-                          color: mix(theme.colors.everglade, 60),
+                          color: backendMutedColor,
                           margin: 0,
                         }}
                       >
@@ -895,7 +923,7 @@ export const EmailComposerPage = () => {
                     return (
                       <p
                         style={{
-                          color: mix(theme.colors.everglade, 60),
+                          color: backendMutedColor,
                           margin: 0,
                         }}
                       >
@@ -906,7 +934,7 @@ export const EmailComposerPage = () => {
                   return (
                     <div
                       style={{
-                        border: `1px solid ${mix(theme.colors.everglade, 12)}`,
+                        border: `1px solid ${backendBorderColor}`,
                         borderRadius: theme.radius.medium,
                         maxHeight: 260,
                         overflowY: "auto",
@@ -920,9 +948,9 @@ export const EmailComposerPage = () => {
                             style={{
                               alignItems: "center",
                               backgroundColor: checked
-                                ? theme.palette.accent["100"]
+                                ? "var(--backend-accent-soft, var(--accent))"
                                 : "transparent",
-                              borderBottom: `1px solid ${mix(theme.colors.everglade, 8)}`,
+                              borderBottom: `1px solid ${backendBorderColor}`,
                               cursor: "pointer",
                               display: "flex",
                               gap: theme.spacing.md,
@@ -937,7 +965,7 @@ export const EmailComposerPage = () => {
                             <span style={{ display: "grid" }}>
                               <span
                                 style={{
-                                  color: theme.colors.everglade,
+                                  color: backendTextColor,
                                   fontWeight: 600,
                                 }}
                               >
@@ -945,7 +973,7 @@ export const EmailComposerPage = () => {
                               </span>
                               <span
                                 style={{
-                                  color: mix(theme.colors.everglade, 55),
+                                  color: backendMutedColor,
                                   fontSize: "0.85rem",
                                 }}
                               >
@@ -991,7 +1019,7 @@ export const EmailComposerPage = () => {
                     <span
                       style={{
                         alignItems: "center",
-                        color: theme.palette.coral["800"],
+                        color: backendDangerColor,
                         display: "inline-flex",
                         gap: theme.spacing.sm,
                       }}
@@ -1043,7 +1071,7 @@ export const EmailComposerPage = () => {
                 {previewError ? (
                   <span
                     style={{
-                      color: theme.palette.coral["800"],
+                      color: backendDangerColor,
                       fontSize: "0.8rem",
                     }}
                   >
@@ -1055,7 +1083,7 @@ export const EmailComposerPage = () => {
                 srcDoc={previewHtml}
                 style={{
                   backgroundColor: "#f3f5f4",
-                  border: `1px solid ${mix(theme.colors.everglade, 10)}`,
+                  border: `1px solid ${backendBorderColor}`,
                   borderRadius: theme.radius.large,
                   display: "block",
                   height: isMobile ? 520 : 720,

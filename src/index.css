@@ -1,63 +1,64 @@
 @import "tailwindcss";
 @import "./styles/theme-variables.css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --webawesome-font-family: "Plus Jakarta Sans", sans-serif;
   --webawesome-font-weight: 400;
   --webawesome-font-size: 1rem;
-  --webawesome-font-color: oklch(72.81% 0.146 283.49deg);
-  --webawesome-font-color-hover: oklch(25.66% 0.046 163.6deg);
-  --webawesome-font-color-active: oklch(25.66% 0.046 163.6deg);
-  --webawesome-font-color-disabled: oklch(25.66% 0.046 163.6deg);
-  --webawesome-font-color-placeholder: oklch(25.66% 0.046 163.6deg);
-  --webawesome-font-color-selected: oklch(25.66% 0.046 163.6deg);
-  --wa-color-brand: oklch(72.81% 0.146 283.49deg);
-  --wa-form-control-activated-color: oklch(25.66% 0.046 163.6deg);
-  --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
+  --webawesome-font-color: var(--theme-color-hero-accent);
+  --webawesome-font-color-hover: var(--theme-color-everglade);
+  --webawesome-font-color-active: var(--theme-color-everglade);
+  --webawesome-font-color-disabled: var(--theme-color-everglade);
+  --webawesome-font-color-placeholder: var(--theme-color-everglade);
+  --webawesome-font-color-selected: var(--theme-color-everglade);
+  --wa-color-brand: var(--theme-color-hero-accent);
+  --wa-form-control-activated-color: var(--theme-color-everglade);
+  --wa-form-control-border-color: var(--theme-palette-granite-400);
   --wa-form-control-border-style: solid;
   --wa-form-control-border-width: 1px;
-  --wa-color-brand-fill-loud: oklch(72.81% 0.146 283.49deg);
-  --wa-color-brand-on-loud: oklch(1.81% 0.146 283.49deg);
+  --wa-color-brand-fill-loud: var(--theme-color-hero-accent);
+  --wa-color-brand-on-loud: var(--theme-palette-purple-950);
   --wa-line-height-condensed: 1.2;
-  --wa-color-overlay-inline: oklch(100.145 0 0);
+  --wa-color-overlay-inline: var(--theme-color-white);
   --footer-display: block;
 
   /* Focus ring: --wa-color-focus resolves to --wa-color-brand-60 by default,
      but that palette shade is not auto-generated from --wa-color-brand.
      Override directly so the select's outline-color becomes visible on focus. */
-  --wa-color-focus: oklch(60% 0.281 271.32deg);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(100% 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --wa-color-focus: var(--theme-palette-blue-400);
+  --background: var(--theme-color-white);
+  --foreground: var(--theme-palette-paper-light-950);
+  --card: var(--theme-color-white);
+  --card-foreground: var(--theme-palette-paper-light-950);
+  --popover: var(--theme-color-white);
+  --popover-foreground: var(--theme-palette-paper-light-950);
+  --primary: var(--theme-palette-paper-light-900);
+  --primary-foreground: var(--theme-color-white);
+  --secondary: var(--theme-color-paper);
+  --secondary-foreground: var(--theme-palette-paper-light-900);
+  --muted: var(--theme-color-paper);
+  --muted-foreground: var(--theme-palette-paper-light-600);
+  --accent: var(--theme-color-paper);
+  --accent-foreground: var(--theme-palette-paper-light-900);
+  --destructive: var(--theme-palette-coral-500);
+  --border: var(--theme-color-paper-dim);
+  --input: var(--theme-color-white);
+  --ring: var(--theme-palette-paper-light-400);
+  --chart-1: var(--theme-palette-paper-light-200);
+  --chart-2: var(--theme-palette-paper-light-600);
+  --chart-3: var(--theme-palette-paper-light-700);
+  --chart-4: var(--theme-palette-paper-800);
+  --chart-5: var(--theme-palette-paper-900);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--theme-color-white);
+  --sidebar-foreground: var(--theme-palette-paper-light-950);
+  --sidebar-primary: var(--theme-palette-paper-light-900);
+  --sidebar-primary-foreground: var(--theme-color-white);
+  --sidebar-accent: var(--theme-color-paper);
+  --sidebar-accent-foreground: var(--theme-palette-paper-light-900);
+  --sidebar-border: var(--theme-color-paper-dim);
+  --sidebar-ring: var(--theme-palette-paper-light-400);
 
   /* ── WebAwesome space-scale token bridge ──────────────────────────────── */
   --wa-space-3xs: var(--theme-spacing-xs); /* 0.25rem */
@@ -81,7 +82,7 @@ wa-option {
 }
 
 wa-checkbox {
-  --checked-icon-color: oklch(100% 0.281 271.32deg);
+  --checked-icon-color: var(--theme-palette-everglade-300);
 }
 
 * {
@@ -109,8 +110,8 @@ body {
   font-family: "Plus Jakarta Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: oklch(25.66% 0.046 163.6deg);
-  background-color: oklch(96.63% 0.004 106.47deg);
+  color: var(--theme-color-everglade);
+  background-color: var(--theme-color-paper);
 }
 
 html,
@@ -126,7 +127,7 @@ body,
 
 .desktop-app body {
   overflow: hidden;
-  background-color: #09110f;
+  background-color: var(--theme-palette-paper-light-950);
 }
 
 h1,
@@ -162,9 +163,9 @@ kbd {
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 0.675rem;
   font-weight: 500;
-  color: oklch(15.66% 0.046 163.6deg);
-  background-color: oklch(70.97% 0.004 106.47deg);
-  border: 1px solid oklch(80.97% 0.004 106.47deg);
+  color: var(--theme-palette-granite-950);
+  background-color: var(--theme-palette-paper-light-400);
+  border: 1px solid var(--theme-palette-paper-300);
   border-radius: var(--theme-radius-small);
 }
 
@@ -174,14 +175,14 @@ kbd {
 
 .number-field {
   input {
-    color: oklch(0% 0 0);
+    color: var(--theme-palette-purple-950);
   }
 }
 
 /* WA token overrides for Web Awesome surfaces only — not every native <button>. */
 a.wa-button {
-  --wa-color-fill-loud: oklch(100% 0 0);
-  --wa-form-control-border-color: oklch(68% 0.018 163.6deg);
+  --wa-color-fill-loud: var(--theme-color-white);
+  --wa-form-control-border-color: var(--theme-palette-granite-400);
   --wa-form-control-border-style: solid;
   --wa-form-control-border-width: 1px;
 }
@@ -201,7 +202,7 @@ a.wa-button {
 
 @media (width <= 600px) {
   .site-nav-vt {
-    background-color: oklch(100% 0 0deg);
+    background-color: var(--theme-color-white);
   }
 }
 
@@ -334,18 +335,22 @@ a.wa-button {
 @keyframes scale-pulse {
   0% {
     box-shadow:
-      0 0 0 0 rgb(128 58 220 / 70%),
-      0 0 0 0 rgb(200 169 239 / 31.2%);
+      0 0 0 0
+        color-mix(in oklch, var(--theme-palette-blue-400) 70%, transparent),
+      0 0 0 0
+        color-mix(in oklch, var(--theme-palette-blue-200) 31.2%, transparent);
   }
 
   70% {
-    box-shadow: 0 0 0 20px rgb(128 58 220 / 0%); /* Blurs out to invisible */
+    box-shadow: 0 0 0 20px
+      color-mix(in oklch, var(--theme-palette-blue-400) 0%, transparent); /* Blurs out to invisible */
   }
 
   100% {
     box-shadow:
-      0 0 0 0 rgb(128 58 220 / 0%),
-      0 0 0 0 rgb(128 58 220 / 70%);
+      0 0 0 0 color-mix(in oklch, var(--theme-palette-blue-400) 0%, transparent),
+      0 0 0 0
+        color-mix(in oklch, var(--theme-palette-blue-400) 70%, transparent);
   }
 }
 
@@ -394,59 +399,274 @@ a.wa-button {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --wa-color-focus: oklch(76% 0.12 150deg);
-  --wa-color-brand: oklch(76% 0.12 150deg);
-  --wa-color-brand-fill-loud: oklch(76% 0.12 150deg);
-  --wa-color-brand-fill-normal: oklch(68% 0.11 150deg);
-  --wa-color-brand-fill-quiet: oklch(24% 0.04 150deg);
-  --wa-color-brand-border-loud: oklch(76% 0.12 150deg);
-  --wa-color-brand-border-normal: oklch(68% 0.11 150deg);
-  --wa-color-brand-on-loud: oklch(10% 0.02 150deg);
-  --wa-color-brand-on-normal: oklch(10% 0.02 150deg);
-  --wa-color-brand-on-quiet: oklch(92% 0.03 150deg);
-  --wa-color-neutral-fill-normal: oklch(28% 0.025 150deg);
-  --wa-color-neutral-fill-quiet: oklch(18% 0.02 150deg);
-  --wa-color-neutral-on-normal: oklch(95% 0.01 100deg);
-  --wa-color-neutral-on-quiet: oklch(78% 0.01 100deg);
-  --wa-color-surface-border: oklch(100% 0 0 / 18%);
-  --wa-color-surface-raised: oklch(18% 0.02 150deg);
-  --wa-color-text-normal: oklch(95% 0.01 100deg);
-  --wa-color-text-quiet: oklch(78% 0.01 100deg);
-  --wa-form-control-background-color: oklch(18% 0.02 150deg);
-  --wa-form-control-border-color: oklch(100% 0 0 / 18%);
-  --wa-form-control-placeholder-color: oklch(78% 0.01 100deg);
-  --wa-form-control-value-color: oklch(95% 0.01 100deg);
+  --background: var(--theme-palette-paper-light-950);
+  --foreground: var(--theme-color-white);
+  --card: var(--theme-palette-paper-light-900);
+  --card-foreground: var(--theme-color-white);
+  --popover: var(--theme-palette-paper-light-900);
+  --popover-foreground: var(--theme-color-white);
+  --primary: var(--theme-color-paper-dim);
+  --primary-foreground: var(--theme-palette-paper-light-900);
+  --secondary: var(--theme-palette-paper-900);
+  --secondary-foreground: var(--theme-color-white);
+  --muted: var(--theme-palette-paper-900);
+  --muted-foreground: var(--theme-palette-paper-light-400);
+  --accent: var(--theme-palette-paper-900);
+  --accent-foreground: var(--theme-color-white);
+  --destructive: var(--theme-palette-coral-400);
+  --border: color-mix(in oklch, var(--theme-color-white) 10%, transparent);
+  --input: color-mix(in oklch, var(--theme-color-white) 15%, transparent);
+  --ring: var(--theme-palette-paper-light-600);
+  --chart-1: var(--theme-palette-paper-light-200);
+  --chart-2: var(--theme-palette-paper-light-600);
+  --chart-3: var(--theme-palette-paper-light-700);
+  --chart-4: var(--theme-palette-paper-800);
+  --chart-5: var(--theme-palette-paper-900);
+  --sidebar: var(--theme-palette-paper-light-900);
+  --sidebar-foreground: var(--theme-color-white);
+  --sidebar-primary: var(--theme-palette-purple-400);
+  --sidebar-primary-foreground: var(--theme-color-white);
+  --sidebar-accent: var(--theme-palette-paper-900);
+  --sidebar-accent-foreground: var(--theme-color-white);
+  --sidebar-border: color-mix(
+    in oklch,
+    var(--theme-color-white) 10%,
+    transparent
+  );
+  --sidebar-ring: var(--theme-palette-paper-light-600);
+  --wa-color-focus: var(--theme-palette-accent-400);
+  --wa-color-brand: var(--theme-palette-accent-400);
+  --wa-color-brand-fill-loud: var(--theme-palette-accent-400);
+  --wa-color-brand-fill-normal: var(--theme-color-accent);
+  --wa-color-brand-fill-quiet: var(--theme-palette-accent-900);
+  --wa-color-brand-border-loud: var(--theme-palette-accent-400);
+  --wa-color-brand-border-normal: var(--theme-color-accent);
+  --wa-color-brand-on-loud: var(--theme-palette-granite-950);
+  --wa-color-brand-on-normal: var(--theme-palette-granite-950);
+  --wa-color-brand-on-quiet: var(--theme-palette-accent-100);
+  --wa-color-neutral-fill-normal: var(--theme-color-everglade);
+  --wa-color-neutral-fill-quiet: var(--theme-palette-granite-950);
+  --wa-color-neutral-on-normal: var(--theme-palette-coral-50);
+  --wa-color-neutral-on-quiet: var(--theme-palette-paper-light-300);
+  --wa-color-surface-border: color-mix(
+    in oklch,
+    var(--theme-color-white) 18%,
+    transparent
+  );
+  --wa-color-surface-raised: var(--theme-palette-granite-950);
+  --wa-color-text-normal: var(--theme-palette-coral-50);
+  --wa-color-text-quiet: var(--theme-palette-paper-light-300);
+  --wa-form-control-background-color: var(--theme-palette-granite-950);
+  --wa-form-control-border-color: color-mix(
+    in oklch,
+    var(--theme-color-white) 18%,
+    transparent
+  );
+  --wa-form-control-placeholder-color: var(--theme-palette-paper-light-300);
+  --wa-form-control-value-color: var(--theme-palette-coral-50);
+}
+
+.backend-theme {
+  --backend-page: var(--theme-color-paper);
+  --backend-page-soft: var(--theme-color-white);
+  --backend-surface: var(--theme-color-white);
+  --backend-surface-raised: var(--theme-color-paper);
+  --backend-border: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 12%,
+    transparent
+  );
+  --backend-border-strong: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 20%,
+    transparent
+  );
+  --backend-text: var(--theme-color-everglade);
+  --backend-muted: var(--theme-palette-granite-700);
+  --backend-dim: var(--theme-palette-granite-500);
+  --backend-accent: var(--theme-palette-accent-700);
+  --backend-accent-strong: var(--theme-palette-accent-800);
+  --backend-accent-contrast: var(--theme-color-white);
+  --backend-accent-soft: var(--theme-palette-accent-50);
+  --backend-danger: var(--theme-color-danger);
+  --backend-warning: var(--theme-palette-gold-800);
+  --backend-inverse-text: var(--theme-color-white);
+  --backend-inverse-muted: var(--theme-palette-paper-light-200);
+  --backend-page-glow: color-mix(
+    in oklch,
+    var(--theme-color-accent-light) 18%,
+    transparent
+  );
+  --backend-route-glow: color-mix(
+    in oklch,
+    var(--theme-color-hero-accent) 10%,
+    transparent
+  );
+  --backend-shadow: var(--theme-shadow-md);
+  --theme-color-charcoal: var(--backend-text);
+  --theme-color-primary: var(--backend-accent);
+  color-scheme: light;
+}
+
+.backend-theme.dark {
+  --backend-page: var(--theme-palette-granite-950);
+  --backend-page-soft: var(--theme-palette-granite-950);
+  --backend-surface: var(--theme-palette-granite-950);
+  --backend-surface-raised: var(--theme-palette-paper-light-950);
+  --backend-border: color-mix(
+    in oklch,
+    var(--theme-color-white) 12%,
+    transparent
+  );
+  --backend-border-strong: color-mix(
+    in oklch,
+    var(--theme-color-white) 20%,
+    transparent
+  );
+  --backend-text: var(--theme-palette-paper-100);
+  --backend-muted: var(--theme-palette-paper-light-300);
+  --backend-dim: var(--theme-palette-paper-light-500);
+  --backend-accent: var(--theme-palette-accent-400);
+  --backend-accent-strong: var(--theme-color-accent);
+  --backend-accent-contrast: var(--theme-palette-granite-950);
+  --backend-accent-soft: var(--theme-color-everglade);
+  --backend-danger: var(--theme-palette-coral-300);
+  --backend-warning: var(--theme-palette-coral-300);
+  --backend-inverse-text: var(--theme-color-white);
+  --backend-inverse-muted: var(--theme-palette-paper-light-200);
+  --backend-page-glow: color-mix(
+    in oklch,
+    var(--theme-color-everglade) 45%,
+    transparent
+  );
+  --backend-route-glow: color-mix(
+    in oklch,
+    var(--theme-palette-blue-900) 40%,
+    transparent
+  );
+  --backend-shadow:
+    0 18px 50px
+      color-mix(in oklch, var(--theme-palette-purple-950) 35%, transparent),
+    0 2px 12px
+      color-mix(in oklch, var(--theme-palette-purple-950) 28%, transparent);
+  color-scheme: dark;
+}
+
+.backend-theme body {
+  color: var(--backend-text);
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      var(--backend-page-glow),
+      transparent 28rem
+    ),
+    var(--backend-page);
+}
+
+.backend-theme .site-page-main--backend {
+  min-height: 100vh;
+  color: var(--backend-text);
+  background:
+    radial-gradient(
+      circle at 82% 10%,
+      var(--backend-route-glow),
+      transparent 26rem
+    ),
+    var(--backend-page);
+}
+
+.backend-theme .site-page-main--backend :is(input, textarea, select) {
+  color-scheme: light;
+}
+
+.backend-theme.dark .site-page-main--backend :is(input, textarea, select) {
+  color-scheme: dark;
+}
+
+.backend-theme .site-page-main--backend code {
+  color: var(--backend-accent);
+  background: var(--backend-surface-raised);
+  border: 1px solid var(--backend-border);
+  border-radius: var(--theme-radius-small);
+}
+
+.backend-theme .site-page-main--backend,
+.backend-theme
+  .site-page-main--backend
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    strong,
+    em,
+    small,
+    li,
+    dt,
+    dd,
+    label,
+    legend,
+    summary,
+    figcaption,
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    option,
+    output,
+    th,
+    td,
+    code,
+    pre,
+    kbd,
+    [class*="__title"],
+    [class*="__heading"],
+    [class*="__body"],
+    [class*="__copy"],
+    [class*="__meta"],
+    [class*="__label"],
+    [class*="__value"],
+    [class*="__eyebrow"]
+  ) {
+  color: var(--backend-text) !important;
+}
+
+.backend-theme
+  .site-page-main--backend
+  :where(
+    [class*="__hint"],
+    [class*="__help"],
+    [class*="__muted"],
+    [class*="__subtitle"],
+    [class*="__description"],
+    [class*="__date"],
+    [class*="__source"]
+  ) {
+  color: var(--backend-muted) !important;
+}
+
+.backend-theme .site-page-main--backend :where(input, textarea)::placeholder {
+  color: var(--backend-muted) !important;
+}
+
+.backend-theme .site-page-main--backend :where(wa-button)::part(base),
+.backend-theme .site-page-main--backend :where(wa-input)::part(base),
+.backend-theme .site-page-main--backend :where(wa-input)::part(input),
+.backend-theme .site-page-main--backend :where(wa-number-input)::part(base),
+.backend-theme .site-page-main--backend :where(wa-number-input)::part(input),
+.backend-theme .site-page-main--backend :where(wa-select)::part(combobox),
+.backend-theme .site-page-main--backend :where(wa-select)::part(display-input),
+.backend-theme .site-page-main--backend :where(wa-textarea)::part(base),
+.backend-theme .site-page-main--backend :where(wa-textarea)::part(textarea),
+.backend-theme .site-page-main--backend :where(wa-option)::part(base),
+.backend-theme .site-page-main--backend :where(wa-checkbox)::part(base),
+.backend-theme .site-page-main--backend :where(wa-checkbox)::part(label) {
+  color: var(--backend-text) !important;
 }
 
 @layer base {
