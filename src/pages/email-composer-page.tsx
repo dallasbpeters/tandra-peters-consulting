@@ -10,6 +10,7 @@ import {
 } from "iconoir-react";
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { RichTextEditor } from "../components/rich-text-editor";
 import { SitePageChrome } from "../components/site-page-chrome";
@@ -70,6 +71,44 @@ const EMPTY_FORM: FormState = {
   greeting: "",
   previewText: "",
   subject: "",
+};
+
+const textParam = (params: URLSearchParams, key: string): string =>
+  params.get(key)?.trim() ?? "";
+
+const makePortableTextParagraph = (text: string): PortableTextBlock =>
+  ({
+    _key: crypto.randomUUID(),
+    _type: "block",
+    children: [
+      {
+        _key: crypto.randomUUID(),
+        _type: "span",
+        marks: [],
+        text,
+      },
+    ],
+    markDefs: [],
+    style: "normal",
+  }) as PortableTextBlock;
+
+const emailBodyFromCalendar = (
+  params: URLSearchParams
+): PortableTextBlock[] => {
+  const title = textParam(params, "calendarTitle");
+  const brief = textParam(params, "calendarBrief");
+  const area = textParam(params, "calendarArea");
+  const keyword = textParam(params, "calendarKeyword");
+
+  const body = [
+    brief,
+    area ? `Local focus: ${area}.` : null,
+    keyword ? `Target phrase: ${keyword}.` : null,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  return [makePortableTextParagraph(body || title)];
 };
 
 const PUBLISHED_QUERY = `*[_type == "clientEmail"][0]{
@@ -170,6 +209,8 @@ export const EmailComposerPage = () => {
   const posthog = usePostHog();
   const auth = useGoogleDashboardAuth();
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
+  const appliedCalendarEntryRef = useRef<string | null>(null);
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [signature, setSignature] = useState<EmailSignature | null>(null);
@@ -236,6 +277,29 @@ export const EmailComposerPage = () => {
       cancelled = true;
     };
   }, [auth.token, defaultsLoaded]);
+
+  useEffect(() => {
+    if (!(auth.token && defaultsLoaded)) {
+      return;
+    }
+    const calendarEntryId = textParam(searchParams, "calendarEntryId");
+    if (
+      !calendarEntryId ||
+      appliedCalendarEntryRef.current === calendarEntryId
+    ) {
+      return;
+    }
+
+    const title = textParam(searchParams, "calendarTitle");
+    const brief = textParam(searchParams, "calendarBrief");
+    appliedCalendarEntryRef.current = calendarEntryId;
+    setForm((current) => ({
+      ...current,
+      body: emailBodyFromCalendar(searchParams),
+      previewText: brief.slice(0, 150) || current.previewText,
+      subject: title || current.subject,
+    }));
+  }, [auth.token, defaultsLoaded, searchParams]);
 
   const content: EmailContent = useMemo(
     () => ({

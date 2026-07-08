@@ -83,6 +83,16 @@ export const structure: StructureResolver = (S) =>
             .defaultOrdering([{ direction: "desc", field: "updatedAt" }])
         ),
       S.listItem()
+        .title("Content calendar")
+        .id("content-calendar-section")
+        .child(
+          S.documentTypeList("deskBoardItem")
+            .id("content-calendar-documents")
+            .title("Content calendar")
+            .filter('_type == "deskBoardItem" && kind == "content"')
+            .defaultOrdering([{ direction: "asc", field: "publishDate" }])
+        ),
+      S.listItem()
         .title("Insurance workflow")
         .child(
           S.document()
@@ -251,7 +261,9 @@ export const structure: StructureResolver = (S) =>
           id !== "post" &&
           id !== "emailContact" &&
           id !== "deskLead" &&
-          id !== "deskCanvassTarget"
+          id !== "deskCanvassTarget" &&
+          id !== "deskBoardItem" &&
+          id !== "contentCalendarEntry"
         );
       }),
     ]);

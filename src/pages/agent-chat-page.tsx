@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -284,6 +285,9 @@ export const AgentChatPage = ({ config }: Props) => {
   const [model, setModel] = useState<string>("gpt-4o");
   const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
   const auth = useGoogleDashboardAuth();
+  const [searchParams] = useSearchParams();
+  const calendarPrompt = searchParams.get("calendarPrompt");
+  const appliedCalendarPromptRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -310,6 +314,17 @@ export const AgentChatPage = ({ config }: Props) => {
       setHasHydratedConversation(true);
     }
   }, [config.agentSlug]);
+
+  useEffect(() => {
+    if (
+      !calendarPrompt ||
+      appliedCalendarPromptRef.current === calendarPrompt
+    ) {
+      return;
+    }
+    appliedCalendarPromptRef.current = calendarPrompt;
+    setInput(calendarPrompt);
+  }, [calendarPrompt]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

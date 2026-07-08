@@ -31,6 +31,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import type { AdCanvasCaptureHandle } from "../components/ad-canvas-editor";
 import { AdCanvasEditor } from "../components/ad-canvas-editor";
@@ -355,6 +356,28 @@ const DEFAULT_CREATIVE: CreativeState = {
   imageFile: null,
   imageName: AD_TEMPLATES[0].preset.defaultImageName ?? null,
   imageUrl: AD_TEMPLATES[0].preset.defaultImageUrl ?? null,
+};
+
+const textParam = (params: URLSearchParams, key: string): string =>
+  params.get(key)?.trim() ?? "";
+
+const adCanvasCopyFromCalendar = (params: URLSearchParams) => {
+  const title = textParam(params, "calendarTitle");
+  const brief = textParam(params, "calendarBrief");
+  const area = textParam(params, "calendarArea");
+  const keyword = textParam(params, "calendarKeyword");
+  const channel = textParam(params, "calendarChannel");
+
+  return {
+    body:
+      brief ||
+      (keyword
+        ? `A plain-spoken proof point for homeowners searching "${keyword}".`
+        : DEFAULT_CREATIVE.body),
+    cta: channel === "video" ? "Book a roof check" : DEFAULT_CREATIVE.cta,
+    eyebrow: area || "Roof check",
+    headline: title || DEFAULT_CREATIVE.headline,
+  };
 };
 
 // ─── Small field components ───────────────────────────────────────────────────
@@ -888,6 +911,8 @@ export const AdDashboardPage = () => {
   const imageLibrary = useSanityImageAssets();
   const versions = useAdVersions();
   const captureRef = useRef<AdCanvasCaptureHandle | null>(null);
+  const [searchParams] = useSearchParams();
+  const appliedCalendarEntryRef = useRef<string | null>(null);
   const [creative, setCreative] = useState<CreativeState>(DEFAULT_CREATIVE);
   const [selectedVersionId, setSelectedVersionId] = useState("");
   const [versionStatus, setVersionStatus] = useState<string | null>(null);
@@ -926,6 +951,27 @@ export const AdDashboardPage = () => {
   useEffect(() => {
     posthog?.capture("ad_dashboard_viewed");
   }, [posthog]);
+
+  useEffect(() => {
+    const calendarEntryId = textParam(searchParams, "calendarEntryId");
+    if (
+      !calendarEntryId ||
+      appliedCalendarEntryRef.current === calendarEntryId
+    ) {
+      return;
+    }
+
+    const copy = adCanvasCopyFromCalendar(searchParams);
+    appliedCalendarEntryRef.current = calendarEntryId;
+    setCreative((current) => ({
+      ...current,
+      body: copy.body,
+      cta: copy.cta,
+      eyebrow: copy.eyebrow,
+      headline: copy.headline,
+    }));
+    setVersionStatus("Loaded the calendar brief into the ad canvas.");
+  }, [searchParams]);
 
   useEffect(
     () => () => {

@@ -21,6 +21,13 @@ import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { usePageMetadata } from "../hooks/use-page-metadata";
+import {
+  type ContentCalendarEntry,
+  channelLabels,
+  entriesForNextDays,
+  statusLabels,
+  toIsoDate,
+} from "../lib/content-calendar";
 import { layoutClass } from "../styles/layout-classes";
 
 import "../styles/desk.css";
@@ -856,6 +863,136 @@ const AreaCountyStrip = ({
 
 type AuthHeader = { Authorization: string } | null;
 
+const DESK_CALENDAR_PREVIEW_DAYS = 30;
+const DESK_CALENDAR_PREVIEW_LIMIT = 6;
+
+interface CalendarEntriesResponse {
+  entries?: ContentCalendarEntry[];
+  error?: string;
+  ok: boolean;
+}
+
+const useDeskCalendarEntries = (authHeader: AuthHeader) => {
+  const [entries, setEntries] = useState<ContentCalendarEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!authHeader) {
+      return;
+    }
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const today = new Date();
+      const rangeEnd = new Date(today);
+      rangeEnd.setDate(rangeEnd.getDate() + DESK_CALENDAR_PREVIEW_DAYS);
+      const params = new URLSearchParams({
+        end: toIsoDate(rangeEnd),
+        start: toIsoDate(today),
+      });
+      const response = await fetch(`/api/content-calendar?${params}`, {
+        headers: authHeader,
+      });
+      const body = (await response.json()) as CalendarEntriesResponse;
+      if (response.ok && body.ok && body.entries) {
+        setEntries(
+          entriesForNextDays(
+            body.entries,
+            DESK_CALENDAR_PREVIEW_DAYS,
+            today
+          ).slice(0, DESK_CALENDAR_PREVIEW_LIMIT)
+        );
+      } else {
+        setLoadError(body.error ?? "Could not load the content calendar.");
+      }
+    } catch {
+      setLoadError("Could not load the content calendar.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authHeader]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { entries, isLoading, loadError };
+};
+
+const readableCalendarDate = (iso: string): string => {
+  const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
+  if (!(year && month && day)) {
+    return iso;
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(year, month - 1, day));
+};
+
+const ContentCalendarWidget = ({
+  auth,
+}: {
+  auth: ReturnType<typeof useGoogleDashboardAuth>;
+}) => {
+  const authHeader = useMemo<AuthHeader>(
+    () => (auth.token ? { Authorization: `Bearer ${auth.token}` } : null),
+    [auth.token]
+  );
+  const { entries, isLoading, loadError } = useDeskCalendarEntries(authHeader);
+
+  return (
+    <div className="desk-section">
+      <div className="desk-section__heading">
+        <Calendar aria-hidden height={22} width={22} />
+        <div>
+          <span>Content calendar</span>
+          <h2>Upcoming planned content</h2>
+        </div>
+      </div>
+
+      {authHeader ? null : (
+        <p className="desk-empty">Sign in to load the content calendar.</p>
+      )}
+      {loadError ? <p className="desk-empty">{loadError}</p> : null}
+      {authHeader && !loadError && isLoading && entries.length === 0 ? (
+        <p className="desk-empty">Loading the content calendar...</p>
+      ) : null}
+      {authHeader && !isLoading && !loadError && entries.length === 0 ? (
+        <p className="desk-empty">Nothing planned in the next 30 days.</p>
+      ) : null}
+
+      {entries.length > 0 ? (
+        <ul className="desk-actions">
+          {entries.map((entry) => (
+            <li className="desk-action" key={entry.id}>
+              <div>
+                <time
+                  className="desk-pill desk-pill--neutral"
+                  dateTime={entry.scheduledFor}
+                >
+                  {readableCalendarDate(entry.scheduledFor)}
+                </time>
+                <h3>{entry.title}</h3>
+                {entry.area ? <p>{entry.area}</p> : null}
+              </div>
+              <div className="desk-action__meta">
+                <span>{channelLabels[entry.channel]}</span>
+                <span>{statusLabels[entry.status]}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <TransitionLink className="desk-primary-link" to="/calendar">
+        Manage calendar
+      </TransitionLink>
+    </div>
+  );
+};
+
 const useAreaIntel = () => {
   const [intel, setIntel] = useState<DeskAreaIntelResponse | null>(null);
   const [intelError, setIntelError] = useState<string | null>(null);
@@ -1336,6 +1473,7 @@ const AuthPanel = ({
         </p>
       )}
       {auth.authError ? <p>{auth.authError}</p> : null}
+      {auth.clientId && !auth.ready ? <p>Loading Google sign-in...</p> : null}
     </div>
   </section>
 );
@@ -1376,6 +1514,10 @@ const DeskDashboard = ({
             <Mail aria-hidden height={18} width={18} />
             Compose outreach
           </TransitionLink>
+          <TransitionLink className="desk-secondary-link" to="/calendar">
+            <Calendar aria-hidden height={18} width={18} />
+            Plan content calendar
+          </TransitionLink>
         </nav>
       </header>
 
@@ -1383,6 +1525,10 @@ const DeskDashboard = ({
         {metrics.map((metric) => (
           <MetricCard key={metric.label} metric={metric} />
         ))}
+      </section>
+
+      <section className="desk-grid">
+        <ContentCalendarWidget auth={auth} />
       </section>
 
       <section className="desk-grid">
@@ -1457,7 +1603,7 @@ const DeskDashboard = ({
 export const DeskPage = () => {
   const auth = useGoogleDashboardAuth();
   const posthog = usePostHog();
-  const requireAuth = !import.meta.env.DEV && auth.clientId && !auth.token;
+  const requireAuth = !auth.token;
 
   usePageMetadata({
     description:
