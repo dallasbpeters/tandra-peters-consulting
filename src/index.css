@@ -2,87 +2,11 @@
 @import "./styles/theme-variables.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --webawesome-font-family: "Plus Jakarta Sans", sans-serif;
-  --webawesome-font-weight: 400;
-  --webawesome-font-size: 1rem;
-  --webawesome-font-color: var(--theme-color-hero-accent);
-  --webawesome-font-color-hover: var(--theme-color-everglade);
-  --webawesome-font-color-active: var(--theme-color-everglade);
-  --webawesome-font-color-disabled: var(--theme-color-everglade);
-  --webawesome-font-color-placeholder: var(--theme-color-everglade);
-  --webawesome-font-color-selected: var(--theme-color-everglade);
-  --wa-color-brand: var(--theme-color-hero-accent);
-  --wa-form-control-activated-color: var(--theme-color-everglade);
-  --wa-form-control-border-color: var(--theme-palette-granite-400);
-  --wa-form-control-border-style: solid;
-  --wa-form-control-border-width: 1px;
-  --wa-color-brand-fill-loud: var(--theme-color-hero-accent);
-  --wa-color-brand-on-loud: var(--theme-palette-purple-950);
-  --wa-line-height-condensed: 1.2;
-  --wa-color-overlay-inline: var(--theme-color-white);
-  --footer-display: block;
-
-  /* Focus ring: --wa-color-focus resolves to --wa-color-brand-60 by default,
-     but that palette shade is not auto-generated from --wa-color-brand.
-     Override directly so the select's outline-color becomes visible on focus. */
-  --wa-color-focus: var(--theme-palette-blue-400);
-  --background: var(--theme-color-white);
-  --foreground: var(--theme-palette-paper-light-950);
-  --card: var(--theme-color-white);
-  --card-foreground: var(--theme-palette-paper-light-950);
-  --popover: var(--theme-color-white);
-  --popover-foreground: var(--theme-palette-paper-light-950);
-  --primary: var(--theme-palette-paper-light-900);
-  --primary-foreground: var(--theme-color-white);
-  --secondary: var(--theme-color-paper);
-  --secondary-foreground: var(--theme-palette-paper-light-900);
-  --muted: var(--theme-color-paper);
-  --muted-foreground: var(--theme-palette-paper-light-600);
-  --accent: var(--theme-color-paper);
-  --accent-foreground: var(--theme-palette-paper-light-900);
-  --destructive: var(--theme-palette-coral-500);
-  --border: var(--theme-color-paper-dim);
-  --input: var(--theme-color-white);
-  --ring: var(--theme-palette-paper-light-400);
-  --chart-1: var(--theme-palette-paper-light-200);
-  --chart-2: var(--theme-palette-paper-light-600);
-  --chart-3: var(--theme-palette-paper-light-700);
-  --chart-4: var(--theme-palette-paper-800);
-  --chart-5: var(--theme-palette-paper-900);
-  --radius: 0.625rem;
-  --sidebar: var(--theme-color-white);
-  --sidebar-foreground: var(--theme-palette-paper-light-950);
-  --sidebar-primary: var(--theme-palette-paper-light-900);
-  --sidebar-primary-foreground: var(--theme-color-white);
-  --sidebar-accent: var(--theme-color-paper);
-  --sidebar-accent-foreground: var(--theme-palette-paper-light-900);
-  --sidebar-border: var(--theme-color-paper-dim);
-  --sidebar-ring: var(--theme-palette-paper-light-400);
-
-  /* ── WebAwesome space-scale token bridge ──────────────────────────────── */
-  --wa-space-3xs: var(--theme-spacing-xs); /* 0.25rem */
-  --wa-space-2xs: var(--theme-spacing-sm); /* 0.5rem  */
-  --wa-space-xs: var(--theme-spacing-md); /* 0.75rem */
-  --wa-space-s: var(--theme-spacing-lg); /* 1rem    */
-  --wa-space-m: var(--theme-spacing-xl); /* 1.25rem */
-  --wa-space-l: var(--theme-spacing-xxl); /* 1.5rem  */
-  --wa-space-xl: var(--theme-spacing-xxxl); /* 1.75rem */
-  --wa-space-2xl: var(--theme-spacing-xxxxl); /* 2rem    */
-  --wa-space-3xl: var(--theme-spacing-xxxxxxl); /* 2.5rem  */
-  --wa-space-4xl: var(--theme-spacing-xxxxxxxxl); /* 3rem    */
-  --wa-space-5xl: var(--theme-spacing-section); /* 4rem    */
-}
-
 /* wa-option's internal padding is em-based (0.5em top/bottom by default).
    External styles override the Shadow DOM :host rules, so we can set
    padding-block directly here to give each option more vertical breathing room. */
 wa-option {
   padding-block: 0.5em;
-}
-
-wa-checkbox {
-  --checked-icon-color: var(--theme-palette-everglade-300);
 }
 
 * {
@@ -179,14 +103,6 @@ kbd {
   }
 }
 
-/* WA token overrides for Web Awesome surfaces only — not every native <button>. */
-a.wa-button {
-  --wa-color-fill-loud: var(--theme-color-white);
-  --wa-form-control-border-color: var(--theme-palette-granite-400);
-  --wa-form-control-border-style: solid;
-  --wa-form-control-border-width: 1px;
-}
-
 /*
  * View Transitions API — route changes (TransitionLink + startViewTransition).
  * Nav is a separate named transition so it is not blurred/scaled with the page.
@@ -197,7 +113,7 @@ a.wa-button {
 }
 
 .footer {
-  display: var(--footer-display);
+  display: block;
 }
 
 @media (width <= 600px) {
@@ -354,201 +270,11 @@ a.wa-button {
   }
 }
 
-/* eslint-disable-next-line css/no-invalid-at-rules */
-@theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: "Figtree Variable", sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-.dark {
-  --background: var(--theme-palette-paper-light-950);
-  --foreground: var(--theme-color-white);
-  --card: var(--theme-palette-paper-light-900);
-  --card-foreground: var(--theme-color-white);
-  --popover: var(--theme-palette-paper-light-900);
-  --popover-foreground: var(--theme-color-white);
-  --primary: var(--theme-color-paper-dim);
-  --primary-foreground: var(--theme-palette-paper-light-900);
-  --secondary: var(--theme-palette-paper-900);
-  --secondary-foreground: var(--theme-color-white);
-  --muted: var(--theme-palette-paper-900);
-  --muted-foreground: var(--theme-palette-paper-light-400);
-  --accent: var(--theme-palette-paper-900);
-  --accent-foreground: var(--theme-color-white);
-  --destructive: var(--theme-palette-coral-400);
-  --border: color-mix(in oklch, var(--theme-color-white) 10%, transparent);
-  --input: color-mix(in oklch, var(--theme-color-white) 15%, transparent);
-  --ring: var(--theme-palette-paper-light-600);
-  --chart-1: var(--theme-palette-paper-light-200);
-  --chart-2: var(--theme-palette-paper-light-600);
-  --chart-3: var(--theme-palette-paper-light-700);
-  --chart-4: var(--theme-palette-paper-800);
-  --chart-5: var(--theme-palette-paper-900);
-  --sidebar: var(--theme-palette-paper-light-900);
-  --sidebar-foreground: var(--theme-color-white);
-  --sidebar-primary: var(--theme-palette-purple-400);
-  --sidebar-primary-foreground: var(--theme-color-white);
-  --sidebar-accent: var(--theme-palette-paper-900);
-  --sidebar-accent-foreground: var(--theme-color-white);
-  --sidebar-border: color-mix(
-    in oklch,
-    var(--theme-color-white) 10%,
-    transparent
-  );
-  --sidebar-ring: var(--theme-palette-paper-light-600);
-  --wa-color-focus: var(--theme-palette-accent-400);
-  --wa-color-brand: var(--theme-palette-accent-400);
-  --wa-color-brand-fill-loud: var(--theme-palette-accent-400);
-  --wa-color-brand-fill-normal: var(--theme-color-accent);
-  --wa-color-brand-fill-quiet: var(--theme-palette-accent-900);
-  --wa-color-brand-border-loud: var(--theme-palette-accent-400);
-  --wa-color-brand-border-normal: var(--theme-color-accent);
-  --wa-color-brand-on-loud: var(--theme-palette-granite-950);
-  --wa-color-brand-on-normal: var(--theme-palette-granite-950);
-  --wa-color-brand-on-quiet: var(--theme-palette-accent-100);
-  --wa-color-neutral-fill-normal: var(--theme-color-everglade);
-  --wa-color-neutral-fill-quiet: var(--theme-palette-granite-950);
-  --wa-color-neutral-on-normal: var(--theme-palette-coral-50);
-  --wa-color-neutral-on-quiet: var(--theme-palette-paper-light-300);
-  --wa-color-surface-border: color-mix(
-    in oklch,
-    var(--theme-color-white) 18%,
-    transparent
-  );
-  --wa-color-surface-raised: var(--theme-palette-granite-950);
-  --wa-color-text-normal: var(--theme-palette-coral-50);
-  --wa-color-text-quiet: var(--theme-palette-paper-light-300);
-  --wa-form-control-background-color: var(--theme-palette-granite-950);
-  --wa-form-control-border-color: color-mix(
-    in oklch,
-    var(--theme-color-white) 18%,
-    transparent
-  );
-  --wa-form-control-placeholder-color: var(--theme-palette-paper-light-300);
-  --wa-form-control-value-color: var(--theme-palette-coral-50);
-}
-
 .backend-theme {
-  --backend-page: var(--theme-color-paper);
-  --backend-page-soft: var(--theme-color-white);
-  --backend-surface: var(--theme-color-white);
-  --backend-surface-raised: var(--theme-color-paper);
-  --backend-border: color-mix(
-    in oklch,
-    var(--theme-palette-everglade-950) 12%,
-    transparent
-  );
-  --backend-border-strong: color-mix(
-    in oklch,
-    var(--theme-palette-everglade-950) 20%,
-    transparent
-  );
-  --backend-text: var(--theme-color-everglade);
-  --backend-muted: var(--theme-palette-granite-700);
-  --backend-dim: var(--theme-palette-granite-500);
-  --backend-accent: var(--theme-palette-accent-700);
-  --backend-accent-strong: var(--theme-palette-accent-800);
-  --backend-accent-contrast: var(--theme-color-white);
-  --backend-accent-soft: var(--theme-palette-accent-50);
-  --backend-danger: var(--theme-color-danger);
-  --backend-warning: var(--theme-palette-gold-800);
-  --backend-inverse-text: var(--theme-color-white);
-  --backend-inverse-muted: var(--theme-palette-paper-light-200);
-  --backend-page-glow: color-mix(
-    in oklch,
-    var(--theme-color-accent-light) 18%,
-    transparent
-  );
-  --backend-route-glow: color-mix(
-    in oklch,
-    var(--theme-color-hero-accent) 10%,
-    transparent
-  );
-  --backend-shadow: var(--theme-shadow-md);
-  --theme-color-charcoal: var(--backend-text);
-  --theme-color-primary: var(--backend-accent);
   color-scheme: light;
 }
 
 .backend-theme.dark {
-  --backend-page: var(--theme-palette-granite-950);
-  --backend-page-soft: var(--theme-palette-granite-950);
-  --backend-surface: var(--theme-palette-granite-950);
-  --backend-surface-raised: var(--theme-palette-paper-light-950);
-  --backend-border: color-mix(
-    in oklch,
-    var(--theme-color-white) 12%,
-    transparent
-  );
-  --backend-border-strong: color-mix(
-    in oklch,
-    var(--theme-color-white) 20%,
-    transparent
-  );
-  --backend-text: var(--theme-palette-paper-100);
-  --backend-muted: var(--theme-palette-paper-light-300);
-  --backend-dim: var(--theme-palette-paper-light-500);
-  --backend-accent: var(--theme-palette-accent-400);
-  --backend-accent-strong: var(--theme-color-accent);
-  --backend-accent-contrast: var(--theme-palette-granite-950);
-  --backend-accent-soft: var(--theme-color-everglade);
-  --backend-danger: var(--theme-palette-coral-300);
-  --backend-warning: var(--theme-palette-coral-300);
-  --backend-inverse-text: var(--theme-color-white);
-  --backend-inverse-muted: var(--theme-palette-paper-light-200);
-  --backend-page-glow: color-mix(
-    in oklch,
-    var(--theme-color-everglade) 45%,
-    transparent
-  );
-  --backend-route-glow: color-mix(
-    in oklch,
-    var(--theme-palette-blue-900) 40%,
-    transparent
-  );
-  --backend-shadow:
-    0 18px 50px
-      color-mix(in oklch, var(--theme-palette-purple-950) 35%, transparent),
-    0 2px 12px
-      color-mix(in oklch, var(--theme-palette-purple-950) 28%, transparent);
   color-scheme: dark;
 }
 

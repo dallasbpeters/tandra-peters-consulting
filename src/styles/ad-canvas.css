@@ -4,15 +4,7 @@
    (percentages); chrome sizes divide by --canvas-scale so they stay a constant
    visual size at any zoom level. */
 
-.site-page-main {
-  --site-padding-inline-start: var(--theme-spacing-xl);
-
-  /* background: var(--theme-palette-paper-light-950); */
-}
-
 .site-page-main--ad-dashboard {
-  --site-padding-inline-start: var(--theme-spacing-xl);
-
   background: var(--theme-palette-paper-light-950);
 }
 
@@ -126,8 +118,6 @@
 }
 
 .ad-canvas-handle {
-  --handle-size: calc(12px / var(--canvas-scale, 1));
-
   position: absolute;
 
   /* eslint-disable-next-line css/no-invalid-properties */

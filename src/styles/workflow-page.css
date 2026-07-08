@@ -37,13 +37,6 @@
 }
 
 .workflow-page__canvas {
-  --workflow-edge: var(--theme-palette-purple-300);
-  --workflow-grid: color-mix(
-    in oklch,
-    var(--theme-palette-paper-light-700) 14%,
-    transparent
-  );
-
   position: relative;
   width: calc(100% - var(--theme-spacing-section-loose) * 2);
   min-height: 680px;
@@ -333,9 +326,6 @@
 }
 
 .workflow-page__canvas .react-flow {
-  --xy-edge-stroke: var(--workflow-edge);
-  --xy-edge-stroke-default: var(--workflow-edge);
-
   width: 100%;
   height: 100%;
   background-color: var(--theme-color-paper);
@@ -450,7 +440,6 @@
 }
 
 .workflow-page__canvas .react-flow__edge-path {
-  --xy-edge-stroke-default: var(--workflow-edge);
   fill: none;
 
   stroke: var(--workflow-edge);

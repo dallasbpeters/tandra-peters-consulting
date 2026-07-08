@@ -1,33 +1,5 @@
 /* eslint-disable css/use-baseline */
 .fal-upscaler-shell {
-  --fal-bg: var(--theme-palette-paper-light-950);
-  --fal-panel: color-mix(in oklch, var(--theme-color-black) 84%, transparent);
-  --fal-panel-raised: color-mix(
-    in oklch,
-    var(--theme-palette-paper-light-900) 92%,
-    transparent
-  );
-  --fal-border: color-mix(in oklch, var(--theme-color-white) 9%, transparent);
-  --fal-border-strong: color-mix(
-    in oklch,
-    var(--theme-color-white) 16%,
-    transparent
-  );
-  --fal-text: var(--theme-palette-accent-50);
-  --fal-muted: color-mix(
-    in oklch,
-    var(--theme-palette-accent-50) 68%,
-    transparent
-  );
-  --fal-accent: var(--theme-palette-everglade-400);
-  --fal-accent-soft: color-mix(
-    in oklch,
-    var(--theme-palette-everglade-400) 18%,
-    transparent
-  );
-  --fal-shadow: 0 18px 50px
-    color-mix(in oklch, var(--theme-palette-purple-950) 38%, transparent);
-
   box-sizing: border-box;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);

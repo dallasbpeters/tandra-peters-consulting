@@ -1,14 +1,17 @@
 /**
- * Emit CSS custom properties from src/theme.ts (single source of truth).
+ * Emit base CSS custom properties from src/theme.ts.
+ * Scoped app variables live in the generated CSS file after the marker below
+ * and are preserved when this script regenerates base tokens.
  * Output: src/styles/theme-variables.css
  */
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { theme } from "../src/theme.ts";
 
 const __dirname = import.meta.dirname;
 const outPath = path.join(__dirname, "../src/styles/theme-variables.css");
+const SCOPED_VARIABLES_MARKER = "/* Scoped app variables */";
 
 const UPPER_CASE_RE = /[A-Z]/g;
 const WHITESPACE_RE = /\s+/g;
@@ -37,7 +40,21 @@ const paletteLines = (palette) =>
     )
   );
 
-const css = `/* Generated from src/theme.ts — do not edit; run pnpm generate:theme-css */
+const readScopedVariables = () => {
+  if (!existsSync(outPath)) {
+    return `${SCOPED_VARIABLES_MARKER}\n`;
+  }
+
+  const currentCss = readFileSync(outPath, "utf-8");
+  const markerIndex = currentCss.indexOf(SCOPED_VARIABLES_MARKER);
+  if (markerIndex === -1) {
+    return `${SCOPED_VARIABLES_MARKER}\n`;
+  }
+
+  return currentCss.slice(markerIndex).trimEnd();
+};
+
+const css = `/* Generated from src/theme.ts — run pnpm generate:theme-css */
 :root {
 ${tokenLines("color", theme.colors).join("\n")}
 ${paletteLines(theme.palette).join("\n")}
@@ -45,6 +62,8 @@ ${tokenLines("radius", theme.radius).join("\n")}
 ${tokenLines("spacing", theme.spacing).join("\n")}
 ${tokenLines("shadow", theme.shadow).join("\n")}
 }
+
+${readScopedVariables()}
 `;
 
 writeFileSync(outPath, css, "utf-8");

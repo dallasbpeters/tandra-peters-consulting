@@ -1,17 +1,6 @@
 /* Ad studio — direct-manipulation editor chrome.
    All panel-based styles are gone; controls live in the toolbar menus. */
 
-:root {
-  --nav-bar-offset: 84px;
-  --shadow-small: var(--theme-shadow-sm);
-  --shadow-medium: var(--theme-shadow-md);
-  --shadow-large: var(--theme-shadow-lg);
-}
-
-.desktop-app {
-  --nav-bar-offset: 0px;
-}
-
 /* stylelint-disable no-descending-specificity */
 
 .site-page-main {
@@ -28,27 +17,9 @@
   padding: 0;
 }
 
-footer {
-  --footer-display: none;
-}
-
 /* ─── Shell ──────────────────────────────────────────────────────────────── */
 
 .ad-dashboard-shell {
-  --studio-bg: var(--backend-page);
-  --studio-panel: var(--backend-surface);
-  --studio-panel-raised: var(--backend-surface-raised);
-  --studio-border: var(--backend-border);
-  --studio-border-strong: var(--backend-border-strong);
-  --studio-text: var(--backend-text);
-  --studio-muted: var(--backend-muted);
-  --studio-accent: var(--backend-accent);
-  --studio-focus: var(--theme-color-accent-light);
-  --wa-color-focus: var(--studio-focus);
-  --shadow-small: var(--theme-shadow-sm);
-  --shadow-medium: var(--theme-shadow-md);
-  --shadow-large: var(--backend-shadow);
-
   display: flex;
   flex-direction: column;
   height: calc(92vh - var(--nav-bar-offset) - var(--theme-spacing-md));
@@ -213,14 +184,9 @@ footer {
 /* ─── Toolbar popovers ───────────────────────────────────────────────────── */
 
 .ad-toolbar-popover {
-  --arrow-size: 0;
-  --max-width: min(22rem, calc(100vw - 2rem));
-  --show-duration: 120ms;
-  --hide-duration: 90ms;
 }
 
 .ad-toolbar-popover--wide {
-  --max-width: min(34rem, calc(100vw - 2rem));
 }
 
 .ad-toolbar-popover::part(body) {
@@ -766,10 +732,6 @@ footer {
 }
 
 .ad-image-picker__popover {
-  --arrow-size: 0;
-  --max-width: min(64rem, calc(100vw - 2rem));
-  --show-duration: 120ms;
-  --hide-duration: 90ms;
 }
 
 .ad-image-picker__popover::part(body) {
@@ -815,10 +777,6 @@ footer {
 }
 
 .ad-image-picker__source-toggle {
-  --width: 2.6rem;
-  --height: 1.45rem;
-  --thumb-size: 1.05rem;
-
   flex: 0 0 auto;
   font-size: 0.78rem;
   font-weight: 850;

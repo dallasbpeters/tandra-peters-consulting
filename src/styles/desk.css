@@ -1253,7 +1253,6 @@ wa-button.desk-action-button:disabled {
 
 .desk-status-toggle {
   align-self: start;
-  --checked-icon-color: var(--theme-color-white);
   font-size: 0.78rem;
   font-weight: 850;
   color: var(--theme-color-everglade);
