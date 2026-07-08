@@ -25,6 +25,8 @@ import type { DeskAreaMapZonePoint } from "../components/desk-area-map";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
+import { useAdVersions } from "../hooks/use-ad-versions";
+import type { AdCreativeVersion } from "../hooks/use-ad-versions";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import { layoutClass } from "../styles/layout-classes";
 
@@ -249,6 +251,14 @@ interface ZoneValidationResult {
   tone: "error" | "good" | "neutral";
 }
 
+interface AdVersionSummary {
+  body?: string;
+  dimensions?: string;
+  headline?: string;
+  layout?: string;
+  platformId?: string;
+}
+
 type CanvassStatus = "planned" | "walking" | "done";
 
 const canvassStatusLabels: Record<CanvassStatus, string> = {
@@ -444,6 +454,79 @@ const formatCurrencyValue = (value: number | null | undefined): string =>
 
 const formatYearValue = (value: number | null | undefined): string =>
   typeof value === "number" ? String(value) : "No data";
+
+const stringFromRecord = (
+  record: Record<string, unknown>,
+  key: string
+): string | undefined => {
+  const value = record[key];
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+};
+
+const numberFromRecord = (
+  record: Record<string, unknown>,
+  key: string
+): number | undefined => {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+};
+
+const creativeRecordFromConfig = (
+  config: string
+): Record<string, unknown> | null => {
+  try {
+    const parsed = JSON.parse(config) as Record<string, unknown>;
+    const creative = parsed.creative;
+    return creative && typeof creative === "object"
+      ? (creative as Record<string, unknown>)
+      : parsed;
+  } catch {
+    return null;
+  }
+};
+
+const summarizeAdVersion = (
+  version: AdCreativeVersion | null
+): AdVersionSummary | null => {
+  if (!version) {
+    return null;
+  }
+  const creative = creativeRecordFromConfig(version.config);
+  if (!creative) {
+    return null;
+  }
+  const width = numberFromRecord(creative, "adWidth");
+  const height = numberFromRecord(creative, "adHeight");
+  const unit = stringFromRecord(creative, "unit") ?? "px";
+  return {
+    body: stringFromRecord(creative, "body"),
+    dimensions:
+      typeof width === "number" && typeof height === "number"
+        ? `${width} x ${height}${unit === "in" ? "in" : "px"}`
+        : undefined,
+    headline: stringFromRecord(creative, "headline"),
+    layout: stringFromRecord(creative, "layout"),
+    platformId: stringFromRecord(creative, "platformId"),
+  };
+};
+
+const formatSavedCreativeDate = (savedAt?: string): string => {
+  if (!savedAt) {
+    return "Saved creative";
+  }
+  const date = new Date(savedAt);
+  if (Number.isNaN(date.getTime())) {
+    return "Saved creative";
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    month: "short",
+  }).format(date);
+};
 
 const degreesToRadians = (value: number): number => (value * Math.PI) / 180;
 
@@ -1046,12 +1129,16 @@ const validationMessageTone = (
 const buildProviderPayload = ({
   batchName,
   plan,
+  selectedCreativeVersion,
+  selectedCreativeVersionSummary,
   selectedMailPieces,
   selectedTargets,
   zone,
 }: {
   batchName: string;
   plan: DirectMailPlanResponse | null;
+  selectedCreativeVersion: AdCreativeVersion | null;
+  selectedCreativeVersionSummary: AdVersionSummary | null;
   selectedMailPieces: number;
   selectedTargets: readonly DeskAreaTarget[];
   zone: DeskTargetZone | null;
@@ -1075,8 +1162,17 @@ const buildProviderPayload = ({
     creative: {
       format: "6x9 postcard",
       front: {
-        upload:
-          "Attach the finished front-side postcard PDF from the Ads tool.",
+        adVersionId: selectedCreativeVersion?.id,
+        dimensions: selectedCreativeVersionSummary?.dimensions,
+        export:
+          selectedCreativeVersion === null
+            ? "Select a saved Ad Builder version before uploading to print."
+            : "Export this saved Ad Builder version as the postcard front PDF.",
+        headline: selectedCreativeVersionSummary?.headline,
+        name: selectedCreativeVersion?.name,
+        source: selectedCreativeVersion
+          ? "Sanity adCreativeVersion"
+          : "not-selected",
       },
       back: {
         callToAction: "Scan for a roof check or text 512-968-3965.",
@@ -1201,30 +1297,104 @@ const ZoneBuilderPanel = ({
   </div>
 );
 
+const CreativeVersionSelector = ({
+  error,
+  loading,
+  onSelect,
+  selectedVersion,
+  versions,
+}: {
+  error: string | null;
+  loading: boolean;
+  onSelect: (id: string) => void;
+  selectedVersion: AdCreativeVersion | null;
+  versions: readonly AdCreativeVersion[];
+}) => (
+  <div className="desk-creative-selector">
+    <div className="desk-creative-selector__heading">
+      <span>Postcard front</span>
+      <strong>Choose saved Ad Builder content.</strong>
+    </div>
+    {loading ? <p>Loading saved creative...</p> : null}
+    {error ? <p className="desk-creative-selector__error">{error}</p> : null}
+    {!loading && versions.length === 0 ? (
+      <p>
+        No saved Ad Builder versions yet. Save the postcard front in Ads first.
+      </p>
+    ) : null}
+    {versions.length > 0 ? (
+      <ul className="desk-creative-list" aria-label="Saved Ad Builder versions">
+        {versions.map((version) => {
+          const summary = summarizeAdVersion(version);
+          const selected = version.id === selectedVersion?.id;
+          return (
+            <li key={version.id}>
+              <button
+                className={selected ? "is-selected" : ""}
+                onClick={() => onSelect(version.id)}
+                type="button"
+              >
+                {version.thumbnail ? (
+                  // biome-ignore lint/correctness/useImageSize: saved canvas thumbnail has fluid card dimensions
+                  <img alt="" src={version.thumbnail} />
+                ) : (
+                  <span className="desk-creative-list__placeholder" />
+                )}
+                <span className="desk-creative-list__copy">
+                  <strong>{version.name}</strong>
+                  <span>{formatSavedCreativeDate(version.savedAt)}</span>
+                  {summary?.dimensions ? <em>{summary.dimensions}</em> : null}
+                  {summary?.headline ? <small>{summary.headline}</small> : null}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    ) : null}
+  </div>
+);
+
 const PostcardBackTemplate = ({
   batchName,
   plan,
+  selectedCreativeVersion,
   selectedMailPieces,
   selectedTargets,
   zone,
 }: {
   batchName: string;
   plan: DirectMailPlanResponse | null;
+  selectedCreativeVersion: AdCreativeVersion | null;
   selectedMailPieces: number;
   selectedTargets: readonly DeskAreaTarget[];
   zone: DeskTargetZone | null;
 }) => {
   const [copyStatus, setCopyStatus] = useState("");
+  const selectedCreativeVersionSummary = useMemo(
+    () => summarizeAdVersion(selectedCreativeVersion),
+    [selectedCreativeVersion]
+  );
   const payload = useMemo(
     () =>
       buildProviderPayload({
         batchName,
         plan,
+        selectedCreativeVersion,
+        selectedCreativeVersionSummary,
         selectedMailPieces,
         selectedTargets,
         zone,
       }),
-    [batchName, plan, selectedMailPieces, selectedTargets, zone]
+    [
+      batchName,
+      plan,
+      selectedCreativeVersion,
+      selectedCreativeVersionSummary,
+      selectedMailPieces,
+      selectedTargets,
+      zone,
+    ]
   );
   const payloadText = useMemo(
     () => JSON.stringify(payload, null, 2),
@@ -1255,7 +1425,11 @@ const PostcardBackTemplate = ({
       <div className="desk-postcard-template__heading">
         <div>
           <span>Postcard back</span>
-          <strong>Address-ready back side for print upload.</strong>
+          <strong>
+            {selectedCreativeVersion
+              ? `Back side paired with ${selectedCreativeVersion.name}.`
+              : "Address-ready back side for print upload."}
+          </strong>
         </div>
         <WaButton
           appearance="plain"
@@ -1305,19 +1479,29 @@ const PostcardBackTemplate = ({
 };
 
 const DirectMailPlanPanel = ({
+  adVersionsError,
+  adVersionsLoading,
   batchName,
+  creativeVersions,
   isPreparing,
   onPrepare,
+  onSelectCreativeVersion,
   plan,
+  selectedCreativeVersion,
   selectedCount,
   selectedMailPieces,
   selectedTargets,
   zone,
 }: {
+  adVersionsError: string | null;
+  adVersionsLoading: boolean;
   batchName: string;
+  creativeVersions: readonly AdCreativeVersion[];
   isPreparing: boolean;
   onPrepare: (provider?: string) => void;
+  onSelectCreativeVersion: (id: string) => void;
   plan: DirectMailPlanResponse | null;
+  selectedCreativeVersion: AdCreativeVersion | null;
   selectedCount: number;
   selectedMailPieces: number;
   selectedTargets: readonly DeskAreaTarget[];
@@ -1340,6 +1524,15 @@ const DirectMailPlanPanel = ({
             : "Turn on zone mode and click the map, or manually select areas from the list."}
         </p>
       </div>
+      {hasSelection ? (
+        <CreativeVersionSelector
+          error={adVersionsError}
+          loading={adVersionsLoading}
+          onSelect={onSelectCreativeVersion}
+          selectedVersion={selectedCreativeVersion}
+          versions={creativeVersions}
+        />
+      ) : null}
       <WaButton
         appearance="plain"
         className="desk-primary-link"
@@ -1419,6 +1612,7 @@ const DirectMailPlanPanel = ({
         <PostcardBackTemplate
           batchName={batchName}
           plan={plan}
+          selectedCreativeVersion={selectedCreativeVersion}
           selectedMailPieces={selectedMailPieces}
           selectedTargets={selectedTargets}
           zone={zone}
@@ -1780,6 +1974,7 @@ const CanvassingPlanner = ({
     saved,
     saveTarget,
   } = useCanvassTargets(authHeader);
+  const adVersions = useAdVersions();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [focusIds, setFocusIds] = useState<string[]>([]);
@@ -1795,6 +1990,8 @@ const CanvassingPlanner = ({
   const [zoneRadiusMiles, setZoneRadiusMiles] = useState(
     DEFAULT_ZONE_RADIUS_MILES
   );
+  const [selectedCreativeVersionId, setSelectedCreativeVersionId] =
+    useState("");
 
   const targets = useMemo(() => intel?.targets ?? [], [intel]);
   const counties = useMemo(() => intel?.counties ?? [], [intel]);
@@ -1821,6 +2018,13 @@ const CanvassingPlanner = ({
   const activeZone = useMemo(
     () => zones.find((zone) => zone.id === activeZoneId) ?? null,
     [activeZoneId, zones]
+  );
+  const selectedCreativeVersion = useMemo(
+    () =>
+      adVersions.versions.find(
+        (version) => version.id === selectedCreativeVersionId
+      ) ?? null,
+    [adVersions.versions, selectedCreativeVersionId]
   );
   const zoneValidation = useMemo(
     () => zoneValidationFor(activeZone, selectedTargets, selectedMailPieces),
@@ -1978,6 +2182,13 @@ const CanvassingPlanner = ({
             name: name || "Austin neighborhood mail batch",
             neighborhoods: selectedTargets.map(targetToSnapshot),
             provider,
+            selectedCreative: selectedCreativeVersion
+              ? {
+                  id: selectedCreativeVersion.id,
+                  name: selectedCreativeVersion.name,
+                  savedAt: selectedCreativeVersion.savedAt,
+                }
+              : undefined,
             zone: activeZone
               ? {
                   id: activeZone.id,
@@ -2014,7 +2225,7 @@ const CanvassingPlanner = ({
         setIsPreparingMail(false);
       }
     },
-    [activeZone, authHeader, name, selectedTargets]
+    [activeZone, authHeader, name, selectedCreativeVersion, selectedTargets]
   );
 
   const openTarget = useCallback((target: CanvassTargetRecord) => {
@@ -2156,10 +2367,15 @@ const CanvassingPlanner = ({
           ) : null}
 
           <DirectMailPlanPanel
+            adVersionsError={adVersions.error}
+            adVersionsLoading={adVersions.loading}
             batchName={name}
+            creativeVersions={adVersions.versions}
             isPreparing={isPreparingMail}
             onPrepare={handlePrepareMail}
+            onSelectCreativeVersion={setSelectedCreativeVersionId}
             plan={mailPlan}
+            selectedCreativeVersion={selectedCreativeVersion}
             selectedCount={selectedTargets.length}
             selectedMailPieces={selectedMailPieces}
             selectedTargets={selectedTargets}

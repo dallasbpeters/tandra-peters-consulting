@@ -887,6 +887,106 @@ wa-button.desk-action-button:disabled {
   outline: 0;
 }
 
+.desk-creative-selector {
+  display: grid;
+  gap: var(--theme-spacing-sm);
+  padding: var(--theme-spacing-sm);
+  background: var(--theme-color-white);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-palette-everglade-950) 10%, transparent);
+  border-radius: var(--theme-radius-small);
+}
+
+.desk-creative-selector__heading {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+}
+
+.desk-creative-selector p,
+.desk-creative-selector__error {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 68%,
+    transparent
+  );
+}
+
+.desk-creative-selector__error {
+  color: var(--theme-color-danger);
+}
+
+.desk-creative-list {
+  display: grid;
+  gap: var(--theme-spacing-xs);
+  max-height: 17rem;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.desk-creative-list button {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: var(--theme-spacing-sm);
+  width: 100%;
+  padding: var(--theme-spacing-xs);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--theme-color-paper);
+  border: 1px solid
+    color-mix(in oklch, var(--theme-palette-everglade-950) 10%, transparent);
+  border-radius: var(--theme-radius-small);
+}
+
+.desk-creative-list button:hover,
+.desk-creative-list button:focus-visible,
+.desk-creative-list button.is-selected {
+  background: var(--theme-palette-accent-50);
+  border-color: color-mix(
+    in oklch,
+    var(--theme-palette-accent-800) 24%,
+    transparent
+  );
+  outline: 0;
+}
+
+.desk-creative-list img,
+.desk-creative-list__placeholder {
+  width: 4.25rem;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--theme-color-everglade);
+  border-radius: var(--theme-radius-small);
+}
+
+.desk-creative-list__copy {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  min-width: 0;
+  align-content: center;
+}
+
+.desk-creative-list__copy strong,
+.desk-creative-list__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desk-creative-list__copy em {
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 850;
+  color: var(--theme-palette-everglade-800);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .desk-postcard-template {
   display: grid;
   gap: var(--theme-spacing-sm);
@@ -2154,6 +2254,8 @@ wa-button.desk-generate-button::part(base) {
 .backend-theme .desk-canvass-list,
 .backend-theme .desk-capture-form,
 .backend-theme .desk-capture-recent,
+.backend-theme .desk-creative-list button,
+.backend-theme .desk-creative-selector,
 .backend-theme .desk-generated,
 .backend-theme .desk-mail-plan,
 .backend-theme .desk-postcard-back,
@@ -2168,6 +2270,9 @@ wa-button.desk-generate-button::part(base) {
 }
 
 .backend-theme .desk-zone-validation--good,
+.backend-theme .desk-creative-list button:hover,
+.backend-theme .desk-creative-list button:focus-visible,
+.backend-theme .desk-creative-list button.is-selected,
 .backend-theme .desk-zone-list button:hover,
 .backend-theme .desk-zone-list button:focus-visible,
 .backend-theme .desk-zone-list button.is-active {
@@ -2213,12 +2318,15 @@ wa-button.desk-generate-button::part(base) {
 
 .backend-theme .desk-mail-plan__providers em,
 .backend-theme .desk-mail-plan__provider-actions a,
+.backend-theme .desk-creative-list button,
 .backend-theme .desk-provider-payload pre,
 .backend-theme .desk-postcard-back,
 .backend-theme .desk-zone-list button {
   color: var(--backend-text);
 }
 
+.backend-theme .desk-creative-selector p,
+.backend-theme .desk-creative-list__copy em,
 .backend-theme .desk-postcard-template span,
 .backend-theme .desk-provider-payload span,
 .backend-theme .desk-zone-builder span,
@@ -2226,6 +2334,12 @@ wa-button.desk-generate-button::part(base) {
   color: var(--backend-text-muted);
 }
 
+.backend-theme .desk-creative-selector__error {
+  color: var(--theme-color-danger);
+}
+
+.backend-theme .desk-creative-selector__heading strong,
+.backend-theme .desk-creative-list__copy strong,
 .backend-theme .desk-postcard-template strong,
 .backend-theme .desk-zone-builder strong,
 .backend-theme .desk-zone-validation strong {
