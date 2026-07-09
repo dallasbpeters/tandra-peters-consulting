@@ -8,7 +8,11 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 const MAP_STYLE = "mapbox://styles/mapbox/streets-v12";
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-const DEFAULT_CENTER: [number, number] = [-97.74, 30.62];
+// Fixed opening view framed on the Austin metro. The camera NEVER moves
+// programmatically — only the user's mouse/gestures pan or zoom — so this is
+// the one and only place the view is positioned.
+const DEFAULT_CENTER: [number, number] = [-97.74, 30.32];
+const DEFAULT_ZOOM = 9.7;
 
 const NORMAL_FILL = "#92d66f";
 const SELECTED_FILL = "#f2a63d";
@@ -73,16 +77,8 @@ export interface DeskAreaMapZonePoint {
   longitude: number;
 }
 
-export interface DeskAreaMapFocusZone {
-  latitude: number;
-  longitude: number;
-  radiusMiles: number;
-}
-
 interface DeskAreaMapProps {
   drawMode?: boolean;
-  focusIds?: readonly string[];
-  focusZone?: DeskAreaMapFocusZone | null;
   onCreateZone?: (point: DeskAreaMapZonePoint) => void;
   onDrawZone?: (ring: [number, number][]) => void;
   onToggleSelect?: (id: string) => void;
@@ -240,41 +236,6 @@ const toZoneGeoJson = (
   })),
   type: "FeatureCollection",
 });
-
-const boundsFor = (
-  targets: readonly DeskAreaMapTarget[]
-): mapboxgl.LngLatBounds => {
-  const bounds = new mapboxgl.LngLatBounds();
-  for (const target of targets) {
-    bounds.extend([target.longitude, target.latitude]);
-    const polygons =
-      target.geometry?.type === "MultiPolygon"
-        ? target.geometry.coordinates.flat()
-        : (target.geometry?.coordinates ?? []);
-    for (const ring of polygons) {
-      for (const [lng, lat] of ring) {
-        bounds.extend([lng, lat]);
-      }
-    }
-  }
-  return bounds;
-};
-
-const fitTo = (
-  map: mapboxgl.Map,
-  targets: readonly DeskAreaMapTarget[],
-  duration: number
-): void => {
-  if (targets.length === 0) {
-    map.easeTo({ center: DEFAULT_CENTER, duration, zoom: 6.6 });
-    return;
-  }
-  map.fitBounds(boundsFor(targets), {
-    duration,
-    maxZoom: 12,
-    padding: { bottom: 56, left: 56, right: 56, top: 56 },
-  });
-};
 
 const addZoneLayers = (
   map: mapboxgl.Map,
@@ -454,8 +415,6 @@ const resizeMapToContainer = (map: mapboxgl.Map): void => {
 
 export const DeskAreaMap = ({
   drawMode = false,
-  focusIds,
-  focusZone,
   onCreateZone,
   onDrawZone,
   onToggleSelect,
@@ -489,7 +448,6 @@ export const DeskAreaMap = ({
 
   const pointRef = useRef(pointData);
   const polygonRef = useRef(polygonData);
-  const targetsRef = useRef(targets);
   const zoneRef = useRef(zoneData);
 
   useEffect(() => {
@@ -514,6 +472,14 @@ export const DeskAreaMap = ({
       if (zoneMode) {
         map.resize();
       }
+      // A double-click while placing/drawing zones would trigger the built-in
+      // doubleClickZoom and jump the camera. Only the user's pan/scroll may move
+      // the map, so lock double-click zoom whenever a zone tool is active.
+      if (zoneMode || drawModeRef.current) {
+        map.doubleClickZoom.disable();
+      } else {
+        map.doubleClickZoom.enable();
+      }
     }
   }, [zoneMode]);
 
@@ -528,11 +494,18 @@ export const DeskAreaMap = ({
     }
     if (drawMode) {
       map.resize();
+      // MapboxDraw finishes a polygon on a DOUBLE-CLICK, which would otherwise
+      // also fire the map's built-in doubleClickZoom and zoom the camera the
+      // instant the shape completes. Disable it for the whole draw session.
+      map.doubleClickZoom.disable();
       draw.changeMode("draw_polygon");
       map.getCanvas().style.cursor = "crosshair";
     } else {
       draw.deleteAll();
       draw.changeMode("simple_select");
+      if (!zoneModeRef.current) {
+        map.doubleClickZoom.enable();
+      }
       map.getCanvas().style.cursor = zoneModeRef.current ? "crosshair" : "";
     }
   }, [drawMode]);
@@ -540,9 +513,8 @@ export const DeskAreaMap = ({
   useEffect(() => {
     pointRef.current = pointData;
     polygonRef.current = polygonData;
-    targetsRef.current = targets;
     zoneRef.current = zoneData;
-  }, [pointData, polygonData, targets, zoneData]);
+  }, [pointData, polygonData, zoneData]);
 
   // Zone creation runs only through the single global map click below so one
   // click always makes exactly one zone — even when it lands on a target
@@ -584,7 +556,7 @@ export const DeskAreaMap = ({
       // past this tall map doesn't hijack into a jarring zoom.
       cooperativeGestures: true,
       style: MAP_STYLE,
-      zoom: 6.6,
+      zoom: DEFAULT_ZOOM,
     });
     mapRef.current = map;
     const observer = new ResizeObserver(() => resizeMapToContainer(map));
@@ -657,13 +629,13 @@ export const DeskAreaMap = ({
     };
 
     map.on("load", () => {
-      // Match the drawing buffer to the container BEFORE fitting/interacting.
-      // Otherwise a stale (too-short) buffer makes clicks unproject too far
-      // south, so new zones land at the bottom of the map.
+      // Match the drawing buffer to the container before interacting. Otherwise
+      // a stale (too-short) buffer makes clicks unproject too far south, so new
+      // zones land at the bottom of the map. resize() preserves center/zoom, so
+      // it never moves the camera — the view stays on the fixed Austin frame.
       map.resize();
       addTargetLayers(map, pointRef.current, polygonRef.current);
       addZoneLayers(map, zoneRef.current);
-      fitTo(map, targetsRef.current, 0);
       map.addControl(draw);
       drawRef.current = draw;
       (map as unknown as MapboxDrawEvented).on("draw.create", handleDrawCreate);
@@ -713,50 +685,10 @@ export const DeskAreaMap = ({
     );
   }, [pointData, polygonData, zoneData]);
 
-  // Fit to all targets when the underlying set changes.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (map && readyRef.current) {
-      fitTo(map, targets, 0);
-    }
-  }, [targets]);
-
-  // Zoom to a saved selection when the user reopens a target.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!(map && readyRef.current && focusIds && focusIds.length > 0)) {
-      return;
-    }
-    const focusSet = new Set(focusIds);
-    const focused = targetsRef.current.filter((target) =>
-      focusSet.has(target.id)
-    );
-    if (focused.length > 0) {
-      fitTo(map, focused, 600);
-    }
-  }, [focusIds]);
-
-  // Frame just the small zone circle (not its parent neighborhood polygon), so
-  // reopening a zone gently centers on the clicked spot instead of yanking the
-  // camera out to the whole tract.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!(map && readyRef.current && focusZone)) {
-      return;
-    }
-    const bounds = new mapboxgl.LngLatBounds();
-    for (const bearing of [0, 90, 180, 270]) {
-      bounds.extend(
-        zoneCirclePoint(
-          focusZone.longitude,
-          focusZone.latitude,
-          focusZone.radiusMiles,
-          bearing
-        )
-      );
-    }
-    map.fitBounds(bounds, { duration: 600, maxZoom: 15, padding: 72 });
-  }, [focusZone]);
+  // NOTE: There is intentionally NO camera-movement effect here. The map view
+  // is only ever changed by the user's mouse/gestures. We never auto-fit to
+  // targets, focus a selection, or frame a zone — doing so "jumped the map all
+  // over" while drawing. Data updates above repaint layers in place.
 
   if (!MAPBOX_TOKEN) {
     return (

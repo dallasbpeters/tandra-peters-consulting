@@ -1,6 +1,7 @@
 import { MoreHoriz } from "iconoir-react";
 import type { CSSProperties, ReactNode } from "react";
 import {
+  Fragment,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -214,7 +215,9 @@ export const OverflowNav = ({
         ))}
       </div>
 
-      {visibleItems.map((item) => renderItem(item, "inline"))}
+      {visibleItems.map((item) => (
+        <Fragment key={item.href}>{renderItem(item, "inline")}</Fragment>
+      ))}
 
       {hasOverflow ? (
         <button

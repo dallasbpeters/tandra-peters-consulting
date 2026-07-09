@@ -206,13 +206,18 @@ export const Nav: React.FC<NavProps> = ({
   const renderControlLink = (item: NavItem, context: "inline" | "menu") => {
     if (context === "menu") {
       return (
-        <SiteNavLink href={item.href} style={styles.overflowMenuLink}>
+        <SiteNavLink
+          className="site-nav-menu-link"
+          href={item.href}
+          style={styles.overflowMenuLink}
+        >
           {item.name}
         </SiteNavLink>
       );
     }
     return (
       <SiteNavLink
+        className="site-nav-inline-link"
         href={item.href}
         onMouseEnter={(event) => {
           event.currentTarget.style.opacity = "1";
@@ -263,9 +268,16 @@ export const Nav: React.FC<NavProps> = ({
               style={styles.image}
               width="auto"
             />
-            <span style={styles.logoText}>{logoText}</span>
+            <span className="site-nav-logo-text" style={styles.logoText}>
+              {logoText}
+            </span>
             {isMobile ? null : (
-              <span style={styles.logoTagline}>{logoTagline}</span>
+              <span
+                className="site-nav-logo-tagline"
+                style={styles.logoTagline}
+              >
+                {logoTagline}
+              </span>
             )}
           </motion.div>
         </TransitionLink>
@@ -326,7 +338,7 @@ export const Nav: React.FC<NavProps> = ({
             aria-controls="site-mobile-nav"
             aria-expanded={isMobileMenuOpen}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            className="md-hidden nav-focusable"
+            className="md-hidden nav-focusable site-nav-mobile-toggle"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             style={{
               background: "none",
@@ -389,7 +401,7 @@ export const Nav: React.FC<NavProps> = ({
               {navItems.map((item, _i) =>
                 isHome && isInPageHashHref(item.href) ? (
                   <a
-                    className="nav-focusable"
+                    className="nav-focusable site-nav-mobile-link"
                     href={item.href}
                     key={item.href}
                     onClick={handleMobileNavClick(item.href)}
@@ -407,7 +419,7 @@ export const Nav: React.FC<NavProps> = ({
                   </a>
                 ) : (
                   <TransitionLink
-                    className="nav-focusable"
+                    className="nav-focusable site-nav-mobile-link"
                     key={item.href}
                     onClick={handleMobileSectionLinkClose}
                     style={{

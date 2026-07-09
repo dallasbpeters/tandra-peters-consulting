@@ -126,6 +126,46 @@ export const deskCanvassTargetType = defineType({
       type: "text",
     }),
     defineField({
+      description:
+        "System-managed map geometry captured at save time so the area can be reloaded into the builder. Polygon rings are stored as a flat [lng, lat, …] number list.",
+      fields: [
+        defineField({
+          name: "kind",
+          options: {
+            list: [
+              { title: "Radius (circle)", value: "circle" },
+              { title: "Drawn (polygon)", value: "polygon" },
+            ],
+          },
+          title: "Kind",
+          type: "string",
+        }),
+        defineField({ name: "latitude", title: "Latitude", type: "number" }),
+        defineField({ name: "longitude", title: "Longitude", type: "number" }),
+        defineField({
+          name: "radiusMiles",
+          title: "Radius (miles)",
+          type: "number",
+        }),
+        defineField({
+          name: "estimatedPieces",
+          title: "Estimated mail pieces",
+          type: "number",
+        }),
+        defineField({
+          name: "polygon",
+          of: [defineArrayMember({ type: "number" })],
+          title: "Outline (flat lng/lat list)",
+          type: "array",
+        }),
+      ],
+      name: "zone",
+      options: { collapsed: true, collapsible: true },
+      readOnly: true,
+      title: "Saved zone geometry",
+      type: "object",
+    }),
+    defineField({
       name: "createdAt",
       readOnly: true,
       title: "Created at",

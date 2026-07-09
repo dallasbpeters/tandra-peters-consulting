@@ -5,6 +5,7 @@ export const layoutClass = {
   containerArticle: "site-container site-container--article",
   containerContactCompact: "site-container site-container--contact-compact",
   containerFull: "site-container site-container--full",
+  containerNoContainer: "site-container site-container--no-container",
   containerFullRow: "site-container site-container--full site-container--row",
   containerLegal: "site-container site-container--legal",
   containerReading: "site-container site-container--reading",

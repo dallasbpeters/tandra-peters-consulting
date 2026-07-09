@@ -25,6 +25,10 @@
   max-width: 90rem;
 }
 
+.site-container.site-container--no-container {
+  max-width: unset;
+}
+
 .site-container.site-container--article {
   max-width: 52rem;
 }

@@ -123,6 +123,48 @@ kbd {
 }
 
 /*
+ * Backend routes render the shared <Nav> over the dark dashboard theme.
+ * The nav is inline-styled, so these overrides use !important to re-map its
+ * colors onto the --backend-* tokens (which already handle light + dark).
+ */
+.backend-theme .site-nav-vt {
+  background-color: color-mix(
+    in oklch,
+    var(--backend-surface) 85%,
+    transparent
+  ) !important;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 var(--backend-border) !important;
+}
+
+.backend-theme .site-nav-logo-text {
+  color: var(--backend-text) !important;
+}
+
+.backend-theme .site-nav-logo-tagline {
+  color: var(--backend-muted) !important;
+}
+
+.backend-theme .site-nav-inline-link,
+.backend-theme .nav-desktop-nav button,
+.backend-theme .site-nav-mobile-toggle {
+  color: var(--backend-text) !important;
+}
+
+.backend-theme .site-nav-mobile-link {
+  color: var(--backend-accent) !important;
+}
+
+.backend-theme [role="menu"] {
+  background: var(--backend-surface-raised) !important;
+  border-color: var(--backend-border) !important;
+}
+
+.backend-theme .site-nav-menu-link {
+  color: var(--backend-text) !important;
+}
+
+/*
  * Routed sub-pages (articles, workflow, etc.) share one named transition so
  * list ↔ detail ↔ workflow morph the main column instead of competing names.
  * Home keeps unnamed <main> so it still rides the root blur/zoom transition.

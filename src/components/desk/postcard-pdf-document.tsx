@@ -198,13 +198,13 @@ const STYLES: Record<PostcardSize, ReturnType<typeof buildStyles>> = {
 };
 
 // ---------------------------------------------------------------------------
-// Return address (matches desk-page.tsx postcardReturnAddressLines)
+// Return address — falls back to Birdcreek defaults when none is supplied.
 // ---------------------------------------------------------------------------
-const RETURN_ADDRESS_LINES = [
+const DEFAULT_RETURN_ADDRESS_LINES = [
   "Tandra Peters",
   "Birdcreek Roofing",
-  "{{return_address_line1}}",
-  "{{return_address_city}}, {{return_address_state}} {{return_address_zip}}",
+  "2300 Forsam Bend",
+  "Austin, TX 78725",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -219,6 +219,8 @@ export interface PostcardDocumentProps {
   qrDataUri: string;
   /** Optional front image — Ad Builder thumbnail (data URI or base64 string) */
   frontImageDataUri?: string;
+  /** Editable return-address display lines; defaults to Birdcreek. */
+  returnAddressLines?: readonly string[];
   /** Physical size of the postcard. Defaults to "6x9". */
   size?: PostcardSize;
 }
@@ -239,11 +241,16 @@ export const PostcardDocument = ({
   headline,
   qrDataUri,
   frontImageDataUri,
+  returnAddressLines,
   size = "6x9",
 }: PostcardDocumentProps) => {
   const { w, h } = SIZE_DIMS[size];
   const s = STYLES[size];
   const frontSrc = normalizeSrc(frontImageDataUri);
+  const returnLines =
+    returnAddressLines && returnAddressLines.length > 0
+      ? returnAddressLines
+      : DEFAULT_RETURN_ADDRESS_LINES;
 
   return (
     <Document>
@@ -257,7 +264,7 @@ export const PostcardDocument = ({
         {/* ── Top row ─────────────────────────────────────────────────── */}
         <View style={s.topRow}>
           <View style={s.returnBlock}>
-            {RETURN_ADDRESS_LINES.map((line, i) => (
+            {returnLines.map((line, i) => (
               <Text key={line} style={i === 0 ? s.returnName : s.returnLine}>
                 {line}
               </Text>

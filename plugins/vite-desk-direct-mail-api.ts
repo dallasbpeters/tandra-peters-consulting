@@ -2,11 +2,22 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
+import type { ReturnAddress } from "../api/lib/desk-direct-mail-connect.js";
 import {
   createTestPostcard,
+  submitToProvider,
   verifyProviderConnection,
 } from "../api/lib/desk-direct-mail-connect.js";
-import { prepareDirectMailBatch } from "../api/lib/desk-direct-mail.js";
+import {
+  collectSubmitRecipients,
+  prepareDirectMailAddresses,
+  prepareDirectMailBatch,
+} from "../api/lib/desk-direct-mail.js";
+import {
+  getProviderSecrets,
+  providerKeysStatus,
+  saveProviderKeys,
+} from "../api/lib/desk-mail-secrets.js";
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 import { readRequestBody } from "./request-body";
 
@@ -62,12 +73,21 @@ const exposeEnv = (env: Record<string, string>): void => {
     "RENTCAST_API_KEY",
     "DIRECT_MAIL_PROVIDER",
     "DIRECT_MAIL_SEND_ENABLED",
+    "DIRECT_MAIL_SECRET_KEY",
+    "SANITY_WRITE_TOKEN",
+    "SANITY_API_WRITE_TOKEN",
     "STANNP_API_KEY",
     "LOB_API_KEY",
     "LOB_FROM_ADDRESS_ID",
     "CLICK2MAIL_USERNAME",
     "CLICK2MAIL_PASSWORD",
     "POSTGRID_API_KEY",
+    "POSTGRID_FROM_CONTACT_ID",
+    "POSTGRID_FROM_NAME",
+    "POSTGRID_FROM_ADDRESS_LINE1",
+    "POSTGRID_FROM_CITY",
+    "POSTGRID_FROM_STATE",
+    "POSTGRID_FROM_ZIP",
     "POSTALYTICS_API_KEY",
   ]) {
     const value = env[key]?.trim() || process.env[key]?.trim();
@@ -76,6 +96,18 @@ const exposeEnv = (env: Record<string, string>): void => {
     }
   }
 };
+
+const readWriteToken = (env: Record<string, string>): string | undefined =>
+  env.SANITY_WRITE_TOKEN?.trim() ||
+  env.SANITY_API_WRITE_TOKEN?.trim() ||
+  process.env.SANITY_WRITE_TOKEN?.trim() ||
+  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
+  undefined;
+
+const sendEnabledFrom = (env: Record<string, string>): boolean =>
+  (env.DIRECT_MAIL_SEND_ENABLED ?? process.env.DIRECT_MAIL_SEND_ENABLED ?? "")
+    .trim()
+    .toLowerCase() === "true";
 
 const parseJson = (buffer: Buffer): Record<string, unknown> => {
   if (!buffer.length) {
@@ -124,23 +156,99 @@ const handleDeskDirectMailRequest = async (
   const body = parseJson(await readRequestBody(req));
   const action = typeof body.action === "string" ? body.action : "plan";
   const providerKey = typeof body.provider === "string" ? body.provider : "";
+  const options = { sanityWriteToken: readWriteToken(env) };
   const optionalString = (value: unknown): string | undefined =>
     typeof value === "string" && value.trim() ? value : undefined;
+  const stringList = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === "string")
+      : [];
+  // biome-ignore lint/correctness/noUnusedVariables: used at parseReturnAddress(body.returnAddress) below
+  const parseReturnAddress = (value: unknown): ReturnAddress | undefined => {
+    if (!value || typeof value !== "object") {
+      return undefined;
+    }
+    const record = value as Record<string, unknown>;
+    const field = (key: string): string =>
+      typeof record[key] === "string" ? (record[key] as string) : "";
+    return {
+      city: field("city"),
+      company: field("company"),
+      line1: field("line1"),
+      line2: field("line2"),
+      name: field("name"),
+      state: field("state"),
+      zip: field("zip"),
+    };
+  };
 
   if (action === "verify") {
-    const connection = await verifyProviderConnection(providerKey);
+    const secrets = await getProviderSecrets(providerKey, options);
+    const connection = await verifyProviderConnection(providerKey, secrets);
     json(res, 200, { connection, ok: true });
     return;
   }
+  if (action === "keys-status") {
+    const status = await providerKeysStatus(providerKey, options);
+    json(res, 200, { ok: true, status });
+    return;
+  }
+  if (action === "save-keys") {
+    const result = await saveProviderKeys(providerKey, body.values, options);
+    json(res, result.status, result.body);
+    return;
+  }
   if (action === "test") {
-    const proof = await createTestPostcard({
-      back: optionalString(body.back),
-      front: optionalString(body.front),
-      message: optionalString(body.message),
-      providerKey,
-      size: optionalString(body.size),
-    });
+    const secrets = await getProviderSecrets(providerKey, options);
+    const proof = await createTestPostcard(
+      {
+        back: optionalString(body.back),
+        body: optionalString(body.body),
+        cta: optionalString(body.cta),
+        front: optionalString(body.front),
+        headline: optionalString(body.headline),
+        message: optionalString(body.message),
+        providerKey,
+        qrDataUri: optionalString(body.qrDataUri),
+        size: optionalString(body.size),
+      },
+      secrets
+    );
     json(res, 200, { ok: proof.ok, proof });
+    return;
+  }
+  if (action === "submit") {
+    const secrets = await getProviderSecrets(providerKey, options);
+    // Rebuild the FULL recipient list server-side from the zone/neighborhoods so
+    // the order covers the whole audience — never the client's preview sample.
+    const batch = await collectSubmitRecipients(body);
+    const submission = await submitToProvider(
+      {
+        back: optionalString(body.back),
+        batchName: optionalString(body.batchName),
+        body: optionalString(body.body),
+        cta: optionalString(body.cta),
+        front: optionalString(body.front),
+        headline: optionalString(body.headline),
+        message: optionalString(body.message),
+        providerKey,
+        qrDataUri: optionalString(body.qrDataUri),
+        recipients: stringList(body.recipients),
+        returnAddress: parseReturnAddress(body.returnAddress),
+        size: optionalString(body.size),
+        structuredRecipients: batch.recipients,
+        totalMatched: batch.totalMatched,
+        zoneLabel: optionalString(body.zoneLabel),
+      },
+      secrets,
+      sendEnabledFrom(env)
+    );
+    json(res, 200, { ok: submission.ok, submission });
+    return;
+  }
+  if (action === "addresses") {
+    const addresses = await prepareDirectMailAddresses(body);
+    json(res, addresses.status, addresses.body);
     return;
   }
 
