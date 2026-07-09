@@ -10,8 +10,10 @@ import { useIsMobile } from "../hooks/is-mobile";
 import { isInPageHashHref } from "../hooks/use-site-nav";
 import { layoutClass } from "../styles/layout-classes";
 import { theme } from "../theme";
-import type { NavProps } from "../types";
+import type { NavItem, NavProps } from "../types";
 import { GoogleAuthGate } from "./google-auth-gate";
+import { OverflowNav } from "./nav/overflow-nav";
+import { SiteNavLink } from "./nav/site-nav-link";
 import { TransitionLink } from "./transition-link";
 
 export const Nav: React.FC<NavProps> = ({
@@ -24,6 +26,7 @@ export const Nav: React.FC<NavProps> = ({
   ],
   ctaText = "Schedule a Free Consultation",
   ctaHref = "#contact",
+  hideCta = false,
 }) => {
   const location = useLocation();
   const isHome = location.pathname === "/";
@@ -178,6 +181,50 @@ export const Nav: React.FC<NavProps> = ({
       textDecoration: "none",
       transition: "opacity 0.2s",
     },
+    overflowMenu: {
+      background: theme.colors.white,
+      border: "1px solid rgba(0, 0, 0, 0.08)",
+      borderRadius: theme.radius.large,
+      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
+      gap: theme.spacing.xs,
+      padding: theme.spacing.sm,
+    },
+    overflowMenuLink: {
+      borderRadius: theme.radius.medium,
+      color: theme.colors.black,
+      display: "block",
+      fontFamily: theme.fonts.headline,
+      fontSize: "0.875rem",
+      fontWeight: 700,
+      letterSpacing: "0.1em",
+      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+      textDecoration: "none",
+      width: "100%",
+    },
+  };
+
+  const renderControlLink = (item: NavItem, context: "inline" | "menu") => {
+    if (context === "menu") {
+      return (
+        <SiteNavLink href={item.href} style={styles.overflowMenuLink}>
+          {item.name}
+        </SiteNavLink>
+      );
+    }
+    return (
+      <SiteNavLink
+        href={item.href}
+        onMouseEnter={(event) => {
+          event.currentTarget.style.opacity = "1";
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget.style.opacity = "0.6";
+        }}
+        style={styles.navLink}
+      >
+        {item.name}
+      </SiteNavLink>
+    );
   };
 
   return (
@@ -230,65 +277,21 @@ export const Nav: React.FC<NavProps> = ({
               outline-offset: 3px;
               border-radius: ${theme.radius.small};
             }
-            @media (max-width: 1000px) {
+            @media (max-width: 768px) {
               .md-flex { display: none !important; }
 
             }
           `}</style>
           <GoogleAuthGate>
-            {navItems.map((item, i) =>
-              isHome && isInPageHashHref(item.href) ? (
-                <motion.a
-                  animate={{ opacity: 1, y: 0 }}
-                  className="nav-focusable"
-                  href={item.href}
-                  initial={{ opacity: 0, y: -10 }}
-                  key={item.href}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = "1";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = "0.6";
-                  }}
-                  style={styles.navLink}
-                  tabIndex={0}
-                  transition={{
-                    delay: i * 0.05,
-                    duration: 0.2,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {item.name}
-                </motion.a>
-              ) : (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  initial={{ opacity: 0, y: -10 }}
-                  key={item.href}
-                  style={{ display: "inline-block" }}
-                  transition={{
-                    delay: isHome ? i * 0.05 : i * 0.1,
-                    duration: 0.2,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <TransitionLink
-                    className="nav-focusable"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = "1";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = "0.6";
-                    }}
-                    style={styles.navLink}
-                    to={offHomeNavTo(item.href)}
-                    viewTransition
-                  >
-                    {item.name}
-                  </TransitionLink>
-                </motion.div>
-              )
-            )}
+            <OverflowNav
+              align="center"
+              containerStyle={{ flex: "1 1 auto", width: "100%" }}
+              gap={Number.parseFloat(theme.spacing.xl) * 16}
+              items={navItems}
+              menuStyle={styles.overflowMenu}
+              moreButtonStyle={{ color: styles.navLink.color }}
+              renderItem={renderControlLink}
+            />
           </GoogleAuthGate>
         </div>
 
@@ -301,22 +304,24 @@ export const Nav: React.FC<NavProps> = ({
             justifyContent: "flex-end",
           }}
         >
-          <motion.a
-            animate={{ opacity: 1, scale: 1 }}
-            className="nav-focusable hidden lg:block"
-            href={ctaHref}
-            initial={{ opacity: 0, scale: 0.9 }}
-            onClick={() =>
-              posthog?.capture("nav_cta_clicked", {
-                cta_text: ctaText,
-                location: "desktop",
-              })
-            }
-            style={styles.button}
-            whileHover={{ backgroundColor: "#715eec" }}
-          >
-            {ctaText}
-          </motion.a>
+          {hideCta ? null : (
+            <motion.a
+              animate={{ opacity: 1, scale: 1 }}
+              className="nav-focusable hidden lg:block"
+              href={ctaHref}
+              initial={{ opacity: 0, scale: 0.9 }}
+              onClick={() =>
+                posthog?.capture("nav_cta_clicked", {
+                  cta_text: ctaText,
+                  location: "desktop",
+                })
+              }
+              style={styles.button}
+              whileHover={{ backgroundColor: "#715eec" }}
+            >
+              {ctaText}
+            </motion.a>
+          )}
           <button
             aria-controls="site-mobile-nav"
             aria-expanded={isMobileMenuOpen}
@@ -421,47 +426,48 @@ export const Nav: React.FC<NavProps> = ({
                   </TransitionLink>
                 )
               )}
-              {isHome ? (
-                <a
-                  className="nav-focusable"
-                  href={ctaHref}
-                  onClick={(e) => {
-                    posthog?.capture("nav_cta_clicked", {
-                      cta_text: ctaText,
-                      location: "mobile",
-                    });
-                    handleMobileNavClick(ctaHref)(e);
-                  }}
-                  style={{
-                    ...styles.button,
-                    fontSize: "0.75rem",
-                    textAlign: "center",
-                    width: "100%",
-                  }}
-                >
-                  {ctaText}
-                </a>
-              ) : (
-                <TransitionLink
-                  className="nav-focusable"
-                  onClick={() => {
-                    posthog?.capture("nav_cta_clicked", {
-                      cta_text: ctaText,
-                      location: "mobile",
-                    });
-                    handleMobileSectionLinkClose();
-                  }}
-                  style={{
-                    ...styles.button,
-                    fontSize: "0.75rem",
-                    textAlign: "center",
-                    width: "100%",
-                  }}
-                  to={{ hash: ctaHref, pathname: "/" }}
-                >
-                  {ctaText}
-                </TransitionLink>
-              )}
+              {!hideCta &&
+                (isHome ? (
+                  <a
+                    className="nav-focusable"
+                    href={ctaHref}
+                    onClick={(e) => {
+                      posthog?.capture("nav_cta_clicked", {
+                        cta_text: ctaText,
+                        location: "mobile",
+                      });
+                      handleMobileNavClick(ctaHref)(e);
+                    }}
+                    style={{
+                      ...styles.button,
+                      fontSize: "0.75rem",
+                      textAlign: "center",
+                      width: "100%",
+                    }}
+                  >
+                    {ctaText}
+                  </a>
+                ) : (
+                  <TransitionLink
+                    className="nav-focusable"
+                    onClick={() => {
+                      posthog?.capture("nav_cta_clicked", {
+                        cta_text: ctaText,
+                        location: "mobile",
+                      });
+                      handleMobileSectionLinkClose();
+                    }}
+                    style={{
+                      ...styles.button,
+                      fontSize: "0.75rem",
+                      textAlign: "center",
+                      width: "100%",
+                    }}
+                    to={{ hash: ctaHref, pathname: "/" }}
+                  >
+                    {ctaText}
+                  </TransitionLink>
+                ))}
             </div>
           </motion.div>
         )}

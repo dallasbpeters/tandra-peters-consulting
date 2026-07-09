@@ -1,8 +1,10 @@
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type { GeoJSONSource, MapMouseEvent } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 const MAP_STYLE = "mapbox://styles/mapbox/streets-v12";
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
@@ -15,6 +17,14 @@ const ZONE_LINE = "#073320";
 const ACTIVE_ZONE_FILL = "#f2a63d";
 const EARTH_RADIUS_MILES = 3958.8;
 const ZONE_CIRCLE_SEGMENTS = 72;
+
+// mapbox-gl's typed event map does not include mapbox-gl-draw's "draw.*" events.
+interface MapboxDrawEvented {
+  on: (
+    type: string,
+    listener: (event: { features?: GeoJSON.Feature[] }) => void
+  ) => void;
+}
 
 interface TractPolygon {
   coordinates: number[][][];
@@ -51,6 +61,8 @@ export interface DeskAreaMapZone {
   latitude: number;
   longitude: number;
   mailPieces: number;
+  /** Hand-drawn outline ([lng, lat] ring). When set, the map draws this instead of a radius circle. */
+  polygon?: readonly [number, number][];
   radiusMiles: number;
   selected: boolean;
   targetCount: number;
@@ -61,9 +73,18 @@ export interface DeskAreaMapZonePoint {
   longitude: number;
 }
 
+export interface DeskAreaMapFocusZone {
+  latitude: number;
+  longitude: number;
+  radiusMiles: number;
+}
+
 interface DeskAreaMapProps {
+  drawMode?: boolean;
   focusIds?: readonly string[];
+  focusZone?: DeskAreaMapFocusZone | null;
   onCreateZone?: (point: DeskAreaMapZonePoint) => void;
+  onDrawZone?: (ring: [number, number][]) => void;
   onToggleSelect?: (id: string) => void;
   selectedIds?: readonly string[];
   targets: readonly DeskAreaMapTarget[];
@@ -183,12 +204,28 @@ const zoneCircleCoordinates = (zone: DeskAreaMapZone): GeoJSON.Position[][] => [
   ),
 ];
 
+const zoneRingCoordinates = (zone: DeskAreaMapZone): GeoJSON.Position[][] => {
+  if (zone.polygon && zone.polygon.length >= 3) {
+    const ring: GeoJSON.Position[] = zone.polygon.map(([lng, lat]) => [
+      lng,
+      lat,
+    ]);
+    const [firstLng, firstLat] = ring[0];
+    const [lastLng, lastLat] = ring.at(-1) ?? ring[0];
+    if (firstLng !== lastLng || firstLat !== lastLat) {
+      ring.push([firstLng, firstLat]);
+    }
+    return [ring];
+  }
+  return zoneCircleCoordinates(zone);
+};
+
 const toZoneGeoJson = (
   zones: readonly DeskAreaMapZone[]
 ): GeoJSON.FeatureCollection<GeoJSON.Polygon, DeskAreaMapZoneProperties> => ({
   features: zones.map((zone) => ({
     geometry: {
-      coordinates: zoneCircleCoordinates(zone),
+      coordinates: zoneRingCoordinates(zone),
       type: "Polygon",
     },
     properties: {
@@ -409,17 +446,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const hideGestureBlockers = (container: HTMLElement): void => {
-  const blockers = container.querySelectorAll<HTMLElement>(
-    ".mapboxgl-scroll-zoom-blocker, .mapboxgl-touch-pan-blocker"
-  );
-  for (const blocker of blockers) {
-    blocker.setAttribute("aria-hidden", "true");
-    blocker.setAttribute("role", "presentation");
-    blocker.style.display = "none";
-  }
-};
-
 const resizeMapToContainer = (map: mapboxgl.Map): void => {
   window.requestAnimationFrame(() => {
     map.resize();
@@ -427,8 +453,11 @@ const resizeMapToContainer = (map: mapboxgl.Map): void => {
 };
 
 export const DeskAreaMap = ({
+  drawMode = false,
   focusIds,
+  focusZone,
   onCreateZone,
+  onDrawZone,
   onToggleSelect,
   selectedIds,
   targets,
@@ -437,11 +466,14 @@ export const DeskAreaMap = ({
 }: DeskAreaMapProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const onCreateZoneRef = useRef(onCreateZone);
+  const onDrawZoneRef = useRef(onDrawZone);
   const onToggleRef = useRef(onToggleSelect);
   const readyRef = useRef(false);
   const zoneModeRef = useRef(zoneMode);
+  const drawModeRef = useRef(drawMode);
 
   const selectedSet = useMemo(() => new Set(selectedIds ?? []), [selectedIds]);
 
@@ -469,12 +501,41 @@ export const DeskAreaMap = ({
   }, [onCreateZone]);
 
   useEffect(() => {
+    onDrawZoneRef.current = onDrawZone;
+  }, [onDrawZone]);
+
+  useEffect(() => {
     zoneModeRef.current = zoneMode;
     const map = mapRef.current;
     if (map) {
       map.getCanvas().style.cursor = zoneMode ? "crosshair" : "";
+      // Guarantee the drawing buffer matches the container the instant the user
+      // starts placing zones, so clicks unproject to the exact spot clicked.
+      if (zoneMode) {
+        map.resize();
+      }
     }
   }, [zoneMode]);
+
+  // Toggle the polygon draw tool. Kept separate from the radius-click zone mode;
+  // the two are mutually exclusive from the parent.
+  useEffect(() => {
+    drawModeRef.current = drawMode;
+    const map = mapRef.current;
+    const draw = drawRef.current;
+    if (!(map && draw && readyRef.current)) {
+      return;
+    }
+    if (drawMode) {
+      map.resize();
+      draw.changeMode("draw_polygon");
+      map.getCanvas().style.cursor = "crosshair";
+    } else {
+      draw.deleteAll();
+      draw.changeMode("simple_select");
+      map.getCanvas().style.cursor = zoneModeRef.current ? "crosshair" : "";
+    }
+  }, [drawMode]);
 
   useEffect(() => {
     pointRef.current = pointData;
@@ -483,21 +544,12 @@ export const DeskAreaMap = ({
     zoneRef.current = zoneData;
   }, [pointData, polygonData, targets, zoneData]);
 
-  const createZoneFromClick = useCallback((event: MapMouseEvent): boolean => {
-    if (!zoneModeRef.current) {
-      return false;
-    }
-    onCreateZoneRef.current?.({
-      latitude: event.lngLat.lat,
-      longitude: event.lngLat.lng,
-    });
-    return true;
-  }, []);
-
+  // Zone creation runs only through the single global map click below so one
+  // click always makes exactly one zone — even when it lands on a target
+  // (whose fill + dot layer handlers would otherwise each fire again).
   const handleFillClick = useCallback(
     (event: MapMouseEvent & { features?: GeoJSON.Feature[] }) => {
-      if (createZoneFromClick(event)) {
-        event.preventDefault();
+      if (zoneModeRef.current || drawModeRef.current) {
         return;
       }
       const id = event.features?.[0]?.properties?.id;
@@ -505,18 +557,18 @@ export const DeskAreaMap = ({
         onToggleRef.current?.(id);
       }
     },
-    [createZoneFromClick]
+    []
   );
 
-  const handleMapClick = useCallback(
-    (event: MapMouseEvent) => {
-      if (event.defaultPrevented) {
-        return;
-      }
-      createZoneFromClick(event);
-    },
-    [createZoneFromClick]
-  );
+  const handleMapClick = useCallback((event: MapMouseEvent) => {
+    if (drawModeRef.current || !zoneModeRef.current) {
+      return;
+    }
+    onCreateZoneRef.current?.({
+      latitude: event.lngLat.lat,
+      longitude: event.lngLat.lng,
+    });
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -528,11 +580,12 @@ export const DeskAreaMap = ({
       attributionControl: false,
       center: DEFAULT_CENTER,
       container,
-      cooperativeGestures: false,
+      // Require ⌘/Ctrl + scroll (or two-finger) to zoom so scrolling the page
+      // past this tall map doesn't hijack into a jarring zoom.
+      cooperativeGestures: true,
       style: MAP_STYLE,
       zoom: 6.6,
     });
-    hideGestureBlockers(container);
     mapRef.current = map;
     const observer = new ResizeObserver(() => resizeMapToContainer(map));
     observer.observe(container);
@@ -588,11 +641,32 @@ export const DeskAreaMap = ({
       popup.remove();
     };
 
+    const draw = new MapboxDraw({
+      controls: {},
+      displayControlsDefault: false,
+    });
+    const handleDrawCreate = (event: { features?: GeoJSON.Feature[] }) => {
+      const feature = event.features?.[0];
+      if (feature?.geometry?.type === "Polygon") {
+        const ring = feature.geometry.coordinates[0] as [number, number][];
+        onDrawZoneRef.current?.(ring.map(([lng, lat]) => [lng, lat]));
+      }
+      // We persist and render zones through our own layers, so clear the
+      // transient draw feature immediately after capturing its shape.
+      draw.deleteAll();
+    };
+
     map.on("load", () => {
-      hideGestureBlockers(container);
+      // Match the drawing buffer to the container BEFORE fitting/interacting.
+      // Otherwise a stale (too-short) buffer makes clicks unproject too far
+      // south, so new zones land at the bottom of the map.
+      map.resize();
       addTargetLayers(map, pointRef.current, polygonRef.current);
       addZoneLayers(map, zoneRef.current);
       fitTo(map, targetsRef.current, 0);
+      map.addControl(draw);
+      drawRef.current = draw;
+      (map as unknown as MapboxDrawEvented).on("draw.create", handleDrawCreate);
       readyRef.current = true;
       map.on("click", handleMapClick);
       map.on("click", "desk-area-target-fill", handleFillClick);
@@ -605,12 +679,19 @@ export const DeskAreaMap = ({
       map.on("mouseleave", "desk-area-target-dot", onLeave);
     });
 
+    // Catch late layout shifts (font swaps, scrollbar, sticky settle) that the
+    // ResizeObserver misses because the container's box size never changes.
+    map.once("idle", () => map.resize());
+    const lateResize = window.setTimeout(() => map.resize(), 300);
+
     return () => {
       readyRef.current = false;
+      window.clearTimeout(lateResize);
       observer.disconnect();
       popup.remove();
       map.remove();
       mapRef.current = null;
+      drawRef.current = null;
       popupRef.current = null;
     };
   }, [handleFillClick, handleMapClick]);
@@ -654,6 +735,28 @@ export const DeskAreaMap = ({
       fitTo(map, focused, 600);
     }
   }, [focusIds]);
+
+  // Frame just the small zone circle (not its parent neighborhood polygon), so
+  // reopening a zone gently centers on the clicked spot instead of yanking the
+  // camera out to the whole tract.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!(map && readyRef.current && focusZone)) {
+      return;
+    }
+    const bounds = new mapboxgl.LngLatBounds();
+    for (const bearing of [0, 90, 180, 270]) {
+      bounds.extend(
+        zoneCirclePoint(
+          focusZone.longitude,
+          focusZone.latitude,
+          focusZone.radiusMiles,
+          bearing
+        )
+      );
+    }
+    map.fitBounds(bounds, { duration: 600, maxZoom: 15, padding: 72 });
+  }, [focusZone]);
 
   if (!MAPBOX_TOKEN) {
     return (

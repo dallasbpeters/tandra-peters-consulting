@@ -6,6 +6,7 @@ export {
   roofValueSettingsType,
   stormSpotSettingsType,
   tandraIntroSettingsType,
+  whiteboardExplainerSettingsType,
 } from "./adCompositionSettings";
 export { adCreativeVersionType } from "./adCreativeVersion";
 export { aiContextType } from "./aiContext";

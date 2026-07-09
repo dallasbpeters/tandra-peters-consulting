@@ -2,6 +2,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Plugin } from "vite";
 
+import {
+  createTestPostcard,
+  verifyProviderConnection,
+} from "../api/lib/desk-direct-mail-connect.js";
 import { prepareDirectMailBatch } from "../api/lib/desk-direct-mail.js";
 import { parseGoogleIdToken } from "../api/lib/google-auth";
 import { readRequestBody } from "./request-body";
@@ -58,6 +62,7 @@ const exposeEnv = (env: Record<string, string>): void => {
     "RENTCAST_API_KEY",
     "DIRECT_MAIL_PROVIDER",
     "DIRECT_MAIL_SEND_ENABLED",
+    "STANNP_API_KEY",
     "LOB_API_KEY",
     "LOB_FROM_ADDRESS_ID",
     "CLICK2MAIL_USERNAME",
@@ -116,9 +121,30 @@ const handleDeskDirectMailRequest = async (
   }
 
   exposeEnv(env);
-  const result = await prepareDirectMailBatch(
-    parseJson(await readRequestBody(req))
-  );
+  const body = parseJson(await readRequestBody(req));
+  const action = typeof body.action === "string" ? body.action : "plan";
+  const providerKey = typeof body.provider === "string" ? body.provider : "";
+  const optionalString = (value: unknown): string | undefined =>
+    typeof value === "string" && value.trim() ? value : undefined;
+
+  if (action === "verify") {
+    const connection = await verifyProviderConnection(providerKey);
+    json(res, 200, { connection, ok: true });
+    return;
+  }
+  if (action === "test") {
+    const proof = await createTestPostcard({
+      back: optionalString(body.back),
+      front: optionalString(body.front),
+      message: optionalString(body.message),
+      providerKey,
+      size: optionalString(body.size),
+    });
+    json(res, 200, { ok: proof.ok, proof });
+    return;
+  }
+
+  const result = await prepareDirectMailBatch(body);
   json(res, result.status, result.body);
 };
 

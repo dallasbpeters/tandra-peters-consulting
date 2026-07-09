@@ -125,6 +125,205 @@ const helpingLogoFields: EditorSection = {
 };
 
 export const SCHEMAS: Record<string, EditorSchema> = {
+  "whiteboard-explainer": [
+    {
+      fields: [
+        { key: "accentColor", label: "Accent color (hex)", type: "text" },
+        {
+          key: "backgroundColor",
+          label: "Background color (hex)",
+          type: "text",
+        },
+        { key: "inkColor", label: "Ink color (hex)", type: "text" },
+        { key: "showHand", label: "Show hand/marker cursor", type: "boolean" },
+        {
+          key: "handVideoSrc",
+          label: "Hand video URL (VP9+alpha WebM, black bg removed)",
+          type: "text",
+        },
+        {
+          key: "handSrc",
+          label: "Hand PNG URL (marker-tip-facing-left, transparent bg)",
+          type: "text",
+        },
+        {
+          key: "handTipXRatio",
+          label: "Marker tip X position in image (0–1, default 0.14)",
+          type: "number",
+        },
+        {
+          key: "handTipYRatio",
+          label: "Marker tip Y position in image (0–1, default 0.78)",
+          type: "number",
+        },
+        {
+          key: "voiceId",
+          label: "ElevenLabs voice ID (Tandra's cloned voice)",
+          type: "text",
+        },
+      ],
+      key: "style",
+      label: "Style & Voice",
+    },
+    {
+      fields: [
+        { key: "scenes.0.type", label: "Scene 1 type", type: "text" },
+        {
+          key: "scenes.0.headline",
+          label: "Scene 1 headline",
+          type: "textarea",
+        },
+        { key: "scenes.0.eyebrow", label: "Scene 1 eyebrow", type: "text" },
+        { key: "scenes.0.subtitle", label: "Scene 1 subtitle", type: "text" },
+        {
+          key: "scenes.0.narration.script",
+          label: "Narration script",
+          type: "textarea",
+        },
+        {
+          key: "scenes.0.narration.audioUrl",
+          label: "Audio URL (generated)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.0.illustrationUrl",
+          label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+      ],
+      key: "scene0",
+      label: "Scene 1 — Title",
+    },
+    {
+      fields: [
+        { key: "scenes.1.heading", label: "Heading", type: "text" },
+        { key: "scenes.1.bullets.0", label: "Bullet 1", type: "text" },
+        { key: "scenes.1.bullets.1", label: "Bullet 2", type: "text" },
+        { key: "scenes.1.bullets.2", label: "Bullet 3", type: "text" },
+        {
+          key: "scenes.1.useCheckboxes",
+          label: "Use checkboxes",
+          type: "boolean",
+        },
+        {
+          key: "scenes.1.narration.script",
+          label: "Narration script",
+          type: "textarea",
+        },
+        {
+          key: "scenes.1.narration.audioUrl",
+          label: "Audio URL (generated)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.1.illustrationUrl",
+          label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+      ],
+      key: "scene1",
+      label: "Scene 2 — Bullets",
+    },
+    {
+      fields: [
+        {
+          key: "scenes.2.label",
+          label: "Label (e.g. 'Did You Know?')",
+          type: "text",
+        },
+        { key: "scenes.2.stat", label: "Big stat / number", type: "text" },
+        { key: "scenes.2.body", label: "Body text", type: "textarea" },
+        { key: "scenes.2.emphasis", label: "Emphasis line", type: "text" },
+        {
+          key: "scenes.2.narration.script",
+          label: "Narration script",
+          type: "textarea",
+        },
+        {
+          key: "scenes.2.narration.audioUrl",
+          label: "Audio URL (generated)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.2.illustrationUrl",
+          label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+      ],
+      key: "scene2",
+      label: "Scene 3 — Callout",
+    },
+    {
+      fields: [
+        { key: "scenes.3.heading", label: "Heading", type: "text" },
+        { key: "scenes.3.steps.0.label", label: "Step 1 label", type: "text" },
+        {
+          key: "scenes.3.steps.0.detail",
+          label: "Step 1 detail",
+          type: "text",
+        },
+        { key: "scenes.3.steps.1.label", label: "Step 2 label", type: "text" },
+        {
+          key: "scenes.3.steps.1.detail",
+          label: "Step 2 detail",
+          type: "text",
+        },
+        { key: "scenes.3.steps.2.label", label: "Step 3 label", type: "text" },
+        {
+          key: "scenes.3.steps.2.detail",
+          label: "Step 3 detail",
+          type: "text",
+        },
+        {
+          key: "scenes.3.narration.script",
+          label: "Narration script",
+          type: "textarea",
+        },
+        {
+          key: "scenes.3.narration.audioUrl",
+          label: "Audio URL (generated)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.3.illustrationUrl",
+          label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+      ],
+      key: "scene3",
+      label: "Scene 4 — Diagram",
+    },
+    {
+      fields: [
+        { key: "scenes.4.headline", label: "CTA headline", type: "textarea" },
+        {
+          key: "scenes.4.action",
+          label: "Action text (phone / URL)",
+          type: "text",
+        },
+        { key: "scenes.4.byline", label: "Byline", type: "text" },
+        { key: "scenes.4.badge", label: "Badge text", type: "text" },
+        {
+          key: "scenes.4.narration.script",
+          label: "Narration script",
+          type: "textarea",
+        },
+        {
+          key: "scenes.4.narration.audioUrl",
+          label: "Audio URL (generated)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.4.illustrationUrl",
+          label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+      ],
+      key: "scene4",
+      label: "Scene 5 — CTA",
+    },
+  ],
+
   CustomSlots: [
     {
       fields: [

@@ -310,6 +310,59 @@ const HELPING_TEXAS_DEFAULTS = {
   ],
 };
 
+export const WHITEBOARD_EXPLAINER_DEFAULTS = {
+  accentColor: "#1D4ED8",
+  backgroundColor: "#FAFAF7",
+  inkColor: "#1C1C1C",
+  scenes: [
+    {
+      durationInFrames: 120,
+      eyebrow: "Austin Area Homeowners",
+      headline: "Is your roof\nstorm damaged?",
+      subtitle: "Let me help you find out — for free.",
+      type: "title",
+    },
+    {
+      bullets: [
+        "Free roof inspection + photo report",
+        "Insurance claim guidance",
+        "Oversee repairs with Birdcreek crews",
+      ],
+      durationInFrames: 240,
+      heading: "What I do for you",
+      type: "bullets",
+      useCheckboxes: true,
+    },
+    {
+      body: "Austin roofs have undocumented hail damage right now.",
+      durationInFrames: 150,
+      emphasis: "Yours could be one of them.",
+      label: "The Reality",
+      stat: "1 in 3",
+      type: "callout",
+    },
+    {
+      durationInFrames: 240,
+      heading: "How it works",
+      steps: [
+        { detail: "Free roof assessment", label: "Inspect" },
+        { detail: "Photos + written report", label: "Document" },
+        { detail: "Insurance + repairs handled", label: "Navigate" },
+      ],
+      type: "diagram",
+    },
+    {
+      action: "Call or text: 512-968-3965",
+      badge: "No cost · No pressure",
+      byline: "Tandra Peters · Birdcreek Roofing",
+      durationInFrames: 150,
+      headline: "Get a free\ninspection today.",
+      type: "cta",
+    },
+  ],
+  showHand: true,
+};
+
 export const AD_COMPOSITION_DEFAULTS: Record<
   string,
   Record<string, unknown>
@@ -319,6 +372,7 @@ export const AD_COMPOSITION_DEFAULTS: Record<
   RoofScene: ROOF_SCENE_DEFAULTS,
   TandraRoofValue: ROOF_VALUE_DEFAULTS,
   TandraStormSpot: STORM_SPOT_DEFAULTS,
+  "whiteboard-explainer": WHITEBOARD_EXPLAINER_DEFAULTS,
 };
 
 export const isAdCompositionId = (id: string): boolean =>

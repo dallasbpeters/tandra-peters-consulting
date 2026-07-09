@@ -21,13 +21,19 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { DeskAreaMap } from "../components/desk-area-map";
-import type { DeskAreaMapZonePoint } from "../components/desk-area-map";
+import type {
+  DeskAreaMapFocusZone,
+  DeskAreaMapZonePoint,
+} from "../components/desk-area-map";
+import { PostcardPdfDownload } from "../components/desk/postcard-pdf";
+import type { PostcardSize } from "../components/desk/postcard-pdf";
 import { SitePageChrome } from "../components/site-page-chrome";
 import { TransitionLink } from "../components/transition-link";
 import { useGoogleDashboardAuth } from "../context/dashboard-auth-context";
 import { useAdVersions } from "../hooks/use-ad-versions";
 import type { AdCreativeVersion } from "../hooks/use-ad-versions";
 import { usePageMetadata } from "../hooks/use-page-metadata";
+import { buildQrDataUri } from "../lib/qr-code";
 import { layoutClass } from "../styles/layout-classes";
 
 import "../styles/desk.css";
@@ -204,14 +210,34 @@ interface CanvassTargetResponse {
 }
 
 interface DirectMailProviderOption {
+  approxCost: string;
+  canTestProof: boolean;
   fit: string;
   key: string;
   name: string;
   ready: boolean;
+  recommended: boolean;
   requiredEnv: string[];
   setupLabel: string;
   setupUrl: string;
   uploadMode: string;
+}
+
+interface ProviderConnectionResult {
+  accountLabel?: string;
+  configured: boolean;
+  message: string;
+  ok: boolean;
+  provider: string;
+  providerKey: string;
+}
+
+interface ProviderTestProofResult {
+  message: string;
+  ok: boolean;
+  proofUrl?: string;
+  provider: string;
+  providerKey: string;
 }
 
 interface DirectMailPlanResponse {
@@ -227,6 +253,7 @@ interface DirectMailPlanResponse {
     matchedProperties: number;
     neighborhoodsQueried: number;
     recipientReadyCount: number;
+    sampleAddresses: string[];
     status: "configured" | "missing-key" | "not-requested" | "unavailable";
   };
   requiredEnv: string[];
@@ -237,9 +264,12 @@ interface DirectMailPlanResponse {
 interface DeskTargetZone {
   createdAt: string;
   id: string;
+  kind: "circle" | "polygon";
   label: string;
   latitude: number;
   longitude: number;
+  /** Hand-drawn outline ([lng, lat] ring) for polygon zones. */
+  polygon?: [number, number][];
   radiusMiles: number;
   targetIds: string[];
 }
@@ -449,6 +479,89 @@ const postcardReturnAddressLines = [
   "{{return_address_city}}, {{return_address_state}} {{return_address_zip}}",
 ] as const;
 
+const POSTCARD_LANDING_PATH = "/estimate";
+const TRAILING_SLASH_RE = /\/+$/;
+
+/**
+ * Scan destination for the postcard QR. Always points at the production site
+ * (never localhost) so a printed proof resolves, and tags the source so scans
+ * are attributable in analytics.
+ */
+const postcardScanUrl = (
+  zone: DeskTargetZone | null,
+  batchName: string
+): string => {
+  const origin =
+    import.meta.env.VITE_SITE_URL?.trim().replace(TRAILING_SLASH_RE, "") ||
+    "https://www.tandra.me";
+  const source = (zone?.label ?? batchName ?? "").trim();
+  const campaign = source ? slugify(source) : "postcard";
+  const params = new URLSearchParams({
+    utm_campaign: campaign,
+    utm_medium: "direct_mail",
+    utm_source: "postcard",
+  });
+  return `${origin}${POSTCARD_LANDING_PATH}?${params.toString()}`;
+};
+
+interface PostcardBackCopy {
+  body: string;
+  cta: string;
+  headline: string;
+}
+
+const BACK_COPY_STORAGE_KEY = "desk-postcard-back-copy";
+const EMPTY_BACK_COPY: PostcardBackCopy = { body: "", cta: "", headline: "" };
+const DEFAULT_BACK_CTA = "Scan for a roof check or text 512-968-3965.";
+
+const defaultBackHeadline = (zoneName: string): string =>
+  `Roof age check for ${zoneName}`;
+
+const defaultBackBody = (roofAgePhrase: string): string =>
+  `I’m checking older roofs in this area this week. If your roof is ${roofAgePhrase}, I can take a look and explain what matters before you file anything.`;
+
+const loadBackCopy = (): PostcardBackCopy => {
+  if (typeof window === "undefined") {
+    return EMPTY_BACK_COPY;
+  }
+  try {
+    const raw = window.localStorage.getItem(BACK_COPY_STORAGE_KEY);
+    if (!raw) {
+      return EMPTY_BACK_COPY;
+    }
+    const parsed = JSON.parse(raw) as Partial<PostcardBackCopy>;
+    return {
+      body: typeof parsed.body === "string" ? parsed.body : "",
+      cta: typeof parsed.cta === "string" ? parsed.cta : "",
+      headline: typeof parsed.headline === "string" ? parsed.headline : "",
+    };
+  } catch {
+    return EMPTY_BACK_COPY;
+  }
+};
+
+const isBackCopyCustomized = (copy: PostcardBackCopy): boolean =>
+  Boolean(copy.headline.trim() || copy.body.trim() || copy.cta.trim());
+
+const rentcastPreviewNote = (
+  status: DirectMailPlanResponse["rentcast"]["status"]
+): string => {
+  switch (status) {
+    case "missing-key": {
+      return "Connect recipient matching (set RENTCAST_API_KEY) or upload a list to preview individual addresses.";
+    }
+    case "unavailable": {
+      return "These areas have no coordinates for address matching — upload a recipient list instead.";
+    }
+    case "not-requested": {
+      return "Prepare the batch to match individual mailing addresses.";
+    }
+    default: {
+      return "No single-family homes (built 2009 or earlier) matched inside these areas. Widen the zone or review the rules.";
+    }
+  }
+};
+
 const formatCurrencyValue = (value: number | null | undefined): string =>
   typeof value === "number" ? currencyFormatter.format(value) : "No data";
 
@@ -615,9 +728,124 @@ const averageValue = (
   );
 };
 
-const uniqueText = (values: readonly string[]): string[] => [
-  ...new Set(values.filter(Boolean)),
-];
+const zoneCircleAreaSqMiles = (radiusMiles: number): number =>
+  Math.PI * radiusMiles * radiusMiles;
+
+const METERS_PER_DEGREE_LAT = 111_320;
+const SQ_METERS_PER_SQ_MILE = 2_589_988.11;
+
+/** Approximate polygon area using a local equirectangular projection + shoelace. */
+const polygonAreaSqMiles = (ring: readonly [number, number][]): number => {
+  if (ring.length < 3) {
+    return 0;
+  }
+  const latRef = degreesToRadians(
+    ring.reduce((sum, [, lat]) => sum + lat, 0) / ring.length
+  );
+  const metersPerDegreeLng = METERS_PER_DEGREE_LAT * Math.cos(latRef);
+  let doubleArea = 0;
+  for (let index = 0; index < ring.length; index++) {
+    const [lng1, lat1] = ring[index];
+    const [lng2, lat2] = ring[(index + 1) % ring.length];
+    const x1 = lng1 * metersPerDegreeLng;
+    const y1 = lat1 * METERS_PER_DEGREE_LAT;
+    const x2 = lng2 * metersPerDegreeLng;
+    const y2 = lat2 * METERS_PER_DEGREE_LAT;
+    doubleArea += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(doubleArea) / 2 / SQ_METERS_PER_SQ_MILE;
+};
+
+/** Ray-casting point-in-polygon test against a [lng, lat] ring. */
+const pointInRing = (
+  lng: number,
+  lat: number,
+  ring: readonly [number, number][]
+): boolean => {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const crosses =
+      yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (crosses) {
+      inside = !inside;
+    }
+  }
+  return inside;
+};
+
+const ringCentroid = (
+  ring: readonly [number, number][]
+): DeskAreaMapZonePoint => {
+  const sum = ring.reduce(
+    (acc, [lng, lat]) => ({
+      latitude: acc.latitude + lat,
+      longitude: acc.longitude + lng,
+    }),
+    { latitude: 0, longitude: 0 }
+  );
+  return {
+    latitude: sum.latitude / ring.length,
+    longitude: sum.longitude / ring.length,
+  };
+};
+
+const targetsInPolygon = (
+  ring: readonly [number, number][],
+  targets: readonly DeskAreaTarget[]
+): DeskAreaTarget[] => {
+  const inside = targets.filter((target) =>
+    pointInRing(target.longitude, target.latitude, ring)
+  );
+  return inside.length > 0
+    ? inside
+    : closestTargets(ringCentroid(ring), targets);
+};
+
+const zoneFootprintSqMiles = (zone: DeskTargetZone): number =>
+  zone.kind === "polygon" && zone.polygon && zone.polygon.length >= 3
+    ? polygonAreaSqMiles(zone.polygon)
+    : zoneCircleAreaSqMiles(zone.radiusMiles);
+
+/**
+ * A zone snaps to whole neighborhoods, but it only mails the homes inside its
+ * small footprint. Scale each neighborhood's mailer count by how much of it the
+ * zone actually covers (footprint area ÷ neighborhood area) so the size changes
+ * the count — otherwise every zone inherits the full tract and always reads
+ * "too broad."
+ */
+const estimateMailPiecesForFootprint = (
+  footprintSqMiles: number,
+  zoneTargets: readonly DeskAreaTarget[]
+): number => {
+  const totalCount = zoneTargets.reduce(
+    (sum, target) => sum + target.recommendedMailerCount,
+    0
+  );
+  const totalArea = zoneTargets.reduce(
+    (sum, target) =>
+      sum +
+      (typeof target.squareMiles === "number" && target.squareMiles > 0
+        ? target.squareMiles
+        : 0),
+    0
+  );
+  if (totalArea <= 0) {
+    return totalCount;
+  }
+  const density = totalCount / totalArea;
+  return Math.min(
+    totalCount,
+    Math.max(1, Math.round(density * footprintSqMiles))
+  );
+};
+
+const zoneMailPieceEstimate = (
+  zone: DeskTargetZone,
+  zoneTargets: readonly DeskAreaTarget[]
+): number =>
+  estimateMailPiecesForFootprint(zoneFootprintSqMiles(zone), zoneTargets);
 
 const zoneValidationFor = (
   zone: DeskTargetZone | null,
@@ -1126,94 +1354,14 @@ const validationMessageTone = (
   return "neutral";
 };
 
-const buildProviderPayload = ({
-  batchName,
-  plan,
-  selectedCreativeVersion,
-  selectedCreativeVersionSummary,
-  selectedMailPieces,
-  selectedTargets,
-  zone,
-}: {
-  batchName: string;
-  plan: DirectMailPlanResponse | null;
-  selectedCreativeVersion: AdCreativeVersion | null;
-  selectedCreativeVersionSummary: AdVersionSummary | null;
-  selectedMailPieces: number;
-  selectedTargets: readonly DeskAreaTarget[];
-  zone: DeskTargetZone | null;
-}) => {
-  const neighborhoodNames = uniqueText(
-    selectedTargets.map((target) => target.neighborhoodLabel)
-  );
-  const postalCodes = uniqueText(
-    selectedTargets.map((target) => target.postalCode)
-  );
-  const averageHomeAge = averageValue(
-    selectedTargets.map((target) => target.medianHomeAge)
-  );
-  return {
-    campaign: {
-      estimatedPieces: plan?.estimatedPieces ?? selectedMailPieces,
-      name: batchName || zone?.label || "Austin roof check postcard test",
-      provider: plan?.providerKey ?? "choose-provider",
-      sendEnabled: Boolean(plan?.sendEnabled),
-    },
-    creative: {
-      format: "6x9 postcard",
-      front: {
-        adVersionId: selectedCreativeVersion?.id,
-        dimensions: selectedCreativeVersionSummary?.dimensions,
-        export:
-          selectedCreativeVersion === null
-            ? "Select a saved Ad Builder version before uploading to print."
-            : "Export this saved Ad Builder version as the postcard front PDF.",
-        headline: selectedCreativeVersionSummary?.headline,
-        name: selectedCreativeVersion?.name,
-        source: selectedCreativeVersion
-          ? "Sanity adCreativeVersion"
-          : "not-selected",
-      },
-      back: {
-        callToAction: "Scan for a roof check or text 512-968-3965.",
-        message:
-          "I’m checking older roofs in {{zone_name}} this week. If your roof is 15+ years old or recent weather has you wondering, I can take a look and explain what matters before you file anything.",
-        postageArea: "Provider postage or indicia block",
-        recipientAddressBlock: [
-          "{{recipient_full_name}}",
-          "{{mailing_address_line1}}",
-          "{{mailing_address_line2}}",
-          "{{mailing_city}}, {{mailing_state}} {{mailing_zip}}",
-        ],
-        returnAddressBlock: postcardReturnAddressLines,
-        trackingUrl:
-          "https://www.tandra.me/estimate?utm_source=postcard&utm_medium=direct_mail&utm_campaign={{campaign_id}}",
-      },
-    },
-    recipientSource: {
-      fallback: "Upload a reviewed CSV if API matching is not connected.",
-      matchMode: "Owner mailing addresses around clicked zone",
-      rentcastStatus: plan?.rentcast.status ?? "not-requested",
-    },
-    target: {
-      averageHomeAge,
-      center: zone
-        ? { latitude: zone.latitude, longitude: zone.longitude }
-        : undefined,
-      neighborhoods: neighborhoodNames,
-      postalCodes,
-      radiusMiles: zone?.radiusMiles,
-      zoneId: zone?.id,
-      zoneName: zone?.label ?? batchName,
-    },
-  };
-};
-
 const ZoneBuilderPanel = ({
   activeZone,
+  isDrawMode,
   isZoneMode,
+  onDeleteZone,
   onOpenZone,
   onRadiusChange,
+  onToggleDrawMode,
   onToggleZoneMode,
   onValidate,
   radiusMiles,
@@ -1221,9 +1369,12 @@ const ZoneBuilderPanel = ({
   zones,
 }: {
   activeZone: DeskTargetZone | null;
+  isDrawMode: boolean;
   isZoneMode: boolean;
+  onDeleteZone: (id: string) => void;
   onOpenZone: (zone: DeskTargetZone) => void;
   onRadiusChange: (value: string) => void;
+  onToggleDrawMode: () => void;
   onToggleZoneMode: () => void;
   onValidate: () => void;
   radiusMiles: number;
@@ -1234,20 +1385,30 @@ const ZoneBuilderPanel = ({
     <div className="desk-zone-builder__header">
       <div>
         <span>Small zone builder</span>
-        <strong>Click a street cluster, not a whole neighborhood.</strong>
+        <strong>Drop a quick radius or draw the exact streets.</strong>
       </div>
-      <WaButton
-        appearance="plain"
-        className={isZoneMode ? "desk-primary-link" : "desk-action-button"}
-        onClick={onToggleZoneMode}
-      >
-        {isZoneMode ? "Clicking map" : "Create zone"}
-      </WaButton>
+      <div className="desk-zone-builder__modes">
+        <WaButton
+          appearance="plain"
+          className={isZoneMode ? "desk-primary-link" : "desk-action-button"}
+          onClick={onToggleZoneMode}
+        >
+          {isZoneMode ? "Clicking map" : "Radius zone"}
+        </WaButton>
+        <WaButton
+          appearance="plain"
+          className={isDrawMode ? "desk-primary-link" : "desk-action-button"}
+          onClick={onToggleDrawMode}
+        >
+          {isDrawMode ? "Drawing…" : "Draw polygon"}
+        </WaButton>
+      </div>
     </div>
     <label className="desk-zone-radius">
       <span>Radius</span>
       <WaSelect
         appearance="outlined"
+        disabled={isDrawMode}
         onChange={(event) => onRadiusChange(waFieldValue(event))}
         size="small"
         value={String(radiusMiles)}
@@ -1259,6 +1420,12 @@ const ZoneBuilderPanel = ({
         ))}
       </WaSelect>
     </label>
+    {isDrawMode ? (
+      <p className="desk-zone-draw-hint">
+        Click to drop each corner around the streets you want, then click the
+        first point (or double-click) to close the shape.
+      </p>
+    ) : null}
     <div
       className={`desk-zone-validation desk-zone-validation--${validation.tone}`}
     >
@@ -1281,14 +1448,26 @@ const ZoneBuilderPanel = ({
     {zones.length > 0 ? (
       <ul className="desk-zone-list" aria-label="Clicked zones">
         {zones.map((zone) => (
-          <li key={zone.id}>
+          <li className="desk-zone-list__row" key={zone.id}>
             <button
               className={zone.id === activeZone?.id ? "is-active" : ""}
               onClick={() => onOpenZone(zone)}
               type="button"
             >
               <strong>{zone.label}</strong>
-              <span>{zone.radiusMiles} mi radius</span>
+              <span>
+                {zone.kind === "polygon"
+                  ? "Drawn outline"
+                  : `${zone.radiusMiles} mi radius`}
+              </span>
+            </button>
+            <button
+              aria-label={`Remove ${zone.label}`}
+              className="desk-zone-list__remove"
+              onClick={() => onDeleteZone(zone.id)}
+              type="button"
+            >
+              <Trash aria-hidden height={15} width={15} />
             </button>
           </li>
         ))}
@@ -1355,70 +1534,176 @@ const CreativeVersionSelector = ({
   </div>
 );
 
-const PostcardBackTemplate = ({
-  batchName,
+const CapturedAreasPreview = ({
   plan,
-  selectedCreativeVersion,
-  selectedMailPieces,
+  selectedTargets,
+}: {
+  plan: DirectMailPlanResponse | null;
+  selectedTargets: readonly DeskAreaTarget[];
+}) => {
+  const totalPieces = selectedTargets.reduce(
+    (sum, target) => sum + target.recommendedMailerCount,
+    0
+  );
+  const sampleAddresses = plan?.rentcast.sampleAddresses ?? [];
+  return (
+    <div className="desk-audience-preview">
+      <div className="desk-audience-preview__head">
+        <span>Addresses in this mailing</span>
+        <strong>
+          {formatNumber(selectedTargets.length)}{" "}
+          {selectedTargets.length === 1 ? "area" : "areas"} ·{" "}
+          {formatNumber(totalPieces)} homes
+        </strong>
+      </div>
+      <ul
+        aria-label="Captured mailing areas"
+        className="desk-audience-preview__areas"
+      >
+        {selectedTargets.map((target) => (
+          <li key={target.id}>
+            <span className="desk-audience-preview__area-name">
+              <strong>{neighborhoodLabelOf(target)}</strong>
+              <em>
+                {[
+                  target.mailingCity,
+                  target.postalCode,
+                  target.mailingRouteName,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </em>
+            </span>
+            <span className="desk-audience-preview__count">
+              {formatNumber(target.recommendedMailerCount)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {plan && sampleAddresses.length > 0 ? (
+        <details className="desk-audience-preview__addresses">
+          <summary>
+            {formatNumber(plan.rentcast.recipientReadyCount)} matched addresses
+            (showing {sampleAddresses.length})
+          </summary>
+          <ul>
+            {sampleAddresses.map((address) => (
+              <li key={address}>{address}</li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <p className="desk-audience-preview__note">
+          {plan
+            ? rentcastPreviewNote(plan.rentcast.status)
+            : "Prepare the batch to match individual mailing addresses inside these areas."}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const roofAgePhraseFor = (
+  selectedTargets: readonly DeskAreaTarget[]
+): string => {
+  const averageHomeAge = averageValue(
+    selectedTargets.map((target) => target.medianHomeAge)
+  );
+  return averageHomeAge
+    ? `around ${averageHomeAge} years old`
+    : "15+ years old";
+};
+
+const PostcardBackEditor = ({
+  batchName,
+  copy,
+  onChange,
+  onReset,
   selectedTargets,
   zone,
 }: {
   batchName: string;
-  plan: DirectMailPlanResponse | null;
-  selectedCreativeVersion: AdCreativeVersion | null;
-  selectedMailPieces: number;
+  copy: PostcardBackCopy;
+  onChange: (field: keyof PostcardBackCopy, value: string) => void;
+  onReset: () => void;
   selectedTargets: readonly DeskAreaTarget[];
   zone: DeskTargetZone | null;
 }) => {
-  const [copyStatus, setCopyStatus] = useState("");
-  const selectedCreativeVersionSummary = useMemo(
-    () => summarizeAdVersion(selectedCreativeVersion),
-    [selectedCreativeVersion]
-  );
-  const payload = useMemo(
-    () =>
-      buildProviderPayload({
-        batchName,
-        plan,
-        selectedCreativeVersion,
-        selectedCreativeVersionSummary,
-        selectedMailPieces,
-        selectedTargets,
-        zone,
-      }),
-    [
-      batchName,
-      plan,
-      selectedCreativeVersion,
-      selectedCreativeVersionSummary,
-      selectedMailPieces,
-      selectedTargets,
-      zone,
-    ]
-  );
-  const payloadText = useMemo(
-    () => JSON.stringify(payload, null, 2),
-    [payload]
-  );
   const zoneName = zone?.label ?? (batchName || "selected Austin area");
-  const averageHomeAge = averageValue(
-    selectedTargets.map((target) => target.medianHomeAge)
+  const roofAgePhrase = roofAgePhraseFor(selectedTargets);
+  const customized = isBackCopyCustomized(copy);
+  return (
+    <details className="desk-back-editor">
+      <summary>Edit back copy{customized ? " · customized" : ""}</summary>
+      <div className="desk-back-editor__fields">
+        <label className="desk-back-editor__field">
+          <span>Headline</span>
+          <input
+            onChange={(event) => onChange("headline", event.target.value)}
+            placeholder={defaultBackHeadline(zoneName)}
+            type="text"
+            value={copy.headline}
+          />
+        </label>
+        <label className="desk-back-editor__field">
+          <span>Message</span>
+          <textarea
+            onChange={(event) => onChange("body", event.target.value)}
+            placeholder={defaultBackBody(roofAgePhrase)}
+            rows={4}
+            value={copy.body}
+          />
+        </label>
+        <label className="desk-back-editor__field">
+          <span>Call to action</span>
+          <input
+            onChange={(event) => onChange("cta", event.target.value)}
+            placeholder={DEFAULT_BACK_CTA}
+            type="text"
+            value={copy.cta}
+          />
+        </label>
+        {customized ? (
+          <button
+            className="desk-action-button"
+            onClick={onReset}
+            type="button"
+          >
+            Reset to suggested copy
+          </button>
+        ) : (
+          <p className="desk-back-editor__hint">
+            Leave a field blank to use the suggested copy shown as placeholder
+            text. Changes save automatically.
+          </p>
+        )}
+      </div>
+    </details>
   );
-  const roofAgePhrase = averageHomeAge
-    ? `around ${averageHomeAge} years old`
-    : "15+ years old";
-  const copyPayload = async () => {
-    if (!navigator.clipboard) {
-      setCopyStatus("Clipboard is unavailable in this browser.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(payloadText);
-      setCopyStatus("Provider payload copied.");
-    } catch {
-      setCopyStatus("Could not copy payload.");
-    }
-  };
+};
+
+const PostcardBackTemplate = ({
+  batchName,
+  copy,
+  selectedCreativeVersion,
+  selectedTargets,
+  size,
+  zone,
+}: {
+  batchName: string;
+  copy: PostcardBackCopy;
+  selectedCreativeVersion: AdCreativeVersion | null;
+  selectedTargets: readonly DeskAreaTarget[];
+  size: PostcardSize;
+  zone: DeskTargetZone | null;
+}) => {
+  const zoneName = zone?.label ?? (batchName || "selected Austin area");
+  const roofAgePhrase = roofAgePhraseFor(selectedTargets);
+  const scanUrl = postcardScanUrl(zone, batchName);
+  const qrSrc = buildQrDataUri(scanUrl, "#123a34", "#ffffff");
+  const headline = copy.headline.trim() || defaultBackHeadline(zoneName);
+  const body = copy.body.trim() || defaultBackBody(roofAgePhrase);
+  const cta = copy.cta.trim() || DEFAULT_BACK_CTA;
 
   return (
     <div className="desk-postcard-template">
@@ -1431,13 +1716,9 @@ const PostcardBackTemplate = ({
               : "Address-ready back side for print upload."}
           </strong>
         </div>
-        <WaButton
-          appearance="plain"
-          className="desk-action-button"
-          onClick={copyPayload}
-        >
-          Copy provider payload
-        </WaButton>
+        <span className="desk-postcard-size-label">
+          {size === "4x6" ? '4" × 6"' : '6" × 9"'}
+        </span>
       </div>
       <div
         aria-label="Postcard back preview"
@@ -1451,15 +1732,13 @@ const PostcardBackTemplate = ({
         </div>
         <div className="desk-postcard-back__postage">postage / indicia</div>
         <div className="desk-postcard-back__message">
-          <strong>Roof age check for {zoneName}</strong>
-          <p>
-            I’m checking older roofs in this area this week. If your roof is{" "}
-            {roofAgePhrase}, I can take a look and explain what matters before
-            you file anything.
-          </p>
-          <span>Scan for a roof check or text 512-968-3965.</span>
+          <strong>{headline}</strong>
+          <p>{body}</p>
+          <span>{cta}</span>
         </div>
-        <div className="desk-postcard-back__qr">QR / pURL</div>
+        <div className="desk-postcard-back__qr">
+          <img alt={`QR code linking to ${scanUrl}`} src={qrSrc} />
+        </div>
         <address className="desk-postcard-back__recipient">
           <span>{"{{recipient_full_name}}"}</span>
           <span>{"{{mailing_address_line1}}"}</span>
@@ -1467,60 +1746,201 @@ const PostcardBackTemplate = ({
           <span>{"{{mailing_city}}, {{mailing_state}} {{mailing_zip}}"}</span>
         </address>
       </div>
-      <div className="desk-provider-payload">
-        <span>
-          {copyStatus ||
-            "Use this JSON as the upload/send handoff once provider keys are connected."}
-        </span>
-        <pre>{payloadText}</pre>
+      <div className="desk-postcard-template__actions">
+        <PostcardPdfDownload
+          batchName={batchName}
+          body={body}
+          cta={cta}
+          frontImageDataUri={selectedCreativeVersion?.thumbnail}
+          headline={headline}
+          qrDataUri={qrSrc}
+          size={size}
+        />
       </div>
     </div>
+  );
+};
+
+const ProviderNote = ({
+  ok,
+  text,
+  url,
+  urlLabel,
+}: {
+  ok: boolean;
+  text: string;
+  url?: string;
+  urlLabel?: string;
+}) => (
+  <p
+    className={`desk-provider-note desk-provider-note--${ok ? "good" : "error"}`}
+  >
+    {text}
+    {url ? (
+      <a href={url} rel="noopener noreferrer" target="_blank">
+        {urlLabel ?? "Open"}
+      </a>
+    ) : null}
+  </p>
+);
+
+const ProviderRow = ({
+  connection,
+  hasCreative,
+  isSelected,
+  onTestProof,
+  onUse,
+  onVerify,
+  proof,
+  provider,
+  testing,
+  verifying,
+}: {
+  connection: ProviderConnectionResult | null;
+  hasCreative: boolean;
+  isSelected: boolean;
+  onTestProof: (key: string) => void;
+  onUse: (key: string) => void;
+  onVerify: (key: string) => void;
+  proof: ProviderTestProofResult | null;
+  provider: DirectMailProviderOption;
+  testing: boolean;
+  verifying: boolean;
+}) => {
+  const showConnection = connection?.providerKey === provider.key;
+  const showProof = proof?.providerKey === provider.key;
+  return (
+    <li className={isSelected ? "is-selected" : ""}>
+      <div>
+        <strong>
+          {provider.name}
+          {provider.recommended ? (
+            <span className="desk-provider-badge">Recommended</span>
+          ) : null}
+        </strong>
+        <small>{provider.fit}</small>
+        <small>{provider.approxCost}</small>
+        <small>Upload: {provider.uploadMode}</small>
+        <em>{provider.ready ? "Connected" : "Setup needed"}</em>
+      </div>
+      <div className="desk-mail-plan__provider-actions">
+        <WaButton
+          appearance="plain"
+          className="desk-action-button"
+          disabled={verifying}
+          onClick={() => onVerify(provider.key)}
+        >
+          {verifying ? "Checking…" : "Test connection"}
+        </WaButton>
+        <WaButton
+          appearance="plain"
+          className="desk-action-button"
+          onClick={() => onUse(provider.key)}
+        >
+          {isSelected ? "Selected" : "Use this"}
+        </WaButton>
+        {provider.canTestProof ? (
+          <WaButton
+            appearance="plain"
+            className="desk-action-button"
+            disabled={testing || !hasCreative}
+            onClick={() => onTestProof(provider.key)}
+          >
+            {testing ? "Sending…" : "Send test proof"}
+          </WaButton>
+        ) : null}
+        {provider.setupUrl ? (
+          <a href={provider.setupUrl} rel="noopener noreferrer" target="_blank">
+            {provider.setupLabel}
+          </a>
+        ) : null}
+      </div>
+      {showConnection && connection ? (
+        <ProviderNote
+          ok={connection.ok}
+          text={
+            connection.accountLabel
+              ? `${connection.message} · ${connection.accountLabel}`
+              : connection.message
+          }
+        />
+      ) : null}
+      {showProof && proof ? (
+        <ProviderNote
+          ok={proof.ok}
+          text={proof.message}
+          url={proof.proofUrl}
+          urlLabel="View proof PDF"
+        />
+      ) : null}
+    </li>
   );
 };
 
 const DirectMailPlanPanel = ({
   adVersionsError,
   adVersionsLoading,
+  backCopy,
   batchName,
+  connection,
   creativeVersions,
   isPreparing,
+  onBackCopyChange,
+  onBackCopyReset,
   onPrepare,
   onSelectCreativeVersion,
+  onSizeChange,
+  onTestProof,
+  onVerify,
   plan,
+  proof,
   selectedCreativeVersion,
   selectedCount,
-  selectedMailPieces,
   selectedTargets,
+  size,
+  testingKey,
+  verifyingKey,
   zone,
 }: {
   adVersionsError: string | null;
   adVersionsLoading: boolean;
+  backCopy: PostcardBackCopy;
   batchName: string;
+  connection: ProviderConnectionResult | null;
   creativeVersions: readonly AdCreativeVersion[];
   isPreparing: boolean;
+  onBackCopyChange: (field: keyof PostcardBackCopy, value: string) => void;
+  onBackCopyReset: () => void;
   onPrepare: (provider?: string) => void;
   onSelectCreativeVersion: (id: string) => void;
+  onSizeChange: (size: PostcardSize) => void;
+  onTestProof: (key: string) => void;
+  onVerify: (key: string) => void;
   plan: DirectMailPlanResponse | null;
+  proof: ProviderTestProofResult | null;
   selectedCreativeVersion: AdCreativeVersion | null;
   selectedCount: number;
-  selectedMailPieces: number;
   selectedTargets: readonly DeskAreaTarget[];
+  size: PostcardSize;
+  testingKey: string | null;
+  verifyingKey: string | null;
   zone: DeskTargetZone | null;
 }) => {
   const hasSelection = selectedCount > 0;
   const selectedProviderKey = plan?.providerKey ?? "";
+  const hasCreative = selectedCreativeVersion !== null;
   return (
     <div className="desk-mail-plan">
       <div>
         <span>Mail batch</span>
         <strong>
           {hasSelection
-            ? "Prepare this zone for a print send."
+            ? "Prepare this zone, then connect a print/mail service."
             : "Create a zone first."}
         </strong>
         <p>
           {hasSelection
-            ? "Build a mailing count, household matching summary, and provider handoff notes for the selected area."
+            ? "Pick a service below, test the connection, and send a no-charge proof. Nothing mails live until sending is enabled."
             : "Turn on zone mode and click the map, or manually select areas from the list."}
         </p>
       </div>
@@ -1542,6 +1962,9 @@ const DirectMailPlanPanel = ({
         <Mail aria-hidden height={18} slot="start" width={18} />
         {isPreparing ? "Preparing..." : "Prepare mail batch"}
       </WaButton>
+      {hasSelection ? (
+        <CapturedAreasPreview plan={plan} selectedTargets={selectedTargets} />
+      ) : null}
       {plan ? (
         <div className="desk-mail-plan__result">
           <div>
@@ -1568,40 +1991,19 @@ const DirectMailPlanPanel = ({
               <span>Print/mail services</span>
               <ul>
                 {plan.providers.map((provider) => (
-                  <li
-                    className={
-                      provider.key === selectedProviderKey ? "is-selected" : ""
-                    }
+                  <ProviderRow
+                    connection={connection}
+                    hasCreative={hasCreative}
+                    isSelected={provider.key === selectedProviderKey}
                     key={provider.key}
-                  >
-                    <div>
-                      <strong>{provider.name}</strong>
-                      <small>{provider.fit}</small>
-                      <small>Auto-upload: {provider.uploadMode}</small>
-                      <em>{provider.ready ? "Connected" : "Setup needed"}</em>
-                    </div>
-                    <div className="desk-mail-plan__provider-actions">
-                      <WaButton
-                        appearance="plain"
-                        className="desk-action-button"
-                        disabled={isPreparing}
-                        onClick={() => onPrepare(provider.key)}
-                      >
-                        {provider.key === selectedProviderKey
-                          ? "Recheck"
-                          : "Use this"}
-                      </WaButton>
-                      {provider.setupUrl ? (
-                        <a
-                          href={provider.setupUrl}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          {provider.setupLabel}
-                        </a>
-                      ) : null}
-                    </div>
-                  </li>
+                    onTestProof={onTestProof}
+                    onUse={onPrepare}
+                    onVerify={onVerify}
+                    proof={proof}
+                    provider={provider}
+                    testing={testingKey === provider.key}
+                    verifying={verifyingKey === provider.key}
+                  />
                 ))}
               </ul>
             </div>
@@ -1609,14 +2011,39 @@ const DirectMailPlanPanel = ({
         </div>
       ) : null}
       {hasSelection ? (
-        <PostcardBackTemplate
-          batchName={batchName}
-          plan={plan}
-          selectedCreativeVersion={selectedCreativeVersion}
-          selectedMailPieces={selectedMailPieces}
-          selectedTargets={selectedTargets}
-          zone={zone}
-        />
+        <>
+          <PostcardBackEditor
+            batchName={batchName}
+            copy={backCopy}
+            onChange={onBackCopyChange}
+            onReset={onBackCopyReset}
+            selectedTargets={selectedTargets}
+            zone={zone}
+          />
+          <fieldset className="desk-postcard-size-picker">
+            <legend>Postcard size</legend>
+            {(["4x6", "6x9"] as const).map((s) => (
+              <label key={s}>
+                <input
+                  checked={size === s}
+                  name="postcard-size"
+                  onChange={() => onSizeChange(s)}
+                  type="radio"
+                  value={s}
+                />
+                {s === "4x6" ? '4" × 6"' : '6" × 9"'}
+              </label>
+            ))}
+          </fieldset>
+          <PostcardBackTemplate
+            batchName={batchName}
+            copy={backCopy}
+            selectedCreativeVersion={selectedCreativeVersion}
+            selectedTargets={selectedTargets}
+            size={size}
+            zone={zone}
+          />
+        </>
       ) : null}
     </div>
   );
@@ -1978,6 +2405,9 @@ const CanvassingPlanner = ({
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [focusIds, setFocusIds] = useState<string[]>([]);
+  const [focusZone, setFocusZone] = useState<DeskAreaMapFocusZone | null>(null);
+  const [backCopy, setBackCopy] = useState<PostcardBackCopy>(loadBackCopy);
+  const [postcardSize, setPostcardSize] = useState<PostcardSize>("6x9");
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -1987,11 +2417,18 @@ const CanvassingPlanner = ({
   const [zones, setZones] = useState<DeskTargetZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
   const [isZoneMode, setIsZoneMode] = useState(false);
+  const [isDrawMode, setIsDrawMode] = useState(false);
   const [zoneRadiusMiles, setZoneRadiusMiles] = useState(
     DEFAULT_ZONE_RADIUS_MILES
   );
   const [selectedCreativeVersionId, setSelectedCreativeVersionId] =
     useState("");
+  const [connection, setConnection] = useState<ProviderConnectionResult | null>(
+    null
+  );
+  const [proof, setProof] = useState<ProviderTestProofResult | null>(null);
+  const [verifyingKey, setVerifyingKey] = useState<string | null>(null);
+  const [testingKey, setTestingKey] = useState<string | null>(null);
 
   const targets = useMemo(() => intel?.targets ?? [], [intel]);
   const counties = useMemo(() => intel?.counties ?? [], [intel]);
@@ -2026,24 +2463,31 @@ const CanvassingPlanner = ({
       ) ?? null,
     [adVersions.versions, selectedCreativeVersionId]
   );
+  const zoneMailPieces = useMemo(() => {
+    if (!activeZone) {
+      return selectedMailPieces;
+    }
+    return zoneMailPieceEstimate(
+      activeZone,
+      selectedZoneTargets(activeZone, targets)
+    );
+  }, [activeZone, selectedMailPieces, targets]);
   const zoneValidation = useMemo(
-    () => zoneValidationFor(activeZone, selectedTargets, selectedMailPieces),
-    [activeZone, selectedMailPieces, selectedTargets]
+    () => zoneValidationFor(activeZone, selectedTargets, zoneMailPieces),
+    [activeZone, selectedTargets, zoneMailPieces]
   );
   const mapZones = useMemo(
     () =>
       zones.map((zone) => {
         const zoneTargets = selectedZoneTargets(zone, targets);
-        const mailPieces = zoneTargets.reduce(
-          (sum, target) => sum + target.recommendedMailerCount,
-          0
-        );
+        const mailPieces = zoneMailPieceEstimate(zone, zoneTargets);
         return {
           id: zone.id,
           label: zone.label,
           latitude: zone.latitude,
           longitude: zone.longitude,
           mailPieces,
+          polygon: zone.polygon,
           radiusMiles: zone.radiusMiles,
           selected: zone.id === activeZoneId,
           targetCount: zoneTargets.length,
@@ -2066,13 +2510,50 @@ const CanvassingPlanner = ({
       const ids = zoneTargets.map((target) => target.id);
       setActiveZoneId(zone.id);
       setSelectedIds(ids);
-      setFocusIds([...ids]);
+      setFocusZone({
+        latitude: zone.latitude,
+        longitude: zone.longitude,
+        radiusMiles: zone.radiusMiles,
+      });
       setName(zone.label);
       setMailPlan(null);
       setMessage(null);
     },
     [targets]
   );
+
+  const handleDeleteZone = useCallback(
+    (id: string) => {
+      setZones((current) => current.filter((zone) => zone.id !== id));
+      if (activeZoneId === id) {
+        setActiveZoneId(null);
+        setSelectedIds([]);
+        setFocusZone(null);
+        setName("");
+        setMailPlan(null);
+        setMessage(null);
+      }
+    },
+    [activeZoneId]
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      BACK_COPY_STORAGE_KEY,
+      JSON.stringify(backCopy)
+    );
+  }, [backCopy]);
+
+  const handleBackCopyChange = useCallback(
+    (field: keyof PostcardBackCopy, value: string) => {
+      setBackCopy((current) => ({ ...current, [field]: value }));
+    },
+    []
+  );
+
+  const handleBackCopyReset = useCallback(() => {
+    setBackCopy(EMPTY_BACK_COPY);
+  }, []);
 
   const handleCreateZone = useCallback(
     (point: DeskAreaMapZonePoint) => {
@@ -2081,6 +2562,7 @@ const CanvassingPlanner = ({
       const zone: DeskTargetZone = {
         createdAt: new Date().toISOString(),
         id: createZoneId(),
+        kind: "circle",
         label: zoneLabelFor(zoneTargets, zoneRadiusMiles),
         latitude: point.latitude,
         longitude: point.longitude,
@@ -2090,7 +2572,8 @@ const CanvassingPlanner = ({
       setZones((current) => [zone, ...current].slice(0, MAX_STORED_ZONES));
       setActiveZoneId(zone.id);
       setSelectedIds(targetIds);
-      setFocusIds([...targetIds]);
+      // Keep the camera on the spot the user clicked — do not refit to the
+      // matched targets' bounds, which yanks the map to a different center.
       setName(zone.label);
       setMailPlan(null);
       setMessage({
@@ -2103,6 +2586,51 @@ const CanvassingPlanner = ({
     },
     [targets, zoneRadiusMiles]
   );
+
+  const handleDrawZone = useCallback(
+    (ring: [number, number][]) => {
+      const zoneTargets = targetsInPolygon(ring, targets);
+      const targetIds = zoneTargets.map((target) => target.id);
+      const center = ringCentroid(ring);
+      // Equivalent radius keeps the camera-focus + circle fallbacks sensible.
+      const equivalentRadius = Math.sqrt(polygonAreaSqMiles(ring) / Math.PI);
+      const zone: DeskTargetZone = {
+        createdAt: new Date().toISOString(),
+        id: createZoneId(),
+        kind: "polygon",
+        label: `${zoneTargets[0]?.neighborhoodLabel ?? "Austin"} custom zone`,
+        latitude: center.latitude,
+        longitude: center.longitude,
+        polygon: ring,
+        radiusMiles: Math.max(0.05, Math.round(equivalentRadius * 100) / 100),
+        targetIds,
+      };
+      setZones((current) => [zone, ...current].slice(0, MAX_STORED_ZONES));
+      setActiveZoneId(zone.id);
+      setSelectedIds(targetIds);
+      setIsDrawMode(false);
+      setName(zone.label);
+      setMailPlan(null);
+      setMessage({
+        text:
+          targetIds.length > 0
+            ? "Zone drawn. Validate it before sending."
+            : "No mapped mail targets fell inside that outline.",
+        tone: targetIds.length > 0 ? "success" : "error",
+      });
+    },
+    [targets]
+  );
+
+  const toggleZoneMode = useCallback(() => {
+    setIsDrawMode(false);
+    setIsZoneMode((current) => !current);
+  }, []);
+
+  const toggleDrawMode = useCallback(() => {
+    setIsZoneMode(false);
+    setIsDrawMode((current) => !current);
+  }, []);
 
   const handleRadiusChange = useCallback((value: string) => {
     const nextRadius = Number(value);
@@ -2134,7 +2662,7 @@ const CanvassingPlanner = ({
       id: editingId ?? undefined,
       name,
       neighborhoods: selectedTargets.map(targetToSnapshot),
-      notes: zoneNotes(activeZone, selectedMailPieces),
+      notes: zoneNotes(activeZone, zoneMailPieces),
     });
     setIsSaving(false);
     if (result.ok) {
@@ -2156,8 +2684,8 @@ const CanvassingPlanner = ({
     name,
     resetForm,
     saveTarget,
-    selectedMailPieces,
     selectedTargets,
+    zoneMailPieces,
   ]);
 
   const handlePrepareMail = useCallback(
@@ -2228,6 +2756,83 @@ const CanvassingPlanner = ({
     [activeZone, authHeader, name, selectedCreativeVersion, selectedTargets]
   );
 
+  const handleVerifyProvider = useCallback(
+    async (providerKey: string) => {
+      setVerifyingKey(providerKey);
+      setConnection(null);
+      try {
+        const response = await fetch("/api/desk-direct-mail", {
+          body: JSON.stringify({ action: "verify", provider: providerKey }),
+          headers: { ...authHeader, "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const body = (await response.json()) as {
+          connection?: ProviderConnectionResult;
+        };
+        setConnection(
+          body.connection ?? {
+            configured: false,
+            message: "The connection check returned nothing.",
+            ok: false,
+            provider: providerKey,
+            providerKey,
+          }
+        );
+      } catch {
+        setConnection({
+          configured: false,
+          message: "Could not reach the connection check.",
+          ok: false,
+          provider: providerKey,
+          providerKey,
+        });
+      } finally {
+        setVerifyingKey(null);
+      }
+    },
+    [authHeader]
+  );
+
+  const handleTestProof = useCallback(
+    async (providerKey: string) => {
+      setTestingKey(providerKey);
+      setProof(null);
+      try {
+        const response = await fetch("/api/desk-direct-mail", {
+          body: JSON.stringify({
+            action: "test",
+            front: selectedCreativeVersion?.thumbnail,
+            provider: providerKey,
+            size: postcardSize,
+          }),
+          headers: { ...authHeader, "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const body = (await response.json()) as {
+          proof?: ProviderTestProofResult;
+        };
+        setProof(
+          body.proof ?? {
+            message: "The test proof service returned nothing.",
+            ok: false,
+            provider: providerKey,
+            providerKey,
+          }
+        );
+      } catch {
+        setProof({
+          message: "Could not reach the test proof service.",
+          ok: false,
+          provider: providerKey,
+          providerKey,
+        });
+      } finally {
+        setTestingKey(null);
+      }
+    },
+    [authHeader, selectedCreativeVersion]
+  );
+
   const openTarget = useCallback((target: CanvassTargetRecord) => {
     const ids = target.neighborhoods
       .map((item) => item.tractFips)
@@ -2282,8 +2887,11 @@ const CanvassingPlanner = ({
 
       <div className="desk-area-intel__layout">
         <DeskAreaMap
+          drawMode={isDrawMode}
           focusIds={focusIds}
+          focusZone={focusZone}
           onCreateZone={handleCreateZone}
+          onDrawZone={handleDrawZone}
           onToggleSelect={toggleSelect}
           selectedIds={selectedIds}
           targets={targets}
@@ -2298,17 +2906,20 @@ const CanvassingPlanner = ({
               <span>selected</span>
             </div>
             <div>
-              <strong>{formatNumber(selectedMailPieces)}</strong>
+              <strong>{formatNumber(zoneMailPieces)}</strong>
               <span>mail pieces</span>
             </div>
           </div>
 
           <ZoneBuilderPanel
             activeZone={activeZone}
+            isDrawMode={isDrawMode}
             isZoneMode={isZoneMode}
+            onDeleteZone={handleDeleteZone}
             onOpenZone={openZone}
             onRadiusChange={handleRadiusChange}
-            onToggleZoneMode={() => setIsZoneMode((current) => !current)}
+            onToggleDrawMode={toggleDrawMode}
+            onToggleZoneMode={toggleZoneMode}
             onValidate={handleValidateZone}
             radiusMiles={zoneRadiusMiles}
             validation={zoneValidation}
@@ -2369,16 +2980,26 @@ const CanvassingPlanner = ({
           <DirectMailPlanPanel
             adVersionsError={adVersions.error}
             adVersionsLoading={adVersions.loading}
+            backCopy={backCopy}
             batchName={name}
+            connection={connection}
             creativeVersions={adVersions.versions}
             isPreparing={isPreparingMail}
+            onBackCopyChange={handleBackCopyChange}
+            onBackCopyReset={handleBackCopyReset}
             onPrepare={handlePrepareMail}
             onSelectCreativeVersion={setSelectedCreativeVersionId}
+            onSizeChange={setPostcardSize}
+            onTestProof={handleTestProof}
+            onVerify={handleVerifyProvider}
             plan={mailPlan}
+            proof={proof}
             selectedCreativeVersion={selectedCreativeVersion}
             selectedCount={selectedTargets.length}
-            selectedMailPieces={selectedMailPieces}
             selectedTargets={selectedTargets}
+            size={postcardSize}
+            testingKey={testingKey}
+            verifyingKey={verifyingKey}
             zone={activeZone}
           />
 

@@ -3,6 +3,9 @@ import { Composition } from "remotion";
 import { AdsCompositions } from "./ads/ads-compositions";
 import { TandraIntro } from "./tandra-intro";
 import { tandraIntroSchema } from "./tandra-intro-schema";
+import { WHITEBOARD_DEFAULTS } from "./whiteboard/whiteboard-defaults";
+import { whiteboardVideoSchema } from "./whiteboard/whiteboard-schema";
+import { WhiteboardVideo } from "./whiteboard/whiteboard-video";
 
 /**
  * Editable copy for Remotion Studio (props panel writes here on save).
@@ -72,5 +75,15 @@ export const RemotionRoot = () => (
       width={1920}
     />
     <AdsCompositions />
+    <Composition
+      component={WhiteboardVideo}
+      defaultProps={WHITEBOARD_DEFAULTS}
+      durationInFrames={900}
+      fps={30}
+      height={1080}
+      id="whiteboard-explainer"
+      schema={whiteboardVideoSchema}
+      width={1920}
+    />
   </>
 );

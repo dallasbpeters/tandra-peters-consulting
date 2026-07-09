@@ -11,7 +11,15 @@ import { readRequestBody } from "./request-body";
 const FAL_IMAGE_PATH = "/api/fal/generate-image";
 const FAL_AD_COPY_PATH = "/api/fal/generate-ad-copy";
 const FAL_UPSCALE_PATH = "/api/fal/upscale-image";
-const FAL_PATHS = new Set([FAL_IMAGE_PATH, FAL_AD_COPY_PATH, FAL_UPSCALE_PATH]);
+const FAL_WHITEBOARD_PATH = "/api/fal/whiteboard-sketch";
+const FAL_WHITEBOARD_VIDEO_PATH = "/api/fal/whiteboard-video";
+const FAL_PATHS = new Set([
+  FAL_IMAGE_PATH,
+  FAL_AD_COPY_PATH,
+  FAL_UPSCALE_PATH,
+  FAL_WHITEBOARD_PATH,
+  FAL_WHITEBOARD_VIDEO_PATH,
+]);
 
 const sendOptions = (res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -34,11 +42,26 @@ const loadFalHandler = (pathname: string) => {
   if (pathname === FAL_UPSCALE_PATH) {
     return import("../api/lib/fal-upscale-image.js");
   }
+  if (pathname === FAL_WHITEBOARD_PATH) {
+    return import("../api/lib/fal-whiteboard-sketch.js");
+  }
+  if (pathname === FAL_WHITEBOARD_VIDEO_PATH) {
+    return import("../api/lib/fal-whiteboard-video.js");
+  }
   return import("../api/lib/fal-generate-image.js");
 };
 
 export const viteFalDevApi = (env: Record<string, string>): Plugin => ({
   configureServer(server) {
+    for (const key of [
+      "FAL_KEY",
+      "FAL_TXSHINGLE_LORA_URL",
+      "FAL_WHITEBOARD_LORA_URL",
+    ]) {
+      if (!process.env[key] && env[key]) {
+        process.env[key] = env[key];
+      }
+    }
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
     server.middlewares.use(async (req, res, next) => {
       const pathname = pathnameOnly(req.url);

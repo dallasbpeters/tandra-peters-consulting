@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 
 import { useIsMobile } from "../../hooks/is-mobile";
 import { mix, theme } from "../../theme";
-import type { NavProps } from "../../types";
+import type { NavItem, NavProps } from "../../types";
 import { GoogleAuthGate } from "../google-auth-gate";
+import { OverflowNav } from "../nav/overflow-nav";
 import { SiteNavLink } from "../nav/site-nav-link";
 import { TransitionLink } from "../transition-link";
 
@@ -24,6 +25,7 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   ],
   ctaText = "Book Consult",
   ctaHref = "#contact",
+  hideCta = false,
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }) => {
   const posthog = usePostHog();
@@ -40,9 +42,6 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
   }, []);
 
   const glassed = scrollY > 48;
-  const mid = Math.ceil(navItems.length / 2);
-  const leftLinks = navItems.slice(0, mid);
-  const rightLinks = navItems.slice(mid);
 
   const ctaBackground = glassed
     ? theme.colors.heroAccent
@@ -167,6 +166,27 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
       gap: theme.spacing.lg,
       padding: `${theme.spacing.xxl} ${theme.spacing.xxxxl}`,
     },
+    overflowMenu: {
+      backdropFilter: "blur(20px) saturate(1.3)",
+      background: theme.colors.everglade,
+      border: "1px solid oklch(100% 0 0 / 0.1)",
+      borderRadius: theme.radius.large,
+      boxShadow: "0 8px 32px oklch(0% 0 0 / 0.3)",
+      gap: theme.spacing.xs,
+      padding: theme.spacing.sm,
+    },
+    overflowMenuLink: {
+      borderRadius: theme.radius.medium,
+      color: theme.colors.white,
+      display: "block",
+      fontSize: "0.8125rem",
+      fontWeight: 600,
+      letterSpacing: "0.06em",
+      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+      textDecoration: "none",
+      textTransform: "uppercase",
+      width: "100%",
+    },
     nav: {
       backdropFilter: glassed || menuOpen ? "blur(20px) saturate(1.3)" : "none",
       background:
@@ -193,10 +213,28 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
     },
   };
 
+  const renderGlassLink = (item: NavItem, context: "inline" | "menu") => (
+    <SiteNavLink
+      href={item.href}
+      onMouseEnter={
+        context === "inline" ? () => setHovLink(item.name) : undefined
+      }
+      onMouseLeave={context === "inline" ? () => setHovLink(null) : undefined}
+      style={(() => {
+        if (context === "menu") {
+          return styles.overflowMenuLink;
+        }
+        return hovLink === item.name ? styles.linkHover : styles.link;
+      })()}
+    >
+      {item.name}
+    </SiteNavLink>
+  );
+
   return (
     <nav
       aria-label="Site navigation"
-      className="site-nav-vt"
+      className="site-nav-vt nav-glass-overlay"
       style={styles.nav}
     >
       <div style={styles.navInner}>
@@ -211,48 +249,37 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
         </TransitionLink>
         <GoogleAuthGate>
           <div style={styles.linkGroupLeft}>
-            {leftLinks.map((item) => (
-              <SiteNavLink
-                href={item.href}
-                key={item.name}
-                onMouseEnter={() => setHovLink(item.name)}
-                onMouseLeave={() => setHovLink(null)}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
-              >
-                {item.name}
-              </SiteNavLink>
-            ))}
-            {rightLinks.map((item) => (
-              <SiteNavLink
-                href={item.href}
-                key={item.name}
-                onMouseEnter={() => setHovLink(item.name)}
-                onMouseLeave={() => setHovLink(null)}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
-              >
-                {item.name}
-              </SiteNavLink>
-            ))}
+            <OverflowNav
+              align="center"
+              containerStyle={{ flexGrow: 1, width: "100%" }}
+              gap={Number.parseFloat(theme.spacing.xxxl) * 16}
+              items={navItems}
+              menuStyle={styles.overflowMenu}
+              moreButtonStyle={{ color: styles.link.color }}
+              renderItem={renderGlassLink}
+            />
           </div>
         </GoogleAuthGate>
 
         {/* Right links + CTA — logo is absolute-centered so this group doesn't skew it */}
-        <div style={styles.linkGroupRight}>
-          <SiteNavLink
-            href={ctaHref}
-            onClick={() =>
-              posthog?.capture("nav_cta_clicked", {
-                cta_text: ctaText,
-                variant: "glass-overlay",
-              })
-            }
-            onMouseEnter={() => setHovBtn(true)}
-            onMouseLeave={() => setHovBtn(false)}
-            style={styles.cta}
-          >
-            {ctaText}
-          </SiteNavLink>
-        </div>
+        {hideCta ? null : (
+          <div style={styles.linkGroupRight}>
+            <SiteNavLink
+              href={ctaHref}
+              onClick={() =>
+                posthog?.capture("nav_cta_clicked", {
+                  cta_text: ctaText,
+                  variant: "glass-overlay",
+                })
+              }
+              onMouseEnter={() => setHovBtn(true)}
+              onMouseLeave={() => setHovBtn(false)}
+              style={styles.cta}
+            >
+              {ctaText}
+            </SiteNavLink>
+          </div>
+        )}
         <GoogleAuthGate>
           {/* Hamburger — mobile only */}
           <button
@@ -297,20 +324,22 @@ export const NavGlassOverlay: React.FC<NavProps> = ({
                   {item.name}
                 </SiteNavLink>
               ))}
-              <SiteNavLink
-                href={ctaHref}
-                onClick={() => {
-                  posthog?.capture("nav_cta_clicked", {
-                    cta_text: ctaText,
-                    location: "mobile",
-                    variant: "glass-overlay",
-                  });
-                  setMenuOpen(false);
-                }}
-                style={styles.mobileCta}
-              >
-                {ctaText}
-              </SiteNavLink>
+              {hideCta ? null : (
+                <SiteNavLink
+                  href={ctaHref}
+                  onClick={() => {
+                    posthog?.capture("nav_cta_clicked", {
+                      cta_text: ctaText,
+                      location: "mobile",
+                      variant: "glass-overlay",
+                    });
+                    setMenuOpen(false);
+                  }}
+                  style={styles.mobileCta}
+                >
+                  {ctaText}
+                </SiteNavLink>
+              )}
             </div>
           </motion.div>
         )}

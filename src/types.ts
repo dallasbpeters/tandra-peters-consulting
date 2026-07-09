@@ -22,6 +22,8 @@ export interface NavItem {
 export interface NavProps {
   ctaHref?: string;
   ctaText?: string;
+  /** Hide the nav call-to-action button(s) — used on internal backend routes. */
+  hideCta?: boolean;
   imageSrc?: string;
   logoTagline?: string;
   logoText?: string;

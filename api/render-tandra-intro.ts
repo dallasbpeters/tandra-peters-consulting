@@ -55,6 +55,9 @@ const normalizeCompositionId = (id: string): string => {
   if (id === "RoofScene") {
     return "roof-scene";
   }
+  if (id === "WhiteboardExplainer") {
+    return "whiteboard-explainer";
+  }
   return id;
 };
 

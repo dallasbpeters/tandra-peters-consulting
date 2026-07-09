@@ -1,0 +1,9 @@
+/**
+ * CSS custom properties for the WhiteboardVideo composition.
+ * Loaded at module scope in whiteboard-video.tsx alongside @remotion/google-fonts/Caveat.
+ */
+:root {
+  --wb-bg: #fafaf7;
+  --wb-ink: #1c1c1c;
+  --wb-accent: #1d4ed8;
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColorSchemeValue } from "sanity";
 
+import { WHITEBOARD_EXPLAINER_DEFAULTS } from "../../api/lib/ad-composition-defaults";
 import {
   CUSTOM_SLOTS_DEFAULTS,
   HELPING_TEXAS_DEFAULTS,
@@ -115,6 +116,14 @@ const COMPOSITIONS: CompositionMeta[] = [
     label: "Helping Texas homeowners",
     orientation: "portrait",
   },
+  {
+    cms: false,
+    description:
+      "16:9 · animated whiteboard explainer with ElevenLabs voiceover.",
+    id: "whiteboard-explainer",
+    label: "Whiteboard explainer",
+    orientation: "landscape",
+  },
 ];
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/$/, "");
@@ -165,6 +174,7 @@ const DEFAULT_PROPS: Record<string, any> = {
   TandraStormSpot: STORM_SPOT_DEFAULTS,
   "roof-scene": ROOF_SCENE_DEFAULTS,
   "tandra-intro": { content: defaultTandraIntroContent, showCaptions: false },
+  "whiteboard-explainer": WHITEBOARD_EXPLAINER_DEFAULTS,
 };
 
 const isStructuredRoofSceneDoc = (
@@ -188,6 +198,7 @@ const COMPOSITION_TO_SCHEMA: Record<string, string> = {
   TandraStormSpot: "stormSpotSettings",
   "roof-scene": "roofSceneSettings",
   "tandra-intro": "tandraIntroSettings",
+  "whiteboard-explainer": "whiteboardExplainerSettings",
 };
 
 const COMPOSITION_TO_EDITOR_SCHEMA: Record<string, string> = {
@@ -207,6 +218,12 @@ type RenderState =
   | { status: "done"; url: string; skipped?: boolean }
   | { status: "error"; message: string };
 
+type VoiceoverState =
+  | { status: "idle" }
+  | { status: "generating" }
+  | { status: "done"; sceneCount: number }
+  | { status: "error"; message: string };
+
 export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
@@ -214,6 +231,9 @@ export function RemotionVideoTool() {
   const [activeId, setActiveId] = useState<string>(COMPOSITIONS[0].id);
   const [render, setRender] = useState<RenderState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
+  const [voiceover, setVoiceover] = useState<VoiceoverState>({
+    status: "idle",
+  });
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const active = useMemo(
@@ -425,6 +445,55 @@ export function RemotionVideoTool() {
     }
   }, [active.id]);
 
+  const onGenerateVoiceover = useCallback(async () => {
+    const scenes = (formProps as any).scenes;
+    if (!Array.isArray(scenes) || scenes.length === 0) {
+      setVoiceover({
+        message: "No scenes found in formProps. Save first.",
+        status: "error",
+      });
+      return;
+    }
+    setVoiceover({ status: "generating" });
+    try {
+      const voiceId = (formProps as any).voiceId?.trim() || undefined;
+      const res = await fetch(`${RENDER_BASE}/api/whiteboard-voiceover`, {
+        body: JSON.stringify({
+          compositionId: "whiteboard-explainer",
+          scenes,
+          voiceId,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        scenes?: any[];
+        error?: string;
+      };
+      if (!res.ok || !payload.ok) {
+        throw new Error(
+          payload.error ?? `Voiceover failed (HTTP ${res.status}).`
+        );
+      }
+      if (Array.isArray(payload.scenes)) {
+        const scenes = payload.scenes;
+        setFormProps((prev: any) => ({ ...prev, scenes }));
+        setVoiceover({ sceneCount: scenes.length, status: "done" });
+      } else {
+        throw new TypeError("No scenes returned from voiceover endpoint.");
+      }
+    } catch (error) {
+      setVoiceover({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Voiceover generation failed.",
+        status: "error",
+      });
+    }
+  }, [formProps]);
+
   const colors = isDark
     ? {
         activeBg: "#10533a",
@@ -610,6 +679,39 @@ export function RemotionVideoTool() {
               </button>
             )}
             <RenderStatus colors={colors} state={render} />
+            {activeId === "whiteboard-explainer" && (
+              <>
+                <VoiceoverStatus
+                  colors={colors}
+                  onDismiss={() => setVoiceover({ status: "idle" })}
+                  state={voiceover}
+                />
+                <button
+                  disabled={
+                    voiceover.status === "generating" ||
+                    render.status === "rendering"
+                  }
+                  onClick={onGenerateVoiceover}
+                  style={{
+                    background: "#1D4ED8",
+                    border: "none",
+                    borderRadius: 8,
+                    color: "#fff",
+                    cursor:
+                      voiceover.status === "generating" ? "wait" : "pointer",
+                    fontSize: "0.8125rem",
+                    fontWeight: 700,
+                    opacity: voiceover.status === "generating" ? 0.7 : 1,
+                    padding: "0.5rem 1rem",
+                  }}
+                  type="button"
+                >
+                  {voiceover.status === "generating"
+                    ? "Generating…"
+                    : "🎙 Generate Voiceover"}
+                </button>
+              </>
+            )}
             <button
               disabled={render.status === "rendering"}
               onClick={onRender}
@@ -973,6 +1075,48 @@ function RenderStatus({
     >
       Done — open MP4 ↗
     </a>
+  );
+}
+
+function VoiceoverStatus({
+  state,
+  colors,
+  onDismiss,
+}: {
+  state: VoiceoverState;
+  colors: { subtle: string; text: string };
+  onDismiss: () => void;
+}) {
+  if (state.status === "idle") {
+    return null;
+  }
+  if (state.status === "generating") {
+    return (
+      <span style={{ color: colors.subtle, fontSize: "0.75rem" }}>
+        Generating narration scripts + ElevenLabs audio…
+      </span>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <span style={{ color: "#f3a61e", fontSize: "0.75rem", maxWidth: 360 }}>
+        {state.message}
+      </span>
+    );
+  }
+  return (
+    <span
+      onClick={onDismiss}
+      style={{
+        color: "#69a758",
+        cursor: "pointer",
+        fontSize: "0.75rem",
+        fontWeight: 600,
+      }}
+    >
+      ✓ Voiceover added to {state.sceneCount} scene
+      {state.sceneCount === 1 ? "" : "s"} — save to persist
+    </span>
   );
 }
 

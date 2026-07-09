@@ -5,7 +5,7 @@
 
 .site-page-main {
   min-height: 100vh;
-  padding-top: 100px;
+  padding-top: 80px;
 }
 
 .desktop-app .site-page-main {
@@ -171,6 +171,7 @@
 .ad-toolbar-menu-trigger:where(:hover, :focus-visible) {
   background: var(--theme-color-everglade);
   border-color: var(--studio-border-strong);
+  color: var(--theme-color-white) !important;
 }
 
 .ad-toolbar-menu-trigger > img {
@@ -709,7 +710,7 @@
   font: inherit;
   font-size: 0.82rem;
   font-weight: 850;
-  color: var(--theme-palette-paper-light-950);
+  color: var(--theme-color-paper);
   cursor: pointer;
   background: var(--studio-accent);
   border: 1px solid transparent;

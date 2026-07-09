@@ -22,6 +22,7 @@ import {
   siteSettingsType,
   stormSpotSettingsType,
   tandraIntroSettingsType,
+  whiteboardExplainerSettingsType,
   workflowPageType,
 } from "./documents";
 import {
@@ -129,5 +130,6 @@ export const schemaTypes = [
   tandraIntroSettingsType,
   customSlotsSettingsType,
   helpingTexasHomeownersSettingsType,
+  whiteboardExplainerSettingsType,
   postType,
 ];

@@ -64,6 +64,7 @@ export const SiteShell = () => {
         <NavVariant
           {...navProps}
           heroStyle={isBackendRoute ? undefined : heroStyle}
+          hideCta={isBackendRoute}
           navItems={isBackendRoute ? backendNavItems : navProps.navItems}
         />
       )}

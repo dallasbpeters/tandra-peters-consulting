@@ -290,6 +290,7 @@ kbd {
 }
 
 .backend-theme .site-page-main--backend {
+  --site-padding-inline-start: 90px;
   min-height: 100vh;
   color: var(--backend-text);
   background:
@@ -318,8 +319,7 @@ kbd {
 
 .backend-theme .site-page-main--backend,
 .backend-theme
-  .site-page-main--backend
-  :where(
+  .site-page-main--backend:where(
     h1,
     h2,
     h3,
@@ -339,7 +339,6 @@ kbd {
     summary,
     figcaption,
     a,
-    button,
     input,
     textarea,
     select,
@@ -358,7 +357,8 @@ kbd {
     [class*="__label"],
     [class*="__value"],
     [class*="__eyebrow"]
-  ) {
+  ),
+.site-page-main--backend:not(button):where(:hover, :focus-within) {
   color: var(--backend-text);
 }
 

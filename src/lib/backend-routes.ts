@@ -13,6 +13,7 @@ const BACKEND_ROUTE_PATHS = new Set([
   "/response",
   "/seo",
   "/upscaler",
+  "/videos",
 ]);
 
 const normalizePathname = (pathname: string): string => {
@@ -26,6 +27,7 @@ export const backendNavItems: NavItem[] = [
   { href: "/desk", name: "Desk" },
   { href: "/calendar", name: "Calendar" },
   { href: "/seo", name: "SEO" },
+  { href: "/videos", name: "Videos" },
   { href: "/marketing", name: "Marketing Agent" },
   { href: "/response", name: "Response Agent" },
   { href: "/ads", name: "Ad Builder" },

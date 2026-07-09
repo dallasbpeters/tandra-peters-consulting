@@ -7,8 +7,38 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import {
+  createTestPostcard,
+  verifyProviderConnection,
+} from "./lib/desk-direct-mail-connect.js";
 import { prepareDirectMailBatch } from "./lib/desk-direct-mail.js";
 import { isAllowedGoogleUser, parseGoogleIdToken } from "./lib/google-auth.js";
+
+const optionalString = (value: unknown): string | undefined =>
+  typeof value === "string" && value.trim() ? value : undefined;
+
+const runDirectMailAction = async (
+  body: Record<string, unknown>
+): Promise<{ body: unknown; status: number }> => {
+  const action = typeof body.action === "string" ? body.action : "plan";
+  const providerKey = typeof body.provider === "string" ? body.provider : "";
+  if (action === "verify") {
+    const connection = await verifyProviderConnection(providerKey);
+    return { body: { connection, ok: true }, status: 200 };
+  }
+  if (action === "test") {
+    const proof = await createTestPostcard({
+      back: optionalString(body.back),
+      front: optionalString(body.front),
+      message: optionalString(body.message),
+      providerKey,
+      size: optionalString(body.size),
+    });
+    return { body: { ok: proof.ok, proof }, status: 200 };
+  }
+  const result = await prepareDirectMailBatch(body);
+  return { body: result.body, status: result.status };
+};
 
 const parseBody = (req: VercelRequest): Record<string, unknown> => {
   const raw = req.body;
@@ -101,7 +131,7 @@ const deskDirectMailHandler = async (
     return;
   }
 
-  const result = await prepareDirectMailBatch(parseBody(req));
+  const result = await runDirectMailAction(parseBody(req));
   res.status(result.status).json(result.body);
 };
 

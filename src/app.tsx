@@ -105,6 +105,11 @@ const RemotionPreviewPage = lazy(async () => {
   return { default: module.RemotionPreviewPage };
 });
 
+const VideosPage = lazy(async () => {
+  const module = await import("./pages/videos-page");
+  return { default: module.VideosPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -165,6 +170,7 @@ const appRouter = createBrowserRouter([
       { element: <EmailComposerPage />, path: "emails" },
       { element: <EmailComposerPage />, path: "email" },
       { element: <FalUpscalerPage />, path: "upscaler" },
+      { element: <VideosPage />, path: "videos" },
     ],
     element: <RootLayout />,
   },

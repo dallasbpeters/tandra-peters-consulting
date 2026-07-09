@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 
 import { useIsMobile } from "../../hooks/is-mobile";
 import { theme } from "../../theme";
-import type { NavProps } from "../../types";
+import type { NavItem, NavProps } from "../../types";
 import { GoogleAuthGate } from "../google-auth-gate";
+import { OverflowNav } from "../nav/overflow-nav";
 import { SiteNavLink } from "../nav/site-nav-link";
 import { TransitionLink } from "../transition-link";
 
@@ -22,6 +23,7 @@ export const NavPillNav: React.FC<NavProps> = ({
   ],
   ctaText = "Book Now",
   ctaHref = "#contact",
+  hideCta = false,
 }) => {
   const posthog = usePostHog();
   const isMobile = useIsMobile(1024);
@@ -123,6 +125,31 @@ export const NavPillNav: React.FC<NavProps> = ({
       gap: theme.spacing.lg,
       padding: theme.spacing.xxl,
     },
+    overflowMenu: {
+      backdropFilter: "blur(20px) saturate(1.4)",
+      background: "oklch(18.97% 0.008 107.13 / 0.97)",
+      border: "1px solid oklch(100% 0 0 / 0.1)",
+      borderRadius: theme.radius.large,
+      boxShadow: "0 8px 32px oklch(0% 0 0 / 0.35)",
+      gap: theme.spacing.xs,
+      padding: theme.spacing.sm,
+    },
+    overflowMenuLink: {
+      borderRadius: theme.radius.medium,
+      color: "oklch(88% 0 0)",
+      display: "block",
+      fontSize: "0.8125rem",
+      fontWeight: 600,
+      letterSpacing: "0.04em",
+      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+      textDecoration: "none",
+      width: "100%",
+    },
+    overflowMore: {
+      borderRadius: theme.radius.pill,
+      color: "oklch(100% 0 0)",
+      height: "100%",
+    },
     /* ── Desktop: floating pill ── */
     pill: {
       alignItems: "center",
@@ -206,12 +233,35 @@ export const NavPillNav: React.FC<NavProps> = ({
     },
   };
 
+  const pillItems: NavItem[] = [
+    ...navItems,
+    { href: createLink, name: "Creative" },
+  ];
+
+  const renderPillLink = (item: NavItem, context: "inline" | "menu") => (
+    <SiteNavLink
+      href={item.href}
+      onMouseEnter={
+        context === "inline" ? () => setHovLink(item.name) : undefined
+      }
+      onMouseLeave={context === "inline" ? () => setHovLink(null) : undefined}
+      style={(() => {
+        if (context === "menu") {
+          return styles.overflowMenuLink;
+        }
+        return hovLink === item.name ? styles.pillLinkHover : styles.pillLink;
+      })()}
+    >
+      {item.name}
+    </SiteNavLink>
+  );
+
   return (
     <>
       {/* Desktop floating pill */}
       <nav
         aria-label="Site navigation"
-        className={isMobile ? undefined : "site-nav-vt"}
+        className={isMobile ? undefined : "site-nav-vt nav-pill"}
         style={styles.pill}
       >
         <TransitionLink style={styles.pillLogo} to="/">
@@ -219,45 +269,32 @@ export const NavPillNav: React.FC<NavProps> = ({
         </TransitionLink>
         <GoogleAuthGate>
           <div style={styles.pillDivider} />
-          {navItems.map((item) => (
-            <SiteNavLink
-              href={item.href}
-              key={item.name}
-              onMouseEnter={() => setHovLink(item.name)}
-              onMouseLeave={() => setHovLink(null)}
-              style={
-                hovLink === item.name ? styles.pillLinkHover : styles.pillLink
-              }
-            >
-              {item.name}
-            </SiteNavLink>
-          ))}
-          <SiteNavLink
-            href={createLink}
-            onMouseEnter={() => setHovLink("Creative")}
-            onMouseLeave={() => setHovLink(null)}
-            style={
-              hovLink === "Creative" ? styles.pillLinkHover : styles.pillLink
-            }
-          >
-            Creative
-          </SiteNavLink>
+          <OverflowNav
+            containerStyle={{ flex: "1 1 auto", height: "100%" }}
+            gap={0}
+            items={pillItems}
+            menuStyle={styles.overflowMenu}
+            moreButtonStyle={styles.overflowMore}
+            renderItem={renderPillLink}
+          />
         </GoogleAuthGate>
-        <SiteNavLink
-          className="pill-cta"
-          href={ctaHref}
-          onClick={() =>
-            posthog?.capture("nav_cta_clicked", {
-              cta_text: ctaText,
-              variant: "dark-floating-pill",
-            })
-          }
-          onMouseEnter={() => setHovBtn(true)}
-          onMouseLeave={() => setHovBtn(false)}
-          style={styles.pillCta}
-        >
-          {ctaText}
-        </SiteNavLink>
+        {hideCta ? null : (
+          <SiteNavLink
+            className="pill-cta"
+            href={ctaHref}
+            onClick={() =>
+              posthog?.capture("nav_cta_clicked", {
+                cta_text: ctaText,
+                variant: "dark-floating-pill",
+              })
+            }
+            onMouseEnter={() => setHovBtn(true)}
+            onMouseLeave={() => setHovBtn(false)}
+            style={styles.pillCta}
+          >
+            {ctaText}
+          </SiteNavLink>
+        )}
       </nav>
 
       {/* Mobile fixed bar */}
@@ -267,19 +304,21 @@ export const NavPillNav: React.FC<NavProps> = ({
         style={styles.mobileBar}
       >
         <span style={styles.mobileBarLogo}>{logoText}</span>
-        <SiteNavLink
-          href={ctaHref}
-          onClick={() =>
-            posthog?.capture("nav_cta_clicked", {
-              cta_text: ctaText,
-              location: "mobile",
-              variant: "dark-floating-pill",
-            })
-          }
-          style={styles.mobileCta}
-        >
-          {ctaText}
-        </SiteNavLink>
+        {hideCta ? null : (
+          <SiteNavLink
+            href={ctaHref}
+            onClick={() =>
+              posthog?.capture("nav_cta_clicked", {
+                cta_text: ctaText,
+                location: "mobile",
+                variant: "dark-floating-pill",
+              })
+            }
+            style={styles.mobileCta}
+          >
+            {ctaText}
+          </SiteNavLink>
+        )}
         <button
           aria-expanded={menuOpen}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -316,20 +355,22 @@ export const NavPillNav: React.FC<NavProps> = ({
                   {item.name}
                 </SiteNavLink>
               ))}
-              <SiteNavLink
-                href={ctaHref}
-                onClick={() => {
-                  posthog?.capture("nav_cta_clicked", {
-                    cta_text: ctaText,
-                    location: "mobile",
-                    variant: "dark-floating-pill",
-                  });
-                  setMenuOpen(false);
-                }}
-                style={styles.mobileCtaFull}
-              >
-                {ctaText}
-              </SiteNavLink>
+              {hideCta ? null : (
+                <SiteNavLink
+                  href={ctaHref}
+                  onClick={() => {
+                    posthog?.capture("nav_cta_clicked", {
+                      cta_text: ctaText,
+                      location: "mobile",
+                      variant: "dark-floating-pill",
+                    });
+                    setMenuOpen(false);
+                  }}
+                  style={styles.mobileCtaFull}
+                >
+                  {ctaText}
+                </SiteNavLink>
+              )}
             </div>
           </motion.div>
         )}

@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 
 import { useIsMobile } from "../../hooks/is-mobile";
 import { theme } from "../../theme";
-import type { NavProps } from "../../types";
+import type { NavItem, NavProps } from "../../types";
 import { GoogleAuthGate } from "../google-auth-gate";
+import { OverflowNav } from "../nav/overflow-nav";
 import { SiteNavLink } from "../nav/site-nav-link";
 import { TransitionLink } from "../transition-link";
 
@@ -27,6 +28,7 @@ export const NavDualCTARail: React.FC<NavProps> = ({
   ctaHref = "#contact",
   secondaryCtaText = "Explore Services",
   secondaryCtaHref = "#services",
+  hideCta = false,
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex logic
 }) => {
   const posthog = usePostHog();
@@ -192,6 +194,25 @@ export const NavDualCTARail: React.FC<NavProps> = ({
       gap: theme.spacing.lg,
       padding: theme.spacing.xxl,
     },
+    overflowMenu: {
+      background: theme.colors.paper,
+      border: `1px solid ${theme.colors.paperDark}`,
+      borderRadius: theme.radius.large,
+      boxShadow: "0 8px 24px oklch(25.66% 0.046 163.60 / 0.12)",
+      gap: theme.spacing.xs,
+      padding: theme.spacing.sm,
+    },
+    overflowMenuLink: {
+      borderRadius: theme.radius.medium,
+      color: theme.colors.everglade,
+      display: "block",
+      fontSize: "0.875rem",
+      fontWeight: 600,
+      letterSpacing: "0.02em",
+      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+      textDecoration: "none",
+      width: "100%",
+    },
     nav: {
       background: theme.colors.paper,
       borderBottom: `1px solid ${theme.colors.paperDark}`,
@@ -217,10 +238,28 @@ export const NavDualCTARail: React.FC<NavProps> = ({
     },
   };
 
+  const renderRailLink = (item: NavItem, context: "inline" | "menu") => (
+    <SiteNavLink
+      href={item.href}
+      onMouseEnter={
+        context === "inline" ? () => setHovLink(item.name) : undefined
+      }
+      onMouseLeave={context === "inline" ? () => setHovLink(null) : undefined}
+      style={(() => {
+        if (context === "menu") {
+          return styles.overflowMenuLink;
+        }
+        return hovLink === item.name ? styles.linkHover : styles.link;
+      })()}
+    >
+      {item.name}
+    </SiteNavLink>
+  );
+
   return (
     <nav
       aria-label="Site navigation"
-      className="site-nav-vt"
+      className="site-nav-vt nav-dual-cta-rail"
       style={styles.nav}
     >
       <div style={styles.navInner}>
@@ -238,56 +277,59 @@ export const NavDualCTARail: React.FC<NavProps> = ({
         </TransitionLink>
         <GoogleAuthGate>
           {/* Desktop links */}
-          <div style={styles.linkGroup}>
-            {navItems.map((item) => (
-              <SiteNavLink
-                href={item.href}
-                key={item.name}
-                onMouseEnter={() => setHovLink(item.name)}
-                onMouseLeave={() => setHovLink(null)}
-                style={hovLink === item.name ? styles.linkHover : styles.link}
-              >
-                {item.name}
-              </SiteNavLink>
-            ))}
-          </div>
+          {isMobile ? null : (
+            <OverflowNav
+              align="center"
+              containerStyle={{
+                flex: "1 1 auto",
+                margin: `0 ${theme.spacing.xl}`,
+              }}
+              gap={20}
+              items={navItems}
+              menuStyle={styles.overflowMenu}
+              moreButtonStyle={{ color: theme.colors.evergladeMuted }}
+              renderItem={renderRailLink}
+            />
+          )}
         </GoogleAuthGate>
 
         {/* Desktop dual CTAs */}
-        <div className="cta-group" style={styles.ctaGroup}>
-          <GoogleAuthGate>
+        {hideCta ? null : (
+          <div className="cta-group" style={styles.ctaGroup}>
+            <GoogleAuthGate>
+              <SiteNavLink
+                href={secondaryCtaHref}
+                onClick={() =>
+                  posthog?.capture("nav_cta_clicked", {
+                    cta_text: secondaryCtaText,
+                    position: "secondary",
+                    variant: "dual-cta-rail",
+                  })
+                }
+                onMouseEnter={() => setHovSecondary(true)}
+                onMouseLeave={() => setHovSecondary(false)}
+                style={styles.ctaSecondary}
+              >
+                {secondaryCtaText}
+              </SiteNavLink>
+            </GoogleAuthGate>
             <SiteNavLink
-              href={secondaryCtaHref}
+              href={ctaHref}
               onClick={() =>
                 posthog?.capture("nav_cta_clicked", {
-                  cta_text: secondaryCtaText,
-                  position: "secondary",
+                  cta_text: ctaText,
+                  position: "primary",
                   variant: "dual-cta-rail",
                 })
               }
-              onMouseEnter={() => setHovSecondary(true)}
-              onMouseLeave={() => setHovSecondary(false)}
-              style={styles.ctaSecondary}
+              onMouseEnter={() => setHovPrimary(true)}
+              onMouseLeave={() => setHovPrimary(false)}
+              style={styles.ctaPrimary}
             >
-              {secondaryCtaText}
+              {ctaText} <span style={styles.ctaArrow}>→</span>
             </SiteNavLink>
-          </GoogleAuthGate>
-          <SiteNavLink
-            href={ctaHref}
-            onClick={() =>
-              posthog?.capture("nav_cta_clicked", {
-                cta_text: ctaText,
-                position: "primary",
-                variant: "dual-cta-rail",
-              })
-            }
-            onMouseEnter={() => setHovPrimary(true)}
-            onMouseLeave={() => setHovPrimary(false)}
-            style={styles.ctaPrimary}
-          >
-            {ctaText} <span style={styles.ctaArrow}>→</span>
-          </SiteNavLink>
-        </div>
+          </div>
+        )}
 
         {/* Hamburger */}
         <GoogleAuthGate>
@@ -333,20 +375,22 @@ export const NavDualCTARail: React.FC<NavProps> = ({
                   {item.name}
                 </SiteNavLink>
               ))}
-              <SiteNavLink
-                href={ctaHref}
-                onClick={() => {
-                  posthog?.capture("nav_cta_clicked", {
-                    cta_text: ctaText,
-                    location: "mobile",
-                    variant: "dual-cta-rail",
-                  });
-                  setMenuOpen(false);
-                }}
-                style={styles.mobileCta}
-              >
-                {ctaText}
-              </SiteNavLink>
+              {hideCta ? null : (
+                <SiteNavLink
+                  href={ctaHref}
+                  onClick={() => {
+                    posthog?.capture("nav_cta_clicked", {
+                      cta_text: ctaText,
+                      location: "mobile",
+                      variant: "dual-cta-rail",
+                    });
+                    setMenuOpen(false);
+                  }}
+                  style={styles.mobileCta}
+                >
+                  {ctaText}
+                </SiteNavLink>
+              )}
             </div>
           </motion.div>
         )}

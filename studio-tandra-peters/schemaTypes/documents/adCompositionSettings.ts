@@ -1,3 +1,4 @@
+import { DocumentIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 export const roofSceneCameraFields = [
@@ -328,6 +329,7 @@ export const roofSceneSettingsType = defineType({
       type: "text",
     }),
   ],
+  icon: DocumentIcon,
   name: "roofSceneSettings",
   preview: { prepare: () => ({ title: "3D Roof Scene" }) },
   title: "3D Roof Scene",
@@ -395,6 +397,22 @@ export const tandraIntroSettingsType = defineType({
   name: "tandraIntroSettings",
   preview: { prepare: () => ({ title: "Tandra Intro Video" }) },
   title: "Tandra Intro Video",
+  type: "document",
+});
+
+export const whiteboardExplainerSettingsType = defineType({
+  fields: [
+    defineField({
+      description: "JSON blob — edit via the Videos tool, not here directly.",
+      name: "props",
+      rows: 8,
+      title: "Whiteboard scene config",
+      type: "text",
+    }),
+  ],
+  name: "whiteboardExplainerSettings",
+  preview: { prepare: () => ({ title: "Whiteboard Explainer" }) },
+  title: "Whiteboard Explainer",
   type: "document",
 });
 

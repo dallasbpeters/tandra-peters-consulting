@@ -27,6 +27,7 @@ import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
 import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
 import { viteSitemapApi } from "./plugins/vite-sitemap-api";
 import { viteUnsplashApi } from "./plugins/vite-unsplash-api";
+import { viteWhiteboardVoiceoverApi } from "./plugins/vite-whiteboard-voiceover-api";
 import { viteWorkflowSaveApi } from "./plugins/vite-workflow-save-api";
 
 // oxlint-disable-next-line require-unicode-regexp
@@ -138,6 +139,7 @@ export default defineConfig(({ mode }) => {
     viteEstimateDevApi(env) as unknown as PluginOption,
     viteRenderTandraIntroApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,
+    viteWhiteboardVoiceoverApi(env) as unknown as PluginOption,
     ...(useLocalContactApi
       ? [viteContactDevApi(env) as unknown as PluginOption]
       : []),

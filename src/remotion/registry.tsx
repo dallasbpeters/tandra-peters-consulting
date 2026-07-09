@@ -22,6 +22,12 @@ import {
   TANDRA_INTRO_DURATION_IN_FRAMES,
   TANDRA_INTRO_FPS,
 } from "./tandra-intro-content";
+import {
+  WHITEBOARD_DEFAULTS,
+  WHITEBOARD_DURATION_IN_FRAMES,
+  WHITEBOARD_FPS,
+} from "./whiteboard/whiteboard-defaults";
+import { WhiteboardVideo } from "./whiteboard/whiteboard-video";
 
 export type CompositionId =
   | "tandra-intro"
@@ -29,7 +35,8 @@ export type CompositionId =
   | "TandraRoofValue"
   | "roof-scene"
   | "CustomSlots"
-  | "HelpingTexasHomeowners";
+  | "HelpingTexasHomeowners"
+  | "whiteboard-explainer";
 
 export interface CompositionEntry {
   /** Aspect-ratio string for the Player wrapper. */
@@ -134,6 +141,19 @@ export const COMPOSITIONS: CompositionEntry[] = [
     id: "HelpingTexasHomeowners",
     label: "Helping Texas homeowners",
     width: 1080,
+  },
+  {
+    aspectRatio: ratio(1920, 1080),
+    component: WhiteboardVideo as ComponentType<Record<string, unknown>>,
+    defaultProps: WHITEBOARD_DEFAULTS,
+    description:
+      "16:9 whiteboard explainer video with SVG draw-on animations. Configurable scenes: title, bullets, callout, diagram, and CTA.",
+    durationInFrames: WHITEBOARD_DURATION_IN_FRAMES,
+    fps: WHITEBOARD_FPS,
+    height: 1080,
+    id: "whiteboard-explainer",
+    label: "Whiteboard explainer",
+    width: 1920,
   },
 ];
 
