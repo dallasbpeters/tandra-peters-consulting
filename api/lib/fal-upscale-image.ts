@@ -135,7 +135,10 @@ export const handler = async (request: Request): Promise<Response> => {
     }
 
     const client = createFalClient({ credentials: falKey });
-    const sourceUrl = imageUrl || (await client.storage.upload(uploadBlob));
+    let sourceUrl = imageUrl;
+    if (!sourceUrl && uploadBlob) {
+      sourceUrl = await client.storage.upload(uploadBlob);
+    }
     const model = isUpscaleModel(body.model) ? body.model : DEFAULT_MODEL;
     const outputFormat = isOutputFormat(body.outputFormat)
       ? body.outputFormat

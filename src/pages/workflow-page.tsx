@@ -331,7 +331,7 @@ const InsuranceWorkflowDiagramInner = ({
     closeEditor,
     saveEditor,
   } = useWorkflowEditor({
-    authToken: auth?.token,
+    authToken: auth?.token ?? undefined,
     canEditWorkflow,
     layoutEdges,
     layoutNodes,

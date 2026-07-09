@@ -89,7 +89,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       color: theme.colors.white,
       scale: 1.05,
     },
-    initial: { backgroundColor: "transparent", color: mutedText, scale: 1 },
+    initial: { backgroundColor: "rgba(0,0,0,0)", color: mutedText, scale: 1 },
     tap: { scale: 0.95 },
   };
 

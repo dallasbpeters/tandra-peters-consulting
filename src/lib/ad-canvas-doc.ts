@@ -626,7 +626,7 @@ const seedGradientPanel = (ctx: SeedContext): CanvasElement[] => {
     const headlineSize = 8.5 * hs;
     if (lines.length >= 2) {
       const leadLines = lines.slice(0, -1);
-      const accentLine = lines.at(-1);
+      const accentLine = lines.at(-1) ?? "";
       elements.push(
         seedHeadlineEl(
           { ...ctx, creative: { ...creative, headline: leadLines.join("\n") } },

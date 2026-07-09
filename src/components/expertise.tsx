@@ -164,6 +164,8 @@ export const Expertise: React.FC<ExpertiseProps> = ({
                   {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
                   <img
                     alt={`${item.title} — roofing consultation context`}
+                    decoding="async"
+                    loading="lazy"
                     referrerPolicy="no-referrer"
                     src={item.image}
                     style={{

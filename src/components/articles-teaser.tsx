@@ -205,6 +205,8 @@ export const ArticlesTeaser = ({
               {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
               <img
                 alt=""
+                decoding="async"
+                loading="lazy"
                 src={FALLBACK_ARTICLE_COVER}
                 style={{
                   height: "100%",

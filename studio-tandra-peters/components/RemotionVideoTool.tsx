@@ -82,6 +82,14 @@ interface CompositionMeta {
 
 const COMPOSITIONS: CompositionMeta[] = [
   {
+    cms: false,
+    description:
+      "16:9 · animated whiteboard explainer with ElevenLabs voiceover.",
+    id: "whiteboard-explainer",
+    label: "Whiteboard explainer",
+    orientation: "landscape",
+  },
+  {
     cms: true,
     description: "30s · 16:9 · plays on the home page hero. Copy from Sanity.",
     id: "tandra-intro",
@@ -115,14 +123,6 @@ const COMPOSITIONS: CompositionMeta[] = [
     id: "HelpingTexasHomeowners",
     label: "Helping Texas homeowners",
     orientation: "portrait",
-  },
-  {
-    cms: false,
-    description:
-      "16:9 · animated whiteboard explainer with ElevenLabs voiceover.",
-    id: "whiteboard-explainer",
-    label: "Whiteboard explainer",
-    orientation: "landscape",
   },
 ];
 
@@ -234,7 +234,17 @@ export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
   const client = useStudioClient({ apiVersion: "2026-05-29" });
-  const [activeId, setActiveId] = useState<string>(COMPOSITIONS[0].id);
+  const [activeId, setActiveId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem("remotion-video-tool:activeId");
+      if (saved && COMPOSITIONS.some((c) => c.id === saved)) {
+        return saved;
+      }
+    } catch {
+      // localStorage unavailable (private browsing, sandboxed iframe)
+    }
+    return COMPOSITIONS[0].id;
+  });
   const [render, setRender] = useState<RenderState>({ status: "idle" });
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
   const [voiceover, setVoiceover] = useState<VoiceoverState>({
@@ -634,6 +644,11 @@ export function RemotionVideoTool() {
                 onClick={() => {
                   setActiveId(c.id);
                   setRender({ status: "idle" });
+                  try {
+                    localStorage.setItem("remotion-video-tool:activeId", c.id);
+                  } catch {
+                    // ignore
+                  }
                 }}
                 style={{
                   background: isActive ? colors.activeBg : colors.panel,

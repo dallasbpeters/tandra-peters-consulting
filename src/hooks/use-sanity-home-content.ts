@@ -1,14 +1,9 @@
 import { stegaClean } from "@sanity/client/stega";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  getSanityClient,
-  isSanityPresentationPreviewActive,
-  isSanityStegaUiActive,
-} from "../sanity/client";
-import { SANITY_PRESENTATION_REFRESH_EVENT } from "../sanity/presentation-events";
+import { isSanityStegaUiActive } from "../sanity/client";
 import { HOME_AND_SITE_QUERY } from "../sanity/queries";
 import type { PostListItem } from "../types/article";
+import { useSanityQuery } from "./use-sanity-query";
 
 const isPostListItem = (v: unknown): v is PostListItem => {
   if (!v || typeof v !== "object") {
@@ -87,48 +82,9 @@ const PRESENTATION_REFETCH_MS = 450;
 
 const CACHE_KEY = "sanity-home-v1";
 
-const readCache = (): HomeDocuments | null => {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    return raw ? (JSON.parse(raw) as HomeDocuments) : null;
-  } catch {
-    return null;
-  }
-};
-
-const writeCache = (data: HomeDocuments): void => {
-  try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch {
-    // sessionStorage may be unavailable (private browsing, quota exceeded)
-  }
-};
-
-const debounce = <Args extends unknown[]>(
-  fn: (...args: Args) => void,
-  waitMs: number
-): ((...args: Args) => void) & { cancel: () => void } => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const debounced = (...args: Args) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      timeoutId = undefined;
-      fn(...args);
-    }, waitMs);
-  };
-
-  debounced.cancel = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = undefined;
-    }
-  };
-
-  return debounced;
-};
+// Presentation iframe only — refetch the full home GROQ (and its post join) when
+// the homePage document changes in Studio.
+const HOME_LISTEN_QUERY = '*[_id in ["homePage", "drafts.homePage"]]';
 
 const normalizeHomeDocuments = (raw: HomeDocuments): HomeDocuments => {
   if (isSanityStegaUiActive()) {
@@ -145,116 +101,11 @@ const normalizeHomeDocuments = (raw: HomeDocuments): HomeDocuments => {
   };
 };
 
-export const useSanityHomeContent = () => {
-  const cachedOnMount = useState(() => readCache())[0];
-  const [data, setData] = useState<HomeDocuments | null>(cachedOnMount);
-  const [loading, setLoading] = useState(cachedOnMount === null);
-  const [error, setError] = useState<Error | null>(null);
-
-  const refetchNow = useCallback(async () => {
-    try {
-      const client = getSanityClient();
-      const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
-      const normalized = normalizeHomeDocuments(raw);
-      setData(normalized);
-      writeCache(normalized);
-      setError(null);
-    } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refetchNowRef = useRef(refetchNow);
-  refetchNowRef.current = refetchNow;
-
-  const scheduleRefetch = useMemo(
-    () =>
-      debounce(() => {
-        refetchNowRef.current().catch(() => {
-          /* noop */
-        });
-      }, PRESENTATION_REFETCH_MS),
-    []
-  );
-
-  const refetch = useCallback(() => {
-    scheduleRefetch();
-  }, [scheduleRefetch]);
-
-  useEffect(
-    () => () => {
-      scheduleRefetch.cancel();
-    },
-    [scheduleRefetch]
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        const client = getSanityClient();
-        const raw = await client.fetch<HomeDocuments>(HOME_AND_SITE_QUERY);
-        if (!cancelled) {
-          const normalized = normalizeHomeDocuments(raw);
-          setData(normalized);
-          writeCache(normalized);
-          setError(null);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setError(error instanceof Error ? error : new Error(String(error)));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-    run().catch(() => {
-      /* noop */
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleRefresh = () => {
-      scheduleRefetch();
-    };
-    window.addEventListener(SANITY_PRESENTATION_REFRESH_EVENT, handleRefresh);
-    return () => {
-      window.removeEventListener(
-        SANITY_PRESENTATION_REFRESH_EVENT,
-        handleRefresh
-      );
-    };
-  }, [scheduleRefetch]);
-
-  // Presentation iframe only — debounced refetch avoids hammering the full home
-  // GROQ query (and 20-post join) on every keystroke while editing in Studio.
-  useEffect(() => {
-    if (!isSanityPresentationPreviewActive()) {
-      return;
-    }
-
-    const client = getSanityClient();
-    const subscription = client
-      .listen(
-        '*[_id in ["homePage", "drafts.homePage"]]',
-        {},
-        { includeResult: false }
-      )
-      .subscribe(() => {
-        scheduleRefetch();
-      });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [scheduleRefetch]);
-
-  return { data, error, loading, refetch };
-};
+export const useSanityHomeContent = () =>
+  useSanityQuery<HomeDocuments, HomeDocuments>({
+    cacheKey: CACHE_KEY,
+    debounceMs: PRESENTATION_REFETCH_MS,
+    listenQuery: HOME_LISTEN_QUERY,
+    query: HOME_AND_SITE_QUERY,
+    transform: normalizeHomeDocuments,
+  });

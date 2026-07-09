@@ -1003,7 +1003,7 @@ export const AdCanvasEditor = ({
   const commitEdit = useCallback(() => {
     const node = editRef.current;
     if (node && editingId) {
-      const text = node.textContent.replace(TRAILING_NEWLINES_RE, "");
+      const text = (node.textContent ?? "").replace(TRAILING_NEWLINES_RE, "");
       patchElement(editingId, { text });
     }
     setEditingId(null);
@@ -1204,7 +1204,7 @@ export const AdCanvasEditor = ({
               height = origin.height - dy;
             }
           }
-          height = Math.max(MIN_ELEMENT_HEIGHT, height);
+          height = Math.max(MIN_ELEMENT_HEIGHT, height ?? origin.height);
         }
 
         let { x } = origin;

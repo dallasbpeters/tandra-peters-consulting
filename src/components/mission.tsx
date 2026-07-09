@@ -210,6 +210,8 @@ export const Mission: React.FC<MissionProps> = ({
                     {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
                     <img
                       alt=""
+                      decoding="async"
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       src={service.image}
                       style={{

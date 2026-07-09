@@ -208,6 +208,8 @@ export const Services: React.FC<ServicesProps> = ({
                       {/* biome-ignore lint/correctness/useImageSize: dynamic size fills container via CSS */}
                       <img
                         alt={service.title}
+                        decoding="async"
+                        loading="lazy"
                         referrerPolicy="no-referrer"
                         src={service.image}
                         style={{

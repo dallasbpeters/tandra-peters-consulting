@@ -256,6 +256,30 @@ const buildFrontHtml = (src: string, size?: string): string => {
   return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}</style></head><body style="margin:0;width:${dims.width}in;height:${dims.height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${dims.width}in;height:${dims.height}in;object-fit:cover;"/></body></html>`;
 };
 
+/**
+ * Lob adds a 1/8" bleed on every side, so full-bleed HTML must be authored at
+ * trim + 0.25" total (e.g. a 6x9 card → 9.25" × 6.25", which Lob renders at
+ * 300 DPI to 2775 × 1875 px — exactly Lob's required creative dimensions).
+ */
+const LOB_BLEED_IN = 0.25;
+
+/**
+ * Front creative for Lob, authored as HTML sized to the full-bleed card.
+ *
+ * Lob rejects PNG/JPG creatives below 300 DPI ("Provided image was 75 x 114
+ * px"), but "supplied HTML will be rendered to the specified `size`" — so
+ * wrapping the (possibly low-res) front image in a full-bleed HTML doc makes
+ * Lob rasterize it to the correct print dimensions and sidesteps the raster
+ * minimum-resolution check entirely. The image is linked by URL to keep the
+ * HTML small enough to pass inline.
+ */
+const buildLobFrontHtml = (src: string, size?: string): string => {
+  const dims = cardDims(size);
+  const width = (dims.width + LOB_BLEED_IN).toFixed(2);
+  const height = (dims.height + LOB_BLEED_IN).toFixed(2);
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}html,body{margin:0;padding:0;}</style></head><body style="margin:0;width:${width}in;height:${height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${width}in;height:${height}in;object-fit:cover;"/></body></html>`;
+};
+
 // ---------------------------------------------------------------------------
 // Connection checks
 // ---------------------------------------------------------------------------
@@ -707,12 +731,12 @@ const envPostgridFrom = (): Record<string, string> => {
   }
   return {
     "from[addressLine1]":
-      process.env.POSTGRID_FROM_ADDRESS_LINE1?.trim() || "PO Box 340",
-    "from[city]": process.env.POSTGRID_FROM_CITY?.trim() || "Round Rock",
+      process.env.POSTGRID_FROM_ADDRESS_LINE1?.trim() || "2300 Forsam Bend",
+    "from[city]": process.env.POSTGRID_FROM_CITY?.trim() || "Austin",
     "from[companyName]":
       process.env.POSTGRID_FROM_NAME?.trim() || "Birdcreek Roofing",
     "from[countryCode]": "US",
-    "from[postalOrZip]": process.env.POSTGRID_FROM_ZIP?.trim() || "78680",
+    "from[postalOrZip]": process.env.POSTGRID_FROM_ZIP?.trim() || "78725",
     "from[provinceOrState]": process.env.POSTGRID_FROM_STATE?.trim() || "TX",
   };
 };
@@ -896,11 +920,39 @@ interface LobCreative {
   ok: boolean;
 }
 
+interface LobHtmlReference {
+  error?: string;
+  ok: boolean;
+  value?: string;
+}
+
 /**
- * Resolve the front/back into Lob-safe references (each under the 10k inline
- * limit). Front becomes a remote image URL (hosted if it was base64). Back stays
- * as HTML with the QR hosted as a small remote image; if that HTML somehow still
- * exceeds the limit, the whole back is hosted as an HTML-file URL.
+ * Turn an HTML creative into a Lob-safe reference: pass it inline when it fits
+ * under the 10k limit, otherwise host it as an HTML-file URL. Either way Lob
+ * renders the HTML to the postcard `size`, so it is never subject to the
+ * PNG/JPG minimum-resolution check.
+ */
+const resolveLobHtml = async (html: string): Promise<LobHtmlReference> => {
+  if (html.length < LOB_INLINE_HTML_LIMIT) {
+    return { ok: true, value: html };
+  }
+  const hosted = await hostHtmlReference(html);
+  if (hosted.ok && hosted.url) {
+    return { ok: true, value: hosted.url };
+  }
+  return { error: hosted.error, ok: false };
+};
+
+/**
+ * Resolve the front/back into Lob-safe HTML references.
+ *
+ * Both front and back are delivered as HTML so Lob rasterizes them to the
+ * postcard `size` at 300 DPI — this is what makes them meet Lob's creative
+ * dimensions (6x9 → 2775 × 1875 px, 4x6 → 1875 × 1275 px) regardless of the
+ * source raster. The front image (often a small Ad Builder thumbnail) is hosted
+ * as a remote URL and linked from a full-bleed HTML wrapper; the QR is hosted
+ * too, keeping both docs small enough to pass inline. If either HTML somehow
+ * exceeds the inline limit it is hosted as an HTML-file URL instead.
  */
 const resolveLobCreative = async (
   input: SubmitOrderInput
@@ -911,9 +963,17 @@ const resolveLobCreative = async (
     message,
     ok: false,
   });
-  const front = await hostImageReference(input.front);
-  if (!(front.ok && front.url)) {
-    return fail(front.error ?? "Could not host the front creative for Lob.");
+  const hostedFront = await hostImageReference(input.front);
+  if (!(hostedFront.ok && hostedFront.url)) {
+    return fail(
+      hostedFront.error ?? "Could not host the front creative for Lob."
+    );
+  }
+  const front = await resolveLobHtml(
+    buildLobFrontHtml(hostedFront.url, input.size)
+  );
+  if (!(front.ok && front.value)) {
+    return fail(front.error ?? "Could not host the postcard front for Lob.");
   }
   // Host the QR so it isn't inlined as base64 (keeps the back HTML tiny).
   let qr = input.qrDataUri;
@@ -921,22 +981,18 @@ const resolveLobCreative = async (
     const hostedQr = await hostImageReference(qr);
     qr = hostedQr.ok ? hostedQr.url : undefined;
   }
-  const backHtml = buildPostcardBackHtml({
-    ...backContentFromInput(input),
-    qrDataUri: qr,
-    // Lob prints the sender from `from`, so no return block on the back.
-    size: input.size,
-  });
-  if (backHtml.length < LOB_INLINE_HTML_LIMIT) {
-    return { back: backHtml, front: front.url, message: "", ok: true };
+  const back = await resolveLobHtml(
+    buildPostcardBackHtml({
+      ...backContentFromInput(input),
+      qrDataUri: qr,
+      // Lob prints the sender from `from`, so no return block on the back.
+      size: input.size,
+    })
+  );
+  if (!(back.ok && back.value)) {
+    return fail(back.error ?? "Could not host the postcard back for Lob.");
   }
-  const hostedBack = await hostHtmlReference(backHtml);
-  if (!(hostedBack.ok && hostedBack.url)) {
-    return fail(
-      hostedBack.error ?? "Could not host the postcard back for Lob."
-    );
-  }
-  return { back: hostedBack.url, front: front.url, message: "", ok: true };
+  return { back: back.value, front: front.value, message: "", ok: true };
 };
 
 const submitLob = async (
@@ -1005,6 +1061,9 @@ const submitLob = async (
       back: creative.back,
       front: creative.front,
       size: lobSize(input.size),
+      // Lob now requires use_type on postcard creation; this is direct-mail
+      // marketing, so "marketing" is the correct classification.
+      use_type: "marketing",
       "to[address_city]": recipient.city,
       "to[address_line1]": recipient.addressLine1,
       "to[address_state]": recipient.state,

@@ -153,6 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return res.status(400).json({ error: "messages array is required" });
   }
+  const messages = body.messages;
 
   // ── Sanity Insights telemetry (optional – requires SANITY_WRITE_TOKEN) ──────
   const writeToken = process.env.SANITY_WRITE_TOKEN;
@@ -223,7 +224,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         ({ text: responseText } = await generateText({
           experimental_telemetry: experimentalTelemetry,
-          messages: body.messages,
+          messages,
           model,
           stopWhen: stepCountIs(10),
           system: SYSTEM_PROMPT,
@@ -238,7 +239,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         ({ text: responseText } = await generateText({
           experimental_telemetry: experimentalTelemetry,
-          messages: body.messages,
+          messages,
           model,
           system: `${SYSTEM_PROMPT}\n\nTool execution is currently unavailable. Do not call tools. Give the best possible answer from the provided conversation context and clearly state assumptions where needed.`,
         }));

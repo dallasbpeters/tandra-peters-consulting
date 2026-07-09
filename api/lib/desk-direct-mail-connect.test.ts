@@ -108,26 +108,68 @@ describe("submitLob", () => {
     // Editable return address becomes the inline from address (no adr_ id needed).
     expect(params.get("from[name]")).toBe("Tandra Peters");
     expect(params.get("from[address_line1]")).toBe("PO Box 340");
+    // Lob now requires use_type on postcard creation; this is direct-mail marketing.
+    expect(params.get("use_type")).toBe("marketing");
   });
 
-  it("passes a URL front (not >10k inline HTML) and keeps back under 10k", async () => {
+  it("wraps the front image in full-bleed HTML so Lob renders it to print size", async () => {
     const fetchMock = mockLobOk();
-    // A real Ad Builder thumbnail is a large base64 PNG — the 10k culprit.
-    const bigFront = `data:image/png;base64,${"A".repeat(20_000)}`;
-    const bigQr = `data:image/png;base64,${"B".repeat(4000)}`;
+    // A real Ad Builder thumbnail is a small, low-res base64 PNG — Lob rejects a
+    // raster below 300 DPI, so it must be delivered as size-rendered HTML.
+    const thumbFront = `data:image/png;base64,${"A".repeat(400)}`;
 
     const result = await submitToProvider(
-      baseInput({ front: bigFront, qrDataUri: bigQr }),
+      baseInput({ front: thumbFront, size: "6x9" }),
       { LOB_API_KEY: "test_abc123" },
       false
     );
 
     expect(result.ok).toBeTruthy();
     const params = paramsOf(fetchMock);
-    // Front is the hosted URL, NOT the oversized base64/HTML.
-    expect(params.get("front")).toBe(HOSTED_URL);
+    const front = params.get("front") ?? "";
+    // Front is now an HTML creative (Lob renders HTML to `size`, dodging the
+    // PNG/JPG minimum-resolution check), NOT a bare low-res image URL.
+    expect(front.startsWith("<!doctype html>")).toBeTruthy();
+    // It links the hosted image and is sized to the 6x9 full-bleed card
+    // (9.25in × 6.25in → 2775 × 1875 px at 300 DPI).
+    expect(front).toContain(HOSTED_URL);
+    expect(front).toContain("9.25in");
+    // Delivered inline as HTML (doctype prefix proves it's not a hosted URL),
+    // sized to the 6x9 full-bleed card.
+    expect(front).toContain("6.25in");
+  });
+
+  it("sizes the front HTML to the 4x6 full-bleed card", async () => {
+    const fetchMock = mockLobOk();
+
+    await submitToProvider(
+      baseInput({ front: "https://example.com/front.png", size: "4x6" }),
+      { LOB_API_KEY: "test_abc123" },
+      false
+    );
+
+    const front = paramsOf(fetchMock).get("front") ?? "";
+    // 4x6 full bleed → 6.25in × 4.25in (1875 × 1275 px at 300 DPI).
+    expect(front).toContain("6.25in");
+    expect(front).toContain("4.25in");
+  });
+
+  it("keeps the back HTML under Lob's inline limit (QR hosted, not inlined)", async () => {
+    const fetchMock = mockLobOk();
+    const bigQr = `data:image/png;base64,${"B".repeat(4000)}`;
+
+    const result = await submitToProvider(
+      baseInput({ qrDataUri: bigQr }),
+      { LOB_API_KEY: "test_abc123" },
+      false
+    );
+
+    expect(result.ok).toBeTruthy();
+    const params = paramsOf(fetchMock);
     // Back stays comfortably under Lob's inline limit (QR hosted, not inlined).
     expect((params.get("back") ?? "").length).toBeLessThan(10_000);
+    // The hosted QR URL is linked, not embedded as base64.
+    expect(params.get("back")).toContain(HOSTED_URL);
   });
 
   it("refuses a LIVE key while the send gate is off (never mails)", async () => {
