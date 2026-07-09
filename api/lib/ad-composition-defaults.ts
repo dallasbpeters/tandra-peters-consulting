@@ -361,6 +361,7 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
     },
   ],
   showHand: true,
+  handVideoSrc: "/whiteboard/hand-marker.webm",
 };
 
 export const AD_COMPOSITION_DEFAULTS: Record<

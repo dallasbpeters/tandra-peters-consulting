@@ -14,14 +14,16 @@
  *
  * Body:
  *   scenes      — WhiteboardScene[]
- *   voiceId?    — ElevenLabs voice ID (falls back to ELEVENLABS_DEFAULT_VOICE_ID)
+ *   voiceId?    — ElevenLabs voice ID (falls back to ELEVENLABS_TANDRA_VOICE_ID,
+ *                then ELEVENLABS_DEFAULT_VOICE_ID)
  *   stability?  — ElevenLabs voice stability 0–1 (default 0.5)
  *   speed?      — Speaking speed 0.7–1.3 (default 0.95)
  *   dryRun?     — If true, only generate scripts (no TTS/Blob upload)
  *
  * Env:
  *   ELEVENLABS_API_KEY
- *   ELEVENLABS_DEFAULT_VOICE_ID — fallback voice (e.g. Tandra's cloned voice ID)
+ *   ELEVENLABS_TANDRA_VOICE_ID     — preferred voice (Tandra's cloned voice)
+ *   ELEVENLABS_DEFAULT_VOICE_ID    — secondary fallback voice
  *   BLOB_READ_WRITE_TOKEN
  *   ANTHROPIC_API_KEY
  */
@@ -71,12 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const voiceId =
-    bodyVoiceId?.trim() || process.env.ELEVENLABS_DEFAULT_VOICE_ID?.trim();
+    bodyVoiceId?.trim() ||
+    process.env.ELEVENLABS_TANDRA_VOICE_ID?.trim() ||
+    process.env.ELEVENLABS_DEFAULT_VOICE_ID?.trim();
 
   if (!voiceId && !dryRun) {
     return jsonError(
       res,
-      "voiceId is required (or set ELEVENLABS_DEFAULT_VOICE_ID env var).",
+      "voiceId is required (or set ELEVENLABS_TANDRA_VOICE_ID env var).",
       400
     );
   }

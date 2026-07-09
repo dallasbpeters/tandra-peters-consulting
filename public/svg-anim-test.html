@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SVG Animation Diagnostic</title>
+    <style>
+      body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 24px;
+        background: #f5f5f5;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .card {
+        background: white;
+        padding: 10px;
+        border: 1px solid #ddd;
+        min-width: 120px;
+      }
+      label {
+        display: block;
+        color: #888;
+        margin-top: 6px;
+      }
+      button {
+        margin: 8px 4px 0;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <b>Test A: Simple circle, CSS anim</b>
+      <svg
+        id="ta"
+        viewBox="0 0 100 100"
+        width="100"
+        height="100"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <style>
+          @keyframes drawA {
+            from {
+              stroke-dashoffset: 400;
+            }
+            to {
+              stroke-dashoffset: 0;
+            }
+          }
+          #ta path {
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: drawA 3s linear forwards;
+          }
+        </style>
+        <path
+          d="M50,10 C80,10 90,80 50,90 C10,80 20,10 50,10 Z"
+          fill="none"
+          stroke="#e22"
+          stroke-width="5"
+        />
+      </svg>
+      <label>Pure CSS on simple SVG — must work</label>
+    </div>
+
+    <div class="card" id="tb-card">
+      <b>Test B: Real glyph, CSS in HEAD</b>
+      <div id="tb-container" style="width: 80px; height: 80px"></div>
+      <label id="tb-label">loading...</label>
+    </div>
+
+    <div class="card" id="tc-card">
+      <b>Test C: Real glyph, JS Web Anim</b>
+      <div id="tc-container" style="width: 80px; height: 80px"></div>
+      <label id="tc-label">loading...</label>
+    </div>
+
+    <div class="card" id="td-card">
+      <b>Test D: Static glyph (full visibility)</b>
+      <div id="td-container" style="width: 80px; height: 80px"></div>
+      <label id="td-label">loading...</label>
+    </div>
+
+    <div class="card" id="te-card">
+      <b>Test E: Glyph, inline style anim (setInterval)</b>
+      <div id="te-container" style="width: 80px; height: 80px"></div>
+      <label id="te-label">loading...</label>
+    </div>
+
+    <br style="width: 100%; flex-basis: 100%" />
+    <button onclick="location.reload()">
+      ↺ Reload page to replay animations
+    </button>
+
+    <script>
+      async function run() {
+        const res = await fetch("/whiteboard/handfont/lower/a.svg");
+        const txt = await res.text();
+
+        function injectSvg(containerId, svgText) {
+          const div = document.getElementById(containerId);
+          div.innerHTML = svgText;
+          const svg = div.querySelector("svg");
+          if (svg) {
+            svg.setAttribute("width", "80");
+            svg.setAttribute("height", "80");
+          }
+          return svg;
+        }
+
+        // ── Test B: CSS @keyframes in document head ─────────────────────
+        const bSvg = injectSvg("tb-container", txt);
+        const bStyle = document.createElement("style");
+        bStyle.textContent = `
+    @keyframes drawB { from{stroke-dashoffset:99999}to{stroke-dashoffset:0} }
+    #tb-container path.g {
+      stroke-dasharray: 99999;
+      stroke-dashoffset: 99999 !important;
+      animation: drawB 3s linear forwards !important;
+    }
+  `;
+        document.head.appendChild(bStyle);
+        const bPaths = document.querySelectorAll("#tb-container path.g");
+        document.getElementById("tb-label").textContent =
+          `found ${bPaths.length} path.g element(s)`;
+
+        // ── Test C: Web Animations API ──────────────────────────────────
+        const cSvg = injectSvg("tc-container", txt);
+        const cPaths = document.querySelectorAll("#tc-container path.g");
+        cPaths.forEach((p) => {
+          // Set dasharray first via attribute (always works)
+          p.setAttribute("stroke-dasharray", "99999");
+          // Animate dashoffset via Web Animations API
+          p.animate(
+            [{ "stroke-dashoffset": "99999" }, { "stroke-dashoffset": "0" }],
+            { duration: 3000, fill: "forwards", easing: "linear" }
+          );
+        });
+        document.getElementById("tc-label").textContent =
+          `found ${cPaths.length} path.g — Web Anim API`;
+
+        // ── Test D: Static, no animation (should show full letter) ──────
+        injectSvg("td-container", txt);
+        document.getElementById("td-label").textContent =
+          "no anim — should be full";
+
+        // ── Test E: setInterval / manual dashoffset ─────────────────────
+        const eSvg = injectSvg("te-container", txt);
+        const ePaths = [...document.querySelectorAll("#te-container path.g")];
+        ePaths.forEach((p) => p.setAttribute("stroke-dasharray", "99999"));
+        const start = performance.now();
+        const duration = 3000;
+        const id = setInterval(() => {
+          const elapsed = performance.now() - start;
+          const t = Math.min(1, elapsed / duration);
+          const offset = 99999 * (1 - t);
+          ePaths.forEach((p) => {
+            p.style.setProperty(
+              "stroke-dashoffset",
+              String(offset),
+              "important"
+            );
+          });
+          if (t >= 1) clearInterval(id);
+        }, 16);
+        document.getElementById("te-label").textContent =
+          `found ${ePaths.length} path.g — setInterval`;
+      }
+      run().catch((e) => console.error(e));
+    </script>
+  </body>
+</html>

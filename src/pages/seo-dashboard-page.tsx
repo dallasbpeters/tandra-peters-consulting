@@ -24,7 +24,8 @@ import type {
 } from "../types/seo";
 
 const shellStyle: CSSProperties = {
-  display: "grid",
+  display: "flex",
+  flexDirection: "column",
   gap: theme.spacing.xxl,
 };
 

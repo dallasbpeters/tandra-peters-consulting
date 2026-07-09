@@ -224,6 +224,12 @@ type VoiceoverState =
   | { status: "done"; sceneCount: number }
   | { status: "error"; message: string };
 
+type DrawingState =
+  | { status: "idle" }
+  | { status: "generating"; sceneIdx: number }
+  | { status: "done"; sceneIdx: number }
+  | { status: "error"; message: string };
+
 export function RemotionVideoTool() {
   const scheme = useColorSchemeValue();
   const isDark = scheme === "dark";
@@ -234,6 +240,7 @@ export function RemotionVideoTool() {
   const [voiceover, setVoiceover] = useState<VoiceoverState>({
     status: "idle",
   });
+  const [drawing, setDrawing] = useState<DrawingState>({ status: "idle" });
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const active = useMemo(
@@ -494,6 +501,75 @@ export function RemotionVideoTool() {
     }
   }, [formProps]);
 
+  const onGenerateDrawing = useCallback(async () => {
+    const scenes = (formProps as any).scenes;
+    if (!Array.isArray(scenes) || scenes.length === 0) {
+      setDrawing({ message: "No scenes found. Save first.", status: "error" });
+      return;
+    }
+
+    const RENDER_BASE_URL = RENDER_BASE ?? "";
+
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i] as {
+        drawing?: { prompt?: string; paths?: string[] };
+        headline?: string;
+        heading?: string;
+        label?: string;
+      };
+
+      const prompt =
+        scene.drawing?.prompt?.trim() ||
+        scene.headline?.trim() ||
+        scene.heading?.trim() ||
+        scene.label?.trim();
+
+      if (!prompt) {
+        continue;
+      }
+
+      setDrawing({ sceneIdx: i, status: "generating" });
+
+      try {
+        const res = await fetch(`${RENDER_BASE_URL}/api/whiteboard/drawing`, {
+          body: JSON.stringify({ prompt, sceneHint: `Scene ${i + 1}` }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          paths?: string[];
+          viewBox?: string;
+          error?: string;
+        };
+
+        if (!res.ok || !data.paths) {
+          console.warn(
+            `[drawing] scene ${i} failed:`,
+            data.error ?? `HTTP ${res.status}`
+          );
+          continue;
+        }
+
+        setFormProps((prev: any) => {
+          const updated = [...((prev.scenes as any[]) ?? [])];
+          updated[i] = {
+            ...updated[i],
+            drawing: {
+              ...updated[i].drawing,
+              paths: data.paths,
+              viewBox: data.viewBox ?? "0 0 300 300",
+            },
+          };
+          return { ...prev, scenes: updated };
+        });
+      } catch (error) {
+        console.error(`[drawing] scene ${i} error:`, error);
+      }
+    }
+
+    setDrawing({ sceneIdx: scenes.length - 1, status: "done" });
+  }, [formProps]);
+
   const colors = isDark
     ? {
         activeBg: "#10533a",
@@ -709,6 +785,32 @@ export function RemotionVideoTool() {
                   {voiceover.status === "generating"
                     ? "Generating…"
                     : "🎙 Generate Voiceover"}
+                </button>
+                <button
+                  disabled={
+                    drawing.status === "generating" ||
+                    render.status === "rendering"
+                  }
+                  onClick={onGenerateDrawing}
+                  style={{
+                    background: "#6B21A8",
+                    border: "none",
+                    borderRadius: 8,
+                    color: "#fff",
+                    cursor:
+                      drawing.status === "generating" ? "wait" : "pointer",
+                    fontSize: "0.8125rem",
+                    fontWeight: 700,
+                    opacity: drawing.status === "generating" ? 0.7 : 1,
+                    padding: "0.5rem 1rem",
+                  }}
+                  type="button"
+                >
+                  {drawing.status === "generating"
+                    ? `✏️ Drawing scene ${(drawing as { sceneIdx: number }).sceneIdx + 1}…`
+                    : drawing.status === "done"
+                      ? "✅ Drawings done"
+                      : "✏️ Generate Drawings"}
                 </button>
               </>
             )}

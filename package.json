@@ -38,6 +38,7 @@
     "lora:render:whiteboard": "node scripts/render-whiteboard-training-clips.mjs",
     "lora:build:whiteboard": "node scripts/build-whiteboard-training-zip.mjs",
     "lora:train:whiteboard": "node scripts/train-whiteboard-lora.mjs",
+    "handfont:setup": "node scripts/setup-handfont.mjs",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",

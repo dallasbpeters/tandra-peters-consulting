@@ -190,6 +190,16 @@ export const SCHEMAS: Record<string, EditorSchema> = {
           label: "Illustration URL (FAL AI)",
           type: "textarea",
         },
+        {
+          key: "scenes.0.drawing.prompt",
+          label: "Drawing prompt (describe what to draw)",
+          type: "text",
+        },
+        {
+          key: "scenes.0.drawing.paths",
+          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          type: "textarea",
+        },
       ],
       key: "scene0",
       label: "Scene 1 — Title",
@@ -220,6 +230,16 @@ export const SCHEMAS: Record<string, EditorSchema> = {
           label: "Illustration URL (FAL AI)",
           type: "textarea",
         },
+        {
+          key: "scenes.1.drawing.prompt",
+          label: "Drawing prompt (describe what to draw)",
+          type: "text",
+        },
+        {
+          key: "scenes.1.drawing.paths",
+          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          type: "textarea",
+        },
       ],
       key: "scene1",
       label: "Scene 2 — Bullets",
@@ -247,6 +267,16 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         {
           key: "scenes.2.illustrationUrl",
           label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.2.drawing.prompt",
+          label: "Drawing prompt (describe what to draw)",
+          type: "text",
+        },
+        {
+          key: "scenes.2.drawing.paths",
+          label: "Drawing paths (JSON array — auto-filled by Generate)",
           type: "textarea",
         },
       ],
@@ -289,6 +319,16 @@ export const SCHEMAS: Record<string, EditorSchema> = {
           label: "Illustration URL (FAL AI)",
           type: "textarea",
         },
+        {
+          key: "scenes.3.drawing.prompt",
+          label: "Drawing prompt (describe what to draw)",
+          type: "text",
+        },
+        {
+          key: "scenes.3.drawing.paths",
+          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          type: "textarea",
+        },
       ],
       key: "scene3",
       label: "Scene 4 — Diagram",
@@ -316,6 +356,16 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         {
           key: "scenes.4.illustrationUrl",
           label: "Illustration URL (FAL AI)",
+          type: "textarea",
+        },
+        {
+          key: "scenes.4.drawing.prompt",
+          label: "Drawing prompt (describe what to draw)",
+          type: "text",
+        },
+        {
+          key: "scenes.4.drawing.paths",
+          label: "Drawing paths (JSON array — auto-filled by Generate)",
           type: "textarea",
         },
       ],
@@ -1052,6 +1102,9 @@ export function setProp(
     }
     current = (current as Record<string, unknown>)[part];
   }
-  (current as Record<string, unknown>)[parts.at(-1)] = value;
+  const lastPart = parts.at(-1);
+  if (lastPart !== undefined) {
+    (current as Record<string, unknown>)[lastPart] = value;
+  }
   return result;
 }

@@ -1,5 +1,6 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
+import { AnimatedDrawing } from "../components/animated-drawing";
 import { DrawPath } from "../components/draw-path";
 import { HandCursor } from "../components/hand-cursor";
 import { WriteText } from "../components/write-text";
@@ -46,6 +47,18 @@ export const DiagramSceneComponent = ({
   const headingEndFrame = headingDuration + 5;
   const underlineEnd = headingEndFrame + 18 + 8;
 
+  const hasDrawing = (scene.drawing?.paths?.length ?? 0) > 0;
+  const drawingPaths = scene.drawing?.paths ?? [];
+  const drawingViewBox = scene.drawing?.viewBox ?? "0 0 300 300";
+  // Drawing sits bottom-right, complementing the diagram steps
+  const drawingSize = 300;
+  const drawingX = width - drawingSize - 60;
+  const drawingY = height - drawingSize - 60;
+  const drawingStartFrame = underlineEnd;
+  const drawingDuration = hasDrawing
+    ? Math.max(50, drawingPaths.length * 12)
+    : 0;
+
   const STEP_Y = height / 2 + 60;
   const CIRCLE_R = 68;
   const steps = scene.steps.slice(0, 5);
@@ -72,156 +85,160 @@ export const DiagramSceneComponent = ({
   const handX = stepXs[activeStepIdx] ?? cx;
 
   return (
-    <svg
-      height={height}
-      style={{ position: "absolute", inset: 0 }}
-      viewBox={`0 0 ${width} ${height}`}
-      width={width}
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Heading */}
-      <WriteText
-        color={inkColor}
-        dominantBaseline="auto"
-        durationInFrames={headingDuration}
-        fontFamily="Permanent Marker"
-        fontSize={80}
-        fontWeight={700}
-        startFrame={0}
-        text={scene.heading}
-        textAnchor="middle"
-        x={cx}
-        y={150}
-      />
+    <>
+      <svg
+        height={height}
+        style={{ position: "absolute", inset: 0 }}
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Heading */}
+        <WriteText
+          color={inkColor}
+          dominantBaseline="auto"
+          durationInFrames={headingDuration}
+          fontFamily="Permanent Marker"
+          fontSize={80}
+          fontWeight={700}
+          startFrame={0}
+          text={scene.heading}
+          textAnchor="middle"
+          x={cx}
+          y={150}
+        />
 
-      {/* Heading underline */}
-      <DrawPath
-        color={accentColor}
-        d={`M ${cx - 320},166 C ${cx - 100},171 ${cx + 100},163 ${cx + 320},167`}
-        durationInFrames={18}
-        startFrame={headingEndFrame}
-        strokeWidth={5}
-      />
+        {/* Heading underline */}
+        <DrawPath
+          color={accentColor}
+          d={`M ${cx - 320},166 C ${cx - 100},171 ${cx + 100},163 ${cx + 320},167`}
+          durationInFrames={18}
+          startFrame={headingEndFrame}
+          strokeWidth={5}
+        />
 
-      {/* Steps */}
-      {steps.map((step, i) => {
-        const stepStart = underlineEnd + i * FRAMES_PER_STEP;
-        const circleStart = stepStart;
-        const numStart = stepStart + 16;
-        const labelStart = numStart + 8;
-        const labelDuration = Math.max(14, step.label.length * 3);
-        const detailStart = labelStart + labelDuration + 4;
-        const detailDuration = step.detail
-          ? Math.max(12, step.detail.length * 2)
-          : 0;
+        {/* AI-generated drawing (bottom-right corner when present) */}
+        {hasDrawing && (
+          <AnimatedDrawing
+            color={inkColor}
+            durationInFrames={drawingDuration}
+            height={drawingSize}
+            paths={drawingPaths}
+            startFrame={drawingStartFrame}
+            strokeWidth={6}
+            viewBox={drawingViewBox}
+            width={drawingSize}
+            x={drawingX}
+            y={drawingY}
+          />
+        )}
 
-        const x = stepXs[i];
-        if (x === undefined) {
-          return null;
-        }
+        {/* Steps */}
+        {steps.map((step, i) => {
+          const stepStart = underlineEnd + i * FRAMES_PER_STEP;
+          const circleStart = stepStart;
+          const numStart = stepStart + 16;
+          const labelStart = numStart + 8;
+          const labelDuration = Math.max(14, step.label.length * 3);
+          const detailStart = labelStart + labelDuration + 4;
+          const detailDuration = step.detail
+            ? Math.max(12, step.detail.length * 2)
+            : 0;
 
-        // Arrow to next step
-        const hasNext = i < steps.length - 1;
-        const nextX = stepXs[i + 1];
-        const arrowStart = stepStart + FRAMES_PER_STEP - 12;
+          const x = stepXs[i];
+          if (x === undefined) {
+            return null;
+          }
 
-        // Circle outline path
-        const circlePath =
-          `M ${x + CIRCLE_R},${STEP_Y} ` +
-          `a ${CIRCLE_R},${CIRCLE_R} 0 1,0 -${CIRCLE_R * 2},0 ` +
-          `a ${CIRCLE_R},${CIRCLE_R} 0 1,0 ${CIRCLE_R * 2},0`;
+          const hasNext = i < steps.length - 1;
+          const nextX = stepXs[i + 1];
+          const arrowStart = stepStart + FRAMES_PER_STEP - 12;
 
-        // Opacity for circle fill appearing with the drawing
-        const circleFillOpacity = interpolate(
-          frame,
-          [circleStart, circleStart + 16],
-          [0, 1],
-          { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-        );
+          const circlePath =
+            `M ${x + CIRCLE_R},${STEP_Y} ` +
+            `a ${CIRCLE_R},${CIRCLE_R} 0 1,0 -${CIRCLE_R * 2},0 ` +
+            `a ${CIRCLE_R},${CIRCLE_R} 0 1,0 ${CIRCLE_R * 2},0`;
 
-        return (
-          <g key={`${step.label}-${i}`}>
-            {/* Circle fill */}
-            <circle
-              cx={x}
-              cy={STEP_Y}
-              fill={accentColor}
-              opacity={circleFillOpacity * 0.12}
-              r={CIRCLE_R}
-            />
+          const circleFillOpacity = interpolate(
+            frame,
+            [circleStart, circleStart + 16],
+            [0, 1],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+          );
 
-            {/* Circle outline */}
-            <DrawPath
-              color={accentColor}
-              d={circlePath}
-              durationInFrames={16}
-              startFrame={circleStart}
-              strokeWidth={4}
-            />
-
-            {/* Step number */}
-            <WriteText
-              color={accentColor}
-              dominantBaseline="middle"
-              durationInFrames={8}
-              fontFamily="Permanent Marker"
-              fontSize={72}
-              fontWeight={700}
-              startFrame={numStart}
-              text={String(i + 1)}
-              textAnchor="middle"
-              x={x}
-              y={STEP_Y}
-            />
-
-            {/* Step label below circle */}
-            <WriteText
-              color={inkColor}
-              dominantBaseline="auto"
-              durationInFrames={labelDuration}
-              fontFamily="Permanent Marker"
-              fontSize={58}
-              fontWeight={700}
-              startFrame={labelStart}
-              text={step.label}
-              textAnchor="middle"
-              x={x}
-              y={STEP_Y + CIRCLE_R + 54}
-            />
-
-            {/* Step detail */}
-            {step.detail && (
+          return (
+            <g key={`${step.label}-${i}`}>
+              <circle
+                cx={x}
+                cy={STEP_Y}
+                fill={accentColor}
+                opacity={circleFillOpacity * 0.12}
+                r={CIRCLE_R}
+              />
+              <DrawPath
+                color={accentColor}
+                d={circlePath}
+                durationInFrames={16}
+                startFrame={circleStart}
+                strokeWidth={4}
+              />
               <WriteText
-                color={`${inkColor}99`}
-                dominantBaseline="auto"
-                durationInFrames={detailDuration}
+                color={accentColor}
+                dominantBaseline="middle"
+                durationInFrames={8}
                 fontFamily="Permanent Marker"
-                fontSize={40}
-                fontWeight={400}
-                startFrame={detailStart}
-                text={step.detail}
+                fontSize={72}
+                fontWeight={700}
+                startFrame={numStart}
+                text={String(i + 1)}
                 textAnchor="middle"
                 x={x}
-                y={STEP_Y + CIRCLE_R + 106}
+                y={STEP_Y}
               />
-            )}
-
-            {/* Arrow to next */}
-            {hasNext && nextX !== undefined && (
-              <DrawPath
-                color={`${inkColor}88`}
-                d={arrowPath(x, nextX, STEP_Y)}
-                durationInFrames={12}
-                startFrame={arrowStart}
-                strokeWidth={3.5}
+              <WriteText
+                color={inkColor}
+                dominantBaseline="auto"
+                durationInFrames={labelDuration}
+                fontFamily="Permanent Marker"
+                fontSize={58}
+                fontWeight={700}
+                startFrame={labelStart}
+                text={step.label}
+                textAnchor="middle"
+                x={x}
+                y={STEP_Y + CIRCLE_R + 54}
               />
-            )}
-          </g>
-        );
-      })}
+              {step.detail && (
+                <WriteText
+                  color={`${inkColor}99`}
+                  dominantBaseline="auto"
+                  durationInFrames={detailDuration}
+                  fontFamily="Permanent Marker"
+                  fontSize={40}
+                  fontWeight={400}
+                  startFrame={detailStart}
+                  text={step.detail}
+                  textAnchor="middle"
+                  x={x}
+                  y={STEP_Y + CIRCLE_R + 106}
+                />
+              )}
+              {hasNext && nextX !== undefined && (
+                <DrawPath
+                  color={`${inkColor}88`}
+                  d={arrowPath(x, nextX, STEP_Y)}
+                  durationInFrames={12}
+                  startFrame={arrowStart}
+                  strokeWidth={3.5}
+                />
+              )}
+            </g>
+          );
+        })}
+      </svg>
 
-      {/* Hand */}
+      {/* Hand rendered outside <svg> so <HandVideo>'s <div> composites correctly */}
       {showHand && frame >= underlineEnd && (
         <HandCursor
           src={handSrc}
@@ -232,6 +249,6 @@ export const DiagramSceneComponent = ({
           y={STEP_Y - 40}
         />
       )}
-    </svg>
+    </>
   );
 };

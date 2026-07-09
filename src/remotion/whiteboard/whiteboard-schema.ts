@@ -18,7 +18,22 @@ const narrationSchema = z.object({
   script: z.string().optional(),
 });
 
-// ─── Scene schemas ────────────────────────────────────────────────────────────
+// ─── Shared drawing sub-schema ───────────────────────────────────────────────
+
+/**
+ * An AI-generated whiteboard drawing for a scene.
+ *
+ * - `prompt`   — plain-English description of what to draw, sent to the
+ *                generation API (POST /api/whiteboard/drawing)
+ * - `paths`    — ordered array of SVG path d-attributes returned by the API;
+ *                each path = one pen stroke, animated sequentially
+ * - `viewBox`  — SVG viewBox string returned by the API (default "0 0 300 300")
+ */
+const drawingSchema = z.object({
+  prompt: z.string().optional(),
+  paths: z.array(z.string()).optional(),
+  viewBox: z.string().default("0 0 300 300"),
+});
 
 const titleSceneSchema = z.object({
   type: z.literal("title"),
@@ -29,6 +44,7 @@ const titleSceneSchema = z.object({
   narration: narrationSchema.optional(),
   /** FAL AI generated illustration URL shown as a right-side panel. */
   illustrationUrl: z.string().optional(),
+  drawing: drawingSchema.optional(),
 });
 
 const bulletsSceneSchema = z.object({
@@ -41,6 +57,7 @@ const bulletsSceneSchema = z.object({
   useCheckboxes: z.boolean().default(true),
   narration: narrationSchema.optional(),
   illustrationUrl: z.string().optional(),
+  drawing: drawingSchema.optional(),
 });
 
 const calloutSceneSchema = z.object({
@@ -52,6 +69,7 @@ const calloutSceneSchema = z.object({
   emphasis: z.string().optional(),
   narration: narrationSchema.optional(),
   illustrationUrl: z.string().optional(),
+  drawing: drawingSchema.optional(),
 });
 
 const diagramSceneSchema = z.object({
@@ -72,6 +90,7 @@ const diagramSceneSchema = z.object({
     ]),
   narration: narrationSchema.optional(),
   illustrationUrl: z.string().optional(),
+  drawing: drawingSchema.optional(),
 });
 
 const ctaSceneSchema = z.object({
@@ -83,6 +102,7 @@ const ctaSceneSchema = z.object({
   badge: z.string().optional(),
   narration: narrationSchema.optional(),
   illustrationUrl: z.string().optional(),
+  drawing: drawingSchema.optional(),
 });
 
 export const whiteboardSceneSchema = z.discriminatedUnion("type", [
@@ -130,7 +150,8 @@ export const whiteboardVideoSchema = z.object({
   /**
    * ElevenLabs voice ID to use for TTS narration generation.
    * Set this to Tandra's cloned voice ID after creating it in the ElevenLabs
-   * dashboard. Falls back to `ELEVENLABS_DEFAULT_VOICE_ID` env var on the server.
+   * dashboard. Falls back to `ELEVENLABS_TANDRA_VOICE_ID` (then
+   * `ELEVENLABS_DEFAULT_VOICE_ID`) env var on the server.
    */
   voiceId: z.string().optional(),
   /** Ordered scenes that make up the video. */
@@ -145,3 +166,4 @@ export type CalloutScene = z.infer<typeof calloutSceneSchema>;
 export type DiagramScene = z.infer<typeof diagramSceneSchema>;
 export type CtaScene = z.infer<typeof ctaSceneSchema>;
 export type Narration = z.infer<typeof narrationSchema>;
+export type SceneDrawing = z.infer<typeof drawingSchema>;

@@ -22,11 +22,13 @@ import { viteDeskTargetsApi } from "./plugins/vite-desk-targets-api";
 import { viteEmailDevApi } from "./plugins/vite-email-dev-api";
 import { viteEstimateDevApi } from "./plugins/vite-estimate-dev-api";
 import { viteFalDevApi } from "./plugins/vite-fal-dev-api";
+import { viteGlyphEditorApi } from "./plugins/vite-glyph-editor-api";
 import { viteRenderTandraIntroApi } from "./plugins/vite-render-tandra-intro-api";
 import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
 import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
 import { viteSitemapApi } from "./plugins/vite-sitemap-api";
 import { viteUnsplashApi } from "./plugins/vite-unsplash-api";
+import { viteWhiteboardDrawingApi } from "./plugins/vite-whiteboard-drawing-api";
 import { viteWhiteboardVoiceoverApi } from "./plugins/vite-whiteboard-voiceover-api";
 import { viteWorkflowSaveApi } from "./plugins/vite-workflow-save-api";
 
@@ -140,6 +142,8 @@ export default defineConfig(({ mode }) => {
     viteRenderTandraIntroApi(env) as unknown as PluginOption,
     viteAnalyticsApi(env) as unknown as PluginOption,
     viteWhiteboardVoiceoverApi(env) as unknown as PluginOption,
+    viteWhiteboardDrawingApi(env) as unknown as PluginOption,
+    viteGlyphEditorApi() as unknown as PluginOption,
     ...(useLocalContactApi
       ? [viteContactDevApi(env) as unknown as PluginOption]
       : []),

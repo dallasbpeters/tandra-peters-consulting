@@ -105,6 +105,21 @@ const RemotionPreviewPage = lazy(async () => {
   return { default: module.RemotionPreviewPage };
 });
 
+const HandfontPreviewPage = lazy(async () => {
+  const module = await import("./pages/handfont-preview-page");
+  return { default: module.HandfontPreviewPage };
+});
+
+const HandfontLabPage = lazy(async () => {
+  const module = await import("./pages/handfont-lab-page");
+  return { default: module.HandfontLabPage };
+});
+
+const GlyphEditorPage = lazy(async () => {
+  const module = await import("./pages/glyph-editor-page");
+  return { default: module.GlyphEditorPage };
+});
+
 const VideosPage = lazy(async () => {
   const module = await import("./pages/videos-page");
   return { default: module.VideosPage };
@@ -141,6 +156,18 @@ const appRouter = createBrowserRouter([
     // Standalone, chrome-less Remotion preview embedded by the Sanity Studio
     // "Videos" tool. No SiteShell / nav / providers — just the player.
     path: "remotion-preview",
+  },
+  {
+    element: <HandfontPreviewPage />,
+    path: "handfont-preview",
+  },
+  {
+    element: <HandfontLabPage />,
+    path: "handfont-lab",
+  },
+  {
+    element: <GlyphEditorPage />,
+    path: "glyph-editor",
   },
   {
     element: <EmailComposerEmbed />,

@@ -1,3 +1,7 @@
 /* Self-hosted fonts — avoids render-blocking Google Fonts CSS on the critical path. */
 @import "@fontsource-variable/hanken-grotesk/wght.css";
 @import "@fontsource-variable/caveat/wght.css";
+/* IBM Plex Serif is used in workflow-page and ad-dashboard; load it globally so
+   the font-family declaration resolves on those lazy-loaded pages. */
+@import "@fontsource/ibm-plex-serif/400.css";
+@import "@fontsource/ibm-plex-serif/400-italic.css";

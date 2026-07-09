@@ -1,5 +1,6 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
+import { AnimatedDrawing } from "../components/animated-drawing";
 import { DrawPath } from "../components/draw-path";
 import { HandCursor } from "../components/hand-cursor";
 import { WriteText } from "../components/write-text";
@@ -41,6 +42,17 @@ export const CalloutSceneComponent = ({
 
   const cx = width / 2;
   const cy = height / 2;
+
+  const hasDrawing = (scene.drawing?.paths?.length ?? 0) > 0;
+  const drawingPaths = scene.drawing?.paths ?? [];
+  const drawingViewBox = scene.drawing?.viewBox ?? "0 0 300 300";
+  const drawingSize = 340;
+  const drawingX = width - drawingSize - 60;
+  const drawingY = 40;
+  const drawingStartFrame = 0;
+  const drawingDuration = hasDrawing
+    ? Math.max(50, drawingPaths.length * 12)
+    : 0;
 
   // Box dimensions
   const bw = 1300;
@@ -90,111 +102,129 @@ export const CalloutSceneComponent = ({
   const handY = cy - 20;
 
   return (
-    <svg
-      height={height}
-      style={{ position: "absolute", inset: 0 }}
-      viewBox={`0 0 ${width} ${height}`}
-      width={width}
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Box fill */}
-      <rect
-        fill={accentColor}
-        height={bh}
-        opacity={boxFillOpacity}
-        rx={br}
-        ry={br}
-        width={bw}
-        x={bx}
-        y={by}
-      />
+    <>
+      <svg
+        height={height}
+        style={{ position: "absolute", inset: 0 }}
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* AI-generated drawing (upper-right corner when present) */}
+        {hasDrawing && (
+          <AnimatedDrawing
+            color={inkColor}
+            durationInFrames={drawingDuration}
+            height={drawingSize}
+            paths={drawingPaths}
+            startFrame={drawingStartFrame}
+            strokeWidth={6}
+            viewBox={drawingViewBox}
+            width={drawingSize}
+            x={drawingX}
+            y={drawingY}
+          />
+        )}
 
-      {/* Box outline */}
-      <DrawPath
-        color={accentColor}
-        d={boxPath}
-        durationInFrames={boxDuration}
-        startFrame={boxStart}
-        strokeWidth={4.5}
-      />
-
-      {/* Label pill background */}
-      {frame >= labelStart && (
+        {/* Box fill */}
         <rect
           fill={accentColor}
-          height={52}
-          rx={10}
-          ry={10}
-          width={scene.label.length * 19 + 40}
-          x={bx + 40}
-          y={by + 32}
+          height={bh}
+          opacity={boxFillOpacity}
+          rx={br}
+          ry={br}
+          width={bw}
+          x={bx}
+          y={by}
         />
-      )}
 
-      {/* Label text */}
-      <WriteText
-        color="#ffffff"
-        dominantBaseline="middle"
-        durationInFrames={labelDuration}
-        fontFamily="Permanent Marker"
-        fontSize={36}
-        fontWeight={600}
-        startFrame={labelStart}
-        text={scene.label}
-        textAnchor="start"
-        x={bx + 60}
-        y={by + 58}
-      />
+        {/* Box outline */}
+        <DrawPath
+          color={accentColor}
+          d={boxPath}
+          durationInFrames={boxDuration}
+          startFrame={boxStart}
+          strokeWidth={4.5}
+        />
 
-      {/* Big stat */}
-      <WriteText
-        color={accentColor}
-        dominantBaseline="middle"
-        durationInFrames={statDuration}
-        fontFamily="Permanent Marker"
-        fontSize={180}
-        fontWeight={700}
-        startFrame={statStart}
-        text={scene.stat}
-        textAnchor="middle"
-        x={cx - 200}
-        y={cy + 20}
-      />
+        {/* Label pill background */}
+        {frame >= labelStart && (
+          <rect
+            fill={accentColor}
+            height={52}
+            rx={10}
+            ry={10}
+            width={scene.label.length * 19 + 40}
+            x={bx + 40}
+            y={by + 32}
+          />
+        )}
 
-      {/* Body text (wrapped manually with tspan for readability) */}
-      <WriteText
-        color={inkColor}
-        dominantBaseline="middle"
-        durationInFrames={bodyDuration}
-        fontFamily="Permanent Marker"
-        fontSize={54}
-        fontWeight={400}
-        startFrame={bodyStart}
-        text={scene.body}
-        textAnchor="start"
-        x={cx + 20}
-        y={cy - 20}
-      />
+        {/* Label text */}
+        <WriteText
+          color="#ffffff"
+          dominantBaseline="middle"
+          durationInFrames={labelDuration}
+          fontFamily="Permanent Marker"
+          fontSize={36}
+          fontWeight={600}
+          startFrame={labelStart}
+          text={scene.label}
+          textAnchor="start"
+          x={bx + 60}
+          y={by + 58}
+        />
 
-      {/* Emphasis */}
-      {scene.emphasis && (
+        {/* Big stat */}
         <WriteText
           color={accentColor}
           dominantBaseline="middle"
-          durationInFrames={emphasisDuration}
+          durationInFrames={statDuration}
           fontFamily="Permanent Marker"
-          fontSize={50}
+          fontSize={180}
           fontWeight={700}
-          startFrame={emphasisStart}
-          text={scene.emphasis}
+          startFrame={statStart}
+          text={scene.stat}
+          textAnchor="middle"
+          x={cx - 200}
+          y={cy + 20}
+        />
+
+        {/* Body text */}
+        <WriteText
+          color={inkColor}
+          dominantBaseline="middle"
+          durationInFrames={bodyDuration}
+          fontFamily="Permanent Marker"
+          fontSize={54}
+          fontWeight={400}
+          startFrame={bodyStart}
+          text={scene.body}
           textAnchor="start"
           x={cx + 20}
-          y={cy + 60}
+          y={cy - 20}
         />
-      )}
 
-      {/* Hand */}
+        {/* Emphasis */}
+        {scene.emphasis && (
+          <WriteText
+            color={accentColor}
+            dominantBaseline="middle"
+            durationInFrames={emphasisDuration}
+            fontFamily="Permanent Marker"
+            fontSize={50}
+            fontWeight={700}
+            startFrame={emphasisStart}
+            text={scene.emphasis}
+            textAnchor="start"
+            x={cx + 20}
+            y={cy + 60}
+          />
+        )}
+      </svg>
+
+      {/* Hand rendered outside <svg> so <HandVideo>'s <div> composites correctly */}
       {showHand && frame >= statStart && frame < bodyEnd && (
         <HandCursor
           src={handSrc}
@@ -205,6 +235,6 @@ export const CalloutSceneComponent = ({
           y={handY}
         />
       )}
-    </svg>
+    </>
   );
 };

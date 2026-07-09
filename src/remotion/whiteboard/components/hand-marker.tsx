@@ -1,4 +1,4 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { Img, interpolate, useCurrentFrame } from "remotion";
 
 interface HandMarkerProps {
   /** X coordinate of the marker tip (the point that touches the canvas). */
@@ -64,30 +64,54 @@ export const HandMarker = ({
   }
 
   if (src) {
-    // Real hand image — position so the marker tip aligns with (x, y)
+    // Real hand image — positioned div so the marker tip aligns with (x, y).
     const imgWidth = size * 3.2;
     const imgHeight = size * 4.4;
     const imgX = x - imgWidth * tipXRatio;
     const imgY = y - imgHeight * tipYRatio;
 
     return (
-      <image
-        height={imgHeight}
-        href={src}
-        opacity={opacity}
-        width={imgWidth}
-        x={imgX}
-        y={imgY}
-      />
+      <div
+        aria-hidden="true"
+        style={{
+          height: imgHeight,
+          left: imgX,
+          opacity,
+          pointerEvents: "none",
+          position: "absolute",
+          top: imgY,
+          width: imgWidth,
+        }}
+      >
+        <Img
+          alt=""
+          src={src}
+          style={{ height: "100%", objectFit: "fill", width: "100%" }}
+        />
+      </div>
     );
   }
 
   // ─── SVG fallback ──────────────────────────────────────────────────────────
-  // A simplified but legible hand from the lower-right holding a marker.
-  // The group is translated so (0, 0) = marker tip.
+  // A standalone <svg> overlay: left/top put the SVG origin at the tip (x, y).
+  // overflow="visible" lets the hand shape extend outside the 1×1 element.
+  // Shapes are authored relative to (0, 0) = marker tip.
   const s = size;
   return (
-    <g opacity={opacity} transform={`translate(${x}, ${y})`}>
+    <svg
+      aria-hidden="true"
+      height={1}
+      overflow="visible"
+      style={{
+        left: x,
+        opacity,
+        pointerEvents: "none",
+        position: "absolute",
+        top: y,
+        width: 1,
+      }}
+      viewBox="0 0 1 1"
+    >
       {/* Marker tip */}
       <polygon fill="#1A1A1A" points={`-3,-2 3,-2 0,-${s * 0.1}`} />
       {/* Marker body */}
@@ -170,6 +194,6 @@ export const HandMarker = ({
         strokeWidth={1.2}
         transform={`rotate(40, ${s * 0.44}, ${s * 0.08})`}
       />
-    </g>
+    </svg>
   );
 };

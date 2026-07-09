@@ -53,7 +53,7 @@ const SHARE_ROUTES: Record<string, readonly [number, number]> = {
 const buildCardSvg = (w: number, h: number) => {
   const titleFs = Math.max(120, Math.round(h * 0.01));
   const subFs = Math.max(40, Math.round(h * 0.035));
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  return ` 
 <svg width="${w}" height="${h}">
 
   <rect x="0" y="600" width="100%" height="50px" fill="rgb(173, 127, 242)"/>

@@ -566,9 +566,9 @@ a.wa-button {
 }
 
 .backend-theme.dark {
-  --backend-page: var(--theme-palette-granite-950);
+  --backend-page: var(--theme-colors-black);
   --backend-page-soft: var(--theme-palette-granite-950);
-  --backend-surface: var(--theme-palette-granite-950);
+  --backend-surface: #131313;
   --backend-surface-raised: var(--theme-palette-paper-light-950);
   --backend-border: color-mix(
     in oklch,

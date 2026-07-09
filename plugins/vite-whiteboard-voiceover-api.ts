@@ -45,6 +45,7 @@ const ENV_KEYS = [
   "ELEVENLABS_AGENT_ID",
   "BLOB_READ_WRITE_TOKEN",
   "ANTHROPIC_API_KEY",
+  "GROQ_API_KEY",
 ] as const;
 
 export const viteWhiteboardVoiceoverApi = (
