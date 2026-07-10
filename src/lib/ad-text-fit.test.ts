@@ -32,6 +32,19 @@ describe(fitTextFontSize, () => {
     expect(fit({ boxHeight: 60, text: "HI" })).toBe(12);
   });
 
+  it("keeps a large display headline large when it has room to fit", () => {
+    // A 12.5cqw headline in a tall box must NOT be shrunk toward the floor — the
+    // conversion downstream then maps it to a genuinely large rendered size.
+    const size = fit({
+      boxHeight: 40,
+      boxWidth: 100,
+      fontSize: 12.5,
+      lineHeight: 0.98,
+      text: "ROOF DAMAGE?",
+    });
+    expect(size).toBe(12.5);
+  });
+
   it("shrinks copy that would overflow a fixed-height box", () => {
     const shrunk = fit({ boxHeight: 8, text: "ROOF DAMAGE FROM THE STORM?" });
     expect(shrunk).toBeLessThan(12);

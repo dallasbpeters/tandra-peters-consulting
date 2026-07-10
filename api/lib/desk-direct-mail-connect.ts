@@ -12,7 +12,10 @@
  */
 import { hostHtmlReference, hostImageReference } from "./desk-creative-host.js";
 import type { MailRecipient } from "./desk-direct-mail.js";
-import { buildStructuredFrontHtml } from "./desk-front-creative.js";
+import {
+  buildStructuredFrontHtml,
+  frontBleedBoxIn,
+} from "./desk-front-creative.js";
 
 const STANNP_BASE = "https://api-us1.stannp.com/v1";
 const LOB_BASE = "https://api.lob.com/v1";
@@ -284,10 +287,17 @@ const buildPostcardBackHtml = (content: BackHtmlContent): string => {
   return `<!doctype html><html><head><meta charset="utf-8"/><style>*{box-sizing:border-box;margin:0;padding:0;}html,body{margin:0;padding:0;}</style></head><body style="width:${dims.width}in;height:${dims.height}in;position:relative;background:#ffffff;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2d2a;">${returnBlock}<div style="position:absolute;top:${contentTop}in;left:${margin}in;width:${contentWidth}in;bottom:${contentBottom}in;overflow:hidden;"><div style="font-size:${headlinePt}pt;font-weight:800;line-height:1.12;color:#123a34;overflow-wrap:break-word;word-wrap:break-word;">${headline}</div><p style="margin-top:0.12in;font-size:${bodyPt}pt;line-height:1.35;overflow-wrap:break-word;word-wrap:break-word;">${body}</p>${ctaBlock}</div>${qrBlock}</body></html>`;
 };
 
-/** Full-bleed front image sized to the physical card. */
+/**
+ * Legacy raster front (creatives saved without structured layers): wrap the
+ * image in a full-bleed HTML doc so the provider rasterizes it to print size.
+ * Authored at trim + bleed (like the structured front) so the photo covers the
+ * provider's bleed artboard edge-to-edge instead of leaving a framed inset.
+ */
 const buildFrontHtml = (src: string, size?: string): string => {
-  const dims = cardDims(size);
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}</style></head><body style="margin:0;width:${dims.width}in;height:${dims.height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${dims.width}in;height:${dims.height}in;object-fit:cover;"/></body></html>`;
+  const { widthIn, heightIn } = frontBleedBoxIn(size);
+  const width = widthIn.toFixed(2);
+  const height = heightIn.toFixed(2);
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}html,body{margin:0;padding:0;}</style></head><body style="margin:0;width:${width}in;height:${height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${width}in;height:${height}in;object-fit:cover;"/></body></html>`;
 };
 
 /**
@@ -304,11 +314,13 @@ const resolveStannpFront = (input: {
   size?: string;
 }): string | undefined => {
   if (input.frontConfig) {
-    const dims = cardDims(input.size);
-    const structured = buildStructuredFrontHtml(input.frontConfig, {
-      heightIn: dims.height,
-      widthIn: dims.width,
-    });
+    // Stannp rasterizes the HTML onto its own bleed artboard, so author at
+    // trim + bleed — otherwise the hero stops at the trim and Stannp's bleed
+    // strip frames the photo with the creative background.
+    const structured = buildStructuredFrontHtml(
+      input.frontConfig,
+      frontBleedBoxIn(input.size)
+    );
     if (structured.ok && structured.html) {
       return stripDataUrl(
         `data:text/html;base64,${Buffer.from(structured.html).toString(
@@ -321,30 +333,6 @@ const resolveStannpFront = (input: {
     return undefined;
   }
   return isHttpUrl(input.front) ? input.front : stripDataUrl(input.front);
-};
-
-/**
- * Lob adds a 1/8" bleed on every side, so full-bleed HTML must be authored at
- * trim + 0.25" total (e.g. a 6x9 card → 9.25" × 6.25", which Lob renders at
- * 300 DPI to 2775 × 1875 px — exactly Lob's required creative dimensions).
- */
-const LOB_BLEED_IN = 0.25;
-
-/**
- * Front creative for Lob, authored as HTML sized to the full-bleed card.
- *
- * Lob rejects PNG/JPG creatives below 300 DPI ("Provided image was 75 x 114
- * px"), but "supplied HTML will be rendered to the specified `size`" — so
- * wrapping the (possibly low-res) front image in a full-bleed HTML doc makes
- * Lob rasterize it to the correct print dimensions and sidesteps the raster
- * minimum-resolution check entirely. The image is linked by URL to keep the
- * HTML small enough to pass inline.
- */
-const buildLobFrontHtml = (src: string, size?: string): string => {
-  const dims = cardDims(size);
-  const width = (dims.width + LOB_BLEED_IN).toFixed(2);
-  const height = (dims.height + LOB_BLEED_IN).toFixed(2);
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}html,body{margin:0;padding:0;}</style></head><body style="margin:0;width:${width}in;height:${height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${width}in;height:${height}in;object-fit:cover;"/></body></html>`;
 };
 
 // ---------------------------------------------------------------------------
@@ -936,11 +924,12 @@ const submitPostgrid = async (
   const recipients = recipientsFor(input);
   // Prefer the structured (vector text + full-res photo) front so PostGrid
   // rasterizes a crisp 300-DPI creative; fall back to wrapping the raster.
-  const pgDims = cardDims(input.size);
-  const structuredPgFront = buildStructuredFrontHtml(input.frontConfig, {
-    heightIn: pgDims.height,
-    widthIn: pgDims.width,
-  });
+  // Author at trim + bleed so the hero bleeds edge-to-edge on PostGrid's
+  // artboard (a trim-only body leaves a framed inset after PostGrid's cut).
+  const structuredPgFront = buildStructuredFrontHtml(
+    input.frontConfig,
+    frontBleedBoxIn(input.size)
+  );
   const frontHtml =
     structuredPgFront.ok && structuredPgFront.html
       ? structuredPgFront.html
@@ -1104,11 +1093,10 @@ const resolveLobCreative = async (
   // rasterizes it at 300 DPI so text + the SVG logo are razor-sharp and the hero
   // photo comes from its full-resolution source — no upscaling of the ~320px
   // thumbnail. Lob adds a 1/8" bleed per side, so author at trim + 0.25" total.
-  const dims = cardDims(input.size);
-  const structuredFront = buildStructuredFrontHtml(input.frontConfig, {
-    heightIn: dims.height + LOB_BLEED_IN,
-    widthIn: dims.width + LOB_BLEED_IN,
-  });
+  const structuredFront = buildStructuredFrontHtml(
+    input.frontConfig,
+    frontBleedBoxIn(input.size)
+  );
   let frontHtml: string;
   if (structuredFront.ok && structuredFront.html) {
     frontHtml = structuredFront.html;
@@ -1121,7 +1109,7 @@ const resolveLobCreative = async (
         hostedFront.error ?? "Could not host the front creative for Lob."
       );
     }
-    frontHtml = buildLobFrontHtml(hostedFront.url, input.size);
+    frontHtml = buildFrontHtml(hostedFront.url, input.size);
   }
   const front = await resolveLobHtml(frontHtml);
   if (!(front.ok && front.value)) {

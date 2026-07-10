@@ -116,6 +116,29 @@ const FONT_SIZE_IN_RE = /font-size:([\d.]+)in/;
 const fontSizeIn = (html: string): number =>
   Number.parseFloat(FONT_SIZE_IN_RE.exec(html)?.[1] ?? "0");
 
+// Extract the `style="…"` attribute of the div containing `needle`, decoding the
+// HTML entities back to the CSS the browser's parser sees. Font sizes/weights
+// live AFTER `font-family` in the declaration, so an unescaped quote in the
+// family value would truncate the attribute and drop them — this asserts the
+// full, parsed style survives.
+const styleOfDivWith = (html: string, needle: string): string => {
+  const marker = `>${needle}`;
+  const end = html.indexOf(marker);
+  if (end === -1) {
+    return "";
+  }
+  const open = html.lastIndexOf('<div style="', end);
+  const styleStart = open + '<div style="'.length;
+  const styleEnd = html.indexOf('"', styleStart);
+  const raw = html.slice(styleStart, styleEnd);
+  return raw
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&");
+};
+
 describe(buildStructuredFrontHtml, () => {
   it("returns ok:false for missing/old configs so the caller can fall back", () => {
     expect(buildStructuredFrontHtml(undefined, LOB_6X9).ok).toBeFalsy();
@@ -210,9 +233,40 @@ describe(buildStructuredFrontHtml, () => {
     const front =
       buildStructuredFrontHtml(heroFooterConfig(), LOB_6X9).html ?? "";
     // The stored family is "Hanken Grotesk Variable"; the loadable name is
-    // "Hanken Grotesk" (linked from Google Fonts in the head).
-    expect(front).toContain('font-family:"Hanken Grotesk",');
+    // "Hanken Grotesk" (linked from Google Fonts in the head). Its quotes are
+    // HTML-escaped so they don't close the style attribute, but they decode back
+    // to the real CSS the browser applies.
+    expect(styleOfDivWith(front, "512-965-3985")).toContain(
+      'font-family:"Hanken Grotesk",'
+    );
     expect(front).not.toContain("Hanken Grotesk Variable");
     expect(front).toContain("fonts.googleapis.com");
+  });
+
+  it("escapes font-family quotes so the whole text style survives (not truncated)", () => {
+    const front =
+      buildStructuredFrontHtml(heroFooterConfig(), LOB_6X9).html ?? "";
+    // A raw `"` in the family value would close style="…" early and drop every
+    // declaration after font-family — the tiny/unstyled-front regression.
+    expect(front).not.toContain('font-family:"Hanken Grotesk", sans-serif;');
+    expect(front).toContain("&quot;Hanken Grotesk&quot;");
+    // The parsed style keeps the display-critical declarations that come after
+    // font-family: real size, weight, and the uppercase transform.
+    const headlineStyle = styleOfDivWith(front, "ROOF DAMAGE?");
+    expect(headlineStyle).toMatch(/font-size:[\d.]+in/);
+    expect(headlineStyle).toContain("font-weight:400");
+    expect(headlineStyle).toContain("text-transform:uppercase");
+  });
+
+  it("renders a display headline much larger than the footnote text", () => {
+    const front =
+      buildStructuredFrontHtml(heroFooterConfig(), LOB_6X9).html ?? "";
+    const headlineIn = fontSizeIn(styleOfDivWith(front, "ROOF DAMAGE?"));
+    const phoneIn = fontSizeIn(styleOfDivWith(front, "512-965-3985"));
+    // 12.5cqw headline on a 9.25in card ≈ 1.16in — a genuinely large display
+    // size, and clearly bigger than the 6cqw phone line (never collapsed to a
+    // few pt by a bad conversion).
+    expect(headlineIn).toBeCloseTo(1.16, 1);
+    expect(headlineIn).toBeGreaterThan(phoneIn * 1.5);
   });
 });

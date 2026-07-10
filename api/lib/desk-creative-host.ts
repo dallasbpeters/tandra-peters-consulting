@@ -1,28 +1,32 @@
 /**
  * Hosts postcard creatives (front image, QR, or a whole back HTML doc) as stable
- * remote URLs so providers with inline-size limits can reference them by URL.
+ * PUBLIC remote URLs so mail providers with inline-size limits (Lob, Stannp,
+ * PostGrid) can reference them by URL and fetch them without auth.
  *
- * Lob caps inline `front`/`back` HTML at 10,000 characters; our creatives embed
- * large base64 data-URIs (the Ad Builder front thumbnail, and the QR), which
- * blow past that. Uploading those bytes to Sanity yields a stable
- * `cdn.sanity.io` URL — the repo already writes to Sanity with SANITY_WRITE_TOKEN,
- * and Sanity content-addresses assets (identical bytes dedupe to one asset), so
- * this is the right, already-provisioned hosting mechanism (no new infra/env).
+ * Why Vercel Blob (not Sanity): this previously uploaded to Sanity assets and
+ * returned `cdn.sanity.io` URLs. Those URLs are publicly fetchable, BUT Sanity
+ * serves hosted HTML *file* assets as `text/html` with a restrictive
+ * `content-security-policy: default-src 'self'` header — unsuitable as a
+ * provider-fetched creative URL: Lob's `front`/`back`-by-URL expects a
+ * raster/PDF asset, and the CSP blocks the creative's cross-origin subresources
+ * (Google Fonts, the tandra.me logo). Vercel Blob serves every object publicly
+ * with the correct `content-type` and no CSP, and it is already the repo's
+ * public-object store (Remotion renders, ElevenLabs voiceovers) — so it is the
+ * right host for creatives handed to third-party mailers.
  *
- * Server-only: reads SANITY_WRITE_TOKEN from the environment; never exposed to
- * the client. A per-process cache keyed by content hash avoids re-uploading the
- * same creative within a warm lambda.
+ * Server-only: reads BLOB_READ_WRITE_TOKEN from the environment (auto-injected
+ * when a Vercel Blob store is linked to the project; set it in `.env.local` for
+ * local dev). Never exposed to the client. A per-process cache keyed by content
+ * SHA-256 avoids re-uploading the same creative within a warm lambda.
  */
 import { createHash } from "node:crypto";
 
-import { createClient } from "@sanity/client";
-import type { SanityClient } from "@sanity/client";
-
-const SANITY_PROJECT_ID = "7irm699i";
-const SANITY_DATASET = "production";
-const SANITY_API_VERSION = "2026-05-29";
+import { put } from "@vercel/blob";
 
 const DATA_URL_RE = /^data:([^;,]*?)(;base64)?,(.*)$/s;
+
+/** Blob key prefix so postcard creatives are grouped in the store. */
+const BLOB_DIR = "desk-creatives";
 
 export const isHttpUrl = (value: string): boolean =>
   /^https?:\/\//i.test(value);
@@ -42,19 +46,8 @@ interface DataUrlParts {
 // content hash → hosted URL, so repeated submits of the same creative reuse it.
 const uploadCache = new Map<string, string>();
 
-const writeToken = (): string | undefined =>
-  process.env.SANITY_WRITE_TOKEN?.trim() ||
-  process.env.SANITY_API_WRITE_TOKEN?.trim() ||
-  undefined;
-
-const client = (token: string): SanityClient =>
-  createClient({
-    apiVersion: SANITY_API_VERSION,
-    dataset: SANITY_DATASET,
-    projectId: SANITY_PROJECT_ID,
-    token,
-    useCdn: false,
-  });
+const blobToken = (): string | undefined =>
+  process.env.BLOB_READ_WRITE_TOKEN?.trim() || undefined;
 
 const parseDataUrl = (value: string): DataUrlParts | null => {
   const match = value.match(DATA_URL_RE);
@@ -71,17 +64,22 @@ const parseDataUrl = (value: string): DataUrlParts | null => {
   return { buffer, contentType, extension };
 };
 
-const uploadAsset = async (
-  kind: "file" | "image",
+/**
+ * Upload bytes to Vercel Blob as a public object and return its URL. The blob
+ * key is the content SHA-256 so identical creatives dedupe to one object
+ * (`allowOverwrite` makes a re-upload of the same bytes idempotent across cold
+ * starts). Returns `{ ok: false }` with a clear message on missing token/error.
+ */
+const uploadBuffer = async (
   buffer: Buffer,
   contentType: string,
   extension: string
 ): Promise<HostedReference> => {
-  const token = writeToken();
+  const token = blobToken();
   if (!token) {
     return {
       error:
-        "SANITY_WRITE_TOKEN is not set — cannot host the creative for providers that require a URL.",
+        "BLOB_READ_WRITE_TOKEN is not set — cannot host the creative for providers that require a public URL. Attach a Vercel Blob store to the project (or set BLOB_READ_WRITE_TOKEN in .env.local).",
       ok: false,
     };
   }
@@ -90,17 +88,32 @@ const uploadAsset = async (
   if (cached) {
     return { ok: true, url: cached };
   }
-  const asset = await client(token).assets.upload(kind, buffer, {
-    contentType,
-    filename: `desk-creative-${hash.slice(0, 16)}.${extension}`,
-  });
-  uploadCache.set(hash, asset.url);
-  return { ok: true, url: asset.url };
+  try {
+    const { url } = await put(`${BLOB_DIR}/${hash}.${extension}`, buffer, {
+      access: "public",
+      addRandomSuffix: false,
+      // Same content-hash key ⇒ identical bytes, so overwriting is a no-op that
+      // keeps the call idempotent when the object already exists.
+      allowOverwrite: true,
+      contentType,
+      token,
+    });
+    uploadCache.set(hash, url);
+    return { ok: true, url };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? `Vercel Blob upload failed: ${error.message}`
+          : "Vercel Blob upload failed.",
+      ok: false,
+    };
+  }
 };
 
 /**
- * Resolve an image reference to a remote URL. Passes through existing http(s)
- * URLs; uploads base64 data-URIs to Sanity and returns the CDN URL.
+ * Resolve an image reference to a public remote URL. Passes through existing
+ * http(s) URLs; uploads base64 data-URIs to Vercel Blob and returns the URL.
  */
 export const hostImageReference = async (
   value: string | undefined
@@ -115,16 +128,15 @@ export const hostImageReference = async (
   if (!parts) {
     return { error: "Creative must be a URL or base64 data-URI.", ok: false };
   }
-  return await uploadAsset(
-    "image",
+  return await uploadBuffer(
     parts.buffer,
     parts.contentType || "image/png",
     parts.extension === "bin" ? "png" : parts.extension
   );
 };
 
-/** Host an HTML string as a text/html file asset and return its URL. */
+/** Host an HTML string as a public text/html blob and return its URL. */
 export const hostHtmlReference = async (
   html: string
 ): Promise<HostedReference> =>
-  await uploadAsset("file", Buffer.from(html, "utf-8"), "text/html", "html");
+  await uploadBuffer(Buffer.from(html, "utf-8"), "text/html", "html");

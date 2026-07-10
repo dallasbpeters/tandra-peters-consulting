@@ -287,6 +287,97 @@ describe("submitLob", () => {
   });
 });
 
+// Full-bleed front: Stannp and PostGrid rasterize the supplied HTML onto their
+// own bleed artboard, so the front must be authored at trim + bleed (6x9 →
+// 9.25in × 6.25in). A trim-only body leaves the hero framed by the creative
+// background after the provider's cut — the "not full bleed" regression.
+
+const mockProviderOk = (data: Record<string, unknown>) => {
+  const fetchMock = vi.fn<(...args: unknown[]) => Promise<Response>>(() =>
+    Promise.resolve({
+      json: () => Promise.resolve(data),
+      ok: true,
+    } as Response)
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+};
+
+const decodeBase64Html = (value: string): string =>
+  Buffer.from(value, "base64").toString("utf-8");
+
+describe("full-bleed front dimensions", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("authors the Stannp front at trim + bleed so the hero bleeds edge-to-edge", async () => {
+    const fetchMock = mockProviderOk({
+      data: { id: "st_1", pdf: "https://stannp/pdf" },
+      success: true,
+    });
+
+    const result = await submitToProvider(
+      baseInput({
+        front: "https://example.com/front.png",
+        frontConfig: structuredConfig,
+        providerKey: "stannp",
+        size: "6x9",
+      }),
+      { STANNP_API_KEY: "abc123" },
+      false
+    );
+
+    expect(result.ok).toBeTruthy();
+    // Stannp `front` is a base64 HTML data payload — decode and check the box.
+    const front = decodeBase64Html(paramsOf(fetchMock).get("front") ?? "");
+    expect(front).toContain("9.25in");
+    expect(front).toContain("6.25in");
+    // The hero still fills the (now larger) body edge-to-edge.
+    expect(front).toContain("ROOF DAMAGE?");
+  });
+
+  it("authors the PostGrid front at trim + bleed (frontHTML, 6x9)", async () => {
+    const fetchMock = mockProviderOk({ id: "pg_1", url: "https://pg/pdf" });
+
+    const result = await submitToProvider(
+      baseInput({
+        front: "https://example.com/front.png",
+        frontConfig: structuredConfig,
+        providerKey: "postgrid",
+        size: "6x9",
+      }),
+      { POSTGRID_API_KEY: "test_abc123" },
+      false
+    );
+
+    expect(result.ok).toBeTruthy();
+    const front = paramsOf(fetchMock).get("frontHTML") ?? "";
+    expect(front).toContain("9.25in");
+    expect(front).toContain("6.25in");
+    expect(front).toContain("ROOF DAMAGE?");
+  });
+
+  it("sizes the PostGrid 4x6 front to the full-bleed card (6.25 × 4.25)", async () => {
+    const fetchMock = mockProviderOk({ id: "pg_2", url: "https://pg/pdf" });
+
+    await submitToProvider(
+      baseInput({
+        front: "https://example.com/front.png",
+        frontConfig: structuredConfig,
+        providerKey: "postgrid",
+        size: "4x6",
+      }),
+      { POSTGRID_API_KEY: "test_abc123" },
+      false
+    );
+
+    const front = paramsOf(fetchMock).get("frontHTML") ?? "";
+    expect(front).toContain("6.25in");
+    expect(front).toContain("4.25in");
+  });
+});
+
 // Postalytics: HTTP Basic (API key as username, empty password); verify hits
 // GET /api/v1/account/me; submit triggers a drop per recipient against a
 // pre-built campaign endpoint (POSTALYTICS_SEND_ENDPOINT) — no ad-hoc creative,

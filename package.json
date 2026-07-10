@@ -66,6 +66,8 @@
     "@fontsource-variable/caveat": "^5.2.8",
     "@fontsource-variable/hanken-grotesk": "^5.2.8",
     "@fontsource/bebas-neue": "^5.2.7",
+    "@fontsource/caveat": "^5.2.8",
+    "@fontsource/hanken-grotesk": "^5.2.8",
     "@fontsource/ibm-plex-serif": "^5.2.7",
     "@google-analytics/data": "^5.1.0",
     "@google/genai": "^2.9.0",

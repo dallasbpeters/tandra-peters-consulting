@@ -49,6 +49,16 @@ const HTML_ESCAPE_RE = /[&<>"']/g;
 const escapeHtml = (value: string): string =>
   value.replace(HTML_ESCAPE_RE, (char) => HTML_ESCAPES[char] ?? char);
 
+/**
+ * Escape a CSS declaration string for embedding in a double-quoted `style="…"`
+ * attribute. Font-family values carry literal double quotes (e.g.
+ * `"Hanken Grotesk", sans-serif`); left unescaped they close the `style`
+ * attribute early, so every declaration after `font-family` (font-size,
+ * font-weight, text-transform, …) is dropped and the text renders tiny and
+ * unstyled. The HTML parser decodes the entities back to real CSS at parse time.
+ */
+const styleAttr = (css: string): string => escapeHtml(css);
+
 // The stored font families use the fontsource variable names; map them to the
 // Google Fonts family names that the print HTML loads via <link> so Lob's
 // renderer resolves them.
@@ -299,7 +309,7 @@ const renderText = (
   ]
     .filter(Boolean)
     .join(";");
-  return `<div style="${textStyle}">${escapeHtml(stringOr(element.text, ""))}</div>`;
+  return `<div style="${styleAttr(textStyle)}">${escapeHtml(stringOr(element.text, ""))}</div>`;
 };
 
 const renderImage = (
@@ -313,7 +323,7 @@ const renderImage = (
   }
   const objectFit = stringOr(element.objectFit, "cover");
   return (
-    `<div style="${wrapperStyle(base, index)}">` +
+    `<div style="${styleAttr(wrapperStyle(base, index))}">` +
     `<img alt="" src="${escapeHtml(withPrintWidth(src))}" ` +
     `style="width:100%;height:100%;object-fit:${objectFit};display:block;"/>` +
     "</div>"
@@ -331,7 +341,7 @@ const renderLogo = (
   // Logo wrappers are auto-height: let the SVG keep its aspect ratio. SVG is
   // vector, so Lob rasterizes it razor-sharp at 300 DPI regardless of scale.
   return (
-    `<div style="${wrapperStyle(base, index)}">` +
+    `<div style="${styleAttr(wrapperStyle(base, index))}">` +
     `<img alt="Birdcreek Roofing" src="${escapeHtml(src)}" ` +
     'style="width:100%;height:auto;display:block;"/>' +
     "</div>"
@@ -347,8 +357,8 @@ const renderRect = (
   const fill = stringOr(element.fill, "#000000");
   const radius = cqw(numberOr(element.borderRadius, 0), ctx);
   return (
-    `<div style="${wrapperStyle(base, index)}">` +
-    `<div style="width:100%;height:100%;background:${fill};border-radius:${radius};"></div>` +
+    `<div style="${styleAttr(wrapperStyle(base, index))}">` +
+    `<div style="${styleAttr(`width:100%;height:100%;background:${fill};border-radius:${radius};`)}"></div>` +
     "</div>"
   );
 };
@@ -366,8 +376,8 @@ const renderBand = (
   const stops = colors.length > 0 ? colors.join(",") : "#092a1d,#217d57";
   const angle = element.rotate === true ? "270deg" : "90deg";
   return (
-    `<div style="${wrapperStyle(base, index)}">` +
-    `<div style="width:100%;height:100%;background:linear-gradient(${angle},${stops});"></div>` +
+    `<div style="${styleAttr(wrapperStyle(base, index))}">` +
+    `<div style="${styleAttr(`width:100%;height:100%;background:linear-gradient(${angle},${stops});`)}"></div>` +
     "</div>"
   );
 };
@@ -405,7 +415,7 @@ const renderQr = (
   );
   const dataUri = `data:image/svg+xml,${encodeURIComponent(svg)}`;
   return (
-    `<div style="${wrapperStyle(base, index)}">` +
+    `<div style="${styleAttr(wrapperStyle(base, index))}">` +
     `<img alt="QR code" src="${dataUri}" ` +
     'style="width:100%;height:auto;aspect-ratio:1/1;display:block;"/>' +
     "</div>"
@@ -494,4 +504,43 @@ export const buildStructuredFrontHtml = (
       layers
     }</body></html>`;
   return { html, ok: true };
+};
+
+/**
+ * Print bleed added around the card trim, in inches (TOTAL across both edges —
+ * 1/8" per side).
+ *
+ * Every direct-mail provider that rasterizes the supplied HTML (Lob, Stannp,
+ * PostGrid) renders it onto its own bleed artboard and then trims 1/8" off each
+ * edge. If the front HTML is authored at TRIM only, the hero photo (which fills
+ * the body) stops at the trim line, so the provider's extra bleed strip shows
+ * the creative's background as a frame around the photo — the "not full bleed"
+ * inset. Authoring every full-bleed front at trim + this bleed makes the hero
+ * extend past the trim so it reaches all four edges after the provider's cut.
+ *
+ * At 300 DPI a 6x9 card → 9.25" × 6.25" (2775 × 1875 px) and a 4x6 → 6.25" ×
+ * 4.25" (1875 × 1275 px), matching Lob's required creative dimensions.
+ */
+export const CARD_BLEED_IN = 0.25;
+
+/** Physical postcard trim size in inches (landscape) keyed by app size. */
+export const CARD_TRIM_IN: Record<
+  string,
+  { heightIn: number; widthIn: number }
+> = {
+  "4x6": { heightIn: 4, widthIn: 6 },
+  "6x9": { heightIn: 6, widthIn: 9 },
+};
+
+/**
+ * The full-bleed front artboard (trim + {@link CARD_BLEED_IN}) for a card size.
+ * Every provider that rasterizes the front HTML authors at this box so the hero
+ * bleeds edge-to-edge (see {@link CARD_BLEED_IN}); unknown sizes fall back to 6x9.
+ */
+export const frontBleedBoxIn = (size?: string): StructuredFrontOptions => {
+  const trim = CARD_TRIM_IN[size ?? "6x9"] ?? CARD_TRIM_IN["6x9"];
+  return {
+    heightIn: trim.heightIn + CARD_BLEED_IN,
+    widthIn: trim.widthIn + CARD_BLEED_IN,
+  };
 };
