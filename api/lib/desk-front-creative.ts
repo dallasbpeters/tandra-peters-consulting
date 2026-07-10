@@ -145,6 +145,8 @@ const withPrintWidth = (src: string): string => {
 };
 
 interface RenderContext {
+  /** Card aspect ratio (width / height) — relates height% to width-cqw units. */
+  canvasAspect: number;
   /** Physical size of 1 cqw unit, in inches (1% of the card box width). */
   cqwIn: number;
 }
@@ -152,6 +154,81 @@ interface RenderContext {
 /** cqw → inches. Font sizes/padding/radius are authored as cqw (percent width). */
 const cqw = (value: number, ctx: RenderContext): string =>
   `${(value * ctx.cqwIn).toFixed(4)}in`;
+
+// Shrink-to-fit for fixed-height text boxes. Mirrors src/lib/ad-text-fit.ts
+// (serverless code cannot import from src/); keep the two in sync.
+const AVG_CHAR_WIDTH_EM = 0.55;
+const MIN_FIT_FONT_SIZE = 0.8;
+const MAX_FIT_ITERATIONS = 8;
+const NEWLINE_RE = /\r?\n/;
+
+const estimateWrappedLineCount = (
+  text: string,
+  boxWidth: number,
+  fontSize: number,
+  letterSpacing: number
+): number => {
+  if (boxWidth <= 0 || fontSize <= 0) {
+    return 1;
+  }
+  const charWidthCqw =
+    fontSize * (AVG_CHAR_WIDTH_EM + Math.max(0, letterSpacing));
+  if (charWidthCqw <= 0) {
+    return 1;
+  }
+  let lines = 0;
+  for (const rawLine of text.split(NEWLINE_RE)) {
+    const chars = rawLine.trim().length;
+    lines += Math.max(1, Math.ceil((chars * charWidthCqw) / boxWidth));
+  }
+  return Math.max(1, lines);
+};
+
+interface TextFitInput {
+  boxHeight: number | null;
+  boxWidth: number;
+  canvasAspect: number;
+  fontSize: number;
+  letterSpacing: number;
+  lineHeight: number;
+  text: string;
+}
+
+const fitTextFontSize = (input: TextFitInput): number => {
+  const {
+    boxHeight,
+    boxWidth,
+    canvasAspect,
+    fontSize,
+    letterSpacing,
+    lineHeight,
+    text,
+  } = input;
+  if (
+    boxHeight === null ||
+    boxHeight <= 0 ||
+    boxWidth <= 0 ||
+    canvasAspect <= 0 ||
+    fontSize <= 0 ||
+    text.trim().length === 0
+  ) {
+    return fontSize;
+  }
+  const availableCqw = boxHeight / canvasAspect;
+  let size = fontSize;
+  for (let iteration = 0; iteration < MAX_FIT_ITERATIONS; iteration += 1) {
+    const lines = estimateWrappedLineCount(text, boxWidth, size, letterSpacing);
+    const neededCqw = lines * size * lineHeight;
+    if (neededCqw <= availableCqw || size <= MIN_FIT_FONT_SIZE) {
+      break;
+    }
+    size = Math.max(
+      MIN_FIT_FONT_SIZE,
+      size * Math.sqrt(availableCqw / neededCqw)
+    );
+  }
+  return size;
+};
 
 const baseOf = (element: Record<string, unknown>): BaseElement => ({
   height:
@@ -166,7 +243,7 @@ const baseOf = (element: Record<string, unknown>): BaseElement => ({
   y: numberOr(element.y, 0),
 });
 
-const wrapperStyle = (base: BaseElement, index: number): string =>
+const wrapperStyle = (base: BaseElement, index: number, clip = true): string =>
   [
     "position:absolute",
     `left:${base.x}%`,
@@ -175,7 +252,8 @@ const wrapperStyle = (base: BaseElement, index: number): string =>
     base.height === null ? null : `height:${base.height}%`,
     `opacity:${base.opacity}`,
     `z-index:${index + 1}`,
-    "overflow:hidden",
+    // Images/rects/bands crop to their box; text must never clip (it wraps).
+    clip ? "overflow:hidden" : "overflow:visible",
   ]
     .filter(Boolean)
     .join(";");
@@ -187,15 +265,29 @@ const renderText = (
   ctx: RenderContext
 ): string => {
   const background = element.background;
+  const fontSize = numberOr(element.fontSize, 4);
+  const letterSpacing = numberOr(element.letterSpacing, 0);
+  const lineHeight = numberOr(element.lineHeight, 1.1);
+  // Shrink a fixed-height text box so its wrapped copy fits (no-op for the usual
+  // auto-height text). Text never clips — it wraps and grows.
+  const fittedSize = fitTextFontSize({
+    boxHeight: base.height,
+    boxWidth: base.width,
+    canvasAspect: ctx.canvasAspect,
+    fontSize,
+    letterSpacing,
+    lineHeight,
+    text: stringOr(element.text, ""),
+  });
   const textStyle = [
-    wrapperStyle(base, index),
+    wrapperStyle(base, index, false),
     `color:${stringOr(element.color, "#ffffff")}`,
     `font-family:${normalizeFontFamily(stringOr(element.fontFamily, "sans-serif"))}`,
-    `font-size:${cqw(numberOr(element.fontSize, 4), ctx)}`,
+    `font-size:${cqw(fittedSize, ctx)}`,
     `font-weight:${numberOr(element.fontWeight, 600)}`,
     `font-style:${stringOr(element.fontStyle, "normal")}`,
-    `line-height:${numberOr(element.lineHeight, 1.1)}`,
-    `letter-spacing:${numberOr(element.letterSpacing, 0)}em`,
+    `line-height:${lineHeight}`,
+    `letter-spacing:${letterSpacing}em`,
     `text-align:${stringOr(element.textAlign, "left")}`,
     `text-transform:${stringOr(element.textTransform, "none")}`,
     `padding:${cqw(numberOr(element.paddingY, 0), ctx)} ${cqw(numberOr(element.paddingX, 0), ctx)}`,
@@ -382,7 +474,10 @@ export const buildStructuredFrontHtml = (
   if (!parsed) {
     return { ok: false };
   }
-  const ctx: RenderContext = { cqwIn: options.widthIn / 100 };
+  const ctx: RenderContext = {
+    canvasAspect: options.widthIn / options.heightIn,
+    cqwIn: options.widthIn / 100,
+  };
   const background = stringOr(parsed.creative.backgroundColor, "#092a1d");
   const layers = parsed.canvasElements
     .map((element, index) => renderElement(element, index, ctx))

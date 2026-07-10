@@ -81,6 +81,41 @@ const heroFooterConfig = (overrides: { imageUrl?: string } = {}): string =>
 
 const LOB_6X9 = { heightIn: 6.25, widthIn: 9.25 };
 
+// One text-only layer so the HTML has exactly one `font-size` to inspect.
+const singleTextConfig = (opts: {
+  height: number | null;
+  text: string;
+}): string =>
+  JSON.stringify({
+    canvasElements: [
+      {
+        color: "#ffffff",
+        fontFamily: '"Hanken Grotesk Variable", sans-serif',
+        fontSize: 12,
+        fontStyle: "normal",
+        fontWeight: 700,
+        height: opts.height,
+        id: "role-headline",
+        kind: "text",
+        letterSpacing: 0,
+        lineHeight: 1,
+        opacity: 1,
+        text: opts.text,
+        textAlign: "left",
+        textTransform: "none",
+        width: 40,
+        x: 5,
+        y: 5,
+      },
+    ],
+    creative: { backgroundColor: "#092a1d" },
+    version: 2,
+  });
+
+const FONT_SIZE_IN_RE = /font-size:([\d.]+)in/;
+const fontSizeIn = (html: string): number =>
+  Number.parseFloat(FONT_SIZE_IN_RE.exec(html)?.[1] ?? "0");
+
 describe(buildStructuredFrontHtml, () => {
   it("returns ok:false for missing/old configs so the caller can fall back", () => {
     expect(buildStructuredFrontHtml(undefined, LOB_6X9).ok).toBeFalsy();
@@ -142,6 +177,33 @@ describe(buildStructuredFrontHtml, () => {
     expect(front).toContain("height:6.25in");
     // Background paints the bleed margin on-brand.
     expect(front).toContain("background:#092a1d");
+  });
+
+  it("wraps text and never clips it (overflow visible, break-word)", () => {
+    const front =
+      buildStructuredFrontHtml(heroFooterConfig(), LOB_6X9).html ?? "";
+    // Text layers wrap and grow instead of being cut off by an overflow clip.
+    expect(front).toContain("overflow:visible");
+    expect(front).toContain("white-space:pre-wrap");
+    expect(front).toContain("overflow-wrap:break-word");
+  });
+
+  it("shrinks a long headline to fit a fixed-height box, not clip it", () => {
+    const longText = "ROOF DAMAGE FROM THE LAST BIG TEXAS HAIL STORM?";
+    const autoFront =
+      buildStructuredFrontHtml(
+        singleTextConfig({ height: null, text: longText }),
+        LOB_6X9
+      ).html ?? "";
+    const boxedFront =
+      buildStructuredFrontHtml(
+        singleTextConfig({ height: 8, text: longText }),
+        LOB_6X9
+      ).html ?? "";
+    // Auto-height keeps the authored 12cqw (12% of 9.25in ≈ 1.11in); the short
+    // fixed-height box shrinks the font so the wrapped copy fits inside it.
+    expect(fontSizeIn(autoFront)).toBeCloseTo(1.11, 2);
+    expect(fontSizeIn(boxedFront)).toBeLessThan(fontSizeIn(autoFront));
   });
 
   it("normalizes fontsource variable family names to their Google Fonts names", () => {

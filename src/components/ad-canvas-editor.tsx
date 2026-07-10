@@ -58,6 +58,7 @@ import {
   formatAdDimensions,
   getExportPixelSize,
 } from "../lib/ad-creative";
+import { fitTextFontSize } from "../lib/ad-text-fit";
 import { buildCutoutMaskDataUri, renderDoorMockup } from "../lib/door-hanger";
 import { buildQrDataUri } from "../lib/qr-code";
 import { buildNextdoorShareUrl } from "../utils/nextdoor-share";
@@ -345,8 +346,6 @@ const exportCanvasNode = async (
     const blob = await toBlob(node, {
       backgroundColor,
       cacheBust: true,
-      canvasHeight: exportHeight,
-      canvasWidth: exportWidth,
       fontEmbedCSS,
       height: previewHeight,
       includeQueryParams: true,
@@ -421,8 +420,8 @@ export interface AdCanvasCaptureHandle {
     eyebrow: string;
     headline: string;
   }) => void;
-  /** Capture a thumbnail of the current canvas. Returns a data URL or null on failure. */
-  captureThumb: () => Promise<string | null>;
+  /** Capture a thumbnail of the current canvas. Rejects when export fails. */
+  captureThumb: () => Promise<string>;
   /** Read the current direct-manipulation document for version persistence. */
   getElements: () => CanvasElement[];
 }
@@ -641,22 +640,18 @@ export const AdCanvasEditor = ({
       captureThumb: async () => {
         const node = canvasRef.current;
         if (!node) {
-          return null;
+          throw new Error("The ad canvas is not ready yet.");
         }
-        try {
-          const { width, height } = exportPixelSizeRef.current;
-          const thumbWidth = 320;
-          const thumbHeight = Math.round((height / width) * thumbWidth);
-          const blob = await exportCanvasNode(
-            node,
-            thumbWidth,
-            thumbHeight,
-            backgroundColorRef.current
-          );
-          return await blobToDataUrl(blob);
-        } catch {
-          return null;
-        }
+        const { width, height } = exportPixelSizeRef.current;
+        const thumbWidth = 320;
+        const thumbHeight = Math.round((height / width) * thumbWidth);
+        const blob = await exportCanvasNode(
+          node,
+          thumbWidth,
+          thumbHeight,
+          backgroundColorRef.current
+        );
+        return await blobToDataUrl(blob);
       },
       getElements: () => elementsRef.current,
     };
@@ -1589,12 +1584,24 @@ export const AdCanvasEditor = ({
     let inner: React.ReactNode;
 
     if (el.kind === "text") {
+      // Shrink a fixed-height text box so its wrapped copy fits (no-op for the
+      // usual auto-height text) — keeps the on-screen canvas, the exported PNG,
+      // the PDF, and the Lob HTML front in lockstep.
+      const fittedFontSize = fitTextFontSize({
+        boxHeight: el.height,
+        boxWidth: el.width,
+        canvasAspect: exportPixelSize.width / exportPixelSize.height,
+        fontSize: el.fontSize,
+        letterSpacing: el.letterSpacing,
+        lineHeight: el.lineHeight,
+        text: el.text,
+      });
       const textStyle: CSSProperties = {
         background: el.background ?? undefined,
         borderRadius: `${el.borderRadius}cqw`,
         color: el.color,
         fontFamily: el.fontFamily,
-        fontSize: `${el.fontSize}cqw`,
+        fontSize: `${fittedFontSize}cqw`,
         fontStyle: el.fontStyle,
         fontWeight: el.fontWeight,
         letterSpacing: `${el.letterSpacing}em`,

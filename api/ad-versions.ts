@@ -88,8 +88,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const config = sanitizeString(body.config);
     const thumbnail =
       typeof body.thumbnail === "string" ? body.thumbnail.trim() : undefined;
-    if (!(name && config)) {
-      res.status(400).json({ error: "Missing version name or config." });
+    if (!(name && config && thumbnail)) {
+      res.status(400).json({
+        error: "Missing version name, config, or thumbnail.",
+      });
       return;
     }
     if (Buffer.byteLength(config, "utf-8") > MAX_CONFIG_BYTES) {
@@ -101,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       _type: "adCreativeVersion",
       name,
       config,
-      ...(thumbnail ? { thumbnail } : {}),
+      thumbnail,
       savedAt: new Date().toISOString(),
       savedBy: user.email,
     });

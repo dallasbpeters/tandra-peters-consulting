@@ -1,3 +1,4 @@
+import { stegaClean } from "@sanity/client/stega";
 import { useEffect, useState } from "react";
 
 import { getSanityClient } from "../sanity/client";
@@ -20,15 +21,20 @@ interface AdCreativeVersionResult {
 }
 
 const toVersion = (doc: AdCreativeVersionResult): AdCreativeVersion | null => {
-  if (!(doc._id && doc.name && doc.config)) {
+  const id = typeof doc._id === "string" ? stegaClean(doc._id) : "";
+  const name = typeof doc.name === "string" ? stegaClean(doc.name) : "";
+  const config = typeof doc.config === "string" ? stegaClean(doc.config) : "";
+  if (!(id && name && config)) {
     return null;
   }
   return {
-    config: doc.config,
-    id: doc._id,
-    name: doc.name,
-    savedAt: doc.savedAt,
-    thumbnail: doc.thumbnail,
+    config,
+    id,
+    name,
+    savedAt:
+      typeof doc.savedAt === "string" ? stegaClean(doc.savedAt) : undefined,
+    thumbnail:
+      typeof doc.thumbnail === "string" ? stegaClean(doc.thumbnail) : undefined,
   };
 };
 

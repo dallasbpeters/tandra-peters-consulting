@@ -1,3 +1,5 @@
+import { stegaClean } from "@sanity/client/stega";
+
 import type { CanvasElement } from "./ad-canvas-doc";
 import { ROLE_IDS } from "./ad-canvas-doc";
 import type { CreativeState } from "./ad-creative";
@@ -58,14 +60,42 @@ const extractFirstJsonObject = (value: string): string => {
 };
 
 const parseConfig = (config: string): Record<string, unknown> => {
+  const cleaned = stegaClean(config);
   try {
-    return JSON.parse(config) as Record<string, unknown>;
+    return JSON.parse(cleaned) as Record<string, unknown>;
   } catch {
-    return JSON.parse(extractFirstJsonObject(config)) as Record<
+    return JSON.parse(extractFirstJsonObject(cleaned)) as Record<
       string,
       unknown
     >;
   }
+};
+
+export const parseAdVersionCanvasElements = (
+  config: string | undefined
+): CanvasElement[] => {
+  if (!config?.trim()) {
+    return [];
+  }
+  const parsed = parseConfig(config);
+  return Array.isArray(parsed.canvasElements)
+    ? parsed.canvasElements.filter(isCanvasElement)
+    : [];
+};
+
+export const parseAdVersionBackgroundColor = (
+  config: string | undefined
+): string => {
+  if (!config?.trim()) {
+    return "#ffffff";
+  }
+  const parsed = parseConfig(config);
+  if (!(parsed.creative && typeof parsed.creative === "object")) {
+    return "#ffffff";
+  }
+  const backgroundColor = (parsed.creative as { backgroundColor?: unknown })
+    .backgroundColor;
+  return typeof backgroundColor === "string" ? backgroundColor : "#ffffff";
 };
 
 const isCanvasElement = (value: unknown): value is CanvasElement => {

@@ -8,6 +8,29 @@ import qrcode from "qrcode-generator";
 /** Error-correction level: "M" balances density against scan reliability in print. */
 const ERROR_CORRECTION = "M" as const;
 
+export interface QrVector {
+  path: string;
+  size: number;
+}
+
+export const buildQrVector = (value: string, margin = 2): QrVector => {
+  const qr = qrcode(0, ERROR_CORRECTION);
+  qr.addData(value.trim() || " ");
+  qr.make();
+
+  const count = qr.getModuleCount();
+  const size = count + margin * 2;
+  let path = "";
+  for (let row = 0; row < count; row += 1) {
+    for (let col = 0; col < count; col += 1) {
+      if (qr.isDark(row, col)) {
+        path += `M${col + margin} ${row + margin}h1v1h-1z`;
+      }
+    }
+  }
+  return { path, size };
+};
+
 /**
  * Build an SVG string for a QR encoding `value`.
  * @param margin - Quiet-zone width in modules (the spec recommends ≥4; 2 reads
@@ -19,22 +42,7 @@ export const buildQrSvg = (
   bg: string,
   margin = 2
 ): string => {
-  const qr = qrcode(0, ERROR_CORRECTION);
-  // Empty strings throw in the encoder; fall back to a single space.
-  qr.addData(value.trim() || " ");
-  qr.make();
-
-  const count = qr.getModuleCount();
-  const size = count + margin * 2;
-
-  let path = "";
-  for (let row = 0; row < count; row += 1) {
-    for (let col = 0; col < count; col += 1) {
-      if (qr.isDark(row, col)) {
-        path += `M${col + margin} ${row + margin}h1v1h-1z`;
-      }
-    }
-  }
+  const { path, size } = buildQrVector(value, margin);
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">` +

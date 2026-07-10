@@ -330,15 +330,13 @@ export const DirectMailPlanPanel = ({
             : "Turn on zone mode and click the map, or manually select areas from the list."}
         </p>
       </div>
-      {hasSelection ? (
-        <CreativeVersionSelector
-          error={adVersionsError}
-          loading={adVersionsLoading}
-          onSelect={onSelectCreativeVersion}
-          selectedVersion={selectedCreativeVersion}
-          versions={creativeVersions}
-        />
-      ) : null}
+      <CreativeVersionSelector
+        error={adVersionsError}
+        loading={adVersionsLoading}
+        onSelect={onSelectCreativeVersion}
+        selectedVersion={selectedCreativeVersion}
+        versions={creativeVersions}
+      />
       <WaButton
         appearance="plain"
         className="desk-primary-link"

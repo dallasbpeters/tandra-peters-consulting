@@ -5,6 +5,8 @@ import { ROLE_IDS } from "./ad-canvas-doc";
 import type { CreativeState } from "./ad-creative";
 import {
   deserializeAdVersionConfig,
+  parseAdVersionBackgroundColor,
+  parseAdVersionCanvasElements,
   serializeAdVersionConfig,
 } from "./ad-version-config";
 
@@ -53,6 +55,16 @@ describe("ad version config", () => {
       kind: "text",
       text: "Inline canvas headline",
     });
+  });
+
+  it("exposes saved layers and background for vector PDF rendering", () => {
+    const saved = serializeAdVersionConfig(
+      { ...creative, backgroundColor: "#123a34" },
+      canvasElements
+    );
+
+    expect(parseAdVersionCanvasElements(saved)).toStrictEqual(canvasElements);
+    expect(parseAdVersionBackgroundColor(saved)).toBe("#123a34");
   });
 
   it("loads legacy creative-only version configs", () => {

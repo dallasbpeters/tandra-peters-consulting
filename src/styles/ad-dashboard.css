@@ -918,7 +918,7 @@
   display: grid;
   gap: var(--theme-spacing-tight);
   min-width: 0;
-  min-block-size: fit-content;
+  min-block-size: 120px;
   padding: var(--theme-spacing-sm);
   color: var(--studio-text);
   text-align: left;

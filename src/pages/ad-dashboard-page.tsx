@@ -1085,7 +1085,7 @@ export const AdDashboardPage = () => {
   }, []);
 
   const handleSaveVersion = useCallback(
-    async (thumbnail?: string) => {
+    async (thumbnail: string) => {
       if (!auth.token) {
         return;
       }
@@ -1107,7 +1107,7 @@ export const AdDashboardPage = () => {
               getSavedVersionFormatName(selectedPlatform),
               dimensionStr
             ),
-            ...(thumbnail ? { thumbnail } : {}),
+            thumbnail,
           }),
           headers: {
             Authorization: `Bearer ${auth.token}`,
@@ -1416,14 +1416,21 @@ export const AdDashboardPage = () => {
           onClick={() => {
             (async () => {
               setVersionBusy(true);
-              let thumbnail: string | undefined;
               try {
-                thumbnail =
-                  (await captureRef.current?.captureThumb()) ?? undefined;
-              } catch {
-                thumbnail = undefined;
+                const capture = captureRef.current;
+                if (!capture) {
+                  throw new Error("The ad canvas is not ready yet.");
+                }
+                const thumbnail = await capture.captureThumb();
+                await handleSaveVersion(thumbnail);
+              } catch (captureError) {
+                setVersionStatus(
+                  captureError instanceof Error
+                    ? `Version not saved: ${captureError.message}`
+                    : "Version not saved because its thumbnail could not be captured."
+                );
+                setVersionBusy(false);
               }
-              await handleSaveVersion(thumbnail);
             })();
           }}
           size="small"

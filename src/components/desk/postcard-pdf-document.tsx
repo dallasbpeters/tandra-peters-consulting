@@ -7,7 +7,7 @@
  *   6×9  → 9" wide × 6" tall  (648 × 432 pt)  ← default
  *
  * Pages:
- *   - Page 1 (optional): postcard front — Ad Builder thumbnail
+ *   - Page 1 (optional): postcard front — vector Ad Builder layers
  *   - Page 2: postcard back — return address, indicia, message, QR, recipient block
  *
  * Uses only Helvetica (built-in to @react-pdf/renderer); no font registration needed.
@@ -21,6 +21,8 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+
+import { PostcardVectorFront } from "./postcard-vector-front";
 
 // ---------------------------------------------------------------------------
 // Size catalogue
@@ -217,8 +219,10 @@ export interface PostcardDocumentProps {
   headline: string;
   /** QR code data URI (from buildQrDataUri) */
   qrDataUri: string;
-  /** Optional front image — Ad Builder thumbnail (data URI or base64 string) */
+  /** Legacy flattened fallback for versions without saved layer config. */
   frontImageDataUri?: string;
+  /** Saved Ad Builder layer config. Preferred over the flattened fallback image. */
+  frontConfig?: string;
   /** Editable return-address display lines; defaults to Birdcreek. */
   returnAddressLines?: readonly string[];
   /** Physical size of the postcard. Defaults to "6x9". */
@@ -240,6 +244,7 @@ export const PostcardDocument = ({
   cta,
   headline,
   qrDataUri,
+  frontConfig,
   frontImageDataUri,
   returnAddressLines,
   size = "6x9",
@@ -254,9 +259,13 @@ export const PostcardDocument = ({
 
   return (
     <Document>
-      {frontSrc ? (
+      {frontConfig || frontSrc ? (
         <Page size={[w, h]} style={s.pageFront}>
-          <Image src={frontSrc} style={s.frontImage} />
+          {frontConfig ? (
+            <PostcardVectorFront config={frontConfig} size={size} />
+          ) : (
+            <Image src={frontSrc} style={s.frontImage} />
+          )}
         </Page>
       ) : null}
 
