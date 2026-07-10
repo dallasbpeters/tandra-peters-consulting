@@ -213,6 +213,7 @@ export const PostcardBackTemplate = ({
           batchName={batchName}
           body={body}
           cta={cta}
+          frontConfig={selectedCreativeVersion?.config}
           frontImageDataUri={selectedCreativeVersion?.thumbnail}
           headline={headline}
           qrDataUri={qrSrc}

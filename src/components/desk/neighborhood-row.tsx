@@ -2,7 +2,7 @@ import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
 import WaCheckbox from "@awesome.me/webawesome/dist/react/checkbox/index.js";
 import WaOption from "@awesome.me/webawesome/dist/react/option/index.js";
 import WaSelect from "@awesome.me/webawesome/dist/react/select/index.js";
-import { BubbleDownload } from "iconoir-react";
+import { BubbleDownload, Walking } from "iconoir-react";
 
 import {
   formatCurrencyValue,
@@ -107,6 +107,13 @@ export const SavedTargetCard = ({
       </span>
     </div>
     <div className="desk-saved-target__actions">
+      <TransitionLink
+        className="desk-action-button desk-action-button--walk"
+        to={`/desk/walk/${encodeURIComponent(target.id)}`}
+      >
+        <Walking aria-hidden height={15} width={15} />
+        Walk area
+      </TransitionLink>
       <WaButton
         appearance="plain"
         className="desk-action-button"

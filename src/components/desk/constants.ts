@@ -18,6 +18,16 @@ export const canvassStatusOrder: readonly CanvassStatus[] = [
   "done",
 ];
 
+// Re-exported from the per-home walk lib so components can pull walk status
+// metadata from the same `constants` module they already use for canvass status.
+export {
+  DEFAULT_WALK_STATUS,
+  WALK_STATUS_ORDER,
+  walkStatusLabels,
+  walkStatusShortLabels,
+  type WalkStatus,
+} from "../../lib/desk-walk";
+
 export const metrics: readonly Metric[] = [
   {
     label: "Current lead base",

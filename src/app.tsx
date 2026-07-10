@@ -66,6 +66,11 @@ const DeskPage = lazy(async () => {
   return { default: module.DeskPage };
 });
 
+const WalkSessionPage = lazy(async () => {
+  const module = await import("./pages/walk-session-page");
+  return { default: module.WalkSessionPage };
+});
+
 const ContentCalendarPage = lazy(async () => {
   const module = await import("./pages/content-calendar-page");
   return { default: module.ContentCalendarPage };
@@ -180,6 +185,7 @@ const appRouter = createBrowserRouter([
       { element: <ArticlePage />, path: "articles/:slug" },
       { element: <SeoDashboardPage />, path: "seo" },
       { element: <DeskPage />, path: "desk" },
+      { element: <WalkSessionPage />, path: "desk/walk/:targetId" },
       { element: <ContentCalendarPage />, path: "calendar" },
       { element: <PrivacyPolicyPage />, path: "privacy" },
       { element: <TermsOfServicePage />, path: "terms" },

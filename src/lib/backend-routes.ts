@@ -35,5 +35,15 @@ export const backendNavItems: NavItem[] = [
   { href: "/upscaler", name: "Image Upscaler" },
 ];
 
-export const isBackendRoutePath = (pathname: string): boolean =>
-  BACKEND_ROUTE_PATHS.has(normalizePathname(pathname));
+export const isBackendRoutePath = (pathname: string): boolean => {
+  const normalized = normalizePathname(pathname);
+  if (BACKEND_ROUTE_PATHS.has(normalized)) {
+    return true;
+  }
+  for (const base of BACKEND_ROUTE_PATHS) {
+    if (normalized.startsWith(`${base}/`)) {
+      return true;
+    }
+  }
+  return false;
+};

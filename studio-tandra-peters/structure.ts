@@ -83,6 +83,15 @@ export const structure: StructureResolver = (S) =>
             .defaultOrdering([{ direction: "desc", field: "updatedAt" }])
         ),
       S.listItem()
+        .title("Walk visits")
+        .id("desk-walk-visits-section")
+        .child(
+          S.documentTypeList("deskWalkVisit")
+            .id("desk-walk-visits-documents")
+            .title("Walk visits")
+            .defaultOrdering([{ direction: "desc", field: "updatedAt" }])
+        ),
+      S.listItem()
         .title("Desk board")
         .id("desk-board-section")
         .child(
@@ -261,6 +270,7 @@ export const structure: StructureResolver = (S) =>
           id !== "emailContact" &&
           id !== "deskLead" &&
           id !== "deskCanvassTarget" &&
+          id !== "deskWalkVisit" &&
           id !== "deskBoardItem"
         );
       }),

@@ -174,7 +174,10 @@ const DEFAULT_PROPS: Record<string, any> = {
   TandraStormSpot: STORM_SPOT_DEFAULTS,
   "roof-scene": ROOF_SCENE_DEFAULTS,
   "tandra-intro": { content: defaultTandraIntroContent, showCaptions: false },
-  "whiteboard-explainer": WHITEBOARD_EXPLAINER_DEFAULTS,
+  "whiteboard-explainer": {
+    ...WHITEBOARD_EXPLAINER_DEFAULTS,
+    voiceId: process.env.SANITY_STUDIO_ELEVENLABS_TANDRA_VOICE_ID?.trim() || "",
+  },
 };
 
 const isStructuredRoofSceneDoc = (
@@ -1026,10 +1029,42 @@ function EditorFieldRow({
           <label style={labelStyle}>{field.label}</label>
           <input
             onChange={(e) => onChange(e.target.value)}
+            placeholder={field.placeholder}
             style={inputStyle}
             type="text"
             value={typeof value === "string" ? value : ""}
           />
+        </div>
+      );
+    }
+
+    case "color": {
+      const hex = typeof value === "string" && value ? value : "#000000";
+      return (
+        <div>
+          <label style={labelStyle}>{field.label}</label>
+          <div style={{ alignItems: "center", display: "flex", gap: 8 }}>
+            <input
+              onChange={(e) => onChange(e.target.value)}
+              style={{
+                border: `1px solid ${colors.inputBorder}`,
+                borderRadius: 6,
+                cursor: "pointer",
+                flexShrink: 0,
+                height: 32,
+                padding: 2,
+                width: 48,
+              }}
+              type="color"
+              value={hex}
+            />
+            <input
+              onChange={(e) => onChange(e.target.value)}
+              style={{ ...inputStyle, fontFamily: "monospace" }}
+              type="text"
+              value={typeof value === "string" ? value : ""}
+            />
+          </div>
         </div>
       );
     }

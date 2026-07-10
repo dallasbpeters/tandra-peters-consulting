@@ -93,6 +93,9 @@ export const HandfontLetter = ({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={strokeWidth}
+              // Hide completely at local=0: strokeLinecap="round" leaves a tiny
+              // visible cap dot at the stroke start even when dashOffset=1.
+              visibility={local < 0.001 ? "hidden" : "visible"}
             />
           );
         })}

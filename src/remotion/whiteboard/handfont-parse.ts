@@ -80,27 +80,100 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     return null;
   }
 
-  // Read stroke-width from embedded <style>
+  // Read stroke-width from embedded <style>.
+  // Collect ALL per-class stroke-widths so each class maps to its own width.
   const styleText = svg.querySelector("style")?.textContent ?? "";
-  const swMatch = /stroke-width\s*:\s*([\d.]+)px/.exec(styleText);
-  const defaultStrokeWidth = swMatch ? Number.parseFloat(swMatch[1]) : 19;
+  const classSwMap = new Map<string, number>();
+  for (const m of styleText.matchAll(
+    /\.(\w+)[^{]*\{[^}]*stroke-width\s*:\s*([\d.]+)px/g
+  )) {
+    classSwMap.set(m[1], Number.parseFloat(m[2]));
+  }
+  // Fallback when no per-class info is found
+  const defaultStrokeWidth =
+    classSwMap.size > 0 ? (classSwMap.values().next().value ?? 19) : 19;
 
-  // All drawing-trajectory paths (<path class="g">)
-  const gPaths = [...svg.querySelectorAll("path.g")] as SVGPathElement[];
-  if (gPaths.length === 0) {
+  // ---------------------------------------------------------------------------
+  // Collect stroke elements: <path>, <polyline>, <line> — any class that has
+  // a stroke in the embedded CSS or an inline stroke style.
+  // ---------------------------------------------------------------------------
+
+  /** Convert a polyline / polygon `points` attribute to an SVG path `d`. */
+  function pointsToD(points: string): string {
+    const nums = points
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
+    const cmds: string[] = [];
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      cmds.push(`${i === 0 ? "M" : "L"}${nums[i]},${nums[i + 1]}`);
+    }
+    return cmds.join(" ");
+  }
+
+  /** Convert a `<line>` element to an SVG path `d`. */
+  function lineToD(el: Element): string {
+    const x1 = el.getAttribute("x1") ?? "0";
+    const y1 = el.getAttribute("y1") ?? "0";
+    const x2 = el.getAttribute("x2") ?? "0";
+    const y2 = el.getAttribute("y2") ?? "0";
+    return `M${x1},${y1} L${x2},${y2}`;
+  }
+
+  /** Resolve stroke-width for an element: inline style → class map → default. */
+  function resolveStrokeWidth(el: Element): number {
+    const inlineStyle = el.getAttribute("style") ?? "";
+    const m = /stroke-width\s*:\s*([\d.]+)px/.exec(inlineStyle);
+    if (m) {
+      return Number.parseFloat(m[1]);
+    }
+    for (const cls of el.classList) {
+      if (classSwMap.has(cls)) {
+        return classSwMap.get(cls) as number;
+      }
+    }
+    return defaultStrokeWidth;
+  }
+
+  // Query all stroke-bearing elements inside clip groups (class "i" or similar)
+  // and outside them — we want every visible drawing stroke.
+  const strokeEls = [
+    ...svg.querySelectorAll("path.g, polyline.g, line.g"),
+    // Also include elements with any other stroke class referenced in the CSS
+    ...[...classSwMap.keys()]
+      .filter((cls) => cls !== "f") // skip fill-only / clip classes
+      .flatMap((cls) => [
+        ...svg.querySelectorAll(`path.${cls}, polyline.${cls}, line.${cls}`),
+      ]),
+  ];
+
+  // De-duplicate (same element may appear via multiple selectors)
+  const seen = new Set<Element>();
+  const unique = strokeEls.filter((el) => {
+    if (seen.has(el)) {
+      return false;
+    }
+    seen.add(el);
+    return true;
+  });
+
+  if (unique.length === 0) {
     return null;
   }
 
-  const strokePaths: StrokePath[] = gPaths.map((p) => {
-    const d = p.getAttribute("d") ?? "";
-    // Individual paths may override stroke-width inline
-    const inlineStyle = p.getAttribute("style") ?? "";
-    const swInline = /stroke-width\s*:\s*([\d.]+)px/.exec(inlineStyle);
-    const strokeWidth = swInline
-      ? Number.parseFloat(swInline[1])
-      : defaultStrokeWidth;
-    return { d, strokeWidth };
-  });
+  const strokePaths: StrokePath[] = unique
+    .map((el) => {
+      let d: string;
+      if (el.tagName === "polyline" || el.tagName === "polygon") {
+        d = pointsToD(el.getAttribute("points") ?? "");
+      } else if (el.tagName === "line") {
+        d = lineToD(el);
+      } else {
+        d = el.getAttribute("d") ?? "";
+      }
+      return { d, strokeWidth: resolveStrokeWidth(el) };
+    })
+    .filter((sp) => sp.d.length > 0);
 
   return { viewBox, vw, vh, clipPathD, strokePaths };
 }

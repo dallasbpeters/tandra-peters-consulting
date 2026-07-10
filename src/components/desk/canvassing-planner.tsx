@@ -607,6 +607,9 @@ export const CanvassingPlanner = ({
           body: JSON.stringify({
             action: "test",
             front: selectedCreativeVersion?.thumbnail,
+            // Saved structured layers render to print-resolution HTML server-side
+            // so the proof front is crisp; the thumbnail is only a fallback.
+            frontConfig: selectedCreativeVersion?.config,
             provider: providerKey,
             size: postcardSize,
           }),
@@ -727,6 +730,10 @@ export const CanvassingPlanner = ({
             body: resolvedCopy.body,
             cta: resolvedCopy.cta,
             front: selectedCreativeVersion.thumbnail,
+            // The saved creative's structured layers (canvas doc + creative
+            // state). The server renders these to print-resolution HTML so the
+            // front is crisp — the thumbnail above is only a legacy fallback.
+            frontConfig: selectedCreativeVersion.config,
             headline: resolvedCopy.headline,
             // Send the zone/neighborhoods so the server rebuilds the FULL
             // recipient list; the preview sample is only a display fallback.

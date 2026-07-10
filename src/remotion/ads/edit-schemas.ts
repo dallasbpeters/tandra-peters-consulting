@@ -1,9 +1,16 @@
-export type FieldType = "text" | "textarea" | "boolean" | "select" | "number";
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "boolean"
+  | "select"
+  | "number"
+  | "color";
 
 export interface EditorField {
   key: string;
   label: string;
   options?: string[];
+  placeholder?: string;
   type: FieldType;
 }
 
@@ -128,13 +135,13 @@ export const SCHEMAS: Record<string, EditorSchema> = {
   "whiteboard-explainer": [
     {
       fields: [
-        { key: "accentColor", label: "Accent color (hex)", type: "text" },
+        { key: "accentColor", label: "Accent color", type: "color" },
         {
           key: "backgroundColor",
-          label: "Background color (hex)",
-          type: "text",
+          label: "Background color",
+          type: "color",
         },
-        { key: "inkColor", label: "Ink color (hex)", type: "text" },
+        { key: "inkColor", label: "Ink color", type: "color" },
         { key: "showHand", label: "Show hand/marker cursor", type: "boolean" },
         {
           key: "handVideoSrc",
@@ -159,6 +166,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         {
           key: "voiceId",
           label: "ElevenLabs voice ID (Tandra's cloned voice)",
+          placeholder: "leave blank to use ELEVENLABS_TANDRA_VOICE_ID env var",
           type: "text",
         },
       ],
