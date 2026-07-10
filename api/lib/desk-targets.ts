@@ -12,14 +12,26 @@ const MAX_NOTE_LENGTH = 1400;
 const MAX_NEIGHBORHOODS = 60;
 /** Bound the stored outline so a runaway ring can't bloat the document. */
 const MAX_POLYGON_POINTS = 400;
+/** Bound each stored tract-boundary ring; decimated (evenly sampled), not cut. */
+const MAX_TRACT_RING_POINTS = 240;
+/** Cap the number of exterior rings kept per neighborhood boundary. */
+const MAX_GEOMETRY_RINGS = 16;
 
 const STATUS_OPTIONS = new Set(["planned", "walking", "done"] as const);
 
 const ID_PREFIX = "drafts.deskCanvassTarget.";
 
+/** GeoJSON tract/neighborhood boundary (exterior rings only after parsing). */
+export interface NeighborhoodGeometry {
+  coordinates: number[][][][];
+  type: "MultiPolygon";
+}
+
 export interface CanvassNeighborhood {
   county: string;
   dataStatus?: string;
+  /** True boundary, so the roster/address query uses the real footprint. */
+  geometry?: NeighborhoodGeometry;
   homes: number;
   label: string;
   latitude: number | null;
@@ -119,6 +131,7 @@ const normalizeNeighborhoods = (value: unknown): CanvassNeighborhood[] => {
     return {
       county: trimTo(item.county, MAX_LABEL_LENGTH),
       dataStatus: trimTo(item.dataStatus, MAX_NOTE_LENGTH) || undefined,
+      geometry: parseNeighborhoodGeometry(item.geometry),
       homes: nonNegativeInt(item.homes),
       label: trimTo(item.label, MAX_LABEL_LENGTH),
       latitude: optionalNumber(item.latitude),
@@ -171,6 +184,108 @@ const asRing = (value: unknown): [number, number][] => {
     ring.push([flat[index], flat[index + 1]]);
   }
   return ring;
+};
+
+const round5 = (value: number): number => Math.round(value * 1e5) / 1e5;
+
+/** Rehydrate a ring from nested [lng,lat] pairs OR a flat interleaved array. */
+const ringPairs = (value: unknown): [number, number][] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const flat: number[] = [];
+  for (const point of value) {
+    if (Array.isArray(point)) {
+      const lng = optionalNumber(point[0]);
+      const lat = optionalNumber(point[1]);
+      if (lng !== null && lat !== null) {
+        flat.push(lng, lat);
+      }
+    } else {
+      const num = optionalNumber(point);
+      if (num !== null) {
+        flat.push(num);
+      }
+    }
+  }
+  const ring: [number, number][] = [];
+  for (let index = 0; index + 1 < flat.length; index += 2) {
+    ring.push([flat[index], flat[index + 1]]);
+  }
+  return ring;
+};
+
+/** Evenly sample a ring down to the cap (preserves shape + closure). */
+const decimateRing = (ring: [number, number][]): [number, number][] => {
+  const rounded = ring.map(([lng, lat]): [number, number] => [
+    round5(lng),
+    round5(lat),
+  ]);
+  if (rounded.length <= MAX_TRACT_RING_POINTS) {
+    return rounded;
+  }
+  const step = Math.ceil(rounded.length / MAX_TRACT_RING_POINTS);
+  const sampled: [number, number][] = [];
+  for (let index = 0; index < rounded.length; index += step) {
+    sampled.push(rounded[index]);
+  }
+  const first = rounded[0];
+  const last = sampled.at(-1);
+  if (last && (last[0] !== first[0] || last[1] !== first[1])) {
+    sampled.push(first);
+  }
+  return sampled;
+};
+
+/**
+ * Parse a neighborhood boundary from EITHER incoming GeoJSON (client payload:
+ * Polygon/MultiPolygon with `coordinates`) OR the Sanity-stored form (an array
+ * of `{ p: number[] }` flat rings — Sanity disallows arrays-of-arrays). Returns
+ * a decimated, bounded MultiPolygon of exterior rings, or undefined.
+ */
+const parseNeighborhoodGeometry = (
+  value: unknown
+): NeighborhoodGeometry | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const geo = value as Record<string, unknown>;
+  const exteriorRings: [number, number][][] = [];
+  if (geo.type === "Polygon" && Array.isArray(geo.coordinates)) {
+    exteriorRings.push(ringPairs(geo.coordinates[0]));
+  } else if (geo.type === "MultiPolygon" && Array.isArray(geo.coordinates)) {
+    for (const polygon of geo.coordinates) {
+      exteriorRings.push(ringPairs(Array.isArray(polygon) ? polygon[0] : null));
+    }
+  } else if (Array.isArray(geo.rings)) {
+    for (const stored of geo.rings) {
+      const record =
+        stored && typeof stored === "object"
+          ? (stored as Record<string, unknown>)
+          : {};
+      exteriorRings.push(ringPairs(record.p));
+    }
+  }
+  const coordinates = exteriorRings
+    .filter((ring) => ring.length >= 3)
+    .slice(0, MAX_GEOMETRY_RINGS)
+    .map((ring) => [decimateRing(ring)]);
+  return coordinates.length > 0
+    ? { coordinates, type: "MultiPolygon" }
+    : undefined;
+};
+
+/** Sanity-safe storage: exterior rings as objects with a flat number array. */
+const geometryForStorage = (
+  geometry: NeighborhoodGeometry | undefined
+): { rings: { p: number[] }[]; type: "MultiPolygon" } | undefined => {
+  if (!geometry) {
+    return undefined;
+  }
+  const rings = geometry.coordinates.map((polygon) => ({
+    p: polygon[0].flat(),
+  }));
+  return { rings, type: "MultiPolygon" };
 };
 
 const normalizeZone = (value: unknown): SavedZone | undefined => {
@@ -330,6 +445,8 @@ export const saveCanvassTarget = async (
       _key: item.tractFips || randomUUID(),
       _type: "neighborhood",
       ...item,
+      // Store the boundary in a Sanity-safe shape (no arrays-of-arrays).
+      geometry: geometryForStorage(item.geometry),
     })),
     notes: notes || undefined,
     status,

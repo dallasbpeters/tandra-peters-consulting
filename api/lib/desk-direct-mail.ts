@@ -1,3 +1,8 @@
+import {
+  fetchParcelsForPayload,
+  PARCEL_FETCH_HARD_CAP,
+} from "./desk-parcels.js";
+
 const RENTCAST_PROPERTIES_URL = "https://api.rentcast.io/v1/properties";
 const DEFAULT_MAIL_PROVIDER = "mock";
 const MAX_RENTCAST_NEIGHBORHOOD_QUERIES = 3;
@@ -202,6 +207,17 @@ const sendEnabled = (): boolean =>
   process.env.DIRECT_MAIL_SEND_ENABLED?.trim().toLowerCase() === "true";
 
 const rentcastKey = (): string => process.env.RENTCAST_API_KEY?.trim() ?? "";
+
+/**
+ * Property data source. Defaults to the free Texas CAD ArcGIS parcel endpoints
+ * (`cad`); set `DESK_PROPERTY_SOURCE=rentcast` to fall back to the legacy paid
+ * RentCast pipeline during rollout. RentCast stays fully wired behind this flag
+ * and is never deleted — see `.env.example`.
+ */
+const propertySource = (): "cad" | "rentcast" =>
+  process.env.DESK_PROPERTY_SOURCE?.trim().toLowerCase() === "rentcast"
+    ? "rentcast"
+    : "cad";
 
 const normalizeNeighborhoods = (value: unknown): DirectMailNeighborhood[] => {
   if (!Array.isArray(value)) {
@@ -507,18 +523,54 @@ const recipientOf = (property: unknown): MailRecipient | null => {
  * client shows. Deduped and ordered; works for both the tract/radius path and a
  * drawn polygon zone (centroid + equivalent radius via `resolveQueryNeighborhoods`).
  */
-export const collectSubmitRecipients = async (
+/**
+ * Source-agnostic property fetch for the address/recipient/roster consumers.
+ * CAD queries the drawn polygon (or radius/tract) directly with pagination — no
+ * RentCast key needed. `status` mirrors the legacy enum so the callers keep the
+ * same return contract: `unavailable` when the zone has no usable geometry,
+ * `missing-key` only for the RentCast fallback with no key configured.
+ */
+const fetchZoneProperties = async (
   payload: Record<string, unknown>
-): Promise<SubmitRecipientsResult> => {
+): Promise<{
+  properties: unknown[];
+  queriedCount: number;
+  status: "configured" | "missing-key" | "unavailable";
+}> => {
+  if (propertySource() === "cad") {
+    const { hasZone, parcels } = await fetchParcelsForPayload(payload, {
+      hardCap: PARCEL_FETCH_HARD_CAP,
+    });
+    return {
+      properties: parcels,
+      queriedCount: hasZone
+        ? resolveQueryNeighborhoods(payload).length || 1
+        : 0,
+      status: hasZone ? "configured" : "unavailable",
+    };
+  }
   const apiKey = rentcastKey();
   if (!apiKey) {
-    return { recipients: [], status: "missing-key", totalMatched: 0 };
+    return { properties: [], queriedCount: 0, status: "missing-key" };
   }
   const queries = addressQueryNeighborhoods(resolveQueryNeighborhoods(payload));
   if (queries.length === 0) {
-    return { recipients: [], status: "unavailable", totalMatched: 0 };
+    return { properties: [], queriedCount: 0, status: "unavailable" };
   }
-  const properties = await fetchMatchedProperties(queries, apiKey);
+  return {
+    properties: await fetchMatchedProperties(queries, apiKey),
+    queriedCount: queries.length,
+    status: "configured",
+  };
+};
+
+export const collectSubmitRecipients = async (
+  payload: Record<string, unknown>
+): Promise<SubmitRecipientsResult> => {
+  const { properties, status } = await fetchZoneProperties(payload);
+  if (status !== "configured") {
+    return { recipients: [], status, totalMatched: 0 };
+  }
   const byKey = new Map<string, MailRecipient>();
   for (const property of properties) {
     const recipient = recipientOf(property);
@@ -547,9 +599,9 @@ export const collectSubmitRecipients = async (
 export const prepareDirectMailAddresses = async (
   payload: Record<string, unknown>
 ): Promise<DirectMailAddressListResult> => {
-  const neighborhoods = resolveQueryNeighborhoods(payload);
-  const apiKey = rentcastKey();
-  if (!apiKey) {
+  const { properties, queriedCount, status } =
+    await fetchZoneProperties(payload);
+  if (status !== "configured") {
     return {
       body: {
         addresses: [],
@@ -557,30 +609,13 @@ export const prepareDirectMailAddresses = async (
         matchedProperties: 0,
         neighborhoodsQueried: 0,
         ok: true,
-        status: "missing-key",
+        status,
         totalAddresses: 0,
       },
       status: 200,
     };
   }
 
-  const queries = addressQueryNeighborhoods(neighborhoods);
-  if (queries.length === 0) {
-    return {
-      body: {
-        addresses: [],
-        capped: false,
-        matchedProperties: 0,
-        neighborhoodsQueried: 0,
-        ok: true,
-        status: "unavailable",
-        totalAddresses: 0,
-      },
-      status: 200,
-    };
-  }
-
-  const properties = await fetchMatchedProperties(queries, apiKey);
   const distinct = [
     ...new Set(
       properties
@@ -594,7 +629,7 @@ export const prepareDirectMailAddresses = async (
       addresses: distinct.slice(0, ADDRESS_LIST_HARD_CAP),
       capped: distinct.length > ADDRESS_LIST_HARD_CAP,
       matchedProperties: properties.length,
-      neighborhoodsQueried: queries.length,
+      neighborhoodsQueried: queriedCount,
       ok: true,
       status: "configured",
       totalAddresses: distinct.length,
@@ -762,33 +797,19 @@ const pointInRing = (
 export const collectHomeRoster = async (
   payload: Record<string, unknown>
 ): Promise<HomeRosterResult> => {
-  const apiKey = rentcastKey();
-  if (!apiKey) {
+  const { properties, status } = await fetchZoneProperties(payload);
+  if (status !== "configured") {
     return {
       body: {
         capped: false,
         homes: [],
         ok: true,
-        status: "missing-key",
+        status,
         total: 0,
       },
       status: 200,
     };
   }
-  const queries = addressQueryNeighborhoods(resolveQueryNeighborhoods(payload));
-  if (queries.length === 0) {
-    return {
-      body: {
-        capped: false,
-        homes: [],
-        ok: true,
-        status: "unavailable",
-        total: 0,
-      },
-      status: 200,
-    };
-  }
-  const properties = await fetchMatchedProperties(queries, apiKey);
   const ring = zoneRingFrom(payload);
   const byKey = new Map<string, RosterHome>();
   for (const property of properties) {
@@ -883,6 +904,53 @@ const nextStepsFor = ({
   return steps;
 };
 
+/** CAD-sourced audience preview for the batch plan (same shape as RentCast). */
+const fetchCadAudience = async (
+  payload: Record<string, unknown>,
+  requested: boolean
+): Promise<RentCastAudience> => {
+  if (!requested) {
+    return {
+      matchedProperties: 0,
+      neighborhoodsQueried: 0,
+      recipientReadyCount: 0,
+      sampleAddresses: [],
+      status: "not-requested",
+    };
+  }
+  const { hasZone, parcels } = await fetchParcelsForPayload(payload, {
+    hardCap: PARCEL_FETCH_HARD_CAP,
+  });
+  if (!hasZone) {
+    return {
+      matchedProperties: 0,
+      neighborhoodsQueried: 0,
+      recipientReadyCount: 0,
+      sampleAddresses: [],
+      status: "unavailable",
+    };
+  }
+  return {
+    matchedProperties: parcels.length,
+    neighborhoodsQueried: resolveQueryNeighborhoods(payload).length || 1,
+    recipientReadyCount: parcels.filter(
+      (parcel) => recipientOf(parcel) !== null
+    ).length,
+    sampleAddresses: sampleAddressesFrom(parcels),
+    status: "configured",
+  };
+};
+
+/** Source-aware audience preview: CAD parcels or the legacy RentCast fallback. */
+const fetchPlanAudience = (
+  payload: Record<string, unknown>,
+  neighborhoods: readonly DirectMailNeighborhood[],
+  requested: boolean
+): Promise<RentCastAudience> =>
+  propertySource() === "cad"
+    ? fetchCadAudience(payload, requested)
+    : fetchRentcastAudience(neighborhoods, requested);
+
 export const prepareDirectMailBatch = async (
   payload: Record<string, unknown>
 ): Promise<DirectMailPlanResult> => {
@@ -893,7 +961,8 @@ export const prepareDirectMailBatch = async (
   const missing = missingEnv(requiredEnv);
   const providerReady = missing.length === 0;
   const pieces = estimatePieces(neighborhoods);
-  const rentcast = await fetchRentcastAudience(
+  const rentcast = await fetchPlanAudience(
+    payload,
     neighborhoods,
     boolValue(payload.includeRecipients)
   );

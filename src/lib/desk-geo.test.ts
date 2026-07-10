@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   polygonZoneMailEstimate,
+  previewAreaCount,
   savedZoneIsRestorable,
   selectedZoneTargets,
+  shouldSelectTract,
   targetContainingPoint,
   targetsOverlappingPolygon,
   zoneFromSavedTarget,
@@ -12,6 +14,7 @@ import {
 import type {
   AreaGeometry,
   DeskAreaTarget,
+  DeskTargetZone,
   SavedTargetZone,
 } from "./desk-types";
 
@@ -308,6 +311,132 @@ describe("saved-area reuse (Use area)", () => {
         radiusMiles: 0.6,
       })
     ).toBeFalsy();
+  });
+});
+
+describe(previewAreaCount, () => {
+  // "N homes across M areas" in the address-preview header. The bug: a drawn
+  // polygon selects no tracts, so the header used selectedTargets.length = 0 and
+  // read "0 areas". previewAreaCount fixes it by counting the ACS tracts the
+  // outline overlaps for a polygon zone.
+  const polygonZone = (ring: [number, number][]): DeskTargetZone => ({
+    createdAt: new Date().toISOString(),
+    estimatedPieces: 100,
+    id: "zone-1",
+    kind: "polygon",
+    label: "Drawn zone",
+    latitude: 30.31,
+    longitude: -97.71,
+    polygon: ring,
+    radiusMiles: 0.6,
+    targetIds: [],
+  });
+
+  it("counts selected tracts when a tract selection exists", () => {
+    expect(previewAreaCount(3, null, allTargets)).toBe(3);
+  });
+
+  it("counts overlapped tracts for a drawn polygon (never 0 areas)", () => {
+    // A ~50/50 straddle of tracts A and B → 2 overlapped areas, not 0.
+    const straddle: [number, number][] = [
+      [-97.705, 30.305],
+      [-97.695, 30.305],
+      [-97.695, 30.315],
+      [-97.705, 30.315],
+      [-97.705, 30.305],
+    ];
+    expect(previewAreaCount(0, polygonZone(straddle), allTargets)).toBe(2);
+  });
+
+  it("clamps a polygon clear of every tract to at least one area", () => {
+    const away: [number, number][] = [
+      [-97.6, 30.305],
+      [-97.59, 30.305],
+      [-97.59, 30.315],
+      [-97.6, 30.315],
+      [-97.6, 30.305],
+    ];
+    expect(targetsOverlappingPolygon(away, allTargets)).toStrictEqual([]);
+    expect(previewAreaCount(0, polygonZone(away), allTargets)).toBe(1);
+  });
+
+  it("counts a radius/circle zone as one area", () => {
+    const circleZone: DeskTargetZone = {
+      createdAt: new Date().toISOString(),
+      estimatedPieces: 80,
+      id: "zone-2",
+      kind: "circle",
+      label: "Radius zone",
+      latitude: 30.31,
+      longitude: -97.71,
+      radiusMiles: 0.5,
+      targetIds: [],
+    };
+    expect(previewAreaCount(0, circleZone, allTargets)).toBe(1);
+  });
+
+  it("reports zero areas when there is no selection and no zone", () => {
+    expect(previewAreaCount(0, null, allTargets)).toBe(0);
+  });
+});
+
+describe(shouldSelectTract, () => {
+  // This predicate is the click-routing rule for the predefined tract layer.
+  // The reported bug: clicking ON a drawn/selected zone still toggled the tract
+  // beneath it. The rule below is what suppresses that.
+  it("selects the tract on a plain click (no mode, no zone under click)", () => {
+    expect(
+      shouldSelectTract({
+        drawMode: false,
+        zoneMode: false,
+        zoneUnderClick: false,
+      })
+    ).toBeTruthy();
+  });
+
+  it("never selects a tract in DRAW mode (tracts fully non-selectable)", () => {
+    expect(
+      shouldSelectTract({
+        drawMode: true,
+        zoneMode: false,
+        zoneUnderClick: false,
+      })
+    ).toBeFalsy();
+  });
+
+  it("never selects a tract in radius ZONE mode", () => {
+    expect(
+      shouldSelectTract({
+        drawMode: false,
+        zoneMode: true,
+        zoneUnderClick: false,
+      })
+    ).toBeFalsy();
+  });
+
+  it("does NOT toggle the tract when the click lands on an existing zone", () => {
+    // No tool active, but the click is inside a drawn/selected zone that sits on
+    // top of the tract layer → the click belongs to the zone, not the tract.
+    expect(
+      shouldSelectTract({
+        drawMode: false,
+        zoneMode: false,
+        zoneUnderClick: true,
+      })
+    ).toBeFalsy();
+  });
+
+  it("suppresses tract selection if ANY guard is set", () => {
+    for (const drawMode of [true, false]) {
+      for (const zoneMode of [true, false]) {
+        for (const zoneUnderClick of [true, false]) {
+          const anyGuard = drawMode || zoneMode || zoneUnderClick;
+          expect(
+            shouldSelectTract({ drawMode, zoneMode, zoneUnderClick })
+          ).toBe(!anyGuard);
+        }
+      }
+    }
   });
 });
 

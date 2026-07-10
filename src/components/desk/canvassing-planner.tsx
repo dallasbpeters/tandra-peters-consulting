@@ -15,6 +15,7 @@ import {
   createZoneId,
   polygonAreaSqMiles,
   polygonZoneMailEstimate,
+  previewAreaCount,
   ringCentroid,
   savedZoneFrom,
   savedZoneIsRestorable,
@@ -189,6 +190,14 @@ export const CanvassingPlanner = ({
   // True when there's something to mail: selected tracts OR a valid drawn zone.
   // Save/Preview/name gates use this so a tract-less drawn zone still unlocks.
   const hasAudience = audienceCount > 0;
+  // "Areas" for the address-preview header. A tract selection counts its
+  // tracts; a drawn polygon has NO selected tracts, so count the ACS tracts its
+  // outline actually overlaps (the same estimate path) — otherwise a valid
+  // polygon wrongly reads "0 areas". A radius/circle zone counts as one area.
+  const areaCount = useMemo(
+    () => previewAreaCount(selectedTargets.length, activeZone, targets),
+    [activeZone, selectedTargets, targets]
+  );
   // Zone descriptor sent to the backend so a tract-less polygon zone still runs
   // RentCast matching from its centroid + equivalent radius (with the polygon
   // ring for reference). Tract-based selections send neighborhoods and the
@@ -1053,7 +1062,7 @@ export const CanvassingPlanner = ({
           loading={addressLoading}
           onClose={handleCloseAddressModal}
           result={addressList}
-          selectedCount={selectedTargets.length}
+          selectedCount={areaCount}
         />
       ) : null}
 

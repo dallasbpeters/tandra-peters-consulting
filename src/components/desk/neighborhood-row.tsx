@@ -27,6 +27,9 @@ export const targetToSnapshot = (
 ): CanvassNeighborhood => ({
   county: target.countyLabel,
   dataStatus: target.dataStatus,
+  // Thread the real boundary so the server queries the tract's true footprint
+  // (a centroid circle badly undercounts a real tract/neighborhood).
+  geometry: target.geometry,
   homes: target.olderHomeEstimate,
   label: target.tractLabel,
   latitude: target.latitude,

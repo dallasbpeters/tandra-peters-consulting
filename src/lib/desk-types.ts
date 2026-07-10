@@ -134,6 +134,12 @@ export interface DeskAreaIntelResponse {
 export interface CanvassNeighborhood {
   county: string;
   dataStatus?: string;
+  /**
+   * True boundary of the selected tract/neighborhood. Threaded to the server so
+   * CAD is queried by the real footprint (not a small centroid circle, which
+   * undercounts). Optional: saved targets that predate this may omit it.
+   */
+  geometry?: AreaGeometry | null;
   homes: number;
   label: string;
   latitude: number | null;

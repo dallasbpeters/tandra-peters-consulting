@@ -145,6 +145,29 @@ export const targetContainingPoint = (
     pointInsideTarget(point.longitude, point.latitude, target)
   ) ?? null;
 
+/**
+ * Whether a click on the predefined neighborhood/tract layer may toggle a tract
+ * selection. Predefined-layer selection is the ONLY thing that toggles a tract,
+ * and it must be suppressed whenever:
+ *  - a zone tool is active (`zoneMode` places a radius zone; `drawMode` draws a
+ *    polygon) — in those modes the tract layer is fully non-selectable, or
+ *  - the click landed on an existing drawn/selected zone (`zoneUnderClick`) —
+ *    the zone sits on top of the tract layer, so interacting with the zone must
+ *    never toggle the tract beneath it.
+ *
+ * Kept as a pure predicate so the click-routing rule is unit-testable without a
+ * live Mapbox map (the map only supplies the three booleans).
+ */
+export const shouldSelectTract = ({
+  drawMode,
+  zoneMode,
+  zoneUnderClick,
+}: {
+  drawMode: boolean;
+  zoneMode: boolean;
+  zoneUnderClick: boolean;
+}): boolean => !(zoneMode || drawMode || zoneUnderClick);
+
 interface LngLatBounds {
   maxLat: number;
   maxLng: number;
@@ -270,6 +293,28 @@ export const targetsOverlappingPolygon = (
   return covered
     .filter((entry) => entry.share >= cutoff)
     .map((entry) => entry.target);
+};
+
+/**
+ * How many "areas" a selection covers, for the address-preview header
+ * ("N homes across M areas"). A tract selection counts its selected tracts. A
+ * drawn polygon selects NO tracts, so it counts the ACS tracts its outline
+ * overlaps (same source as the estimate path) — clamped to at least 1 so a
+ * valid polygon never reads "0 areas". A radius/circle zone counts as one area.
+ */
+export const previewAreaCount = (
+  selectedTargetCount: number,
+  zone: DeskTargetZone | null,
+  targets: readonly DeskAreaTarget[]
+): number => {
+  if (selectedTargetCount > 0) {
+    return selectedTargetCount;
+  }
+  const ring = zone?.kind === "polygon" ? zone.polygon : undefined;
+  if (ring && ring.length >= 3) {
+    return Math.max(1, targetsOverlappingPolygon(ring, targets).length);
+  }
+  return zone ? 1 : 0;
 };
 
 /** Mail-piece density (pieces per square mile) for one tract, or null. */
