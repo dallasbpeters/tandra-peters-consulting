@@ -3,6 +3,9 @@ import type { GeoJSONSource, MapMouseEvent } from "mapbox-gl";
 import mapboxgl from "mapbox-gl";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { shouldSelectTract } from "../lib/desk-geo";
+import { preventFocusScroll } from "../lib/prevent-focus-scroll";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
@@ -13,6 +16,12 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 // the one and only place the view is positioned.
 const DEFAULT_CENTER: [number, number] = [-97.74, 30.32];
 const DEFAULT_ZOOM = 9.7;
+
+// Layer ids referenced by both the layer builders and the click hit-testing.
+const ZONE_FILL_LAYER_ID = "desk-area-zone-fill";
+const ZONE_LINE_LAYER_ID = "desk-area-zone-line";
+const TARGET_FILL_LAYER_ID = "desk-area-target-fill";
+const TARGET_DOT_LAYER_ID = "desk-area-target-dot";
 
 const NORMAL_FILL = "#92d66f";
 const SELECTED_FILL = "#f2a63d";
@@ -247,7 +256,7 @@ const addZoneLayers = (
   map.addSource("desk-area-zones", { data: zoneData, type: "geojson" });
   map.addLayer(
     {
-      id: "desk-area-zone-fill",
+      id: ZONE_FILL_LAYER_ID,
       paint: {
         "fill-color": [
           "case",
@@ -269,7 +278,7 @@ const addZoneLayers = (
   );
   map.addLayer(
     {
-      id: "desk-area-zone-line",
+      id: ZONE_LINE_LAYER_ID,
       paint: {
         "line-color": ZONE_LINE,
         "line-dasharray": [2, 1],
@@ -284,7 +293,7 @@ const addZoneLayers = (
       source: "desk-area-zones",
       type: "line",
     },
-    "desk-area-target-dot"
+    TARGET_DOT_LAYER_ID
   );
 };
 
@@ -301,7 +310,7 @@ const addTargetLayers = (
     type: "geojson",
   });
   map.addLayer({
-    id: "desk-area-target-fill",
+    id: TARGET_FILL_LAYER_ID,
     paint: {
       "fill-color": [
         "case",
@@ -345,7 +354,7 @@ const addTargetLayers = (
 
   map.addSource("desk-area-targets", { data: pointData, type: "geojson" });
   map.addLayer({
-    id: "desk-area-target-dot",
+    id: TARGET_DOT_LAYER_ID,
     paint: {
       "circle-color": [
         "case",
@@ -472,14 +481,9 @@ export const DeskAreaMap = ({
       if (zoneMode) {
         map.resize();
       }
-      // A double-click while placing/drawing zones would trigger the built-in
-      // doubleClickZoom and jump the camera. Only the user's pan/scroll may move
-      // the map, so lock double-click zoom whenever a zone tool is active.
-      if (zoneMode || drawModeRef.current) {
-        map.doubleClickZoom.disable();
-      } else {
-        map.doubleClickZoom.enable();
-      }
+      // doubleClickZoom stays disabled for the whole map lifetime (see the map
+      // creation effect) — no per-mode toggling, so a completing double-click
+      // can never re-enable it and zoom the camera.
     }
   }, [zoneMode]);
 
@@ -494,18 +498,15 @@ export const DeskAreaMap = ({
     }
     if (drawMode) {
       map.resize();
-      // MapboxDraw finishes a polygon on a DOUBLE-CLICK, which would otherwise
-      // also fire the map's built-in doubleClickZoom and zoom the camera the
-      // instant the shape completes. Disable it for the whole draw session.
-      map.doubleClickZoom.disable();
+      // doubleClickZoom is already disabled for the map's lifetime (see the map
+      // creation effect), so finishing a polygon on a double-click can never
+      // zoom/recenter the camera. mapbox-gl-draw also won't re-enable it because
+      // it was disabled before the draw control was added.
       draw.changeMode("draw_polygon");
       map.getCanvas().style.cursor = "crosshair";
     } else {
       draw.deleteAll();
       draw.changeMode("simple_select");
-      if (!zoneModeRef.current) {
-        map.doubleClickZoom.enable();
-      }
       map.getCanvas().style.cursor = zoneModeRef.current ? "crosshair" : "";
     }
   }, [drawMode]);
@@ -521,7 +522,23 @@ export const DeskAreaMap = ({
   // (whose fill + dot layer handlers would otherwise each fire again).
   const handleFillClick = useCallback(
     (event: MapMouseEvent & { features?: GeoJSON.Feature[] }) => {
-      if (zoneModeRef.current || drawModeRef.current) {
+      // A drawn/selected zone renders ON TOP of the predefined tract layer, so a
+      // click inside that zone also hits the tract fill/dot beneath it. Query
+      // the zone fill at the exact click point: if a zone is under the pointer,
+      // the click belongs to the zone and must NOT toggle the tract underneath.
+      const map = event.target;
+      const zoneUnderClick =
+        map.getLayer(ZONE_FILL_LAYER_ID) !== undefined &&
+        map.queryRenderedFeatures(event.point, {
+          layers: [ZONE_FILL_LAYER_ID],
+        }).length > 0;
+      if (
+        !shouldSelectTract({
+          drawMode: drawModeRef.current,
+          zoneMode: zoneModeRef.current,
+          zoneUnderClick,
+        })
+      ) {
         return;
       }
       const id = event.features?.[0]?.properties?.id;
@@ -559,6 +576,24 @@ export const DeskAreaMap = ({
       zoom: DEFAULT_ZOOM,
     });
     mapRef.current = map;
+    // Kill double-click-to-zoom for the map's ENTIRE lifetime, BEFORE the draw
+    // control is added below. Two reasons: (1) finishing a drawn polygon is a
+    // double-click, and dbl-click zoom would recenter/zoom the camera onto the
+    // click the instant the shape completes ("jumps the map to the center, out
+    // of view"); (2) mapbox-gl-draw snapshots doubleClickZoom's enabled state
+    // when it connects (on addControl) and RE-ENABLES it on every draw stop via
+    // a setTimeout — so if it were enabled at addControl time it would keep
+    // coming back and race the completing double-click. Disabling it here means
+    // draw records it as initially-disabled and never re-enables it. The desk
+    // map only moves by pan / cooperative-gesture zoom, never a click.
+    map.doubleClickZoom.disable();
+    // Mapbox marks the interactive canvas tabindex="0", so clicking the map
+    // natively focuses it. The map is taller than the viewport, so that focus
+    // makes the browser scroll the PAGE to reveal the canvas — the "click jumps
+    // the page down" bug. Neutralize the focus-induced scroll (the map camera
+    // never moves programmatically either, so a click now changes nothing but
+    // the selection). This is NOT a camera move.
+    const detachFocusScroll = preventFocusScroll(map.getCanvas());
     const observer = new ResizeObserver(() => resizeMapToContainer(map));
     observer.observe(container);
     map.addControl(
@@ -641,14 +676,14 @@ export const DeskAreaMap = ({
       (map as unknown as MapboxDrawEvented).on("draw.create", handleDrawCreate);
       readyRef.current = true;
       map.on("click", handleMapClick);
-      map.on("click", "desk-area-target-fill", handleFillClick);
-      map.on("click", "desk-area-target-dot", handleFillClick);
-      map.on("mouseenter", "desk-area-target-fill", onEnter);
-      map.on("mouseenter", "desk-area-target-dot", onEnter);
-      map.on("mousemove", "desk-area-target-fill", onMove);
-      map.on("mousemove", "desk-area-target-dot", onMove);
-      map.on("mouseleave", "desk-area-target-fill", onLeave);
-      map.on("mouseleave", "desk-area-target-dot", onLeave);
+      map.on("click", TARGET_FILL_LAYER_ID, handleFillClick);
+      map.on("click", TARGET_DOT_LAYER_ID, handleFillClick);
+      map.on("mouseenter", TARGET_FILL_LAYER_ID, onEnter);
+      map.on("mouseenter", TARGET_DOT_LAYER_ID, onEnter);
+      map.on("mousemove", TARGET_FILL_LAYER_ID, onMove);
+      map.on("mousemove", TARGET_DOT_LAYER_ID, onMove);
+      map.on("mouseleave", TARGET_FILL_LAYER_ID, onLeave);
+      map.on("mouseleave", TARGET_DOT_LAYER_ID, onLeave);
     });
 
     // Catch late layout shifts (font swaps, scrollbar, sticky settle) that the
@@ -659,6 +694,7 @@ export const DeskAreaMap = ({
     return () => {
       readyRef.current = false;
       window.clearTimeout(lateResize);
+      detachFocusScroll();
       observer.disconnect();
       popup.remove();
       map.remove();
