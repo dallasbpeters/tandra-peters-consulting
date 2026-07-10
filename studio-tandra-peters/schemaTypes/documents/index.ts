@@ -16,6 +16,7 @@ export { clientEmailType } from "./clientEmail";
 export { deskBoardItemType } from "./desk-board-item";
 export { deskCanvassTargetType } from "./desk-canvass-target";
 export { deskLeadType } from "./desk-lead";
+export { deskWalkVisitType } from "./desk-walk-visit";
 export { emailContactType } from "./emailContact";
 export { emailSignatureType } from "./emailSignature";
 export { estimatorPageType } from "./estimatorPage";

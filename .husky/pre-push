@@ -1,0 +1,5 @@
+#!/bin/sh
+# Lightweight gate before pushing: the type-check that CI enforces. Tests and
+# formatting already run in pre-commit; this catches type regressions that would
+# otherwise only fail in CI.
+pnpm exec tsc --noEmit

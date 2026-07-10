@@ -777,7 +777,7 @@ export const mapFaqProps = (f: SanityDoc): Partial<FaqProps> => {
         question,
       };
     })
-    .filter(Boolean);
+    .filter((item) => item !== null);
 
   const intro = asOptionalRichText(f.intro);
 

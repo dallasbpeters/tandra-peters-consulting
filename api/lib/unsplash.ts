@@ -143,7 +143,9 @@ export const searchUnsplashImages = async ({
   }
 
   const payload = (await response.json()) as UnsplashSearchResponse;
-  return (payload.results ?? []).map(toImageAsset).filter(Boolean);
+  return (payload.results ?? [])
+    .map(toImageAsset)
+    .filter((asset) => asset !== null);
 };
 
 export const parseAllowedUnsplashImageUrl = (

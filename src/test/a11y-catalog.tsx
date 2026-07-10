@@ -105,7 +105,7 @@ export interface A11yCase {
   render: () => RenderResult;
 }
 
-const sampleReview = reviews.at(0);
+const sampleReview = reviews[0];
 const roofChapters = CHAPTERS.filter((chapter) => chapter.position3d);
 
 const renderPlain = (ui: ReactElement): RenderResult => render(ui);

@@ -15,7 +15,7 @@ const toWebRequest = (req: VercelRequest): Request => {
     : `https://${host}${req.url ?? "/"}`;
   const headerPairs: [string, string][] = [];
   for (const [key, value] of Object.entries(req.headers)) {
-    if (value === null) {
+    if (value === undefined) {
       continue;
     }
     if (Array.isArray(value)) {

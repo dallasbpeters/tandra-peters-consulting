@@ -79,8 +79,6 @@ const exposeEnv = (env: Record<string, string>): void => {
     "STANNP_API_KEY",
     "LOB_API_KEY",
     "LOB_FROM_ADDRESS_ID",
-    "CLICK2MAIL_USERNAME",
-    "CLICK2MAIL_PASSWORD",
     "POSTGRID_API_KEY",
     "POSTGRID_FROM_CONTACT_ID",
     "POSTGRID_FROM_NAME",
@@ -89,6 +87,7 @@ const exposeEnv = (env: Record<string, string>): void => {
     "POSTGRID_FROM_STATE",
     "POSTGRID_FROM_ZIP",
     "POSTALYTICS_API_KEY",
+    "POSTALYTICS_SEND_ENDPOINT",
   ]) {
     const value = env[key]?.trim() || process.env[key]?.trim();
     if (value) {
@@ -229,6 +228,7 @@ const handleDeskDirectMailRequest = async (
         body: optionalString(body.body),
         cta: optionalString(body.cta),
         front: optionalString(body.front),
+        frontConfig: optionalString(body.frontConfig),
         headline: optionalString(body.headline),
         message: optionalString(body.message),
         providerKey,

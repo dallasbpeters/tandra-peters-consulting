@@ -1120,7 +1120,7 @@ a.wa-button {
 
 /* src/styles/site-layout.css */
 .site-page-main {
-  --site-padding-inline-start: 120px;
+  --site-padding-inline-start: 72px;
 }
 
 .featured-video__play {

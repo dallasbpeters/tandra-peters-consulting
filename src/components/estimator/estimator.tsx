@@ -694,7 +694,7 @@ interface EstimateResultContentProps {
   content: EstimatorPageContent;
   currency: string;
   email: string;
-  estimate: EstimateResult;
+  estimate: NonNullable<EstimateResult>;
   fullName: string;
   onEmailChange: (value: string) => void;
   onNameChange: (value: string) => void;

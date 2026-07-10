@@ -292,6 +292,10 @@ export const GlyphEditorPage = () => {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle"
   );
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [glyphExists, setGlyphExists] = useState(true);
 
   // Word preview state
@@ -456,6 +460,46 @@ export const GlyphEditorPage = () => {
     setSettings(extractSettings(rawSvg));
   }, [rawSvg]);
 
+  const handleUploadFile = useCallback(
+    async (file: File) => {
+      if (!file.name.toLowerCase().endsWith(".svg")) {
+        return;
+      }
+      setUploadStatus("uploading");
+      const svg = await file.text();
+      const glyph = parseGlyph(svg);
+      if (!glyph) {
+        setUploadStatus("error");
+        setTimeout(() => setUploadStatus("idle"), 3000);
+        return;
+      }
+      try {
+        const res = await fetch("/api/glyph-editor/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ char: selectedChar, svg }),
+        });
+        const data = (await res.json()) as { ok: boolean };
+        if (data.ok) {
+          setRawSvg(svg);
+          setSettings(extractSettings(svg));
+          setBaseGlyph(glyph);
+          setGlyphExists(true);
+          setGlyphCache((prev) => new Map([...prev, [selectedChar, glyph]]));
+          setUploadStatus("done");
+          setTimeout(() => setUploadStatus("idle"), 2500);
+        } else {
+          setUploadStatus("error");
+          setTimeout(() => setUploadStatus("idle"), 3000);
+        }
+      } catch {
+        setUploadStatus("error");
+        setTimeout(() => setUploadStatus("idle"), 3000);
+      }
+    },
+    [selectedChar]
+  );
+
   // ── Layout ────────────────────────────────────────────────────────────────
   const previewW = displayGlyph
     ? computeGlyphWidth(displayGlyph, PREVIEW_H)
@@ -518,6 +562,51 @@ export const GlyphEditorPage = () => {
           </span>
         )}
         <div style={{ flex: 1 }} />
+        {/* Hidden file input for SVG upload */}
+        <input
+          ref={fileInputRef}
+          accept=".svg,image/svg+xml"
+          style={{ display: "none" }}
+          type="file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              handleUploadFile(file);
+            }
+            // Reset so the same file can be re-uploaded
+            e.target.value = "";
+          }}
+        />
+        <button
+          disabled={uploadStatus === "uploading"}
+          style={{
+            background:
+              uploadStatus === "done"
+                ? "#166534"
+                : uploadStatus === "error"
+                  ? "#7f1d1d"
+                  : "#1d4ed8",
+            border: "none",
+            borderRadius: 4,
+            color: "#fff",
+            cursor: uploadStatus === "uploading" ? "wait" : "pointer",
+            fontSize: 12,
+            fontWeight: 700,
+            opacity: uploadStatus === "uploading" ? 0.6 : 1,
+            padding: "5px 12px",
+          }}
+          title={`Replace glyph "${selectedChar}" with a new SVG file`}
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {uploadStatus === "uploading"
+            ? "Uploading…"
+            : uploadStatus === "done"
+              ? "✓ Uploaded"
+              : uploadStatus === "error"
+                ? "Bad SVG"
+                : "↑ Upload SVG"}
+        </button>
         <button
           style={{
             background: "#2a2a2a",
@@ -811,11 +900,27 @@ export const GlyphEditorPage = () => {
           }}
         >
           {!glyphExists && (
-            <p style={{ color: "#888", fontSize: 14, textAlign: "center" }}>
-              No glyph file for &ldquo;{selectedChar}&rdquo;.
-              <br />
-              Run <code>pnpm handfont:setup</code> first.
-            </p>
+            <div style={{ color: "#888", fontSize: 14, textAlign: "center" }}>
+              <p style={{ margin: "0 0 12px" }}>
+                No glyph file for &ldquo;{selectedChar}&rdquo;.
+              </p>
+              <button
+                style={{
+                  background: "#1e2a3a",
+                  border: "1px solid #2a4a6a",
+                  borderRadius: 6,
+                  color: "#7ab",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  padding: "8px 20px",
+                }}
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                ↑ Upload SVG for &ldquo;{selectedChar}&rdquo;
+              </button>
+            </div>
           )}
 
           {displayGlyph && (

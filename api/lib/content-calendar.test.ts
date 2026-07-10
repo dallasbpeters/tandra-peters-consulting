@@ -1,3 +1,4 @@
+import type { SanityClient } from "@sanity/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createMock =
@@ -14,12 +15,13 @@ const patchMock = vi.fn<(id: string) => { set: typeof setMock }>(() => ({
 }));
 
 vi.mock(import("@sanity/client"), () => ({
-  createClient: () => ({
-    create: createMock,
-    delete: deleteMock,
-    fetch: fetchMock,
-    patch: patchMock,
-  }),
+  createClient: () =>
+    ({
+      create: createMock,
+      delete: deleteMock,
+      fetch: fetchMock,
+      patch: patchMock,
+    }) as unknown as SanityClient,
 }));
 
 const {

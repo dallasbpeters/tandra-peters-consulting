@@ -1,5 +1,6 @@
 import { createElement, useState } from "react";
 
+import { renderPostcardFrontToDataUrl } from "../../lib/postcard-front-render";
 import type {
   PostcardDocumentProps,
   PostcardSize,
@@ -9,12 +10,19 @@ export type { PostcardDocumentProps, PostcardSize };
 
 export interface PostcardPdfDownloadProps extends PostcardDocumentProps {
   batchName?: string;
+  /**
+   * Saved Ad Builder creative (`config` JSON). When present the front page is
+   * rendered from its structured layers at print resolution instead of the
+   * low-res thumbnail, so the downloaded PDF is crisp.
+   */
+  frontConfig?: string;
 }
 
 const SLUG_RE = /[\s/]+/g;
 
 export const PostcardPdfDownload = ({
   batchName,
+  frontConfig,
   size = "6x9",
   ...docProps
 }: PostcardPdfDownloadProps) => {
@@ -23,11 +31,17 @@ export const PostcardPdfDownload = ({
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-      const [{ pdf }, { PostcardDocument }] = await Promise.all([
+      const [{ pdf }, { PostcardDocument }, crispFront] = await Promise.all([
         import("@react-pdf/renderer"),
         import("./postcard-pdf-document"),
+        renderPostcardFrontToDataUrl(frontConfig, size),
       ]);
-      const element = createElement(PostcardDocument, { ...docProps, size });
+      const frontImageDataUri = crispFront ?? docProps.frontImageDataUri;
+      const element = createElement(PostcardDocument, {
+        ...docProps,
+        frontImageDataUri,
+        size,
+      });
       const blob = await pdf(element as Parameters<typeof pdf>[0]).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");

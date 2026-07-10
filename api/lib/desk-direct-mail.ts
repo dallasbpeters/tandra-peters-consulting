@@ -9,7 +9,7 @@ const RENTCAST_ADDRESS_SAMPLE_LIMIT = 60;
 // can't fan out into a huge (and costly) number of paid property lookups.
 const MAX_ADDRESS_NEIGHBORHOOD_QUERIES = 12;
 const RENTCAST_ADDRESS_QUERY_LIMIT = 500;
-const ADDRESS_LIST_HARD_CAP = 750;
+export const ADDRESS_LIST_HARD_CAP = 750;
 
 const PROVIDERS = {
   stannp: {
@@ -47,27 +47,19 @@ const PROVIDERS = {
     setupUrl: "https://www.postgrid.com/docs/",
     uploadMode: "Template/contact API with PDF support",
   },
-  click2mail: {
-    approxCost: "Budget per-piece; volume tiers",
-    canTestProof: false,
-    env: ["CLICK2MAIL_USERNAME", "CLICK2MAIL_PASSWORD"],
-    fit: "Budget-friendly print workflow that can receive uploaded documents and mailing lists.",
-    name: "Click2Mail",
-    recommended: false,
-    setupLabel: "Open setup",
-    setupUrl: "https://developers.click2mail.com/",
-    uploadMode: "PDF/document upload plus mailing list API",
-  },
   postalytics: {
     approxCost: "Platform fee + per-piece",
     canTestProof: false,
+    // Verify needs only the API key. A live send also needs a pre-built
+    // triggered-drop campaign endpoint (POSTALYTICS_SEND_ENDPOINT) — the
+    // creative/return address live in that Postalytics campaign, not per-send.
     env: ["POSTALYTICS_API_KEY"],
-    fit: "Campaign-oriented direct mail automation with contacts, templates, and sends.",
+    fit: "Campaign-oriented automation: trigger a drop to a pre-built template + return address.",
     name: "Postalytics",
     recommended: false,
     setupLabel: "Open setup",
     setupUrl: "https://www.postalytics.com/direct-mail-api/",
-    uploadMode: "Contacts, templates, campaigns, and sends",
+    uploadMode: "Triggered drop to a configured campaign template",
   },
   mock: {
     approxCost: "Free — no mail is sent",
@@ -606,6 +598,229 @@ export const prepareDirectMailAddresses = async (
       ok: true,
       status: "configured",
       totalAddresses: distinct.length,
+    },
+    status: 200,
+  };
+};
+
+/** Per-home roster item — non-PII property signals only (owner name STRIPPED). */
+export interface RosterHome {
+  address: string;
+  addressLine1: string;
+  city: string;
+  homeAge: number | null;
+  homeKey: string;
+  latitude: number | null;
+  longitude: number | null;
+  ownerOccupied: boolean | null;
+  propertyType: string | null;
+  squareFootage: number | null;
+  state: string;
+  yearBuilt: number | null;
+  zip: string;
+}
+
+export interface HomeRosterResult {
+  body: {
+    capped: boolean;
+    homes: RosterHome[];
+    ok: boolean;
+    status: "configured" | "missing-key" | "unavailable";
+    total: number;
+  };
+  status: number;
+}
+
+// Keep in sync with `deriveHomeKey` in `src/lib/desk-walk.ts` — the SAME 32-bit
+// FNV-1a so a home maps to one stable key in the browser, tests, and here.
+const FNV_OFFSET_BASIS = 0x81_1c_9d_c5;
+const FNV_PRIME = 0x01_00_01_93;
+
+const fnv1aHex = (input: string): string => {
+  let hash = FNV_OFFSET_BASIS;
+  for (let index = 0; index < input.length; index++) {
+    hash ^= input.codePointAt(index) ?? 0;
+    hash = Math.imul(hash, FNV_PRIME);
+  }
+  // Coerce the Math.imul (signed int32) result to unsigned before hex-formatting.
+  const unsigned = hash < 0 ? hash + 0x1_00_00_00_00 : hash;
+  return unsigned.toString(16).padStart(8, "0");
+};
+
+const homeKeyFrom = (id: string, addressLine1: string, zip: string): string => {
+  const rentcastId = id.trim();
+  if (rentcastId) {
+    return rentcastId;
+  }
+  return `addr-${fnv1aHex(`${addressLine1.trim().toLowerCase()}|${zip.trim()}`)}`;
+};
+
+const CURRENT_YEAR = new Date().getUTCFullYear();
+
+const optionalNumberField = (
+  record: Record<string, unknown>,
+  key: string
+): number | null => {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
+
+/** Map a matched property to a non-PII roster home. Owner name is never read. */
+const rosterHomeOf = (property: unknown): RosterHome | null => {
+  const record = asRecord(property);
+  const addressLine1 = stringField(record, "addressLine1");
+  const zip = stringField(record, "zipCode");
+  if (!(addressLine1 && zip)) {
+    return null;
+  }
+  const yearBuilt = optionalNumberField(record, "yearBuilt");
+  const idField =
+    typeof record.id === "string"
+      ? record.id
+      : typeof record.id === "number"
+        ? String(record.id)
+        : "";
+  const propertyTypeValue = stringField(record, "propertyType");
+  const ownerOccupiedRaw = record.ownerOccupied;
+  return {
+    address: formattedAddressOf(property) ?? `${addressLine1} ${zip}`.trim(),
+    addressLine1,
+    city: stringField(record, "city") || "Austin",
+    homeAge: yearBuilt === null ? null : Math.max(0, CURRENT_YEAR - yearBuilt),
+    homeKey: homeKeyFrom(idField, addressLine1, zip),
+    latitude: optionalNumberField(record, "latitude"),
+    longitude: optionalNumberField(record, "longitude"),
+    ownerOccupied:
+      typeof ownerOccupiedRaw === "boolean" ? ownerOccupiedRaw : null,
+    propertyType: propertyTypeValue || null,
+    squareFootage: optionalNumberField(record, "squareFootage"),
+    state: (stringField(record, "state") || "TX").toUpperCase(),
+    yearBuilt,
+    zip,
+  };
+};
+
+/** [lng, lat] ring from the payload zone (accepts pair or flat interleaved). */
+const zoneRingFrom = (payload: Record<string, unknown>): [number, number][] => {
+  const zone = asRecord(payload.zone);
+  if (zone.kind !== "polygon") {
+    return [];
+  }
+  const raw = zone.polygon;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const flat: number[] = [];
+  for (const point of raw) {
+    if (Array.isArray(point)) {
+      const lng = Number(point[0]);
+      const lat = Number(point[1]);
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        flat.push(lng, lat);
+      }
+    } else {
+      const num = Number(point);
+      if (Number.isFinite(num)) {
+        flat.push(num);
+      }
+    }
+  }
+  const ring: [number, number][] = [];
+  for (let index = 0; index + 1 < flat.length; index += 2) {
+    ring.push([flat[index], flat[index + 1]]);
+  }
+  return ring;
+};
+
+// Ray-casting point-in-polygon against a [lng, lat] ring. Server copy of
+// `pointInRing` from `src/lib/desk-geo.ts` (serverless code cannot import src/).
+const pointInRing = (
+  lng: number,
+  lat: number,
+  ring: readonly [number, number][]
+): boolean => {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const crosses =
+      yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (crosses) {
+      inside = !inside;
+    }
+  }
+  return inside;
+};
+
+/**
+ * Build the FULL per-home roster for a selection/zone from RentCast, returning
+ * rich per-home records (id, yearBuilt, coords, attributes) MINUS the owner
+ * name. Reuses the same neighborhood/zone resolution as the mail pipeline. A
+ * drawn polygon zone is radius-queried then post-filtered to the outline via
+ * point-in-polygon. Deduped by `homeKey`, bounded by `ADDRESS_LIST_HARD_CAP`.
+ */
+export const collectHomeRoster = async (
+  payload: Record<string, unknown>
+): Promise<HomeRosterResult> => {
+  const apiKey = rentcastKey();
+  if (!apiKey) {
+    return {
+      body: {
+        capped: false,
+        homes: [],
+        ok: true,
+        status: "missing-key",
+        total: 0,
+      },
+      status: 200,
+    };
+  }
+  const queries = addressQueryNeighborhoods(resolveQueryNeighborhoods(payload));
+  if (queries.length === 0) {
+    return {
+      body: {
+        capped: false,
+        homes: [],
+        ok: true,
+        status: "unavailable",
+        total: 0,
+      },
+      status: 200,
+    };
+  }
+  const properties = await fetchMatchedProperties(queries, apiKey);
+  const ring = zoneRingFrom(payload);
+  const byKey = new Map<string, RosterHome>();
+  for (const property of properties) {
+    const home = rosterHomeOf(property);
+    if (!home) {
+      continue;
+    }
+    // Polygon zones: RentCast is radius-only, so keep only homes whose real
+    // coordinates fall inside the drawn outline. Homes lacking coordinates are
+    // dropped for polygon zones (they can't be placed) but kept otherwise.
+    if (ring.length >= 3) {
+      if (home.latitude === null || home.longitude === null) {
+        continue;
+      }
+      if (!pointInRing(home.longitude, home.latitude, ring)) {
+        continue;
+      }
+    }
+    if (!byKey.has(home.homeKey)) {
+      byKey.set(home.homeKey, home);
+    }
+  }
+  const distinct = [...byKey.values()].toSorted((left, right) =>
+    left.addressLine1.localeCompare(right.addressLine1)
+  );
+  return {
+    body: {
+      capped: distinct.length > ADDRESS_LIST_HARD_CAP,
+      homes: distinct.slice(0, ADDRESS_LIST_HARD_CAP),
+      ok: true,
+      status: "configured",
+      total: distinct.length,
     },
     status: 200,
   };

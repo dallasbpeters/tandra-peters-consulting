@@ -10,8 +10,6 @@ import type {
 } from "../../lib/desk-types";
 
 const ENV_LABELS: Record<string, string> = {
-  CLICK2MAIL_PASSWORD: "Click2Mail password",
-  CLICK2MAIL_USERNAME: "Click2Mail username",
   LOB_API_KEY: "Lob API key",
   LOB_FROM_ADDRESS_ID: "Lob from-address ID",
   POSTALYTICS_API_KEY: "Postalytics API key",

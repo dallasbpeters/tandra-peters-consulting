@@ -12,10 +12,33 @@
  */
 import { hostHtmlReference, hostImageReference } from "./desk-creative-host.js";
 import type { MailRecipient } from "./desk-direct-mail.js";
+import { buildStructuredFrontHtml } from "./desk-front-creative.js";
 
 const STANNP_BASE = "https://api-us1.stannp.com/v1";
 const LOB_BASE = "https://api.lob.com/v1";
 const POSTGRID_BASE = "https://api.postgrid.com/print-mail/v1";
+const POSTALYTICS_BASE = "https://api.postalytics.com/api/v1";
+
+/** Postalytics var fields are capped at 255 chars each. */
+const POSTALYTICS_VAR_FIELD_MAX = 255;
+
+/**
+ * Postalytics uses HTTP Basic auth with the API key as the username and an
+ * empty password (docs: getting-started/authentication). Returns the ready
+ * `Authorization` header value.
+ */
+const postalyticsAuth = (apiKey: string): string =>
+  `Basic ${Buffer.from(`${apiKey}:`).toString("base64")}`;
+
+/**
+ * The triggered-drop campaign "endpoint" token (server config, not a per-user
+ * secret) that a Postalytics `/send` call targets. It encapsulates the
+ * template, postage, and return address configured in the Postalytics campaign,
+ * so the creative/sender are NOT supplied per-send. Read from the environment
+ * like the PostGrid/Lob from-address config.
+ */
+const postalyticsSendEndpoint = (): string =>
+  process.env.POSTALYTICS_SEND_ENDPOINT?.trim() ?? "";
 
 /**
  * Accident-guard cap on postcards created in a single submit — applies to BOTH
@@ -26,7 +49,6 @@ const POSTGRID_BASE = "https://api.postgrid.com/print-mail/v1";
 const MAX_SUBMIT_RECIPIENTS = 100;
 
 const PROVIDER_NAMES: Record<string, string> = {
-  click2mail: "Click2Mail",
   lob: "Lob",
   postalytics: "Postalytics",
   postgrid: "PostGrid",
@@ -57,6 +79,12 @@ export interface TestPostcardInput {
   body?: string;
   cta?: string;
   front?: string;
+  /**
+   * Serialized Ad Builder creative (`config` JSON). When present the front is
+   * rendered as print-resolution HTML instead of upscaling the ~320px `front`
+   * raster thumbnail, so the test proof matches the crisp submitted order.
+   */
+  frontConfig?: string;
   headline?: string;
   message?: string;
   providerKey: string;
@@ -70,6 +98,12 @@ export interface SubmitOrderInput {
   body?: string;
   cta?: string;
   front?: string;
+  /**
+   * Serialized Ad Builder creative (`config` JSON: canvas layers + creative
+   * state). When present it is rendered as print-resolution HTML (vector text,
+   * full-res photo, vector logo) instead of upscaling the small `front` raster.
+   */
+  frontConfig?: string;
   headline?: string;
   message?: string;
   providerKey: string;
@@ -256,6 +290,63 @@ const buildFrontHtml = (src: string, size?: string): string => {
   return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}</style></head><body style="margin:0;width:${dims.width}in;height:${dims.height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${dims.width}in;height:${dims.height}in;object-fit:cover;"/></body></html>`;
 };
 
+/**
+ * Stannp `front` value. When a structured Ad Builder `frontConfig` is present,
+ * render it to print-resolution HTML (Stannp rasterizes the HTML to the card
+ * size, so text/logo are vector-sharp and the photo comes from its full-res
+ * source) and pass it as a base64 HTML data URL — exactly like the back. Falls
+ * back to the raw `front` raster (URL or base64) for legacy creatives that were
+ * saved without structured layers.
+ */
+const resolveStannpFront = (input: {
+  front?: string;
+  frontConfig?: string;
+  size?: string;
+}): string | undefined => {
+  if (input.frontConfig) {
+    const dims = cardDims(input.size);
+    const structured = buildStructuredFrontHtml(input.frontConfig, {
+      heightIn: dims.height,
+      widthIn: dims.width,
+    });
+    if (structured.ok && structured.html) {
+      return stripDataUrl(
+        `data:text/html;base64,${Buffer.from(structured.html).toString(
+          "base64"
+        )}`
+      );
+    }
+  }
+  if (!input.front) {
+    return undefined;
+  }
+  return isHttpUrl(input.front) ? input.front : stripDataUrl(input.front);
+};
+
+/**
+ * Lob adds a 1/8" bleed on every side, so full-bleed HTML must be authored at
+ * trim + 0.25" total (e.g. a 6x9 card → 9.25" × 6.25", which Lob renders at
+ * 300 DPI to 2775 × 1875 px — exactly Lob's required creative dimensions).
+ */
+const LOB_BLEED_IN = 0.25;
+
+/**
+ * Front creative for Lob, authored as HTML sized to the full-bleed card.
+ *
+ * Lob rejects PNG/JPG creatives below 300 DPI ("Provided image was 75 x 114
+ * px"), but "supplied HTML will be rendered to the specified `size`" — so
+ * wrapping the (possibly low-res) front image in a full-bleed HTML doc makes
+ * Lob rasterize it to the correct print dimensions and sidesteps the raster
+ * minimum-resolution check entirely. The image is linked by URL to keep the
+ * HTML small enough to pass inline.
+ */
+const buildLobFrontHtml = (src: string, size?: string): string => {
+  const dims = cardDims(size);
+  const width = (dims.width + LOB_BLEED_IN).toFixed(2);
+  const height = (dims.height + LOB_BLEED_IN).toFixed(2);
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{margin:0;padding:0;box-sizing:border-box;}html,body{margin:0;padding:0;}</style></head><body style="margin:0;width:${width}in;height:${height}in;overflow:hidden;"><img alt="postcard front" src="${src}" style="display:block;width:${width}in;height:${height}in;object-fit:cover;"/></body></html>`;
+};
+
 // ---------------------------------------------------------------------------
 // Connection checks
 // ---------------------------------------------------------------------------
@@ -362,6 +453,58 @@ const verifyPostgrid = async (
   return { ...base, message: "PostGrid did not accept this API key." };
 };
 
+/**
+ * Postalytics verify only needs the API key — a live send additionally needs a
+ * configured triggered-drop campaign endpoint (POSTALYTICS_SEND_ENDPOINT), so
+ * the message calls that out when it is missing.
+ */
+const verifyPostalytics = async (
+  secrets: ProviderSecrets
+): Promise<ProviderConnection> => {
+  const apiKey = pick(secrets, "POSTALYTICS_API_KEY");
+  const base: ProviderConnection = {
+    configured: Boolean(apiKey),
+    message: "",
+    ok: false,
+    provider: providerName("postalytics"),
+    providerKey: "postalytics",
+  };
+  if (!apiKey) {
+    return { ...base, message: "Add a Postalytics API key to connect." };
+  }
+  const response = await fetch(`${POSTALYTICS_BASE}/account/me`, {
+    headers: {
+      Accept: "application/json",
+      Authorization: postalyticsAuth(apiKey),
+    },
+  });
+  const body = asRecord(await response.json().catch(() => ({})));
+  if (response.ok) {
+    const data = asRecord(body.data ?? body);
+    const label =
+      (typeof data.name === "string" && data.name) ||
+      (typeof data.company === "string" && data.company) ||
+      undefined;
+    const hasEndpoint = Boolean(postalyticsSendEndpoint());
+    return {
+      ...base,
+      accountLabel: label || undefined,
+      message: hasEndpoint
+        ? "Connected to Postalytics. Ready to trigger a drop to the configured campaign."
+        : "Connected to Postalytics. Set POSTALYTICS_SEND_ENDPOINT (a triggered-drop campaign endpoint) to submit.",
+      ok: true,
+    };
+  }
+  const error = asRecord(body.error);
+  return {
+    ...base,
+    message:
+      typeof error.message === "string"
+        ? `Postalytics rejected the key: ${error.message}`
+        : "Postalytics did not accept this API key.",
+  };
+};
+
 export const verifyProviderConnection = async (
   providerKey: string,
   secrets: ProviderSecrets
@@ -374,6 +517,9 @@ export const verifyProviderConnection = async (
   }
   if (providerKey === "postgrid") {
     return await verifyPostgrid(secrets);
+  }
+  if (providerKey === "postalytics") {
+    return await verifyPostalytics(secrets);
   }
   return {
     configured: false,
@@ -410,13 +556,17 @@ const createStannpTestProof = async (
       message: "Select a saved Ad Builder creative for the postcard front.",
     };
   }
+  const frontValue = resolveStannpFront(input);
+  if (!frontValue) {
+    return {
+      ...base,
+      message: "Select a saved Ad Builder creative for the postcard front.",
+    };
+  }
   const form = new URLSearchParams();
   form.set("test", "true");
   form.set("size", input.size ?? "6x9");
-  form.set(
-    "front",
-    isHttpUrl(input.front) ? input.front : stripDataUrl(input.front)
-  );
+  form.set("front", frontValue);
   if (input.back) {
     form.set(
       "back",
@@ -636,9 +786,10 @@ const submitStannp = async (
           })
         ).toString("base64")}`
       );
-  const frontValue = isHttpUrl(input.front)
-    ? input.front
-    : stripDataUrl(input.front);
+  const frontValue = resolveStannpFront(input);
+  if (!frontValue) {
+    return { ...base, message: "Select a creative for the postcard front." };
+  }
 
   let firstId: string | undefined;
   let firstPdf: string | undefined;
@@ -707,12 +858,12 @@ const envPostgridFrom = (): Record<string, string> => {
   }
   return {
     "from[addressLine1]":
-      process.env.POSTGRID_FROM_ADDRESS_LINE1?.trim() || "PO Box 340",
-    "from[city]": process.env.POSTGRID_FROM_CITY?.trim() || "Round Rock",
+      process.env.POSTGRID_FROM_ADDRESS_LINE1?.trim() || "2300 Forsam Bend",
+    "from[city]": process.env.POSTGRID_FROM_CITY?.trim() || "Austin",
     "from[companyName]":
       process.env.POSTGRID_FROM_NAME?.trim() || "Birdcreek Roofing",
     "from[countryCode]": "US",
-    "from[postalOrZip]": process.env.POSTGRID_FROM_ZIP?.trim() || "78680",
+    "from[postalOrZip]": process.env.POSTGRID_FROM_ZIP?.trim() || "78725",
     "from[provinceOrState]": process.env.POSTGRID_FROM_STATE?.trim() || "TX",
   };
 };
@@ -783,7 +934,17 @@ const submitPostgrid = async (
     }
   }
   const recipients = recipientsFor(input);
-  const frontHtml = buildFrontHtml(input.front, input.size);
+  // Prefer the structured (vector text + full-res photo) front so PostGrid
+  // rasterizes a crisp 300-DPI creative; fall back to wrapping the raster.
+  const pgDims = cardDims(input.size);
+  const structuredPgFront = buildStructuredFrontHtml(input.frontConfig, {
+    heightIn: pgDims.height,
+    widthIn: pgDims.width,
+  });
+  const frontHtml =
+    structuredPgFront.ok && structuredPgFront.html
+      ? structuredPgFront.html
+      : buildFrontHtml(input.front, input.size);
   // PostGrid overlays the sender from `from[...]`, so the back creative carries
   // only marketing content (no return block) to avoid a double return address.
   const backHtml = buildPostcardBackHtml({
@@ -896,11 +1057,39 @@ interface LobCreative {
   ok: boolean;
 }
 
+interface LobHtmlReference {
+  error?: string;
+  ok: boolean;
+  value?: string;
+}
+
 /**
- * Resolve the front/back into Lob-safe references (each under the 10k inline
- * limit). Front becomes a remote image URL (hosted if it was base64). Back stays
- * as HTML with the QR hosted as a small remote image; if that HTML somehow still
- * exceeds the limit, the whole back is hosted as an HTML-file URL.
+ * Turn an HTML creative into a Lob-safe reference: pass it inline when it fits
+ * under the 10k limit, otherwise host it as an HTML-file URL. Either way Lob
+ * renders the HTML to the postcard `size`, so it is never subject to the
+ * PNG/JPG minimum-resolution check.
+ */
+const resolveLobHtml = async (html: string): Promise<LobHtmlReference> => {
+  if (html.length < LOB_INLINE_HTML_LIMIT) {
+    return { ok: true, value: html };
+  }
+  const hosted = await hostHtmlReference(html);
+  if (hosted.ok && hosted.url) {
+    return { ok: true, value: hosted.url };
+  }
+  return { error: hosted.error, ok: false };
+};
+
+/**
+ * Resolve the front/back into Lob-safe HTML references.
+ *
+ * Both front and back are delivered as HTML so Lob rasterizes them to the
+ * postcard `size` at 300 DPI — this is what makes them meet Lob's creative
+ * dimensions (6x9 → 2775 × 1875 px, 4x6 → 1875 × 1275 px) regardless of the
+ * source raster. The front image (often a small Ad Builder thumbnail) is hosted
+ * as a remote URL and linked from a full-bleed HTML wrapper; the QR is hosted
+ * too, keeping both docs small enough to pass inline. If either HTML somehow
+ * exceeds the inline limit it is hosted as an HTML-file URL instead.
  */
 const resolveLobCreative = async (
   input: SubmitOrderInput
@@ -911,9 +1100,32 @@ const resolveLobCreative = async (
     message,
     ok: false,
   });
-  const front = await hostImageReference(input.front);
-  if (!(front.ok && front.url)) {
-    return fail(front.error ?? "Could not host the front creative for Lob.");
+  // Prefer rendering the saved creative's STRUCTURED layers as HTML: Lob
+  // rasterizes it at 300 DPI so text + the SVG logo are razor-sharp and the hero
+  // photo comes from its full-resolution source — no upscaling of the ~320px
+  // thumbnail. Lob adds a 1/8" bleed per side, so author at trim + 0.25" total.
+  const dims = cardDims(input.size);
+  const structuredFront = buildStructuredFrontHtml(input.frontConfig, {
+    heightIn: dims.height + LOB_BLEED_IN,
+    widthIn: dims.width + LOB_BLEED_IN,
+  });
+  let frontHtml: string;
+  if (structuredFront.ok && structuredFront.html) {
+    frontHtml = structuredFront.html;
+  } else {
+    // Legacy fallback (older versions without saved layers): host the raster
+    // thumbnail and wrap it full-bleed so Lob still renders it to print size.
+    const hostedFront = await hostImageReference(input.front);
+    if (!(hostedFront.ok && hostedFront.url)) {
+      return fail(
+        hostedFront.error ?? "Could not host the front creative for Lob."
+      );
+    }
+    frontHtml = buildLobFrontHtml(hostedFront.url, input.size);
+  }
+  const front = await resolveLobHtml(frontHtml);
+  if (!(front.ok && front.value)) {
+    return fail(front.error ?? "Could not host the postcard front for Lob.");
   }
   // Host the QR so it isn't inlined as base64 (keeps the back HTML tiny).
   let qr = input.qrDataUri;
@@ -921,22 +1133,18 @@ const resolveLobCreative = async (
     const hostedQr = await hostImageReference(qr);
     qr = hostedQr.ok ? hostedQr.url : undefined;
   }
-  const backHtml = buildPostcardBackHtml({
-    ...backContentFromInput(input),
-    qrDataUri: qr,
-    // Lob prints the sender from `from`, so no return block on the back.
-    size: input.size,
-  });
-  if (backHtml.length < LOB_INLINE_HTML_LIMIT) {
-    return { back: backHtml, front: front.url, message: "", ok: true };
+  const back = await resolveLobHtml(
+    buildPostcardBackHtml({
+      ...backContentFromInput(input),
+      qrDataUri: qr,
+      // Lob prints the sender from `from`, so no return block on the back.
+      size: input.size,
+    })
+  );
+  if (!(back.ok && back.value)) {
+    return fail(back.error ?? "Could not host the postcard back for Lob.");
   }
-  const hostedBack = await hostHtmlReference(backHtml);
-  if (!(hostedBack.ok && hostedBack.url)) {
-    return fail(
-      hostedBack.error ?? "Could not host the postcard back for Lob."
-    );
-  }
-  return { back: hostedBack.url, front: front.url, message: "", ok: true };
+  return { back: back.value, front: front.value, message: "", ok: true };
 };
 
 const submitLob = async (
@@ -1005,6 +1213,9 @@ const submitLob = async (
       back: creative.back,
       front: creative.front,
       size: lobSize(input.size),
+      // Lob now requires use_type on postcard creation; this is direct-mail
+      // marketing, so "marketing" is the correct classification.
+      use_type: "marketing",
       "to[address_city]": recipient.city,
       "to[address_line1]": recipient.addressLine1,
       "to[address_state]": recipient.state,
@@ -1054,6 +1265,112 @@ const submitLob = async (
   };
 };
 
+/**
+ * Trigger a Postalytics drop for each recipient against the configured
+ * triggered-drop campaign endpoint. The creative + return address live in that
+ * Postalytics campaign (Postalytics has no ad-hoc per-send creative), so this
+ * only sends the recipient fields; the headline/CTA are passed as var fields so
+ * a merge-tag template can reference them.
+ *
+ * Postalytics has NO per-piece test mode — a `/send` call enqueues a real,
+ * billable drop — so a submit only proceeds when the send gate is on. While it
+ * is off, this refuses without ever calling the API (nothing is mailed).
+ */
+const submitPostalytics = async (
+  input: SubmitOrderInput,
+  secrets: ProviderSecrets,
+  sendEnabled: boolean
+): Promise<SubmitOrderResult> => {
+  const apiKey = pick(secrets, "POSTALYTICS_API_KEY");
+  const base: SubmitOrderResult = {
+    message: "",
+    mode: sendEnabled ? "live" : "test",
+    ok: false,
+    provider: providerName("postalytics"),
+    providerKey: "postalytics",
+  };
+  if (!apiKey) {
+    return { ...base, message: "Connect Postalytics before submitting." };
+  }
+  const endpoint = postalyticsSendEndpoint();
+  if (!endpoint) {
+    return {
+      ...base,
+      message:
+        "Set POSTALYTICS_SEND_ENDPOINT (a triggered-drop campaign endpoint from Postalytics) before submitting — Postalytics sends use a pre-built campaign template, not an ad-hoc creative.",
+    };
+  }
+  // No per-piece test path: refuse (never mail) while the gate is off.
+  if (!sendEnabled) {
+    return {
+      ...base,
+      message:
+        "Postalytics has no no-charge test send — each drop is a real, billable mail piece. Set DIRECT_MAIL_SEND_ENABLED=true to trigger a live drop (or test in the Postalytics sandbox).",
+    };
+  }
+  const recipients = recipientsFor(input);
+  const headline = input.headline?.trim() || input.message?.trim() || "";
+  const cta = input.cta?.trim() || "";
+
+  let firstSendDate: string | undefined;
+  let created = 0;
+  for (const recipient of recipients) {
+    const payload: Record<string, string> = {
+      address_city: recipient.city,
+      address_state: recipient.state,
+      address_street: recipient.addressLine1,
+      address_zip: recipient.zip,
+      first_name: "Neighbor",
+      last_name: "Resident",
+    };
+    if (headline) {
+      payload.var_field_1 = headline.slice(0, POSTALYTICS_VAR_FIELD_MAX);
+    }
+    if (cta) {
+      payload.var_field_2 = cta.slice(0, POSTALYTICS_VAR_FIELD_MAX);
+    }
+    const response = await fetch(
+      `${POSTALYTICS_BASE}/send/${encodeURIComponent(endpoint)}`,
+      {
+        body: JSON.stringify(payload),
+        headers: {
+          Accept: "application/json",
+          Authorization: postalyticsAuth(apiKey),
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      }
+    );
+    const body = asRecord(await response.json().catch(() => ({})));
+    if (!response.ok) {
+      const error = asRecord(body.error);
+      return {
+        ...base,
+        message:
+          typeof error.message === "string"
+            ? `Postalytics rejected the drop: ${error.message}`
+            : "Postalytics could not trigger a drop for this campaign endpoint.",
+      };
+    }
+    created += 1;
+    if (!firstSendDate && typeof body.send_date === "string") {
+      firstSendDate = body.send_date;
+    }
+  }
+  return {
+    ...base,
+    message: submitSummary(
+      providerName("postalytics"),
+      "live",
+      created,
+      input.totalMatched
+    ),
+    ok: true,
+    orderCount: created,
+    orderId: firstSendDate,
+  };
+};
+
 export const submitToProvider = async (
   input: SubmitOrderInput,
   secrets: ProviderSecrets,
@@ -1067,6 +1384,9 @@ export const submitToProvider = async (
   }
   if (input.providerKey === "lob") {
     return await submitLob(input, secrets, sendEnabled);
+  }
+  if (input.providerKey === "postalytics") {
+    return await submitPostalytics(input, secrets, sendEnabled);
   }
   return {
     message: `Submit isn't wired for ${providerName(

@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-
-import { getSanityClient } from "../sanity/client";
 import { SANITY_IMAGE_LIBRARY_QUERY } from "../sanity/queries";
+import { useSanityQuery } from "./use-sanity-query";
 
 export interface SanityImageAsset {
   createdAt?: string;
@@ -51,55 +49,25 @@ const toImageAsset = (
   };
 };
 
+const toImageAssets = (
+  result: SanityImageAssetResult[] | null
+): SanityImageAsset[] =>
+  (result ?? []).map(toImageAsset).filter((asset) => asset !== null);
+
 export const useSanityImageAssets = () => {
-  const [images, setImages] = useState<SanityImageAsset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [_reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadImages = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const client = getSanityClient();
-        const result = await client.fetch<SanityImageAssetResult[]>(
-          SANITY_IMAGE_LIBRARY_QUERY
-        );
-        if (cancelled) {
-          return;
-        }
-
-        setImages(result.map(toImageAsset).filter(Boolean));
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Could not load Sanity images."
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadImages();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { data, error, loading, refetch } = useSanityQuery<
+    SanityImageAssetResult[] | null,
+    SanityImageAsset[]
+  >({
+    presentationRefresh: false,
+    query: SANITY_IMAGE_LIBRARY_QUERY,
+    transform: toImageAssets,
+  });
 
   return {
-    error,
-    images,
+    error: error ? error.message : null,
+    images: data ?? [],
     loading,
-    refresh: () => setReloadKey((current) => current + 1),
+    refresh: refetch,
   };
 };

@@ -158,7 +158,7 @@ describe("Contact form", () => {
   });
 
   it("does not submit while already sending", async () => {
-    let resolveRequest: (value: Response) => void;
+    let resolveRequest: ((value: Response) => void) | undefined;
     const pendingRequest = new Promise<Response>((resolve) => {
       resolveRequest = resolve;
     });
