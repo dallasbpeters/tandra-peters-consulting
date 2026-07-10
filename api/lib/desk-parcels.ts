@@ -23,8 +23,17 @@
  * `formattedAddressOf`) consume them unchanged.
  */
 
-/** "Home" = CAD single-family land-use (state code A1). Older = built <= this. */
-const OLDER_HOME_BUILT_ON_OR_BEFORE = 2009;
+/**
+ * Deliverable "home" = any residential land use with a built structure. Texas
+ * SPTB state category codes: A1 single-family, A2 mobile/leased-land home, A3
+ * condo/townhome, E1 rural land w/ residence. This is intentionally BROADER than
+ * single-family A1: the headline MAIL PIECES number is the total deliverable
+ * rooftops in the outline, not just older owner-occupied single-family — that
+ * roof-age/owner audience is a downstream targeting refinement, not the headline.
+ */
+export const RESIDENTIAL_LAND_USE_CODES = ["A1", "A2", "A3", "E1"] as const;
+/** A home counts as an (older) roof-age target when built on/before this year. */
+export const OLDER_HOME_BUILT_ON_OR_BEFORE = 2009;
 /** ArcGIS page size — servers cap ~1000–2000/query; paginate past it. */
 const PARCEL_PAGE_SIZE = 1000;
 /** Safety ceiling so a huge zone can't fan out into an unbounded fetch. */
@@ -91,7 +100,7 @@ interface CountySource {
   outFields: string[];
   /** null when no live queryable endpoint is confirmed (skipped, never fails). */
   queryUrl: string | null;
-  /** ArcGIS WHERE clause: single-family + older-home filter. */
+  /** ArcGIS WHERE clause: deliverable residential homes (any age). */
   where: string;
 }
 
@@ -137,6 +146,17 @@ const composedAddress = (line1: string, city: string, zip: string): string => {
   return joinParts([line1, cityState, zip].filter(Boolean));
 };
 
+const RESIDENTIAL_TYPE_LABELS: Record<string, string> = {
+  A1: "Single Family",
+  A2: "Mobile / Manufactured",
+  A3: "Condo / Townhome",
+  E1: "Rural Residence",
+};
+
+/** Human property type from a Texas SPTB code (defaults to single-family). */
+const residentialType = (landUseCode: string): string =>
+  RESIDENTIAL_TYPE_LABELS[landUseCode] ?? "Single Family";
+
 // --- Travis (TCAD) — CONFIRMED live: TCAD_Parcels_Dec_2025 -------------------
 // Fields verified live: situs_num/situs_street(_prefx/_suffix)/situs_city/
 // situs_zip, land_state_cd ('A1'), F1year_imprv (year built), imprv_homesite_val
@@ -161,15 +181,16 @@ const normalizeTravis = (
   }
   const city = stringField(attributes, "situs_city") || "Austin";
   const homesiteValue = numberField(attributes, "imprv_homesite_val") ?? 0;
+  const landUseCode = stringField(attributes, "land_state_cd") || "A1";
   return {
     addressLine1,
     city,
     county: "travis",
     formattedAddress: composedAddress(addressLine1, city, zip),
     id: `travis-${stringField(attributes, "PROP_ID")}`,
-    landUseCode: stringField(attributes, "land_state_cd") || "A1",
+    landUseCode,
     ownerOccupied: homesiteValue > 0,
-    propertyType: "Single Family",
+    propertyType: residentialType(landUseCode),
     squareFootage: null,
     state: "TX",
     yearBuilt: numberField(attributes, "F1year_imprv"),
@@ -239,15 +260,16 @@ const normalizeHays = (
   }
   const city = stringField(attributes, "situs_city") || "";
   const homesiteValue = numberField(attributes, "imprv_homesite_val") ?? 0;
+  const landUseCode = stringField(attributes, "land_state_cd") || "A1";
   return {
     addressLine1: line1,
     city,
     county: "hays",
     formattedAddress: composedAddress(line1, city, zip),
     id: `hays-${stringField(attributes, "PROP_ID")}`,
-    landUseCode: stringField(attributes, "land_state_cd") || "A1",
+    landUseCode,
     ownerOccupied: homesiteValue > 0,
-    propertyType: "Single Family",
+    propertyType: residentialType(landUseCode),
     squareFootage: null,
     state: "TX",
     yearBuilt: numberField(attributes, "F1year_imprv"),
@@ -255,8 +277,20 @@ const normalizeHays = (
   };
 };
 
-const olderHomeClause = (yearField: string): string =>
-  `${yearField} <= ${OLDER_HOME_BUILT_ON_OR_BEFORE} AND ${yearField} > 0`;
+/**
+ * Deliverable-home WHERE clause: a residential land use (`codes`) that carries a
+ * built structure (`yearField > 0`, which also excludes vacant lots). Age is NOT
+ * filtered here — the headline count is every deliverable rooftop; the roof-age
+ * subset is computed downstream from each parcel's `yearBuilt`.
+ */
+const deliverableHomeClause = (
+  landUseField: string,
+  yearField: string,
+  codes: readonly string[]
+): string => {
+  const list = codes.map((code) => `'${code}'`).join(", ");
+  return `${landUseField} IN (${list}) AND ${yearField} > 0`;
+};
 
 /**
  * Per-county-FIPS registry. v1 wires Travis + Williamson (confirmed live) and
@@ -287,7 +321,11 @@ export const COUNTY_REGISTRY: readonly CountySource[] = [
     ],
     queryUrl:
       "https://services1.arcgis.com/HGcSYZ5bvjRswoCb/arcgis/rest/services/TCAD_Parcels_Dec_2025/FeatureServer/0/query",
-    where: `land_state_cd = 'A1' AND ${olderHomeClause("F1year_imprv")}`,
+    where: deliverableHomeClause(
+      "land_state_cd",
+      "F1year_imprv",
+      RESIDENTIAL_LAND_USE_CODES
+    ),
   },
   {
     bbox: [-98.06, 30.44, -97.35, 30.95],
@@ -313,7 +351,9 @@ export const COUNTY_REGISTRY: readonly CountySource[] = [
     ],
     queryUrl:
       "https://gis.wilco.org/arcgis/rest/services/public/county_wcad_parcels/MapServer/0/query",
-    where: `USEDSCRP = 'Residential' AND ${olderHomeClause("RESYRBLT")}`,
+    // WCAD exposes no A-code; `USEDSCRP='Residential'` is the residential class.
+    // Any age (roof-age targeting is applied downstream), structure required.
+    where: "USEDSCRP = 'Residential' AND RESYRBLT > 0",
   },
   {
     bbox: [-98.28, 29.83, -97.66, 30.29],
@@ -336,7 +376,11 @@ export const COUNTY_REGISTRY: readonly CountySource[] = [
     ],
     // Unconfirmed: no verified live endpoint. See the note above normalizeHays.
     queryUrl: null,
-    where: `land_state_cd = 'A1' AND ${olderHomeClause("F1year_imprv")}`,
+    where: deliverableHomeClause(
+      "land_state_cd",
+      "F1year_imprv",
+      RESIDENTIAL_LAND_USE_CODES
+    ),
   },
 ];
 
@@ -672,11 +716,13 @@ const cacheKeyFor = (county: CountySource, ring: Ring): string => {
 };
 
 /**
- * Fetch and normalize every single-family (A1), older-than-2009 parcel whose
+ * Fetch and normalize every deliverable residential parcel (any age) whose
  * geometry intersects the given ring(s), across all confirmed counties the
  * ring(s) touch. Deduped by parcel id, bounded by `hardCap`, cached briefly per
  * county+ring. Errors on any one county are swallowed so a single flaky GIS
- * server degrades gracefully instead of failing the whole request.
+ * server degrades gracefully instead of failing the whole request. Roof-age /
+ * owner-occupancy targeting is a downstream refinement over `yearBuilt` /
+ * `ownerOccupied`, not applied here.
  */
 export const fetchParcelsInZone = async (
   rings: readonly Ring[],

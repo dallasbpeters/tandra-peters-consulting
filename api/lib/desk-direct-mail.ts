@@ -1,5 +1,6 @@
 import {
   fetchParcelsForPayload,
+  OLDER_HOME_BUILT_ON_OR_BEFORE,
   PARCEL_FETCH_HARD_CAP,
 } from "./desk-parcels.js";
 
@@ -160,6 +161,10 @@ export interface DirectMailAddressListBody {
   matchedProperties: number;
   neighborhoodsQueried: number;
   ok: boolean;
+  /** Roof-age target subset (built ≤ cutoff) — a refinement, not the headline. */
+  olderHomes: number;
+  /** Owner-occupied subset — a refinement, not the headline. */
+  ownerOccupiedHomes: number;
   status: "configured" | "missing-key" | "unavailable";
   /** Total distinct addresses found before the hard cap was applied. */
   totalAddresses: number;
@@ -349,6 +354,41 @@ const formattedAddressOf = (property: unknown): string | null => {
     .filter(Boolean)
     .join(" ");
   return composed || null;
+};
+
+/** Roof-age target: a home with a known build year on/before the cutoff. */
+const isOlderHome = (property: unknown): boolean => {
+  const yearBuilt = numberValue(asRecord(property).yearBuilt);
+  return yearBuilt > 0 && yearBuilt <= OLDER_HOME_BUILT_ON_OR_BEFORE;
+};
+
+const isOwnerOccupied = (property: unknown): boolean =>
+  boolValue(asRecord(property).ownerOccupied);
+
+/**
+ * Secondary targeting stats over the deliverable-home set. These do NOT reduce
+ * the headline count — they describe the roof-age / owner-occupied refinement
+ * Tandra can layer on top of the full mailable audience.
+ */
+interface AudienceTargeting {
+  olderHomes: number;
+  ownerOccupiedHomes: number;
+}
+
+const targetingStatsFrom = (
+  properties: readonly unknown[]
+): AudienceTargeting => {
+  let olderHomes = 0;
+  let ownerOccupiedHomes = 0;
+  for (const property of properties) {
+    if (isOlderHome(property)) {
+      olderHomes++;
+    }
+    if (isOwnerOccupied(property)) {
+      ownerOccupiedHomes++;
+    }
+  }
+  return { olderHomes, ownerOccupiedHomes };
 };
 
 const sampleAddressesFrom = (properties: readonly unknown[]): string[] =>
@@ -609,6 +649,8 @@ export const prepareDirectMailAddresses = async (
         matchedProperties: 0,
         neighborhoodsQueried: 0,
         ok: true,
+        olderHomes: 0,
+        ownerOccupiedHomes: 0,
         status,
         totalAddresses: 0,
       },
@@ -623,6 +665,7 @@ export const prepareDirectMailAddresses = async (
         .filter((value): value is string => Boolean(value))
     ),
   ].toSorted((left, right) => left.localeCompare(right));
+  const targeting = targetingStatsFrom(properties);
 
   return {
     body: {
@@ -631,6 +674,8 @@ export const prepareDirectMailAddresses = async (
       matchedProperties: properties.length,
       neighborhoodsQueried: queriedCount,
       ok: true,
+      olderHomes: targeting.olderHomes,
+      ownerOccupiedHomes: targeting.ownerOccupiedHomes,
       status: "configured",
       totalAddresses: distinct.length,
     },

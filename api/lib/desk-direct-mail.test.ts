@@ -150,13 +150,16 @@ const cadFeature = (index: number): unknown => ({
   },
 });
 
+const cadRequests: { geometry: string }[] = [];
+
 const mockCadPages = (pageSizes: number[]): void => {
+  cadRequests.length = 0;
   vi.stubGlobal(
     "fetch",
     vi.fn((_url: string, init: { body: string }) => {
-      const offset = Number(
-        new URLSearchParams(init.body).get("resultOffset") ?? "0"
-      );
+      const params = new URLSearchParams(init.body);
+      cadRequests.push({ geometry: params.get("geometry") ?? "" });
+      const offset = Number(params.get("resultOffset") ?? "0");
       const count = pageSizes[Math.floor(offset / 1000)] ?? 0;
       const features = Array.from({ length: count }, (_unused, item) =>
         cadFeature(offset + item)
@@ -219,5 +222,110 @@ describe("CAD source (default) pipeline", () => {
 
     expect(result.body.status).toBe("unavailable");
     expect(result.body.totalAddresses).toBe(0);
+  });
+
+  // Regression for the "25 homes across 1 area" undercount: a SAVED polygon
+  // target carries the tracts its outline overlaps in `neighborhoods[]` (for the
+  // area estimate). The roster/address path must still query the drawn OUTLINE —
+  // not the neighborhood centroids as small circles, which collapses a
+  // 1,500-home polygon to a sliver. Proven by inspecting the geometry actually
+  // sent to CAD: it is the 5-vertex drawn ring, not a ~49-vertex centroid N-gon.
+  const savedPolygonPayload = {
+    // Offset centroids that, if used, would query small circles well away from
+    // the drawn outline (the pre-fix undercount path).
+    neighborhoods: [
+      { latitude: 30.235, longitude: -97.63, radiusMiles: 0.6 },
+      { latitude: 30.24, longitude: -97.61 },
+    ],
+    zone: { kind: "polygon", polygon: travisPolygon },
+  };
+
+  it("queries the drawn outline for a saved polygon carrying neighborhoods", async () => {
+    mockCadPages([1000, 250]);
+
+    const result = await collectHomeRoster(savedPolygonPayload);
+
+    expect(result.body.status).toBe("configured");
+    // Full paginated polygon audience — not a centroid-circle sliver.
+    expect(result.body.total).toBe(1250);
+    // Every CAD request used the drawn ring (5 closed vertices), never a circle.
+    expect(cadRequests.length).toBeGreaterThan(0);
+    for (const request of cadRequests) {
+      const rings = (JSON.parse(request.geometry) as { rings: number[][][] })
+        .rings;
+      expect(rings[0]).toStrictEqual(travisPolygon);
+    }
+  });
+
+  it("previews addresses from the drawn outline, not neighborhood centroids", async () => {
+    mockCadPages([1000, 120]);
+
+    const result = await prepareDirectMailAddresses(savedPolygonPayload);
+
+    expect(result.body.status).toBe("configured");
+    expect(result.body.matchedProperties).toBe(1120);
+    // `totalAddresses` is exactly the number the client now settles MAIL PIECES
+    // on (replacing the area×density heuristic). It must be the full paginated
+    // deduped count from the drawn outline, not a centroid-circle sliver.
+    expect(result.body.totalAddresses).toBe(1120);
+  });
+
+  it("reports older/owner-occupied as SUBSETS, not the headline count", async () => {
+    // 4 deliverable homes with mixed age + owner-occupancy. The headline counts
+    // every deliverable rooftop; roof-age (built ≤2009) and owner-occupied are
+    // secondary refinements that must never shrink the headline number — that
+    // silent filtering was the "26 homes" undercount.
+    const homes = [
+      { homesite: 250_000, year: 1985 }, // older + owner-occupied
+      { homesite: 0, year: 1990 }, // older, not owner-occupied
+      { homesite: 400_000, year: 2018 }, // newer + owner-occupied
+      { homesite: 0, year: 2020 }, // newer, not owner-occupied
+    ];
+    cadRequests.length = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          json: () =>
+            Promise.resolve({
+              features: homes.map((home, index) => ({
+                attributes: {
+                  F1year_imprv: home.year,
+                  PROP_ID: 300_000 + index,
+                  imprv_homesite_val: home.homesite,
+                  land_state_cd: index === 2 ? "A3" : "A1",
+                  situs_city: "AUSTIN",
+                  situs_num: String(index),
+                  situs_street: "MAPLE",
+                  situs_street_suffix: "AVE",
+                  situs_zip: "78725",
+                },
+                geometry: {
+                  rings: [
+                    [
+                      [-97.71, 30.31],
+                      [-97.709, 30.31],
+                      [-97.709, 30.311],
+                      [-97.71, 30.311],
+                      [-97.71, 30.31],
+                    ],
+                  ],
+                },
+              })),
+            }),
+          ok: true,
+        } as Response)
+      )
+    );
+
+    const result = await prepareDirectMailAddresses({
+      zone: { kind: "polygon", polygon: travisPolygon },
+    });
+
+    expect(result.body.status).toBe("configured");
+    expect(result.body.totalAddresses).toBe(4);
+    expect(result.body.matchedProperties).toBe(4);
+    expect(result.body.olderHomes).toBe(2);
+    expect(result.body.ownerOccupiedHomes).toBe(2);
   });
 });

@@ -272,6 +272,10 @@ export interface DirectMailAddressListResponse {
   matchedProperties: number;
   neighborhoodsQueried: number;
   ok: boolean;
+  /** Roof-age target subset (built ≤ cutoff) — a refinement, not the headline. */
+  olderHomes: number;
+  /** Owner-occupied subset — a refinement, not the headline. */
+  ownerOccupiedHomes: number;
   status: "configured" | "missing-key" | "unavailable";
   totalAddresses: number;
 }

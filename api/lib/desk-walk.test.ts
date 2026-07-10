@@ -84,12 +84,16 @@ describe(walkVisitDocId, () => {
 
 describe(collectHomeRoster, () => {
   beforeEach(() => {
+    // These assertions exercise the legacy RentCast path, which now lives
+    // behind the DESK_PROPERTY_SOURCE flag (default is the CAD source).
+    process.env.DESK_PROPERTY_SOURCE = "rentcast";
     process.env.RENTCAST_API_KEY = "test-rentcast-key";
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     delete process.env.RENTCAST_API_KEY;
+    delete process.env.DESK_PROPERTY_SOURCE;
   });
 
   it("strips homeowner names — no PII reaches the client", async () => {

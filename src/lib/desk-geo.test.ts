@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  polygonAreaSqMiles,
   polygonZoneMailEstimate,
   previewAreaCount,
   savedZoneIsRestorable,
@@ -10,6 +11,7 @@ import {
   targetsOverlappingPolygon,
   zoneFromSavedTarget,
   zoneMailPieceEstimate,
+  zoneValidationFor,
 } from "./desk-geo";
 import type {
   AreaGeometry,
@@ -181,9 +183,67 @@ describe(targetsOverlappingPolygon, () => {
 
 describe(polygonZoneMailEstimate, () => {
   // Draw mode selects NO tracts — the polygon is the whole zone. Its audience is
-  // derived from polygon area × local homeowner density (fixtures: 100 pieces /
-  // 1 sq mi = 100 pieces per sq mi). These tests pin that a drawn zone produces
-  // a positive estimate WITHOUT selecting any tract.
+  // derived from polygon area × local older-home density (fixtures:
+  // olderHomeEstimate 100 / 1 sq mi = 100 homes per sq mi). These tests pin that
+  // a drawn zone produces a positive estimate WITHOUT selecting any tract, and
+  // that the density comes from the older-home audience — not the clamped mailer
+  // recommendation.
+  it("derives density from the older-home audience, not the clamped mailer count", () => {
+    // A dense tract whose mailer recommendation is capped far below its true
+    // older-home audience (the [150, 3500] clamp + owner-occupancy factor).
+    // The estimate must reflect olderHomeEstimate, NOT recommendedMailerCount —
+    // that clamp was the audience-undercount root cause (a big polygon read ~54).
+    const dense: DeskAreaTarget = {
+      ...tractA,
+      olderHomeEstimate: 8000,
+      recommendedMailerCount: 3500, // clamped MAX — far below the 8000 audience
+      squareMiles: 4,
+    };
+    // Drawn ring == tract A's full footprint (~1.65 sq mi). Older-home density is
+    // 8000 / 4 = 2000/sq mi → ~3300 pieces. The old clamped-mailer basis
+    // (3500 / 4 = 875/sq mi) would have produced only ~1440.
+    const ring: [number, number][] = [
+      [-97.72, 30.3],
+      [-97.7, 30.3],
+      [-97.7, 30.32],
+      [-97.72, 30.32],
+      [-97.72, 30.3],
+    ];
+    expect(polygonZoneMailEstimate(ring, [dense])).toBeGreaterThan(2500);
+  });
+
+  it("area-weights the older-home density across overlapping tracts", () => {
+    // Two equal-size tracts with very different audiences. Area-weighted density
+    // is Σ olderHomeEstimate ÷ Σ squareMiles = (8000 + 2000) / (1 + 1) = 5000/sq
+    // mi — not a naive mean of the two per-tract density ratios.
+    const denseA: DeskAreaTarget = {
+      ...tractA,
+      olderHomeEstimate: 8000,
+      squareMiles: 1,
+    };
+    const sparseB: DeskAreaTarget = {
+      ...tractB,
+      olderHomeEstimate: 2000,
+      squareMiles: 1,
+    };
+    // A ~50/50 straddle of both tracts (see targetsOverlappingPolygon fixture).
+    const straddle: [number, number][] = [
+      [-97.705, 30.305],
+      [-97.695, 30.305],
+      [-97.695, 30.315],
+      [-97.705, 30.315],
+      [-97.705, 30.305],
+    ];
+    expect(
+      ids(targetsOverlappingPolygon(straddle, [denseA, sparseB]))
+    ).toStrictEqual(["A", "B"]);
+    const area = polygonAreaSqMiles(straddle);
+    // 5000/sq mi × area, allowing the estimate's Math.round.
+    expect(polygonZoneMailEstimate(straddle, [denseA, sparseB])).toBe(
+      Math.max(1, Math.round(5000 * area))
+    );
+  });
+
   it("estimates a positive audience for a small draw fully inside one tract", () => {
     // ~0.41 sq mi inside tract A → ~41 pieces (a fraction of A's full 100).
     const ring: [number, number][] = [
@@ -241,6 +301,48 @@ describe(polygonZoneMailEstimate, () => {
       [-97.71, 30.31],
     ];
     expect(polygonZoneMailEstimate(ring, allTargets)).toBe(0);
+  });
+});
+
+describe(zoneValidationFor, () => {
+  const polygonZone: DeskTargetZone = {
+    createdAt: new Date().toISOString(),
+    estimatedPieces: 0,
+    id: "zone-1",
+    kind: "polygon",
+    label: "Rogers Hill custom zone",
+    latitude: 30.24,
+    longitude: -97.63,
+    polygon: [
+      [-97.64, 30.23],
+      [-97.62, 30.23],
+      [-97.62, 30.25],
+      [-97.64, 30.25],
+      [-97.64, 30.23],
+    ],
+    radiusMiles: 0.7,
+    targetIds: [],
+  };
+
+  it("treats a realistic authoritative neighborhood count as testable", () => {
+    // ~1,500 real older single-family homes is a normal neighborhood outline —
+    // it must NOT trip the "too broad" error the old 275 ceiling produced for
+    // every legitimate CAD-reconciled polygon.
+    const validation = zoneValidationFor(polygonZone, [], 1500);
+    expect(validation.tone).toBe("good");
+    expect(validation.title).toBe("Zone is testable");
+  });
+
+  it("still warns when a drawn outline is genuinely oversized", () => {
+    const validation = zoneValidationFor(polygonZone, [], 5000);
+    expect(validation.tone).toBe("error");
+    expect(validation.title).toBe("Zone is too broad");
+  });
+
+  it("flags a zone that covered no mappable homes", () => {
+    const validation = zoneValidationFor(polygonZone, [], 0);
+    expect(validation.tone).toBe("error");
+    expect(validation.title).toBe("No sendable homes found");
   });
 });
 

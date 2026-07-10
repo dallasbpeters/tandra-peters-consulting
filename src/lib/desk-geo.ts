@@ -10,7 +10,13 @@ import type {
 export const DEFAULT_ZONE_RADIUS_MILES = 0.4;
 export const MAX_STORED_ZONES = 8;
 const MIN_ZONE_MAIL_PIECES = 35;
-const MAX_ZONE_MAIL_PIECES = 275;
+// Upper bound for a sane FIRST postcard test. The old 275 fit the previous
+// area×density heuristic, which badly undercounted; now that MAIL PIECES settles
+// on the authoritative appraisal-parcel count (often 1,000–1,600 older homes for
+// a real neighborhood outline), 275 would flag every legitimate zone as "too
+// broad." A ~2k ceiling keeps a normal neighborhood-sized draw "testable" while
+// still warning on genuinely oversized outlines (e.g. a multi-neighborhood sweep).
+const MAX_ZONE_MAIL_PIECES = 2000;
 const MAX_ZONE_TARGET_COUNT = 5;
 
 export const zoneRadiusOptions: readonly { label: string; value: number }[] = [
@@ -317,38 +323,37 @@ export const previewAreaCount = (
   return zone ? 1 : 0;
 };
 
-/** Mail-piece density (pieces per square mile) for one tract, or null. */
-const tractMailDensity = (target: DeskAreaTarget): number | null => {
-  const area = target.squareMiles;
-  if (
-    typeof area !== "number" ||
-    area <= 0 ||
-    target.recommendedMailerCount <= 0
-  ) {
-    return null;
-  }
-  return target.recommendedMailerCount / area;
-};
-
 /**
- * Local mail-piece density for a drawn outline. Reads the tract(s) the outline
- * overlaps ONLY to derive a density figure — these tracts are never selected or
- * highlighted on the map. Falls back to the average density across all mapped
- * tracts when the outline doesn't overlap any known tract.
+ * Homeowner-audience density (older homes per square mile) for a drawn outline,
+ * area-weighted across the tract(s) the outline overlaps: Σ olderHomeEstimate ÷
+ * Σ squareMiles. These tracts are read ONLY to derive the density figure — they
+ * are never selected or highlighted on the map. Falls back to the citywide
+ * area-weighted density when the outline overlaps no known tract.
+ *
+ * Uses `olderHomeEstimate` — the same "likely older owner homes" audience the
+ * UI already reports — NOT `recommendedMailerCount`. The mailer count is a
+ * send recommendation clamped to [MIN, MAX] and reduced by an owner-occupancy
+ * factor, so it understates the real audience (the MAX cap alone roughly halves
+ * a dense neighborhood's density). Area-weighting the actual older-home counts
+ * tracks the live CAD single-family older-home density within ~1.4× on average,
+ * instead of the 2–5× undercount the clamped mailer density produced.
  */
-const localMailDensity = (
+const olderHomeDensity = (
   ring: readonly [number, number][],
   targets: readonly DeskAreaTarget[]
 ): number => {
   const overlapping = targetsOverlappingPolygon(ring, targets);
   const sample = overlapping.length > 0 ? overlapping : targets;
-  const densities = sample
-    .map(tractMailDensity)
-    .filter((value): value is number => value !== null);
-  if (densities.length === 0) {
-    return 0;
+  let olderHomes = 0;
+  let areaSqMiles = 0;
+  for (const target of sample) {
+    const area = target.squareMiles;
+    if (typeof area === "number" && area > 0 && target.olderHomeEstimate > 0) {
+      olderHomes += target.olderHomeEstimate;
+      areaSqMiles += area;
+    }
   }
-  return densities.reduce((sum, value) => sum + value, 0) / densities.length;
+  return areaSqMiles > 0 ? olderHomes / areaSqMiles : 0;
 };
 
 /**
@@ -365,7 +370,7 @@ export const polygonZoneMailEstimate = (
   if (areaSqMiles <= 0) {
     return 0;
   }
-  const density = localMailDensity(ring, targets);
+  const density = olderHomeDensity(ring, targets);
   if (density <= 0) {
     return 0;
   }

@@ -486,6 +486,32 @@ wa-button.desk-action-button:disabled {
   font-weight: 850;
 }
 
+.desk-canvass-summary strong.desk-canvass-summary__pending {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 55%,
+    transparent
+  );
+}
+
+.desk-canvass-targeting {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: color-mix(
+    in oklch,
+    var(--theme-palette-everglade-950) 68%,
+    transparent
+  );
+}
+
+.desk-canvass-targeting strong {
+  font-weight: 800;
+  color: var(--theme-palette-everglade-950);
+}
+
 .desk-canvass-name {
   display: grid;
   gap: var(--theme-spacing-xs);
@@ -1323,10 +1349,11 @@ wa-button.desk-action-button:disabled {
   aspect-ratio: 9 / 6;
   min-height: 19rem;
   padding: var(--theme-spacing-md);
-  background: var(--theme-color-white);
+  background: #ffffff;
   border: 1px solid
     color-mix(in oklch, var(--theme-palette-everglade-950) 16%, transparent);
   border-radius: var(--theme-radius-small);
+  overflow: hidden;
 }
 
 .desk-postcard-back__return {
@@ -2386,14 +2413,12 @@ wa-button.desk-generate-button::part(base) {
 }
 
 .backend-theme .desk-canvass-summary > div,
-.backend-theme .desk-canvass-list,
 .backend-theme .desk-capture-form,
 .backend-theme .desk-capture-recent,
 .backend-theme .desk-creative-list button,
 .backend-theme .desk-creative-selector,
 .backend-theme .desk-generated,
 .backend-theme .desk-mail-plan,
-.backend-theme .desk-postcard-back,
 .backend-theme .desk-selection-empty,
 .backend-theme .desk-zone-builder,
 .backend-theme .desk-zone-list button,

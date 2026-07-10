@@ -329,14 +329,19 @@ describe(fetchParcelsInZone, () => {
     expect(ring).toStrictEqual([...openRing, openRing[0]]);
   });
 
-  it("requests the A1 single-family + older-than-2009 WHERE clause", async () => {
+  it("requests the deliverable-residential WHERE clause (any age, all residential codes)", async () => {
     mockArcgisFixed([travisFeature(0)]);
 
     await fetchParcelsInZone([travisRing]);
 
     const where = new URLSearchParams(captured[0].body).get("where") ?? "";
-    expect(where).toContain("land_state_cd = 'A1'");
-    expect(where).toContain("F1year_imprv <= 2009");
+    // Headline audience = every deliverable residential rooftop, not just
+    // single-family: single-family (A1), mobile (A2), condo/townhome (A3), and
+    // rural residence (E1). A built structure is required (year > 0).
+    expect(where).toContain("land_state_cd IN ('A1', 'A2', 'A3', 'E1')");
+    expect(where).toContain("F1year_imprv > 0");
+    // Age is NOT filtered in the query — roof-age is a downstream refinement.
+    expect(where).not.toContain("<= 2009");
   });
 
   it("never requests or emits owner-name (PII) fields", async () => {

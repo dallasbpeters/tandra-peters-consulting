@@ -103,6 +103,20 @@ export const CanvassingPlanner = ({
   const [message, setMessage] = useState<CaptureMessage | null>(null);
   const [zones, setZones] = useState<DeskTargetZone[]>([]);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
+  // Id of the drawn polygon zone whose authoritative CAD home count is still
+  // being fetched. While set, the MAIL PIECES box shows a "Counting…" state
+  // instead of the unreliable area×density heuristic.
+  const [countingZoneId, setCountingZoneId] = useState<string | null>(null);
+  // Roof-age / owner-occupied refinement for the active drawn zone (the total
+  // deliverable count is the headline; this is a secondary targeting stat).
+  const [zoneTargeting, setZoneTargeting] = useState<{
+    olderHomes: number;
+    ownerOccupiedHomes: number;
+    zoneId: string;
+  } | null>(null);
+  // Set when the authoritative count could NOT run (network/dev-server-stale),
+  // so a heuristic fallback is never shown as if it were the real count.
+  const [countError, setCountError] = useState<string | null>(null);
   const [isZoneMode, setIsZoneMode] = useState(false);
   const [isDrawMode, setIsDrawMode] = useState(false);
   const [zoneRadiusMiles, setZoneRadiusMiles] = useState(
@@ -132,9 +146,118 @@ export const CanvassingPlanner = ({
   // Side builder container — scrolled into view when a saved area is loaded so
   // the populated builder/mail-batch panel is obviously in front of the user.
   const builderRef = useRef<HTMLDivElement>(null);
+  // Cancels an in-flight authoritative-count fetch when a new zone is drawn or
+  // opened before the previous count resolves.
+  const countAbortRef = useRef<AbortController | null>(null);
 
   const targets = useMemo(() => intel?.targets ?? [], [intel]);
   const counties = useMemo(() => intel?.counties ?? [], [intel]);
+
+  // Replace a drawn polygon's area×density HEURISTIC with the authoritative
+  // count of real older single-family homes inside the outline. The heuristic
+  // assumes a uniform citywide/neighborhood density, but East-side outlines
+  // straddle river, floodplain, airport, and new-build land — so it can be off
+  // by 10–100× in either direction. The server's `addresses` action queries the
+  // drawn polygon against the county appraisal parcels (same audience: A1
+  // single-family, built ≤2009) and returns the true mailable-address count, so
+  // we settle the MAIL PIECES number on that once the outline is closed. The
+  // heuristic remains only as an instant, offline-safe fallback.
+  const refineZoneCount = useCallback(
+    (zone: DeskTargetZone) => {
+      if (zone.kind !== "polygon" || !zone.polygon || zone.polygon.length < 3) {
+        return;
+      }
+      countAbortRef.current?.abort();
+      const controller = new AbortController();
+      countAbortRef.current = controller;
+      setCountingZoneId(zone.id);
+      setCountError(null);
+      const zonePayload = {
+        id: zone.id,
+        kind: zone.kind,
+        label: zone.label,
+        latitude: zone.latitude,
+        longitude: zone.longitude,
+        mailPieces: zone.estimatedPieces ?? 0,
+        polygon: zone.polygon,
+        radiusMiles: zone.radiusMiles,
+      };
+      const run = async (): Promise<void> => {
+        try {
+          const response = await fetch("/api/desk-direct-mail", {
+            body: JSON.stringify({
+              action: "addresses",
+              neighborhoods: [],
+              zone: zonePayload,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeader,
+            },
+            method: "POST",
+            signal: controller.signal,
+          });
+          if (!response.ok) {
+            throw new Error(`Home count request failed (${response.status})`);
+          }
+          const body = (await response.json()) as DirectMailAddressListResponse;
+          if (body.status !== "configured") {
+            // Reached the server but it has no deliverable homes / geometry —
+            // show 0 and say so rather than falling back to the heuristic.
+            setZones((current) =>
+              current.map((item) =>
+                item.id === zone.id ? { ...item, estimatedPieces: 0 } : item
+              )
+            );
+            setZoneTargeting(null);
+            setCountError(
+              "No mappable homes were found inside this outline. Draw over a residential area."
+            );
+            return;
+          }
+          // Headline = total deliverable homes; older/owner is a refinement.
+          setZones((current) =>
+            current.map((item) =>
+              item.id === zone.id
+                ? { ...item, estimatedPieces: body.totalAddresses }
+                : item
+            )
+          );
+          setZoneTargeting({
+            olderHomes: body.olderHomes,
+            ownerOccupiedHomes: body.ownerOccupiedHomes,
+            zoneId: zone.id,
+          });
+        } catch (error) {
+          if (controller.signal.aborted) {
+            return;
+          }
+          // The live count could not run — surface it instead of silently
+          // showing the rough heuristic as if it were the real number. The most
+          // common cause is a dev server that predates this endpoint change:
+          // `api/lib/*` is NOT hot-reloaded, so a full `pnpm dev` restart is
+          // required (a hard refresh alone keeps the stale server code).
+          // biome-ignore lint/suspicious/noConsole: surfacing a real failure.
+          console.error("[desk] authoritative home count failed", error);
+          setZoneTargeting(null);
+          setCountError(
+            "Couldn't reach the live home count, so this shows a rough estimate. If you just updated the code, restart `pnpm dev` (a hard refresh does not reload the API)."
+          );
+        } finally {
+          if (countAbortRef.current === controller) {
+            countAbortRef.current = null;
+            setCountingZoneId((current) =>
+              current === zone.id ? null : current
+            );
+          }
+        }
+      };
+      run().catch(() => {
+        // `run` swallows its own errors; this guard is purely defensive.
+      });
+    },
+    [authHeader]
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setActiveZoneId(null);
@@ -174,6 +297,15 @@ export const CanvassingPlanner = ({
       selectedZoneTargets(activeZone, targets)
     );
   }, [activeZone, selectedMailPieces, targets]);
+  // The active drawn polygon's authoritative home count is still resolving —
+  // show a "Counting…" placeholder instead of the unreliable heuristic number.
+  const isCountingActiveZone =
+    countingZoneId !== null && countingZoneId === activeZoneId;
+  // Roof-age / owner-occupied refinement to show for the active zone only.
+  const activeTargeting =
+    zoneTargeting && zoneTargeting.zoneId === activeZoneId
+      ? zoneTargeting
+      : null;
   const zoneValidation = useMemo(
     () => zoneValidationFor(activeZone, selectedTargets, zoneMailPieces),
     [activeZone, selectedTargets, zoneMailPieces]
@@ -245,6 +377,8 @@ export const CanvassingPlanner = ({
     setMailPlan(null);
     setIsZoneMode(false);
     setIsDrawMode(false);
+    setZoneTargeting(null);
+    setCountError(null);
   }, []);
 
   const openZone = useCallback(
@@ -256,8 +390,11 @@ export const CanvassingPlanner = ({
       setName(zone.label);
       setMailPlan(null);
       setMessage(null);
+      // Re-settle a reopened polygon zone on the live appraisal-parcel count in
+      // case its saved estimate predates this reconciliation (or CAD changed).
+      refineZoneCount(zone);
     },
-    [targets]
+    [refineZoneCount, targets]
   );
 
   const handleDeleteZone = useCallback(
@@ -386,12 +523,14 @@ export const CanvassingPlanner = ({
       setMessage({
         text:
           estimatedPieces > 0
-            ? "Zone drawn. Validate it before sending."
+            ? "Zone drawn. Counting the homes inside it…"
             : "That outline didn't cover any mappable homes — draw over a neighborhood.",
         tone: estimatedPieces > 0 ? "success" : "error",
       });
+      // Settle MAIL PIECES on the real appraisal-parcel count, not the heuristic.
+      refineZoneCount(zone);
     },
-    [targets]
+    [refineZoneCount, targets]
   );
 
   const toggleZoneMode = useCallback(() => {
@@ -918,10 +1057,34 @@ export const CanvassingPlanner = ({
               <span>selected</span>
             </div>
             <div>
-              <strong>{formatNumber(zoneMailPieces)}</strong>
+              {isCountingActiveZone ? (
+                <strong className="desk-canvass-summary__pending">
+                  Counting…
+                </strong>
+              ) : (
+                <strong>{formatNumber(zoneMailPieces)}</strong>
+              )}
               <span>mail pieces</span>
             </div>
           </div>
+
+          {activeTargeting && !isCountingActiveZone ? (
+            <p className="desk-canvass-targeting">
+              Includes{" "}
+              <strong>{formatNumber(activeTargeting.olderHomes)}</strong> built
+              in 2009 or earlier ·{" "}
+              <strong>
+                {formatNumber(activeTargeting.ownerOccupiedHomes)}
+              </strong>{" "}
+              owner-occupied — optional targeting refinements.
+            </p>
+          ) : null}
+
+          {countError ? (
+            <p className="desk-capture-message desk-capture-message--error">
+              {countError}
+            </p>
+          ) : null}
 
           <ZoneBuilderPanel
             activeZone={activeZone}
