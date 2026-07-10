@@ -14,6 +14,17 @@ interface SiteNavLinkProps {
   viewTransition?: boolean;
 }
 
+const baseNavLinkStyle: CSSProperties = {
+  display: "inline-block",
+  flexShrink: 0,
+  maxWidth: "100%",
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+};
+
 /** Resolves #section links to home + hash off-page; smooth-scrolls on the homepage. */
 export const SiteNavLink = ({
   href,
@@ -26,6 +37,7 @@ export const SiteNavLink = ({
   onMouseLeave,
 }: SiteNavLinkProps) => {
   const { isHome, resolveNavTo, handleSectionNavClick } = useSiteNav();
+  const mergedStyle = { ...baseNavLinkStyle, ...style };
 
   if (isHome && isInPageHashHref(href)) {
     return (
@@ -35,7 +47,7 @@ export const SiteNavLink = ({
         onClick={handleSectionNavClick(href, onClick)}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        style={style}
+        style={mergedStyle}
       >
         {children}
       </a>
@@ -49,7 +61,7 @@ export const SiteNavLink = ({
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        style={style}
+        style={mergedStyle}
         to={resolveNavTo(href)}
         viewTransition={viewTransition}
       >
@@ -65,7 +77,7 @@ export const SiteNavLink = ({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={style}
+      style={mergedStyle}
     >
       {children}
     </a>

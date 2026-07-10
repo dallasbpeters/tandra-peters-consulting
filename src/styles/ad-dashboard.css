@@ -188,12 +188,6 @@
 
 /* ─── Toolbar popovers ───────────────────────────────────────────────────── */
 
-.ad-toolbar-popover {
-}
-
-.ad-toolbar-popover--wide {
-}
-
 .ad-toolbar-popover::part(body) {
   padding: 0;
 }
@@ -734,9 +728,6 @@
 
 .ad-image-picker {
   display: inline-flex;
-}
-
-.ad-image-picker__popover {
 }
 
 .ad-image-picker__popover::part(body) {

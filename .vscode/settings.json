@@ -17,7 +17,7 @@
   },
   "[css]": {
     "editor.defaultFormatter": "oxc.oxc-vscode",
-    "editor.formatOnSave": false
+    "editor.formatOnSave": true
   },
   "stylelint.packageManager": "pnpm",
   "stylelint.validate": ["css"],

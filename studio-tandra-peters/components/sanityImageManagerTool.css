@@ -112,7 +112,7 @@
 
 .sim__tile {
   width: 100%;
-  min-block-size: 60px;
+  min-block-size: 120px;
   overflow: hidden;
   text-align: left;
   background: var(--studio-tool-empty-bg);

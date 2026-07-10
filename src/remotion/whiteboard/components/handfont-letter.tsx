@@ -63,16 +63,18 @@ export const HandfontLetter = ({
       x={x}
       y={y}
     >
-      <defs>
-        <clipPath id={clipId}>
-          {/* The letter-outline mask keeps thick marker strokes inside the
-              letter shape.  fill="none" here doesn't matter — SVG clipPath
-              uses the geometric boundary, not the painted fill. */}
-          <path d={glyph.clipPathD} />
-        </clipPath>
-      </defs>
+      {glyph.clipPathD && (
+        <defs>
+          <clipPath id={clipId}>
+            {/* The letter-outline mask keeps thick marker strokes inside the
+                letter shape.  fill="none" here doesn't matter — SVG clipPath
+                uses the geometric boundary, not the painted fill. */}
+            <path d={glyph.clipPathD} />
+          </clipPath>
+        </defs>
+      )}
 
-      <g clipPath={`url(#${clipId})`}>
+      <g clipPath={glyph.clipPathD ? `url(#${clipId})` : undefined}>
         {glyph.strokePaths.map(({ d, strokeWidth }, i) => {
           // Divide the 0→1 progress range equally across strokes.
           const lo = i / n;

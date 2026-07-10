@@ -1,7 +1,8 @@
 // oxlint-disable require-unicode-regexp prefer-named-capture-group
 import { createFalClient } from "@fal-ai/client";
 
-const FAL_ENDPOINT = "fal-ai/esrgan";
+const ESRGAN_ENDPOINT = "fal-ai/esrgan";
+const TOPAZ_ENDPOINT = "fal-ai/topaz/upscale/image";
 const DEFAULT_MODEL = "RealESRGAN_x4plus";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_SCALE = 4;
@@ -9,13 +10,28 @@ const DEFAULT_TILE = 0;
 const DATA_URL_REGEX = /^data:([^;,]+);base64,(.+)$/i;
 const STRIP_EXTENSION_REGEX = /\.[^.]+$/;
 
-type UpscaleModel =
+type EsrganModel =
   | "RealESRGAN_x4plus"
   | "RealESRGAN_x2plus"
   | "RealESRGAN_x4plus_anime_6B"
   | "RealESRGAN_x4_v3"
   | "RealESRGAN_x4_wdn_v3"
   | "RealESRGAN_x4_anime_v3";
+
+type TopazModel =
+  | "Low Resolution V2"
+  | "Standard V2"
+  | "CGI"
+  | "High Fidelity V2"
+  | "Text Refine"
+  | "Recovery"
+  | "Redefine"
+  | "Recovery V2"
+  | "Standard MAX"
+  | "Wonder"
+  | "Wonder 3";
+
+type UpscaleModel = EsrganModel | TopazModel;
 
 type OutputFormat = "png" | "jpeg";
 
@@ -52,13 +68,29 @@ const jsonResponse = (body: unknown, status: number) =>
     status,
   });
 
-const isUpscaleModel = (value: unknown): value is UpscaleModel =>
+const isEsrganModel = (value: unknown): value is EsrganModel =>
   value === "RealESRGAN_x4plus" ||
   value === "RealESRGAN_x2plus" ||
   value === "RealESRGAN_x4plus_anime_6B" ||
   value === "RealESRGAN_x4_v3" ||
   value === "RealESRGAN_x4_wdn_v3" ||
   value === "RealESRGAN_x4_anime_v3";
+
+const isTopazModel = (value: unknown): value is TopazModel =>
+  value === "Low Resolution V2" ||
+  value === "Standard V2" ||
+  value === "CGI" ||
+  value === "High Fidelity V2" ||
+  value === "Text Refine" ||
+  value === "Recovery" ||
+  value === "Redefine" ||
+  value === "Recovery V2" ||
+  value === "Standard MAX" ||
+  value === "Wonder" ||
+  value === "Wonder 3";
+
+const isUpscaleModel = (value: unknown): value is UpscaleModel =>
+  isEsrganModel(value) || isTopazModel(value);
 
 const isOutputFormat = (value: unknown): value is OutputFormat =>
   value === "png" || value === "jpeg";
@@ -147,15 +179,26 @@ export const handler = async (request: Request): Promise<Response> => {
     const tile = toNumber(body.tile, DEFAULT_TILE, 0, 800);
     const face = Boolean(body.face);
 
-    const result = await client.subscribe(FAL_ENDPOINT as never, {
-      input: {
-        face,
-        image_url: sourceUrl,
-        model,
-        output_format: outputFormat,
-        scale,
-        tile,
-      } as never,
+    const endpoint = isTopazModel(model) ? TOPAZ_ENDPOINT : ESRGAN_ENDPOINT;
+    const input = isTopazModel(model)
+      ? {
+          face_enhancement: face,
+          image_url: sourceUrl,
+          model,
+          output_format: outputFormat,
+          upscale_factor: scale,
+        }
+      : {
+          face,
+          image_url: sourceUrl,
+          model,
+          output_format: outputFormat,
+          scale,
+          tile,
+        };
+
+    const result = await client.subscribe(endpoint as never, {
+      input: input as never,
       logs: false,
       mode: "polling",
       pollInterval: 500,
@@ -181,6 +224,7 @@ export const handler = async (request: Request): Promise<Response> => {
           width: data.image.width,
         },
         model,
+        provider: isTopazModel(model) ? "topaz" : "esrgan",
         outputFormat,
         requestId: result.requestId,
         scale,

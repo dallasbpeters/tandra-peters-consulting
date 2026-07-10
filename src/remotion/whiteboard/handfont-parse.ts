@@ -44,8 +44,11 @@ export interface ParsedGlyph {
   viewBox: string;
   vw: number;
   vh: number;
-  /** Path d attribute for the letter-outline clip mask. */
-  clipPathD: string;
+  /**
+   * Path d attribute for the letter-outline clip mask.
+   * Optional — simple SVG exports (no <clipPath>) render without clipping.
+   */
+  clipPathD?: string;
   /** One or more drawing-trajectory stroke paths. */
   strokePaths: StrokePath[];
 }
@@ -73,19 +76,18 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
   }
   const [_x, _y, vw, vh] = parts;
 
-  // Clip-path outline: <clipPath><path class="f" …/></clipPath>
+  // Clip-path outline: <clipPath><path …/></clipPath>
+  // Optional — many simple SVG exports don't include an outline mask.
   const clipEl = svg.querySelector("clipPath path");
-  const clipPathD = clipEl?.getAttribute("d") ?? "";
-  if (!clipPathD) {
-    return null;
-  }
+  const clipPathD = clipEl?.getAttribute("d") ?? undefined;
 
   // Read stroke-width from embedded <style>.
   // Collect ALL per-class stroke-widths so each class maps to its own width.
+  // Accept values with or without "px" units (different exporters vary).
   const styleText = svg.querySelector("style")?.textContent ?? "";
   const classSwMap = new Map<string, number>();
   for (const m of styleText.matchAll(
-    /\.(\w+)[^{]*\{[^}]*stroke-width\s*:\s*([\d.]+)px/g
+    /\.(\w+)[^{]*\{[^}]*stroke-width\s*:\s*([\d.]+)/g
   )) {
     classSwMap.set(m[1], Number.parseFloat(m[2]));
   }
@@ -120,12 +122,19 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     return `M${x1},${y1} L${x2},${y2}`;
   }
 
-  /** Resolve stroke-width for an element: inline style → class map → default. */
+  /** Resolve stroke-width for an element: inline style → attribute → class map → default. */
   function resolveStrokeWidth(el: Element): number {
     const inlineStyle = el.getAttribute("style") ?? "";
-    const m = /stroke-width\s*:\s*([\d.]+)px/.exec(inlineStyle);
+    const m = /stroke-width\s*:\s*([\d.]+)/.exec(inlineStyle);
     if (m) {
       return Number.parseFloat(m[1]);
+    }
+    const swAttr = el.getAttribute("stroke-width");
+    if (swAttr) {
+      const n = Number.parseFloat(swAttr);
+      if (Number.isFinite(n)) {
+        return n;
+      }
     }
     for (const cls of el.classList) {
       if (classSwMap.has(cls)) {
@@ -135,9 +144,23 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     return defaultStrokeWidth;
   }
 
-  // Query all stroke-bearing elements inside clip groups (class "i" or similar)
-  // and outside them — we want every visible drawing stroke.
-  const strokeEls = [
+  /**
+   * Is an element inside a <defs> or <clipPath>?
+   * We exclude those from stroke candidates — they are masks, not glyphs.
+   */
+  function isInDefs(el: Element): boolean {
+    let cur: Element | null = el.parentElement;
+    while (cur && cur !== svg) {
+      if (cur.tagName === "defs" || cur.tagName === "clipPath") {
+        return true;
+      }
+      cur = cur.parentElement;
+    }
+    return false;
+  }
+
+  // Strategy 1: class-based (the original Affinity Designer / our handfont export format)
+  const strokeEls: Element[] = [
     ...svg.querySelectorAll("path.g, polyline.g, line.g"),
     // Also include elements with any other stroke class referenced in the CSS
     ...[...classSwMap.keys()]
@@ -156,6 +179,28 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     seen.add(el);
     return true;
   });
+
+  // Strategy 2: fallback for SVGs that use direct stroke attributes instead of
+  // class-based CSS (e.g. Procreate exports, simple Illustrator paths).
+  // Grab any path/polyline/line outside <defs>/<clipPath> that has a visible
+  // stroke — either via a `stroke` attribute, `fill="none"`, or no fill at all.
+  if (unique.length === 0) {
+    for (const el of svg.querySelectorAll("path, polyline, line")) {
+      if (isInDefs(el)) {
+        continue;
+      }
+      const hasStrokeAttr = el.hasAttribute("stroke");
+      const fillAttr = el.getAttribute("fill");
+      // Include if it explicitly strokes, or has no fill (likely stroke-only)
+      if (
+        (hasStrokeAttr || fillAttr === "none" || fillAttr === null) &&
+        !seen.has(el)
+      ) {
+        seen.add(el);
+        unique.push(el);
+      }
+    }
+  }
 
   if (unique.length === 0) {
     return null;

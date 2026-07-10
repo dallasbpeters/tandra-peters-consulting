@@ -48,7 +48,79 @@ const MODEL_OPTIONS = [
     id: "RealESRGAN_x4_anime_v3",
     label: "Anime v3",
   },
+  {
+    description: "Topaz general-purpose enhancement for most photographs.",
+    id: "Standard V2",
+    label: "Topaz Standard V2",
+  },
+  {
+    description: "Topaz restoration tuned for small, low-resolution sources.",
+    id: "Low Resolution V2",
+    label: "Topaz Low Resolution V2",
+  },
+  {
+    description: "Topaz enhancement for rendered and computer-generated art.",
+    id: "CGI",
+    label: "Topaz CGI",
+  },
+  {
+    description: "Topaz preserves fine source detail with restrained changes.",
+    id: "High Fidelity V2",
+    label: "Topaz High Fidelity V2",
+  },
+  {
+    description: "Topaz sharpens and restores text inside images.",
+    id: "Text Refine",
+    label: "Topaz Text Refine",
+  },
+  {
+    description: "Topaz restores damaged or heavily degraded images.",
+    id: "Recovery",
+    label: "Topaz Recovery",
+  },
+  {
+    description: "Topaz's newer recovery model with subject-aware enhancement.",
+    id: "Recovery V2",
+    label: "Topaz Recovery V2",
+  },
+  {
+    description:
+      "Generative Topaz enhancement that can reconstruct new detail.",
+    id: "Redefine",
+    label: "Topaz Redefine",
+  },
+  {
+    description: "Topaz maximum-quality standard enhancement.",
+    id: "Standard MAX",
+    label: "Topaz Standard MAX",
+  },
+  {
+    description:
+      "Topaz generative enhancement for richer reconstructed detail.",
+    id: "Wonder",
+    label: "Topaz Wonder",
+  },
+  {
+    description:
+      "Topaz's latest Wonder model with automatic enhancement strength.",
+    id: "Wonder 3",
+    label: "Topaz Wonder 3",
+  },
 ] as const;
+
+const TOPAZ_MODELS = new Set<string>([
+  "Low Resolution V2",
+  "Standard V2",
+  "CGI",
+  "High Fidelity V2",
+  "Text Refine",
+  "Recovery",
+  "Redefine",
+  "Recovery V2",
+  "Standard MAX",
+  "Wonder",
+  "Wonder 3",
+]);
 
 const STRIP_EXTENSION_REGEX = /\.[^.]+$/u;
 const BASE64_CHUNK_SIZE = 32_768;
@@ -75,6 +147,7 @@ interface UpscaleResponse {
     width?: number;
   };
   model: string;
+  provider: "esrgan" | "topaz";
   outputFormat: "jpeg" | "png";
   requestId: string;
   scale: number;
@@ -578,19 +651,21 @@ const FalUpscalerControlsPanel = ({
           />
           <span>Face enhancement</span>
         </label>
-        <label className="fal-upscaler-number">
-          <span>Tile size</span>
-          <input
-            max={800}
-            min={0}
-            onChange={(event) => {
-              onTileChange(Number(event.target.value));
-            }}
-            step={50}
-            type="number"
-            value={tile}
-          />
-        </label>
+        {TOPAZ_MODELS.has(model) ? null : (
+          <label className="fal-upscaler-number">
+            <span>Tile size</span>
+            <input
+              max={800}
+              min={0}
+              onChange={(event) => {
+                onTileChange(Number(event.target.value));
+              }}
+              step={50}
+              type="number"
+              value={tile}
+            />
+          </label>
+        )}
       </section>
 
       <section className="fal-upscaler-control-group fal-upscaler-summary">
@@ -600,7 +675,8 @@ const FalUpscalerControlsPanel = ({
           <li>Scale: {scale}x</li>
           <li>Output: {outputFormat.toUpperCase()}</li>
           <li>Face enhance: {face ? "On" : "Off"}</li>
-          <li>Tile: {tile}</li>
+          <li>Provider: {TOPAZ_MODELS.has(model) ? "Topaz" : "ESRGAN"}</li>
+          {TOPAZ_MODELS.has(model) ? null : <li>Tile: {tile}</li>}
         </ul>
       </section>
     </div>
