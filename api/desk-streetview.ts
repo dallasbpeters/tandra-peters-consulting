@@ -1,11 +1,13 @@
 /**
  * Vercel serverless: GET /api/desk-streetview?mode=meta&lat=&lng=&address=
  *
- * Availability gate for the Desk Walk interactive Street View. Uses the
- * server-side `GOOGLE_STREETVIEW_API_KEY` to hit Google's Street View metadata
- * endpoint and returns ONLY `{ ok, available, reason? }` — the key never reaches
- * the browser. The client mounts the interactive (Embed API) panorama only when
- * `available` is true, so an empty/broken panorama is never shown.
+ * Availability gate + embed-URL provider for the Desk Walk interactive Street
+ * View. Uses the server-side `GOOGLE_STREETVIEW_API_KEY` to hit Google's Street
+ * View metadata endpoint and returns `{ ok, available, reason?, embedUrl? }`.
+ * When imagery exists, `embedUrl` is the fully-formed Maps Embed API iframe
+ * `src` (key already embedded) so the browser gets a ready-to-mount interactive
+ * panorama at RUNTIME — no `VITE_`/build-time key needed. The client mounts the
+ * panorama only when `available` is true, so an empty/broken frame is never shown.
  *
  * Google-auth gated (called via fetch with a Bearer token), like the other Desk
  * endpoints.

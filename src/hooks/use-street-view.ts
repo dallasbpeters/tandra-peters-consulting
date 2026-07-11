@@ -2,7 +2,18 @@ import { useEffect, useState } from "react";
 
 import type { AuthHeader } from "../lib/desk-types";
 
-export type StreetViewStatus = "idle" | "loading" | "ready" | "unavailable";
+export type StreetViewStatus =
+  | "idle"
+  | "loading"
+  | "misconfigured"
+  | "ready"
+  | "unavailable";
+
+export interface StreetViewState {
+  /** Ready-to-mount Maps Embed iframe `src` (server-provided), else null. */
+  embedUrl: string | null;
+  status: StreetViewStatus;
+}
 
 interface UseStreetViewArgs {
   address?: string;
@@ -32,13 +43,36 @@ const buildParams = (
   return null;
 };
 
+// Surface a config problem ONCE instead of hiding it behind a silent "no street
+// view" placeholder. `missing-key` means GOOGLE_STREETVIEW_API_KEY is absent on
+// the server (e.g. not set in the Vercel environment).
+let warnedMisconfigured = false;
+const warnMisconfigured = (): void => {
+  if (warnedMisconfigured) {
+    return;
+  }
+  warnedMisconfigured = true;
+  console.warn(
+    "[street-view] Server reported a missing key. Set GOOGLE_STREETVIEW_API_KEY in Vercel (Production + Preview) and enable the Maps Embed API + Street View Static API for it. See .env.example."
+  );
+};
+
+interface StreetViewResponseBody {
+  available?: boolean;
+  embedUrl?: string;
+  reason?: string;
+}
+
+const IDLE_STATE: StreetViewState = { embedUrl: null, status: "idle" };
+
 /**
- * Resolve whether Street View imagery EXISTS for one home (availability gate).
- * Hits the auth-gated, server-keyed metadata proxy so the interactive panorama
- * is only ever mounted when there's real imagery — otherwise the UI shows a
- * graceful placeholder. The request is aborted on unmount / when the home
- * changes. Returns only a `status`; the panorama itself is rendered by the
- * caller with the browser Embed key.
+ * Resolve the interactive Street View for one home. Hits the auth-gated,
+ * server-keyed proxy which both checks that imagery exists AND returns the
+ * fully-formed Maps Embed URL (key embedded server-side) — so the client never
+ * depends on a `VITE_` build-time key. Returns `{ status, embedUrl }`: the
+ * caller mounts the iframe only when `status === "ready"`. A `missing-key`
+ * server reason surfaces as `misconfigured` (+ a one-time console warning)
+ * rather than a silent "unavailable". Abortable on unmount / home change.
  */
 export const useStreetView = ({
   address,
@@ -46,22 +80,22 @@ export const useStreetView = ({
   enabled,
   lat,
   lng,
-}: UseStreetViewArgs): StreetViewStatus => {
-  const [status, setStatus] = useState<StreetViewStatus>("idle");
+}: UseStreetViewArgs): StreetViewState => {
+  const [state, setState] = useState<StreetViewState>(IDLE_STATE);
 
   useEffect(() => {
     if (!enabled) {
-      setStatus("idle");
+      setState(IDLE_STATE);
       return;
     }
     const params = buildParams(lat, lng, address);
     if (!params) {
-      setStatus("unavailable");
+      setState({ embedUrl: null, status: "unavailable" });
       return;
     }
 
     const controller = new AbortController();
-    setStatus("loading");
+    setState({ embedUrl: null, status: "loading" });
 
     const load = async () => {
       try {
@@ -72,14 +106,23 @@ export const useStreetView = ({
             signal: controller.signal,
           }
         );
-        const body = (await response.json()) as { available?: boolean };
+        const body = (await response.json()) as StreetViewResponseBody;
         if (controller.signal.aborted) {
           return;
         }
-        setStatus(response.ok && body.available ? "ready" : "unavailable");
+        if (response.ok && body.available && body.embedUrl) {
+          setState({ embedUrl: body.embedUrl, status: "ready" });
+          return;
+        }
+        if (body.reason === "missing-key") {
+          warnMisconfigured();
+          setState({ embedUrl: null, status: "misconfigured" });
+          return;
+        }
+        setState({ embedUrl: null, status: "unavailable" });
       } catch {
         if (!controller.signal.aborted) {
-          setStatus("unavailable");
+          setState({ embedUrl: null, status: "unavailable" });
         }
       }
     };
@@ -88,5 +131,5 @@ export const useStreetView = ({
     return () => controller.abort();
   }, [address, authHeader, enabled, lat, lng]);
 
-  return status;
+  return state;
 };

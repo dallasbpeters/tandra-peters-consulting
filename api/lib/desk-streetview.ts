@@ -1,15 +1,21 @@
 /**
- * Google Street View availability helpers.
+ * Google Street View helpers — a SINGLE server-side key (`GOOGLE_STREETVIEW_API_KEY`).
  *
  * The Desk Walk detail drawer renders an INTERACTIVE (pannable/zoomable) Street
- * View via the Maps Embed API, which needs a browser-usable key. To avoid ever
- * mounting an empty/broken panorama, we still GATE on Google's Street View
- * *metadata* endpoint here — a free check that says whether imagery exists for a
- * location. This runs server-side with `GOOGLE_STREETVIEW_API_KEY` so that key
- * stays off the client; only the availability boolean is returned to the browser.
+ * View via the Maps Embed API, which needs a key present in the iframe URL. That
+ * key is NOT shipped as a `VITE_` build-time var (those are inlined at build time
+ * and were absent from the Vercel bundle → broken panorama in production).
+ * Instead, this module runs server-side: it (a) GATES on Google's free Street
+ * View *metadata* endpoint so we never mount an empty panorama, and (b) builds
+ * the fully-formed Maps Embed URL — key already in it — which the serverless
+ * endpoint returns to the browser at RUNTIME. The client depends on no build-time
+ * env var. Because the key is embedded in the returned URL (reaching the client),
+ * it MUST be an API-restricted key (Maps Embed API + Street View Static API), not
+ * a broad key — see `.env.example`.
  */
 
 const METADATA_URL = "https://maps.googleapis.com/maps/api/streetview/metadata";
+const EMBED_URL = "https://www.google.com/maps/embed/v1/streetview";
 
 export type StreetViewReason =
   | "missing-key"
@@ -25,6 +31,11 @@ export interface StreetViewParams {
 
 export interface StreetViewMeta {
   available: boolean;
+  /**
+   * Ready-to-mount Maps Embed API iframe `src` (key already embedded). Present
+   * only when `available` is true and coordinates were resolvable.
+   */
+  embedUrl?: string;
   reason?: StreetViewReason;
 }
 
@@ -58,9 +69,33 @@ const locationValue = (params: StreetViewParams): string | null => {
 };
 
 /**
- * Ask Google whether Street View imagery exists for this location. `status`
- * is `"OK"` only when a usable panorama is available; everything else (incl.
- * `ZERO_RESULTS`) means we should show a fallback rather than a panorama.
+ * Fully-formed Maps Embed API Street View URL the browser mounts in the iframe.
+ * The `key` is embedded here and reaches the client, so `GOOGLE_STREETVIEW_API_KEY`
+ * MUST be API-restricted (Maps Embed API + Street View Static API), not a broad
+ * or HTTP-referrer-restricted key — see the module docs and `.env.example`.
+ */
+export const buildStreetViewEmbedUrl = (
+  apiKey: string,
+  lat: number,
+  lng: number
+): string => {
+  const params = new URLSearchParams({
+    fov: "90",
+    heading: "0",
+    key: apiKey,
+    location: `${lat},${lng}`,
+    pitch: "0",
+  });
+  return `${EMBED_URL}?${params.toString()}`;
+};
+
+/**
+ * Ask Google whether Street View imagery exists for this location and, when it
+ * does, return the ready-to-mount interactive embed URL. `status` is `"OK"` only
+ * when a usable panorama is available; everything else (incl. `ZERO_RESULTS`)
+ * yields a fallback rather than a panorama. On `OK` we prefer the panorama's own
+ * `location` (snaps to the nearest real imagery) and fall back to the requested
+ * coordinates so an address-only lookup can still center the embed.
  */
 export const streetViewMetadata = async (
   params: StreetViewParams,
@@ -81,10 +116,25 @@ export const streetViewMetadata = async (
     if (!response.ok) {
       return { available: false, reason: "error" };
     }
-    const body = (await response.json()) as { status?: string };
-    return body.status === "OK"
-      ? { available: true }
-      : { available: false, reason: "no-imagery" };
+    const body = (await response.json()) as {
+      location?: { lat?: number; lng?: number };
+      status?: string;
+    };
+    if (body.status !== "OK") {
+      return { available: false, reason: "no-imagery" };
+    }
+    const metaLat = body.location?.lat;
+    const metaLng = body.location?.lng;
+    const lat = finiteNumber(metaLat) ? metaLat : params.lat;
+    const lng = finiteNumber(metaLng) ? metaLng : params.lng;
+    if (!(finiteNumber(lat) && finiteNumber(lng))) {
+      // Imagery exists, but we have no coordinates to center the embed on.
+      return { available: false, reason: "no-location" };
+    }
+    return {
+      available: true,
+      embedUrl: buildStreetViewEmbedUrl(apiKey, lat, lng),
+    };
   } catch {
     return { available: false, reason: "error" };
   }

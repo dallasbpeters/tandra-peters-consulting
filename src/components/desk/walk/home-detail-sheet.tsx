@@ -4,6 +4,7 @@ import { MediaImage, NavArrowLeft, NavArrowRight, Xmark } from "iconoir-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useStreetView } from "../../../hooks/use-street-view";
+import type { StreetViewStatus } from "../../../hooks/use-street-view";
 import { waFieldValue } from "../../../lib/desk-format";
 import type { AuthHeader } from "../../../lib/desk-types";
 import {
@@ -30,29 +31,27 @@ interface HomeDetailSheetProps {
   position: string;
 }
 
-// Browser-usable Maps Embed key. MUST be HTTP-referrer-restricted and scoped to
-// the Maps Embed API (see .env.example). A server key can't drive an interactive
-// panorama, so this one is intentionally client-side — availability is still
-// gated server-side via the metadata proxy before we ever mount the iframe.
-const EMBED_KEY = import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY?.trim() ?? "";
-
-const embedStreetViewSrc = (lat: number, lng: number): string => {
-  const params = new URLSearchParams({
-    fov: "90",
-    heading: "0",
-    key: EMBED_KEY,
-    location: `${lat},${lng}`,
-    pitch: "0",
-  });
-  return `https://www.google.com/maps/embed/v1/streetview?${params.toString()}`;
+// Visible fallback copy per status. `misconfigured` is a server-side key problem
+// (GOOGLE_STREETVIEW_API_KEY absent) — surfaced distinctly (and logged by the
+// hook) so a real config issue never hides behind a generic "no imagery" state.
+const streetViewFallbackLabel = (status: StreetViewStatus): string => {
+  if (status === "loading") {
+    return "Loading street view…";
+  }
+  if (status === "misconfigured") {
+    return "Street view isn’t set up yet";
+  }
+  return "No street view available";
 };
 
 /**
  * Interactive (pannable / rotatable / zoomable) Street View via the Maps Embed
  * API. Reserves a 16:9 box (no layout shift) and only mounts the iframe once the
- * server-side metadata gate confirms imagery exists AND a browser Embed key is
- * configured — otherwise a labelled placeholder, never an empty panorama.
- * Keyed by `homeKey` so it fully remounts (cleans up) when the stepper moves.
+ * server confirms imagery exists AND returns a ready-to-use embed URL (the key
+ * lives server-side in GOOGLE_STREETVIEW_API_KEY and is embedded in that URL at
+ * runtime — no client build-time var). Otherwise a labelled placeholder, never
+ * an empty panorama. Keyed by `homeKey` so it fully remounts when the stepper
+ * moves.
  */
 const StreetViewPreview = ({
   address,
@@ -68,32 +67,28 @@ const StreetViewPreview = ({
   lng: number | null;
 }) => {
   const hasCoords = typeof lat === "number" && typeof lng === "number";
-  const canEmbed = Boolean(EMBED_KEY) && hasCoords;
-  const status = useStreetView({
+  const canLookup = hasCoords || Boolean(address.trim());
+  const { embedUrl, status } = useStreetView({
     address,
     authHeader,
-    enabled: canEmbed,
+    enabled: canLookup,
     lat,
     lng,
   });
   return (
     <div className="desk-walk-streetview" data-status={status} key={homeKey}>
-      {status === "ready" && hasCoords ? (
+      {status === "ready" && embedUrl ? (
         <iframe
           allowFullScreen
           className="desk-walk-streetview__frame"
           loading="lazy"
-          src={embedStreetViewSrc(lat, lng)}
+          src={embedUrl}
           title={`Interactive Street View of ${address}`}
         />
       ) : (
         <div className="desk-walk-streetview__fallback">
           <MediaImage aria-hidden height={22} width={22} />
-          <span>
-            {status === "loading"
-              ? "Loading street view…"
-              : "No street view available"}
-          </span>
+          <span>{streetViewFallbackLabel(status)}</span>
         </div>
       )}
     </div>
