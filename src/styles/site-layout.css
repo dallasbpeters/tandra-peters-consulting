@@ -148,6 +148,17 @@
   padding-bottom: var(--theme-spacing-section-loose);
 }
 
+/*
+ * Walk routes hide the fixed site nav, so the nav-clearing top offset would
+ * leave a blank gap above the walk view's own sticky header. Reset it and let
+ * the view own the full viewport height. Overrides the .desktop-app offset via
+ * later source order at equal specificity.
+ */
+.site-page-main.site-page-main--walk {
+  min-height: 100dvh;
+  padding-top: 0;
+}
+
 /* Block: content-section — vertical rhythm for homepage bands */
 .content-section.content-section--padded {
   padding-block: var(--theme-spacing-section-wide);

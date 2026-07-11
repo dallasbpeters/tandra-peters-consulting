@@ -1,5 +1,5 @@
 import { layoutClass } from "../styles/layout-classes";
-import { isBackendRoutePath } from "./backend-routes";
+import { isBackendRoutePath, isWalkRoutePath } from "./backend-routes";
 
 const LEGAL_PATHS = new Set(["/privacy", "/terms", "/cookies"]);
 const AD_DASHBOARD_PATHS = new Set(["/ads", "/advertising"]);
@@ -25,6 +25,12 @@ export const getMainRouteClass = (pathname: string): string => {
 
   if (TOOL_PATHS.has(pathname)) {
     return `${layoutClass.pageMainAdDashboard} site-page-main--backend`;
+  }
+
+  if (isWalkRoutePath(pathname)) {
+    // No fixed nav on walk routes — drop the nav-clearing top offset so the
+    // walk view fills the viewport with no blank gap above its sticky header.
+    return `${layoutClass.pageMain} site-page-main--backend site-page-main--walk`;
   }
 
   if (isBackendRoutePath(pathname)) {

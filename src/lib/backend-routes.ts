@@ -47,3 +47,18 @@ export const isBackendRoutePath = (pathname: string): boolean => {
   }
   return false;
 };
+
+const WALK_ROUTE_BASE = "/desk/walk";
+
+/**
+ * Full-screen field walk routes (`/desk/walk/:targetId`). The site nav is
+ * hidden entirely on these so the pull-up home-detail sheet and map controls
+ * are never obstructed.
+ */
+export const isWalkRoutePath = (pathname: string): boolean => {
+  const normalized = normalizePathname(pathname);
+  return (
+    normalized === WALK_ROUTE_BASE ||
+    normalized.startsWith(`${WALK_ROUTE_BASE}/`)
+  );
+};
