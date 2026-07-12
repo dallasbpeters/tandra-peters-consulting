@@ -1,5 +1,5 @@
 import { layoutClass } from "../styles/layout-classes";
-import { isBackendRoutePath } from "./backend-routes";
+import { isBackendRoutePath, isImmersiveRoutePath } from "./backend-routes";
 
 const LEGAL_PATHS = new Set(["/privacy", "/terms", "/cookies"]);
 const AD_DASHBOARD_PATHS = new Set(["/ads", "/advertising"]);
@@ -28,7 +28,10 @@ export const getMainRouteClass = (pathname: string): string => {
   }
 
   if (isBackendRoutePath(pathname)) {
-    return `${layoutClass.pageMain} site-page-main--backend`;
+    const immersive = isImmersiveRoutePath(pathname)
+      ? " site-page-main--immersive"
+      : "";
+    return `${layoutClass.pageMain} site-page-main--backend${immersive}`;
   }
 
   return layoutClass.pageMain;

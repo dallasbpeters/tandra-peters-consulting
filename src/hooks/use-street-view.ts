@@ -90,3 +90,69 @@ export const useStreetView = ({
 
   return status;
 };
+
+/**
+ * Fetch the server-proxied Static Street View image as an object URL. Used when
+ * no browser Embed key is configured — the image is streamed through the
+ * auth-gated `/api/desk-streetview?mode=image` endpoint (so the API key stays on
+ * the server) and can't be loaded via a plain `<img src>` because that can't
+ * carry the Bearer token. Returns null until (and unless) an image is available;
+ * the object URL is revoked on unmount / when the home changes.
+ */
+export const useStreetViewImage = ({
+  address,
+  authHeader,
+  enabled,
+  lat,
+  lng,
+}: UseStreetViewArgs): string | null => {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setSrc(null);
+      return;
+    }
+    const params = buildParams(lat, lng, address);
+    if (!params) {
+      setSrc(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    let objectUrl: string | null = null;
+
+    const load = async () => {
+      try {
+        const response = await fetch(
+          `/api/desk-streetview?mode=image&${params.toString()}`,
+          {
+            headers: authHeader ?? undefined,
+            signal: controller.signal,
+          }
+        );
+        if (!response.ok || controller.signal.aborted) {
+          return;
+        }
+        const blob = await response.blob();
+        if (controller.signal.aborted) {
+          return;
+        }
+        objectUrl = URL.createObjectURL(blob);
+        setSrc(objectUrl);
+      } catch {
+        // Leave src null so the caller shows its graceful placeholder.
+      }
+    };
+
+    load();
+    return () => {
+      controller.abort();
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [address, authHeader, enabled, lat, lng]);
+
+  return src;
+};

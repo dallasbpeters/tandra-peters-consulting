@@ -135,6 +135,13 @@
   padding-top: var(--theme-spacing-xl);
 }
 
+/* Immersive routes hide the fixed nav, so drop the padding that cleared it —
+ * keep only the device safe-area inset so the in-page header clears a notch. */
+.site-page-main.site-page-main--immersive {
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 .home-loading-hero {
   min-height: 80vh;
   background: var(--theme-palette-paper-100);

@@ -14,6 +14,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import {
   readStreetViewKey,
+  streetViewImage,
   streetViewMetadata,
   streetViewParamsFrom,
 } from "./lib/desk-streetview.js";
@@ -89,9 +90,23 @@ const deskStreetViewHandler = async (
     return;
   }
 
-  const meta = await streetViewMetadata(streetViewParamsFrom(req.query), {
-    apiKey: readStreetViewKey(),
-  });
+  const params = streetViewParamsFrom(req.query);
+  const apiKey = readStreetViewKey();
+
+  const mode = Array.isArray(req.query.mode) ? req.query.mode[0] : req.query.mode;
+  if (mode === "image") {
+    const image = await streetViewImage(params, { apiKey });
+    if (!image.ok) {
+      res.status(image.status).json({ ok: false, reason: image.reason });
+      return;
+    }
+    res.setHeader("Content-Type", image.contentType);
+    res.setHeader("Cache-Control", "private, max-age=86400");
+    res.status(200).send(Buffer.from(image.body));
+    return;
+  }
+
+  const meta = await streetViewMetadata(params, { apiKey });
   res.status(200).json({ ...meta, ok: true });
 };
 

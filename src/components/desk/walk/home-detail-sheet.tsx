@@ -3,7 +3,10 @@ import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import { MediaImage, NavArrowLeft, NavArrowRight, Xmark } from "iconoir-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { useStreetView } from "../../../hooks/use-street-view";
+import {
+  useStreetView,
+  useStreetViewImage,
+} from "../../../hooks/use-street-view";
 import { waFieldValue } from "../../../lib/desk-format";
 import type { AuthHeader } from "../../../lib/desk-types";
 import {
@@ -48,10 +51,17 @@ const embedStreetViewSrc = (lat: number, lng: number): string => {
 };
 
 /**
- * Interactive (pannable / rotatable / zoomable) Street View via the Maps Embed
- * API. Reserves a 16:9 box (no layout shift) and only mounts the iframe once the
- * server-side metadata gate confirms imagery exists AND a browser Embed key is
- * configured — otherwise a labelled placeholder, never an empty panorama.
+ * Street View "verify the house" preview. Reserves a 16:9 box (no layout shift)
+ * and only shows imagery once the server-side metadata gate confirms a panorama
+ * exists — otherwise a labelled placeholder, never an empty/broken frame.
+ *
+ * Two render paths, both gated by the same server-side key:
+ *   - If a browser Embed key (`VITE_GOOGLE_MAPS_EMBED_KEY`) is configured, an
+ *     interactive (pannable / zoomable) panorama via the Maps Embed API iframe.
+ *   - Otherwise a server-proxied Static Street View image — works with only the
+ *     server key, so the feature no longer silently breaks when the client key
+ *     is absent (the common case).
+ *
  * Keyed by `homeKey` so it fully remounts (cleans up) when the stepper moves.
  */
 const StreetViewPreview = ({
@@ -72,13 +82,24 @@ const StreetViewPreview = ({
   const status = useStreetView({
     address,
     authHeader,
-    enabled: canEmbed,
+    enabled: hasCoords,
     lat,
     lng,
   });
-  return (
-    <div className="desk-walk-streetview" data-status={status} key={homeKey}>
-      {status === "ready" && hasCoords ? (
+  const ready = status === "ready" && hasCoords;
+  const imageSrc = useStreetViewImage({
+    address,
+    authHeader,
+    enabled: ready && !canEmbed,
+    lat,
+    lng,
+  });
+
+  const isLoading = status === "loading" || (ready && !(canEmbed || imageSrc));
+
+  const renderContent = () => {
+    if (ready && canEmbed && lat !== null && lng !== null) {
+      return (
         <iframe
           allowFullScreen
           className="desk-walk-streetview__frame"
@@ -86,16 +107,31 @@ const StreetViewPreview = ({
           src={embedStreetViewSrc(lat, lng)}
           title={`Interactive Street View of ${address}`}
         />
-      ) : (
-        <div className="desk-walk-streetview__fallback">
-          <MediaImage aria-hidden height={22} width={22} />
-          <span>
-            {status === "loading"
-              ? "Loading street view…"
-              : "No street view available"}
-          </span>
-        </div>
-      )}
+      );
+    }
+    if (ready && !canEmbed && imageSrc) {
+      return (
+        <img
+          alt={`Street View of ${address}`}
+          className="desk-walk-streetview__frame"
+          loading="lazy"
+          src={imageSrc}
+        />
+      );
+    }
+    return (
+      <div className="desk-walk-streetview__fallback">
+        <MediaImage aria-hidden height={22} width={22} />
+        <span>
+          {isLoading ? "Loading street view…" : "No street view available"}
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="desk-walk-streetview" data-status={status} key={homeKey}>
+      {renderContent()}
     </div>
   );
 };

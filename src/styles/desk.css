@@ -3317,6 +3317,7 @@ wa-button.desk-generate-button::part(base) {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
   border: 0;
 }
 
@@ -3378,18 +3379,19 @@ wa-button.desk-generate-button::part(base) {
   z-index: 1;
   display: grid;
   gap: var(--theme-spacing-md);
+  place-content: start stretch;
   width: 100%;
-  max-height: 88vh;
+  max-height: 92dvh;
   padding: var(--theme-spacing-md);
+  padding-bottom: calc(
+    var(--theme-spacing-md) + env(safe-area-inset-bottom, 0px)
+  );
   overflow-y: auto;
   background: var(--theme-color-paper);
   border-radius: var(--theme-radius-large) var(--theme-radius-large) 0 0;
   box-shadow: 0 -14px 40px -20px
     color-mix(in oklch, var(--theme-palette-everglade-950) 65%, transparent);
   animation: desk-walk-sheet-in 0.2s ease;
-  display: grid;
-  margin-block-start: 80px;
-  place-content: start stretch;
 }
 
 @keyframes desk-walk-sheet-in {

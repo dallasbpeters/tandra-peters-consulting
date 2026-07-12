@@ -35,6 +35,19 @@ export const backendNavItems: NavItem[] = [
   { href: "/upscaler", name: "Image Upscaler" },
 ];
 
+// Routes that hide the persistent site chrome (fixed nav) and run full-bleed.
+// The Desk Walk is a field tool whose slide-up drawer needs the full viewport —
+// the fixed header would otherwise sit over the sheet. Each of these routes
+// carries its own in-page "back" affordance.
+const IMMERSIVE_ROUTE_PREFIXES = ["/desk/walk/"];
+
+export const isImmersiveRoutePath = (pathname: string): boolean => {
+  const normalized = normalizePathname(pathname);
+  return IMMERSIVE_ROUTE_PREFIXES.some((prefix) =>
+    normalized.startsWith(prefix)
+  );
+};
+
 export const isBackendRoutePath = (pathname: string): boolean => {
   const normalized = normalizePathname(pathname);
   if (BACKEND_ROUTE_PATHS.has(normalized)) {

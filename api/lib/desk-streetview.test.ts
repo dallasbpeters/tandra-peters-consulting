@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   readStreetViewKey,
+  streetViewImage,
+  streetViewImageUrl,
   streetViewMetadata,
   streetViewParamsFrom,
 } from "./desk-streetview.js";
@@ -103,6 +105,85 @@ describe(streetViewMetadata, () => {
       (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0]
     );
     expect(calledUrl).toContain("location=100+Oak+St");
+  });
+});
+
+const imageResponse = (
+  ok: boolean,
+  contentType = "image/jpeg"
+): Response =>
+  ({
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+    headers: { get: () => contentType },
+    ok,
+  }) as unknown as Response;
+
+const imageFetch = (response: Response) =>
+  vi.fn<(input: RequestInfo | URL) => Promise<Response>>(() =>
+    Promise.resolve(response)
+  ) as unknown as typeof fetch;
+
+describe(streetViewImageUrl, () => {
+  it("returns null without a key or a usable location", () => {
+    expect(streetViewImageUrl(AUSTIN, undefined)).toBeNull();
+    expect(streetViewImageUrl({}, "sv-key")).toBeNull();
+  });
+
+  it("builds a Static Street View URL with the server key and location", () => {
+    const url = streetViewImageUrl(AUSTIN, " sv-key ");
+    expect(url).toContain("maps/api/streetview?");
+    expect(url).toContain("location=30.31%2C-97.71");
+    expect(url).toContain("key=sv-key");
+    expect(url).toContain("return_error_code=true");
+    expect(url).toContain("size=640x360");
+  });
+});
+
+describe(streetViewImage, () => {
+  it("reports missing-key with a 500 and no network call", async () => {
+    const fetchImpl = imageFetch(imageResponse(true));
+    const result = await streetViewImage(AUSTIN, {
+      apiKey: undefined,
+      fetchImpl,
+    });
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: "missing-key",
+      status: 500,
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("returns image bytes and content type on success", async () => {
+    const result = await streetViewImage(AUSTIN, {
+      apiKey: "sv-key",
+      fetchImpl: imageFetch(imageResponse(true, "image/png")),
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.contentType).toBe("image/png");
+      expect(result.body.byteLength).toBe(8);
+    }
+  });
+
+  it("maps a non-OK response to no-imagery (404)", async () => {
+    const result = await streetViewImage(AUSTIN, {
+      apiKey: "sv-key",
+      fetchImpl: imageFetch(imageResponse(false)),
+    });
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: "no-imagery",
+      status: 404,
+    });
+  });
+
+  it("maps a thrown fetch to an upstream error (502)", async () => {
+    const result = await streetViewImage(AUSTIN, {
+      apiKey: "sv-key",
+      fetchImpl: (() => Promise.reject(new Error("network"))) as typeof fetch,
+    });
+    expect(result).toStrictEqual({ ok: false, reason: "error", status: 502 });
   });
 });
 

@@ -2,7 +2,11 @@ import { lazy, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { useSanitySite } from "../context/use-sanity-site";
-import { backendNavItems, isBackendRoutePath } from "../lib/backend-routes";
+import {
+  backendNavItems,
+  isBackendRoutePath,
+  isImmersiveRoutePath,
+} from "../lib/backend-routes";
 import { isElectronDesktopApp } from "../lib/desktop-shell";
 import { getMainRouteClass } from "../lib/main-route-class";
 import { mapFooterProps } from "../sanity/map-sanity-home";
@@ -38,6 +42,7 @@ export const SiteShell = () => {
   const navProps = resolveStableNavProps(site);
   const heroStyle = resolveHeroStyle(location.pathname, data?.home);
   const isBackendRoute = isBackendRoutePath(location.pathname);
+  const isImmersiveRoute = isImmersiveRoutePath(location.pathname);
   const isDesktopApp = isElectronDesktopApp();
   const isHome = location.pathname === "/";
   const mainRouteClassName = [
@@ -60,7 +65,7 @@ export const SiteShell = () => {
 
   return (
     <>
-      {!isDesktopApp && navProps && (
+      {!(isDesktopApp || isImmersiveRoute) && navProps && (
         <NavVariant
           {...navProps}
           heroStyle={isBackendRoute ? undefined : heroStyle}

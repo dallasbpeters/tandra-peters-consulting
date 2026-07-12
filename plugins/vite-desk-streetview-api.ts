@@ -4,6 +4,7 @@ import type { Plugin } from "vite";
 
 import {
   readStreetViewKey,
+  streetViewImage,
   streetViewMetadata,
   streetViewParamsFrom,
 } from "../api/lib/desk-streetview.js";
@@ -64,8 +65,24 @@ const handleStreetViewRequest = async (
     return;
   }
 
-  const params = streetViewParamsFrom(queryFrom(req.url));
-  const meta = await streetViewMetadata(params, { apiKey: resolveKey(env) });
+  const query = queryFrom(req.url);
+  const params = streetViewParamsFrom(query);
+  const apiKey = resolveKey(env);
+
+  if (query.mode === "image") {
+    const image = await streetViewImage(params, { apiKey });
+    if (image.ok) {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", image.contentType);
+      res.setHeader("Cache-Control", "private, max-age=86400");
+      res.end(Buffer.from(image.body));
+      return;
+    }
+    json(res, image.status, { ok: false, reason: image.reason });
+    return;
+  }
+
+  const meta = await streetViewMetadata(params, { apiKey });
   json(res, 200, { ...meta, ok: true });
 };
 
