@@ -3382,6 +3382,8 @@ wa-button.desk-generate-button::part(base) {
   max-height: 88vh;
   padding: var(--theme-spacing-md);
   overflow-y: auto;
+  /* Keep touch scrolling inside the sheet — don't chain to the locked body. */
+  overscroll-behavior: contain;
   background: var(--theme-color-paper);
   border-radius: var(--theme-radius-large) var(--theme-radius-large) 0 0;
   box-shadow: 0 -14px 40px -20px
@@ -3531,9 +3533,14 @@ wa-button.desk-generate-button::part(base) {
   border-color: var(--walk-chip);
 }
 
+/*
+ * The status dot must always render its own status color. The active state
+ * only changes the button's border/text affordance — it must NOT recolor the
+ * dot (previously it swapped to --walk-ink, which is white for most statuses,
+ * making the selected dot vanish against the white chip background).
+ */
 .desk-walk-chip--active::before {
-  background: var(--walk-ink, var(--theme-color-white));
-  opacity: 0.85;
+  background: var(--walk-chip);
 }
 
 .desk-walk-sheet__nav {

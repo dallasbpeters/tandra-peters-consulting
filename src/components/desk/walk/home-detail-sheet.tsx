@@ -3,6 +3,7 @@ import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 import { MediaImage, NavArrowLeft, NavArrowRight, Xmark } from "iconoir-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { useBodyScrollLock } from "../../../hooks/use-body-scroll-lock";
 import { useStreetView } from "../../../hooks/use-street-view";
 import type { StreetViewStatus } from "../../../hooks/use-street-view";
 import { waFieldValue } from "../../../lib/desk-format";
@@ -138,6 +139,10 @@ export const HomeDetailSheet = ({
   position,
 }: HomeDetailSheetProps) => {
   const [notes, setNotes] = useState(home.notes ?? "");
+
+  // The sheet mounts only while a home is open, so lock the page behind it and
+  // restore scrolling (at the same position) when it closes or unmounts.
+  useBodyScrollLock(true);
 
   // Re-sync the editable fields whenever the stepper moves to another home.
   useEffect(() => {
