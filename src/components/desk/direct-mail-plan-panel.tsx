@@ -23,6 +23,8 @@ import { CreativeVersionSelector } from "./creative-version-selector";
 import { PostcardBackEditor, PostcardBackTemplate } from "./postcard-back";
 import type { PostcardSize } from "./postcard-pdf";
 import { ProviderKeyForm } from "./provider-key-form";
+import type { SelfMailProgress } from "./self-mail-pdf";
+import { SelfMailPdfSection } from "./self-mail-pdf-panel";
 
 export const validationMessageTone = (
   tone: ZoneValidationResult["tone"]
@@ -253,6 +255,7 @@ export const DirectMailPlanPanel = ({
   onReturnAddressChange,
   onReturnAddressReset,
   onSaveKeys,
+  onGenerateSelfMail,
   onSelectCreativeVersion,
   onSizeChange,
   onSubmit,
@@ -266,6 +269,9 @@ export const DirectMailPlanPanel = ({
   selectedCreativeVersion,
   selectedCount,
   selectedTargets,
+  selfMailBusy,
+  selfMailMessage,
+  selfMailProgress,
   size,
   submission,
   submittingKey,
@@ -290,6 +296,7 @@ export const DirectMailPlanPanel = ({
     value: string
   ) => void;
   onReturnAddressReset: () => void;
+  onGenerateSelfMail: () => void;
   onSaveKeys: (key: string, values: Record<string, string>) => void;
   onSelectCreativeVersion: (id: string) => void;
   onSizeChange: (size: PostcardSize) => void;
@@ -304,6 +311,9 @@ export const DirectMailPlanPanel = ({
   selectedCreativeVersion: AdCreativeVersion | null;
   selectedCount: number;
   selectedTargets: readonly DeskAreaTarget[];
+  selfMailBusy: boolean;
+  selfMailMessage: CaptureMessage | null;
+  selfMailProgress: SelfMailProgress | null;
   size: PostcardSize;
   submission: ProviderSubmitResult | null;
   submittingKey: string | null;
@@ -440,6 +450,18 @@ export const DirectMailPlanPanel = ({
             selectedTargets={selectedTargets}
             size={size}
             zone={zone}
+          />
+          <SelfMailPdfSection
+            busy={selfMailBusy}
+            hasCreative={hasCreative}
+            message={selfMailMessage}
+            onGenerate={onGenerateSelfMail}
+            progress={selfMailProgress}
+            recipientEstimate={
+              plan?.rentcast.recipientReadyCount ??
+              plan?.estimatedPieces ??
+              null
+            }
           />
         </>
       ) : null}

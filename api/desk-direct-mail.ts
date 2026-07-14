@@ -127,6 +127,21 @@ const runDirectMailAction = async (
     const addresses = await prepareDirectMailAddresses(body);
     return { body: addresses.body, status: addresses.status };
   }
+  if (action === "recipients") {
+    // Full structured recipient list for the zone — reuses the SAME server-side
+    // audience path as a provider submit, so self-mailing covers every
+    // deliverable address (not the client's ~60-address preview sample).
+    const batch = await collectSubmitRecipients(body);
+    return {
+      body: {
+        ok: true,
+        recipients: batch.recipients,
+        status: batch.status,
+        totalMatched: batch.totalMatched,
+      },
+      status: 200,
+    };
+  }
   const result = await prepareDirectMailBatch(body);
   return { body: result.body, status: result.status };
 };

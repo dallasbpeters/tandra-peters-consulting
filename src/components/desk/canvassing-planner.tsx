@@ -37,8 +37,10 @@ import {
   resolveBackCopy,
   RETURN_ADDRESS_STORAGE_KEY,
   returnAddressError,
+  returnAddressLines,
   roofAgePhraseFor,
 } from "../../lib/desk-postcard";
+import type { SelfMailRecipient } from "../../lib/desk-self-mail";
 import type {
   AuthHeader,
   CanvassTargetRecord,
@@ -68,6 +70,7 @@ import {
   targetToSnapshot,
 } from "./neighborhood-row";
 import type { PostcardSize } from "./postcard-pdf";
+import type { SelfMailProgress } from "./self-mail-pdf";
 import { ZoneBuilderPanel, AreaCountyStrip } from "./zone-builder-panel";
 
 export const CanvassingPlanner = ({
@@ -143,6 +146,12 @@ export const CanvassingPlanner = ({
   const [addressError, setAddressError] = useState<string | null>(null);
   const [addressList, setAddressList] =
     useState<DirectMailAddressListResponse | null>(null);
+  const [selfMailBusy, setSelfMailBusy] = useState(false);
+  const [selfMailProgress, setSelfMailProgress] =
+    useState<SelfMailProgress | null>(null);
+  const [selfMailMessage, setSelfMailMessage] = useState<CaptureMessage | null>(
+    null
+  );
   // Side builder container — scrolled into view when a saved area is loaded so
   // the populated builder/mail-batch panel is obviously in front of the user.
   const builderRef = useRef<HTMLDivElement>(null);
@@ -935,6 +944,116 @@ export const CanvassingPlanner = ({
     ]
   );
 
+  const handleGenerateSelfMail = useCallback(async () => {
+    if (!selectedCreativeVersion) {
+      setSelfMailMessage({
+        text: "Select a saved creative before generating self-mail PDFs.",
+        tone: "error",
+      });
+      return;
+    }
+    if (audienceCount === 0) {
+      setSelfMailMessage({
+        text: "Select or draw a zone first, then generate self-mail PDFs.",
+        tone: "error",
+      });
+      return;
+    }
+    setSelfMailBusy(true);
+    setSelfMailProgress(null);
+    setSelfMailMessage(null);
+    try {
+      const response = await fetch("/api/desk-direct-mail", {
+        body: JSON.stringify({
+          action: "recipients",
+          neighborhoods: selectedTargets.map(targetToSnapshot),
+          zone: zoneRequestPayload,
+        }),
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const body = (await response.json()) as {
+        error?: string;
+        ok?: boolean;
+        recipients?: SelfMailRecipient[];
+        totalMatched?: number;
+      };
+      if (!(response.ok && body.ok)) {
+        setSelfMailMessage({
+          text: body.error ?? "Could not load this zone's addresses.",
+          tone: "error",
+        });
+        return;
+      }
+      const recipients = body.recipients ?? [];
+      if (recipients.length === 0) {
+        setSelfMailMessage({
+          text: "No deliverable addresses were found inside this zone.",
+          tone: "error",
+        });
+        return;
+      }
+      const zoneName = activeZone?.label ?? (name || "selected Austin area");
+      const resolvedCopy = resolveBackCopy(
+        backCopy,
+        zoneName,
+        roofAgePhraseFor(selectedTargets)
+      );
+      const scanUrl = postcardScanUrl(activeZone, name);
+      const qrDataUri = buildQrDataUri(scanUrl, "#123a34", "#ffffff");
+      const { generateSelfMailPdfs } = await import("./self-mail-pdf");
+      const result = await generateSelfMailPdfs({
+        batchName: name || "Austin neighborhood mail batch",
+        docProps: {
+          body: resolvedCopy.body,
+          cta: resolvedCopy.cta,
+          frontConfig: selectedCreativeVersion.config,
+          frontImageDataUri: selectedCreativeVersion.thumbnail,
+          headline: resolvedCopy.headline,
+          qrDataUri,
+          returnAddressLines: returnAddressLines(returnAddress),
+        },
+        onProgress: setSelfMailProgress,
+        recipients,
+        size: postcardSize,
+      });
+      const totalMatched = body.totalMatched ?? result.recipients;
+      const fileWord = result.files > 1 ? "PDFs" : "PDF";
+      const capped = totalMatched > result.recipients;
+      setSelfMailMessage({
+        text: capped
+          ? `Generated ${formatNumber(result.recipients)} of ${formatNumber(
+              totalMatched
+            )} postcards across ${result.files} ${fileWord}. Tighten the zone to mail the rest.`
+          : `Generated ${formatNumber(
+              result.recipients
+            )} postcards across ${result.files} ${fileWord}. Check your downloads.`,
+        tone: "success",
+      });
+    } catch (error) {
+      setSelfMailMessage({
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not generate self-mail PDFs.",
+        tone: "error",
+      });
+    } finally {
+      setSelfMailBusy(false);
+    }
+  }, [
+    activeZone,
+    audienceCount,
+    authHeader,
+    backCopy,
+    name,
+    postcardSize,
+    returnAddress,
+    selectedCreativeVersion,
+    selectedTargets,
+    zoneRequestPayload,
+  ]);
+
   // Scroll the (page-top) builder into view so a load triggered from the
   // saved-areas list at the bottom of the page is obviously in front of the
   // user. This scrolls the PAGE, not the map camera.
@@ -1174,6 +1293,7 @@ export const CanvassingPlanner = ({
             onBackCopyReset={handleBackCopyReset}
             onLoadKeysStatus={handleLoadKeysStatus}
             onPrepare={handlePrepareMail}
+            onGenerateSelfMail={handleGenerateSelfMail}
             onReturnAddressChange={handleReturnAddressChange}
             onReturnAddressReset={handleReturnAddressReset}
             onSaveKeys={handleSaveKeys}
@@ -1190,6 +1310,9 @@ export const CanvassingPlanner = ({
             selectedCreativeVersion={selectedCreativeVersion}
             selectedCount={audienceCount}
             selectedTargets={selectedTargets}
+            selfMailBusy={selfMailBusy}
+            selfMailMessage={selfMailMessage}
+            selfMailProgress={selfMailProgress}
             size={postcardSize}
             submission={submission}
             submittingKey={submittingKey}

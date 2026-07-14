@@ -22,3 +22,6 @@ training/txshingle-lora.json
 release
 electron
 release-icon-test
+
+# Rendered PDF/creative preview artifacts (local only)
+.preview/

@@ -251,6 +251,18 @@ const handleDeskDirectMailRequest = async (
     json(res, addresses.status, addresses.body);
     return;
   }
+  if (action === "recipients") {
+    // Full structured recipient list for the zone (same path as a submit) so
+    // self-mail PDFs cover every deliverable address, not the preview sample.
+    const batch = await collectSubmitRecipients(body);
+    json(res, 200, {
+      ok: true,
+      recipients: batch.recipients,
+      status: batch.status,
+      totalMatched: batch.totalMatched,
+    });
+    return;
+  }
 
   const result = await prepareDirectMailBatch(body);
   json(res, result.status, result.body);

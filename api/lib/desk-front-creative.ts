@@ -523,6 +523,20 @@ export const buildStructuredFrontHtml = (
  */
 export const CARD_BLEED_IN = 0.25;
 
+/**
+ * Bleed added to EACH edge (inches). {@link CARD_BLEED_IN} is the total across
+ * both opposing edges, so a single side is half of it (1/8"). Content that must
+ * stay inside the trim safe area is offset from the bleed-box edge by this much.
+ */
+export const CARD_BLEED_PER_SIDE_IN = CARD_BLEED_IN / 2;
+
+/**
+ * The DPI every rasterizing mail provider (Lob, Stannp, PostGrid) renders the
+ * supplied HTML at. An artboard authored at N inches therefore rasterizes to
+ * N × {@link PRINT_DPI} pixels — the basis for the required-resolution math.
+ */
+export const PRINT_DPI = 300;
+
 /** Physical postcard trim size in inches (landscape) keyed by app size. */
 export const CARD_TRIM_IN: Record<
   string,
@@ -542,5 +556,25 @@ export const frontBleedBoxIn = (size?: string): StructuredFrontOptions => {
   return {
     heightIn: trim.heightIn + CARD_BLEED_IN,
     widthIn: trim.widthIn + CARD_BLEED_IN,
+  };
+};
+
+/**
+ * The MINIMUM pixel dimensions a rasterized creative (front OR back) must reach
+ * to be accepted at print quality: the full-bleed artboard (trim +
+ * {@link CARD_BLEED_IN}) rasterized at {@link PRINT_DPI}.
+ *
+ * These are the values a real Lob rejection surfaced — 6x9 → 2775 × 1875 px,
+ * 4x6 → 1875 × 1275 px (width × height, landscape). Both the provider-bound HTML
+ * (authored at {@link frontBleedBoxIn} inches) and any embedded raster must
+ * meet or exceed them, so a low-res creative can never silently ship again.
+ */
+export const requiredCreativePx = (
+  size?: string
+): { heightPx: number; widthPx: number } => {
+  const box = frontBleedBoxIn(size);
+  return {
+    heightPx: Math.round(box.heightIn * PRINT_DPI),
+    widthPx: Math.round(box.widthIn * PRINT_DPI),
   };
 };

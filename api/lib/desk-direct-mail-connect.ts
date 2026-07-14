@@ -14,6 +14,7 @@ import { hostHtmlReference, hostImageReference } from "./desk-creative-host.js";
 import type { MailRecipient } from "./desk-direct-mail.js";
 import {
   buildStructuredFrontHtml,
+  CARD_BLEED_PER_SIDE_IN,
   frontBleedBoxIn,
 } from "./desk-front-creative.js";
 
@@ -162,7 +163,7 @@ export interface ReturnAddress {
   zip: string;
 }
 
-interface BackHtmlContent {
+export interface BackHtmlContent {
   body: string;
   cta: string;
   headline: string;
@@ -244,16 +245,29 @@ const backContentFromInput = (input: {
 
 /**
  * Fully self-contained postcard-back HTML (no external stylesheet) sized to the
- * physical card in inches. Marketing content sits in a left column so it stays
- * clear of the provider's right-side address safe zone; the QR anchors
- * bottom-left, and an optional return-address block sits top-left (used for
- * providers that do not auto-print a custom sender). Text wraps within the card.
+ * full-bleed artboard (trim + bleed) in inches — the SAME box the front is
+ * authored at. Authoring at trim+bleed (not trim) guarantees the provider
+ * rasterizes the back to at least the required print resolution (6x9 → 2775 ×
+ * 1875 px at 300 DPI) and that the white background covers the bleed strip the
+ * provider trims off, so no unpainted edge shows after the cut.
+ *
+ * Edge-anchored content (return block, QR, address column) is offset from the
+ * bleed-box edge by the safe margin PLUS the per-side bleed, so it stays exactly
+ * the same distance from the TRIM line as before. Marketing content sits in a
+ * left column so it stays clear of the provider's right-side address safe zone;
+ * the QR anchors bottom-left, and an optional return-address block sits top-left
+ * (used for providers that do not auto-print a custom sender). Text wraps.
  */
-const buildPostcardBackHtml = (content: BackHtmlContent): string => {
-  const dims = cardDims(content.size);
-  const small = dims.width <= 6;
-  const margin = 0.3;
-  const contentWidth = (dims.width * 0.55).toFixed(2);
+export const buildPostcardBackHtml = (content: BackHtmlContent): string => {
+  const trim = cardDims(content.size);
+  const box = frontBleedBoxIn(content.size);
+  const small = trim.width <= 6;
+  // Keep content the same distance from the trim line by adding the bleed strip
+  // (which the provider cuts off) to the safe margin.
+  const margin = 0.3 + CARD_BLEED_PER_SIDE_IN;
+  // Address/marketing column width is measured against the TRIM width so the
+  // right-side USPS address safe zone stays clear regardless of the bleed.
+  const contentWidth = (trim.width * 0.55).toFixed(2);
   const headlinePt = small ? 15 : 21;
   const bodyPt = small ? 9 : 11.5;
   const qrIn = small ? 0.9 : 1.15;
@@ -284,7 +298,7 @@ const buildPostcardBackHtml = (content: BackHtmlContent): string => {
     ? `<div style="margin-top:0.12in;font-size:${bodyPt}pt;font-weight:700;color:#123a34;overflow-wrap:break-word;word-wrap:break-word;">${cta}</div>`
     : "";
 
-  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{box-sizing:border-box;margin:0;padding:0;}html,body{margin:0;padding:0;}</style></head><body style="width:${dims.width}in;height:${dims.height}in;position:relative;background:#ffffff;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2d2a;">${returnBlock}<div style="position:absolute;top:${contentTop}in;left:${margin}in;width:${contentWidth}in;bottom:${contentBottom}in;overflow:hidden;"><div style="font-size:${headlinePt}pt;font-weight:800;line-height:1.12;color:#123a34;overflow-wrap:break-word;word-wrap:break-word;">${headline}</div><p style="margin-top:0.12in;font-size:${bodyPt}pt;line-height:1.35;overflow-wrap:break-word;word-wrap:break-word;">${body}</p>${ctaBlock}</div>${qrBlock}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"/><style>*{box-sizing:border-box;margin:0;padding:0;}html,body{margin:0;padding:0;}</style></head><body style="width:${box.widthIn}in;height:${box.heightIn}in;position:relative;background:#ffffff;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2d2a;">${returnBlock}<div style="position:absolute;top:${contentTop}in;left:${margin}in;width:${contentWidth}in;bottom:${contentBottom}in;overflow:hidden;"><div style="font-size:${headlinePt}pt;font-weight:800;line-height:1.12;color:#123a34;overflow-wrap:break-word;word-wrap:break-word;">${headline}</div><p style="margin-top:0.12in;font-size:${bodyPt}pt;line-height:1.35;overflow-wrap:break-word;word-wrap:break-word;">${body}</p>${ctaBlock}</div>${qrBlock}</body></html>`;
 };
 
 /**

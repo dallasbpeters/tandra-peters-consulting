@@ -39,7 +39,8 @@ const PAGE_DIMS: Record<PostcardSize, { height: number; width: number }> = {
 };
 
 const SVG_PATH_RE = /<path[^>]*\sd="([^"]+)"[^>]*>/g;
-const PRINT_IMAGE_WIDTH = 2775;
+/** Longest edge (px) requested for embedded photos — 6x9 full-bleed at 300 DPI. */
+export const PRINT_IMAGE_WIDTH = 2775;
 
 interface LogoVector {
   height: number;

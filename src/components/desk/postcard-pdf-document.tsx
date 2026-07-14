@@ -21,6 +21,7 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import type { ReactElement } from "react";
 
 import { PostcardVectorFront } from "./postcard-vector-front";
 
@@ -37,7 +38,12 @@ export const POSTCARD_SIZE_LABELS: Record<PostcardSize, string> = {
 const BASE_W = 9 * 72; // 648 pt
 const BASE_H = 6 * 72; // 432 pt
 
-const SIZE_DIMS: Record<PostcardSize, { w: number; h: number }> = {
+/**
+ * Page size in PDF points (1 pt = 1/72 in) for each postcard, at physical TRIM.
+ * A viewer/printer rasterizes the vector content + full-res images at whatever
+ * DPI it prints, so the page carries the correct trim and stays sharp at 300+.
+ */
+export const SIZE_DIMS: Record<PostcardSize, { w: number; h: number }> = {
   "4x6": { w: 6 * 72, h: 4 * 72 }, // 432 × 288 pt
   "6x9": { w: BASE_W, h: BASE_H }, //  648 × 432 pt
 };
@@ -209,8 +215,137 @@ const DEFAULT_RETURN_ADDRESS_LINES = [
   "Austin, TX 78725",
 ] as const;
 
+/**
+ * Merge-tag delivery block for the single-postcard download (a template the
+ * operator uploads to a provider that mail-merges each recipient). The self-mail
+ * batch replaces these with real per-recipient lines.
+ */
+const MERGE_TAG_DELIVERY_LINES = [
+  "{{recipient_full_name}}",
+  "{{mailing_address_line1}}",
+  "{{mailing_address_line2}}",
+  "{{mailing_city}}, {{mailing_state}} {{mailing_zip}}",
+] as const;
+
+/** Top-right postage box: a prepaid indicia, or a "place stamp here" box. */
+type PostageMode = "indicia" | "stamp";
+
+const POSTAGE_TEXT: Record<PostageMode, string> = {
+  indicia: "PRESORTED\nSTANDARD\nU.S. POSTAGE\nPAID",
+  stamp: "PLACE\nFIRST-CLASS\nSTAMP\nHERE",
+};
+
+type SizeStyles = ReturnType<typeof buildStyles>;
+
+const normalizeSrc = (src: string | undefined): string | undefined => {
+  if (!src) {
+    return undefined;
+  }
+  if (src.startsWith("data:")) {
+    return src;
+  }
+  return `data:image/png;base64,${src}`;
+};
+
 // ---------------------------------------------------------------------------
-// PostcardDocument — the @react-pdf/renderer Document
+// Shared pages — reused by the single download and the self-mail batch.
+// ---------------------------------------------------------------------------
+const FrontPage = ({
+  frontConfig,
+  frontSrc,
+  s,
+  size,
+}: {
+  frontConfig?: string;
+  frontSrc?: string;
+  s: SizeStyles;
+  size: PostcardSize;
+}) => {
+  const { w, h } = SIZE_DIMS[size];
+  return (
+    <Page size={[w, h]} style={s.pageFront}>
+      {frontConfig ? (
+        <PostcardVectorFront config={frontConfig} size={size} />
+      ) : (
+        <Image src={frontSrc} style={s.frontImage} />
+      )}
+    </Page>
+  );
+};
+
+const BackPage = ({
+  body,
+  cta,
+  deliveryLines,
+  headline,
+  postageMode,
+  qrDataUri,
+  returnLines,
+  s,
+  size,
+}: {
+  body: string;
+  cta: string;
+  deliveryLines: readonly string[];
+  headline: string;
+  postageMode: PostageMode;
+  qrDataUri: string;
+  returnLines: readonly string[];
+  s: SizeStyles;
+  size: PostcardSize;
+}) => {
+  const { w, h } = SIZE_DIMS[size];
+  return (
+    <Page size={[w, h]} style={s.pageBack}>
+      {/* ── Top row ─────────────────────────────────────────────────── */}
+      <View style={s.topRow}>
+        <View style={s.returnBlock}>
+          {returnLines.map((line, i) => (
+            <Text key={line} style={i === 0 ? s.returnName : s.returnLine}>
+              {line}
+            </Text>
+          ))}
+        </View>
+        <View style={s.indiciaBox}>
+          <Text style={s.indiciaText}>{POSTAGE_TEXT[postageMode]}</Text>
+        </View>
+      </View>
+
+      {/* ── Divider ─────────────────────────────────────────────────── */}
+      <View style={s.divider} />
+
+      {/* ── Content row ─────────────────────────────────────────────── */}
+      <View style={s.contentRow}>
+        {/* Left: message + QR */}
+        <View style={s.leftCol}>
+          <View style={s.messageBlock}>
+            <Text style={s.headline}>{headline}</Text>
+            <Text style={s.bodyText}>{body}</Text>
+            <Text style={s.ctaText}>{cta}</Text>
+          </View>
+          <View style={s.qrBlock}>
+            <Image src={qrDataUri} style={s.qrImage} />
+          </View>
+        </View>
+
+        {/* Right: recipient address (USPS OCR zone) */}
+        <View style={s.rightCol}>
+          <View style={s.recipientBlock}>
+            <Text style={s.recipientLabel}>DELIVERY ADDRESS</Text>
+            {deliveryLines.map((line) => (
+              <Text key={line} style={s.recipientLine}>
+                {line}
+              </Text>
+            ))}
+          </View>
+        </View>
+      </View>
+    </Page>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// PostcardDocument — single postcard (front + merge-tag back) for download
 // ---------------------------------------------------------------------------
 export interface PostcardDocumentProps {
   /** Postcard back copy */
@@ -229,15 +364,10 @@ export interface PostcardDocumentProps {
   size?: PostcardSize;
 }
 
-const normalizeSrc = (src: string | undefined): string | undefined => {
-  if (!src) {
-    return undefined;
-  }
-  if (src.startsWith("data:")) {
-    return src;
-  }
-  return `data:image/png;base64,${src}`;
-};
+const resolveReturnLines = (
+  lines: readonly string[] | undefined
+): readonly string[] =>
+  lines && lines.length > 0 ? lines : DEFAULT_RETURN_ADDRESS_LINES;
 
 export const PostcardDocument = ({
   body,
@@ -249,74 +379,100 @@ export const PostcardDocument = ({
   returnAddressLines,
   size = "6x9",
 }: PostcardDocumentProps) => {
-  const { w, h } = SIZE_DIMS[size];
   const s = STYLES[size];
   const frontSrc = normalizeSrc(frontImageDataUri);
-  const returnLines =
-    returnAddressLines && returnAddressLines.length > 0
-      ? returnAddressLines
-      : DEFAULT_RETURN_ADDRESS_LINES;
+  const returnLines = resolveReturnLines(returnAddressLines);
 
   return (
     <Document>
       {frontConfig || frontSrc ? (
-        <Page size={[w, h]} style={s.pageFront}>
-          {frontConfig ? (
-            <PostcardVectorFront config={frontConfig} size={size} />
-          ) : (
-            <Image src={frontSrc} style={s.frontImage} />
-          )}
-        </Page>
+        <FrontPage
+          frontConfig={frontConfig}
+          frontSrc={frontSrc}
+          s={s}
+          size={size}
+        />
       ) : null}
+      <BackPage
+        body={body}
+        cta={cta}
+        deliveryLines={MERGE_TAG_DELIVERY_LINES}
+        headline={headline}
+        postageMode="indicia"
+        qrDataUri={qrDataUri}
+        returnLines={returnLines}
+        s={s}
+        size={size}
+      />
+    </Document>
+  );
+};
 
-      <Page size={[w, h]} style={s.pageBack}>
-        {/* ── Top row ─────────────────────────────────────────────────── */}
-        <View style={s.topRow}>
-          <View style={s.returnBlock}>
-            {returnLines.map((line, i) => (
-              <Text key={line} style={i === 0 ? s.returnName : s.returnLine}>
-                {line}
-              </Text>
-            ))}
-          </View>
-          <View style={s.indiciaBox}>
-            <Text style={s.indiciaText}>
-              {"PRESORTED\nSTANDARD\nU.S. POSTAGE\nPAID"}
-            </Text>
-          </View>
-        </View>
+// ---------------------------------------------------------------------------
+// PostcardBatchDocument — one personalized postcard per recipient (self-mail)
+// ---------------------------------------------------------------------------
+export interface SelfMailPage {
+  /** Stable key for the recipient (address-derived). */
+  key: string;
+  /** Delivery address block lines (already occupant-addressed). */
+  lines: readonly string[];
+}
 
-        {/* ── Divider ─────────────────────────────────────────────────── */}
-        <View style={s.divider} />
+export interface PostcardBatchDocumentProps extends Omit<
+  PostcardDocumentProps,
+  "returnAddressLines"
+> {
+  recipients: readonly SelfMailPage[];
+  returnAddressLines?: readonly string[];
+}
 
-        {/* ── Content row ─────────────────────────────────────────────── */}
-        <View style={s.contentRow}>
-          {/* Left: message + QR */}
-          <View style={s.leftCol}>
-            <View style={s.messageBlock}>
-              <Text style={s.headline}>{headline}</Text>
-              <Text style={s.bodyText}>{body}</Text>
-              <Text style={s.ctaText}>{cta}</Text>
-            </View>
-            <View style={s.qrBlock}>
-              <Image src={qrDataUri} style={s.qrImage} />
-            </View>
-          </View>
+export const PostcardBatchDocument = ({
+  body,
+  cta,
+  headline,
+  qrDataUri,
+  frontConfig,
+  frontImageDataUri,
+  recipients,
+  returnAddressLines,
+  size = "6x9",
+}: PostcardBatchDocumentProps) => {
+  const s = STYLES[size];
+  const frontSrc = normalizeSrc(frontImageDataUri);
+  const returnLines = resolveReturnLines(returnAddressLines);
+  const hasFront = Boolean(frontConfig || frontSrc);
 
-          {/* Right: recipient address (USPS OCR zone) */}
-          <View style={s.rightCol}>
-            <View style={s.recipientBlock}>
-              <Text style={s.recipientLabel}>DELIVERY ADDRESS</Text>
-              <Text style={s.recipientLine}>{"{{recipient_full_name}}"}</Text>
-              <Text style={s.recipientLine}>{"{{mailing_address_line1}}"}</Text>
-              <Text style={s.recipientLine}>{"{{mailing_address_line2}}"}</Text>
-              <Text style={s.recipientLine}>
-                {"{{mailing_city}}, {{mailing_state}} {{mailing_zip}}"}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Page>
+  return (
+    <Document>
+      {recipients.flatMap((recipient) => {
+        const pages: ReactElement[] = [];
+        if (hasFront) {
+          pages.push(
+            <FrontPage
+              frontConfig={frontConfig}
+              frontSrc={frontSrc}
+              key={`${recipient.key}-front`}
+              s={s}
+              size={size}
+            />
+          );
+        }
+        pages.push(
+          <BackPage
+            body={body}
+            cta={cta}
+            deliveryLines={recipient.lines}
+            headline={headline}
+            key={`${recipient.key}-back`}
+            postageMode="stamp"
+            qrDataUri={qrDataUri}
+            returnLines={returnLines}
+            s={s}
+            size={size}
+          />
+        );
+        return pages;
+      })}
     </Document>
   );
 };
