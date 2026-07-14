@@ -12,7 +12,7 @@ export const CallButton = ({
   const labelStyle: React.CSSProperties = {
     color: theme.colors.white,
     fontFamily: theme.fonts.body,
-    fontSize: "11px",
+    fontSize: "14px",
     fontWeight: 800,
     letterSpacing: "0.3em",
     textTransform: "uppercase",

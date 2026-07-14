@@ -15,6 +15,8 @@ const GA_ENV_KEYS = [
   "GA_PROPERTY_ID",
   "GA_SERVICE_ACCOUNT_EMAIL",
   "GA_PRIVATE_KEY",
+  "GA_INTERNAL_TRAFFIC_PARAM",
+  "GA_INTERNAL_TRAFFIC_VALUE",
 ] as const;
 
 const pathnameOnly = (url: string | undefined): string =>

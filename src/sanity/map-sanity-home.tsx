@@ -230,14 +230,20 @@ export const mapVideoProps = (
 
 export const mapBirdcreekVideoBannerProps = (
   data: SanityDoc
-): Partial<{ vimeoUrl: string; title: string }> => {
+): Partial<{
+  vimeoUrl: string;
+  title: string;
+  videoUrl: string;
+  posterUrl: string;
+}> => {
   if (!data) {
     return {};
   }
 
+  let rawVideoUrl: string | undefined;
   let rawVimeoUrl: string | undefined;
-  if (typeof data.birdcreekVimeoUrl === "string") {
-    rawVimeoUrl = data.birdcreekVimeoUrl;
+  if (typeof data.videoUrl === "string") {
+    rawVideoUrl = data.videoUrl;
   } else if (typeof data.vimeoUrl === "string") {
     rawVimeoUrl = data.vimeoUrl;
   }
@@ -251,11 +257,17 @@ export const mapBirdcreekVideoBannerProps = (
 
   const vimeoUrl =
     typeof rawVimeoUrl === "string" ? stegaClean(rawVimeoUrl).trim() : "";
+  const videoUrl =
+    typeof rawVideoUrl === "string" ? stegaClean(rawVideoUrl).trim() : "";
   const title = typeof rawTitle === "string" ? stegaClean(rawTitle).trim() : "";
+  const posterUrl =
+    typeof data.posterUrl === "string" ? stegaClean(data.posterUrl).trim() : "";
 
   return {
     ...(vimeoUrl ? { vimeoUrl } : {}),
     ...(title ? { title } : {}),
+    ...(videoUrl ? { videoUrl } : {}),
+    ...(posterUrl ? { posterUrl } : {}),
   };
 };
 

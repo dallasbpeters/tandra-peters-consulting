@@ -1,6 +1,20 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import {
+  buildOverviewComparison,
+  customTrafficDimension,
+  formatGaDate,
+  internalTrafficFilter,
+  isUnregisteredCustomDimensionError,
+  realTrafficFilter,
+  resolveInternalParam,
+  resolveInternalValue,
+  splitDailyRows,
+  toNumber,
+} from "./lib/analytics-traffic-split.js";
+import type { Overview } from "./lib/analytics-traffic-split.js";
+
 const ENV_ALLOWED_ORIGINS = "GA_DASHBOARD_ALLOWED_ORIGINS";
 // Matches any Sanity-hosted studio: https://{anything}.sanity.studio
 const SANITY_STUDIO_RE = /^https:\/\/[a-z0-9-]+\.sanity\.studio$/iu;
@@ -58,26 +72,54 @@ function createGaClient() {
   });
 }
 
+const OVERVIEW_METRICS = [
+  { name: "totalUsers" },
+  { name: "sessions" },
+  { name: "screenPageViews" },
+  { name: "bounceRate" },
+  { name: "averageSessionDuration" },
+];
+
+// `ReturnType<runReport>` resolves to the callback overload (`void`), so type
+// the response structurally from the fields actually read here.
+interface GaMetricRow {
+  metricValues?: ({ value?: string | null } | null)[] | null;
+}
+interface GaReportResponse {
+  rows?: (GaMetricRow | null)[] | null;
+}
+
+const overviewFromReport = (report: GaReportResponse | undefined): Overview => {
+  const row = report?.rows?.[0];
+  return {
+    averageSessionDuration: toNumber(row?.metricValues?.[4]?.value),
+    bounceRate: toNumber(row?.metricValues?.[3]?.value),
+    screenPageViews: toNumber(row?.metricValues?.[2]?.value),
+    sessions: toNumber(row?.metricValues?.[1]?.value),
+    totalUsers: toNumber(row?.metricValues?.[0]?.value),
+  };
+};
+
 async function fetchAnalytics(days: number) {
   const client = createGaClient();
   const property = `properties/${process.env.GA_PROPERTY_ID}`;
   const startDate = `${days}daysAgo`;
   const endDate = "today";
+  const dateRanges = [{ endDate, startDate }];
 
-  const [overview, topPages, topSources, dailyTrend] = await Promise.all([
+  const internalParam = resolveInternalParam(
+    process.env.GA_INTERNAL_TRAFFIC_PARAM
+  );
+  const internalValue = resolveInternalValue(
+    process.env.GA_INTERNAL_TRAFFIC_VALUE
+  );
+  const trafficDimension = customTrafficDimension(internalParam);
+
+  // Reports that never reference the custom dimension — always safe to run.
+  const [overviewTotalReport, topPages, topSources] = await Promise.all([
+    client.runReport({ dateRanges, metrics: OVERVIEW_METRICS, property }),
     client.runReport({
-      dateRanges: [{ endDate, startDate }],
-      metrics: [
-        { name: "totalUsers" },
-        { name: "sessions" },
-        { name: "screenPageViews" },
-        { name: "bounceRate" },
-        { name: "averageSessionDuration" },
-      ],
-      property,
-    }),
-    client.runReport({
-      dateRanges: [{ endDate, startDate }],
+      dateRanges,
       dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
       limit: 10,
       metrics: [{ name: "screenPageViews" }, { name: "totalUsers" }],
@@ -85,56 +127,114 @@ async function fetchAnalytics(days: number) {
       property,
     }),
     client.runReport({
-      dateRanges: [{ endDate, startDate }],
+      dateRanges,
       dimensions: [{ name: "sessionDefaultChannelGroup" }],
       limit: 8,
       metrics: [{ name: "sessions" }, { name: "totalUsers" }],
       orderBys: [{ desc: true, metric: { metricName: "sessions" } }],
       property,
     }),
-    client.runReport({
-      dateRanges: [{ endDate, startDate }],
+  ]);
+
+  const totalOverview = overviewFromReport(overviewTotalReport[0]);
+
+  let internalFilterAvailable = true;
+  let realOverview: Overview | undefined;
+  let internalOverview: Overview | undefined;
+  let dailyTrend: ReturnType<typeof splitDailyRows>;
+
+  try {
+    // Users don't sum across dimension rows, so Real/Internal overviews are
+    // dedicated filtered reports rather than a row subtraction. The daily trend
+    // (page views / sessions) DOES split cleanly, so it runs as one
+    // date × traffic_type report.
+    const [realReport, internalReport, dailySplitReport] = await Promise.all([
+      client.runReport({
+        dateRanges,
+        dimensionFilter: realTrafficFilter(trafficDimension, internalValue),
+        metrics: OVERVIEW_METRICS,
+        property,
+      }),
+      client.runReport({
+        dateRanges,
+        dimensionFilter: internalTrafficFilter(trafficDimension, internalValue),
+        metrics: OVERVIEW_METRICS,
+        property,
+      }),
+      client.runReport({
+        dateRanges,
+        dimensions: [{ name: "date" }, { name: trafficDimension }],
+        metrics: [{ name: "screenPageViews" }, { name: "sessions" }],
+        orderBys: [{ dimension: { dimensionName: "date" } }],
+        property,
+      }),
+    ]);
+
+    realOverview = overviewFromReport(realReport[0]);
+    internalOverview = overviewFromReport(internalReport[0]);
+    dailyTrend = splitDailyRows(
+      (dailySplitReport[0]?.rows ?? []).map((row) => ({
+        date: formatGaDate(row.dimensionValues?.[0]?.value ?? ""),
+        screenPageViews: toNumber(row.metricValues?.[0]?.value),
+        sessions: toNumber(row.metricValues?.[1]?.value),
+        trafficType: row.dimensionValues?.[1]?.value ?? "",
+      })),
+      internalValue
+    );
+  } catch (error) {
+    if (!isUnregisteredCustomDimensionError(error, trafficDimension)) {
+      throw error;
+    }
+    // Custom dimension isn't registered yet: degrade to Total-only rather than
+    // failing the whole dashboard. Real mirrors Total; Internal is zero.
+    internalFilterAvailable = false;
+    const dailyTrendReport = await client.runReport({
+      dateRanges,
       dimensions: [{ name: "date" }],
       metrics: [{ name: "screenPageViews" }, { name: "sessions" }],
       orderBys: [{ dimension: { dimensionName: "date" } }],
       property,
-    }),
-  ]);
-
-  const overviewRow = overview[0]?.rows?.[0];
-  return {
-    dailyTrend: (dailyTrend[0]?.rows ?? []).map((row) => {
-      const raw = row.dimensionValues?.[0]?.value ?? "";
-      const date =
-        raw.length === 8
-          ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
-          : raw;
+    });
+    dailyTrend = (dailyTrendReport[0]?.rows ?? []).map((row) => {
+      const screenPageViews = toNumber(row.metricValues?.[0]?.value);
+      const sessions = toNumber(row.metricValues?.[1]?.value);
       return {
-        date,
-        screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
-        sessions: Number(row.metricValues?.[1]?.value ?? 0),
+        date: formatGaDate(row.dimensionValues?.[0]?.value ?? ""),
+        internalScreenPageViews: 0,
+        internalSessions: 0,
+        realScreenPageViews: screenPageViews,
+        realSessions: sessions,
+        screenPageViews,
+        sessions,
       };
-    }),
-    overview: {
-      averageSessionDuration: Number(
-        overviewRow?.metricValues?.[4]?.value ?? 0
-      ),
-      bounceRate: Number(overviewRow?.metricValues?.[3]?.value ?? 0),
-      screenPageViews: Number(overviewRow?.metricValues?.[2]?.value ?? 0),
-      sessions: Number(overviewRow?.metricValues?.[1]?.value ?? 0),
-      totalUsers: Number(overviewRow?.metricValues?.[0]?.value ?? 0),
-    },
+    });
+  }
+
+  const overview = buildOverviewComparison({
+    internal: internalOverview,
+    internalFilterAvailable,
+    real: realOverview,
+    total: totalOverview,
+  });
+
+  return {
+    dailyTrend,
+    internalFilterAvailable,
+    // Backward-compatible flat overview mirrors the Real view (what the
+    // dashboard defaults to). `overviewComparison` carries all three views.
+    overview: internalFilterAvailable ? overview.real : overview.total,
+    overviewComparison: overview,
     period: `${days}d`,
     topPages: (topPages[0]?.rows ?? []).map((row) => ({
       pagePath: row.dimensionValues?.[0]?.value ?? "",
       pageTitle: row.dimensionValues?.[1]?.value ?? "",
-      screenPageViews: Number(row.metricValues?.[0]?.value ?? 0),
-      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+      screenPageViews: toNumber(row.metricValues?.[0]?.value),
+      totalUsers: toNumber(row.metricValues?.[1]?.value),
     })),
     topSources: (topSources[0]?.rows ?? []).map((row) => ({
       channel: row.dimensionValues?.[0]?.value ?? "",
-      sessions: Number(row.metricValues?.[0]?.value ?? 0),
-      totalUsers: Number(row.metricValues?.[1]?.value ?? 0),
+      sessions: toNumber(row.metricValues?.[0]?.value),
+      totalUsers: toNumber(row.metricValues?.[1]?.value),
     })),
   };
 }

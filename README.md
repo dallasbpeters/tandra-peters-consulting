@@ -72,6 +72,20 @@ Required server env vars for analytics data:
 - `GA_SERVICE_ACCOUNT_EMAIL`
 - `GA_PRIVATE_KEY`
 
+Optional (Total vs. Real traffic comparison):
+
+- `GA_INTERNAL_TRAFFIC_PARAM` — event parameter name backing the internal-traffic custom dimension (default `traffic_type`, exposed to the Data API as `customEvent:traffic_type`).
+- `GA_INTERNAL_TRAFFIC_VALUE` — the value GA4 stamps on internal events (default `internal`).
+
+The dashboard shows a Total / Real toggle. "Real" excludes your own (internal) visits; the delta ("−N you (internal)") is the difference. Until the GA4 internal- traffic rule + `traffic_type` custom dimension exist, the API returns `internalFilterAvailable: false` and the dashboard degrades to Total-only with a hint. See the GA4 setup steps below.
+
+### GA4 setup for the Real-traffic comparison
+
+1. **Define internal traffic by IP** — GA4 Admin → Data Streams → (web stream) → Configure tag settings → Show all → Define internal traffic → Create: `traffic_type` = `internal`, match type **IP address equals** `<YOUR_IP>`.
+2. **Register the custom dimension** — GA4 Admin → Custom definitions → Create custom dimensions → scope **Event**, name `traffic_type`, event parameter `traffic_type`.
+3. **Keep the "Internal Traffic" data filter in _Testing_** (do NOT set it to Active/Exclude), so internal traffic is still collected and the dashboard can show the difference. (Setting it Active removes internal hits from GA entirely, making the delta 0.)
+4. **Not retroactive** — the split only reflects traffic after the rule and custom dimension exist.
+
 Required CORS allowlist for Studio origins (production):
 
 - `GA_DASHBOARD_ALLOWED_ORIGINS`

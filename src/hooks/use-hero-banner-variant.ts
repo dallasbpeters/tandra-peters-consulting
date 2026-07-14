@@ -9,8 +9,8 @@ export type HeroBannerStyle = NonNullable<HeroProps["heroStyle"]>;
 
 const VALID_VARIANTS = new Set<HeroBannerStyle>([
   "control",
-  "glass-overlay",
-  "dual-cta-rail",
+  // "glass-overlay",
+  // "dual-cta-rail",
   "dark-floating-pill",
 ]);
 

@@ -174,10 +174,23 @@ export const birdcreekVideoBannerSectionType = defineType({
       type: "url",
     }),
     defineField({
+      description: "Vimeo link or player URL used by the embedded banner.",
+      name: "videoUrl",
+      title: "Video URL",
+      type: "url",
+    }),
+    defineField({
       description: "Optional heading shown above the video banner.",
       name: "title",
       title: "Title",
       type: "string",
+    }),
+    defineField({
+      description:
+        "Poster image shown before the video plays (Sanity image asset).",
+      name: "posterUrl",
+      title: "Poster image",
+      type: "image",
     }),
   ],
   name: "birdcreekVideoBannerSection",

@@ -12,12 +12,6 @@ import type {
   ServicesProps,
 } from "../types";
 
-const PHASE_SUFFIX: Record<string, string> = {
-  "01": "INSP",
-  "02": "CLM",
-  "03": "EXEC",
-};
-
 const DEFAULT_BASE_MASK_IMAGE = "/roof-2.jpg";
 const DEFAULT_OVERLAY_MASK_IMAGE = "/metal-roof.jpg";
 
@@ -63,20 +57,13 @@ interface ServiceDisplayItem {
   title: string;
 }
 
-const formatPhaseLabel = (id: string, index: number): string => {
-  const normalizedId = id.padStart(2, "0");
-  const suffix =
-    PHASE_SUFFIX[id] ?? PHASE_SUFFIX[normalizedId] ?? `SVC${index + 1}`;
-  return `PHASE ${normalizedId} // ${suffix}`;
-};
-
 const buildDisplayItems = (
   services: NonNullable<ServicesProps["services"]>
 ): ServiceDisplayItem[] =>
-  services.map((service, index) => ({
+  services.map((service) => ({
     description: service.description,
     key: service.id,
-    phase: formatPhaseLabel(service.id, index),
+    phase: service.id,
     title: service.title,
   }));
 
@@ -141,23 +128,9 @@ interface ServiceItemProps {
   title: string;
 }
 
-const ServiceItem = ({
-  phase,
-  title,
-  description,
-  isMobile,
-}: ServiceItemProps) => {
+const ServiceItem = ({ title, description, isMobile }: ServiceItemProps) => {
   const itemStyle: React.CSSProperties = {
     textAlign: isMobile ? "left" : "right",
-  };
-
-  const metaStyle: React.CSSProperties = {
-    color: theme.colors.paper,
-    fontFamily: theme.fonts.body,
-    fontSize: "0.65rem",
-    letterSpacing: "0.1em",
-    marginBottom: "0.25rem",
-    opacity: 0.9,
   };
 
   const titleStyle: React.CSSProperties = {
@@ -188,7 +161,6 @@ const ServiceItem = ({
 
   return (
     <article className="services-alt-item" style={itemStyle}>
-      <div style={metaStyle}>{phase}</div>
       <h2 style={titleStyle}>{title}</h2>
       <div style={descStyle}>
         <RichText paragraphStyle={richParagraphStyle} value={description} />
@@ -210,15 +182,6 @@ const BirdcreekAdvantageItem = ({
 }: BirdcreekAdvantageItemProps) => {
   const itemStyle: React.CSSProperties = {
     textAlign: isMobile ? "left" : "right",
-  };
-
-  const metaStyle: React.CSSProperties = {
-    color: theme.colors.paper,
-    fontFamily: theme.fonts.body,
-    fontSize: theme.typography.size100,
-    letterSpacing: "0.1em",
-    marginBottom: "0.25rem",
-    opacity: 0.9,
   };
 
   const titleStyle: React.CSSProperties = {
@@ -266,7 +229,6 @@ const BirdcreekAdvantageItem = ({
 
   return (
     <article className="services-alt-item" style={itemStyle}>
-      <div style={metaStyle}>CORE // ADV</div>
       <h2 style={titleStyle}>{birdcreekAdvantage.title}</h2>
       <div style={descStyle}>
         <RichText

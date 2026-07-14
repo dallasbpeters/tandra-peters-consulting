@@ -50,7 +50,9 @@ export const HOME_AND_SITE_QUERY = groq`{
         },
         _type == "birdcreekVideoBannerSection" => {
           vimeoUrl,
-          title
+          videoUrl,
+          title,
+          "posterUrl": posterUrl.asset->url
         },
         _type == "videoSection" => {
           "video": coalesce(video.asset->url, video),

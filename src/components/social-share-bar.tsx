@@ -4,7 +4,6 @@ import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import { useIsMobile } from "../hooks/is-mobile";
 import { plainTextFromRich } from "../portableText/plain-text";
 import { layoutClass } from "../styles/layout-classes";
 import { theme } from "../theme";
@@ -18,7 +17,6 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const posthog = usePostHog();
-  const isMobile = useIsMobile();
   const { pathname, search, hash } = useLocation();
 
   const pageUrl = useMemo(
@@ -37,47 +35,15 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
   const encodedUrl = encodeURIComponent(pageUrl);
   const encodedText = encodeURIComponent(sharePlain);
 
-  /**
-   * Facebook killed direct web→native-app share deep links (`fb://` sharing is
-   * gone; `sharer.php`/`dialog/share` are web pages that just open in Safari).
-   * The only reliable way to hand the link to the installed Facebook app on
-   * iOS is the Web Share API: it opens the native share sheet, and tapping
-   * Facebook launches the app's composer. `sharer.php` stays as the href so
-   * desktop (and any browser without Web Share) still gets the popup.
-   */
+  // Open Facebook's share dialog directly on every platform. We deliberately do
+  // NOT route this through the Web Share API on mobile — that pops the iOS share
+  // sheet instead of taking the user straight to Facebook.
   const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
   const twitterHref = `https://x.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const mailHref = `mailto:?subject=${encodeURIComponent(sharePlain)}&body=${encodeURIComponent(`${sharePlain}\n\n${pageUrl}`)}`;
   const nextdoorHref = buildNextdoorShareUrl(
     `Check out ${sharePlain} ${pageUrl}`
-  );
-
-  const canWebShare =
-    typeof navigator !== "undefined" && typeof navigator.share === "function";
-
-  const handleFacebookShare = useCallback(
-    async (event: React.MouseEvent<HTMLAnchorElement>) => {
-      posthog?.capture("social_share_clicked", { platform: "facebook" });
-
-      // On phones, prefer the native share sheet so an installed Facebook app
-      // opens its composer instead of loading facebook.com in the browser.
-      if (!(pageUrl && isMobile && canWebShare)) {
-        return;
-      }
-      event.preventDefault();
-      try {
-        await navigator.share({ text: sharePlain || undefined, url: pageUrl });
-      } catch (error) {
-        // User dismissed the sheet → do nothing. Any other failure → fall back
-        // to the web sharer so the click is never a dead end.
-        if (error instanceof Error && error.name === "AbortError") {
-          return;
-        }
-        window.open(facebookHref, "_blank", "noopener,noreferrer");
-      }
-    },
-    [posthog, pageUrl, isMobile, canWebShare, sharePlain, facebookHref]
   );
 
   const handleCopyLink = useCallback(async () => {
@@ -177,9 +143,9 @@ export const SocialShareBar: React.FC<SocialShareBarProps> = ({
             aria-label={facebookAriaLabel}
             className="social-share-icon"
             href={pageUrl ? facebookHref : undefined}
-            onClick={(event) => {
-              handleFacebookShare(event);
-            }}
+            onClick={() =>
+              posthog?.capture("social_share_clicked", { platform: "facebook" })
+            }
             rel="noopener noreferrer"
             style={iconButtonStyle}
             target="_blank"

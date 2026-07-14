@@ -5,6 +5,7 @@ const GA_API_URL =
   `${process.env.SANITY_STUDIO_PREVIEW_URL || "https://www.tandra.me"}/api/analytics`;
 
 type Days = 7 | 30 | 90;
+type View = "real" | "total";
 
 interface Overview {
   totalUsers: number;
@@ -12,6 +13,12 @@ interface Overview {
   screenPageViews: number;
   bounceRate: number;
   averageSessionDuration: number;
+}
+
+interface OverviewComparison {
+  total: Overview;
+  real: Overview;
+  internal: Overview;
 }
 
 interface TopPage {
@@ -31,11 +38,17 @@ interface DailyPoint {
   date: string;
   screenPageViews: number;
   sessions: number;
+  realScreenPageViews?: number;
+  realSessions?: number;
+  internalScreenPageViews?: number;
+  internalSessions?: number;
 }
 
 interface AnalyticsData {
   period: string;
   overview: Overview;
+  overviewComparison?: OverviewComparison;
+  internalFilterAvailable?: boolean;
   topPages: TopPage[];
   topSources: TopSource[];
   dailyTrend: DailyPoint[];
@@ -78,8 +91,17 @@ const VALUE: React.CSSProperties = {
   lineHeight: 1,
 };
 
+const SUBLABEL: React.CSSProperties = {
+  color: "rgb(180 195 180 / 55%)",
+  fontSize: "0.72rem",
+  fontWeight: 600,
+  marginTop: "0.45rem",
+  minHeight: "0.9rem",
+};
+
 export const GaDashboardTool = () => {
   const [days, setDays] = useState<Days>(30);
+  const [view, setView] = useState<View>("real");
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,12 +137,21 @@ export const GaDashboardTool = () => {
     };
   }, [days]);
 
+  const internalAvailable = data?.internalFilterAvailable ?? false;
+  const activeView: View = internalAvailable ? view : "total";
+  const overview: Overview | undefined = data
+    ? (data.overviewComparison?.[activeView] ?? data.overview)
+    : undefined;
+  const internalOverview = data?.overviewComparison?.internal;
+
   const maxPageViews = data
     ? Math.max(...data.topPages.map((p) => p.screenPageViews), 1)
     : 1;
   const maxSessions = data
     ? Math.max(...data.topSources.map((s) => s.sessions), 1)
     : 1;
+  // Scale bars by TOTAL so the real bar + stacked internal segment (which sum to
+  // total) always stay within the chart height.
   const maxDailyViews = data
     ? Math.max(...data.dailyTrend.map((d) => d.screenPageViews), 1)
     : 1;
@@ -168,29 +199,71 @@ export const GaDashboardTool = () => {
           </p>
         </div>
 
-        {/* Date range buttons */}
-        <div style={{ display: "flex", gap: "0.4rem" }}>
-          {([7, 30, 90] as Days[]).map((d) => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              style={{
-                background: days === d ? "#92b661" : "#1a2020",
-                border: "1px solid",
-                borderColor: days === d ? "#92b661" : "rgb(255 255 255 / 12%)",
-                borderRadius: 6,
-                color: days === d ? "#0c1210" : "#edf3ed",
-                cursor: "pointer",
-                font: "inherit",
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                padding: "0.35rem 0.75rem",
-              }}
-              type="button"
-            >
-              {d}d
-            </button>
-          ))}
+        <div style={{ alignItems: "center", display: "flex", gap: "0.75rem" }}>
+          {/* Total / Real toggle */}
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            {(["real", "total"] as View[]).map((v) => {
+              const isActive = activeView === v;
+              const isDisabled = v === "real" && !internalAvailable;
+              return (
+                <button
+                  disabled={isDisabled}
+                  key={v}
+                  onClick={() => setView(v)}
+                  style={{
+                    background: isActive ? "#92b661" : "#1a2020",
+                    border: "1px solid",
+                    borderColor: isActive
+                      ? "#92b661"
+                      : "rgb(255 255 255 / 12%)",
+                    borderRadius: 6,
+                    color: isActive ? "#0c1210" : "#edf3ed",
+                    cursor: isDisabled ? "not-allowed" : "pointer",
+                    font: "inherit",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    opacity: isDisabled ? 0.4 : 1,
+                    padding: "0.35rem 0.75rem",
+                    textTransform: "capitalize",
+                  }}
+                  title={
+                    isDisabled
+                      ? "Real traffic needs the internal-traffic filter set up in GA4"
+                      : undefined
+                  }
+                  type="button"
+                >
+                  {v}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Date range buttons */}
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            {([7, 30, 90] as Days[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                style={{
+                  background: days === d ? "#92b661" : "#1a2020",
+                  border: "1px solid",
+                  borderColor:
+                    days === d ? "#92b661" : "rgb(255 255 255 / 12%)",
+                  borderRadius: 6,
+                  color: days === d ? "#0c1210" : "#edf3ed",
+                  cursor: "pointer",
+                  font: "inherit",
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  padding: "0.35rem 0.75rem",
+                }}
+                type="button"
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -215,7 +288,28 @@ export const GaDashboardTool = () => {
         </p>
       )}
 
-      {data && !loading && (
+      {data && !loading && !internalAvailable && (
+        <p
+          style={{
+            background: "rgb(146 182 97 / 8%)",
+            border: "1px solid rgb(146 182 97 / 25%)",
+            borderRadius: 8,
+            color: "rgb(180 195 180 / 80%)",
+            fontSize: "0.8rem",
+            lineHeight: 1.5,
+            margin: "0 0 1.25rem",
+            padding: "0.7rem 1rem",
+          }}
+        >
+          Showing <strong>Total</strong> traffic only. To compare against{" "}
+          <strong>Real</strong> traffic (excluding your own visits), define an
+          internal-traffic rule in GA4 and register a <code>traffic_type</code>{" "}
+          custom dimension. The comparison appears automatically once
+          that&rsquo;s set up.
+        </p>
+      )}
+
+      {data && !loading && overview && (
         <>
           {/* Overview KPIs */}
           <div
@@ -227,23 +321,41 @@ export const GaDashboardTool = () => {
             }}
           >
             {[
-              { label: "Users", value: fmt(data.overview.totalUsers) },
-              { label: "Sessions", value: fmt(data.overview.sessions) },
               {
-                label: "Page Views",
-                value: fmt(data.overview.screenPageViews),
+                internal: internalOverview?.totalUsers,
+                label: "Users",
+                value: fmt(overview.totalUsers),
               },
-              { label: "Bounce Rate", value: fmtPct(data.overview.bounceRate) },
+              {
+                internal: internalOverview?.sessions,
+                label: "Sessions",
+                value: fmt(overview.sessions),
+              },
+              {
+                internal: internalOverview?.screenPageViews,
+                label: "Page Views",
+                value: fmt(overview.screenPageViews),
+              },
+              { label: "Bounce Rate", value: fmtPct(overview.bounceRate) },
               {
                 label: "Avg. Session",
-                value: fmtDuration(data.overview.averageSessionDuration),
+                value: fmtDuration(overview.averageSessionDuration),
               },
-            ].map(({ label, value }) => (
-              <div key={label} style={CARD}>
-                <div style={LABEL}>{label}</div>
-                <div style={VALUE}>{value}</div>
-              </div>
-            ))}
+            ].map(({ internal, label, value }) => {
+              const showDelta =
+                activeView === "real" &&
+                typeof internal === "number" &&
+                internal > 0;
+              return (
+                <div key={label} style={CARD}>
+                  <div style={LABEL}>{label}</div>
+                  <div style={VALUE}>{value}</div>
+                  <div style={SUBLABEL}>
+                    {showDelta ? `−${fmt(internal)} you (internal)` : ""}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Two-column: trend + sources */}
@@ -257,8 +369,38 @@ export const GaDashboardTool = () => {
           >
             {/* Daily trend */}
             <div style={CARD}>
-              <div style={{ ...LABEL, marginBottom: "1rem" }}>
-                Daily Page Views
+              <div
+                style={{
+                  ...LABEL,
+                  alignItems: "center",
+                  display: "flex",
+                  gap: "0.75rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <span>Daily Page Views</span>
+                {activeView === "real" && internalAvailable && (
+                  <span
+                    style={{
+                      alignItems: "center",
+                      color: "rgb(180 195 180 / 55%)",
+                      display: "flex",
+                      gap: "0.3rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span
+                      style={{
+                        background: "rgb(255 255 255 / 22%)",
+                        borderRadius: 2,
+                        display: "inline-block",
+                        height: 8,
+                        width: 8,
+                      }}
+                    />
+                    you (internal)
+                  </span>
+                )}
               </div>
               <div
                 style={{
@@ -268,29 +410,50 @@ export const GaDashboardTool = () => {
                   height: 100,
                 }}
               >
-                {data.dailyTrend.map((pt) => (
-                  <div
-                    key={pt.date}
-                    style={{
-                      display: "flex",
-                      flex: 1,
-                      flexDirection: "column",
-                      gap: 4,
-                      justifyContent: "flex-end",
-                    }}
-                    title={`${fmtDate(pt.date)}: ${fmt(pt.screenPageViews)} views`}
-                  >
+                {data.dailyTrend.map((pt) => {
+                  const realViews =
+                    pt.realScreenPageViews ?? pt.screenPageViews;
+                  const internalViews = pt.internalScreenPageViews ?? 0;
+                  const showInternal =
+                    activeView === "real" &&
+                    internalAvailable &&
+                    internalViews > 0;
+                  const baseViews =
+                    activeView === "real" ? realViews : pt.screenPageViews;
+                  return (
                     <div
+                      key={pt.date}
                       style={{
-                        background: "#92b661",
-                        borderRadius: "2px 2px 0 0",
-                        height: `${Math.max(2, (pt.screenPageViews / maxDailyViews) * 100)}%`,
-                        minHeight: 2,
-                        opacity: 0.85,
+                        display: "flex",
+                        flex: 1,
+                        flexDirection: "column",
+                        gap: 0,
+                        justifyContent: "flex-end",
                       }}
-                    />
-                  </div>
-                ))}
+                      title={`${fmtDate(pt.date)}: ${fmt(baseViews)} ${activeView === "real" ? "real" : "total"} views${showInternal ? ` (+${fmt(internalViews)} you)` : ""}`}
+                    >
+                      {showInternal && (
+                        <div
+                          style={{
+                            background: "rgb(255 255 255 / 22%)",
+                            borderRadius: "2px 2px 0 0",
+                            height: `${Math.max(2, (internalViews / maxDailyViews) * 100)}%`,
+                            minHeight: 2,
+                          }}
+                        />
+                      )}
+                      <div
+                        style={{
+                          background: "#92b661",
+                          borderRadius: showInternal ? 0 : "2px 2px 0 0",
+                          height: `${Math.max(2, (baseViews / maxDailyViews) * 100)}%`,
+                          minHeight: 2,
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
               <div
                 style={{

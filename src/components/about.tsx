@@ -121,22 +121,20 @@ export const About: React.FC<AboutProps> = ({
   const tandraPhoto = cssUrl(imageSrc ?? "/tandra.webp");
   const stackedPhotoBackdrop = `linear-gradient(45deg, ${theme.colors.black}, ${theme.colors.paper})`;
 
-  const unstackedBackgroundSize = isMobile ? "contain" : "cover";
-
   const imagewrapperStyle: React.CSSProperties = {
     backgroundImage: isStacked
       ? `${tandraPhoto}, ${stackedPhotoBackdrop}`
       : tandraPhoto,
-    backgroundPosition: isStacked ? "60% 0, center" : "60% 0",
+    backgroundPosition: isStacked ? "50% 50%, center" : "50% 0",
     backgroundRepeat: "no-repeat",
 
     // First layer = photo (top); second = gradient fill behind it in the pill.
-    backgroundSize: isStacked ? "contain" : unstackedBackgroundSize,
-    borderRadius: isStacked ? theme.radius.pill : 0,
-    height: isStacked ? 200 : "100%",
+    backgroundSize: "cover",
+    borderRadius: isStacked ? theme.radius.small : 0,
+    height: isStacked ? 300 : "100%",
     overflow: "clip",
     position: "relative",
-    width: isStacked ? 200 : 400,
+    width: isStacked ? "100%" : 400,
     zIndex: 10,
   };
 
