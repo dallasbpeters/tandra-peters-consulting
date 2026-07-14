@@ -32,9 +32,12 @@ interface HandfontLetterProps {
   color?: string;
 }
 
-/** Rendered width of a glyph at the given height. */
-export const glyphWidth = (glyph: ParsedGlyph, height: number): number =>
-  (glyph.vw / glyph.vh) * height;
+/** Rendered width of a glyph at the given height, using tight bounds when available. */
+export const glyphWidth = (glyph: ParsedGlyph, height: number): number => {
+  const vw = glyph.tightBounds?.w ?? glyph.vw;
+  const vh = glyph.tightBounds?.h ?? glyph.vh;
+  return vh > 0 ? (vw / vh) * height : height;
+};
 
 export const HandfontLetter = ({
   glyph,
@@ -48,6 +51,13 @@ export const HandfontLetter = ({
   // Strip React's `:r0:` colons — they are invalid in CSS id selectors.
   const clipId = `hfc${rawId.replaceAll(":", "")}`;
 
+  // Use tight bounds when available so the glyph fills its allocated height
+  // regardless of how much SVG export padding surrounds the strokes.
+  const tb = glyph.tightBounds;
+  const effectiveViewBox = tb
+    ? `${tb.x} ${tb.y} ${tb.w} ${tb.h}`
+    : glyph.viewBox;
+
   const width = glyphWidth(glyph, height);
   const n = Math.max(1, glyph.strokePaths.length);
 
@@ -58,7 +68,7 @@ export const HandfontLetter = ({
       aria-hidden="true"
       height={height}
       overflow="visible"
-      viewBox={glyph.viewBox}
+      viewBox={effectiveViewBox}
       width={width}
       x={x}
       y={y}

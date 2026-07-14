@@ -175,14 +175,25 @@ export const SCHEMAS: Record<string, EditorSchema> = {
     },
     {
       fields: [
-        { key: "scenes.0.type", label: "Scene 1 type", type: "text" },
         {
-          key: "scenes.0.headline",
-          label: "Scene 1 headline",
+          key: "scenes.0.drawing.prompt",
+          label: "✏️ Drawing prompt",
+          placeholder: "e.g. house with storm cloud and hail on roof",
+          type: "text",
+        },
+        {
+          key: "scenes.0.drawing.paths",
+          label: "Drawing paths (auto-filled by ✏️ Generate Drawings)",
           type: "textarea",
         },
-        { key: "scenes.0.eyebrow", label: "Scene 1 eyebrow", type: "text" },
-        { key: "scenes.0.subtitle", label: "Scene 1 subtitle", type: "text" },
+        { key: "scenes.0.type", label: "Scene type", type: "text" },
+        {
+          key: "scenes.0.headline",
+          label: "Headline",
+          type: "textarea",
+        },
+        { key: "scenes.0.eyebrow", label: "Eyebrow", type: "text" },
+        { key: "scenes.0.subtitle", label: "Subtitle", type: "text" },
         {
           key: "scenes.0.narration.script",
           label: "Narration script",
@@ -190,22 +201,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         },
         {
           key: "scenes.0.narration.audioUrl",
-          label: "Audio URL (generated)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.0.illustrationUrl",
-          label: "Illustration URL (FAL AI)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.0.drawing.prompt",
-          label: "Drawing prompt (describe what to draw)",
-          type: "text",
-        },
-        {
-          key: "scenes.0.drawing.paths",
-          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          label: "Audio URL (auto-filled by 🎙 Generate Voiceover)",
           type: "textarea",
         },
       ],
@@ -214,6 +210,17 @@ export const SCHEMAS: Record<string, EditorSchema> = {
     },
     {
       fields: [
+        {
+          key: "scenes.1.drawing.prompt",
+          label: "✏️ Drawing prompt",
+          placeholder: "e.g. clipboard checklist with checkmarks",
+          type: "text",
+        },
+        {
+          key: "scenes.1.drawing.paths",
+          label: "Drawing paths (auto-filled by ✏️ Generate Drawings)",
+          type: "textarea",
+        },
         { key: "scenes.1.heading", label: "Heading", type: "text" },
         { key: "scenes.1.bullets.0", label: "Bullet 1", type: "text" },
         { key: "scenes.1.bullets.1", label: "Bullet 2", type: "text" },
@@ -230,22 +237,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         },
         {
           key: "scenes.1.narration.audioUrl",
-          label: "Audio URL (generated)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.1.illustrationUrl",
-          label: "Illustration URL (FAL AI)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.1.drawing.prompt",
-          label: "Drawing prompt (describe what to draw)",
-          type: "text",
-        },
-        {
-          key: "scenes.1.drawing.paths",
-          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          label: "Audio URL (auto-filled by 🎙 Generate Voiceover)",
           type: "textarea",
         },
       ],
@@ -254,6 +246,17 @@ export const SCHEMAS: Record<string, EditorSchema> = {
     },
     {
       fields: [
+        {
+          key: "scenes.2.drawing.prompt",
+          label: "✏️ Drawing prompt",
+          placeholder: "e.g. magnifying glass over roof with hail dents",
+          type: "text",
+        },
+        {
+          key: "scenes.2.drawing.paths",
+          label: "Drawing paths (auto-filled by ✏️ Generate Drawings)",
+          type: "textarea",
+        },
         {
           key: "scenes.2.label",
           label: "Label (e.g. 'Did You Know?')",
@@ -269,22 +272,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         },
         {
           key: "scenes.2.narration.audioUrl",
-          label: "Audio URL (generated)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.2.illustrationUrl",
-          label: "Illustration URL (FAL AI)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.2.drawing.prompt",
-          label: "Drawing prompt (describe what to draw)",
-          type: "text",
-        },
-        {
-          key: "scenes.2.drawing.paths",
-          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          label: "Audio URL (auto-filled by 🎙 Generate Voiceover)",
           type: "textarea",
         },
       ],
@@ -293,6 +281,17 @@ export const SCHEMAS: Record<string, EditorSchema> = {
     },
     {
       fields: [
+        {
+          key: "scenes.3.drawing.prompt",
+          label: "✏️ Drawing prompt",
+          placeholder: "e.g. three arrows labeled inspect document navigate",
+          type: "text",
+        },
+        {
+          key: "scenes.3.drawing.paths",
+          label: "Drawing paths (auto-filled by ✏️ Generate Drawings)",
+          type: "textarea",
+        },
         { key: "scenes.3.heading", label: "Heading", type: "text" },
         { key: "scenes.3.steps.0.label", label: "Step 1 label", type: "text" },
         {
@@ -319,22 +318,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         },
         {
           key: "scenes.3.narration.audioUrl",
-          label: "Audio URL (generated)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.3.illustrationUrl",
-          label: "Illustration URL (FAL AI)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.3.drawing.prompt",
-          label: "Drawing prompt (describe what to draw)",
-          type: "text",
-        },
-        {
-          key: "scenes.3.drawing.paths",
-          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          label: "Audio URL (auto-filled by 🎙 Generate Voiceover)",
           type: "textarea",
         },
       ],
@@ -343,6 +327,17 @@ export const SCHEMAS: Record<string, EditorSchema> = {
     },
     {
       fields: [
+        {
+          key: "scenes.4.drawing.prompt",
+          label: "✏️ Drawing prompt",
+          placeholder: "e.g. hand holding phone with speech bubble",
+          type: "text",
+        },
+        {
+          key: "scenes.4.drawing.paths",
+          label: "Drawing paths (auto-filled by ✏️ Generate Drawings)",
+          type: "textarea",
+        },
         { key: "scenes.4.headline", label: "CTA headline", type: "textarea" },
         {
           key: "scenes.4.action",
@@ -358,22 +353,7 @@ export const SCHEMAS: Record<string, EditorSchema> = {
         },
         {
           key: "scenes.4.narration.audioUrl",
-          label: "Audio URL (generated)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.4.illustrationUrl",
-          label: "Illustration URL (FAL AI)",
-          type: "textarea",
-        },
-        {
-          key: "scenes.4.drawing.prompt",
-          label: "Drawing prompt (describe what to draw)",
-          type: "text",
-        },
-        {
-          key: "scenes.4.drawing.paths",
-          label: "Drawing paths (JSON array — auto-filled by Generate)",
+          label: "Audio URL (auto-filled by 🎙 Generate Voiceover)",
           type: "textarea",
         },
       ],

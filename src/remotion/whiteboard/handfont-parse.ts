@@ -39,6 +39,239 @@ export interface StrokePath {
   strokeWidth: number;
 }
 
+/** Tight axis-aligned bounding box of a glyph's stroke paths in SVG user units. */
+export interface TightBounds {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+// ---------------------------------------------------------------------------
+// Path bounding-box helper (supports all SVG path commands)
+// ---------------------------------------------------------------------------
+
+interface BBox {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+/**
+ * Compute the bounding box of a single SVG path `d` string.
+ * For Bézier curves this uses the convex-hull of control points — a valid
+ * (slightly conservative) bound that is more than accurate enough for glyph
+ * sizing.  Returns null for empty or unparseable paths.
+ */
+function pathBbox(d: string): BBox | null {
+  // Tokenise into command letters and numeric strings
+  const tokens = d.match(
+    /[MLHVCSQTAZmlhvcsqtaz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g
+  );
+  if (!tokens) {
+    return null;
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let cx = 0;
+  let cy = 0;
+  let cmd = "M";
+  let nums: number[] = [];
+
+  const addPt = (px: number, py: number) => {
+    if (px < minX) {
+      minX = px;
+    }
+    if (px > maxX) {
+      maxX = px;
+    }
+    if (py < minY) {
+      minY = py;
+    }
+    if (py > maxY) {
+      maxY = py;
+    }
+  };
+
+  const flush = () => {
+    const n = nums;
+    nums = [];
+    switch (cmd) {
+      // Absolute moveto / lineto — identical coordinate handling
+      case "M":
+      case "L":
+      case "T": {
+        for (let i = 0; i + 1 < n.length; i += 2) {
+          cx = n[i];
+          cy = n[i + 1];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      // Relative moveto / lineto / smooth quadratic
+      case "m":
+      case "l":
+      case "t": {
+        for (let i = 0; i + 1 < n.length; i += 2) {
+          cx += n[i];
+          cy += n[i + 1];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "H": {
+        for (const v of n) {
+          cx = v;
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "h": {
+        for (const v of n) {
+          cx += v;
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "V": {
+        for (const v of n) {
+          cy = v;
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "v": {
+        for (const v of n) {
+          cy += v;
+          addPt(cx, cy);
+        }
+        break;
+      }
+      // Cubic Bézier — bound via control points
+      case "C": {
+        for (let i = 0; i + 5 < n.length; i += 6) {
+          addPt(n[i], n[i + 1]);
+          addPt(n[i + 2], n[i + 3]);
+          cx = n[i + 4];
+          cy = n[i + 5];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "c": {
+        for (let i = 0; i + 5 < n.length; i += 6) {
+          addPt(cx + n[i], cy + n[i + 1]);
+          addPt(cx + n[i + 2], cy + n[i + 3]);
+          cx += n[i + 4];
+          cy += n[i + 5];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      // Smooth cubic / quadratic — bound via control point + endpoint
+      case "S":
+      case "Q": {
+        for (let i = 0; i + 3 < n.length; i += 4) {
+          addPt(n[i], n[i + 1]);
+          cx = n[i + 2];
+          cy = n[i + 3];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "s":
+      case "q": {
+        for (let i = 0; i + 3 < n.length; i += 4) {
+          addPt(cx + n[i], cy + n[i + 1]);
+          cx += n[i + 2];
+          cy += n[i + 3];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      // Arc — approximate with endpoint only
+      case "A": {
+        for (let i = 0; i + 6 < n.length; i += 7) {
+          cx = n[i + 5];
+          cy = n[i + 6];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      case "a": {
+        for (let i = 0; i + 6 < n.length; i += 7) {
+          cx += n[i + 5];
+          cy += n[i + 6];
+          addPt(cx, cy);
+        }
+        break;
+      }
+      // Z/z — closepath, no coordinates; all other unknown commands: no-op
+      default: {
+        break;
+      }
+    }
+  };
+
+  for (const tok of tokens) {
+    if (/^[MLHVCSQTAZmlhvcsqtaz]$/.test(tok)) {
+      flush();
+      cmd = tok;
+    } else {
+      const v = Number.parseFloat(tok);
+      if (!Number.isNaN(v)) {
+        nums.push(v);
+      }
+    }
+  }
+  flush();
+
+  if (!Number.isFinite(minX)) {
+    return null;
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+/** Merge two BBox objects into their union. */
+function mergeBbox(a: BBox, b: BBox): BBox {
+  return {
+    minX: Math.min(a.minX, b.minX),
+    minY: Math.min(a.minY, b.minY),
+    maxX: Math.max(a.maxX, b.maxX),
+    maxY: Math.max(a.maxY, b.maxY),
+  };
+}
+
+/** Compute a tight bounding box across all stroke paths of a glyph. */
+function computeTightBounds(paths: StrokePath[]): TightBounds | undefined {
+  let box: BBox | null = null;
+  let maxSw = 0;
+  for (const sp of paths) {
+    const b = pathBbox(sp.d);
+    if (b) {
+      box = box ? mergeBbox(box, b) : b;
+    }
+    if (sp.strokeWidth > maxSw) {
+      maxSw = sp.strokeWidth;
+    }
+  }
+  if (!box) {
+    return undefined;
+  }
+  // Pad by half the stroke width so the marker edge isn't clipped.
+  const pad = maxSw / 2;
+  return {
+    x: box.minX - pad,
+    y: box.minY - pad,
+    w: box.maxX - box.minX + pad * 2,
+    h: box.maxY - box.minY + pad * 2,
+  };
+}
+
 export interface ParsedGlyph {
   /** viewBox string, e.g. "0 0 58.42 80.33" */
   viewBox: string;
@@ -51,6 +284,12 @@ export interface ParsedGlyph {
   clipPathD?: string;
   /** One or more drawing-trajectory stroke paths. */
   strokePaths: StrokePath[];
+  /**
+   * Tight bounding box of the actual strokes (padded by ½ stroke-width).
+   * When present, HandfontLetter uses this as the viewBox so the letter
+   * fills its allocated height regardless of SVG export padding.
+   */
+  tightBounds?: TightBounds;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +459,8 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     })
     .filter((sp) => sp.d.length > 0);
 
-  return { viewBox, vw, vh, clipPathD, strokePaths };
+  const tightBounds = computeTightBounds(strokePaths);
+  return { viewBox, vw, vh, clipPathD, strokePaths, tightBounds };
 }
 
 // ---------------------------------------------------------------------------

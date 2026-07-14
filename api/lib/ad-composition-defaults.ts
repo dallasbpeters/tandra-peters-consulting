@@ -316,6 +316,9 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
   inkColor: "#1C1C1C",
   scenes: [
     {
+      drawing: {
+        prompt: "house with storm cloud and hail falling on roof",
+      },
       durationInFrames: 120,
       eyebrow: "Austin Area Homeowners",
       headline: "Is your roof\nstorm damaged?",
@@ -328,6 +331,9 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
         "Insurance claim guidance",
         "Oversee repairs with Birdcreek crews",
       ],
+      drawing: {
+        prompt: "clipboard checklist with three checkmarks",
+      },
       durationInFrames: 240,
       heading: "What I do for you",
       type: "bullets",
@@ -335,6 +341,9 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
     },
     {
       body: "Austin roofs have undocumented hail damage right now.",
+      drawing: {
+        prompt: "magnifying glass over a roof showing hail dents",
+      },
       durationInFrames: 150,
       emphasis: "Yours could be one of them.",
       label: "The Reality",
@@ -342,6 +351,9 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
       type: "callout",
     },
     {
+      drawing: {
+        prompt: "three arrows pointing right labeled inspect document navigate",
+      },
       durationInFrames: 240,
       heading: "How it works",
       steps: [
@@ -355,6 +367,9 @@ export const WHITEBOARD_EXPLAINER_DEFAULTS = {
       action: "Call or text: 512-968-3965",
       badge: "No cost · No pressure",
       byline: "Tandra Peters · Birdcreek Roofing",
+      drawing: {
+        prompt: "hand holding a phone with speech bubble",
+      },
       durationInFrames: 150,
       headline: "Get a free\ninspection today.",
       type: "cta",

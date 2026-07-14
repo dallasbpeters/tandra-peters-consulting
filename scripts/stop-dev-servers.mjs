@@ -196,11 +196,14 @@ const findBlockedPorts = (targetNames) => {
       const blockingPids = findPidsForPort(port);
 
       for (const pid of blockingPids) {
-        blockedPorts.push({
-          port,
-          processInfo: inspectProcess(pid),
-          target,
-        });
+        const processInfo = inspectProcess(pid);
+        // Only block startup when the lingering process IS a dev server for
+        // this target (i.e. it matched but didn't release the port in time).
+        // External processes — IDEs, system daemons, etc. — are not our
+        // responsibility to kill; Vite/Sanity's own port-selection handles them.
+        if (processMatchesTarget(processInfo, target)) {
+          blockedPorts.push({ port, processInfo, target });
+        }
       }
     }
   }
