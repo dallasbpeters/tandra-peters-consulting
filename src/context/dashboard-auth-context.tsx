@@ -16,6 +16,7 @@ import {
   initializeGoogleIdentity,
   isAllowedGoogleUser,
   parseGoogleJwtPayload,
+  requestGoogleAccessToken,
   subscribeGoogleCredential,
 } from "../lib/google-auth-core";
 
@@ -27,6 +28,8 @@ export interface DashboardAuthContextValue {
   buttonRef: React.RefCallback<HTMLDivElement>;
   clientId: string;
   ready: boolean;
+  /** Request an OAuth access token for extra scopes (Contacts, Drive). */
+  requestAccessToken: (scope: string) => Promise<string>;
   signOut: (message?: string) => void;
   token: string | null;
   user: GoogleAuthUser | null;
@@ -50,6 +53,16 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     setUser(null);
     setAuthError(message ?? null);
   }, []);
+
+  const requestAccessToken = useCallback(
+    (scope: string) => {
+      if (!clientId) {
+        return Promise.reject(new Error("Missing VITE_GOOGLE_CLIENT_ID."));
+      }
+      return requestGoogleAccessToken(clientId, scope);
+    },
+    [clientId]
+  );
 
   const setTokenFromCredential = useCallback((credential: string) => {
     const parsed = parseGoogleJwtPayload(credential);
@@ -181,11 +194,21 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
       buttonRef: combinedRef,
       clientId,
       ready,
+      requestAccessToken,
       signOut,
       token,
       user,
     }),
-    [authError, combinedRef, clientId, ready, signOut, token, user]
+    [
+      authError,
+      combinedRef,
+      clientId,
+      ready,
+      requestAccessToken,
+      signOut,
+      token,
+      user,
+    ]
   );
 };
 

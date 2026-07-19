@@ -510,8 +510,26 @@ export const contactSectionType = defineType({
   fields: [
     defineField({ name: "tagline", type: "string" }),
     defineField({ name: "title", type: "string" }),
+    defineField({
+      description: 'Heading above the email address (e.g. "Email").',
+      name: "emailInfoLabel",
+      title: "Email label",
+      type: "string",
+    }),
     defineField({ name: "email", type: "string" }),
+    defineField({
+      description: 'Heading above the phone number (e.g. "Phone").',
+      name: "phoneInfoLabel",
+      title: "Phone label",
+      type: "string",
+    }),
     defineField({ name: "phone", type: "string" }),
+    defineField({
+      description: 'Heading above the location (e.g. "Location").',
+      name: "locationInfoLabel",
+      title: "Location label",
+      type: "string",
+    }),
     defineField({ name: "location", type: "string" }),
   ],
   name: "contactSection",

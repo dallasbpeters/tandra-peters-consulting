@@ -84,8 +84,11 @@ export const Contact = ({
   tagline = "Contact the consultant",
   title = "Request a free roofing consultation in Austin or statewide.",
   email = "tandra@birdcreekroofing.com",
+  emailInfoLabel = "Email",
   phone = "(512) 968-3965",
+  phoneInfoLabel = "Phone",
   location = "Austin, Texas",
+  locationInfoLabel = "Location",
   serviceOptions = CONTACT_SERVICE_OPTIONS,
   formLabels,
 }: ContactProps) => {
@@ -106,8 +109,11 @@ export const Contact = ({
   const cleanedTagline = cleanPlainText(tagline);
   const cleanedTitle = cleanPlainText(title);
   const cleanedEmail = cleanPlainText(email);
+  const cleanedEmailInfoLabel = cleanPlainText(emailInfoLabel);
   const cleanedPhone = cleanPlainText(phone);
+  const cleanedPhoneInfoLabel = cleanPlainText(phoneInfoLabel);
   const cleanedLocation = cleanPlainText(location);
+  const cleanedLocationInfoLabel = cleanPlainText(locationInfoLabel);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: inherently complex orchestration logic
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -431,7 +437,7 @@ export const Contact = ({
                 <Mail style={{ color: "inherit" }} />
               </div>
               <div>
-                <p style={labelStyle}>Email</p>
+                <p style={labelStyle}>{cleanedEmailInfoLabel}</p>
                 <a href={`mailto:${cleanedEmail}`} style={valueStyle}>
                   {cleanedEmail}
                 </a>
@@ -442,7 +448,7 @@ export const Contact = ({
                 <Phone style={{ color: "inherit" }} />
               </div>
               <div>
-                <p style={labelStyle}>Phone</p>
+                <p style={labelStyle}>{cleanedPhoneInfoLabel}</p>
                 <a href={phoneHrefFor(cleanedPhone)} style={valueStyle}>
                   {cleanedPhone}
                 </a>
@@ -453,7 +459,7 @@ export const Contact = ({
                 <MapPin style={{ color: "inherit" }} />
               </div>
               <div>
-                <p style={labelStyle}>Location</p>
+                <p style={labelStyle}>{cleanedLocationInfoLabel}</p>
                 <p style={valueStyle}>{cleanedLocation}</p>
               </div>
             </div>

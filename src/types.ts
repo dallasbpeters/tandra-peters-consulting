@@ -200,6 +200,8 @@ export interface ContactServiceOption {
 export interface ContactProps {
   contactInfo?: ContactInfo[];
   email?: string;
+  /** Heading shown above the email address in the info column (e.g. "Email"). */
+  emailInfoLabel?: string;
   formLabels?: {
     name?: string;
     email?: string;
@@ -209,7 +211,11 @@ export interface ContactProps {
     button?: string;
   };
   location?: string;
+  /** Heading shown above the location in the info column (e.g. "Location"). */
+  locationInfoLabel?: string;
   phone?: string;
+  /** Heading shown above the phone number in the info column (e.g. "Phone"). */
+  phoneInfoLabel?: string;
   /** Defaults to shared roofing options from repo-root `contactServiceOptions.ts` */
   serviceOptions?: readonly ContactServiceOption[];
   tagline?: string;

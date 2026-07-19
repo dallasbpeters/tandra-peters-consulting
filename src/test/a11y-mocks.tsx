@@ -286,6 +286,7 @@ vi.mock("../context/dashboard-auth-context", () => ({
     buttonRef: { current: null },
     clientId: "test-client-id",
     ready: true,
+    requestAccessToken: () => Promise.resolve("test-access-token"),
     signOut: () => {
       // noop
     },

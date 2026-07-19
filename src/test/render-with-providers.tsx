@@ -11,6 +11,7 @@ export const mockSanitySiteValue: SanitySiteContextValue = {
   data: {
     home: { hero: {} },
     latestPosts: [],
+    reportBranding: null,
     site: {},
   },
   error: null,

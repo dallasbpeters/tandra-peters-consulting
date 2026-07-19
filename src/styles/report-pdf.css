@@ -1,0 +1,1166 @@
+/* Branded Photo PDF tool — all styles centralized here (Constitution III: no
+   inline @media in React). Report tokens mirror src/lib/report-pdf/tokens.ts.
+   Preview pages use container-query units (cqw) so on-screen geometry scales in
+   exact proportion to the exported PDF (SC-011 preview/export parity). */
+
+:root {
+  --report-primary: #0f3d2a;
+  --report-accent: #3f7d5f;
+  --report-accent-light: #b8e87a;
+  --report-text: #1b1b1b;
+  --report-muted: #5b615c;
+  --report-border: #dcded9;
+  --report-bg: #ffffff;
+  --report-bg-subtle: #f5f6f2;
+  --report-cover-bg: #072326;
+  --report-on-dark: #ffffff;
+  --report-on-dark-muted: #a9bcb2;
+  --report-on-dark-rule: rgb(255 255 255 / 35%);
+
+  /* Page geometry as a fraction of page width (48pt margin / 612pt page). */
+  --report-pad: 7.84cqw;
+  --report-heading-font: "Hanken Grotesk Variable", sans-serif;
+  --report-body-font: "IBM Plex Serif", serif;
+}
+
+/* ── Tool shell ── */
+
+.report-pdf-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100dvh;
+  padding: var(--theme-spacing-xxxxl);
+  margin-block-start: var(--theme-spacing-xxxxl);
+}
+/* Compact toolbar/icon buttons: hide the text label below the split breakpoint
+   so buttons collapse to icon-only and the editor column fits. Opt a button OUT
+   (keep its text) by adding the `report-btn-show-label` class. */
+@media screen and (max-width: 1232px) {
+  wa-button:not(.report-btn-show-label)::part(label) {
+    display: none;
+  }
+  wa-button:not(.report-btn-show-label)::part(base) {
+    gap: 0;
+  }
+}
+@media screen and (max-width: 500px) {
+  .report-pdf-shell {
+    padding: var(--theme-spacing-sm);
+    margin-block-start: 0;
+  }
+}
+
+.report-pdf-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.report-pdf-header h1 {
+  font-family: var(--report-heading-font);
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.report-pdf-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.report-error {
+  color: #b3261e;
+  background: #fce8e6;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.report-status {
+  color: var(--report-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ── Auth gate ── */
+
+.report-auth-card {
+  max-width: 26rem;
+  margin: 3rem auto;
+  text-align: center;
+  border: 1px solid var(--report-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  background: var(--report-bg-subtle);
+}
+
+.report-auth-card h2 {
+  font-family: var(--report-heading-font);
+  margin-top: 0;
+}
+
+.report-auth-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* ── Pane switcher (mobile: swipe + tablist; desktop: split) ── */
+
+.report-panes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.report-tablist-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--theme-palette-granite-950);
+  padding: 0.5rem;
+}
+
+.report-tablist {
+  display: inline-grid;
+  align-self: center;
+  border: 1px solid var(--report-border);
+  border-radius: 9999px;
+  padding: 0.2rem;
+  gap: 0.2rem;
+  background: var(--theme-palette-granite-800);
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.report-tab {
+  border: 0;
+  background: transparent;
+  border-radius: 9999px;
+  padding: 0.4rem 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--theme-palette-granite-200);
+  font-family: var(--report-heading-font);
+}
+
+.report-tab[aria-selected="true"] {
+  background: var(--theme-palette-granite-950);
+  color: #fff;
+}
+
+.report-tab:focus-visible {
+  outline: 2px solid var(--report-accent);
+  outline-offset: 2px;
+}
+
+.report-panes-viewport {
+  overflow: hidden;
+}
+
+.report-panes-track {
+  display: flex;
+  width: 200%;
+  transition: transform 0.25s ease;
+}
+
+.report-pane {
+  width: 50%;
+  flex: 0 0 50%;
+  min-width: 0;
+}
+
+/* Desktop split: inputs left, preview right. */
+.report-panes--split .report-panes-track {
+  width: 100%;
+  transform: none !important;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.report-panes--split .report-pane {
+  width: 50%;
+  flex: 1 1 0;
+}
+
+/* Keep the editor in view while scrolling the (taller) preview column. */
+.report-panes--split .report-pane:first-child {
+  position: sticky;
+  top: var(--site-padding-inline-start);
+  align-self: flex-start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.report-panes--split .report-tablist {
+  display: none;
+}
+
+/* ── Editor pane ── */
+
+.report-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 5rem;
+  /* Let children shrink below their content min-width so a wide details table
+     scrolls inside its card instead of pushing the whole column past the pane. */
+  min-width: 0;
+  max-width: 100vw;
+}
+
+.report-fieldset {
+  border: 1px solid var(--report-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.report-fieldset > legend {
+  font-family: var(--report-heading-font);
+  font-weight: 700;
+  padding: 0 0.4rem;
+}
+
+.report-hint {
+  color: var(--report-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.report-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.report-section-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.report-section-row > *:first-child {
+  flex: 1 1 auto;
+}
+
+/* Field wrapper. Single-line inputs carry the mic button inside their WebAwesome
+   `end` slot; the multiline overall-note keeps the mic beside the textarea. */
+.report-field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.report-field > *:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Property address: anchors the "near me" suggestions dropdown. */
+.report-field--address {
+  position: relative;
+}
+
+.report-nearby {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--report-bg);
+  border: 1px solid var(--report-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 14%);
+}
+
+.report-nearby-status {
+  margin: 0;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+  color: var(--report-muted);
+}
+
+.report-nearby-status--error {
+  color: #b3261e;
+}
+
+.report-nearby-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-nearby-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--report-text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.report-nearby-item:hover,
+.report-nearby-item:focus-visible {
+  background: var(--report-bg-subtle);
+  outline: none;
+}
+
+.report-nearby-item svg {
+  flex: 0 0 auto;
+  color: var(--report-accent);
+}
+
+.report-nearby-dismiss {
+  align-self: flex-end;
+  padding: 0.2rem 0.4rem;
+  border: 0;
+  background: transparent;
+  color: var(--report-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Overall-note textarea: mic sits at the top-right, clear of the typing area. */
+.report-field--textarea {
+  align-items: flex-end;
+  position: relative;
+
+  button {
+    z-index: 3;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+
+/* Dictation (mic) button. Rendered by AI Elements; kept compact so it fits the
+   input's end slot when idle. */
+.report-dictation {
+  flex: 0 0 auto;
+}
+
+.report-dictation--recording {
+  color: #dc2626;
+}
+
+/* While recording inside a WebAwesome input, let the mic button + waveform take
+   over the whole field: collapse the native input and grow the `end` slot so the
+   waveform spans full width. Scoped to the report editor to stay contained. */
+.report-editor wa-input:has(.report-dictation--recording)::part(input) {
+  flex: 0 0 0;
+  min-width: 0;
+  width: 0;
+  padding-inline: 0;
+}
+
+.report-editor wa-input:has(.report-dictation--recording)::part(end) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Slotted button fills the grown `end` slot; the waveform takes the free space
+   and the stop icon stays pinned to the right. Double class beats Tailwind
+   utility specificity (justify-center / fixed icon size). */
+.report-dictation.report-dictation--recording {
+  flex: 1 1 auto;
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* Live recording waveform (the motion itself is the "recording" indicator). */
+.report-wave {
+  display: block;
+  overflow: visible;
+  height: 18px;
+  /* Neutral gray, independent of the button's danger (stop) color. */
+  color: #9ca3af;
+}
+
+.report-dictation--recording .report-wave {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.report-wave rect {
+  fill: currentColor;
+}
+
+/* Fallback when no AnalyserNode is available: animate the bars with CSS. */
+.report-wave--sim rect {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: report-wave-bounce 0.9s ease-in-out infinite;
+}
+
+@keyframes report-wave-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes report-dictation-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.report-dictation-spin {
+  animation: report-dictation-spin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-wave--sim rect {
+    animation-duration: 2.4s;
+  }
+
+  .report-dictation-spin {
+    animation-duration: 2.4s;
+  }
+}
+
+.report-photo-intake {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.report-cover-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.report-cover-thumb {
+  width: 5rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--report-border, #dcded9);
+}
+
+.report-cover-picker-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.report-photo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.report-photo-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid var(--report-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-inline-start: 0;
+  min-width: 0;
+}
+
+.report-photo-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  flex: 0 0 auto;
+  background: var(--report-bg-subtle);
+}
+
+.report-photo-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Form controls fill the card and never force it wider than the pane. */
+.report-photo-body wa-input,
+.report-photo-body wa-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.report-photo-controls {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.report-table-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-top: 1px dashed var(--report-border);
+  padding-top: 0.5rem;
+  min-width: 0;
+}
+
+/* The table can be wider than a narrow pane; scroll it here instead of letting
+   its min-content width push the whole editor column past the viewport. */
+.report-table-editor-scroll {
+  overflow-x: auto;
+  min-width: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.report-table-editor table {
+  border-collapse: collapse;
+  /* Fill when there's room, grow (and scroll) when the columns need more. */
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.8rem;
+}
+
+.report-table-editor th,
+.report-table-editor td {
+  border: 1px solid var(--report-border);
+  padding: 0.15rem;
+}
+
+/* Keep each field usable when the table scrolls; they no longer need to fit. */
+.report-table-editor th wa-input,
+.report-table-editor td wa-input {
+  min-width: 8rem;
+}
+
+.report-empty {
+  color: var(--report-muted);
+  border: 1px dashed var(--report-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* ── Preview (page cards) ── */
+
+.report-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--report-bg-subtle);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  overflow-y: auto;
+  max-width: 100vw;
+}
+
+.report-page {
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+  background: var(--report-bg);
+  color: var(--report-text);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 15%);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--report-body-font);
+}
+
+.report-page-inner {
+  position: absolute;
+  inset: var(--report-pad);
+  display: flex;
+  flex-direction: column;
+}
+
+.report-runhead {
+  font-family: var(--report-heading-font);
+  font-size: 1.5cqw;
+  color: var(--report-text);
+  border-bottom: 0.16cqw solid var(--report-border);
+  padding-bottom: 1.3cqw;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.report-runfoot {
+  margin-top: auto;
+  font-family: var(--report-heading-font);
+  font-size: 1.5cqw;
+  color: var(--report-text);
+  border-top: 0.16cqw solid var(--report-border);
+  padding-top: 1.3cqw;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Dark pages (contact) flip the running head/foot to light-on-dark. */
+.report-page--contact .report-runhead,
+.report-page--contact .report-runfoot {
+  color: var(--report-on-dark);
+}
+
+.report-page--contact .report-runhead {
+  border-bottom-color: var(--report-on-dark-rule);
+}
+
+.report-page--contact .report-runfoot {
+  border-top-color: var(--report-on-dark-rule);
+}
+
+/* Cover (near-black green, full-bleed) */
+
+.report-page--cover {
+  background: var(--report-cover-bg);
+  color: var(--report-on-dark);
+}
+
+.report-page--cover .report-page-inner {
+  align-items: stretch;
+}
+
+.report-cover-mark {
+  display: block;
+  height: 9cqw;
+  width: auto;
+  aspect-ratio: 183.97 / 117.21;
+  color: var(--report-on-dark);
+  margin-bottom: 1.6cqw;
+}
+
+/* Image cover variant: 3/4 full-bleed hero + 1/4 brand bar. */
+.report-page--cover-image {
+  display: flex;
+  flex-direction: column;
+  color: var(--report-on-dark);
+}
+
+.report-cover-hero {
+  position: relative;
+  flex: 4 1 0;
+  overflow: hidden;
+}
+
+.report-cover-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.report-cover-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(7 35 38 / 48%) 0%,
+    rgb(7 35 38 / 12%) 42%,
+    rgb(7 35 38 / 34%) 100%
+  );
+}
+
+.report-cover-hero-text {
+  position: absolute;
+  inset: var(--report-pad) var(--report-pad) auto;
+}
+
+.report-cover-bar {
+  flex: 1 1 0;
+  background: var(--report-cover-bg);
+  padding: 0 var(--report-pad) var(--report-pad) var(--report-pad);
+  display: flex;
+  align-items: end;
+}
+
+.report-cover-bar .report-cover-foot {
+  margin-top: 0;
+  width: 100%;
+}
+
+.report-cover-eyebrow {
+  font-family: var(--report-heading-font);
+  color: var(--report-accent-light);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 1.8cqw;
+  font-weight: 700;
+  margin: 0;
+}
+
+.report-cover-title {
+  font-family: var(--report-heading-font);
+  color: var(--report-on-dark);
+  font-size: 7cqw;
+  font-weight: 700;
+  margin: 3cqw 0 0;
+  line-height: 1.02;
+}
+
+.report-cover-property {
+  font-family: var(--report-heading-font);
+  font-size: 2.12cqw;
+  margin: 1.6cqw 0 0;
+  color: var(--report-on-dark-muted);
+}
+
+.report-cover-decor {
+  display: grid;
+  grid-template-columns: repeat(var(--report-decor-cols, 10), 1fr);
+  column-gap: 1cqw;
+  row-gap: 0.85cqw;
+  align-items: center;
+  margin-top: 5cqw;
+}
+
+.report-cover-decor > span {
+  grid-column: var(--report-decor-gc, span 1);
+  height: 0.3cqw;
+  background: var(--report-accent);
+  opacity: 0.22;
+}
+
+.report-cover-decor > span[data-tall="true"] {
+  height: 1.05cqw;
+  opacity: 0.6;
+}
+
+.report-cover-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.report-cover-tagline {
+  font-family: var(--report-heading-font);
+  color: var(--report-accent-light);
+  font-weight: 600;
+  font-size: 1.8cqw;
+  margin: 0;
+}
+
+.report-cover-date {
+  font-family: var(--report-heading-font);
+  color: var(--report-on-dark-muted);
+  font-size: 1.5cqw;
+  margin: 0.6cqw 0 0;
+}
+
+.report-cover-byline {
+  text-align: right;
+}
+
+.report-cover-byline-label {
+  font-family: var(--report-heading-font);
+  color: var(--report-on-dark);
+  font-size: 1.5cqw;
+  margin: 0;
+}
+
+.report-cover-byline-name {
+  font-family: var(--report-heading-font);
+  color: var(--report-accent-light);
+  font-weight: 700;
+  font-size: 2.12cqw;
+  margin: 0.4cqw 0 0;
+}
+
+/* Photo page */
+
+.report-section-title {
+  font-family: var(--report-heading-font);
+  color: var(--report-primary);
+  font-size: 3.2cqw;
+  font-weight: 700;
+  margin: 2.6cqw 0 0;
+}
+
+.report-photo-figure {
+  margin: 2cqw 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6cqw;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.report-photo-image {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 3in;
+  object-fit: cover;
+  background: var(--report-bg-subtle);
+  border-radius: 1cqw;
+}
+
+.report-photo-caption {
+  font-size: 1.8cqw;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.report-details-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1.63cqw;
+}
+
+.report-details-table th {
+  text-align: left;
+  background: var(--report-bg-subtle);
+  font-family: var(--report-heading-font);
+}
+
+.report-details-table th,
+.report-details-table td {
+  border: 0.16cqw solid var(--report-border);
+  padding: 1cqw 1.3cqw;
+  vertical-align: top;
+}
+
+/* Note page */
+
+.report-note-title {
+  font-family: var(--report-heading-font);
+  color: var(--report-primary);
+  font-size: 2.61cqw;
+  margin: 2cqw 0 1.3cqw;
+}
+
+.report-note-body {
+  font-size: 1.96cqw;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Contact page (forest green, full-bleed) */
+
+.report-page--contact {
+  background: var(--report-primary);
+  color: var(--report-on-dark);
+}
+
+.report-contact-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: 4cqw;
+}
+
+.report-contact-title {
+  font-family: var(--report-heading-font);
+  color: var(--report-on-dark);
+  font-size: 4.4cqw;
+  font-weight: 700;
+  margin: 0 0 2cqw;
+}
+
+.report-contact-intro {
+  color: var(--report-on-dark-muted);
+  font-family: var(--report-heading-font);
+  font-size: 2cqw;
+  line-height: 1.6;
+  margin: 0 0 5cqw;
+  max-width: 62%;
+}
+
+.report-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2.6cqw;
+  font-size: 2.12cqw;
+}
+
+.report-contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  color: var(--report-on-dark);
+}
+
+.report-contact-chip {
+  flex: 0 0 auto;
+  width: 3.6cqw;
+  height: 3.6cqw;
+  border-radius: 0.8cqw;
+  background: var(--report-accent);
+  color: var(--report-on-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-contact-chip svg {
+  width: 2cqw;
+  height: 2cqw;
+}
+
+/* ── Report library overlay ─────────────────────────────────────────── */
+
+.report-library-overlay {
+  position: fixed;
+  inset: var(--site-padding-inline-start) 0 0 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.report-library-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgb(15 31 24 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+.report-library-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(560px, 100%);
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1.25rem 1.25rem 2rem;
+  background: var(--wa-color-surface-default, #fff);
+  box-shadow: -8px 0 32px rgb(15 31 24 / 20%);
+}
+
+.report-library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  padding-bottom: 0.5rem;
+  background: inherit;
+}
+
+.report-library-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.report-library-empty,
+.report-library-error {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.report-library-error {
+  color: #b3261e;
+}
+
+.report-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-library-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid var(--wa-color-neutral-fill-normal, #e4e8e6);
+  border-radius: 0.75rem;
+}
+
+.report-library-card[data-current="true"] {
+  border-color: var(--report-accent, #3a7d5d);
+  box-shadow: 0 0 0 1px var(--report-accent, #3a7d5d);
+}
+
+.report-library-card-main {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.report-library-thumb {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  background: var(--wa-color-neutral-fill-quiet, #f3f5f4);
+}
+
+.report-library-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wa-color-neutral-fill-loud, #5b6b62);
+}
+
+.report-library-meta {
+  min-width: 0;
+}
+
+.report-library-title {
+  margin: 0 0 0.15rem;
+  font-weight: 600;
+}
+
+.report-library-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--wa-color-neutral-fill-loud, #5b6b62);
+}
+
+.report-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.report-library-versions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px dashed var(--wa-color-neutral-fill-normal, #e4e8e6);
+  list-style: none;
+}
+
+.report-library-versions li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.report-library-version-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+/* ── Send dialog ────────────────────────────────────────────────────── */
+
+.report-send-recipients-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.report-send-recipients-head > *:first-child {
+  flex: 1 1 auto;
+}
+
+.report-send-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-send-chips button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--report-on-dark, #fff);
+  background: var(--report-accent, #3a7d5d);
+}
+
+.report-send-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--wa-color-neutral-fill-normal, #e4e8e6);
+  border-radius: 0.5rem;
+  list-style: none;
+}
+
+.report-send-pool label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+
+.report-send-pool label:hover {
+  background: var(--wa-color-neutral-fill-quiet, #f3f5f4);
+}
+
+.report-send-pool label span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.report-send-result p {
+  margin: 0 0 0.4rem;
+}
+
+.report-send-failed {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.8rem;
+  color: #b3261e;
+}

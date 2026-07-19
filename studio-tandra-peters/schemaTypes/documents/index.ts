@@ -22,6 +22,8 @@ export { emailSignatureType } from "./emailSignature";
 export { estimatorPageType } from "./estimatorPage";
 export { homePageType } from "./homePage";
 export { insuranceFaqsPageType } from "./insuranceFaqsPage";
+export { reportBrandingType } from "./reportBranding";
+export { reportDocumentType } from "./reportDocument";
 export { roofInspectionsPageType } from "./roofInspectionsPage";
 export { seoDashboardInsightsType } from "./seoDashboardInsights";
 export { siteSettingsType } from "./siteSettings";

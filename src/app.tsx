@@ -130,6 +130,11 @@ const VideosPage = lazy(async () => {
   return { default: module.VideosPage };
 });
 
+const ReportPdfPage = lazy(async () => {
+  const module = await import("./pages/report-pdf-page");
+  return { default: module.ReportPdfPage };
+});
+
 const RootLayout = () => (
   <>
     <RouteScrollManager />
@@ -204,6 +209,7 @@ const appRouter = createBrowserRouter([
       { element: <EmailComposerPage />, path: "email" },
       { element: <FalUpscalerPage />, path: "upscaler" },
       { element: <VideosPage />, path: "videos" },
+      { element: <ReportPdfPage />, path: "report" },
     ],
     element: <RootLayout />,
   },

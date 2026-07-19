@@ -1,0 +1,49 @@
+/* =============================================================================
+   Buttons — single source of truth for global WebAwesome <wa-button> styling.
+   -----------------------------------------------------------------------------
+   Keep all app-wide button rules here. Feature-specific button variants live
+   with their feature stylesheets by design, because they are class-scoped and
+   should not load app-wide:
+     - Desk link/action/generate buttons: src/styles/desk.css (.desk-* classes)
+     - Report tool mobile icon-only buttons: src/styles/report-pdf.css
+     - Ad copy form button placement: src/styles/ad-dashboard.css
+   The shared backend-theme text color for form controls (buttons, inputs,
+   selects, …) stays in src/index.css since it is not button-specific.
+   ========================================================================== */
+
+/* Anchor rendered as a button (e.g. a link with the .wa-button class). */
+a.wa-button {
+  --wa-color-fill-loud: var(--theme-color-white);
+  --wa-color-fill-normal: var(--theme-palette-granite-400);
+  --wa-form-control-border-color: var(--theme-palette-granite-400);
+  --wa-form-control-border-style: solid;
+  --wa-form-control-border-width: 1px;
+}
+
+/* Base button surface: dark fill + white label with themed inner spacing. */
+wa-button::part(base) {
+  --wa-color-on-normal: var(--theme-color-white);
+  --wa-color-fill-normal: var(--theme-palette-granite-900);
+  --backend-text: var(--theme-color-white);
+  gap: var(--theme-spacing-md);
+}
+
+wa-button[variant~="danger"]::part(base) {
+  --wa-color-on-normal: var(--theme-color-white);
+  --wa-color-fill-normal: var(--theme-palette-coral-600);
+}
+
+/* Outlined and plain buttons have a transparent background, so their text must
+   use the variant's on-color token — not the loud white used for filled
+   buttons. Without this, the blanket `color: white` above renders neutral
+   (and other) outlined buttons as unreadable white-on-light text. */
+wa-button[appearance~="outlined"]::part(base),
+wa-button[appearance~="plain"]::part(base) {
+  color: var(--wa-color-on-quiet, var(--wa-color-neutral-on-quiet));
+}
+
+wa-button::part(start) img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}

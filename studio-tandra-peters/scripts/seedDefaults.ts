@@ -266,8 +266,11 @@ export const homePageSeed = {
   contact: {
     _type: "contactSection" as const,
     email: "tandra@birdcreekroofing.com",
+    emailInfoLabel: "Email",
     location: "Austin, Texas",
+    locationInfoLabel: "Location",
     phone: "(512) 968-3965",
+    phoneInfoLabel: "Phone",
     tagline: "Contact the consultant",
     title: "Request a free roofing consultation in Austin or statewide.",
   },

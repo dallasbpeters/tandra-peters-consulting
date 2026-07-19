@@ -75,6 +75,7 @@ const resolveHomeArticleCards = (
 export interface HomeDocuments {
   home: Record<string, unknown> | null;
   latestPosts: PostListItem[];
+  reportBranding: Record<string, unknown> | null;
   site: Record<string, unknown> | null;
 }
 

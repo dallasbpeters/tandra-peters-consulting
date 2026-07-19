@@ -160,6 +160,68 @@ export const initializeGoogleIdentity = (clientId: string): Promise<void> => {
 export const getGoogleClientId = (): string =>
   import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? "";
 
+/** Read-only Google Contacts (own + auto-saved) for the recipient picker. */
+export const GOOGLE_CONTACTS_SCOPE =
+  "https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/contacts.other.readonly";
+
+/** Per-file Drive access — the app only sees files it creates. */
+export const GOOGLE_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+interface CachedAccessToken {
+  expiresAt: number;
+  token: string;
+}
+
+const accessTokenCache = new Map<string, CachedAccessToken>();
+
+/**
+ * Obtain an OAuth access token for the given space-separated `scope` via the
+ * GIS token client. Tokens are cached per-scope for the session; the first
+ * request for a scope shows a consent popup, later ones reuse the grant.
+ */
+export const requestGoogleAccessToken = async (
+  clientId: string,
+  scope: string
+): Promise<string> => {
+  const cached = accessTokenCache.get(scope);
+  if (cached && cached.expiresAt > Date.now() + 60_000) {
+    return cached.token;
+  }
+
+  await loadGoogleIdentityScript();
+  const oauth2 = window.google?.accounts?.oauth2;
+  if (!oauth2) {
+    throw new Error("Google authorization is unavailable.");
+  }
+
+  return new Promise<string>((resolve, reject) => {
+    const client = oauth2.initTokenClient({
+      callback: (response) => {
+        if (response.error || !response.access_token) {
+          reject(
+            new Error(
+              response.error_description ??
+                response.error ??
+                "Google authorization was denied."
+            )
+          );
+          return;
+        }
+        accessTokenCache.set(scope, {
+          expiresAt: Date.now() + (response.expires_in ?? 3600) * 1000,
+          token: response.access_token,
+        });
+        resolve(response.access_token);
+      },
+      client_id: clientId,
+      error_callback: (error) =>
+        reject(new Error(error.type ?? "Google authorization failed.")),
+      scope,
+    });
+    client.requestAccessToken();
+  });
+};
+
 /** When false, gated sections render without sign-in. Set `VITE_GOOGLE_AUTH_GATE_ENABLED=true` to enable. */
 export const isGoogleAuthGateEnabled = (): boolean =>
   import.meta.env.VITE_GOOGLE_AUTH_GATE_ENABLED?.trim().toLowerCase() ===

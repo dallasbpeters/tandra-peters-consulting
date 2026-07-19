@@ -38,6 +38,8 @@ import React from "react";
 
 import { getServiceIconComponent } from "../icons/service-icon-map";
 import type { ContactBannerProps } from "../lib/contact-banner-presets";
+import { REPORT_COLORS } from "../lib/report-pdf/tokens";
+import type { BrandProfile } from "../lib/report-pdf/types";
 import { asOptionalRichText, asRichTextValue } from "../portableText/value";
 import { theme } from "../theme";
 import type {
@@ -808,8 +810,13 @@ export const mapContactProps = (c: SanityDoc): Partial<ContactProps> => {
   return {
     ...(c.tagline ? { tagline: c.tagline as string } : {}),
     ...(c.title ? { title: c.title as string } : {}),
+    ...(c.emailInfoLabel ? { emailInfoLabel: c.emailInfoLabel as string } : {}),
     ...(c.email ? { email: c.email as string } : {}),
+    ...(c.phoneInfoLabel ? { phoneInfoLabel: c.phoneInfoLabel as string } : {}),
     ...(c.phone ? { phone: c.phone as string } : {}),
+    ...(c.locationInfoLabel
+      ? { locationInfoLabel: c.locationInfoLabel as string }
+      : {}),
     ...(c.location ? { location: c.location as string } : {}),
   };
 };
@@ -1125,3 +1132,36 @@ export const mapServiceAreaMapProps = (
 
   return out;
 };
+
+const cleanBrandString = (value: unknown): string =>
+  typeof value === "string" ? stegaClean(value).trim() : "";
+
+/** Brand name shown on the cover eyebrow + running header when Sanity is unset. */
+const DEFAULT_BRAND_NAME = "Birdcreek Roofing";
+
+const HEX_COLOR_RE = /^#[0-9a-f]{3,8}$/iu;
+const cleanBrandHex = (value: unknown): string | null => {
+  const parsed = cleanBrandString(value);
+  return HEX_COLOR_RE.test(parsed) ? parsed : null;
+};
+
+/**
+ * Resolve the `reportBranding` singleton into a `BrandProfile`. Colors fall back
+ * to `src/theme.ts`-derived report tokens when unset; a missing document yields
+ * empty contact fields (degrades gracefully — see contract "Missing doc").
+ */
+export const mapReportBranding = (
+  raw: Record<string, unknown> | null | undefined
+): BrandProfile => ({
+  address: cleanBrandString(raw?.address),
+  colors: {
+    accent: cleanBrandHex(raw?.colorAccent) ?? REPORT_COLORS.accent,
+    primary: cleanBrandHex(raw?.colorPrimary) ?? REPORT_COLORS.primary,
+    text: cleanBrandHex(raw?.colorText) ?? REPORT_COLORS.text,
+  },
+  email: cleanBrandString(raw?.email),
+  footerText: cleanBrandString(raw?.footerText) || DEFAULT_BRAND_NAME,
+  logoUrl: typeof raw?.logoUrl === "string" ? raw.logoUrl : null,
+  phone: cleanBrandString(raw?.phone),
+  website: cleanBrandString(raw?.website),
+});

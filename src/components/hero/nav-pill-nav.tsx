@@ -166,7 +166,7 @@ export const NavPillNav: React.FC<NavProps> = ({
       height: scrolled ? "3rem" : "3.5rem",
       justifyContent: "space-between",
       left: "50%",
-      minInlineSize: "60vw",
+      minInlineSize: "80vw",
       padding: `0 ${theme.spacing.sm} 0 ${theme.spacing.xl}`,
       position: "fixed",
       top: scrolled ? "1rem" : "1.75rem",

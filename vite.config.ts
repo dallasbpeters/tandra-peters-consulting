@@ -30,6 +30,7 @@ import { viteRenderTandraIntroApi } from "./plugins/vite-render-tandra-intro-api
 import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
 import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
 import { viteSitemapApi } from "./plugins/vite-sitemap-api";
+import { viteTranscribeApi } from "./plugins/vite-transcribe-api";
 import { viteUnsplashApi } from "./plugins/vite-unsplash-api";
 import { viteWhiteboardDrawingApi } from "./plugins/vite-whiteboard-drawing-api";
 import { viteWhiteboardVoiceoverApi } from "./plugins/vite-whiteboard-voiceover-api";
@@ -149,6 +150,7 @@ export default defineConfig(({ mode }) => {
     viteAnalyticsApi(env) as unknown as PluginOption,
     viteWhiteboardVoiceoverApi(env) as unknown as PluginOption,
     viteWhiteboardDrawingApi(env) as unknown as PluginOption,
+    viteTranscribeApi(env) as unknown as PluginOption,
     viteGlyphEditorApi() as unknown as PluginOption,
     ...(useLocalContactApi
       ? [viteContactDevApi(env) as unknown as PluginOption]

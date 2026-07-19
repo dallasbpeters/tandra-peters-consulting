@@ -191,8 +191,11 @@ export const HOME_AND_SITE_QUERY = groq`{
         _type == "contactSection" => {
           tagline,
           title,
+          emailInfoLabel,
           email,
+          phoneInfoLabel,
           phone,
+          locationInfoLabel,
           location
         },
         _type == "socialShareSection" => {
@@ -237,7 +240,21 @@ export const HOME_AND_SITE_QUERY = groq`{
   "latestPosts": select(
     count(*[_id == "homePage"][0].sections[_type == "articlesTeaserSection"][0].articles[]) > 0 => [],
     *[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...20] ${postListItemProjection}
-  )
+  ),
+  "reportBranding": *[_id == "reportBranding"][0]{
+    _id,
+    _type,
+    _updatedAt,
+    "logoUrl": logo.asset->url,
+    footerText,
+    phone,
+    email,
+    website,
+    address,
+    colorPrimary,
+    colorAccent,
+    colorText
+  }
 }`;
 
 const roofInspectionSectionProjection = groq`{

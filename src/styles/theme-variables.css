@@ -244,12 +244,7 @@ wa-checkbox {
   --checked-icon-color: var(--theme-palette-everglade-300);
 }
 
-a.wa-button {
-  --wa-color-fill-loud: var(--theme-color-white);
-  --wa-form-control-border-color: var(--theme-palette-granite-400);
-  --wa-form-control-border-style: solid;
-  --wa-form-control-border-width: 1px;
-}
+/* Global <wa-button> styling lives in src/styles/buttons.css. */
 
 @property --article-link-underline-start {
   syntax: "<color>";
@@ -1169,17 +1164,4 @@ a.wa-button {
 
 .ad-toolbar-popover--wide {
   --max-width: min(34rem, calc(100vw - 2rem));
-}
-
-.ad-image-picker__popover {
-  --arrow-size: 0;
-  --max-width: min(64rem, calc(100vw - 2rem));
-  --show-duration: 120ms;
-  --hide-duration: 90ms;
-}
-
-.ad-image-picker__source-toggle {
-  --width: 2.6rem;
-  --height: 1.45rem;
-  --thumb-size: 1.05rem;
 }

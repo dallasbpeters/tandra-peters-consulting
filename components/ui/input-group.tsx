@@ -84,6 +84,8 @@ const inputGroupButtonVariants = cva(
         "icon-sm": "size-8 p-0 has-[>svg]:p-0",
         "icon-xs": "size-6 p-0 has-[>svg]:p-0",
         sm: "",
+        md: "size-10 p-0 has-[>svg]:p-0",
+        full: "w-full h-10",
         xs: "h-6 gap-1 px-1.5 [&>svg:not([class*='size-'])]:size-3.5",
       },
     },

@@ -1,0 +1,310 @@
+/* =============================================================================
+   Ad image picker — self-contained styles for <AdImagePicker>.
+   -----------------------------------------------------------------------------
+   Imported by src/components/ad-image-picker.tsx so the picker works wherever it
+   is used (ad dashboard toolbar AND the report-pdf cover picker), not just on
+   pages that happen to load ad-dashboard.css.
+
+   The popover surface reads --studio-* design tokens. Those are defined on the
+   .ad-dashboard-shell scope, so we mirror them on .ad-image-picker (with theme
+   fallbacks) to make the component portable. Inside .ad-dashboard-shell the
+   --backend-* tokens resolve to the exact same values, so the ad dashboard is
+   visually unchanged.
+   ========================================================================== */
+
+.ad-image-picker {
+  --studio-bg: var(--backend-page, var(--theme-color-paper));
+  --studio-panel: var(--backend-surface, var(--theme-color-white));
+  --studio-panel-raised: var(
+    --backend-surface-raised,
+    var(--theme-color-paper)
+  );
+  --studio-border: var(
+    --backend-border,
+    color-mix(in oklch, var(--theme-palette-everglade-950) 12%, transparent)
+  );
+  --studio-border-strong: var(
+    --backend-border-strong,
+    color-mix(in oklch, var(--theme-palette-everglade-950) 26%, transparent)
+  );
+  --studio-text: var(--backend-text, var(--theme-color-everglade));
+  --studio-muted: var(
+    --backend-muted,
+    color-mix(in oklch, var(--theme-color-everglade) 62%, transparent)
+  );
+  --studio-accent: var(--backend-accent, var(--theme-color-everglade));
+  --shadow-large: var(--backend-shadow, var(--theme-shadow-md));
+  display: inline-flex;
+}
+
+.ad-image-picker__popover {
+  --arrow-size: 0;
+  --max-width: min(64rem, calc(100vw - 2rem));
+  --show-duration: 120ms;
+  --hide-duration: 90ms;
+}
+
+.ad-image-picker__source-toggle {
+  --width: 2.6rem;
+  --height: 1.45rem;
+  --thumb-size: 1.05rem;
+}
+
+.ad-image-picker__popover::part(body) {
+  padding: 0;
+}
+
+.ad-image-picker__surface {
+  display: grid;
+  gap: var(--theme-spacing-lg);
+  width: min(64rem, calc(100vw - 2rem));
+  max-height: min(58vh, 48rem);
+  padding: var(--theme-spacing-lg);
+  /* Single scroll container for the whole panel so nothing gets clipped. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: var(--studio-text);
+  background: var(--studio-panel);
+  border: 1px solid var(--studio-border);
+  border-radius: var(--theme-radius-medium);
+  box-shadow: var(--shadow-large);
+}
+
+.ad-image-picker__topbar {
+  --picker-flex-direction: row;
+  --picker-align-items: center;
+  display: flex;
+  gap: var(--theme-spacing-lg);
+  align-items: var(--picker-align-items);
+  justify-content: space-between;
+  flex-direction: var(--picker-flex-direction);
+}
+
+@media (width <= 500px) {
+  .ad-image-picker__topbar {
+    --picker-flex-direction: column;
+    --picker-align-items: start;
+  }
+}
+
+.ad-image-picker__topbar div {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  min-width: 0;
+}
+
+.ad-image-picker__topbar strong {
+  font-size: 1rem;
+  color: var(--studio-text);
+}
+
+.ad-image-picker__topbar span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--studio-muted);
+}
+
+.ad-image-picker__source-toggle {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 850;
+  color: var(--studio-text);
+}
+
+.ad-image-picker__search {
+  max-width: 28rem;
+}
+
+.ad-image-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--theme-spacing-md);
+  align-content: start;
+  /* Flows within the scrollable surface (no competing inner scroll region). */
+  padding-right: var(--theme-spacing-nudge);
+}
+
+.ad-image-picker__topbar button,
+.ad-image-picker__preview button,
+.ad-image-picker__grid button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.ad-image-picker__topbar button,
+.ad-image-picker__preview button {
+  display: inline-flex;
+  gap: var(--theme-spacing-sm);
+  align-items: center;
+  justify-content: center;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  font-size: 0.78rem;
+  font-weight: 850;
+  color: var(--studio-text);
+  background: var(--studio-panel-raised);
+  border: 1px solid var(--studio-border);
+  border-radius: var(--theme-radius-pill);
+}
+
+.ad-image-picker__topbar button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.ad-image-picker__empty {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--studio-muted);
+}
+
+.ad-image-picker__browser {
+  display: grid;
+  grid-template-columns: minmax(28rem, 1.45fr) minmax(20rem, 0.9fr);
+  gap: var(--theme-spacing-lg);
+  min-height: 0;
+}
+
+.ad-image-picker__preview {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--studio-bg);
+  border: 1px solid var(--studio-border);
+  border-radius: var(--theme-radius-medium);
+}
+
+.ad-image-picker__preview > img {
+  --image-min-height: 100px;
+  --image-max-height: 300px;
+  width: 100%;
+  height: 100%;
+  min-height: var(--image-min-height);
+  max-height: var(--image-max-height);
+  object-fit: contain;
+  background-color: var(--theme-palette-granite-900);
+  background-position: center;
+  background-size: cover;
+}
+
+.ad-image-picker__preview > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--theme-spacing-xs) var(--theme-spacing-lg);
+  align-items: center;
+  padding: var(--theme-spacing-md);
+  background: var(--studio-panel-raised);
+}
+
+.ad-image-picker__preview strong,
+.ad-image-picker__preview span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-image-picker__preview strong {
+  font-size: 0.95rem;
+  color: var(--studio-text);
+}
+
+.ad-image-picker__preview span {
+  grid-column: 1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--studio-muted);
+}
+
+.ad-image-picker__preview button {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: var(--theme-palette-paper-light-950);
+  background: var(--studio-accent);
+  border-color: transparent;
+}
+
+.ad-image-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--theme-spacing-md);
+  align-content: start;
+  /* Flows within the scrollable surface (no competing inner scroll region). */
+  padding-right: var(--theme-spacing-nudge);
+}
+
+.ad-image-picker__grid span {
+  display: grid;
+  gap: var(--theme-spacing-hairline);
+  min-width: 0;
+}
+
+.ad-image-picker__grid strong,
+.ad-image-picker__grid small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-image-picker__grid button {
+  display: grid;
+  gap: var(--theme-spacing-tight);
+  min-width: 0;
+  min-block-size: 150px;
+  padding: var(--theme-spacing-sm);
+  color: var(--studio-text);
+  text-align: left;
+  background: var(--studio-panel-raised);
+  border: 2px solid transparent;
+  border-radius: var(--theme-radius-medium);
+}
+
+.ad-image-picker__grid button:where(:hover, :focus-visible),
+.ad-image-picker__grid button.is-selected {
+  min-height: min-content;
+  border-color: var(--studio-accent);
+}
+
+.ad-image-picker__grid img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background-color: var(--theme-palette-granite-900);
+  background-position: center;
+  background-size: cover;
+  border-radius: var(--theme-radius-small);
+}
+
+.ad-image-picker__grid strong {
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.ad-image-picker__grid small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--studio-muted);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────── */
+
+@media (width <= 980px) {
+  .ad-image-picker__surface {
+    max-height: min(86vh, 52rem);
+  }
+
+  .ad-image-picker__browser {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-image-picker__preview > img {
+    --image-min-height: 100px;
+    --image-max-height: 200px;
+  }
+
+  .ad-image-picker__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 18rem;
+  }
+}

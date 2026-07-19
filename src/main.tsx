@@ -1,3 +1,4 @@
+import { registerIconLibrary } from "@awesome.me/webawesome/dist/webawesome.js";
 import { useGSAP } from "@gsap/react";
 import { PostHogProvider } from "@posthog/react";
 import { gsap } from "gsap";
@@ -8,6 +9,21 @@ import posthog from "posthog-js";
 // Register all GSAP plugins once at app boot — never inside component files.
 // Re-registering on every HMR reload breaks Vite HMR.
 gsap.registerPlugin(ScrollTrigger, useGSAP, SplitText);
+
+// Register Iconoir as a WebAwesome icon library so <wa-icon library="iconoir">
+// resolves from the CDN. Iconoir icons are stroke-based outlines, so force
+// fill:none + stroke:currentColor. Keep the pinned version in sync with the
+// installed `iconoir-react` dependency.
+registerIconLibrary("iconoir", {
+  mutator: (svg) => {
+    for (const path of svg.querySelectorAll("path")) {
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "currentColor");
+    }
+  },
+  resolver: (name) =>
+    `https://cdn.jsdelivr.net/npm/iconoir@7.11.1/icons/regular/${name}.svg`,
+});
 
 import "./styles/fonts.css";
 import "@awesome.me/webawesome/dist/styles/utilities.css";

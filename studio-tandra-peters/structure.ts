@@ -8,6 +8,7 @@ const SINGLETONS = new Set([
   "workflowPage",
   "insuranceFaqsPage",
   "estimatorPage",
+  "reportBranding",
   "aiContext",
   "seoDashboardInsights",
   "clientEmail",
@@ -47,6 +48,14 @@ export const structure: StructureResolver = (S) =>
             .schemaType("roofInspectionsPage")
             .documentId("roofInspectionsPage")
             .title("Roof inspections page")
+        ),
+      S.listItem()
+        .title("Report branding")
+        .child(
+          S.document()
+            .schemaType("reportBranding")
+            .documentId("reportBranding")
+            .title("Report branding")
         ),
       S.listItem()
         .title("AI context")
