@@ -214,18 +214,6 @@ export const ReportLibrary = ({
                 key={report.id}
               >
                 <div className="report-library-card-main">
-                  {report.latest?.previewUrl ? (
-                    <img
-                      alt=""
-                      slot="start"
-                      className="report-library-thumb"
-                      src={report.latest.previewUrl}
-                    />
-                  ) : (
-                    <div className="report-library-thumb report-library-thumb--empty">
-                      <Folder />
-                    </div>
-                  )}
                   <div
                     onClick={() => openLatest(report.id)}
                     className="report-library-meta"
