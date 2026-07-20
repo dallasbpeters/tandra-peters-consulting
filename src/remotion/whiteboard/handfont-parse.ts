@@ -463,10 +463,10 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
   // data-tight-* attributes, honour them so the user's viewport edits survive
   // the round-trip through parseGlyph (which would otherwise recompute bounds
   // from raw path geometry and throw away any saved changes).
-  const dtx = svgEl.dataset.tightX;
-  const dty = svgEl.dataset.tightY;
-  const dtw = svgEl.dataset.tightW;
-  const dth = svgEl.dataset.tightH;
+  const dtx = svg.dataset.tightX;
+  const dty = svg.dataset.tightY;
+  const dtw = svg.dataset.tightW;
+  const dth = svg.dataset.tightH;
   const tightBounds =
     dtx != null && dty != null && dtw != null && dth != null
       ? {
