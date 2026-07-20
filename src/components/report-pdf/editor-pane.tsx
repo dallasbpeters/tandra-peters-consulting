@@ -6,7 +6,7 @@ import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, TouchEvent as ReactTouchEvent } from "react";
 
 import { appendDictation } from "../../hooks/use-dictation";
 import type { SanityImageAsset } from "../../hooks/use-sanity-image-assets";
@@ -64,6 +64,18 @@ interface EditorPaneProps {
 const coverThumb = (url: string) =>
   sanityImageUrl(url, { fit: "crop", h: 120, w: 200 });
 
+// ── Touch drag helpers (module scope — no closure allocation per render) ────
+
+const touchRowFromPoint = (x: number, y: number): HTMLElement | null =>
+  (document
+    .elementFromPoint(x, y)
+    ?.closest("li[data-photo-id]") as HTMLElement) ?? null;
+
+const touchEdgeFromY = (y: number, row: HTMLElement): "after" | "before" => {
+  const rect = row.getBoundingClientRect();
+  return y < rect.top + rect.height / 2 ? "before" : "after";
+};
+
 export const EditorPane = ({
   addError,
   brand,
@@ -87,7 +99,6 @@ export const EditorPane = ({
   savedVersion = null,
 }: EditorPaneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const photoListRef = useRef<HTMLUListElement>(null);
   const [editingContact, setEditingContact] = useState(false);
   // Drag-to-sort state for the photo list.
   const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
@@ -95,6 +106,17 @@ export const EditorPane = ({
     edge: "after" | "before";
     id: string;
   } | null>(null);
+
+  // Refs hold mid-drag mutable state without triggering re-renders.
+  const touchDragRef = useRef<{
+    sourceId: string;
+    lastX: number;
+    lastY: number;
+  } | null>(null);
+  // Stable handler refs so we can removeEventListener with the exact same fn.
+  const touchMoveRef = useRef<((e: TouchEvent) => void) | null>(null);
+  const touchEndRef = useRef<(() => void) | null>(null);
+  const touchCancelRef = useRef<(() => void) | null>(null);
 
   const endPhotoDrag = useCallback(() => {
     setDragPhotoId(null);
@@ -110,118 +132,103 @@ export const EditorPane = ({
     [onReorderPhotos]
   );
 
-  // Touch drag-to-sort for iOS — HTML5 DnD is not available on Safari.
-  //
-  // Strategy: detect drag start on the list (passive), then capture
-  // touchmove/touchend at the document level with passive:false so we can
-  // call preventDefault() and prevent the page from scrolling mid-drag.
-  // Capturing at document level also keeps tracking when the finger wanders
-  // outside the <ul> boundary.
-  useEffect(() => {
-    const list = photoListRef.current;
-    if (!list) {
-      return;
+  // Clean up document-level listeners and drag state.
+  const detachTouchListeners = useCallback(() => {
+    if (touchMoveRef.current) {
+      document.removeEventListener("touchmove", touchMoveRef.current);
+      touchMoveRef.current = null;
     }
+    if (touchEndRef.current) {
+      document.removeEventListener("touchend", touchEndRef.current);
+      touchEndRef.current = null;
+    }
+    if (touchCancelRef.current) {
+      document.removeEventListener("touchcancel", touchCancelRef.current);
+      touchCancelRef.current = null;
+    }
+  }, []);
 
-    let touchSourceId: string | null = null;
-    let lastX = 0;
-    let lastY = 0;
+  // Belt-and-suspenders: detach listeners when the component unmounts.
+  useEffect(() => detachTouchListeners, [detachTouchListeners]);
 
-    const rowFromPoint = (x: number, y: number): HTMLElement | null =>
-      (document
-        .elementFromPoint(x, y)
-        ?.closest("li[data-photo-id]") as HTMLElement) ?? null;
-
-    const edgeFromY = (y: number, row: HTMLElement): "after" | "before" => {
-      const rect = row.getBoundingClientRect();
-      return y < rect.top + rect.height / 2 ? "before" : "after";
-    };
-
-    const cleanup = () => {
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
-      document.removeEventListener("touchcancel", onTouchCancel);
-    };
-
-    const onTouchMove = (event: TouchEvent) => {
-      // Prevent the page from scrolling while the drag is active.
-      event.preventDefault();
+  // Called directly from each drag handle's onTouchStart prop (React synthetic
+  // event), bypassing any web-component shadow-DOM event delegation issues on iOS.
+  const handleDragHandleTouchStart = useCallback(
+    (photoId: string, event: ReactTouchEvent<HTMLDivElement>) => {
       const t = event.touches[0];
       if (!t) {
         return;
       }
-      lastX = t.clientX;
-      lastY = t.clientY;
-      const target = rowFromPoint(t.clientX, t.clientY);
-      if (!target || target.dataset.photoId === touchSourceId) {
-        setDropTarget(null);
-      } else {
-        setDropTarget({
-          edge: edgeFromY(t.clientY, target),
-          id: target.dataset.photoId ?? "",
-        });
-      }
-    };
 
-    const onTouchEnd = () => {
-      cleanup();
-      if (!touchSourceId) {
-        return;
-      }
-      const target = rowFromPoint(lastX, lastY);
-      if (target?.dataset.photoId && target.dataset.photoId !== touchSourceId) {
-        handlePhotoDrop(
-          touchSourceId,
-          target.dataset.photoId,
-          edgeFromY(lastY, target)
-        );
-      } else {
+      touchDragRef.current = {
+        sourceId: photoId,
+        lastX: t.clientX,
+        lastY: t.clientY,
+      };
+      setDragPhotoId(photoId);
+
+      const moveHandler = (e: TouchEvent) => {
+        // Prevent iOS from scrolling the page during the drag.
+        e.preventDefault();
+        const touch = e.touches[0];
+        if (!touch || !touchDragRef.current) {
+          return;
+        }
+        touchDragRef.current.lastX = touch.clientX;
+        touchDragRef.current.lastY = touch.clientY;
+        const target = touchRowFromPoint(touch.clientX, touch.clientY);
+        if (
+          !target ||
+          target.dataset.photoId === touchDragRef.current.sourceId
+        ) {
+          setDropTarget(null);
+        } else {
+          setDropTarget({
+            edge: touchEdgeFromY(touch.clientY, target),
+            id: target.dataset.photoId ?? "",
+          });
+        }
+      };
+
+      const endHandler = () => {
+        detachTouchListeners();
+        const state = touchDragRef.current;
+        touchDragRef.current = null;
+        if (!state) {
+          return;
+        }
+        const target = touchRowFromPoint(state.lastX, state.lastY);
+        if (
+          target?.dataset.photoId &&
+          target.dataset.photoId !== state.sourceId
+        ) {
+          handlePhotoDrop(
+            state.sourceId,
+            target.dataset.photoId,
+            touchEdgeFromY(state.lastY, target)
+          );
+        } else {
+          endPhotoDrag();
+        }
+      };
+
+      const cancelHandler = () => {
+        detachTouchListeners();
+        touchDragRef.current = null;
         endPhotoDrag();
-      }
-      touchSourceId = null;
-    };
+      };
 
-    const onTouchCancel = () => {
-      cleanup();
-      endPhotoDrag();
-      touchSourceId = null;
-    };
+      touchMoveRef.current = moveHandler;
+      touchEndRef.current = endHandler;
+      touchCancelRef.current = cancelHandler;
 
-    const onTouchStart = (event: TouchEvent) => {
-      const handle = (event.target as Element).closest("[data-drag-handle]");
-      if (!handle) {
-        return;
-      }
-      const row = handle.closest("li[data-photo-id]") as HTMLElement | null;
-      if (!row?.dataset.photoId) {
-        return;
-      }
-
-      touchSourceId = row.dataset.photoId;
-      const t = event.touches[0];
-      if (!t) {
-        return;
-      }
-      lastX = t.clientX;
-      lastY = t.clientY;
-      setDragPhotoId(touchSourceId);
-
-      // Attach move/end at document level with passive:false so we can
-      // preventDefault() and suppress the page scroll on iOS mid-drag.
       // eslint-disable-next-line github/require-passive-events
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd, { passive: true });
-      document.addEventListener("touchcancel", onTouchCancel);
-    };
-
-    list.addEventListener("touchstart", onTouchStart, { passive: true });
-
-    return () => {
-      list.removeEventListener("touchstart", onTouchStart);
-      // Belt-and-suspenders: clean up document listeners if unmounted mid-drag.
-      cleanup();
-    };
-  }, [endPhotoDrag, handlePhotoDrop]);
+      document.addEventListener("touchmove", moveHandler, { passive: false });
+      document.addEventListener("touchend", endHandler, { passive: true });
+      document.addEventListener("touchcancel", cancelHandler);
+    },
+    [detachTouchListeners, endPhotoDrag, handlePhotoDrop]
+  );
   // When editing a saved report, surface the version on the panel title rather
   // than as loose status text above the editor.
   const detailsSummary = savedVersion
@@ -256,7 +263,6 @@ export const EditorPane = ({
         ) : (
           <ul
             className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
-            ref={photoListRef}
           >
             {report.photos.map((photo, index) => (
               <PhotoItemEditor
@@ -281,6 +287,9 @@ export const EditorPane = ({
                 onRemove={onRemovePhoto}
                 onSectionChange={onSectionChange}
                 onTableChange={onTableChange}
+                onTouchStartItem={(e) =>
+                  handleDragHandleTouchStart(photo.id, e)
+                }
                 photo={photo}
                 sections={report.sections}
                 total={report.photos.length}

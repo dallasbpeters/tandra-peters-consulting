@@ -25,6 +25,8 @@ interface PhotoItemEditorProps {
   dropEdge?: PhotoDropEdge | null;
   /** Google ID token forwarded to the auth-gated dictation route. */
   idToken: string;
+  /** Touch drag — called when the user begins a touch on the drag handle. */
+  onTouchStartItem?: (event: React.TouchEvent<HTMLDivElement>) => void;
   index: number;
   onAnnotate: (id: string) => void;
   onCaptionChange: (id: string, caption: string) => void;
@@ -244,6 +246,7 @@ export const PhotoItemEditor = ({
   onDragOverItem,
   onDragStartItem,
   onDropItem,
+  onTouchStartItem,
   onMove,
   onRemove,
   onSectionChange,
@@ -363,6 +366,7 @@ export const PhotoItemEditor = ({
         draggable
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
+        onTouchStart={onTouchStartItem}
         role="button"
         tabIndex={0}
       >
