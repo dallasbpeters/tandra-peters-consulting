@@ -21,18 +21,8 @@ export interface ReportEmailContent {
   senderName?: string;
 }
 
-const colors = {
-  accent: "#3a7d5d",
-  body: "#1a2b22",
-  border: "#e4e8e6",
-  ink: "#0f1f18",
-  muted: "#5b6b62",
-  page: "#f3f5f4",
-  surface: "#ffffff",
-};
-
 const main = {
-  backgroundColor: colors.page,
+  backgroundColor: "#f3f5f4",
   fontFamily:
     "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   margin: 0,
@@ -40,23 +30,23 @@ const main = {
 };
 
 const container = {
-  backgroundColor: colors.surface,
-  border: `1px solid ${colors.border}`,
+  backgroundColor: "#ffffff",
+  border: `1px solid #e4e8e6`,
   borderRadius: "12px",
   margin: "0 auto",
   maxWidth: "560px",
   padding: "32px",
 };
 
-const heading = { color: colors.ink, fontSize: "22px", margin: "0 0 12px" };
+const heading = { color: "#0f1f18", fontSize: "22px", margin: "0 0 12px" };
 const paragraph = {
-  color: colors.body,
+  color: "#1a2b22",
   fontSize: "15px",
   lineHeight: "24px",
   margin: "0 0 16px",
 };
 const button = {
-  backgroundColor: colors.accent,
+  backgroundColor: "#3a7d5d",
   borderRadius: "8px",
   color: "#fff",
   display: "inline-block",
@@ -65,7 +55,7 @@ const button = {
   padding: "12px 22px",
   textDecoration: "none",
 };
-const muted = { color: colors.muted, fontSize: "13px", margin: "16px 0 0" };
+const muted = { color: "#5b6b62", fontSize: "13px", margin: "16px 0 0" };
 
 export const ReportEmailDocument = ({
   driveWebViewLink,
@@ -100,7 +90,7 @@ export const ReportEmailDocument = ({
             Also available in Google Drive: {driveWebViewLink}
           </Text>
         ) : null}
-        <Hr style={{ borderColor: colors.border, margin: "24px 0 16px" }} />
+        <Hr style={{ borderColor: "#e4e8e6", margin: "24px 0 16px" }} />
         <Text style={muted}>
           {senderName ?? "Tandra Peters"} · Birdcreek Roofing
         </Text>

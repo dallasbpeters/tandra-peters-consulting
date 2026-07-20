@@ -67,7 +67,7 @@ const ratio = (w: number, h: number): string => `${w} / ${h}`;
 export const COMPOSITIONS: CompositionEntry[] = [
   {
     aspectRatio: ratio(1920, 1080),
-    component: TandraIntro,
+    component: TandraIntro as ComponentType<Record<string, unknown>>,
     defaultProps: { content: defaultTandraIntroContent, showCaptions: false },
     description: "30-second 16:9 intro video that plays on the home page hero.",
     durationInFrames: TANDRA_INTRO_DURATION_IN_FRAMES,
@@ -81,7 +81,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
   {
     aspectRatio: ratio(1080, 1350),
-    component: TandraStormSpot,
+    component: TandraStormSpot as ComponentType<Record<string, unknown>>,
     defaultProps: STORM_SPOT_DEFAULTS,
     description: "Vertical 4:5 storm-damage / insurance-claim social ad.",
     durationInFrames: 870,
@@ -93,7 +93,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
   {
     aspectRatio: ratio(1080, 1350),
-    component: TandraRoofValue,
+    component: TandraRoofValue as ComponentType<Record<string, unknown>>,
     defaultProps: ROOF_VALUE_DEFAULTS,
     description: "Vertical 4:5 roof-investment / free-inspection social ad.",
     durationInFrames: 1260,
@@ -105,7 +105,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
   {
     aspectRatio: ratio(1080, 1350),
-    component: RoofScene,
+    component: RoofScene as ComponentType<Record<string, unknown>>,
     defaultProps: ROOF_SCENE_DEFAULTS,
 
     description: "Vertical 4:5 animated 3D roof walkthrough (heavier preview).",
@@ -119,7 +119,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
   {
     aspectRatio: ratio(1080, 1350),
-    component: CustomSlots,
+    component: CustomSlots as ComponentType<Record<string, unknown>>,
     defaultProps: CUSTOM_SLOTS_DEFAULTS,
     description: "Vertical 4:5 multi-scene assembler (roof damage tips + CTA).",
     durationInFrames: 7 * 180,
@@ -131,7 +131,7 @@ export const COMPOSITIONS: CompositionEntry[] = [
   },
   {
     aspectRatio: ratio(1080, 1350),
-    component: CustomSlots,
+    component: CustomSlots as ComponentType<Record<string, unknown>>,
     defaultProps: HELPING_TEXAS_DEFAULTS,
     description:
       "Vertical 4:5 multi-scene assembler with the helping-homeowners intro.",

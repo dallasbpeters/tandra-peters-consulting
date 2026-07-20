@@ -21,6 +21,7 @@ export const mockArticlePost: PostDetail = {
 class IntersectionObserverMock implements IntersectionObserver {
   readonly root: Element | Document | null = null;
   readonly rootMargin = "";
+  readonly scrollMargin = "";
   readonly thresholds: readonly number[] = [];
   private readonly callback: IntersectionObserverCallback;
 

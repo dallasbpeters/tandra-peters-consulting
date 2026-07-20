@@ -492,9 +492,12 @@ Series variation — apply ONLY the direction below. Keep the same Central Texas
 
 ${variation}`;
 
-const buildPromptJobs = (prompt: string, variations: string[]) => {
+const buildPromptJobs = (
+  prompt: string,
+  variations: string[]
+): { prompt: string; variation: string | undefined }[] => {
   if (variations.length === 0) {
-    return [{ prompt }];
+    return [{ prompt, variation: undefined }];
   }
   return variations.map((variation) => ({
     prompt: buildSeriesPrompt(prompt, variation),
