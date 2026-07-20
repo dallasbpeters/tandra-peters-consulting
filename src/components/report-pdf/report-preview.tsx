@@ -120,9 +120,6 @@ const CoverFoot = ({ cover }: { cover: CoverContent }) => (
     <div>
       <BirdcreekMark />
       <p className="report-cover-tagline">{cover.tagline}</p>
-      {cover.date ? (
-        <p className="report-cover-date">{formatDisplayDate(cover.date)}</p>
-      ) : null}
     </div>
     <div className="report-cover-byline">
       <p className="report-cover-byline-label">Inspected by</p>

@@ -115,10 +115,9 @@ function buildSaveableSvg(rawSvg: string, s: GlyphSettings): string {
 async function fetchGlyph(
   char: string
 ): Promise<{ rawSvg: string; glyph: ParsedGlyph } | null> {
+  const sub = char >= "A" && char <= "Z" ? "upper" : "lower";
   try {
-    const r = await fetch(
-      `/api/glyph-editor/svg?char=${encodeURIComponent(char)}`
-    );
+    const r = await fetch(`/whiteboard/handfont/${sub}/${char}.svg`);
     if (!r.ok) {
       return null;
     }

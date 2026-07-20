@@ -24,6 +24,18 @@ type RenderState =
   | { status: "done"; url: string; skipped?: boolean }
   | { status: "error"; message: string };
 
+type VoiceoverState =
+  | { status: "idle" }
+  | { status: "generating" }
+  | { status: "done"; sceneCount: number }
+  | { status: "error"; message: string };
+
+type DrawingState =
+  | { status: "idle" }
+  | { status: "generating"; sceneIdx: number }
+  | { status: "done" }
+  | { status: "error"; message: string };
+
 /** Composition ids whose editor form maps to a differently-named schema. */
 const COMPOSITION_TO_EDITOR_SCHEMA: Record<string, string> = {
   "roof-scene": "RoofScene",
@@ -167,6 +179,132 @@ const VideosStudio = () => {
 
   const isRendering = renderState.status === "rendering";
 
+  // ── Whiteboard-specific: voiceover + drawing generation ──────────────────
+  const [voiceoverState, setVoiceoverState] = useState<VoiceoverState>({
+    status: "idle",
+  });
+  const [drawingState, setDrawingState] = useState<DrawingState>({
+    status: "idle",
+  });
+
+  const handleGenerateVoiceover = useCallback(async () => {
+    const scenes = (formProps as Record<string, unknown>).scenes;
+    if (!Array.isArray(scenes) || scenes.length === 0) {
+      setVoiceoverState({
+        message: "No scenes in props — edit and save first.",
+        status: "error",
+      });
+      return;
+    }
+    setVoiceoverState({ status: "generating" });
+    try {
+      const res = await fetch("/api/whiteboard-voiceover", {
+        body: JSON.stringify({
+          compositionId: "whiteboard-explainer",
+          scenes,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        scenes?: unknown[];
+        error?: string;
+      };
+      if (!res.ok || !payload.ok) {
+        throw new Error(
+          payload.error ?? `Voiceover failed (HTTP ${res.status}).`
+        );
+      }
+      if (Array.isArray(payload.scenes)) {
+        setFormProps((prev) => ({
+          ...prev,
+          scenes: payload.scenes,
+        }));
+        setDirty(true);
+        setVoiceoverState({
+          sceneCount: payload.scenes.length,
+          status: "done",
+        });
+      } else {
+        throw new TypeError("No scenes returned from voiceover endpoint.");
+      }
+    } catch (error) {
+      setVoiceoverState({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Voiceover generation failed.",
+        status: "error",
+      });
+    }
+  }, [formProps]);
+
+  const handleGenerateDrawings = useCallback(async () => {
+    const scenes = (formProps as Record<string, unknown>).scenes;
+    if (!Array.isArray(scenes) || scenes.length === 0) {
+      setDrawingState({
+        message: "No scenes in props — edit and save first.",
+        status: "error",
+      });
+      return;
+    }
+
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i] as {
+        drawing?: { prompt?: string; paths?: string[] };
+        headline?: string;
+        heading?: string;
+        label?: string;
+      };
+      const prompt =
+        scene.drawing?.prompt?.trim() ||
+        scene.headline?.trim() ||
+        scene.heading?.trim() ||
+        scene.label?.trim();
+      if (!prompt) {
+        continue;
+      }
+
+      setDrawingState({ sceneIdx: i, status: "generating" });
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const res = await fetch("/api/whiteboard/drawing", {
+          body: JSON.stringify({ prompt, sceneHint: `Scene ${i + 1}` }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          paths?: string[];
+          viewBox?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.paths) {
+          continue;
+        }
+        setFormProps((prev) => {
+          const updated = [
+            ...((prev.scenes as Record<string, unknown>[]) ?? []),
+          ];
+          updated[i] = {
+            ...updated[i],
+            drawing: {
+              ...(updated[i].drawing as Record<string, unknown>),
+              paths: data.paths,
+              viewBox: data.viewBox ?? "0 0 300 300",
+            },
+          };
+          return { ...prev, scenes: updated };
+        });
+        setDirty(true);
+      } catch {
+        // non-fatal: skip this scene's drawing
+      }
+    }
+
+    setDrawingState({ status: "done" });
+  }, [formProps]);
+
   return (
     <div className="videos-tool">
       <aside className="videos-sidebar">
@@ -215,6 +353,38 @@ const VideosStudio = () => {
                 Reset edits
               </button>
             ) : null}
+            {activeId === "whiteboard-explainer" ? (
+              <>
+                <WhiteboardActionStatus
+                  drawing={drawingState}
+                  voiceover={voiceoverState}
+                />
+                <button
+                  className="videos-btn videos-btn--voice"
+                  disabled={
+                    voiceoverState.status === "generating" || isRendering
+                  }
+                  onClick={() => void handleGenerateVoiceover()}
+                  type="button"
+                >
+                  {voiceoverState.status === "generating"
+                    ? "Generating…"
+                    : "🎙 Generate Voiceover"}
+                </button>
+                <button
+                  className="videos-btn videos-btn--drawing"
+                  disabled={drawingState.status === "generating" || isRendering}
+                  onClick={() => void handleGenerateDrawings()}
+                  type="button"
+                >
+                  {drawingState.status === "generating"
+                    ? `✏️ Drawing scene ${(drawingState as { sceneIdx: number }).sceneIdx + 1}…`
+                    : drawingState.status === "done"
+                      ? "✅ Drawings done"
+                      : "✏️ Generate Drawings"}
+                </button>
+              </>
+            ) : null}
             <button
               className="videos-btn videos-btn--primary"
               disabled={isRendering}
@@ -254,6 +424,38 @@ const VideosStudio = () => {
       ) : null}
     </div>
   );
+};
+
+const WhiteboardActionStatus = ({
+  voiceover,
+  drawing,
+}: {
+  voiceover: VoiceoverState;
+  drawing: DrawingState;
+}) => {
+  if (voiceover.status === "done") {
+    return (
+      <span className="videos-status">
+        🎙 Voiceover ready ({voiceover.sceneCount} scene
+        {voiceover.sceneCount === 1 ? "" : "s"})
+      </span>
+    );
+  }
+  if (voiceover.status === "error") {
+    return (
+      <span className="videos-status videos-status--error">
+        {voiceover.message}
+      </span>
+    );
+  }
+  if (drawing.status === "error") {
+    return (
+      <span className="videos-status videos-status--error">
+        {drawing.message}
+      </span>
+    );
+  }
+  return null;
 };
 
 const RenderStatus = ({ state }: { state: RenderState }) => {

@@ -158,6 +158,18 @@
   color: var(--backend-accent-contrast);
 }
 
+.videos-btn--voice {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.videos-btn--drawing {
+  background: #6b21a8;
+  border-color: #6b21a8;
+  color: #fff;
+}
+
 .videos-status {
   max-width: 22rem;
   font-size: 0.75rem;

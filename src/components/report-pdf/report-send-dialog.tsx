@@ -1,4 +1,5 @@
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaIcon from "@awesome.me/webawesome/dist/react/icon/index.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 
@@ -242,7 +243,7 @@ export const ReportSendDialog = ({
                   onClick={() => void connectGoogle()}
                   size="small"
                 >
-                  <Google slot="start" />
+                  <WaIcon slot="start" src="./google-logo.svg" />
                   Google Contacts
                 </WaButton>
               )}

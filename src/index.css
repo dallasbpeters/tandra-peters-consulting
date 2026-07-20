@@ -422,9 +422,10 @@ kbd {
     /* eslint-disable-next-line css/no-invalid-at-rules */
     @apply font-sans;
   }
-
-  ul li,
-  ol li {
-    margin-inline-start: var(--theme-spacing-xl);
+  .site-container--article {
+    ul li,
+    ol li {
+      margin-inline-start: var(--theme-spacing-xl);
+    }
   }
 }

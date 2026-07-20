@@ -31,11 +31,6 @@ export const NavPillNav: React.FC<NavProps> = ({
   const [hovLink, setHovLink] = useState<string | null>(null);
   const [hovBtn, setHovBtn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const createLink =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3333/studio"
-      : "https://tandra.me/studio";
-
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", onScroll);
@@ -233,10 +228,7 @@ export const NavPillNav: React.FC<NavProps> = ({
     },
   };
 
-  const pillItems: NavItem[] = [
-    ...navItems,
-    { href: createLink, name: "Creative" },
-  ];
+  const pillItems: NavItem[] = [...navItems];
 
   const renderPillLink = (item: NavItem, context: "inline" | "menu") => (
     <SiteNavLink

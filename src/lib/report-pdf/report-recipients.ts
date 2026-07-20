@@ -66,27 +66,37 @@ const mapPeople = (people: PeoplePerson[]): Recipient[] => {
   return out;
 };
 
+interface PeopleErrorBody {
+  error?: { message?: string; status?: string };
+}
+
+const fetchJson = async <T>(url: string, headers: HeadersInit): Promise<T> => {
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as PeopleErrorBody;
+    const detail = body.error?.message ?? `HTTP ${res.status}`;
+    throw new Error(`Google People API error: ${detail}`);
+  }
+  return res.json() as Promise<T>;
+};
+
 export const fetchGoogleContacts = async (
   accessToken: string
 ): Promise<Recipient[]> => {
   const headers = { Authorization: `Bearer ${accessToken}` };
   const [connections, other] = await Promise.all([
-    fetch(
+    fetchJson<{ connections?: PeoplePerson[] }>(
       "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses&pageSize=1000",
-      { headers }
-    )
-      .then((r) => (r.ok ? r.json() : { connections: [] }))
-      .catch(() => ({ connections: [] })),
-    fetch(
+      headers
+    ),
+    fetchJson<{ otherContacts?: PeoplePerson[] }>(
       "https://people.googleapis.com/v1/otherContacts?readMask=names,emailAddresses&pageSize=1000",
-      { headers }
-    )
-      .then((r) => (r.ok ? r.json() : { otherContacts: [] }))
-      .catch(() => ({ otherContacts: [] })),
+      headers
+    ),
   ]);
   const people = [
-    ...((connections as { connections?: PeoplePerson[] }).connections ?? []),
-    ...((other as { otherContacts?: PeoplePerson[] }).otherContacts ?? []),
+    ...(connections.connections ?? []),
+    ...(other.otherContacts ?? []),
   ];
   return mapPeople(people);
 };

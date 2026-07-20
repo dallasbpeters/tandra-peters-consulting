@@ -1,5 +1,6 @@
 import WaButtonGroup from "@awesome.me/webawesome/dist/react/button-group/index.js";
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaIcon from "@awesome.me/webawesome/dist/react/icon/index.js";
 import { usePostHog } from "@posthog/react";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
@@ -8,10 +9,8 @@ import {
   CloudUpload,
   Download,
   Folder,
-  Google,
   Plus,
   SendMail,
-  ShareAndroid,
   WarningTriangle,
 } from "iconoir-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -459,7 +458,7 @@ export const ReportPdfPage = () => {
                   disabled={!hasPhotos || generating}
                   onClick={() => void runGenerate("share")}
                 >
-                  <ShareAndroid height={16} slot="start" width={16} />
+                  <WaIcon slot="start" name="share" family="iconoir" />
                   Share
                 </WaButton>
               ) : null}
@@ -472,7 +471,7 @@ export const ReportPdfPage = () => {
                   {driveSync ? (
                     <Check height={16} slot="start" width={16} />
                   ) : (
-                    <Google height={16} slot="start" width={16} />
+                    <WaIcon src="./drive-logo.svg" slot="start" />
                   )}
                   {driveSync ? "Drive sync on" : "Drive sync off"}
                 </WaButton>
@@ -483,7 +482,7 @@ export const ReportPdfPage = () => {
                   loading={driveBusy}
                   onClick={() => void connectDrive()}
                 >
-                  <Google height={16} slot="start" width={16} />
+                  <WaIcon src="./drive-logo.svg" slot="start" />
                   {(() => {
                     if (driveBusy) {
                       return "Connecting…";

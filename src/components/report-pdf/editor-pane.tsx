@@ -5,7 +5,7 @@ import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 
 import { appendDictation } from "../../hooks/use-dictation";
@@ -87,28 +87,115 @@ export const EditorPane = ({
   savedVersion = null,
 }: EditorPaneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoListRef = useRef<HTMLUListElement>(null);
   const [editingContact, setEditingContact] = useState(false);
-  // Drag-to-sort state for the photo list (desktop pointer enhancement; the
-  // up/down buttons remain the keyboard/touch path).
+  // Drag-to-sort state for the photo list.
   const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{
     edge: "after" | "before";
     id: string;
   } | null>(null);
 
-  const endPhotoDrag = () => {
+  const endPhotoDrag = useCallback(() => {
     setDragPhotoId(null);
     setDropTarget(null);
-  };
+  }, []);
 
-  const handlePhotoDrop = (
-    sourceId: string,
-    targetId: string,
-    edge: "after" | "before"
-  ) => {
-    onReorderPhotos(sourceId, targetId, edge);
-    endPhotoDrag();
-  };
+  const handlePhotoDrop = useCallback(
+    (sourceId: string, targetId: string, edge: "after" | "before") => {
+      onReorderPhotos(sourceId, targetId, edge);
+      setDragPhotoId(null);
+      setDropTarget(null);
+    },
+    [onReorderPhotos]
+  );
+
+  // Touch drag-to-sort for iOS — HTML5 DnD is not available on Safari.
+  useEffect(() => {
+    const list = photoListRef.current;
+    if (!list) {
+      return;
+    }
+
+    let touchSourceId: string | null = null;
+    let lastX = 0;
+    let lastY = 0;
+
+    const rowFromPoint = (x: number, y: number): HTMLElement | null =>
+      (document
+        .elementFromPoint(x, y)
+        ?.closest("li[data-photo-id]") as HTMLElement) ?? null;
+
+    const edgeFromY = (y: number, row: HTMLElement): "after" | "before" => {
+      const rect = row.getBoundingClientRect();
+      return y < rect.top + rect.height / 2 ? "before" : "after";
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      const handle = (event.target as Element).closest("[data-drag-handle]");
+      if (!handle) {
+        return;
+      }
+      const row = handle.closest("li[data-photo-id]") as HTMLElement | null;
+      if (!row?.dataset.photoId) {
+        return;
+      }
+      touchSourceId = row.dataset.photoId;
+      setDragPhotoId(touchSourceId);
+      const t = event.touches[0];
+      lastX = t.clientX;
+      lastY = t.clientY;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (!touchSourceId) {
+        return;
+      }
+      // touch-action:none on [data-drag-handle] already prevents page scroll
+      // for gestures starting on the handle; no preventDefault() needed.
+      const t = event.touches[0];
+      lastX = t.clientX;
+      lastY = t.clientY;
+      const target = rowFromPoint(t.clientX, t.clientY);
+      if (!target || target.dataset.photoId === touchSourceId) {
+        setDropTarget(null);
+      } else {
+        setDropTarget({
+          edge: edgeFromY(t.clientY, target),
+          id: target.dataset.photoId ?? "",
+        });
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!touchSourceId) {
+        return;
+      }
+      const target = rowFromPoint(lastX, lastY);
+      if (target?.dataset.photoId && target.dataset.photoId !== touchSourceId) {
+        handlePhotoDrop(
+          touchSourceId,
+          target.dataset.photoId,
+          edgeFromY(lastY, target)
+        );
+      } else {
+        endPhotoDrag();
+      }
+      touchSourceId = null;
+    };
+
+    list.addEventListener("touchstart", onTouchStart, { passive: true });
+    list.addEventListener("touchmove", onTouchMove, { passive: true });
+    list.addEventListener("touchend", onTouchEnd, { passive: true });
+    list.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      list.removeEventListener("touchstart", onTouchStart);
+      list.removeEventListener("touchmove", onTouchMove);
+      list.removeEventListener("touchend", onTouchEnd);
+      list.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [endPhotoDrag, handlePhotoDrop]);
   // When editing a saved report, surface the version on the panel title rather
   // than as loose status text above the editor.
   const detailsSummary = savedVersion
@@ -143,6 +230,7 @@ export const EditorPane = ({
         ) : (
           <ul
             className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
+            ref={photoListRef}
           >
             {report.photos.map((photo, index) => (
               <PhotoItemEditor

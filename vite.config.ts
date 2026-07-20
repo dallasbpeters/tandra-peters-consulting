@@ -29,6 +29,7 @@ import { viteGlyphEditorApi } from "./plugins/vite-glyph-editor-api";
 import { viteRenderTandraIntroApi } from "./plugins/vite-render-tandra-intro-api";
 import { viteReportBlobUploadApi } from "./plugins/vite-report-blob-upload-api";
 import { viteReportsApi } from "./plugins/vite-reports-api";
+import { viteReportsSendApi } from "./plugins/vite-reports-send-api";
 import { viteSanityImageApi } from "./plugins/vite-sanity-image-api";
 import { viteSeoDashboardApi } from "./plugins/vite-seo-dashboard-api";
 import { viteSitemapApi } from "./plugins/vite-sitemap-api";
@@ -155,6 +156,7 @@ export default defineConfig(({ mode }) => {
     viteTranscribeApi(env) as unknown as PluginOption,
     viteReportBlobUploadApi(env) as unknown as PluginOption,
     viteReportsApi(env) as unknown as PluginOption,
+    viteReportsSendApi(env) as unknown as PluginOption,
     viteGlyphEditorApi() as unknown as PluginOption,
     ...(useLocalContactApi
       ? [viteContactDevApi(env) as unknown as PluginOption]

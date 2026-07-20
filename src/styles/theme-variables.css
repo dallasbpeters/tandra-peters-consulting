@@ -507,6 +507,7 @@ wa-checkbox {
     transparent
   );
   --wa-color-surface-raised: var(--theme-palette-granite-950);
+  --wa-color-surface-default: light-dark(#ffffff, #0f1110);
   --wa-color-text-normal: var(--theme-palette-coral-50);
   --wa-color-text-quiet: var(--theme-palette-paper-light-300);
   --wa-form-control-background-color: var(--theme-palette-granite-950);

@@ -10,8 +10,8 @@
   --report-text: #1b1b1b;
   --report-muted: #5b615c;
   --report-border: #dcded9;
-  --report-bg: #ffffff;
-  --report-bg-subtle: #f5f6f2;
+  --report-bg: light-dark(#ffffff, #0f1110);
+  --report-bg-subtle: light-dark(#f5f6f2, #121211);
   --report-cover-bg: #072326;
   --report-on-dark: #ffffff;
   --report-on-dark-muted: #ecf3ef;
@@ -587,7 +587,7 @@ wa-details::part(content) {
   min-width: 0;
   border-radius: 0.6rem;
   border: 2px solid transparent;
-  background: var(--report-bg, #fff);
+  background: var(--report-bg);
   transition:
     opacity 0.15s ease,
     border-color 0.12s ease,
@@ -638,6 +638,7 @@ wa-details::part(content) {
   line-height: 1;
   touch-action: none;
   user-select: none;
+  -webkit-touch-callout: none;
   -webkit-user-drag: element;
 }
 
@@ -802,7 +803,7 @@ wa-details::part(content) {
   container-type: inline-size;
   width: 100%;
   aspect-ratio: 8.5 / 11;
-  background: var(--report-bg);
+  background: #ffffff;
   color: var(--report-text);
   box-shadow: 0 1px 4px rgb(0 0 0 / 15%);
   border-radius: 2px;

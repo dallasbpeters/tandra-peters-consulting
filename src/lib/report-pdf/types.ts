@@ -132,7 +132,6 @@ export interface CoverBlock {
   brandName: string;
   /** Optional full-bleed hero image (Sanity CDN URL); switches the cover variant. */
   coverImageUrl: string | null;
-  date: string;
   /** Byline shown bottom-right (e.g. "Tandra Peters"). */
   inspectorName: string;
   kind: "cover";

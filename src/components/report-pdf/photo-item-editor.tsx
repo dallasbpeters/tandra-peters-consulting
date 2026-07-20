@@ -350,10 +350,11 @@ export const PhotoItemEditor = ({
     .join(" ");
 
   return (
-    <li className={rowClass} ref={rowRef}>
+    <li className={rowClass} data-photo-id={photo.id} ref={rowRef}>
       <div
         aria-label={`Drag to reorder photo ${index + 1}`}
         className="report-photo-drag"
+        data-drag-handle="true"
         draggable
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
