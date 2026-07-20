@@ -792,12 +792,12 @@ export const GlyphEditorPage = () => {
                     />
                   )}
 
-                  {/* The glyph — use displayGlyph for selected char, cached for others */}
+                  {/* The glyph — always use the cached glyph so the slot stays
+                      the same size whether selected or not. displayGlyph (live
+                      edits) is shown in the single-glyph preview canvas below. */}
                   <HandfontLetter
                     color={isSelected ? "#1c5c1c" : "#2a2a2a"}
-                    glyph={
-                      isSelected && displayGlyph ? displayGlyph : tok.glyph
-                    }
+                    glyph={tok.glyph}
                     height={WORD_H}
                     progress={progress}
                     x={tok.x}
