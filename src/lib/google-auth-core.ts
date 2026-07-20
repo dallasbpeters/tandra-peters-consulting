@@ -53,7 +53,8 @@ export const isAllowedGoogleUser = (user: GoogleAuthUser): boolean => {
   return false;
 };
 
-export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
+/** Decode JWT payload and return raw claims (no validation). */
+const decodeJwtClaims = (token: string): Record<string, unknown> | null => {
   try {
     const [, payload] = token.split(".");
     if (!payload) {
@@ -61,15 +62,23 @@ export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
     }
     const base64 = payload.replaceAll("-", "+").replaceAll("_", "/");
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-    const json = JSON.parse(window.atob(padded)) as {
+    return JSON.parse(window.atob(padded)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
+export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
+  try {
+    const json = decodeJwtClaims(token) as {
       email?: string;
       email_verified?: boolean;
       hd?: string;
       name?: string;
       picture?: string;
-    };
+    } | null;
 
-    if (!json.email || json.email_verified !== true) {
+    if (!json || !json.email || json.email_verified !== true) {
       return null;
     }
 
@@ -82,6 +91,36 @@ export const parseGoogleJwtPayload = (token: string): GoogleAuthUser | null => {
   } catch {
     return null;
   }
+};
+
+/**
+ * Returns true when the JWT `exp` claim is in the past (token is expired)
+ * or cannot be determined. `leewaySeconds` allows a small buffer before
+ * treating a nearly-expired token as invalid.
+ */
+export const isGoogleTokenExpired = (
+  token: string,
+  leewaySeconds = 0
+): boolean => {
+  const claims = decodeJwtClaims(token);
+  const exp = typeof claims?.exp === "number" ? claims.exp : null;
+  if (exp === null) {
+    return true;
+  } // malformed → treat as expired
+  return exp - leewaySeconds < Date.now() / 1000;
+};
+
+/**
+ * Returns the number of milliseconds until the JWT expires, or 0 if already
+ * expired / unreadable.
+ */
+export const msUntilGoogleTokenExpires = (token: string): number => {
+  const claims = decodeJwtClaims(token);
+  const exp = typeof claims?.exp === "number" ? claims.exp : null;
+  if (exp === null) {
+    return 0;
+  }
+  return Math.max(0, exp * 1000 - Date.now());
 };
 
 export const loadGoogleIdentityScript = (): Promise<void> =>

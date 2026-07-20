@@ -15,6 +15,8 @@ import {
   getGoogleClientId,
   initializeGoogleIdentity,
   isAllowedGoogleUser,
+  isGoogleTokenExpired,
+  msUntilGoogleTokenExpires,
   parseGoogleJwtPayload,
   requestGoogleAccessToken,
   subscribeGoogleCredential,
@@ -67,29 +69,61 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     [clientId]
   );
 
-  const setTokenFromCredential = useCallback((credential: string) => {
-    const parsed = parseGoogleJwtPayload(credential);
-    if (!parsed) {
-      setAuthError("Google returned an unusable ID token.");
+  // Holds the expiry-timer id so it can be cancelled on unmount / re-auth.
+  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleExpiryTimer = useCallback((credential: string) => {
+    if (expiryTimerRef.current !== null) {
+      clearTimeout(expiryTimerRef.current);
+    }
+    const ms = msUntilGoogleTokenExpires(credential);
+    if (ms <= 0) {
       return;
     }
-    if (!isAllowedGoogleUser(parsed)) {
-      window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
-      setToken(null);
-      setUser(null);
-      setAuthError("This Google account is not allowed.");
-      return;
-    }
-    window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
-    setToken(credential);
-    setUser(parsed);
-    setAuthError(null);
+    // Clear the token 30 s before expiry so the next API call doesn't race.
+    expiryTimerRef.current = setTimeout(
+      () => {
+        window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
+        setToken(null);
+        setUser(null);
+        setAuthError("Google sign-in expired. Please sign in again.");
+      },
+      Math.max(0, ms - 30_000)
+    );
   }, []);
 
-  // Restore session from localStorage on mount.
+  const setTokenFromCredential = useCallback(
+    (credential: string) => {
+      const parsed = parseGoogleJwtPayload(credential);
+      if (!parsed) {
+        setAuthError("Google returned an unusable ID token.");
+        return;
+      }
+      if (!isAllowedGoogleUser(parsed)) {
+        window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
+        setToken(null);
+        setUser(null);
+        setAuthError("This Google account is not allowed.");
+        return;
+      }
+      window.localStorage.setItem(GOOGLE_AUTH_STORAGE_KEY, credential);
+      setToken(credential);
+      setUser(parsed);
+      setAuthError(null);
+      scheduleExpiryTimer(credential);
+    },
+    [scheduleExpiryTimer]
+  );
+
+  // Restore session from localStorage on mount (skip if token has expired).
   useEffect(() => {
     const stored = window.localStorage.getItem(GOOGLE_AUTH_STORAGE_KEY);
     if (!stored) {
+      return;
+    }
+    if (isGoogleTokenExpired(stored)) {
+      // Token is no longer valid — clear it so sign-in button is shown.
+      window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
       return;
     }
     const parsed = parseGoogleJwtPayload(stored);
@@ -99,7 +133,8 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     }
     setToken(stored);
     setUser(parsed);
-  }, []);
+    scheduleExpiryTimer(stored);
+  }, [scheduleExpiryTimer]);
 
   useEffect(() => {
     if (!clientId) {
@@ -142,6 +177,9 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     return () => {
       cancelled = true;
       unsubscribe();
+      if (expiryTimerRef.current !== null) {
+        clearTimeout(expiryTimerRef.current);
+      }
     };
   }, [clientId, setTokenFromCredential]);
 
