@@ -487,9 +487,9 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
 const glyphCache = new Map<string, ParsedGlyph | null>();
 const pendingFetches = new Map<string, Promise<ParsedGlyph | null>>();
 
-// Punctuation/symbol glyphs that live in the upper/ directory under a
-// human-readable filename instead of the raw character.
-const SPECIAL_GLYPH_MAP: Record<
+// Punctuation/symbol glyphs that live in upper/ under a human-readable filename.
+// Exported so the glyph editor page and Vite dev plugin can share this mapping.
+export const SPECIAL_GLYPH_MAP: Record<
   string,
   { sub: "upper" | "lower"; file: string }
 > = {

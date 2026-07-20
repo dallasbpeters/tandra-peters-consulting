@@ -18,7 +18,10 @@ import {
   HandfontLetter,
   glyphWidth as computeGlyphWidth,
 } from "../remotion/whiteboard/components/handfont-letter";
-import { parseGlyph } from "../remotion/whiteboard/handfont-parse";
+import {
+  parseGlyph,
+  SPECIAL_GLYPH_MAP,
+} from "../remotion/whiteboard/handfont-parse";
 import type {
   ParsedGlyph,
   TightBounds,
@@ -30,7 +33,8 @@ import type {
 
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LOWER = "abcdefghijklmnopqrstuvwxyz";
-const ALL_CHARS = [...UPPER, ...LOWER];
+const SYMBOLS = Object.keys(SPECIAL_GLYPH_MAP);
+const ALL_CHARS = [...UPPER, ...LOWER, ...SYMBOLS];
 const PREVIEW_H = 200; // single-glyph editor preview height
 const WORD_H = 96; // word-strip glyph height
 const WORD_GAP = 8; // px between glyphs in the word strip
@@ -145,9 +149,11 @@ function buildSaveableSvg(rawSvg: string, s: GlyphSettings): string {
 async function fetchGlyph(
   char: string
 ): Promise<{ rawSvg: string; glyph: ParsedGlyph } | null> {
-  const sub = char >= "A" && char <= "Z" ? "upper" : "lower";
+  const special = SPECIAL_GLYPH_MAP[char];
+  const sub = special?.sub ?? (char >= "A" && char <= "Z" ? "upper" : "lower");
+  const file = special?.file ?? char;
   try {
-    const r = await fetch(`/whiteboard/handfont/${sub}/${char}.svg`);
+    const r = await fetch(`/whiteboard/handfont/${sub}/${file}.svg`);
     if (!r.ok) {
       return null;
     }
@@ -907,6 +913,46 @@ export const GlyphEditorPage = () => {
               </button>
             ))}
           </div>
+          {SYMBOLS.length > 0 && (
+            <>
+              <p
+                style={{
+                  color: "#666",
+                  fontSize: 10,
+                  letterSpacing: "0.08em",
+                  margin: "8px 0 4px",
+                  textTransform: "uppercase",
+                }}
+              >
+                Symbols
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {SYMBOLS.map((c) => (
+                  <button
+                    key={c}
+                    style={{
+                      background: selectedChar === c ? "#363" : "#222",
+                      border: `1px solid ${selectedChar === c ? "#4a4" : "#333"}`,
+                      borderRadius: 4,
+                      color: selectedChar === c ? "#9f9" : "#ccc",
+                      cursor: "pointer",
+                      fontFamily: "monospace",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      height: 28,
+                      lineHeight: 1,
+                      padding: 0,
+                      width: 28,
+                    }}
+                    type="button"
+                    onClick={() => setSelectedChar(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           <div
             style={{
               borderTop: "1px solid #222",

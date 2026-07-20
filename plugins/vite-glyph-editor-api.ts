@@ -23,11 +23,18 @@ import type { Plugin } from "vite";
 
 const ROOT = process.cwd();
 
+// Mirror of SPECIAL_GLYPH_MAP in handfont-parse.ts — kept in sync manually.
+const SPECIAL: Record<string, { sub: "upper" | "lower"; file: string }> = {
+  "?": { sub: "upper", file: "question" },
+};
+
 function glyphPaths(char: string) {
-  const sub = char >= "A" && char <= "Z" ? "upper" : "lower";
-  const pubPath = join(ROOT, "public/whiteboard/handfont", sub, `${char}.svg`);
-  // Canonical source name — always char.svg regardless of the original export naming
-  const srcPath = join(ROOT, "src/handfont-svgs", `${char}.svg`);
+  const special = SPECIAL[char];
+  const sub = special?.sub ?? (char >= "A" && char <= "Z" ? "upper" : "lower");
+  const file = special?.file ?? char;
+  const pubPath = join(ROOT, "public/whiteboard/handfont", sub, `${file}.svg`);
+  // Canonical source name uses the clean filename (never the raw char for specials)
+  const srcPath = join(ROOT, "src/handfont-svgs", `${file}.svg`);
   return { pubPath, srcPath, sub };
 }
 
