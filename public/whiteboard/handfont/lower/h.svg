@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="b" data-name="Layer 2" viewBox="31 0 36.61 64.87">
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="b" data-name="Layer 2" viewBox="37.53 -4.59 29.15 66.06" data-tight-x="37.53" data-tight-y="-4.59" data-tight-w="29.15" data-tight-h="66.06">
   <defs>
     <style>
       .f, .g {
@@ -12,7 +12,7 @@
       .g {
         stroke: #2d2a2b;
         stroke-miterlimit: 10;
-        stroke-width: 17px;
+        stroke-width: 10px;
       }
     </style>
     <clipPath id="e">
