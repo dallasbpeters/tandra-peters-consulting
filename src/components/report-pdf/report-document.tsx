@@ -569,7 +569,7 @@ const PhotoImage = ({
   src,
   takenAt,
 }: {
-  imageStyle: object;
+  imageStyle: NonNullable<React.ComponentProps<typeof Image>["style"]>;
   solo?: boolean;
   src: string;
   takenAt: string | null;
