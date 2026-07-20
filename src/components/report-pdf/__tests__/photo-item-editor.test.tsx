@@ -59,7 +59,7 @@ describe(PhotoItemEditor, () => {
 
   it("adds a default Finding/Detail table (no cost column)", () => {
     const handlers = renderItem(basePhoto);
-    fireEvent.click(screen.getByRole("button", { name: /add details table/i }));
+    fireEvent.click(screen.getByRole("button", { name: /add table/i }));
     const table = handlers.onTableChange.mock.calls[0][1] as DetailsTable;
     expect(table.columns).toStrictEqual(["Finding", "Detail"]);
     expect(table.columns).not.toContain("Cost");

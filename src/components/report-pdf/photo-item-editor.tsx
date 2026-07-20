@@ -158,7 +158,12 @@ const TableEditor = ({
                   }
                   size="small"
                 >
-                  <WaIcon name="xmark" label="Remove row" library="iconoir" />
+                  <WaIcon
+                    slot="start"
+                    name="xmark"
+                    label="Remove row"
+                    library="iconoir"
+                  />
                 </WaButton>
               </td>
             </tr>
@@ -428,10 +433,10 @@ export const PhotoItemEditor = ({
             <WaIcon
               slot="start"
               name="plus"
-              label="Add details table"
+              label="Add table"
               library="iconoir"
             />
-            Add details table
+            Add table
           </WaButton>
           <WaButton
             appearance="filled"
@@ -440,7 +445,12 @@ export const PhotoItemEditor = ({
             onClick={() => onMove(photo.id, -1)}
             size="small"
           >
-            <WaIcon name="arrow-up" label="Move photo up" library="iconoir" />
+            <WaIcon
+              slot="start"
+              name="arrow-up"
+              label="Move photo up"
+              library="iconoir"
+            />
           </WaButton>
           <WaButton
             appearance="filled"
@@ -450,6 +460,7 @@ export const PhotoItemEditor = ({
             size="small"
           >
             <WaIcon
+              slot="start"
               name="arrow-down"
               label="Move photo down"
               library="iconoir"
@@ -462,7 +473,12 @@ export const PhotoItemEditor = ({
             onClick={() => onRemove(photo.id)}
             size="small"
           >
-            <WaIcon name="trash" label="Remove photo" library="iconoir" />
+            <WaIcon
+              slot="start"
+              name="trash"
+              label="Remove photo"
+              library="iconoir"
+            />
           </WaButton>
         </div>
       </div>

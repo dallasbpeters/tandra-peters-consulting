@@ -111,6 +111,12 @@ export const EditorPane = ({
   );
 
   // Touch drag-to-sort for iOS — HTML5 DnD is not available on Safari.
+  //
+  // Strategy: detect drag start on the list (passive), then capture
+  // touchmove/touchend at the document level with passive:false so we can
+  // call preventDefault() and prevent the page from scrolling mid-drag.
+  // Capturing at document level also keeps tracking when the finger wanders
+  // outside the <ul> boundary.
   useEffect(() => {
     const list = photoListRef.current;
     if (!list) {
@@ -131,29 +137,19 @@ export const EditorPane = ({
       return y < rect.top + rect.height / 2 ? "before" : "after";
     };
 
-    const onTouchStart = (event: TouchEvent) => {
-      const handle = (event.target as Element).closest("[data-drag-handle]");
-      if (!handle) {
-        return;
-      }
-      const row = handle.closest("li[data-photo-id]") as HTMLElement | null;
-      if (!row?.dataset.photoId) {
-        return;
-      }
-      touchSourceId = row.dataset.photoId;
-      setDragPhotoId(touchSourceId);
-      const t = event.touches[0];
-      lastX = t.clientX;
-      lastY = t.clientY;
+    const cleanup = () => {
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchCancel);
     };
 
     const onTouchMove = (event: TouchEvent) => {
-      if (!touchSourceId) {
+      // Prevent the page from scrolling while the drag is active.
+      event.preventDefault();
+      const t = event.touches[0];
+      if (!t) {
         return;
       }
-      // touch-action:none on [data-drag-handle] already prevents page scroll
-      // for gestures starting on the handle; no preventDefault() needed.
-      const t = event.touches[0];
       lastX = t.clientX;
       lastY = t.clientY;
       const target = rowFromPoint(t.clientX, t.clientY);
@@ -168,6 +164,7 @@ export const EditorPane = ({
     };
 
     const onTouchEnd = () => {
+      cleanup();
       if (!touchSourceId) {
         return;
       }
@@ -184,16 +181,45 @@ export const EditorPane = ({
       touchSourceId = null;
     };
 
+    const onTouchCancel = () => {
+      cleanup();
+      endPhotoDrag();
+      touchSourceId = null;
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      const handle = (event.target as Element).closest("[data-drag-handle]");
+      if (!handle) {
+        return;
+      }
+      const row = handle.closest("li[data-photo-id]") as HTMLElement | null;
+      if (!row?.dataset.photoId) {
+        return;
+      }
+
+      touchSourceId = row.dataset.photoId;
+      const t = event.touches[0];
+      if (!t) {
+        return;
+      }
+      lastX = t.clientX;
+      lastY = t.clientY;
+      setDragPhotoId(touchSourceId);
+
+      // Attach move/end at document level with passive:false so we can
+      // preventDefault() and suppress the page scroll on iOS mid-drag.
+      // eslint-disable-next-line github/require-passive-events
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
+      document.addEventListener("touchend", onTouchEnd, { passive: true });
+      document.addEventListener("touchcancel", onTouchCancel);
+    };
+
     list.addEventListener("touchstart", onTouchStart, { passive: true });
-    list.addEventListener("touchmove", onTouchMove, { passive: true });
-    list.addEventListener("touchend", onTouchEnd, { passive: true });
-    list.addEventListener("touchcancel", onTouchEnd);
 
     return () => {
       list.removeEventListener("touchstart", onTouchStart);
-      list.removeEventListener("touchmove", onTouchMove);
-      list.removeEventListener("touchend", onTouchEnd);
-      list.removeEventListener("touchcancel", onTouchEnd);
+      // Belt-and-suspenders: clean up document listeners if unmounted mid-drag.
+      cleanup();
     };
   }, [endPhotoDrag, handlePhotoDrop]);
   // When editing a saved report, surface the version on the panel title rather
