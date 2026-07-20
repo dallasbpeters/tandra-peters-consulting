@@ -130,7 +130,7 @@ wa-details::part(content) {
   right: 0;
   z-index: 1000;
   background: var(--theme-palette-granite-950);
-  padding: 0.5rem 0.5rem 3rem 0.5rem;
+  padding: 0.5rem 0.5rem 1rem 0.5rem;
 }
 
 .report-tablist {
