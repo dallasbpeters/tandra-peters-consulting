@@ -14,10 +14,11 @@ import {
   ShareAndroid,
   WarningTriangle,
 } from "iconoir-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EditorPane } from "../components/report-pdf/editor-pane";
 import { PaneSwitcher } from "../components/report-pdf/pane-switcher";
+import { PhotoAnnotator } from "../components/report-pdf/photo-annotator";
 import { ReportLibrary } from "../components/report-pdf/report-library";
 import { ReportPreview } from "../components/report-pdf/report-preview";
 import { ReportSendDialog } from "../components/report-pdf/report-send-dialog";
@@ -30,6 +31,11 @@ import { useSanitySite } from "../context/use-sanity-site";
 import { usePageMetadata } from "../hooks/use-page-metadata";
 import { useSanityImageAssets } from "../hooks/use-sanity-image-assets";
 import { GOOGLE_DRIVE_SCOPE } from "../lib/google-auth-core";
+import {
+  isDriveGrantedForEmail,
+  loadDriveConnection,
+  saveDriveConnection,
+} from "../lib/report-pdf/drive-connection";
 import { buildReportFilename } from "../lib/report-pdf/filename";
 import { uploadPdfToDrive } from "../lib/report-pdf/google-drive";
 import { buildLayoutModel } from "../lib/report-pdf/layout-model";
@@ -75,14 +81,19 @@ export const ReportPdfPage = () => {
   const [lastPdfUrl, setLastPdfUrl] = useState<string | null>(null);
   const [lastDriveLink, setLastDriveLink] = useState<string | undefined>();
   const [sendOpen, setSendOpen] = useState(false);
+  const [annotatingId, setAnnotatingId] = useState<string | null>(null);
+  // Persist sync preference + which account granted Drive (not the token).
   const [driveSync, setDriveSync] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.localStorage.getItem("tandra:report:drive-sync") === "true"
+    () => loadDriveConnection().syncEnabled
   );
-  // A live Drive grant only exists after an explicit, user-gesture connect.
-  // Access tokens are per-session, so this always starts false on load.
-  const [driveConnected, setDriveConnected] = useState(false);
+  // Optimistic: same account previously granted Drive → show as connected
+  // while we silently re-mint a token in the background.
+  const [driveConnected, setDriveConnected] = useState(() =>
+    isDriveGrantedForEmail(loadDriveConnection(), null)
+  );
+  const [driveFolderId, setDriveFolderId] = useState<string | null>(
+    () => loadDriveConnection().folderId
+  );
   const [driveBusy, setDriveBusy] = useState(false);
 
   usePageMetadata({
@@ -98,6 +109,39 @@ export const ReportPdfPage = () => {
     posthog?.capture("report_pdf_tool_viewed");
   }, [posthog]);
 
+  // Restore Drive status for the signed-in account. Tokens stay in memory
+  // only; we persist email + sync preference + folder id, then silently
+  // re-mint a Drive token when GIS still has consent for that account.
+  const driveRestoreForEmail = useRef<string | null>(null);
+  useEffect(() => {
+    const email = auth.user?.email ?? null;
+    if (!(auth.token && email)) {
+      setDriveConnected(false);
+      return;
+    }
+    const stored = loadDriveConnection();
+    const granted = isDriveGrantedForEmail(stored, email);
+    setDriveSync(stored.syncEnabled);
+    setDriveFolderId(stored.folderId);
+    if (!granted) {
+      setDriveConnected(false);
+      return;
+    }
+    // Show connected immediately for the matching account; refresh token.
+    setDriveConnected(true);
+    if (driveRestoreForEmail.current === email) {
+      return;
+    }
+    driveRestoreForEmail.current = email;
+    void auth
+      .requestAccessToken(GOOGLE_DRIVE_SCOPE, { silent: true })
+      .then(() => setDriveConnected(true))
+      .catch(() => {
+        // Consent lapsed — keep the stored preference, require a click.
+        setDriveConnected(false);
+      });
+  }, [auth, auth.token, auth.user?.email]);
+
   const brand = useMemo(
     () => mapReportBranding(sanity.data?.reportBranding),
     [sanity.data?.reportBranding]
@@ -109,6 +153,9 @@ export const ReportPdfPage = () => {
   );
 
   const hasPhotos = editor.report.photos.length > 0;
+
+  const annotatingPhoto =
+    editor.report.photos.find((photo) => photo.id === annotatingId) ?? null;
 
   // Edits invalidate the last saved PDF, so a subsequent Send re-saves first.
   useEffect(() => {
@@ -186,16 +233,21 @@ export const ReportPdfPage = () => {
         driveNote = " — connect Google Drive to mirror the PDF.";
       } else if (driveSync && driveConnected) {
         try {
-          // Cached from the Connect click, so this normally shows no popup.
+          // Cached from Connect / silent restore, so this normally shows no popup.
           const driveToken = await auth.requestAccessToken(GOOGLE_DRIVE_SCOPE);
           const mirror = await uploadPdfToDrive({
             existingFileId: driveFileId ?? undefined,
+            folderId: driveFolderId ?? undefined,
             filename: name,
             pdf: blob,
             token: driveToken,
           });
           drive = { fileId: mirror.fileId, webViewLink: mirror.webViewLink };
           setDriveFileId(mirror.fileId);
+          if (mirror.folderId) {
+            setDriveFolderId(mirror.folderId);
+            saveDriveConnection({ folderId: mirror.folderId });
+          }
         } catch (error) {
           // Grant expired or upload failed — force a fresh gesture-based connect.
           setDriveConnected(false);
@@ -269,12 +321,7 @@ export const ReportPdfPage = () => {
 
   const persistDriveSync = (next: boolean) => {
     setDriveSync(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        "tandra:report:drive-sync",
-        next ? "true" : "false"
-      );
-    }
+    saveDriveConnection({ syncEnabled: next });
   };
 
   // Must run from a direct click: the OAuth consent popup is blocked if it
@@ -288,8 +335,13 @@ export const ReportPdfPage = () => {
     setStatus(null);
     try {
       await auth.requestAccessToken(GOOGLE_DRIVE_SCOPE);
+      const email = auth.user?.email ?? null;
       setDriveConnected(true);
-      persistDriveSync(true);
+      setDriveSync(true);
+      saveDriveConnection({
+        connectedEmail: email,
+        syncEnabled: true,
+      });
       setStatus(
         "Google Drive connected — saves will mirror the PDF to your “Roof Reports” folder."
       );
@@ -349,14 +401,6 @@ export const ReportPdfPage = () => {
     <SitePageChrome>
       <div className="report-pdf-shell">
         <div className="report-pdf-header">
-          <div>
-            <h1>Photo Report</h1>
-            {currentReportId && currentVersion ? (
-              <p className="report-status">
-                Editing a saved report · v{currentVersion}
-              </p>
-            ) : null}
-          </div>
           {auth.token ? (
             <WaButtonGroup>
               <WaButton
@@ -440,7 +484,21 @@ export const ReportPdfPage = () => {
                   onClick={() => void connectDrive()}
                 >
                   <Google height={16} slot="start" width={16} />
-                  {driveBusy ? "Connecting…" : "Connect Drive"}
+                  {(() => {
+                    if (driveBusy) {
+                      return "Connecting…";
+                    }
+                    // Same account granted before but silent re-mint failed.
+                    if (
+                      isDriveGrantedForEmail(
+                        loadDriveConnection(),
+                        auth.user?.email
+                      )
+                    ) {
+                      return "Reconnect Drive";
+                    }
+                    return "Connect Drive";
+                  })()}
                 </WaButton>
               )}
             </WaButtonGroup>
@@ -459,11 +517,13 @@ export const ReportPdfPage = () => {
             editor={
               <EditorPane
                 addError={editor.addError}
+                brand={brand}
                 busy={editor.busy}
                 coverLibrary={coverLibrary}
                 idToken={auth.token}
                 onAddFiles={editor.addFiles}
                 onAddSection={editor.addSection}
+                onAnnotatePhoto={(id) => setAnnotatingId(id)}
                 onCaptionChange={editor.setCaption}
                 onCoverImageChange={editor.setCoverImage}
                 onFieldChange={editor.setField}
@@ -471,9 +531,11 @@ export const ReportPdfPage = () => {
                 onRemovePhoto={editor.removePhoto}
                 onRemoveSection={editor.removeSection}
                 onRenameSection={editor.renameSection}
+                onReorderPhotos={editor.reorderPhotos}
                 onSectionChange={editor.setSection}
                 onTableChange={editor.setTable}
                 report={editor.report}
+                savedVersion={currentReportId ? currentVersion : null}
               />
             }
             preview={<ReportPreview brand={brand} model={model} />}
@@ -500,6 +562,19 @@ export const ReportPdfPage = () => {
           pdfUrl={lastPdfUrl}
           reportTitle={editor.report.title || "Roof inspection report"}
           requestAccessToken={auth.requestAccessToken}
+        />
+      ) : null}
+      {annotatingPhoto ? (
+        <PhotoAnnotator
+          image={annotatingPhoto.processedImage}
+          initialScene={annotatingPhoto.annotations}
+          key={annotatingPhoto.id}
+          onCancel={() => setAnnotatingId(null)}
+          onSave={(scene) => {
+            const id = annotatingPhoto.id;
+            setAnnotatingId(null);
+            void editor.setAnnotations(id, scene);
+          }}
         />
       ) : null}
     </SitePageChrome>

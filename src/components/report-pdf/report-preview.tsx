@@ -2,11 +2,16 @@ import { Globe, Mail, MapPin, Phone } from "iconoir-react";
 import { useMemo } from "react";
 
 import { BIRDCREEK_MARK } from "../../lib/report-pdf/birdcreek-logo";
-import { formatDisplayDate } from "../../lib/report-pdf/format";
+import {
+  formatDisplayDate,
+  formatPhotoTakenLabel,
+} from "../../lib/report-pdf/format";
 import { buildPages } from "../../lib/report-pdf/layout-model";
 import {
   COVER_DECOR_ROWS,
   DECOR_TOTAL_COLUMNS,
+  REPORT_COVER_MARK,
+  REPORT_PHOTO,
 } from "../../lib/report-pdf/tokens";
 import type {
   BrandProfile,
@@ -29,19 +34,33 @@ const RunningHead = ({ brand, title }: { brand: string; title: string }) => (
 );
 
 const RunningFoot = ({
+  jobNumber,
   page,
+  propertyAddress,
   title,
   total,
 }: {
+  jobNumber?: string;
   page: number;
+  propertyAddress?: string;
   title: string;
   total: number;
 }) => (
   <div className="report-runfoot">
-    <span>{title}</span>
-    <span>
-      Page {page} of {total}
-    </span>
+    <div className="report-runfoot-left">
+      <span>{title}</span>
+      {jobNumber ? (
+        <span className="report-runfoot-job">Job Number: {jobNumber}</span>
+      ) : null}
+    </div>
+    <div className="report-runfoot-right">
+      <span>
+        Page {page} of {total}
+      </span>
+      {propertyAddress ? (
+        <span className="report-runfoot-address">{propertyAddress}</span>
+      ) : null}
+    </div>
   </div>
 );
 
@@ -115,7 +134,9 @@ const CoverFoot = ({ cover }: { cover: CoverContent }) => (
 const CoverHeadline = ({ cover }: { cover: CoverContent }) => (
   <>
     <p className="report-cover-eyebrow">{cover.brandName}</p>
-    <h2 className="report-cover-title">{cover.reportTitle}</h2>
+    {cover.reportTitle ? (
+      <h2 className="report-cover-title">{cover.reportTitle}</h2>
+    ) : null}
     {cover.title ? (
       <p className="report-cover-property">{cover.title}</p>
     ) : null}
@@ -183,12 +204,16 @@ const CoverPage = ({ cover }: { cover: CoverContent }) => {
 const ContactPage = ({
   contact,
   headerTitle,
+  jobNumber,
   pageNumber,
+  propertyAddress,
   totalPages,
 }: {
   contact: Extract<ReportPage, { kind: "contact" }>["contact"];
   headerTitle: string;
+  jobNumber: string;
   pageNumber: number;
+  propertyAddress: string;
   totalPages: number;
 }) => {
   const rows = [
@@ -217,7 +242,13 @@ const ContactPage = ({
             ))}
           </ul>
         </div>
-        <RunningFoot page={pageNumber} title={headerTitle} total={totalPages} />
+        <RunningFoot
+          jobNumber={jobNumber}
+          page={pageNumber}
+          propertyAddress={propertyAddress}
+          title={headerTitle}
+          total={totalPages}
+        />
       </div>
     </div>
   );
@@ -229,11 +260,15 @@ const PreviewPage = ({
   totalPages,
   footerText,
   headerTitle,
+  jobNumber,
+  propertyAddress,
 }: {
   footerText: string;
   headerTitle: string;
+  jobNumber: string;
   page: ReportPage;
   pageNumber: number;
+  propertyAddress: string;
   totalPages: number;
 }) => {
   if (page.kind === "cover") {
@@ -248,7 +283,9 @@ const PreviewPage = ({
           <h3 className="report-note-title">Inspection summary</h3>
           <p className="report-note-body">{page.note.text}</p>
           <RunningFoot
+            jobNumber={jobNumber}
             page={pageNumber}
+            propertyAddress={propertyAddress}
             title={headerTitle}
             total={totalPages}
           />
@@ -262,13 +299,21 @@ const PreviewPage = ({
       <ContactPage
         contact={page.contact}
         headerTitle={headerTitle}
+        jobNumber={jobNumber}
         pageNumber={pageNumber}
+        propertyAddress={propertyAddress}
         totalPages={totalPages}
       />
     );
   }
 
-  const { photo, sectionTitle } = page;
+  const { photos, sectionTitle } = page;
+  const soloPhoto =
+    photos.length === 1 && photos[0]?.table != null ? photos[0] : null;
+  const soloTakenLabel = soloPhoto
+    ? formatPhotoTakenLabel(soloPhoto.takenAt)
+    : "";
+
   return (
     <div className="report-page report-page--photo">
       <div className="report-page-inner">
@@ -276,20 +321,62 @@ const PreviewPage = ({
         {sectionTitle ? (
           <p className="report-section-title">{sectionTitle}</p>
         ) : null}
-        <figure className="report-photo-figure">
-          <img
-            alt={photo.caption || "Inspection photo"}
-            className="report-photo-image"
-            src={photo.imageUrl}
-          />
-          {photo.caption ? (
-            <figcaption className="report-photo-caption">
-              {photo.caption}
-            </figcaption>
-          ) : null}
-          {photo.table ? <DetailsTableView table={photo.table} /> : null}
-        </figure>
-        <RunningFoot page={pageNumber} title={headerTitle} total={totalPages} />
+        {soloPhoto ? (
+          <div className="report-photo-solo">
+            <figure className="report-photo-figure">
+              <div className="report-photo-image-wrap">
+                <img
+                  alt={soloPhoto.caption || "Inspection photo"}
+                  className="report-photo-image report-photo-image--solo"
+                  src={soloPhoto.imageUrl}
+                />
+                {soloTakenLabel ? (
+                  <span className="report-photo-taken">{soloTakenLabel}</span>
+                ) : null}
+              </div>
+              {soloPhoto.caption ? (
+                <figcaption className="report-photo-caption">
+                  {soloPhoto.caption}
+                </figcaption>
+              ) : null}
+              {soloPhoto.table ? (
+                <DetailsTableView table={soloPhoto.table} />
+              ) : null}
+            </figure>
+          </div>
+        ) : (
+          <div className="report-photo-grid">
+            {photos.map((photo) => {
+              const takenLabel = formatPhotoTakenLabel(photo.takenAt);
+              return (
+                <figure className="report-photo-figure" key={photo.imageUrl}>
+                  <div className="report-photo-image-wrap">
+                    <img
+                      alt={photo.caption || "Inspection photo"}
+                      className="report-photo-image"
+                      src={photo.imageUrl}
+                    />
+                    {takenLabel ? (
+                      <span className="report-photo-taken">{takenLabel}</span>
+                    ) : null}
+                  </div>
+                  {photo.caption ? (
+                    <figcaption className="report-photo-caption">
+                      {photo.caption}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              );
+            })}
+          </div>
+        )}
+        <RunningFoot
+          jobNumber={jobNumber}
+          page={pageNumber}
+          propertyAddress={propertyAddress}
+          title={headerTitle}
+          total={totalPages}
+        />
       </div>
     </div>
   );
@@ -305,6 +392,11 @@ export const ReportPreview = ({ brand, model }: ReportPreviewProps) => {
       style={
         {
           "--report-accent": brand.colors.accent,
+          "--report-mark-aspect": String(BIRDCREEK_MARK.aspectRatio),
+          "--report-mark-gap": `${REPORT_COVER_MARK.gapRatio * 100}cqw`,
+          "--report-mark-height": `${REPORT_COVER_MARK.heightRatio * 100}cqw`,
+          "--report-photo-height": `${REPORT_PHOTO.heightRatio * 100}cqw`,
+          "--report-photo-solo-height": `${REPORT_PHOTO.soloHeightRatio * 100}cqw`,
           "--report-primary": brand.colors.primary,
           "--report-text": brand.colors.text,
         } as React.CSSProperties
@@ -314,9 +406,15 @@ export const ReportPreview = ({ brand, model }: ReportPreviewProps) => {
         <PreviewPage
           footerText={model.footerText}
           headerTitle={model.headerTitle}
-          key={page.kind === "photo" ? page.photo.imageUrl : page.kind}
+          jobNumber={model.jobNumber}
+          key={
+            page.kind === "photo"
+              ? page.photos.map((photo) => photo.imageUrl).join("|")
+              : page.kind
+          }
           page={page}
           pageNumber={index + 1}
+          propertyAddress={model.propertyAddress}
           totalPages={totalPages}
         />
       ))}

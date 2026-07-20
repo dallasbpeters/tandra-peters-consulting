@@ -178,10 +178,16 @@ const accessTokenCache = new Map<string, CachedAccessToken>();
  * Obtain an OAuth access token for the given space-separated `scope` via the
  * GIS token client. Tokens are cached per-scope for the session; the first
  * request for a scope shows a consent popup, later ones reuse the grant.
+ *
+ * Pass `{ silent: true }` to attempt a no-popup grant (`prompt: ""`): GIS
+ * returns a token only if the user is signed in and has already consented,
+ * otherwise it rejects via `error_callback` without any UI. Use this to
+ * restore a previously granted scope on page load (no user gesture available).
  */
 export const requestGoogleAccessToken = async (
   clientId: string,
-  scope: string
+  scope: string,
+  options?: { silent?: boolean }
 ): Promise<string> => {
   const cached = accessTokenCache.get(scope);
   if (cached && cached.expiresAt > Date.now() + 60_000) {
@@ -218,7 +224,7 @@ export const requestGoogleAccessToken = async (
         reject(new Error(error.type ?? "Google authorization failed.")),
       scope,
     });
-    client.requestAccessToken();
+    client.requestAccessToken(options?.silent ? { prompt: "" } : undefined);
   });
 };
 

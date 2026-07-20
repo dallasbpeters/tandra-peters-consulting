@@ -1,12 +1,21 @@
 import { upload } from "@vercel/blob/client";
 
-import type { DetailsTable, PhotoItem, Report, SectionHeading } from "./types";
+import { compositeAnnotatedPhoto } from "./annotate-composite";
+import type {
+  AnnotationScene,
+  DetailsTable,
+  PhotoItem,
+  Report,
+  SectionHeading,
+} from "./types";
 
 const BLOB_UPLOAD_ROUTE = "/api/report-blob-upload";
 const REPORTS_ROUTE = "/api/reports";
 
 /** A photo as persisted in a version snapshot (blob URL instead of a Blob). */
 interface SnapshotPhoto {
+  /** Editable vector annotations; re-composited onto the original on reload. */
+  annotations: AnnotationScene | null;
   caption: string;
   id: string;
   order: number;
@@ -14,13 +23,23 @@ interface SnapshotPhoto {
   sectionId: string | null;
   sourceName: string;
   table: DetailsTable | null;
+  /** Capture date ISO; omitted on legacy snapshots. */
+  takenAt?: string | null;
 }
 
 /** Serialized, persistable form of a `Report` (no in-memory Blobs). */
 export interface ReportSnapshot {
+  contactAddress?: string;
+  contactEmail?: string;
+  contactIntro?: string;
+  contactPhone?: string;
+  contactWebsite?: string;
+  coverHeading?: string;
   coverImageUrl: string | null;
   date: string;
   overallNote: string;
+  /** Optional; omitted on legacy snapshots. */
+  jobNumber?: string;
   photos: SnapshotPhoto[];
   propertyAddress: string;
   sections: SectionHeading[];
@@ -104,6 +123,7 @@ export const serializeReport = async (
       );
     }
     photos.push({
+      annotations: photo.annotations,
       caption: photo.caption,
       id: photo.id,
       order: photo.order,
@@ -111,9 +131,16 @@ export const serializeReport = async (
       sectionId: photo.sectionId,
       sourceName: photo.sourceName,
       table: photo.table,
+      takenAt: photo.takenAt,
     });
   }
   return {
+    contactAddress: report.contactAddress,
+    contactEmail: report.contactEmail,
+    contactIntro: report.contactIntro,
+    contactPhone: report.contactPhone,
+    contactWebsite: report.contactWebsite,
+    coverHeading: report.coverHeading,
     coverImageUrl: report.coverImageUrl,
     date: report.date,
     overallNote: report.overallNote,
@@ -121,6 +148,7 @@ export const serializeReport = async (
     propertyAddress: report.propertyAddress,
     sections: report.sections,
     title: report.title,
+    jobNumber: report.jobNumber,
   };
 };
 
@@ -241,18 +269,35 @@ export const hydrateReport = async (
   for (const photo of snapshot.photos) {
     // eslint-disable-next-line no-await-in-loop -- bounded by photo count
     const blob = await fetch(photo.previewUrl).then((r) => r.blob());
+    // Legacy snapshots predate annotations; treat a missing field as none.
+    const annotations = photo.annotations ?? null;
+    let previewUrl = photo.previewUrl;
+    if (annotations && annotations.items.length > 0) {
+      // eslint-disable-next-line no-await-in-loop -- bounded by photo count
+      const composite = await compositeAnnotatedPhoto(blob, annotations);
+      previewUrl = composite.url;
+    }
     photos.push({
+      annotations,
       caption: photo.caption,
       id: photo.id,
       order: photo.order,
-      previewUrl: photo.previewUrl,
+      previewUrl,
       processedImage: blob,
       sectionId: photo.sectionId,
       sourceName: photo.sourceName,
       table: photo.table,
+      takenAt: photo.takenAt ?? null,
     });
   }
   return {
+    contactAddress: snapshot.contactAddress ?? "",
+    contactEmail: snapshot.contactEmail ?? "",
+    contactIntro: snapshot.contactIntro ?? "",
+    contactPhone: snapshot.contactPhone ?? "",
+    contactWebsite: snapshot.contactWebsite ?? "",
+    // Legacy snapshots predate the editable heading; keep the old default.
+    coverHeading: snapshot.coverHeading ?? "Roof Inspection Report",
     coverImageUrl: snapshot.coverImageUrl,
     date: snapshot.date,
     overallNote: snapshot.overallNote,
@@ -260,5 +305,6 @@ export const hydrateReport = async (
     propertyAddress: snapshot.propertyAddress,
     sections: snapshot.sections,
     title: snapshot.title,
+    jobNumber: snapshot.jobNumber ?? "",
   };
 };

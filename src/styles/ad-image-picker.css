@@ -122,6 +122,9 @@
   align-content: start;
   /* Flows within the scrollable surface (no competing inner scroll region). */
   padding-right: var(--theme-spacing-nudge);
+  max-height: 400px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ad-image-picker__topbar button,
@@ -163,6 +166,7 @@
   grid-template-columns: minmax(28rem, 1.45fr) minmax(20rem, 0.9fr);
   gap: var(--theme-spacing-lg);
   min-height: 0;
+  max-height: 400px;
 }
 
 .ad-image-picker__preview {

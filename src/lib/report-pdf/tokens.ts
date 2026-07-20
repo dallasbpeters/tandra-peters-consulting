@@ -16,7 +16,7 @@ export const REPORT_PAGE = {
 } as const;
 
 export const REPORT_FONTS = {
-  body: "IBM Plex Serif",
+  body: "Hanken Grotesk",
   heading: "Hanken Grotesk",
 } as const;
 
@@ -42,15 +42,50 @@ export const REPORT_SPACE = {
   xxl: 48,
 } as const;
 
+/**
+ * Cover wordmark sizing — single source of truth for PDF + HTML preview.
+ *
+ * Heights are fractions of page width so both renderers stay in lockstep:
+ * - PDF: `REPORT_PAGE.width * heightRatio` → points
+ * - Preview: `heightRatio * 100` → cqw (set as `--report-mark-height`)
+ *
+ * Change `heightRatio` here only; do not hardcode cqw/pt in CSS or the PDF.
+ * 0.1 → 61.2pt / 10cqw.
+ */
+export const REPORT_COVER_MARK = {
+  /** Gap below the mark (`REPORT_SPACE.sm` as a page-width fraction). */
+  gapRatio: REPORT_SPACE.sm / REPORT_PAGE.width,
+  heightRatio: 0.1,
+} as const;
+
+/**
+ * Body photo sizing — single source of truth for PDF + HTML preview.
+ * Non-table photos pack in a 2×2 grid; a photo with a details table takes
+ * the full content width on its own page.
+ */
+export const REPORT_PHOTO = {
+  /** Columns in the photo grid. */
+  columns: 2,
+  /** Max non-table photos per page (2×2). */
+  perPage: 4,
+  /** Grid-cell image height in points / page-width fraction. */
+  height: 175,
+  heightRatio: 175 / REPORT_PAGE.width,
+  /** Full-width solo image height when the photo has a details table. */
+  soloHeight: 360,
+  soloHeightRatio: 360 / REPORT_PAGE.width,
+} as const;
+
 /** Brand defaults (hex — mirror of the everglade/accent OKLCH scale). */
 export const REPORT_COLORS = {
   accent: "#3f7d5f",
+  accentLight: "#b8e87a",
   bg: "#ffffff",
   bgSubtle: "#f5f6f2",
   border: "#dcded9",
   /** Near-black green used for the full-bleed cover. */
   coverBg: "#0b1c14",
-  muted: "#5b615c",
+  muted: "#bfc5c0",
   /** White + muted-light for text set on the dark cover/contact pages. */
   onDark: "#ffffff",
   onDarkMuted: "#a9bcb2",

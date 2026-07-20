@@ -14,6 +14,7 @@ const brand: BrandProfile = {
 };
 
 const photo = (id: string, order: number): PhotoItem => ({
+  annotations: null,
   caption: `Finding ${order + 1}`,
   id,
   order,
@@ -22,6 +23,7 @@ const photo = (id: string, order: number): PhotoItem => ({
   sectionId: null,
   sourceName: `${id}.jpg`,
   table: { columns: ["Area", "Note"], rows: [["Ridge", "Wear"]] },
+  takenAt: null,
 });
 
 /**
@@ -36,6 +38,12 @@ const photo = (id: string, order: number): PhotoItem => ({
 describe("30-photo generation smoke (SC-007)", () => {
   const photos = Array.from({ length: 30 }, (_, i) => photo(`p${i}`, i));
   const report: Report = {
+    contactAddress: "",
+    contactEmail: "",
+    contactIntro: "",
+    contactPhone: "",
+    contactWebsite: "",
+    coverHeading: "Roof Inspection Report",
     coverImageUrl: null,
     date: "2026-07-18",
     overallNote: "Full roof inspection with thirty documented findings.",
@@ -43,11 +51,13 @@ describe("30-photo generation smoke (SC-007)", () => {
     propertyAddress: "123 Main St",
     sections: [],
     title: "123 Main St",
+    jobNumber: "",
   };
 
   it("paginates cover + note + 30 photos + contact without dropping any", () => {
     const pages = buildPages(buildLayoutModel(report, brand));
 
+    // Every photo here carries a details table, so each takes its own page.
     const photoPages = pages.filter((page) => page.kind === "photo");
     expect(photoPages).toHaveLength(30);
     // cover + note + 30 photos + contact
@@ -60,7 +70,9 @@ describe("30-photo generation smoke (SC-007)", () => {
     const pages = buildPages(buildLayoutModel(report, brand));
     const order = pages
       .filter((page) => page.kind === "photo")
-      .map((page) => (page.kind === "photo" ? page.photo.imageUrl : ""));
+      .flatMap((page) =>
+        page.kind === "photo" ? page.photos.map((p) => p.imageUrl) : []
+      );
 
     expect(order).toStrictEqual(photos.map((p) => p.previewUrl));
   });

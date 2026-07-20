@@ -153,20 +153,15 @@
   display: inline-flex;
   gap: var(--theme-spacing-xs);
   align-items: center;
-  padding: var(--theme-spacing-xs) var(--theme-spacing-sm);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;
   color: var(--studio-text);
   cursor: pointer;
-  background: var(--studio-panel-raised);
-  border: 1px solid var(--studio-border);
   border-radius: var(--theme-radius-small);
 }
 
 .ad-toolbar-menu-trigger:where(:hover, :focus-visible) {
-  background: var(--theme-color-everglade);
-  border-color: var(--studio-border-strong);
   color: var(--theme-color-white) !important;
 }
 

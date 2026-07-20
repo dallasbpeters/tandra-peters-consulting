@@ -429,6 +429,34 @@ vi.mock("../components/google-auth-gate", () => ({
     children,
 }));
 
+vi.mock("@awesome.me/webawesome/dist/react/details/index.js", () => ({
+  default: ({
+    summary,
+    open,
+    children,
+  }: {
+    summary?: React.ReactNode;
+    open?: boolean;
+    children?: React.ReactNode;
+  }) => (
+    <details open={open}>
+      <summary>{summary}</summary>
+      {children}
+    </details>
+  ),
+}));
+
+// Stubbed so the real Lit component doesn't fetch icon SVGs in jsdom (MSW flags
+// those as unhandled). Surfaces `label` as the accessible name when present.
+vi.mock("@awesome.me/webawesome/dist/react/icon/index.js", () => ({
+  default: ({ label }: { label?: string } & Record<string, unknown>) => (
+    <span
+      aria-hidden={label ? undefined : true}
+      aria-label={label || undefined}
+    />
+  ),
+}));
+
 vi.mock("@awesome.me/webawesome/dist/react/button/index.js", () => ({
   default: ({
     children,

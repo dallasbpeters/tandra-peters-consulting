@@ -47,3 +47,6 @@ wa-button::part(start) img {
   height: 24px;
   object-fit: contain;
 }
+wa-button::part(end) {
+  --spacing: 16px;
+}

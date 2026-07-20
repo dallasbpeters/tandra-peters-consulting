@@ -146,9 +146,14 @@ export const AdImagePicker = ({
             src={thumbnailUrl(selectedImage.url)}
           />
         ) : (
-          <WaIcon slot="start" name="image" family="ion" variant="outline" />
+          <WaIcon
+            slot="start"
+            name="image"
+            family="iconoir"
+            variant="outline"
+          />
         )}
-        <span>Library</span>
+        Library
       </WaButton>
 
       <WaPopover

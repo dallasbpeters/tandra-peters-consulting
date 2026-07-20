@@ -4,6 +4,10 @@
  * PDF (spec Edge Cases; research "iPhone photo intake").
  */
 
+import exifr from "exifr";
+
+import { toLocalIsoDate } from "./format";
+
 /** Longest edge (px) kept for the embedded/preview image. */
 const MAX_EDGE = 2000;
 const JPEG_QUALITY = 0.82;
@@ -14,8 +18,29 @@ export interface ProcessedPhoto {
   blob: Blob;
   height: number;
   previewUrl: string;
+  /** Local `YYYY-MM-DD` from EXIF DateTimeOriginal (or CreateDate), if present. */
+  takenAt: string | null;
   width: number;
 }
+
+/** Read the capture date from EXIF before re-encoding strips the metadata. */
+const readTakenAt = async (source: Blob): Promise<string | null> => {
+  try {
+    const exif = await exifr.parse(source, [
+      "DateTimeOriginal",
+      "CreateDate",
+      "ModifyDate",
+    ]);
+    const raw =
+      exif?.DateTimeOriginal ?? exif?.CreateDate ?? exif?.ModifyDate ?? null;
+    if (!(raw instanceof Date) || Number.isNaN(raw.getTime())) {
+      return null;
+    }
+    return toLocalIsoDate(raw);
+  } catch {
+    return null;
+  }
+};
 
 const isHeic = (file: File): boolean =>
   HEIC_MIME.has(file.type) || HEIC_EXT_RE.test(file.name);
@@ -41,6 +66,9 @@ const canvasToJpeg = (canvas: HTMLCanvasElement): Promise<Blob | null> =>
  * user-facing error for unsupported/corrupt files (never fails silently).
  */
 export const processPhotoFile = async (file: File): Promise<ProcessedPhoto> => {
+  // Capture EXIF from the original bytes before HEIC convert / JPEG re-encode
+  // strips DateTimeOriginal.
+  let takenAt = await readTakenAt(file);
   let sourceBlob: Blob = file;
 
   if (isHeic(file)) {
@@ -52,6 +80,10 @@ export const processPhotoFile = async (file: File): Promise<ProcessedPhoto> => {
         toType: "image/jpeg",
       });
       sourceBlob = Array.isArray(converted) ? converted[0] : converted;
+      // Some HEIC containers only expose the date after conversion.
+      if (!takenAt) {
+        takenAt = await readTakenAt(sourceBlob);
+      }
     } catch {
       throw new Error(
         `Could not convert "${file.name}" from HEIC. Try exporting it as JPG.`
@@ -88,5 +120,11 @@ export const processPhotoFile = async (file: File): Promise<ProcessedPhoto> => {
     throw new Error(`Could not encode "${file.name}". Try a different photo.`);
   }
 
-  return { blob, height, previewUrl: URL.createObjectURL(blob), width };
+  return {
+    blob,
+    height,
+    previewUrl: URL.createObjectURL(blob),
+    takenAt,
+    width,
+  };
 };

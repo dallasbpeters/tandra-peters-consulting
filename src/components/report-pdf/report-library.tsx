@@ -1,4 +1,5 @@
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaIcon from "@awesome.me/webawesome/dist/react/icon/index.js";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
 import { Clock, Download, Folder, Trash, Xmark } from "iconoir-react";
@@ -216,6 +217,7 @@ export const ReportLibrary = ({
                   {report.latest?.previewUrl ? (
                     <img
                       alt=""
+                      slot="start"
                       className="report-library-thumb"
                       src={report.latest.previewUrl}
                     />
@@ -224,7 +226,10 @@ export const ReportLibrary = ({
                       <Folder />
                     </div>
                   )}
-                  <div className="report-library-meta">
+                  <div
+                    onClick={() => openLatest(report.id)}
+                    className="report-library-meta"
+                  >
                     <p className="report-library-title">
                       {report.title || "Untitled report"}
                     </p>
@@ -248,6 +253,12 @@ export const ReportLibrary = ({
                     size="small"
                     variant="brand"
                   >
+                    <WaIcon
+                      slot="start"
+                      name="arrow-right"
+                      label="Open report"
+                      library="iconoir"
+                    />
                     Open
                   </WaButton>
                   <WaButton
@@ -272,6 +283,7 @@ export const ReportLibrary = ({
                   ) : null}
                   <WaButton
                     appearance="filled"
+                    variant="danger"
                     onClick={() => removeReport(report.id)}
                     size="small"
                   >
@@ -294,6 +306,12 @@ export const ReportLibrary = ({
                             onClick={() => recallVersion(report.id, version)}
                             size="small"
                           >
+                            <WaIcon
+                              slot="start"
+                              name="arrow-right"
+                              label="Open report"
+                              library="iconoir"
+                            />
                             Restore
                           </WaButton>
                           {version.pdfUrl ? (
@@ -304,6 +322,7 @@ export const ReportLibrary = ({
                               size="small"
                               target="_blank"
                             >
+                              <Download slot="start" />
                               PDF
                             </WaButton>
                           ) : null}

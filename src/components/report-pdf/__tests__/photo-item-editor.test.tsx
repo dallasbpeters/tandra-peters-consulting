@@ -9,6 +9,7 @@ import type {
 import { PhotoItemEditor } from "../photo-item-editor";
 
 const basePhoto: PhotoItem = {
+  annotations: null,
   caption: "",
   id: "a",
   order: 0,
@@ -17,10 +18,12 @@ const basePhoto: PhotoItem = {
   sectionId: null,
   sourceName: "a.jpg",
   table: null,
+  takenAt: null,
 };
 
 const renderItem = (photo: PhotoItem, sections: SectionHeading[] = []) => {
   const handlers = {
+    onAnnotate: vi.fn<(id: string) => void>(),
     onCaptionChange: vi.fn<(id: string, caption: string) => void>(),
     onMove: vi.fn<(id: string, direction: -1 | 1) => void>(),
     onRemove: vi.fn<(id: string) => void>(),

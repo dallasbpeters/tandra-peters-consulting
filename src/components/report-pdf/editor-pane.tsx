@@ -1,16 +1,17 @@
 import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaDetails from "@awesome.me/webawesome/dist/react/details/index.js";
 import WaIcon from "@awesome.me/webawesome/dist/react/icon/index.js";
 import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
-import { Plus, Trash } from "iconoir-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 
 import { appendDictation } from "../../hooks/use-dictation";
 import type { SanityImageAsset } from "../../hooks/use-sanity-image-assets";
 import type {
+  BrandProfile,
   DetailsTable,
   Report,
   SectionHeading,
@@ -20,6 +21,7 @@ import { AdImagePicker } from "../ad-image-picker";
 import { DictationButton } from "./dictation-button";
 import { PhotoItemEditor } from "./photo-item-editor";
 import { PropertyAddressField } from "./property-address-field";
+import type { ReportTextField } from "./use-report-editor";
 import { waValue } from "./wa-value";
 
 export interface CoverImageLibrary {
@@ -31,25 +33,32 @@ export interface CoverImageLibrary {
 
 interface EditorPaneProps {
   addError: string | null;
+  /** Brand defaults shown as contact-field placeholders. */
+  brand: BrandProfile;
   busy: boolean;
   coverLibrary: CoverImageLibrary;
   /** Google ID token forwarded to the auth-gated dictation route. */
   idToken: string;
   onAddFiles: (files: File[]) => void;
   onAddSection: () => void;
+  onAnnotatePhoto: (id: string) => void;
   onCaptionChange: (id: string, caption: string) => void;
   onCoverImageChange: (url: string | null) => void;
-  onFieldChange: (
-    field: "date" | "overallNote" | "propertyAddress" | "title",
-    value: string
-  ) => void;
+  onFieldChange: (field: ReportTextField, value: string) => void;
   onMovePhoto: (id: string, direction: -1 | 1) => void;
   onRemovePhoto: (id: string) => void;
   onRemoveSection: (id: string) => void;
   onRenameSection: (id: string, title: string) => void;
+  onReorderPhotos: (
+    sourceId: string,
+    targetId: string,
+    edge?: "after" | "before"
+  ) => void;
   onSectionChange: (id: string, sectionId: string | null) => void;
   onTableChange: (id: string, table: DetailsTable | null) => void;
   report: Report;
+  /** Version of the saved report being edited; appended to the panel title. */
+  savedVersion?: number | null;
 }
 
 const coverThumb = (url: string) =>
@@ -57,11 +66,13 @@ const coverThumb = (url: string) =>
 
 export const EditorPane = ({
   addError,
+  brand,
   busy,
   coverLibrary,
   idToken,
   onAddFiles,
   onAddSection,
+  onAnnotatePhoto,
   onCaptionChange,
   onCoverImageChange,
   onFieldChange,
@@ -69,11 +80,49 @@ export const EditorPane = ({
   onRemovePhoto,
   onRemoveSection,
   onRenameSection,
+  onReorderPhotos,
   onSectionChange,
   onTableChange,
   report,
+  savedVersion = null,
 }: EditorPaneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingContact, setEditingContact] = useState(false);
+  // Drag-to-sort state for the photo list (desktop pointer enhancement; the
+  // up/down buttons remain the keyboard/touch path).
+  const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{
+    edge: "after" | "before";
+    id: string;
+  } | null>(null);
+
+  const endPhotoDrag = () => {
+    setDragPhotoId(null);
+    setDropTarget(null);
+  };
+
+  const handlePhotoDrop = (
+    sourceId: string,
+    targetId: string,
+    edge: "after" | "before"
+  ) => {
+    onReorderPhotos(sourceId, targetId, edge);
+    endPhotoDrag();
+  };
+  // When editing a saved report, surface the version on the panel title rather
+  // than as loose status text above the editor.
+  const detailsSummary = savedVersion
+    ? `Report details · v${savedVersion}`
+    : "Report details";
+
+  // Contact details default to Birdcreek's brand info and rarely change, so we
+  // show them read-only behind an Edit toggle rather than four live inputs.
+  const contactDetails = [
+    { label: "Phone", value: report.contactPhone.trim() || brand.phone },
+    { label: "Email", value: report.contactEmail.trim() || brand.email },
+    { label: "Website", value: report.contactWebsite.trim() || brand.website },
+    { label: "Address", value: report.contactAddress.trim() || brand.address },
+  ];
 
   const handleFiles = (event: ChangeEvent<HTMLInputElement>) => {
     const files = [...(event.target.files ?? [])];
@@ -85,8 +134,47 @@ export const EditorPane = ({
 
   return (
     <div className="report-editor">
-      <fieldset className="report-fieldset">
-        <legend>Report details</legend>
+      <WaDetails summary={detailsSummary} open>
+        <div className="report-field">
+          <WaInput
+            label="Cover heading (optional)"
+            onInput={(event) => onFieldChange("coverHeading", waValue(event))}
+            placeholder="Roof Inspection Report"
+            value={report.coverHeading}
+          >
+            <DictationButton
+              slot="end"
+              idToken={idToken}
+              label="cover heading"
+              onTranscript={(text) =>
+                onFieldChange(
+                  "coverHeading",
+                  appendDictation(report.coverHeading, text)
+                )
+              }
+            />
+          </WaInput>
+        </div>
+        <div className="report-field">
+          <WaInput
+            label="Job number"
+            onInput={(event) => onFieldChange("jobNumber", waValue(event))}
+            placeholder="1234567890"
+            value={report.jobNumber}
+          >
+            <DictationButton
+              slot="end"
+              idToken={idToken}
+              label="job number"
+              onTranscript={(text) =>
+                onFieldChange(
+                  "jobNumber",
+                  appendDictation(report.jobNumber, text)
+                )
+              }
+            />
+          </WaInput>
+        </div>
         <div className="report-field">
           <WaInput
             label="Report title / property"
@@ -114,7 +202,9 @@ export const EditorPane = ({
           onInput={(event) => onFieldChange("date", waValue(event))}
           type="date"
           value={report.date}
-        />
+        >
+          <WaIcon name="calendar" label="inspection date" library="iconoir" />
+        </WaInput>
         <div className="report-field report-field--textarea">
           <WaTextarea
             label="Overall note (optional)"
@@ -134,10 +224,8 @@ export const EditorPane = ({
             }
           />
         </div>
-      </fieldset>
-
-      <fieldset className="report-fieldset">
-        <legend>Cover photo (optional)</legend>
+      </WaDetails>
+      <WaDetails summary="Cover photo (optional)">
         <p className="report-hint">
           Pick a hero image from the media library for a full-bleed cover. With
           no image, the cover uses the branded pattern.
@@ -168,19 +256,17 @@ export const EditorPane = ({
               >
                 <WaIcon
                   slot="start"
+                  library="iconoir"
                   name="trash"
                   label="Remove cover"
-                  library="iconoir"
                 />
                 Remove cover
               </WaButton>
             ) : null}
           </div>
         </div>
-      </fieldset>
-
-      <fieldset className="report-fieldset">
-        <legend>Sections (optional)</legend>
+      </WaDetails>
+      <WaDetails summary="Sections (optional)">
         <p className="report-hint">
           Group photos under headings like &ldquo;Front slope&rdquo; or
           &ldquo;Flashing&rdquo;.
@@ -234,10 +320,47 @@ export const EditorPane = ({
             </WaButton>
           </div>
         ))}
-      </fieldset>
-
-      <fieldset className="report-fieldset">
-        <legend>Photos</legend>
+      </WaDetails>
+      <WaDetails summary="Photos">
+        {report.photos.length === 0 ? (
+          <p className="report-hint">
+            Add photos from your camera roll or take new ones. Up to four photos
+            share a page; a details table gets its own full-width page.
+          </p>
+        ) : (
+          <ul
+            className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
+          >
+            {report.photos.map((photo, index) => (
+              <PhotoItemEditor
+                dragging={dragPhotoId === photo.id}
+                dropEdge={
+                  dropTarget?.id === photo.id && dragPhotoId !== photo.id
+                    ? dropTarget.edge
+                    : null
+                }
+                idToken={idToken}
+                index={index}
+                key={photo.id}
+                onAnnotate={onAnnotatePhoto}
+                onCaptionChange={onCaptionChange}
+                onDragEndItem={endPhotoDrag}
+                onDragOverItem={(edge) => setDropTarget({ edge, id: photo.id })}
+                onDragStartItem={() => setDragPhotoId(photo.id)}
+                onDropItem={(sourceId, edge) =>
+                  handlePhotoDrop(sourceId, photo.id, edge)
+                }
+                onMove={onMovePhoto}
+                onRemove={onRemovePhoto}
+                onSectionChange={onSectionChange}
+                onTableChange={onTableChange}
+                photo={photo}
+                sections={report.sections}
+                total={report.photos.length}
+              />
+            ))}
+          </ul>
+        )}
         <div className="report-photo-intake">
           <WaButton
             appearance="filled"
@@ -268,31 +391,94 @@ export const EditorPane = ({
             {addError}
           </p>
         ) : null}
-        {report.photos.length === 0 ? (
-          <p className="report-hint">
-            Add photos from your camera roll or take new ones. Each photo
-            becomes its own page in the report.
-          </p>
+      </WaDetails>
+      <WaDetails summary="Contact page">
+        <p className="report-hint">Shown on the last page of the report.</p>
+        <div className="report-field report-field--textarea">
+          <WaTextarea
+            label="Intro note (optional)"
+            onInput={(event) => onFieldChange("contactIntro", waValue(event))}
+            placeholder="A short note to the client, in your voice"
+            rows={4}
+            value={report.contactIntro}
+          />
+          <DictationButton
+            idToken={idToken}
+            label="contact intro"
+            onTranscript={(text) =>
+              onFieldChange(
+                "contactIntro",
+                appendDictation(report.contactIntro, text)
+              )
+            }
+          />
+        </div>
+
+        {editingContact ? (
+          <div className="report-contact-edit">
+            <WaInput
+              label="Phone"
+              onInput={(event) => onFieldChange("contactPhone", waValue(event))}
+              placeholder={brand.phone}
+              value={report.contactPhone}
+            />
+            <WaInput
+              label="Email"
+              onInput={(event) => onFieldChange("contactEmail", waValue(event))}
+              placeholder={brand.email}
+              value={report.contactEmail}
+            />
+            <WaInput
+              label="Website"
+              onInput={(event) =>
+                onFieldChange("contactWebsite", waValue(event))
+              }
+              placeholder={brand.website}
+              value={report.contactWebsite}
+            />
+            <WaInput
+              label="Address"
+              onInput={(event) =>
+                onFieldChange("contactAddress", waValue(event))
+              }
+              placeholder={brand.address}
+              value={report.contactAddress}
+            />
+            <WaButton
+              appearance="filled"
+              onClick={() => setEditingContact(false)}
+              size="small"
+              variant="brand"
+            >
+              Done
+            </WaButton>
+          </div>
         ) : (
-          <ul className="report-photo-list">
-            {report.photos.map((photo, index) => (
-              <PhotoItemEditor
-                idToken={idToken}
-                index={index}
-                key={photo.id}
-                onCaptionChange={onCaptionChange}
-                onMove={onMovePhoto}
-                onRemove={onRemovePhoto}
-                onSectionChange={onSectionChange}
-                onTableChange={onTableChange}
-                photo={photo}
-                sections={report.sections}
-                total={report.photos.length}
+          <div className="report-contact-summary">
+            <dl className="report-contact-details">
+              {contactDetails.map((detail) => (
+                <div key={detail.label}>
+                  <dt>{detail.label}</dt>
+                  <dd>{detail.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <WaButton
+              appearance="outlined"
+              onClick={() => setEditingContact(true)}
+              size="small"
+            >
+              <WaIcon
+                label=""
+                library="iconoir"
+                name="edit-pencil"
+                slot="start"
               />
-            ))}
-          </ul>
+              Edit details
+            </WaButton>
+          </div>
         )}
-      </fieldset>
+      </WaDetails>
     </div>
   );
 };

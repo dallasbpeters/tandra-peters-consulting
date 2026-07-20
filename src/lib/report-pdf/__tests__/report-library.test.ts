@@ -14,6 +14,12 @@ vi.mock(import("@vercel/blob/client"), () => ({
 const { hydrateReport, serializeReport } = await import("../report-library");
 
 const baseReport = (overrides: Partial<Report> = {}): Report => ({
+  contactAddress: "",
+  contactEmail: "",
+  contactIntro: "",
+  contactPhone: "",
+  contactWebsite: "",
+  coverHeading: "Roof Inspection Report",
   coverImageUrl: null,
   date: "2026-01-01",
   overallNote: "",
@@ -21,6 +27,7 @@ const baseReport = (overrides: Partial<Report> = {}): Report => ({
   propertyAddress: "123 Main",
   sections: [],
   title: "Test report",
+  jobNumber: "",
   ...overrides,
 });
 
@@ -36,6 +43,7 @@ describe("serializeReport", () => {
     const report = baseReport({
       photos: [
         {
+          annotations: null,
           caption: "new",
           id: "p1",
           order: 0,
@@ -44,8 +52,10 @@ describe("serializeReport", () => {
           sectionId: null,
           sourceName: "a.jpg",
           table: null,
+          takenAt: null,
         },
         {
+          annotations: null,
           caption: "kept",
           id: "p2",
           order: 1,
@@ -54,6 +64,7 @@ describe("serializeReport", () => {
           sectionId: null,
           sourceName: "b.jpg",
           table: null,
+          takenAt: null,
         },
       ],
     });
@@ -88,6 +99,7 @@ describe("hydrateReport", () => {
       overallNote: "note",
       photos: [
         {
+          annotations: null,
           caption: "cap",
           id: "p1",
           order: 0,
@@ -95,11 +107,13 @@ describe("hydrateReport", () => {
           sectionId: "s1",
           sourceName: "a.jpg",
           table: null,
+          takenAt: null,
         },
       ],
       propertyAddress: "123 Main",
       sections: [{ id: "s1", order: 0, title: "Front" }],
       title: "Recalled",
+      jobNumber: "",
     });
 
     expect(report.title).toBe("Recalled");

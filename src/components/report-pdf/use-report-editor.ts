@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { compositeAnnotatedPhoto } from "../../lib/report-pdf/annotate-composite";
 import { todayIso } from "../../lib/report-pdf/format";
 import { processPhotoFile } from "../../lib/report-pdf/image-pipeline";
 import type {
+  AnnotationScene,
   DetailsTable,
   PhotoItem,
   Report,
@@ -17,7 +19,29 @@ const createId = (): string =>
 const reindex = <T extends { order: number }>(items: T[]): T[] =>
   items.map((item, index) => ({ ...item, order: index }));
 
+const DEFAULT_COVER_HEADING = "Roof Inspection Report";
+
+/** Free-text report fields edited through the shared `setField` handler. */
+export type ReportTextField =
+  | "contactAddress"
+  | "contactEmail"
+  | "contactIntro"
+  | "contactPhone"
+  | "contactWebsite"
+  | "coverHeading"
+  | "date"
+  | "jobNumber"
+  | "overallNote"
+  | "propertyAddress"
+  | "title";
+
 const emptyReport = (): Report => ({
+  contactAddress: "",
+  contactEmail: "",
+  contactIntro: "",
+  contactPhone: "",
+  contactWebsite: "",
+  coverHeading: DEFAULT_COVER_HEADING,
   coverImageUrl: null,
   date: todayIso(),
   overallNote: "",
@@ -25,6 +49,7 @@ const emptyReport = (): Report => ({
   propertyAddress: "",
   sections: [],
   title: "",
+  jobNumber: "",
 });
 
 export interface ReportEditor {
@@ -36,17 +61,25 @@ export interface ReportEditor {
   loadReport: (next: Report) => void;
   movePhoto: (id: string, direction: -1 | 1) => void;
   removePhoto: (id: string) => void;
+  /**
+   * Drag-to-sort: move `sourceId` before or after `targetId`
+   * (`edge` defaults to before when omitted).
+   */
+  reorderPhotos: (
+    sourceId: string,
+    targetId: string,
+    edge?: "after" | "before"
+  ) => void;
   removeSection: (id: string) => void;
   renameSection: (id: string, title: string) => void;
   /** Clear the editor back to a blank report. */
   resetReport: () => void;
   report: Report;
+  /** Save hand-drawn annotations and refresh the composited display image. */
+  setAnnotations: (id: string, scene: AnnotationScene) => Promise<void>;
   setCaption: (id: string, caption: string) => void;
   setCoverImage: (url: string | null) => void;
-  setField: (
-    field: "date" | "overallNote" | "propertyAddress" | "title",
-    value: string
-  ) => void;
+  setField: (field: ReportTextField, value: string) => void;
   setSection: (id: string, sectionId: string | null) => void;
   setTable: (id: string, table: DetailsTable | null) => void;
 }
@@ -56,6 +89,11 @@ export const useReportEditor = (): ReportEditor => {
   const [busy, setBusy] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const objectUrls = useRef<Set<string>>(new Set());
+  const reportRef = useRef(report);
+
+  useEffect(() => {
+    reportRef.current = report;
+  }, [report]);
 
   useEffect(
     () => () => {
@@ -66,15 +104,9 @@ export const useReportEditor = (): ReportEditor => {
     []
   );
 
-  const setField = useCallback(
-    (
-      field: "date" | "overallNote" | "propertyAddress" | "title",
-      value: string
-    ) => {
-      setReport((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const setField = useCallback((field: ReportTextField, value: string) => {
+    setReport((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const setCoverImage = useCallback((url: string | null) => {
     setReport((prev) => ({ ...prev, coverImageUrl: url }));
@@ -93,6 +125,7 @@ export const useReportEditor = (): ReportEditor => {
         const processed = await processPhotoFile(file);
         objectUrls.current.add(processed.previewUrl);
         added.push({
+          annotations: null,
           caption: "",
           id: createId(),
           order: 0,
@@ -101,6 +134,7 @@ export const useReportEditor = (): ReportEditor => {
           sectionId: null,
           sourceName: file.name,
           table: null,
+          takenAt: processed.takenAt,
         });
       } catch (error) {
         failure =
@@ -150,6 +184,35 @@ export const useReportEditor = (): ReportEditor => {
     });
   }, []);
 
+  const reorderPhotos = useCallback(
+    (
+      sourceId: string,
+      targetId: string,
+      edge: "after" | "before" = "before"
+    ) => {
+      if (sourceId === targetId) {
+        return;
+      }
+      setReport((prev) => {
+        const from = prev.photos.findIndex((photo) => photo.id === sourceId);
+        const to = prev.photos.findIndex((photo) => photo.id === targetId);
+        if (from === -1 || to === -1) {
+          return prev;
+        }
+        const photos = [...prev.photos];
+        const [moved] = photos.splice(from, 1);
+        let insertAt = edge === "after" ? to + 1 : to;
+        // Removing an earlier item shifts later indices down by one.
+        if (from < insertAt) {
+          insertAt -= 1;
+        }
+        photos.splice(insertAt, 0, moved);
+        return { ...prev, photos: reindex(photos) };
+      });
+    },
+    []
+  );
+
   const patchPhoto = useCallback((id: string, patch: Partial<PhotoItem>) => {
     setReport((prev) => ({
       ...prev,
@@ -171,6 +234,34 @@ export const useReportEditor = (): ReportEditor => {
 
   const setTable = useCallback(
     (id: string, table: DetailsTable | null) => patchPhoto(id, { table }),
+    [patchPhoto]
+  );
+
+  const setAnnotations = useCallback(
+    async (id: string, scene: AnnotationScene) => {
+      const photo = reportRef.current.photos.find((item) => item.id === id);
+      if (!photo) {
+        return;
+      }
+      const hasItems = scene.items.length > 0;
+      // Composite onto the pristine original so re-editing always starts clean.
+      const nextPreview = hasItems
+        ? (await compositeAnnotatedPhoto(photo.processedImage, scene)).url
+        : URL.createObjectURL(photo.processedImage);
+
+      if (
+        photo.previewUrl.startsWith("blob:") &&
+        objectUrls.current.has(photo.previewUrl)
+      ) {
+        URL.revokeObjectURL(photo.previewUrl);
+        objectUrls.current.delete(photo.previewUrl);
+      }
+      objectUrls.current.add(nextPreview);
+      patchPhoto(id, {
+        annotations: hasItems ? scene : null,
+        previewUrl: nextPreview,
+      });
+    },
     [patchPhoto]
   );
 
@@ -209,6 +300,12 @@ export const useReportEditor = (): ReportEditor => {
       URL.revokeObjectURL(url);
     }
     objectUrls.current.clear();
+    // Track any hydrated object URLs (composited photos) so we revoke them later.
+    for (const photo of next.photos) {
+      if (photo.previewUrl.startsWith("blob:")) {
+        objectUrls.current.add(photo.previewUrl);
+      }
+    }
     setAddError(null);
     setReport(next);
   }, []);
@@ -227,8 +324,10 @@ export const useReportEditor = (): ReportEditor => {
     removePhoto,
     removeSection,
     renameSection,
+    reorderPhotos,
     report,
     resetReport,
+    setAnnotations,
     setCaption,
     setCoverImage,
     setField,

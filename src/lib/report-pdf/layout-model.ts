@@ -1,3 +1,4 @@
+import { REPORT_PHOTO } from "./tokens";
 import type {
   BrandProfile,
   DetailsTable,
@@ -14,6 +15,10 @@ const COVER_TAGLINE = "A comprehensive roof inspection report";
 const COVER_INSPECTOR = "Tandra Peters";
 const CONTACT_INTRO =
   "I put this report together to walk you through what I found on your roof. If anything here raises a question, reach out any time — I'm always glad to talk it through.";
+const CONTACT_PHONE = "512-968-3965";
+const CONTACT_EMAIL = "tandra@birdcreekroofing.com";
+const CONTACT_WEBSITE = "www.birdcreekroofing.com";
+const CONTACT_ADDRESS = "2608 N. Main Street Suite B-313, Belton, TX 76513";
 
 const byOrder = (a: { order: number }, b: { order: number }): number =>
   a.order - b.order;
@@ -53,6 +58,7 @@ const photoBlock = (
   kind: "photo",
   sectionTitle,
   table: isTableMeaningful(photo.table) ? normalizeTable(photo.table) : null,
+  takenAt: photo.takenAt,
 });
 
 /**
@@ -67,7 +73,10 @@ export const buildLayoutModel = (
   report: Report,
   brand: BrandProfile
 ): LayoutModel => {
-  const reportTitle = report.title.trim() || DEFAULT_REPORT_TITLE;
+  const coverHeading = report.coverHeading.trim();
+  // Running header stays meaningful even when the cover heading is left blank.
+  const headerTitle =
+    coverHeading || report.title.trim() || DEFAULT_REPORT_TITLE;
   const blocks: LayoutBlock[] = [];
 
   blocks.push({
@@ -77,7 +86,7 @@ export const buildLayoutModel = (
     inspectorName: COVER_INSPECTOR,
     kind: "cover",
     logoUrl: brand.logoUrl,
-    reportTitle: DEFAULT_REPORT_TITLE,
+    reportTitle: coverHeading,
     tagline: COVER_TAGLINE,
     title: report.title.trim(),
   });
@@ -111,32 +120,73 @@ export const buildLayoutModel = (
   }
 
   blocks.push({
-    address: brand.address,
+    address: report.contactAddress.trim() || CONTACT_ADDRESS,
     brandName: brand.footerText,
-    email: brand.email,
-    intro: CONTACT_INTRO,
+    email: report.contactEmail.trim() || CONTACT_EMAIL,
+    intro: report.contactIntro.trim() || CONTACT_INTRO,
     kind: "contact",
-    phone: brand.phone,
-    website: brand.website,
+    phone: report.contactPhone.trim() || CONTACT_PHONE,
+    website: report.contactWebsite.trim() || CONTACT_WEBSITE,
   });
 
   return {
     blocks,
     footerText: brand.footerText,
-    headerTitle: reportTitle,
+    headerTitle,
+    jobNumber: (report.jobNumber ?? "").trim(),
+    propertyAddress: (report.propertyAddress ?? "").trim(),
   };
 };
 
 /**
- * Paginate the layout model into one page per photo (plus cover, optional note,
- * and contact). Both renderers consume this so the preview and PDF paginate
- * identically. A section band is emitted only on the first page of each section.
+ * Paginate the layout model (cover, packed photo pages, optional note, and
+ * contact). Both renderers consume this so the preview and PDF paginate
+ * identically. Photos pack four-up in a 2×2 grid unless one carries a details
+ * table (full-width solo page). A new section always starts a fresh page. A
+ * section band is emitted only on the first page of each section.
  */
 export const buildPages = (model: LayoutModel): ReportPage[] => {
   const pages: ReportPage[] = [];
-  let previousSectionTitle: string | null = null;
+  const emittedSections = new Set<string>();
+  let bucket: PhotoBlock[] = [];
+
+  const flushPhotos = (): void => {
+    if (bucket.length === 0) {
+      return;
+    }
+    const groupSection = bucket[0].sectionTitle;
+    let band: string | null = null;
+    if (groupSection !== null && !emittedSections.has(groupSection)) {
+      band = groupSection;
+      emittedSections.add(groupSection);
+    }
+    pages.push({ kind: "photo", photos: bucket, sectionTitle: band });
+    bucket = [];
+  };
 
   for (const block of model.blocks) {
+    if (block.kind === "photo") {
+      const hasTable = block.table !== null;
+      const sectionChanged =
+        bucket.length > 0 && bucket[0].sectionTitle !== block.sectionTitle;
+      const previousHadTable = bucket.at(-1)?.table != null;
+      if (
+        sectionChanged ||
+        previousHadTable ||
+        bucket.length >= REPORT_PHOTO.perPage ||
+        (hasTable && bucket.length > 0)
+      ) {
+        flushPhotos();
+      }
+      bucket.push(block);
+      if (hasTable) {
+        flushPhotos();
+      }
+      continue;
+    }
+
+    // Any non-photo block ends the current photo run before it is emitted.
+    flushPhotos();
     switch (block.kind) {
       case "cover": {
         pages.push({ cover: block, kind: "cover" });
@@ -144,18 +194,6 @@ export const buildPages = (model: LayoutModel): ReportPage[] => {
       }
       case "note": {
         pages.push({ kind: "note", note: block });
-        break;
-      }
-      case "photo": {
-        const isNewSection =
-          block.sectionTitle !== null &&
-          block.sectionTitle !== previousSectionTitle;
-        pages.push({
-          kind: "photo",
-          photo: block,
-          sectionTitle: isNewSection ? block.sectionTitle : null,
-        });
-        previousSectionTitle = block.sectionTitle;
         break;
       }
       case "contact": {
@@ -168,5 +206,6 @@ export const buildPages = (model: LayoutModel): ReportPage[] => {
     }
   }
 
+  flushPhotos();
   return pages;
 };

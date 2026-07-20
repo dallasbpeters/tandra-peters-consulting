@@ -29,7 +29,10 @@ export interface DashboardAuthContextValue {
   clientId: string;
   ready: boolean;
   /** Request an OAuth access token for extra scopes (Contacts, Drive). */
-  requestAccessToken: (scope: string) => Promise<string>;
+  requestAccessToken: (
+    scope: string,
+    options?: { silent?: boolean }
+  ) => Promise<string>;
   signOut: (message?: string) => void;
   token: string | null;
   user: GoogleAuthUser | null;
@@ -55,11 +58,11 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
   }, []);
 
   const requestAccessToken = useCallback(
-    (scope: string) => {
+    (scope: string, options?: { silent?: boolean }) => {
       if (!clientId) {
         return Promise.reject(new Error("Missing VITE_GOOGLE_CLIENT_ID."));
       }
-      return requestGoogleAccessToken(clientId, scope);
+      return requestGoogleAccessToken(clientId, scope, options);
     },
     [clientId]
   );

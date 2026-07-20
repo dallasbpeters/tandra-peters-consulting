@@ -14,13 +14,19 @@
   --report-bg-subtle: #f5f6f2;
   --report-cover-bg: #072326;
   --report-on-dark: #ffffff;
-  --report-on-dark-muted: #a9bcb2;
+  --report-on-dark-muted: #ecf3ef;
   --report-on-dark-rule: rgb(255 255 255 / 35%);
 
   /* Page geometry as a fraction of page width (48pt margin / 612pt page). */
   --report-pad: 7.84cqw;
   --report-heading-font: "Hanken Grotesk Variable", sans-serif;
-  --report-body-font: "IBM Plex Serif", serif;
+  --report-body-font: "Hanken Grotesk Variable", sans-serif;
+}
+
+wa-details::part(content) {
+  --spacing: 16px;
+  display: grid;
+  gap: calc(var(--spacing) * 0.5);
 }
 
 /* ── Tool shell ── */
@@ -124,13 +130,12 @@
   right: 0;
   z-index: 1000;
   background: var(--theme-palette-granite-950);
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 3rem 0.5rem;
 }
 
 .report-tablist {
   display: inline-grid;
   align-self: center;
-  border: 1px solid var(--report-border);
   border-radius: 9999px;
   padding: 0.2rem;
   gap: 0.2rem;
@@ -174,6 +179,7 @@
   width: 50%;
   flex: 0 0 50%;
   min-width: 0;
+  padding-block-end: 4rem;
 }
 
 /* Desktop split: inputs left, preview right. */
@@ -196,6 +202,7 @@
   align-self: flex-start;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .report-panes--split .report-tablist {
@@ -213,6 +220,18 @@
      scrolls inside its card instead of pushing the whole column past the pane. */
   min-width: 0;
   max-width: 100vw;
+}
+
+/* wa-details' expand/collapse chevron (a slotted <wa-icon library="system">)
+   has no font-size of its own, so it inherits from the summary. Pin the icon
+   part and any iconoir wa-icons in the editor to text size so they never
+   render at the SVG's intrinsic 24px+. */
+.report-editor wa-details::part(icon) {
+  font-size: 1rem;
+}
+
+.report-editor wa-icon {
+  font-size: 1rem;
 }
 
 .report-fieldset {
@@ -236,6 +255,47 @@
   color: var(--report-muted);
   font-size: 0.85rem;
   margin: 0;
+}
+
+.report-contact-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.report-contact-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.report-contact-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem 1rem;
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.report-contact-details > div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: baseline;
+  border-block-end: var(--report-border) 1px solid;
+}
+
+.report-contact-details dt {
+  color: var(--report-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.report-contact-details dd {
+  margin: 0;
+  font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .report-sr-only {
@@ -370,6 +430,27 @@
   flex: 0 0 auto;
 }
 
+/* AI Elements buttons (dictation mic, "near me" pin) render a shadcn <Button>
+   whose size + icon sizing live in Tailwind utilities this Vite app doesn't
+   compile, so both the button box and its SVG balloon to the input height. Pin
+   them to a compact square. The live-recording button opts out via its own
+   class so the waveform can span the grown end slot. */
+.report-editor [data-slot="button"]:not(.report-dictation--recording) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.report-editor [data-slot="button"] svg:not(.report-wave) {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+}
+
 .report-dictation--recording {
   color: #dc2626;
 }
@@ -491,16 +572,96 @@
   min-width: 0;
 }
 
+.report-photo-list.is-reordering {
+  cursor: grabbing;
+}
+
 .report-photo-row {
+  position: relative;
   display: flex;
   gap: 0.75rem;
   flex-direction: column;
   align-items: stretch;
-  border: 1px solid var(--report-border);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
   margin-inline-start: 0;
+  padding: 0.75rem;
   min-width: 0;
+  border-radius: 0.6rem;
+  border: 2px solid transparent;
+  background: var(--report-bg, #fff);
+  transition:
+    opacity 0.15s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.report-photo-row.is-dragging {
+  opacity: 0.35;
+}
+
+/* Outline the row the photo would move before/after — no layout shift. */
+.report-photo-row.is-drop-before,
+.report-photo-row.is-drop-after {
+  border-color: var(--report-accent);
+  background: color-mix(
+    in oklab,
+    var(--report-accent) 10%,
+    var(--report-bg, #fff)
+  );
+  box-shadow: 0 0 0 1px var(--report-accent);
+}
+
+.report-photo-row.is-drop-before {
+  border-top-width: 4px;
+}
+
+.report-photo-row.is-drop-after {
+  border-bottom-width: 4px;
+}
+
+.report-photo-drag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  align-self: stretch;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed var(--report-border, #dcded9);
+  border-radius: 0.5rem;
+  background: var(--report-bg-subtle, #f5f6f2);
+  color: var(--wa-color-on-quiet, #666);
+  cursor: grab;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: element;
+}
+
+/* Keep drag events on the handle itself (not WaIcon / label children). */
+.report-photo-drag > * {
+  pointer-events: none;
+}
+
+.report-photo-drag:active,
+.report-photo-list.is-reordering .report-photo-drag {
+  cursor: grabbing;
+}
+
+.report-photo-drag:focus-visible {
+  outline: 2px solid var(--report-accent);
+  outline-offset: 2px;
+}
+
+.report-photo-drag-label {
+  letter-spacing: 0.01em;
+}
+
+.report-photo-drag wa-icon {
+  font-size: 1rem;
 }
 
 .report-photo-thumb {
@@ -510,6 +671,49 @@
   border-radius: 0.5rem;
   flex: 0 0 auto;
   background: var(--report-bg-subtle);
+}
+
+.report-photo-thumb-btn {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+  block-size: 100px;
+}
+.report-photo-thumb-btn img {
+  width: 100%;
+  block-size: 100px;
+}
+
+.report-photo-thumb-btn:focus-visible {
+  outline: 2px solid var(--report-accent);
+  outline-offset: 2px;
+}
+
+.report-photo-thumb-hint {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.2rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: rgb(0 0 0 / 62%);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+.report-photo-thumb-hint wa-icon {
+  font-size: 0.8rem;
 }
 
 .report-photo-body {
@@ -637,6 +841,26 @@
   gap: 1rem;
 }
 
+.report-runfoot-left,
+.report-runfoot-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35cqw;
+  min-width: 0;
+}
+
+.report-runfoot-right {
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.report-runfoot-job,
+.report-runfoot-address {
+  opacity: 0.85;
+  line-height: 1.25;
+}
+
 /* Dark pages (contact) flip the running head/foot to light-on-dark. */
 .report-page--contact .report-runhead,
 .report-page--contact .report-runfoot {
@@ -664,11 +888,12 @@
 
 .report-cover-mark {
   display: block;
-  height: 9cqw;
+  /* Sized from REPORT_COVER_MARK in tokens.ts via CSS vars on .report-preview. */
+  height: var(--report-mark-height);
   width: auto;
-  aspect-ratio: 183.97 / 117.21;
+  aspect-ratio: var(--report-mark-aspect);
   color: var(--report-on-dark);
-  margin-bottom: 1.6cqw;
+  margin-bottom: var(--report-mark-gap);
 }
 
 /* Image cover variant: 3/4 full-bleed hero + 1/4 brand bar. */
@@ -754,6 +979,7 @@
   row-gap: 0.85cqw;
   align-items: center;
   margin-top: 5cqw;
+  height: 50%;
 }
 
 .report-cover-decor > span {
@@ -795,7 +1021,7 @@
   text-align: right;
 }
 
-.report-cover-byline-label {
+.report-cover-byline-label:not(.whitespace-pre-wrap) {
   font-family: var(--report-heading-font);
   color: var(--report-on-dark);
   font-size: 1.5cqw;
@@ -820,29 +1046,84 @@
   margin: 2.6cqw 0 0;
 }
 
-.report-photo-figure {
+/* 2×2 photo grid (matches PDF figureGrid). Table photos use --solo. */
+.report-photo-grid {
+  margin: 2cqw 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2cqw 3%;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-content: start;
+}
+
+.report-photo-solo {
   margin: 2cqw 0 0;
   display: flex;
   flex-direction: column;
-  gap: 1.6cqw;
   min-height: 0;
   flex: 1 1 auto;
+}
+
+.report-photo-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8cqw;
+  min-height: 0;
+  min-width: 0;
+}
+
+.report-photo-image-wrap {
+  position: relative;
+  width: 100%;
 }
 
 .report-photo-image {
+  display: block;
   width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 3in;
+  height: var(--report-photo-height);
   object-fit: cover;
-  background: var(--report-bg-subtle);
   border-radius: 1cqw;
 }
 
+.report-photo-image--solo {
+  height: var(--report-photo-solo-height);
+}
+
+.report-photo-taken {
+  position: absolute;
+  left: 1cqw;
+  bottom: 1cqw;
+  max-width: calc(100% - 2cqw);
+  padding: 0.45cqw 1cqw;
+  border-radius: 0.7cqw;
+  background: #000;
+  color: #fff;
+  font-family: var(--report-heading-font);
+  font-size: 1.35cqw;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-photo-image--solo + .report-photo-taken,
+.report-photo-solo .report-photo-taken {
+  font-size: 1.55cqw;
+  padding: 0.55cqw 1.2cqw;
+}
+
 .report-photo-caption {
-  font-size: 1.8cqw;
+  font-family: var(--report-heading-font);
+  font-size: 1.6cqw;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.report-photo-grid .report-photo-caption {
+  font-size: 1.45cqw;
 }
 
 .report-details-table {
@@ -921,8 +1202,12 @@
 }
 
 .report-contact-list li {
+  font-family: var(--report-heading-font);
+  font-size: 2.12cqw;
+  font-weight: 700;
   display: flex;
   align-items: center;
+  margin-inline-start: 0;
   gap: 2cqw;
   color: var(--report-on-dark);
 }
@@ -1018,6 +1303,7 @@
   padding: 0.85rem;
   border: 1px solid var(--wa-color-neutral-fill-normal, #e4e8e6);
   border-radius: 0.75rem;
+  margin-inline-start: 0;
 }
 
 .report-library-card[data-current="true"] {
