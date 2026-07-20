@@ -42,24 +42,8 @@ const getAudioContextCtor = (): AudioContextCtor | undefined => {
   );
 };
 
-const PREFERRED_MIME_TYPES = [
-  "audio/webm;codecs=opus",
-  "audio/webm",
-  "audio/mp4",
-  "audio/ogg;codecs=opus",
-];
-
-const pickMimeType = (): string | undefined => {
-  if (typeof MediaRecorder === "undefined") {
-    return undefined;
-  }
-  return PREFERRED_MIME_TYPES.find((type) =>
-    MediaRecorder.isTypeSupported(type)
-  );
-};
-
 /** iOS/iPadOS Safari — needs special handling (secure context, no WebAudio tap). */
-const isAppleWebkit = (): boolean => {
+export const isAppleWebkit = (): boolean => {
   if (typeof navigator === "undefined") {
     return false;
   }
@@ -70,6 +54,31 @@ const isAppleWebkit = (): boolean => {
     /Macintosh/.test(ua) &&
     "ontouchend" in document;
   return iOS || iPadOS;
+};
+
+// Safari does not support webm/opus; prefer mp4/aac so the blob is valid.
+const PREFERRED_MIME_TYPES_APPLE = [
+  "audio/mp4",
+  "audio/aac",
+  "audio/webm;codecs=opus",
+  "audio/webm",
+];
+
+const PREFERRED_MIME_TYPES_DEFAULT = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg;codecs=opus",
+];
+
+export const pickMimeType = (): string | undefined => {
+  if (typeof MediaRecorder === "undefined") {
+    return undefined;
+  }
+  const candidates = isAppleWebkit()
+    ? PREFERRED_MIME_TYPES_APPLE
+    : PREFERRED_MIME_TYPES_DEFAULT;
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type));
 };
 
 /** Turns a getUserMedia rejection into an actionable message. */
@@ -125,6 +134,7 @@ export const useDictation = ({
 
   const supported =
     typeof window !== "undefined" &&
+    window.isSecureContext &&
     typeof MediaRecorder !== "undefined" &&
     Boolean(navigator.mediaDevices?.getUserMedia);
 
@@ -149,14 +159,20 @@ export const useDictation = ({
 
   useEffect(() => releaseStream, [releaseStream]);
 
-  /** Starts a live analyser on the stream so the UI can draw a waveform. */
-  const startAudioAnalysis = useCallback((stream: MediaStream) => {
+  /** Starts a live analyser on the stream so the UI can draw a waveform.
+   *  Must NOT be called on iOS/iPadOS: tapping the mic stream into an
+   *  AudioContext causes Safari's MediaRecorder to produce silent blobs. */
+  const startAudioAnalysis = useCallback(async (stream: MediaStream) => {
     const Ctor = getAudioContextCtor();
     if (!Ctor) {
       return;
     }
     try {
       const context = new Ctor();
+      // Resume is required in browsers that auto-suspend AudioContext until
+      // a user gesture; we're already inside one here, so this is a no-op in
+      // most cases but prevents a suspended analyser on Chrome.
+      await context.resume();
       const source = context.createMediaStreamSource(stream);
       const node = context.createAnalyser();
       node.fftSize = 256;
@@ -213,7 +229,12 @@ export const useDictation = ({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      startAudioAnalysis(stream);
+      // WebAudio tap on the mic stream causes Safari/WebKit to produce silent
+      // MediaRecorder blobs. Skip it on Apple; the waveform falls back to CSS
+      // sim bars via audio-wave.tsx when analyser is null.
+      if (!isAppleWebkit()) {
+        void startAudioAnalysis(stream);
+      }
       const mimeType = pickMimeType();
       const recorder = new MediaRecorder(
         stream,
@@ -227,7 +248,13 @@ export const useDictation = ({
       });
       recorder.addEventListener("stop", () => {
         releaseStream();
-        const clipType = recorder.mimeType || mimeType || "audio/webm";
+        // Prefer the actual mimeType the recorder used; fall back to what we
+        // requested. On Apple, never default to audio/webm — use audio/mp4 so
+        // the Groq extension mapping is correct.
+        const clipType =
+          recorder.mimeType ||
+          mimeType ||
+          (isAppleWebkit() ? "audio/mp4" : "audio/webm");
         const clip = new Blob(chunksRef.current, { type: clipType });
         chunksRef.current = [];
         // A near-empty clip means no audio was captured (e.g. the iOS Simulator
@@ -242,12 +269,14 @@ export const useDictation = ({
         }
         void sendClip(clip, clipType);
       });
-      recorder.start();
+      // Use a 250 ms timeslice so dataavailable fires incrementally — WebKit
+      // is more reliable at delivering chunks when a timeslice is provided.
+      recorder.start(250);
       recorderRef.current = recorder;
       setStatus("recording");
-    } catch {
+    } catch (error) {
       releaseStream();
-      setError("Microphone access was blocked.");
+      setError(microphoneErrorMessage(error));
       setStatus("error");
     }
   }, [releaseStream, sendClip, startAudioAnalysis, supported]);

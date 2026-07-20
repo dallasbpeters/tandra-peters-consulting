@@ -134,7 +134,78 @@ export const EditorPane = ({
 
   return (
     <div className="report-editor">
-      <WaDetails summary={detailsSummary} open>
+      <WaDetails summary="Photos" open>
+        {report.photos.length === 0 ? (
+          <p className="report-hint">
+            Add photos from your camera roll or take new ones. Up to four photos
+            share a page; a details table gets its own full-width page.
+          </p>
+        ) : (
+          <ul
+            className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
+          >
+            {report.photos.map((photo, index) => (
+              <PhotoItemEditor
+                dragging={dragPhotoId === photo.id}
+                dropEdge={
+                  dropTarget?.id === photo.id && dragPhotoId !== photo.id
+                    ? dropTarget.edge
+                    : null
+                }
+                idToken={idToken}
+                index={index}
+                key={photo.id}
+                onAnnotate={onAnnotatePhoto}
+                onCaptionChange={onCaptionChange}
+                onDragEndItem={endPhotoDrag}
+                onDragOverItem={(edge) => setDropTarget({ edge, id: photo.id })}
+                onDragStartItem={() => setDragPhotoId(photo.id)}
+                onDropItem={(sourceId, edge) =>
+                  handlePhotoDrop(sourceId, photo.id, edge)
+                }
+                onMove={onMovePhoto}
+                onRemove={onRemovePhoto}
+                onSectionChange={onSectionChange}
+                onTableChange={onTableChange}
+                photo={photo}
+                sections={report.sections}
+                total={report.photos.length}
+              />
+            ))}
+          </ul>
+        )}
+        <div className="report-photo-intake">
+          <WaButton
+            appearance="filled"
+            className="report-btn-show-label"
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+            variant="brand"
+          >
+            <WaIcon
+              slot="start"
+              name="plus"
+              label="Add photos"
+              library="iconoir"
+            />
+            {busy ? "Processing…" : "Add photos"}
+          </WaButton>
+          <input
+            accept="image/*,.heic,.heif"
+            hidden
+            multiple
+            onChange={handleFiles}
+            ref={fileInputRef}
+            type="file"
+          />
+        </div>
+        {addError ? (
+          <p className="report-error" role="alert">
+            {addError}
+          </p>
+        ) : null}
+      </WaDetails>
+      <WaDetails summary={detailsSummary}>
         <div className="report-field">
           <WaInput
             label="Cover heading (optional)"
@@ -320,77 +391,6 @@ export const EditorPane = ({
             </WaButton>
           </div>
         ))}
-      </WaDetails>
-      <WaDetails summary="Photos">
-        {report.photos.length === 0 ? (
-          <p className="report-hint">
-            Add photos from your camera roll or take new ones. Up to four photos
-            share a page; a details table gets its own full-width page.
-          </p>
-        ) : (
-          <ul
-            className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
-          >
-            {report.photos.map((photo, index) => (
-              <PhotoItemEditor
-                dragging={dragPhotoId === photo.id}
-                dropEdge={
-                  dropTarget?.id === photo.id && dragPhotoId !== photo.id
-                    ? dropTarget.edge
-                    : null
-                }
-                idToken={idToken}
-                index={index}
-                key={photo.id}
-                onAnnotate={onAnnotatePhoto}
-                onCaptionChange={onCaptionChange}
-                onDragEndItem={endPhotoDrag}
-                onDragOverItem={(edge) => setDropTarget({ edge, id: photo.id })}
-                onDragStartItem={() => setDragPhotoId(photo.id)}
-                onDropItem={(sourceId, edge) =>
-                  handlePhotoDrop(sourceId, photo.id, edge)
-                }
-                onMove={onMovePhoto}
-                onRemove={onRemovePhoto}
-                onSectionChange={onSectionChange}
-                onTableChange={onTableChange}
-                photo={photo}
-                sections={report.sections}
-                total={report.photos.length}
-              />
-            ))}
-          </ul>
-        )}
-        <div className="report-photo-intake">
-          <WaButton
-            appearance="filled"
-            className="report-btn-show-label"
-            disabled={busy}
-            onClick={() => fileInputRef.current?.click()}
-            variant="brand"
-          >
-            <WaIcon
-              slot="start"
-              name="plus"
-              label="Add photos"
-              library="iconoir"
-            />
-            {busy ? "Processing…" : "Add photos"}
-          </WaButton>
-          <input
-            accept="image/*,.heic,.heif"
-            hidden
-            multiple
-            onChange={handleFiles}
-            ref={fileInputRef}
-            type="file"
-          />
-        </div>
-        {addError ? (
-          <p className="report-error" role="alert">
-            {addError}
-          </p>
-        ) : null}
       </WaDetails>
       <WaDetails summary="Contact page">
         <p className="report-hint">Shown on the last page of the report.</p>
