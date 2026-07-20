@@ -130,13 +130,17 @@ function planRow(
     }
     const isUpper = c >= "A" && c <= "Z";
     const isLower = c >= "a" && c <= "z";
-    const isLetter = isUpper || isLower;
     const g = glyphs.get(c) ?? null;
-    // Uppercase glyphs are taller; keep baselines aligned by pushing y up.
-    const h = isUpper ? fontSize * capsScale : fontSize;
+    // Non-alpha characters that have a handfont glyph (e.g. "?") render at
+    // cap-height just like uppercase letters so they match the overall weight.
+    const hasTallGlyph = g != null && !isUpper && !isLower;
+    const effectiveUpper = isUpper || hasTallGlyph;
+    // Any character with a loaded glyph participates in animation timing.
+    const isLetter = isUpper || isLower || g != null;
+    // Uppercase (and tall-glyph) chars render taller; keep baselines aligned.
+    const h = effectiveUpper ? fontSize * capsScale : fontSize;
     // Vertical offset so glyph bottom = rowY + fontSize (shared baseline).
-    // yOffset is negative for uppercase (extends above the lowercase cap).
-    const yOffset = isUpper ? -(h - fontSize) : 0;
+    const yOffset = effectiveUpper ? -(h - fontSize) : 0;
     const w = g
       ? glyphWidth(g, h) * GLYPH_WIDTH_SCALE
       : estimateCharWidth(c, fontSize);
