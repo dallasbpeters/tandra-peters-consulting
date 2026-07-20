@@ -379,6 +379,10 @@ export const GlyphEditorPage = () => {
       viewBox: `${settings.vbX} ${settings.vbY} ${settings.vbW} ${settings.vbH}`,
       vw: settings.vbW,
       vh: settings.vbH,
+      // Clear tightBounds so HandfontLetter uses the settings-derived viewBox
+      // rather than the pre-computed tight bounds. Without this, every
+      // ViewBox control change is silently overridden in the preview.
+      tightBounds: undefined,
       strokePaths: baseGlyph.strokePaths.map((sp) => ({
         ...sp,
         strokeWidth: settings.strokeWidth,
