@@ -51,9 +51,13 @@ export interface WriteTextProps {
 // ---------------------------------------------------------------------------
 
 // Fraction of glyph height used as the gap between letters
-const LETTER_GAP_RATIO = 0.04;
+const LETTER_GAP_RATIO = 0.01;
 // Width of a space character as a fraction of glyph height
-const SPACE_WIDTH_RATIO = 0.32;
+const SPACE_WIDTH_RATIO = 0.28;
+// Hand-drawn strokes have wide tightBounds (trailing sweeps / curves extend the
+// bounding box beyond the visual letter body). Scale down to bring letters closer
+// to the visual density of normal handwritten text.
+const GLYPH_WIDTH_SCALE = 0.88;
 // Default scale multiplier for uppercase glyphs relative to the nominal fontSize.
 // Cap-height is typically ~1.3× x-height in hand-lettered styles.
 const DEFAULT_CAPS_SCALE = 1.3;
@@ -133,7 +137,9 @@ function planRow(
     // Vertical offset so glyph bottom = rowY + fontSize (shared baseline).
     // yOffset is negative for uppercase (extends above the lowercase cap).
     const yOffset = isUpper ? -(h - fontSize) : 0;
-    const w = g ? glyphWidth(g, h) : estimateCharWidth(c, fontSize);
+    const w = g
+      ? glyphWidth(g, h) * GLYPH_WIDTH_SCALE
+      : estimateCharWidth(c, fontSize);
     return { char: c, glyph: g, width: w + gap, height: h, yOffset, isLetter };
   });
 }

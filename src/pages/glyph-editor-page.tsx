@@ -19,7 +19,10 @@ import {
   glyphWidth as computeGlyphWidth,
 } from "../remotion/whiteboard/components/handfont-letter";
 import { parseGlyph } from "../remotion/whiteboard/handfont-parse";
-import type { ParsedGlyph } from "../remotion/whiteboard/handfont-parse";
+import type {
+  ParsedGlyph,
+  TightBounds,
+} from "../remotion/whiteboard/handfont-parse";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -51,10 +54,23 @@ interface GlyphSettings {
 // SVG helpers
 // ---------------------------------------------------------------------------
 
-function extractSettings(svgText: string): GlyphSettings {
+// fallbackBounds is the computed tight bounds from parseGlyph; we prefer them
+// over the padded SVG viewBox so the editor initialises to the actual stroke extents.
+function extractSettings(
+  svgText: string,
+  fallbackBounds?: TightBounds
+): GlyphSettings {
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgText, "image/svg+xml");
   const svgEl = doc.querySelector("svg");
+
+  // Editor-saved tight bounds take priority (present after the first Save).
+  const dtx = svgEl?.dataset.tightX;
+  const dty = svgEl?.dataset.tightY;
+  const dtw = svgEl?.dataset.tightW;
+  const dth = svgEl?.dataset.tightH;
+  const hasSavedBounds =
+    dtx != null && dty != null && dtw != null && dth != null;
 
   const vbParts = (svgEl?.getAttribute("viewBox") ?? "0 0 100 100")
     .split(/[\s,]+/)
@@ -64,10 +80,18 @@ function extractSettings(svgText: string): GlyphSettings {
   const swMatch = /stroke-width\s*:\s*([\d.]+)px/.exec(styleText);
 
   return {
-    vbX: vbParts[0] ?? 0,
-    vbY: vbParts[1] ?? 0,
-    vbW: vbParts[2] ?? 100,
-    vbH: vbParts[3] ?? 100,
+    vbX: hasSavedBounds
+      ? Number.parseFloat(dtx)
+      : (fallbackBounds?.x ?? vbParts[0] ?? 0),
+    vbY: hasSavedBounds
+      ? Number.parseFloat(dty)
+      : (fallbackBounds?.y ?? vbParts[1] ?? 0),
+    vbW: hasSavedBounds
+      ? Number.parseFloat(dtw)
+      : (fallbackBounds?.w ?? vbParts[2] ?? 100),
+    vbH: hasSavedBounds
+      ? Number.parseFloat(dth)
+      : (fallbackBounds?.h ?? vbParts[3] ?? 100),
     strokeWidth: swMatch ? Number.parseFloat(swMatch[1]) : 19,
     tx: 0,
     ty: 0,
@@ -84,6 +108,12 @@ function buildSaveableSvg(rawSvg: string, s: GlyphSettings): string {
   }
 
   svgEl.setAttribute("viewBox", `${s.vbX} ${s.vbY} ${s.vbW} ${s.vbH}`);
+  // Store the user's intended tight bounds as data attrs so parseGlyph can
+  // restore them on reload instead of recomputing from raw path geometry.
+  svgEl.dataset.tightX = String(s.vbX);
+  svgEl.dataset.tightY = String(s.vbY);
+  svgEl.dataset.tightW = String(s.vbW);
+  svgEl.dataset.tightH = String(s.vbH);
 
   const styleEl = svgEl.querySelector("style");
   if (styleEl?.textContent) {
@@ -341,7 +371,7 @@ export const GlyphEditorPage = () => {
       }
       setGlyphExists(true);
       setRawSvg(result.rawSvg);
-      setSettings(extractSettings(result.rawSvg));
+      setSettings(extractSettings(result.rawSvg, result.glyph.tightBounds));
       setBaseGlyph(result.glyph);
       // Seed the word cache with this glyph too
       setGlyphCache((prev) => new Map([...prev, [selectedChar, result.glyph]]));
@@ -460,8 +490,8 @@ export const GlyphEditorPage = () => {
     if (!rawSvg) {
       return;
     }
-    setSettings(extractSettings(rawSvg));
-  }, [rawSvg]);
+    setSettings(extractSettings(rawSvg, baseGlyph?.tightBounds));
+  }, [rawSvg, baseGlyph]);
 
   const handleUploadFile = useCallback(
     async (file: File) => {
@@ -485,7 +515,7 @@ export const GlyphEditorPage = () => {
         const data = (await res.json()) as { ok: boolean };
         if (data.ok) {
           setRawSvg(svg);
-          setSettings(extractSettings(svg));
+          setSettings(extractSettings(svg, glyph.tightBounds));
           setBaseGlyph(glyph);
           setGlyphExists(true);
           setGlyphCache((prev) => new Map([...prev, [selectedChar, glyph]]));

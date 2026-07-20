@@ -459,7 +459,24 @@ export function parseGlyph(svgText: string): ParsedGlyph | null {
     })
     .filter((sp) => sp.d.length > 0);
 
-  const tightBounds = computeTightBounds(strokePaths);
+  // If the glyph editor has previously saved explicit tight-bounds via
+  // data-tight-* attributes, honour them so the user's viewport edits survive
+  // the round-trip through parseGlyph (which would otherwise recompute bounds
+  // from raw path geometry and throw away any saved changes).
+  const dtx = svgEl.dataset.tightX;
+  const dty = svgEl.dataset.tightY;
+  const dtw = svgEl.dataset.tightW;
+  const dth = svgEl.dataset.tightH;
+  const tightBounds =
+    dtx != null && dty != null && dtw != null && dth != null
+      ? {
+          x: Number.parseFloat(dtx),
+          y: Number.parseFloat(dty),
+          w: Number.parseFloat(dtw),
+          h: Number.parseFloat(dth),
+        }
+      : computeTightBounds(strokePaths);
+
   return { viewBox, vw, vh, clipPathD, strokePaths, tightBounds };
 }
 
