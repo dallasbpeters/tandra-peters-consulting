@@ -515,7 +515,8 @@ export async function loadGlyph(char: string): Promise<ParsedGlyph | null> {
   }
 
   const isAlpha = (char >= "A" && char <= "Z") || (char >= "a" && char <= "z");
-  if (!isAlpha) {
+  const isSpecial = char in SPECIAL_GLYPH_MAP;
+  if (!isAlpha && !isSpecial) {
     glyphCache.set(char, null);
     return null;
   }

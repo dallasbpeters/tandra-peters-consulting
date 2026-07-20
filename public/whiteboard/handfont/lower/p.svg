@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="b" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 71.12 65.55">
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="b" data-name="Layer 2" viewBox="-0.47999999999999865 -32.39 56.75 68.83" data-tight-x="-0.47999999999999865" data-tight-y="-32.39" data-tight-w="56.75" data-tight-h="68.83">
   <defs>
     <style>
       .f, .g {
@@ -13,7 +12,7 @@
       .g {
         stroke: #2d2a2b;
         stroke-miterlimit: 10;
-        stroke-width: 17px;
+        stroke-width: 7.5px;
       }
     </style>
     <clipPath id="e">
