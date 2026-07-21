@@ -38,7 +38,7 @@ export const ArticlesTeaser = ({
   };
 
   const headerStyle: CSSProperties = {
-    alignItems: "flex-end",
+    alignItems: "start",
     color: theme.colors.paper,
     display: "flex",
     flexDirection: "column",
@@ -130,7 +130,7 @@ export const ArticlesTeaser = ({
                   fontSize: "1.1rem",
                   lineHeight: 1.6,
                   margin: 0,
-                  textAlign: "right",
+                  textAlign: "left",
                 }}
                 value={intro ?? DEFAULT_INTRO}
               />

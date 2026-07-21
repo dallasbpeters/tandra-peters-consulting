@@ -2,10 +2,10 @@ import type React from "react";
 
 import { useHeroBannerVariant } from "../hooks/use-hero-banner-variant";
 import type { HeroProps, NavProps } from "../types";
-import { NavDualCTARail } from "./hero/nav-dual-cta-rail";
-import { NavGlassOverlay } from "./hero/nav-glass-overlay";
-import { NavPillNav } from "./hero/nav-pill-nav";
 import { Nav } from "./nav";
+import { NavDualCTARail } from "./nav/nav-dual-cta-rail";
+import { NavGlassOverlay } from "./nav/nav-glass-overlay";
+import { NavPillNav } from "./nav/nav-pill-nav";
 
 type NavVariantProps = NavProps & {
   /** Mirrors HeroVariant — Sanity heroStyle overrides the PostHog flag for CMS preview. */

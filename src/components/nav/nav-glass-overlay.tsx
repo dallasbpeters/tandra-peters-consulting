@@ -9,9 +9,9 @@ import { useIsMobile } from "../../hooks/is-mobile";
 import { mix, theme } from "../../theme";
 import type { NavItem, NavProps } from "../../types";
 import { GoogleAuthGate } from "../google-auth-gate";
-import { OverflowNav } from "../nav/overflow-nav";
-import { SiteNavLink } from "../nav/site-nav-link";
 import { TransitionLink } from "../transition-link";
+import { OverflowNav } from "./overflow-nav";
+import { SiteNavLink } from "./site-nav-link";
 
 /** Glass-overlay nav: centered logo, split links left/right, pill CTA. Transparent → dark glass on scroll. */
 export const NavGlassOverlay: React.FC<NavProps> = ({

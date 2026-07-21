@@ -33,6 +33,18 @@ wa-button[variant~="danger"]::part(base) {
   --wa-color-fill-normal: var(--theme-palette-coral-600);
 }
 
+@media (width <= 500px) {
+  wa-icon {
+    font-size: 1.2rem;
+  }
+}
+
+@media (width <= 500px) {
+  wa-button::part(base) {
+    --wa-form-control-padding-inline: var(--theme-spacing-md);
+  }
+}
+
 /* Outlined and plain buttons have a transparent background, so their text must
    use the variant's on-color token — not the loud white used for filled
    buttons. Without this, the blanket `color: white` above renders neutral

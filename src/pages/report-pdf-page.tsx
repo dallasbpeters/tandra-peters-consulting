@@ -407,11 +407,11 @@ export const ReportPdfPage = () => {
                 pill
                 onClick={() => setLibraryOpen(true)}
               >
-                <Folder height={16} slot="start" width={16} />
+                <WaIcon slot="start" name="folder" library="iconoir" />
                 Library
               </WaButton>
               <WaButton appearance="filled" pill onClick={handleNew}>
-                <Plus height={16} slot="start" width={16} />
+                <WaIcon slot="start" name="plus" library="iconoir" />
                 New
               </WaButton>
               <WaButton
@@ -422,7 +422,7 @@ export const ReportPdfPage = () => {
                 onClick={() => void runSave()}
                 variant="brand"
               >
-                <CloudUpload height={16} slot="start" width={16} />
+                <WaIcon slot="start" name="cloud-upload" library="iconoir" />
                 {(() => {
                   if (saving) {
                     return "Saving…";
@@ -437,7 +437,7 @@ export const ReportPdfPage = () => {
                 loading={saving}
                 onClick={() => void handleOpenSend()}
               >
-                <SendMail height={16} slot="start" width={16} />
+                <WaIcon slot="start" name="mail" library="iconoir" />
                 Send
               </WaButton>
               <WaButton
@@ -447,7 +447,7 @@ export const ReportPdfPage = () => {
                 loading={generating}
                 onClick={() => void runGenerate("download")}
               >
-                <Download height={16} slot="start" width={16} />
+                <WaIcon slot="start" name="download" library="iconoir" />
                 {generating ? "Generating…" : "Download PDF"}
               </WaButton>
               {typeof navigator !== "undefined" &&
@@ -458,7 +458,7 @@ export const ReportPdfPage = () => {
                   disabled={!hasPhotos || generating}
                   onClick={() => void runGenerate("share")}
                 >
-                  <WaIcon slot="start" name="share" family="iconoir" />
+                  <WaIcon slot="start" name="share-ios" library="iconoir" />
                   Share
                 </WaButton>
               ) : null}

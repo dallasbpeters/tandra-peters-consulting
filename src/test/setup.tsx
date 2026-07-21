@@ -9,6 +9,28 @@ import { handlers } from "./handlers";
 expect.extend(toHaveNoViolations);
 
 // ── Browser API stubs (jsdom doesn't implement these) ─────────────────────────
+// Node 25 exposes an incomplete global localStorage object unless it receives a
+// valid --localstorage-file. Vitest copies that object onto jsdom's window, so
+// restore the browser Storage contract when those methods are missing.
+if (typeof window.localStorage?.getItem !== "function") {
+  const localStorageValues = new Map<string, string>();
+  const localStorageMock: Storage = {
+    clear: () => localStorageValues.clear(),
+    getItem: (key: string) => localStorageValues.get(key) ?? null,
+    key: (index: number) => [...localStorageValues.keys()][index] ?? null,
+    get length() {
+      return localStorageValues.size;
+    },
+    removeItem: (key: string) => localStorageValues.delete(key),
+    setItem: (key: string, value: string) => localStorageValues.set(key, value),
+  };
+
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: localStorageMock,
+  });
+}
+
 if (globalThis.IntersectionObserver === undefined) {
   globalThis.IntersectionObserver = class {
     // oxlint-disable-next-line class-methods-use-this

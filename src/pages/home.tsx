@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from "react";
 
 import { ArticlesTeaser } from "../components/articles-teaser";
 import { BirdcreekVideoBanner } from "../components/birdcreek-video-banner";
-import { CallButton } from "../components/call-button";
 import { DeferUntilVisible } from "../components/defer-until-visible";
 import { Faq } from "../components/faq";
 import { GoogleAuthGate } from "../components/google-auth-gate";
@@ -432,7 +431,6 @@ export const Home = () => {
     <SitePageChrome>
       <SeoStructuredData />
       <main>{builderSectionNodes}</main>
-      <CallButton />
       <Suspense fallback={null}>
         <Band
           colors={[

@@ -19,7 +19,6 @@ import { TransitionLink } from "./transition-link";
 export const Nav: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
   logoTagline = "Roofing Consultant",
-  imageSrc = "/tandra.png",
   navItems = [
     { href: "#services", name: "services" },
     { href: "#testimonials", name: "testimonials" },
@@ -273,13 +272,6 @@ export const Nav: React.FC<NavProps> = ({
             initial={{ opacity: 0, x: -20 }}
             style={{ display: "contents" }}
           >
-            <img
-              alt=""
-              height="3rem"
-              src={imageSrc}
-              style={styles.image}
-              width="auto"
-            />
             <span className="site-nav-logo-text" style={styles.logoText}>
               {logoText}
             </span>

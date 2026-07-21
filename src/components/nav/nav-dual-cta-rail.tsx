@@ -9,15 +9,14 @@ import { useIsMobile } from "../../hooks/is-mobile";
 import { theme } from "../../theme";
 import type { NavItem, NavProps } from "../../types";
 import { GoogleAuthGate } from "../google-auth-gate";
-import { OverflowNav } from "../nav/overflow-nav";
-import { SiteNavLink } from "../nav/site-nav-link";
 import { TransitionLink } from "../transition-link";
+import { OverflowNav } from "./overflow-nav";
+import { SiteNavLink } from "./site-nav-link";
 
 /** Dual-CTA rail nav: always opaque cream, left logo+tagline, center links, two CTA buttons on right. Compacts on scroll. */
 export const NavDualCTARail: React.FC<NavProps> = ({
   logoText = "Tandra Peters",
   logoTagline = "Roofing Consultant",
-  imageSrc = "/tandra.png",
   navItems = [
     { href: "#services", name: "services" },
     { href: "#about", name: "about" },
@@ -269,7 +268,6 @@ export const NavDualCTARail: React.FC<NavProps> = ({
           to="/"
         >
           {/* biome-ignore lint/correctness/useImageSize: dynamic size controlled by CSS */}
-          <img alt="Tandra Peters" src={imageSrc} style={styles.logoImage} />
           <div>
             <div style={styles.logoText}>{logoText}</div>
             <div style={styles.logoTagline}>{logoTagline}</div>

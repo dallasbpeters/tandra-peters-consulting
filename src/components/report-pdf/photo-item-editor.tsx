@@ -449,12 +449,7 @@ export const PhotoItemEditor = ({
             onClick={() => onMove(photo.id, -1)}
             size="small"
           >
-            <WaIcon
-              slot="start"
-              name="arrow-up"
-              label="Move photo up"
-              library="iconoir"
-            />
+            <WaIcon name="arrow-up" label="Move photo up" library="iconoir" />
           </WaButton>
           <WaButton
             appearance="filled"
@@ -464,7 +459,6 @@ export const PhotoItemEditor = ({
             size="small"
           >
             <WaIcon
-              slot="start"
               name="arrow-down"
               label="Move photo down"
               library="iconoir"
@@ -477,12 +471,7 @@ export const PhotoItemEditor = ({
             onClick={() => onRemove(photo.id)}
             size="small"
           >
-            <WaIcon
-              slot="start"
-              name="trash"
-              label="Remove photo"
-              library="iconoir"
-            />
+            <WaIcon name="trash" label="Remove photo" library="iconoir" />
           </WaButton>
         </div>
       </div>

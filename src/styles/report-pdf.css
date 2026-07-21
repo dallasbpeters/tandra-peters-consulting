@@ -60,7 +60,7 @@ wa-details::part(content) {
 .report-pdf-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
 }

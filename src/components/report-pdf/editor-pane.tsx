@@ -254,13 +254,34 @@ export const EditorPane = ({
 
   return (
     <div className="report-editor">
-      <WaDetails summary="Photos" open>
-        {report.photos.length === 0 ? (
-          <p className="report-hint">
-            Add photos from your camera roll or take new ones. Up to four photos
-            share a page; a details table gets its own full-width page.
-          </p>
-        ) : (
+      {report.photos.length === 0 ? (
+        <>
+          <WaButton
+            appearance="filled"
+            className="report-btn-show-label"
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+            variant="brand"
+          >
+            <WaIcon
+              slot="start"
+              name="plus"
+              label="Add photos"
+              library="iconoir"
+            />
+            {busy ? "Processing…" : "Add photos"}
+          </WaButton>
+          <input
+            accept="image/*,.heic,.heif"
+            hidden
+            multiple
+            onChange={handleFiles}
+            ref={fileInputRef}
+            type="file"
+          />
+        </>
+      ) : (
+        <WaDetails summary="Photos" open>
           <ul
             className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
           >
@@ -296,38 +317,40 @@ export const EditorPane = ({
               />
             ))}
           </ul>
-        )}
-        <div className="report-photo-intake">
-          <WaButton
-            appearance="filled"
-            className="report-btn-show-label"
-            disabled={busy}
-            onClick={() => fileInputRef.current?.click()}
-            variant="brand"
-          >
-            <WaIcon
-              slot="start"
-              name="plus"
-              label="Add photos"
-              library="iconoir"
+
+          <div className="report-photo-intake">
+            <WaButton
+              appearance="filled"
+              className="report-btn-show-label"
+              disabled={busy}
+              onClick={() => fileInputRef.current?.click()}
+              variant="brand"
+            >
+              <WaIcon
+                slot="start"
+                name="plus"
+                label="Add photos"
+                library="iconoir"
+              />
+              {busy ? "Processing…" : "Add photos"}
+            </WaButton>
+            <input
+              accept="image/*,.heic,.heif"
+              hidden
+              multiple
+              onChange={handleFiles}
+              ref={fileInputRef}
+              type="file"
             />
-            {busy ? "Processing…" : "Add photos"}
-          </WaButton>
-          <input
-            accept="image/*,.heic,.heif"
-            hidden
-            multiple
-            onChange={handleFiles}
-            ref={fileInputRef}
-            type="file"
-          />
-        </div>
-        {addError ? (
-          <p className="report-error" role="alert">
-            {addError}
-          </p>
-        ) : null}
-      </WaDetails>
+          </div>
+          {addError ? (
+            <p className="report-error" role="alert">
+              {addError}
+            </p>
+          ) : null}
+        </WaDetails>
+      )}
+
       <WaDetails summary={detailsSummary}>
         <div className="report-field">
           <WaInput

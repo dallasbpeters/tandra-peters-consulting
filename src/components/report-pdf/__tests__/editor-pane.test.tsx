@@ -92,7 +92,7 @@ describe(EditorPane, () => {
     renderPane(makeReport([]));
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(
-      screen.getByText(/Add photos from your camera roll/i)
+      screen.getByRole("button", { name: /Add photos/i })
     ).toBeInTheDocument();
   });
 

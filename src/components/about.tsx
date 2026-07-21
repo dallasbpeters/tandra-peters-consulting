@@ -145,11 +145,11 @@ export const About: React.FC<AboutProps> = ({
     boxShadow: theme.shadow.md,
     color: theme.colors.white,
     contain: "paint",
-    padding: isStacked ? theme.spacing.xxxxl : 0,
+    padding: 0,
   };
 
   const bodyTextStyle: React.CSSProperties = {
-    padding: isStacked ? 0 : theme.spacing.xxxxl,
+    padding: theme.spacing.xxxxl,
   };
 
   const eyebrowStyle: React.CSSProperties = {
