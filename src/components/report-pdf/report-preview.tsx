@@ -2,10 +2,7 @@ import { Globe, Mail, MapPin, Phone } from "iconoir-react";
 import { useMemo } from "react";
 
 import { BIRDCREEK_MARK } from "../../lib/report-pdf/birdcreek-logo";
-import {
-  formatDisplayDate,
-  formatPhotoTakenLabel,
-} from "../../lib/report-pdf/format";
+import { formatPhotoTakenLabel } from "../../lib/report-pdf/format";
 import { buildPages } from "../../lib/report-pdf/layout-model";
 import {
   COVER_DECOR_ROWS,

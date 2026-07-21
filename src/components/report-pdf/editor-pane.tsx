@@ -257,8 +257,8 @@ export const EditorPane = ({
       {report.photos.length === 0 ? (
         <>
           <WaButton
+            className="report-btn-show-label photo"
             appearance="filled"
-            className="report-btn-show-label"
             disabled={busy}
             onClick={() => fileInputRef.current?.click()}
             variant="brand"

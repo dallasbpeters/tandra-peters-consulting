@@ -404,7 +404,6 @@ export const ReportPdfPage = () => {
             <WaButtonGroup>
               <WaButton
                 appearance="filled"
-                pill
                 onClick={() => setLibraryOpen(true)}
               >
                 <WaIcon slot="start" name="folder" library="iconoir" />
@@ -442,7 +441,6 @@ export const ReportPdfPage = () => {
               </WaButton>
               <WaButton
                 appearance="filled"
-                pill
                 disabled={!hasPhotos}
                 loading={generating}
                 onClick={() => void runGenerate("download")}
@@ -454,7 +452,6 @@ export const ReportPdfPage = () => {
               typeof navigator.share === "function" ? (
                 <WaButton
                   appearance="filled"
-                  pill
                   disabled={!hasPhotos || generating}
                   onClick={() => void runGenerate("share")}
                 >
@@ -478,7 +475,6 @@ export const ReportPdfPage = () => {
               ) : (
                 <WaButton
                   appearance="filled"
-                  pill
                   loading={driveBusy}
                   onClick={() => void connectDrive()}
                 >

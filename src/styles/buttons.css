@@ -22,9 +22,9 @@ a.wa-button {
 
 /* Base button surface: dark fill + white label with themed inner spacing. */
 wa-button::part(base) {
-  --wa-color-on-normal: var(--theme-color-white);
-  --wa-color-fill-normal: var(--theme-palette-granite-900);
-  --backend-text: var(--theme-color-white);
+  --wa-color-on-normal: var(--theme-palette-purple-50);
+  --wa-color-fill-normal: var(--theme-palette-purple-300);
+  --backend-text: var(--theme-color-black);
   gap: var(--theme-spacing-md);
 }
 
@@ -35,7 +35,7 @@ wa-button[variant~="danger"]::part(base) {
 
 @media (width <= 500px) {
   wa-icon {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
   }
 }
 
@@ -43,6 +43,21 @@ wa-button[variant~="danger"]::part(base) {
   wa-button::part(base) {
     --wa-form-control-padding-inline: var(--theme-spacing-md);
   }
+}
+
+wa-button.photo::part(base) {
+  border-radius: 6px;
+  border: solid 2px;
+  background: var(--theme-palette-gold-900);
+  border-top-color: var(--theme-palette-gold-400);
+  border-bottom-color: var(--theme-palette-gold-700);
+  border-left-color: var(--theme-palette-gold-500);
+  border-right-color: var(--theme-palette-gold-600);
+  color: var(--theme-palette-purple-700);
+  font-size: 1.125rem;
+  box-shadow: 0 2px 10px #0002;
+  min-block-size: 60px;
+  transition: all var(--wa-transition-slow) var(--wa-transition-easing);
 }
 
 /* Outlined and plain buttons have a transparent background, so their text must
@@ -60,5 +75,5 @@ wa-button::part(start) img {
   object-fit: contain;
 }
 wa-button::part(end) {
-  --spacing: 16px;
+  --spacing: 20px;
 }
