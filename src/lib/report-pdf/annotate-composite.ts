@@ -11,7 +11,11 @@ const HIGHLIGHTER_ALPHA = 0.35;
 const HIGHLIGHTER_WIDTH_MULTIPLIER = 3.5;
 
 /** Font stack mirrors the site UI (Hanken Grotesk) for a consistent hand. */
-const TEXT_FONT = '"Hanken Grotesk", "Hanken Grotesk Variable", sans-serif';
+export const TEXT_FONT =
+  '"Hanken Grotesk", "Hanken Grotesk Variable", sans-serif';
+
+/** Line spacing multiplier for multi-line text annotations (of `item.size`). */
+export const TEXT_LINE_HEIGHT_MULTIPLIER = 1.2;
 
 const drawStroke = (
   ctx: CanvasRenderingContext2D,
@@ -96,7 +100,7 @@ export const drawScene = (
         ctx.fillText(
           line,
           item.x * scale,
-          (item.y + index * item.size * 1.2) * scale
+          (item.y + index * item.size * TEXT_LINE_HEIGHT_MULTIPLIER) * scale
         );
       }
     }
