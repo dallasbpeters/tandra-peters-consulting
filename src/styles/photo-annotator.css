@@ -137,6 +137,30 @@
   border-radius: 50%;
 }
 
+.photo-annotator__text-size {
+  gap: 0.6rem;
+  padding: 0 0.25rem;
+}
+
+.photo-annotator__text-size-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 80%);
+  white-space: nowrap;
+}
+
+.photo-annotator__text-size-range {
+  width: 7rem;
+  accent-color: #fff;
+}
+
+.photo-annotator__text-size-value {
+  min-width: 2.5ch;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 80%);
+}
+
 @media (max-width: 560px) {
   .photo-annotator__toolbar {
     gap: 0.5rem 0.75rem;

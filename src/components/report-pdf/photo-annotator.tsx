@@ -2,8 +2,10 @@ import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
 import {
   Check,
   Circle,
+  Edit,
   EditPencil,
   FillColor,
+  Redo,
   Text,
   Trash,
   Undo,
@@ -18,11 +20,16 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { drawScene } from "../../lib/report-pdf/annotate-composite";
+import {
+  drawScene,
+  TEXT_FONT,
+  TEXT_LINE_HEIGHT_MULTIPLIER,
+} from "../../lib/report-pdf/annotate-composite";
 import type {
   Annotation,
   AnnotationScene,
   PenAnnotation,
+  TextAnnotation,
 } from "../../lib/report-pdf/types";
 
 import "../../styles/photo-annotator.css";
@@ -39,8 +46,11 @@ interface PhotoAnnotatorProps {
 }
 
 interface TextDraft {
+  /** Set when re-editing an existing text item's color/size instead of the current tool defaults. */
+  color?: string;
   natX: number;
   natY: number;
+  size?: number;
   value: string;
 }
 
@@ -112,6 +122,50 @@ const clampView = (
   };
 };
 
+/** Tap/click tolerance (natural px) around a text item's bounding box. */
+const TEXT_HIT_PADDING = 10;
+
+/** Bounding box of a text item in natural px, matching drawScene's layout. */
+const measureTextItem = (
+  ctx: CanvasRenderingContext2D,
+  item: TextAnnotation
+): { height: number; width: number } => {
+  ctx.font = `600 ${item.size}px ${TEXT_FONT}`;
+  const lines = item.text.split("\n");
+  const width = Math.max(
+    0,
+    ...lines.map((line) => ctx.measureText(line).width)
+  );
+  const height =
+    (lines.length - 1) * item.size * TEXT_LINE_HEIGHT_MULTIPLIER + item.size;
+  return { height, width };
+};
+
+/** Topmost (last-drawn) text item whose bounding box contains (x, y), if any. */
+const findTextHitIndex = (
+  ctx: CanvasRenderingContext2D,
+  items: Annotation[],
+  x: number,
+  y: number
+): number | null => {
+  for (let i = items.length - 1; i >= 0; i -= 1) {
+    const item = items[i];
+    if (item.kind !== "text") {
+      continue;
+    }
+    const { width, height } = measureTextItem(ctx, item);
+    if (
+      x >= item.x - TEXT_HIT_PADDING &&
+      x <= item.x + width + TEXT_HIT_PADDING &&
+      y >= item.y - TEXT_HIT_PADDING &&
+      y <= item.y + height + TEXT_HIT_PADDING
+    ) {
+      return i;
+    }
+  }
+  return null;
+};
+
 /**
  * Full-screen editor for hand-drawn photo annotations (pen, highlighter,
  * circle, text). Draws onto a single fitted canvas; commits a vector
@@ -137,6 +191,17 @@ export const PhotoAnnotator = ({
     startView: ViewTransform;
   } | null>(null);
   const pinchedRef = useRef(false);
+  /** In-progress drag of an already-placed text item (grab offset + live position). */
+  const moveRef = useRef<{
+    index: number;
+    moved: boolean;
+    offsetX: number;
+    offsetY: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const pastRef = useRef<Annotation[][]>([]);
+  const futureRef = useRef<Annotation[][]>([]);
 
   const [items, setItems] = useState<Annotation[]>(initialScene?.items ?? []);
   const [tool, setTool] = useState<Tool>("pen");
@@ -146,12 +211,31 @@ export const PhotoAnnotator = ({
   const [strokeWidth, setStrokeWidth] = useState(6);
   const [textSize, setTextSize] = useState(6 * TEXT_SIZE_MULTIPLIER);
   const [textDraft, setTextDraft] = useState<TextDraft | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedTextIndex, setSelectedTextIndex] = useState<number | null>(
+    null
+  );
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<ViewTransform>({ scale: 1, x: 0, y: 0 });
+  const [historyCounts, setHistoryCounts] = useState({ future: 0, past: 0 });
 
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  /** Replaces the scene and records an undo step (skipped for no-op moves). */
+  const commitItems = useCallback((next: Annotation[]) => {
+    pastRef.current = [...pastRef.current, itemsRef.current];
+    futureRef.current = [];
+    setHistoryCounts({ future: 0, past: pastRef.current.length });
+    setItems(next);
+  }, []);
+
+  useEffect(() => {
+    if (tool !== "text") {
+      setSelectedTextIndex(null);
+    }
+  }, [tool]);
 
   // Decode the source image once.
   useEffect(() => {
@@ -172,6 +256,12 @@ export const PhotoAnnotator = ({
       pointersRef.current.clear();
       pinchRef.current = null;
       pinchedRef.current = false;
+      moveRef.current = null;
+      pastRef.current = [];
+      futureRef.current = [];
+      setHistoryCounts({ future: 0, past: 0 });
+      setSelectedTextIndex(null);
+      setEditingIndex(null);
       setReady(true);
     });
     return () => {
@@ -197,15 +287,45 @@ export const PhotoAnnotator = ({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, displayW, displayH);
     ctx.drawImage(bitmap, 0, 0, displayW, displayH);
-    const draftItems = draftRef.current
-      ? [...itemsRef.current, draftRef.current]
-      : itemsRef.current;
+
+    let draftItems = itemsRef.current;
+    const move = moveRef.current;
+    if (move) {
+      draftItems = draftItems.map((it, i) =>
+        i === move.index ? { ...it, x: move.x, y: move.y } : it
+      );
+    }
+    if (editingIndex !== null) {
+      draftItems = draftItems.filter((_, i) => i !== editingIndex);
+    }
+    if (draftRef.current) {
+      draftItems = [...draftItems, draftRef.current];
+    }
+
     drawScene(
       ctx,
       { height: bitmap.height, items: draftItems, width: bitmap.width },
       scale
     );
-  }, [scale]);
+
+    const selectedIndex = move ? move.index : selectedTextIndex;
+    const selectedItem =
+      selectedIndex === null ? undefined : draftItems[selectedIndex];
+    if (selectedItem && selectedItem.kind === "text") {
+      const { width, height } = measureTextItem(ctx, selectedItem);
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(
+        (selectedItem.x - TEXT_HIT_PADDING) * scale,
+        (selectedItem.y - TEXT_HIT_PADDING) * scale,
+        (width + TEXT_HIT_PADDING * 2) * scale,
+        (height + TEXT_HIT_PADDING * 2) * scale
+      );
+      ctx.restore();
+    }
+  }, [editingIndex, scale, selectedTextIndex]);
 
   const scheduleRedraw = useCallback(() => {
     if (rafRef.current !== null) {
@@ -247,6 +367,7 @@ export const PhotoAnnotator = ({
 
   // Redraw whenever committed items, scale, or readiness change.
   useEffect(() => {
+    // oxlint-disable-next-line react-doctor/no-pass-live-state-to-parent -- redraw() only paints the local canvas ref, it doesn't call any parent prop.
     redraw();
   }, [items, redraw]);
 
@@ -278,8 +399,8 @@ export const PhotoAnnotator = ({
       redraw();
       return;
     }
-    setItems((prev) => [...prev, draft]);
-  }, [redraw]);
+    commitItems([...itemsRef.current, draft]);
+  }, [commitItems, redraw]);
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -296,6 +417,7 @@ export const PhotoAnnotator = ({
       // A second finger starts a pinch-to-zoom gesture; abandon any in-progress draft.
       if (pointersRef.current.size >= 2) {
         draftRef.current = null;
+        moveRef.current = null;
         pinchedRef.current = true;
         const [p1, p2] = [...pointersRef.current.values()];
         pinchRef.current = {
@@ -319,6 +441,25 @@ export const PhotoAnnotator = ({
         effectiveScale
       );
       if (tool === "text") {
+        const ctx = canvas.getContext("2d");
+        const hitIndex = ctx
+          ? findTextHitIndex(ctx, itemsRef.current, x, y)
+          : null;
+        if (hitIndex !== null) {
+          const item = itemsRef.current[hitIndex] as TextAnnotation;
+          setSelectedTextIndex(hitIndex);
+          moveRef.current = {
+            index: hitIndex,
+            moved: false,
+            offsetX: x - item.x,
+            offsetY: y - item.y,
+            x: item.x,
+            y: item.y,
+          };
+          scheduleRedraw();
+          return;
+        }
+        setSelectedTextIndex(null);
         setTextDraft({ natX: x, natY: y, value: "" });
         return;
       }
@@ -377,11 +518,35 @@ export const PhotoAnnotator = ({
         return;
       }
 
-      const draft = draftRef.current;
-      if (!draft || pinchedRef.current) {
+      if (pinchedRef.current) {
         return;
       }
+
       const effectiveScale = scale * view.scale;
+      const move = moveRef.current;
+      if (move) {
+        const { x, y } = clientToNatural(
+          canvas,
+          event.clientX,
+          event.clientY,
+          effectiveScale
+        );
+        const nextX = x - move.offsetX;
+        const nextY = y - move.offsetY;
+        moveRef.current = {
+          ...move,
+          moved: move.moved || nextX !== move.x || nextY !== move.y,
+          x: nextX,
+          y: nextY,
+        };
+        scheduleRedraw();
+        return;
+      }
+
+      const draft = draftRef.current;
+      if (!draft) {
+        return;
+      }
       const { x, y } = clientToNatural(
         canvas,
         event.clientX,
@@ -421,37 +586,237 @@ export const PhotoAnnotator = ({
       pinchRef.current = null;
       if (pointersRef.current.size === 0) {
         pinchedRef.current = false;
+        const move = moveRef.current;
+        moveRef.current = null;
+        if (move) {
+          if (move.moved) {
+            commitItems(
+              itemsRef.current.map((it, i) =>
+                i === move.index ? { ...it, x: move.x, y: move.y } : it
+              )
+            );
+          }
+          return;
+        }
         commitDraft();
       }
     },
-    [commitDraft, view]
+    [commitDraft, commitItems, view]
   );
 
   const commitText = useCallback(() => {
-    setTextDraft((draft) => {
-      if (draft && draft.value.trim()) {
-        const annotation: Annotation = {
-          color,
-          kind: "text",
-          size: textSize,
+    const draft = textDraft;
+    if (!draft) {
+      return;
+    }
+    const trimmed = draft.value.trim();
+    if (editingIndex !== null) {
+      if (trimmed) {
+        const original = itemsRef.current[editingIndex] as TextAnnotation;
+        const updated: TextAnnotation = {
+          ...original,
+          color: draft.color ?? original.color,
+          size: draft.size ?? original.size,
           text: draft.value,
           x: draft.natX,
           y: draft.natY,
         };
-        setItems((prev) => [...prev, annotation]);
+        commitItems(
+          itemsRef.current.map((it, i) => (i === editingIndex ? updated : it))
+        );
+      } else {
+        commitItems(itemsRef.current.filter((_, i) => i !== editingIndex));
       }
-      return null;
-    });
-  }, [color, textSize]);
+      setEditingIndex(null);
+    } else if (trimmed) {
+      const nextSize = draft.size ?? textSize;
+      const nextColor = draft.color ?? color;
+      const annotation: Annotation = {
+        color: nextColor,
+        kind: "text",
+        size: nextSize,
+        text: draft.value,
+        x: draft.natX,
+        y: draft.natY,
+      };
+      commitItems([...itemsRef.current, annotation]);
+      setSelectedTextIndex(itemsRef.current.length);
+      // Remember the size/color as the default for the next new text.
+      setTextSize(nextSize);
+      setColor(nextColor);
+    }
+    setTextDraft(null);
+  }, [color, commitItems, editingIndex, textDraft, textSize]);
 
-  const handleUndo = () => setItems((prev) => prev.slice(0, -1));
-  const handleClear = () => setItems([]);
+  const beginEditSelected = useCallback(() => {
+    if (selectedTextIndex === null) {
+      return;
+    }
+    const item = itemsRef.current[selectedTextIndex];
+    if (!item || item.kind !== "text") {
+      return;
+    }
+    setEditingIndex(selectedTextIndex);
+    setSelectedTextIndex(null);
+    setTextDraft({
+      color: item.color,
+      natX: item.x,
+      natY: item.y,
+      size: item.size,
+      value: item.text,
+    });
+  }, [selectedTextIndex]);
+
+  const deleteSelected = useCallback(() => {
+    if (selectedTextIndex === null) {
+      return;
+    }
+    commitItems(itemsRef.current.filter((_, i) => i !== selectedTextIndex));
+    setSelectedTextIndex(null);
+  }, [commitItems, selectedTextIndex]);
+
+  const handleUndo = useCallback(() => {
+    const previous = pastRef.current.at(-1);
+    if (previous === undefined) {
+      return;
+    }
+    pastRef.current = pastRef.current.slice(0, -1);
+    futureRef.current = [itemsRef.current, ...futureRef.current];
+    setHistoryCounts({
+      future: futureRef.current.length,
+      past: pastRef.current.length,
+    });
+    setSelectedTextIndex(null);
+    setItems(previous);
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    const next = futureRef.current.at(0);
+    if (next === undefined) {
+      return;
+    }
+    futureRef.current = futureRef.current.slice(1);
+    pastRef.current = [...pastRef.current, itemsRef.current];
+    setHistoryCounts({
+      future: futureRef.current.length,
+      past: pastRef.current.length,
+    });
+    setSelectedTextIndex(null);
+    setItems(next);
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setSelectedTextIndex(null);
+    commitItems([]);
+  }, [commitItems]);
+
+  // Delete/Backspace removes the selected text item; Cmd/Ctrl+Z undoes and
+  // Cmd/Ctrl+Shift+Z (or Ctrl+Y) redoes, as long as no text field is focused.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "TEXTAREA" || target.tagName === "INPUT")
+      ) {
+        return;
+      }
+      if (
+        (event.key === "Delete" || event.key === "Backspace") &&
+        selectedTextIndex !== null
+      ) {
+        event.preventDefault();
+        deleteSelected();
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [deleteSelected, handleRedo, handleUndo, selectedTextIndex]);
 
   const handleSave = () => {
     onSave({ height: natural.height, items, width: natural.width });
   };
 
+  const selectedTextItem =
+    selectedTextIndex === null ? null : items[selectedTextIndex];
+  const activeTextSize = textDraft
+    ? (textDraft.size ?? textSize)
+    : selectedTextItem && selectedTextItem.kind === "text"
+      ? selectedTextItem.size
+      : textSize;
+  const activeColor = textDraft
+    ? (textDraft.color ?? color)
+    : selectedTextItem && selectedTextItem.kind === "text"
+      ? selectedTextItem.color
+      : color;
+
+  // The size slider fires continuously while dragging; only snapshot history
+  // once per drag (reset on release) so undo isn't flooded with one entry per tick.
+  const sizeDragSnapshotRef = useRef(false);
+
+  const setActiveTextSize = (size: number) => {
+    if (textDraft) {
+      setTextDraft((draft) => (draft ? { ...draft, size } : draft));
+      return;
+    }
+    if (selectedTextIndex !== null) {
+      if (!sizeDragSnapshotRef.current) {
+        pastRef.current = [...pastRef.current, itemsRef.current];
+        futureRef.current = [];
+        sizeDragSnapshotRef.current = true;
+      }
+      setHistoryCounts({ future: 0, past: pastRef.current.length });
+      setItems(
+        itemsRef.current.map((it, i) =>
+          i === selectedTextIndex ? { ...it, size } : it
+        )
+      );
+      return;
+    }
+    setTextSize(size);
+  };
+
+  const endSizeDrag = () => {
+    sizeDragSnapshotRef.current = false;
+  };
+
+  const setActiveColor = (value: string) => {
+    if (textDraft) {
+      setTextDraft((draft) => (draft ? { ...draft, color: value } : draft));
+      return;
+    }
+    if (selectedTextIndex !== null) {
+      commitItems(
+        itemsRef.current.map((it, i) =>
+          i === selectedTextIndex ? { ...it, color: value } : it
+        )
+      );
+      return;
+    }
+    setColor(value);
+  };
+
   const presets = sizePresets(natural.width || 1000);
+  const minTextSize = Math.max(
+    4,
+    Math.round(presets.small * TEXT_SIZE_MULTIPLIER * 0.5)
+  );
+  const maxTextSize = Math.round(presets.large * TEXT_SIZE_MULTIPLIER * 3);
+  const showTextControls = tool === "text" || selectedTextIndex !== null;
 
   const toolButton = (value: Tool, label: string, icon: React.ReactNode) => (
     <button
@@ -518,12 +883,13 @@ export const PhotoAnnotator = ({
                   commitText();
                 } else if (event.key === "Escape") {
                   setTextDraft(null);
+                  setEditingIndex(null);
                 }
               }}
               placeholder="Type…"
               style={{
-                color,
-                fontSize: `${textSize * scale}px`,
+                color: textDraft.color ?? color,
+                fontSize: `${(textDraft.size ?? textSize) * scale}px`,
                 left: `${textDraft.natX * scale}px`,
                 top: `${textDraft.natY * scale}px`,
               }}
@@ -553,59 +919,111 @@ export const PhotoAnnotator = ({
           {COLORS.map((value) => (
             <button
               aria-label={`Color ${value}`}
-              aria-pressed={color === value}
+              aria-pressed={activeColor === value}
               className="photo-annotator__swatch"
               key={value}
-              onClick={() => setColor(value)}
+              onClick={() => setActiveColor(value)}
               style={{ background: value }}
               type="button"
             />
           ))}
         </div>
 
-        <div className="photo-annotator__group">
-          {(["small", "medium", "large"] as const).map((key) => {
-            const isTextTool = tool === "text";
-            const value = isTextTool
-              ? presets[key] * TEXT_SIZE_MULTIPLIER
-              : presets[key];
-            const label = `${key} ${isTextTool ? "text size" : "width"}`;
-            return (
-              <button
-                aria-label={label}
-                aria-pressed={
-                  isTextTool ? textSize === value : strokeWidth === value
-                }
-                className="photo-annotator__size"
-                key={key}
-                onClick={() =>
-                  isTextTool ? setTextSize(value) : setStrokeWidth(value)
-                }
-                title={label}
-                type="button"
-              >
-                <span
-                  className="photo-annotator__size-dot"
-                  style={{
-                    height: `${Math.min(22, 6 + value * 0.9)}px`,
-                    width: `${Math.min(22, 6 + value * 0.9)}px`,
-                  }}
-                />
-              </button>
-            );
-          })}
-        </div>
+        {showTextControls ? (
+          <div className="photo-annotator__group photo-annotator__text-size">
+            <label
+              className="photo-annotator__text-size-label"
+              htmlFor="photo-annotator-text-size"
+            >
+              Font size
+            </label>
+            <input
+              aria-label="Font size"
+              className="photo-annotator__text-size-range"
+              id="photo-annotator-text-size"
+              max={maxTextSize}
+              min={minTextSize}
+              onChange={(event) =>
+                setActiveTextSize(Number(event.target.value))
+              }
+              onPointerUp={endSizeDrag}
+              type="range"
+              value={Math.round(activeTextSize)}
+            />
+            <span className="photo-annotator__text-size-value">
+              {Math.round(activeTextSize)}px
+            </span>
+            {selectedTextIndex === null ? null : (
+              <>
+                <button
+                  aria-label="Edit text"
+                  className="photo-annotator__tool"
+                  onClick={beginEditSelected}
+                  title="Edit text"
+                  type="button"
+                >
+                  <Edit height={ICON} width={ICON} />
+                </button>
+                <button
+                  aria-label="Delete text"
+                  className="photo-annotator__tool"
+                  onClick={deleteSelected}
+                  title="Delete text"
+                  type="button"
+                >
+                  <Trash height={ICON} width={ICON} />
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="photo-annotator__group">
+            {(["small", "medium", "large"] as const).map((key) => {
+              const value = presets[key];
+              const label = `${key} width`;
+              return (
+                <button
+                  aria-label={label}
+                  aria-pressed={strokeWidth === value}
+                  className="photo-annotator__size"
+                  key={key}
+                  onClick={() => setStrokeWidth(value)}
+                  title={label}
+                  type="button"
+                >
+                  <span
+                    className="photo-annotator__size-dot"
+                    style={{
+                      height: `${Math.min(22, 6 + value * 0.9)}px`,
+                      width: `${Math.min(22, 6 + value * 0.9)}px`,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="photo-annotator__group">
           <button
             aria-label="Undo"
             className="photo-annotator__tool"
-            disabled={items.length === 0}
+            disabled={historyCounts.past === 0}
             onClick={handleUndo}
             title="Undo"
             type="button"
           >
             <Undo height={ICON} width={ICON} />
+          </button>
+          <button
+            aria-label="Redo"
+            className="photo-annotator__tool"
+            disabled={historyCounts.future === 0}
+            onClick={handleRedo}
+            title="Redo"
+            type="button"
+          >
+            <Redo height={ICON} width={ICON} />
           </button>
           <button
             aria-label="Clear all"

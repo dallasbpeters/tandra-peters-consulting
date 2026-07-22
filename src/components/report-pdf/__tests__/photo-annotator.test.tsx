@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AnnotationScene } from "../../../lib/report-pdf/types";
+import type {
+  AnnotationScene,
+  TextAnnotation,
+} from "../../../lib/report-pdf/types";
 import { PhotoAnnotator } from "../photo-annotator";
 
 const STAGE_SIZE = 800;
@@ -50,13 +53,19 @@ describe(PhotoAnnotator, () => {
       drawImage: vi.fn<() => void>(),
       ellipse: vi.fn<() => void>(),
       fillText: vi.fn<() => void>(),
+      // Deterministic width so hit-testing math in tests is predictable.
+      measureText: vi.fn<(text: string) => { width: number }>((text) => ({
+        width: text.length * 10,
+      })),
       lineTo: vi.fn<() => void>(),
       moveTo: vi.fn<() => void>(),
       quadraticCurveTo: vi.fn<() => void>(),
       restore: vi.fn<() => void>(),
       save: vi.fn<() => void>(),
+      setLineDash: vi.fn<() => void>(),
       setTransform: vi.fn<() => void>(),
       stroke: vi.fn<() => void>(),
+      strokeRect: vi.fn<() => void>(),
     } as unknown as CanvasRenderingContext2D);
 
     // The fit-to-stage effect needs a nonzero stage size to compute a scale.
@@ -123,9 +132,20 @@ describe(PhotoAnnotator, () => {
 
   const placeText = (canvas: HTMLCanvasElement, text: string) => {
     fireEvent.pointerDown(canvas, { clientX: 100, clientY: 80, pointerId: 1 });
+    // A tap releases immediately; leaving the pointer "down" would make the
+    // next pointerDown look like a second finger (pinch) instead of a tap.
+    fireEvent.pointerUp(canvas, { clientX: 100, clientY: 80, pointerId: 1 });
     const input = screen.getByPlaceholderText("Type…");
     fireEvent.change(input, { target: { value: text } });
     fireEvent.keyDown(input, { key: "Enter" });
+  };
+
+  const getFontSizeSlider = () =>
+    screen.getByRole("slider", { name: "Font size" });
+
+  const saveAndGetScene = () => {
+    fireEvent.click(screen.getByRole("button", { name: /done/i }));
+    return onSave.mock.calls.at(-1)?.[0] as AnnotationScene;
   };
 
   it("places a pen stroke from a single-pointer drag", async () => {
@@ -135,41 +155,46 @@ describe(PhotoAnnotator, () => {
     fireEvent.pointerMove(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
     fireEvent.pointerUp(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
 
-    fireEvent.click(screen.getByRole("button", { name: /done/i }));
-
-    expect(onSave).toHaveBeenCalledOnce();
-    const scene = onSave.mock.calls[0][0] as AnnotationScene;
+    const scene = saveAndGetScene();
     expect(scene.items).toHaveLength(1);
     expect(scene.items[0].kind).toBe("pen");
+  });
+
+  it("shows a font size slider once the text tool is active", async () => {
+    await renderAnnotator();
+
+    expect(
+      screen.queryByRole("slider", { name: "Font size" })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+
+    expect(getFontSizeSlider()).toBeInTheDocument();
   });
 
   it("lets the user change text size and applies it to placed text", async () => {
     const canvas = await renderAnnotator();
 
     fireEvent.click(screen.getByRole("button", { name: "Text" }));
-    fireEvent.click(screen.getByRole("button", { name: /small text size/i }));
+    // small preset for a 1000px-wide image (5) * the 1.4 text multiplier.
+    fireEvent.change(getFontSizeSlider(), { target: { value: "7" } });
     placeText(canvas, "Small note");
-    fireEvent.click(screen.getByRole("button", { name: /done/i }));
 
-    expect(onSave).toHaveBeenCalledOnce();
-    const scene = onSave.mock.calls[0][0] as AnnotationScene;
+    const scene = saveAndGetScene();
     expect(scene.items).toHaveLength(1);
     expect(scene.items[0]).toMatchObject({ kind: "text", text: "Small note" });
-    // small preset for a 1000px-wide image (5) * the 1.4 text multiplier.
-    expect((scene.items[0] as { size: number }).size).toBeCloseTo(7);
+    expect((scene.items[0] as TextAnnotation).size).toBe(7);
   });
 
-  it("applies a larger font size when the large text preset is selected", async () => {
+  it("applies a larger font size when the slider is raised", async () => {
     const canvas = await renderAnnotator();
 
     fireEvent.click(screen.getByRole("button", { name: "Text" }));
-    fireEvent.click(screen.getByRole("button", { name: /large text size/i }));
+    fireEvent.change(getFontSizeSlider(), { target: { value: "30" } });
     placeText(canvas, "Big note");
-    fireEvent.click(screen.getByRole("button", { name: /done/i }));
 
-    const scene = onSave.mock.calls[0][0] as AnnotationScene;
-    // large preset for a 1000px-wide image (14) * the 1.4 text multiplier.
-    expect((scene.items[0] as { size: number }).size).toBeCloseTo(19.6);
+    const scene = saveAndGetScene();
+    expect((scene.items[0] as TextAnnotation).size).toBe(30);
   });
 
   it("does not resize text when the pen tool's width presets are clicked", async () => {
@@ -180,12 +205,89 @@ describe(PhotoAnnotator, () => {
     fireEvent.click(screen.getByRole("button", { name: /large width/i }));
     fireEvent.click(screen.getByRole("button", { name: "Text" }));
     placeText(canvas, "Default size note");
-    fireEvent.click(screen.getByRole("button", { name: /done/i }));
 
-    const scene = onSave.mock.calls[0][0] as AnnotationScene;
+    const scene = saveAndGetScene();
     // Falls back to the default text size (large preset * 1.4), unaffected
     // by the pen-width click.
-    expect((scene.items[0] as { size: number }).size).toBeCloseTo(19.6);
+    expect((scene.items[0] as TextAnnotation).size).toBeCloseTo(19.6);
+  });
+
+  it("drags an existing text item to reposition it", async () => {
+    const canvas = await renderAnnotator();
+
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+    placeText(canvas, "Move me");
+
+    // Grab the just-placed text (still under the original placement point)
+    // and drag it 100 natural px to the right (80 client px at scale 0.8).
+    fireEvent.pointerDown(canvas, { clientX: 100, clientY: 80, pointerId: 2 });
+    fireEvent.pointerMove(canvas, { clientX: 180, clientY: 80, pointerId: 2 });
+    fireEvent.pointerUp(canvas, { clientX: 180, clientY: 80, pointerId: 2 });
+
+    const scene = saveAndGetScene();
+    expect(scene.items).toHaveLength(1);
+    const moved = scene.items[0] as TextAnnotation;
+    expect(moved.x).toBeCloseTo(225);
+    expect(moved.y).toBeCloseTo(100);
+  });
+
+  it("edits the content of a selected text item", async () => {
+    const canvas = await renderAnnotator();
+
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+    placeText(canvas, "Original");
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit text" }));
+    const input = screen.getByPlaceholderText("Type…");
+    expect(input).toHaveValue("Original");
+    fireEvent.change(input, { target: { value: "Updated" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    const scene = saveAndGetScene();
+    expect(scene.items).toHaveLength(1);
+    expect(scene.items[0]).toMatchObject({ kind: "text", text: "Updated" });
+  });
+
+  it("deletes the selected text item", async () => {
+    const canvas = await renderAnnotator();
+
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+    placeText(canvas, "Remove me");
+    fireEvent.click(screen.getByRole("button", { name: "Delete text" }));
+
+    const scene = saveAndGetScene();
+    expect(scene.items).toHaveLength(0);
+  });
+
+  const drawPenStroke = (canvas: HTMLCanvasElement) => {
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+  };
+
+  it("starts with undo/redo disabled and enables undo after drawing", async () => {
+    const canvas = await renderAnnotator();
+
+    const undoButton = screen.getByRole("button", { name: "Undo" });
+    const redoButton = screen.getByRole("button", { name: "Redo" });
+    expect(undoButton).toBeDisabled();
+    expect(redoButton).toBeDisabled();
+
+    drawPenStroke(canvas);
+
+    expect(undoButton).toBeEnabled();
+    expect(redoButton).toBeDisabled();
+  });
+
+  it("undo removes the last stroke and redo brings it back", async () => {
+    const canvas = await renderAnnotator();
+    drawPenStroke(canvas);
+
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(saveAndGetScene().items).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Redo" }));
+    expect(saveAndGetScene().items).toHaveLength(1);
   });
 
   it("pinch-zooms the canvas without drawing a stroke", async () => {
@@ -209,10 +311,7 @@ describe(PhotoAnnotator, () => {
     fireEvent.pointerUp(canvas, { clientX: 50, clientY: 100, pointerId: 1 });
     fireEvent.pointerUp(canvas, { clientX: 250, clientY: 100, pointerId: 2 });
 
-    fireEvent.click(screen.getByRole("button", { name: /done/i }));
-
-    expect(onSave).toHaveBeenCalledOnce();
-    const scene = onSave.mock.calls[0][0] as AnnotationScene;
+    const scene = saveAndGetScene();
     expect(scene.items).toHaveLength(0);
   });
 
