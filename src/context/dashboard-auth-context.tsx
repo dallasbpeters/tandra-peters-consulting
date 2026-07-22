@@ -44,6 +44,8 @@ const DashboardAuthContext = createContext<DashboardAuthContextValue | null>(
   null
 );
 
+const GOOGLE_CREDENTIAL_RENEWAL_BUFFER_MS = 5 * 60 * 1000;
+
 const useDashboardAuthState = (): DashboardAuthContextValue => {
   const clientId = getGoogleClientId();
   const [token, setToken] = useState<string | null>(null);
@@ -69,10 +71,16 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     [clientId]
   );
 
-  // Holds the expiry-timer id so it can be cancelled on unmount / re-auth.
+  // Renew shortly before expiry. Google controls the signed token lifetime, so
+  // extending the existing credential would leave the app holding an invalid
+  // JWT; One Tap automatic sign-in returns a fresh credential instead.
+  const renewalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleExpiryTimer = useCallback((credential: string) => {
+    if (renewalTimerRef.current !== null) {
+      clearTimeout(renewalTimerRef.current);
+    }
     if (expiryTimerRef.current !== null) {
       clearTimeout(expiryTimerRef.current);
     }
@@ -80,16 +88,18 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     if (ms <= 0) {
       return;
     }
-    // Clear the token 30 s before expiry so the next API call doesn't race.
-    expiryTimerRef.current = setTimeout(
-      () => {
-        window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
-        setToken(null);
-        setUser(null);
-        setAuthError("Google sign-in expired. Please sign in again.");
-      },
-      Math.max(0, ms - 30_000)
+    renewalTimerRef.current = setTimeout(
+      () => window.google?.accounts?.id.prompt(),
+      Math.max(0, ms - GOOGLE_CREDENTIAL_RENEWAL_BUFFER_MS)
     );
+    // If renewal is unavailable or dismissed, never keep using an expired JWT.
+    expiryTimerRef.current = setTimeout(() => {
+      window.localStorage.removeItem(GOOGLE_AUTH_STORAGE_KEY);
+      setToken(null);
+      setUser(null);
+      setAuthError("Google sign-in expired. Please sign in again.");
+      window.google?.accounts?.id.prompt();
+    }, ms);
   }, []);
 
   const setTokenFromCredential = useCallback(
@@ -177,6 +187,9 @@ const useDashboardAuthState = (): DashboardAuthContextValue => {
     return () => {
       cancelled = true;
       unsubscribe();
+      if (renewalTimerRef.current !== null) {
+        clearTimeout(renewalTimerRef.current);
+      }
       if (expiryTimerRef.current !== null) {
         clearTimeout(expiryTimerRef.current);
       }

@@ -160,6 +160,31 @@ describe(PhotoAnnotator, () => {
     expect(scene.items[0].kind).toBe("pen");
   });
 
+  it("starts drawing after a single touch moves beyond the gesture threshold", async () => {
+    const canvas = await renderAnnotator();
+
+    fireEvent.pointerDown(canvas, {
+      clientX: 10,
+      clientY: 10,
+      pointerId: 1,
+      pointerType: "touch",
+    });
+    fireEvent.pointerMove(canvas, {
+      clientX: 50,
+      clientY: 50,
+      pointerId: 1,
+      pointerType: "touch",
+    });
+    fireEvent.pointerUp(canvas, {
+      clientX: 50,
+      clientY: 50,
+      pointerId: 1,
+      pointerType: "touch",
+    });
+
+    expect(saveAndGetScene().items).toHaveLength(1);
+  });
+
   it("shows a font size slider once the text tool is active", async () => {
     await renderAnnotator();
 
@@ -313,6 +338,109 @@ describe(PhotoAnnotator, () => {
 
     const scene = saveAndGetScene();
     expect(scene.items).toHaveLength(0);
+  });
+
+  it("does not turn the first touch of a pinch into text input", async () => {
+    const canvas = await renderAnnotator();
+    const wrap = document.querySelector(
+      ".photo-annotator__canvas-wrap"
+    ) as HTMLDivElement;
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+
+    fireEvent.pointerDown(canvas, {
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+    });
+    expect(screen.queryByPlaceholderText("Type…")).not.toBeInTheDocument();
+
+    fireEvent.pointerDown(canvas, {
+      clientX: 200,
+      clientY: 100,
+      pointerId: 2,
+    });
+    fireEvent.pointerMove(canvas, {
+      clientX: 50,
+      clientY: 100,
+      pointerId: 1,
+    });
+    fireEvent.pointerMove(canvas, {
+      clientX: 250,
+      clientY: 100,
+      pointerId: 2,
+    });
+
+    expect(wrap.style.transform).toBe("translate(0px, 0px) scale(2)");
+
+    fireEvent.pointerUp(canvas, {
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+    });
+    fireEvent.pointerUp(canvas, {
+      clientX: 200,
+      clientY: 100,
+      pointerId: 2,
+    });
+
+    expect(screen.queryByPlaceholderText("Type…")).not.toBeInTheDocument();
+    expect(saveAndGetScene().items).toHaveLength(0);
+  });
+
+  it("does not treat Safari pointer cancellation as a text tap", async () => {
+    const canvas = await renderAnnotator();
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+
+    fireEvent.pointerDown(canvas, {
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+      pointerType: "touch",
+    });
+    fireEvent.pointerCancel(canvas, {
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+      pointerType: "touch",
+    });
+
+    expect(screen.queryByPlaceholderText("Type…")).not.toBeInTheDocument();
+    expect(saveAndGetScene().items).toHaveLength(0);
+  });
+
+  it("prevents Safari native zoom gestures on the photo", async () => {
+    const canvas = await renderAnnotator();
+    const gestureStart = new Event("gesturestart", {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    canvas.dispatchEvent(gestureStart);
+
+    expect(gestureStart.defaultPrevented).toBeTruthy();
+  });
+
+  it("locks page zoom only while the annotator is open", () => {
+    const viewport = document.createElement("meta");
+    viewport.name = "viewport";
+    viewport.content = "width=device-width, initial-scale=1.0";
+    document.head.append(viewport);
+    const originalContent = viewport.content;
+    const { unmount } = render(
+      <PhotoAnnotator
+        image={new Blob(["x"], { type: "image/jpeg" })}
+        initialScene={null}
+        onCancel={onCancel}
+        onSave={onSave}
+      />
+    );
+
+    expect(viewport.content).toContain("user-scalable=no");
+    expect(viewport.content).toContain("maximum-scale=1");
+
+    unmount();
+    expect(viewport.content).toBe(originalContent);
+    viewport.remove();
   });
 
   it("clamps zoom to the configured maximum", async () => {

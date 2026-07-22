@@ -23,7 +23,13 @@ a.wa-button {
 /* Base button surface: dark fill + white label with themed inner spacing. */
 wa-button::part(base) {
   --wa-color-on-normal: var(--theme-palette-purple-50);
-  --wa-color-fill-normal: var(--theme-palette-purple-300);
+  --wa-color-fill-normal: var(--theme-palette-purple-900);
+  --backend-text: var(--theme-color-black);
+  gap: var(--theme-spacing-md);
+}
+.wa-dark wa-button::part(base) {
+  --wa-color-on-normal: var(--theme-palette-paper-50);
+  --wa-color-fill-normal: var(--theme-palette-granite-800);
   --backend-text: var(--theme-color-black);
   gap: var(--theme-spacing-md);
 }
@@ -41,8 +47,14 @@ wa-icon svg {
 
 @media (width <= 500px) {
   wa-icon {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
   }
+}
+
+wa-button:state(icon-button) {
+  --wa-form-control-padding-inline: var(--theme-spacing-sm);
+  --wa-form-control-padding-block: var(--theme-spacing-sm);
+  gap: 0;
 }
 
 @media (width <= 500px) {
@@ -74,10 +86,28 @@ wa-button.action::part(base) {
   border-bottom-color: var(--theme-palette-paper-700);
   border-left-color: var(--theme-palette-paper-700);
   border-right-color: var(--theme-palette-paper-700);
-  color: var(--theme-palette-paper-50);
+  color: #000000;
   font-size: 1rem;
-  min-block-size: 40px;
+  min-block-size: 28px;
   transition: all var(--wa-transition-slow) var(--wa-transition-easing);
+}
+
+wa-button.action[appearance="outlined"]::part(base) {
+  --spacing: 6px;
+  border-radius: 6px;
+  border: solid 2px;
+  background: var(--theme-palette-paper-50);
+  color: #000000;
+  font-size: 1rem;
+  border-width: 1px;
+  min-block-size: 28px;
+  transition: all var(--wa-transition-slow) var(--wa-transition-easing);
+}
+
+.wa-dark wa-button.action[appearance="outlined"]::part(base) {
+  background: var(--theme-palette-paper-900);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* Outlined and plain buttons have a transparent background, so their text must

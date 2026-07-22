@@ -1,5 +1,8 @@
+import WaButton from "@awesome.me/webawesome/dist/react/button/index.js";
+import WaDialog from "@awesome.me/webawesome/dist/react/dialog/index.js";
 import { Analytics } from "@vercel/analytics/react";
 import { lazy } from "react";
+import { ErrorBoundary, getErrorMessage } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { BackendThemeScope } from "./components/backend-theme-scope";
@@ -215,6 +218,21 @@ const appRouter = createBrowserRouter([
   },
 ]);
 
-const App = () => <RouterProvider router={appRouter} />;
-
-export default App;
+export default function App() {
+  return (
+    <ErrorBoundary
+      fallbackRender={({ error, resetErrorBoundary }) => (
+        <WaDialog role="alert">
+          <p>Something went wrong:</p>
+          <pre>{getErrorMessage(error)}</pre>
+          <WaButton onClick={resetErrorBoundary}>Try again</WaButton>
+        </WaDialog>
+      )}
+      onReset={() => {
+        // Reset any state that may have caused the error
+      }}
+    >
+      <RouterProvider router={appRouter} />
+    </ErrorBoundary>
+  );
+}

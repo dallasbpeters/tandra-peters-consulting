@@ -43,7 +43,7 @@ wa-details::part(content) {
    so buttons collapse to icon-only and the editor column fits. Opt a button OUT
    (keep its text) by adding the `report-btn-show-label` class. */
 @media screen and (max-width: 1232px) {
-  wa-button:not(.report-btn-show-label)::part(label) {
+  wa-button-group wa-button:not(.report-btn-show-label)::part(label) {
     display: none;
   }
   wa-button:not(.report-btn-show-label)::part(base) {
@@ -640,7 +640,7 @@ wa-details::part(content) {
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none;
-  -webkit-user-drag: element;
+  -webkit-user-drag: none;
 }
 
 /* Keep drag events on the handle itself (not WaIcon / label children). */
@@ -753,11 +753,11 @@ wa-details::part(content) {
 
 /* The table can be wider than a narrow pane; scroll it here instead of letting
    its min-content width push the whole editor column past the viewport. */
-.report-table-editor-scroll {
-  overflow-x: auto;
+/* .report-table-editor-scroll {
+  overflow-y: auto;
   min-width: 0;
   -webkit-overflow-scrolling: touch;
-}
+} */
 
 .report-table-editor table {
   border-collapse: collapse;
@@ -767,10 +767,40 @@ wa-details::part(content) {
   font-size: 0.8rem;
 }
 
+@media (width < 768px) {
+  .report-table-editor thead {
+    display: none;
+  }
+
+  .report-table-editor tr {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .report-table-editor td {
+    display: grid;
+    gap: 0.25rem;
+  }
+}
+
+.report-table-cell-header {
+  display: none;
+}
+
+@media (width < 768px) {
+  .report-table-cell-header {
+    display: block;
+  }
+}
+
 .report-table-editor th,
 .report-table-editor td {
-  border: 1px solid var(--report-border);
-  padding: 0.15rem;
+  border: 0px solid var(--report-border);
+  padding: 0.1em;
+}
+.wa-dark {
+  --report-border: rgba(255, 255, 255, 0.2);
 }
 
 /* Keep each field usable when the table scrolls; they no longer need to fit. */

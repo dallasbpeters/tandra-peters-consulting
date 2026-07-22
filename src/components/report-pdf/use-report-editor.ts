@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { compositeAnnotatedPhoto } from "../../lib/report-pdf/annotate-composite";
 import { todayIso } from "../../lib/report-pdf/format";
 import { processPhotoFile } from "../../lib/report-pdf/image-pipeline";
+import {
+  loadLocalReportDraft,
+  saveLocalReportDraft,
+} from "../../lib/report-pdf/local-report-draft";
 import type {
   AnnotationScene,
   DetailsTable,
@@ -90,9 +94,49 @@ export const useReportEditor = (): ReportEditor => {
   const [addError, setAddError] = useState<string | null>(null);
   const objectUrls = useRef<Set<string>>(new Set());
   const reportRef = useRef(report);
+  const draftReady = useRef(false);
+  const draftSaveSequence = useRef(0);
 
   useEffect(() => {
     reportRef.current = report;
+  }, [report]);
+
+  useEffect(() => {
+    let active = true;
+    const restoreDraft = async (): Promise<void> => {
+      const draft = await loadLocalReportDraft();
+      if (!active) {
+        return;
+      }
+      if (draft) {
+        for (const photo of draft.photos) {
+          if (photo.previewUrl.startsWith("blob:")) {
+            objectUrls.current.add(photo.previewUrl);
+          }
+        }
+        setReport(draft);
+      }
+      draftReady.current = true;
+    };
+    void restoreDraft();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady.current) {
+      return;
+    }
+    const sequence = draftSaveSequence.current + 1;
+    draftSaveSequence.current = sequence;
+    const saveDraft = async (): Promise<void> => {
+      await saveLocalReportDraft(report);
+      if (sequence !== draftSaveSequence.current) {
+        await saveLocalReportDraft(reportRef.current);
+      }
+    };
+    void saveDraft();
   }, [report]);
 
   useEffect(

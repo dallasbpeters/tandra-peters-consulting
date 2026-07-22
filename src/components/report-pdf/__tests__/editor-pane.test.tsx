@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import Sortable from "sortablejs";
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -117,6 +118,24 @@ describe(EditorPane, () => {
 
     fireEvent.click(screen.getByLabelText("Move photo 1 down"));
     expect(handlers.onMovePhoto).toHaveBeenCalledWith("a", 1);
+  });
+
+  it("reorders photos through the SortableJS list", () => {
+    const handlers = renderPane(makeReport([photo("a", 0), photo("b", 1)]));
+    const sourceHandle = screen.getByRole("button", {
+      name: "Drag to reorder photo 1",
+    });
+    const list = sourceHandle.closest("ul");
+    expect(list).not.toBeNull();
+    const sortable = Sortable.get(list as HTMLElement);
+
+    expect(sortable?.options.handle).toBe(".report-photo-drag");
+    expect(sortable?.options.forceFallback).toBeTruthy();
+    sortable?.options.onEnd?.({
+      newIndex: 1,
+      oldIndex: 0,
+    } as Sortable.SortableEvent);
+    expect(handlers.onReorderPhotos).toHaveBeenCalledWith("a", "b", "after");
   });
 
   it("removes a photo when its remove button is clicked", () => {

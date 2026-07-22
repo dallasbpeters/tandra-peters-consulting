@@ -11,6 +11,7 @@ import type {
 
 const BLOB_UPLOAD_ROUTE = "/api/report-blob-upload";
 const REPORTS_ROUTE = "/api/reports";
+const DATA_URL_PATTERN = /^data:(?<type>[^;,]+)?;base64,(?<data>.*)$/su;
 
 /** A photo as persisted in a version snapshot (blob URL instead of a Blob). */
 interface SnapshotPhoto {
@@ -81,6 +82,21 @@ export interface ReportDetail {
 }
 
 const isPermanentUrl = (url: string): boolean => url.startsWith("http");
+
+const loadSnapshotBlob = async (url: string): Promise<Blob> => {
+  const dataUrl = DATA_URL_PATTERN.exec(url);
+  if (!dataUrl?.groups) {
+    return await fetch(url).then((response) => response.blob());
+  }
+  const binary = atob(dataUrl.groups.data ?? "");
+  const bytes = Uint8Array.from(
+    binary,
+    (character) => character.codePointAt(0) ?? 0
+  );
+  return new Blob([bytes], {
+    type: dataUrl.groups.type ?? "application/octet-stream",
+  });
+};
 
 const authHeaders = (idToken: string): HeadersInit => ({
   Authorization: `Bearer ${idToken}`,
@@ -268,7 +284,7 @@ export const hydrateReport = async (
   const photos: PhotoItem[] = [];
   for (const photo of snapshot.photos) {
     // eslint-disable-next-line no-await-in-loop -- bounded by photo count
-    const blob = await fetch(photo.previewUrl).then((r) => r.blob());
+    const blob = await loadSnapshotBlob(photo.previewUrl);
     // Legacy snapshots predate annotations; treat a missing field as none.
     const annotations = photo.annotations ?? null;
     let previewUrl = photo.previewUrl;

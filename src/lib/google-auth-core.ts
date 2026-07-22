@@ -179,7 +179,9 @@ export const initializeGoogleIdentity = (clientId: string): Promise<void> => {
       }
 
       window.google.accounts.id.initialize({
-        auto_select: false,
+        // Let returning users refresh an expiring ID token through One Tap
+        // without repeatedly opening the account chooser.
+        auto_select: true,
         callback: (response) => {
           for (const handler of googleCredentialHandlers) {
             handler(response.credential ?? null);

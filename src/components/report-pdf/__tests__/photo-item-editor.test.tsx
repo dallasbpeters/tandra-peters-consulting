@@ -80,6 +80,23 @@ describe(PhotoItemEditor, () => {
     });
   });
 
+  it("places an editable column header above each stacked value", () => {
+    const table: DetailsTable = {
+      columns: ["Finding", "Detail"],
+      rows: [["Leak", "Vent"]],
+    };
+    const handlers = renderItem({ ...basePhoto, table });
+    const stackedHeader = screen.getByLabelText("Row 1 column 1 name");
+    const value = screen.getByLabelText("Row 1 column 1");
+
+    expect(stackedHeader.closest("td")).toBe(value.closest("td"));
+    fireEvent.change(stackedHeader, { target: { value: "Issue" } });
+    expect(handlers.onTableChange).toHaveBeenCalledWith("a", {
+      columns: ["Issue", "Detail"],
+      rows: [["Leak", "Vent"]],
+    });
+  });
+
   it("adds a row to the table", () => {
     const table: DetailsTable = {
       columns: ["Finding", "Detail"],

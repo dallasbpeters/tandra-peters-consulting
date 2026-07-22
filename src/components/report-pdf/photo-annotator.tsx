@@ -83,6 +83,8 @@ const TEXT_SIZE_MULTIPLIER = 1.4;
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
+const TOUCH_DRAW_THRESHOLD_PX = 4;
+const LOCKED_VIEWPORT_SUFFIX = "maximum-scale=1, user-scalable=no";
 
 const clientToNatural = (
   canvas: HTMLCanvasElement,
@@ -185,6 +187,11 @@ export const PhotoAnnotator = ({
   const rafRef = useRef<number | null>(null);
   const itemsRef = useRef<Annotation[]>(initialScene?.items ?? []);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pendingTouchRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const pinchRef = useRef<{
     startCenter: { x: number; y: number };
     startDist: number;
@@ -223,6 +230,23 @@ export const PhotoAnnotator = ({
     itemsRef.current = items;
   }, [items]);
 
+  // iOS Safari may claim a pinch for page zoom before the canvas receives its
+  // second pointer. Lock the browser viewport only while this full-screen
+  // editor is open; the photo still zooms through the local view transform.
+  useEffect(() => {
+    const viewport = document.querySelector<HTMLMetaElement>(
+      'meta[name="viewport"]'
+    );
+    if (!viewport) {
+      return;
+    }
+    const originalContent = viewport.content;
+    viewport.content = `${originalContent}, ${LOCKED_VIEWPORT_SUFFIX}`;
+    return () => {
+      viewport.content = originalContent;
+    };
+  }, []);
+
   /** Replaces the scene and records an undo step (skipped for no-op moves). */
   const commitItems = useCallback((next: Annotation[]) => {
     pastRef.current = [...pastRef.current, itemsRef.current];
@@ -254,6 +278,7 @@ export const PhotoAnnotator = ({
       setNatural({ height: decoded.height, width: decoded.width });
       setView({ scale: 1, x: 0, y: 0 });
       pointersRef.current.clear();
+      pendingTouchRef.current = null;
       pinchRef.current = null;
       pinchedRef.current = false;
       moveRef.current = null;
@@ -380,6 +405,39 @@ export const PhotoAnnotator = ({
     []
   );
 
+  // iOS Safari can promote a two-finger canvas gesture to viewport zoom even
+  // with touch-action:none. Cancel its native pinch events on the photo only;
+  // our pointer handlers below continue to apply the zoom to canvas-wrap.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    const preventNativePinch = (event: Event): void => {
+      event.preventDefault();
+    };
+    const preventMultiTouch = (event: TouchEvent): void => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+    canvas.addEventListener("gesturestart", preventNativePinch, {
+      passive: false,
+    });
+    canvas.addEventListener("gesturechange", preventNativePinch, {
+      passive: false,
+    });
+    // oxlint-disable-next-line github/require-passive-events -- iOS viewport zoom requires preventDefault on touchmove.
+    canvas.addEventListener("touchmove", preventMultiTouch, {
+      passive: false,
+    });
+    return () => {
+      canvas.removeEventListener("gesturestart", preventNativePinch);
+      canvas.removeEventListener("gesturechange", preventNativePinch);
+      canvas.removeEventListener("touchmove", preventMultiTouch);
+    };
+  }, [ready]);
+
   const commitDraft = useCallback(() => {
     const draft = draftRef.current;
     draftRef.current = null;
@@ -402,33 +460,12 @@ export const PhotoAnnotator = ({
     commitItems([...itemsRef.current, draft]);
   }, [commitItems, redraw]);
 
-  const handlePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
+  const beginSinglePointer = useCallback(
+    (clientX: number, clientY: number) => {
       const canvas = canvasRef.current;
       if (!canvas) {
         return;
       }
-      canvas.setPointerCapture(event.pointerId);
-      pointersRef.current.set(event.pointerId, {
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      // A second finger starts a pinch-to-zoom gesture; abandon any in-progress draft.
-      if (pointersRef.current.size >= 2) {
-        draftRef.current = null;
-        moveRef.current = null;
-        pinchedRef.current = true;
-        const [p1, p2] = [...pointersRef.current.values()];
-        pinchRef.current = {
-          startCenter: pinchCenter(p1, p2),
-          startDist: pinchDistance(p1, p2),
-          startView: view,
-        };
-        scheduleRedraw();
-        return;
-      }
-
       if (pinchedRef.current || textDraft) {
         return;
       }
@@ -436,8 +473,8 @@ export const PhotoAnnotator = ({
       const effectiveScale = scale * view.scale;
       const { x, y } = clientToNatural(
         canvas,
-        event.clientX,
-        event.clientY,
+        clientX,
+        clientY,
         effectiveScale
       );
       if (tool === "text") {
@@ -486,6 +523,56 @@ export const PhotoAnnotator = ({
     [color, scale, scheduleRedraw, strokeWidth, textDraft, tool, view]
   );
 
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
+      pointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // A second finger claims the interaction for pinch zoom before the first
+      // touch is allowed to become a drawing or text-placement gesture.
+      if (pointersRef.current.size >= 2) {
+        for (const pointerId of pointersRef.current.keys()) {
+          canvas.setPointerCapture(pointerId);
+        }
+        pendingTouchRef.current = null;
+        draftRef.current = null;
+        moveRef.current = null;
+        pinchedRef.current = true;
+        const [p1, p2] = [...pointersRef.current.values()];
+        pinchRef.current = {
+          startCenter: pinchCenter(p1, p2),
+          startDist: pinchDistance(p1, p2),
+          startView: view,
+        };
+        scheduleRedraw();
+        return;
+      }
+
+      // Text placement always waits for pointer-up. Some iPhone Safari builds
+      // report the first contact without a reliable pointerType, so using the
+      // tool itself as a pending-tap signal keeps a later second finger from
+      // leaving text behind when the interaction becomes a pinch.
+      if (event.pointerType === "touch" || tool === "text") {
+        pendingTouchRef.current = {
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+        };
+        return;
+      }
+
+      canvas.setPointerCapture(event.pointerId);
+      beginSinglePointer(event.clientX, event.clientY);
+    },
+    [beginSinglePointer, scheduleRedraw, tool, view]
+  );
+
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
@@ -520,6 +607,19 @@ export const PhotoAnnotator = ({
 
       if (pinchedRef.current) {
         return;
+      }
+
+      const pendingTouch = pendingTouchRef.current;
+      if (
+        pendingTouch?.pointerId === event.pointerId &&
+        Math.hypot(
+          event.clientX - pendingTouch.x,
+          event.clientY - pendingTouch.y
+        ) >= TOUCH_DRAW_THRESHOLD_PX
+      ) {
+        pendingTouchRef.current = null;
+        canvas.setPointerCapture(event.pointerId);
+        beginSinglePointer(pendingTouch.x, pendingTouch.y);
       }
 
       const effectiveScale = scale * view.scale;
@@ -561,7 +661,7 @@ export const PhotoAnnotator = ({
       }
       scheduleRedraw();
     },
-    [scale, scheduleRedraw, view]
+    [beginSinglePointer, scale, scheduleRedraw, view]
   );
 
   const handlePointerUp = useCallback(
@@ -569,6 +669,10 @@ export const PhotoAnnotator = ({
       const canvas = canvasRef.current;
       if (canvas?.hasPointerCapture(event.pointerId)) {
         canvas.releasePointerCapture(event.pointerId);
+      }
+      const pendingTouch = pendingTouchRef.current;
+      if (pendingTouch?.pointerId === event.pointerId) {
+        pendingTouchRef.current = null;
       }
       pointersRef.current.delete(event.pointerId);
 
@@ -585,6 +689,9 @@ export const PhotoAnnotator = ({
 
       pinchRef.current = null;
       if (pointersRef.current.size === 0) {
+        if (pendingTouch && !pinchedRef.current) {
+          beginSinglePointer(pendingTouch.x, pendingTouch.y);
+        }
         pinchedRef.current = false;
         const move = moveRef.current;
         moveRef.current = null;
@@ -601,7 +708,32 @@ export const PhotoAnnotator = ({
         commitDraft();
       }
     },
-    [commitDraft, commitItems, view]
+    [beginSinglePointer, commitDraft, commitItems, view]
+  );
+
+  const handlePointerCancel = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (canvas?.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+      pointersRef.current.delete(event.pointerId);
+      if (pendingTouchRef.current?.pointerId === event.pointerId) {
+        pendingTouchRef.current = null;
+      }
+      // Cancellation means Safari or the browser claimed the gesture. Never
+      // turn it into a tap, text placement, stroke, or completed text move.
+      draftRef.current = null;
+      moveRef.current = null;
+      if (pointersRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+      if (pointersRef.current.size === 0) {
+        pinchedRef.current = false;
+      }
+      scheduleRedraw();
+    },
+    [scheduleRedraw]
   );
 
   const commitText = useCallback(() => {
@@ -861,7 +993,7 @@ export const PhotoAnnotator = ({
         >
           <canvas
             className="photo-annotator__canvas"
-            onPointerCancel={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -940,6 +1072,9 @@ export const PhotoAnnotator = ({
             <input
               aria-label="Font size"
               className="photo-annotator__text-size-range"
+              style={{
+                minBlockSize: 40,
+              }}
               id="photo-annotator-text-size"
               max={maxTextSize}
               min={minTextSize}

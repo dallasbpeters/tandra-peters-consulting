@@ -5,8 +5,9 @@ import WaInput from "@awesome.me/webawesome/dist/react/input/index.js";
 import WaTextarea from "@awesome.me/webawesome/dist/react/textarea/index.js";
 
 import "@awesome.me/webawesome/dist/styles/themes/default.css";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChangeEvent, TouchEvent as ReactTouchEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
+import Sortable from "sortablejs";
 
 import { appendDictation } from "../../hooks/use-dictation";
 import type { SanityImageAsset } from "../../hooks/use-sanity-image-assets";
@@ -64,18 +65,6 @@ interface EditorPaneProps {
 const coverThumb = (url: string) =>
   sanityImageUrl(url, { fit: "crop", h: 120, w: 200 });
 
-// ── Touch drag helpers (module scope — no closure allocation per render) ────
-
-const touchRowFromPoint = (x: number, y: number): HTMLElement | null =>
-  (document
-    .elementFromPoint(x, y)
-    ?.closest("li[data-photo-id]") as HTMLElement) ?? null;
-
-const touchEdgeFromY = (y: number, row: HTMLElement): "after" | "before" => {
-  const rect = row.getBoundingClientRect();
-  return y < rect.top + rect.height / 2 ? "before" : "after";
-};
-
 export const EditorPane = ({
   addError,
   brand,
@@ -99,136 +88,52 @@ export const EditorPane = ({
   savedVersion = null,
 }: EditorPaneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoListRef = useRef<HTMLUListElement>(null);
+  const photoIdsRef = useRef(report.photos.map((photo) => photo.id));
+  const reorderPhotosRef = useRef(onReorderPhotos);
   const [editingContact, setEditingContact] = useState(false);
-  // Drag-to-sort state for the photo list.
-  const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<{
-    edge: "after" | "before";
-    id: string;
-  } | null>(null);
+  photoIdsRef.current = report.photos.map((photo) => photo.id);
+  reorderPhotosRef.current = onReorderPhotos;
 
-  // Refs hold mid-drag mutable state without triggering re-renders.
-  const touchDragRef = useRef<{
-    sourceId: string;
-    lastX: number;
-    lastY: number;
-  } | null>(null);
-  // Stable handler refs so we can removeEventListener with the exact same fn.
-  const touchMoveRef = useRef<((e: TouchEvent) => void) | null>(null);
-  const touchEndRef = useRef<(() => void) | null>(null);
-  const touchCancelRef = useRef<(() => void) | null>(null);
-
-  const endPhotoDrag = useCallback(() => {
-    setDragPhotoId(null);
-    setDropTarget(null);
-  }, []);
-
-  const handlePhotoDrop = useCallback(
-    (sourceId: string, targetId: string, edge: "after" | "before") => {
-      onReorderPhotos(sourceId, targetId, edge);
-      setDragPhotoId(null);
-      setDropTarget(null);
-    },
-    [onReorderPhotos]
-  );
-
-  // Clean up document-level listeners and drag state.
-  const detachTouchListeners = useCallback(() => {
-    if (touchMoveRef.current) {
-      document.removeEventListener("touchmove", touchMoveRef.current);
-      touchMoveRef.current = null;
+  useEffect(() => {
+    const list = photoListRef.current;
+    if (!list) {
+      return;
     }
-    if (touchEndRef.current) {
-      document.removeEventListener("touchend", touchEndRef.current);
-      touchEndRef.current = null;
-    }
-    if (touchCancelRef.current) {
-      document.removeEventListener("touchcancel", touchCancelRef.current);
-      touchCancelRef.current = null;
-    }
-  }, []);
-
-  // Belt-and-suspenders: detach listeners when the component unmounts.
-  useEffect(() => detachTouchListeners, [detachTouchListeners]);
-
-  // Called directly from each drag handle's onTouchStart prop (React synthetic
-  // event), bypassing any web-component shadow-DOM event delegation issues on iOS.
-  const handleDragHandleTouchStart = useCallback(
-    (photoId: string, event: ReactTouchEvent<HTMLDivElement>) => {
-      const t = event.touches[0];
-      if (!t) {
-        return;
-      }
-
-      touchDragRef.current = {
-        sourceId: photoId,
-        lastX: t.clientX,
-        lastY: t.clientY,
-      };
-      setDragPhotoId(photoId);
-
-      const moveHandler = (e: TouchEvent) => {
-        // Prevent iOS from scrolling the page during the drag.
-        e.preventDefault();
-        const touch = e.touches[0];
-        if (!touch || !touchDragRef.current) {
+    const sortable = Sortable.create(list, {
+      animation: 150,
+      chosenClass: "is-dragging",
+      draggable: ".report-photo-row",
+      fallbackClass: "report-photo-drag-fallback",
+      fallbackOnBody: true,
+      fallbackTolerance: 3,
+      forceFallback: true,
+      ghostClass: "report-photo-drag-ghost",
+      handle: ".report-photo-drag",
+      onEnd: ({ newIndex, oldIndex }) => {
+        if (
+          oldIndex === undefined ||
+          newIndex === undefined ||
+          oldIndex === newIndex
+        ) {
           return;
         }
-        touchDragRef.current.lastX = touch.clientX;
-        touchDragRef.current.lastY = touch.clientY;
-        const target = touchRowFromPoint(touch.clientX, touch.clientY);
-        if (
-          !target ||
-          target.dataset.photoId === touchDragRef.current.sourceId
-        ) {
-          setDropTarget(null);
-        } else {
-          setDropTarget({
-            edge: touchEdgeFromY(touch.clientY, target),
-            id: target.dataset.photoId ?? "",
-          });
-        }
-      };
-
-      const endHandler = () => {
-        detachTouchListeners();
-        const state = touchDragRef.current;
-        touchDragRef.current = null;
-        if (!state) {
+        const ids = photoIdsRef.current;
+        const sourceId = ids[oldIndex];
+        const targetId = ids[newIndex];
+        if (!(sourceId && targetId)) {
           return;
         }
-        const target = touchRowFromPoint(state.lastX, state.lastY);
-        if (
-          target?.dataset.photoId &&
-          target.dataset.photoId !== state.sourceId
-        ) {
-          handlePhotoDrop(
-            state.sourceId,
-            target.dataset.photoId,
-            touchEdgeFromY(state.lastY, target)
-          );
-        } else {
-          endPhotoDrag();
-        }
-      };
-
-      const cancelHandler = () => {
-        detachTouchListeners();
-        touchDragRef.current = null;
-        endPhotoDrag();
-      };
-
-      touchMoveRef.current = moveHandler;
-      touchEndRef.current = endHandler;
-      touchCancelRef.current = cancelHandler;
-
-      // eslint-disable-next-line github/require-passive-events
-      document.addEventListener("touchmove", moveHandler, { passive: false });
-      document.addEventListener("touchend", endHandler, { passive: true });
-      document.addEventListener("touchcancel", cancelHandler);
-    },
-    [detachTouchListeners, endPhotoDrag, handlePhotoDrop]
-  );
+        reorderPhotosRef.current(
+          sourceId,
+          targetId,
+          oldIndex < newIndex ? "after" : "before"
+        );
+      },
+      touchStartThreshold: 3,
+    });
+    return () => sortable.destroy();
+  }, []);
   // When editing a saved report, surface the version on the panel title rather
   // than as loose status text above the editor.
   const detailsSummary = savedVersion
@@ -282,35 +187,18 @@ export const EditorPane = ({
         </>
       ) : (
         <WaDetails summary="Photos" open>
-          <ul
-            className={`report-photo-list${dragPhotoId ? " is-reordering" : ""}`}
-          >
+          <ul className="report-photo-list" ref={photoListRef}>
             {report.photos.map((photo, index) => (
               <PhotoItemEditor
-                dragging={dragPhotoId === photo.id}
-                dropEdge={
-                  dropTarget?.id === photo.id && dragPhotoId !== photo.id
-                    ? dropTarget.edge
-                    : null
-                }
                 idToken={idToken}
                 index={index}
                 key={photo.id}
                 onAnnotate={onAnnotatePhoto}
                 onCaptionChange={onCaptionChange}
-                onDragEndItem={endPhotoDrag}
-                onDragOverItem={(edge) => setDropTarget({ edge, id: photo.id })}
-                onDragStartItem={() => setDragPhotoId(photo.id)}
-                onDropItem={(sourceId, edge) =>
-                  handlePhotoDrop(sourceId, photo.id, edge)
-                }
                 onMove={onMovePhoto}
                 onRemove={onRemovePhoto}
                 onSectionChange={onSectionChange}
                 onTableChange={onTableChange}
-                onTouchStartItem={(e) =>
-                  handleDragHandleTouchStart(photo.id, e)
-                }
                 photo={photo}
                 sections={report.sections}
                 total={report.photos.length}
