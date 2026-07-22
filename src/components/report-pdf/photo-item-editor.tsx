@@ -427,10 +427,10 @@ export const PhotoItemEditor = ({
           />
         ) : null}
 
-        <div className="report-photo-controls">
+        <div className="wa-cluster wa-gap-xs">
           <WaButton
             appearance="filled"
-            className="report-btn-show-label"
+            className="action report-btn-show-label"
             onClick={() => onTableChange(photo.id, DEFAULT_TABLE)}
             size="small"
           >
@@ -443,15 +443,22 @@ export const PhotoItemEditor = ({
             Add table
           </WaButton>
           <WaButton
+            className="action"
             appearance="filled"
             aria-label={`Move photo ${index + 1} up`}
             disabled={index === 0}
             onClick={() => onMove(photo.id, -1)}
             size="small"
           >
-            <WaIcon name="arrow-up" label="Move photo up" library="iconoir" />
+            <WaIcon
+              slot="start"
+              name="arrow-up"
+              label="Move photo up"
+              library="default"
+            />
           </WaButton>
           <WaButton
+            className="action"
             appearance="filled"
             aria-label={`Move photo ${index + 1} down`}
             disabled={index === total - 1}
@@ -459,9 +466,10 @@ export const PhotoItemEditor = ({
             size="small"
           >
             <WaIcon
+              slot="start"
               name="arrow-down"
               label="Move photo down"
-              library="iconoir"
+              library="default"
             />
           </WaButton>
           <WaButton
@@ -471,7 +479,12 @@ export const PhotoItemEditor = ({
             onClick={() => onRemove(photo.id)}
             size="small"
           >
-            <WaIcon name="trash" label="Remove photo" library="iconoir" />
+            <WaIcon
+              slot="start"
+              name="trash"
+              label="Remove photo"
+              library="default"
+            />
           </WaButton>
         </div>
       </div>
