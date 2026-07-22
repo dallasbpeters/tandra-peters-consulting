@@ -44,6 +44,12 @@ interface TextDraft {
   value: string;
 }
 
+interface ViewTransform {
+  scale: number;
+  x: number;
+  y: number;
+}
+
 const COLORS = [
   "#e02424",
   "#f59e0b",
@@ -62,6 +68,12 @@ const sizePresets = (naturalWidth: number) => ({
   small: Math.max(2, Math.round(naturalWidth * 0.005)),
 });
 
+/** Text reads best a bit larger than the thickest stroke preset. */
+const TEXT_SIZE_MULTIPLIER = 1.4;
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+
 const clientToNatural = (
   canvas: HTMLCanvasElement,
   clientX: number,
@@ -72,6 +84,31 @@ const clientToNatural = (
   return {
     x: (clientX - rect.left) / scale,
     y: (clientY - rect.top) / scale,
+  };
+};
+
+const pinchDistance = (
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+): number => Math.hypot(a.x - b.x, a.y - b.y);
+
+const pinchCenter = (
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+): { x: number; y: number } => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+/** Clamps zoom to [MIN_ZOOM, MAX_ZOOM] and keeps pan within the stage bounds. */
+const clampView = (
+  next: ViewTransform,
+  stage: { clientHeight: number; clientWidth: number }
+): ViewTransform => {
+  const clampedScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next.scale));
+  const maxPanX = (stage.clientWidth * (clampedScale - 1)) / 2;
+  const maxPanY = (stage.clientHeight * (clampedScale - 1)) / 2;
+  return {
+    scale: clampedScale,
+    x: Math.min(maxPanX, Math.max(-maxPanX, next.x)),
+    y: Math.min(maxPanY, Math.max(-maxPanY, next.y)),
   };
 };
 
@@ -93,6 +130,13 @@ export const PhotoAnnotator = ({
   const draftRef = useRef<Annotation | null>(null);
   const rafRef = useRef<number | null>(null);
   const itemsRef = useRef<Annotation[]>(initialScene?.items ?? []);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{
+    startCenter: { x: number; y: number };
+    startDist: number;
+    startView: ViewTransform;
+  } | null>(null);
+  const pinchedRef = useRef(false);
 
   const [items, setItems] = useState<Annotation[]>(initialScene?.items ?? []);
   const [tool, setTool] = useState<Tool>("pen");
@@ -100,8 +144,10 @@ export const PhotoAnnotator = ({
   const [natural, setNatural] = useState({ height: 0, width: 0 });
   const [scale, setScale] = useState(1);
   const [strokeWidth, setStrokeWidth] = useState(6);
+  const [textSize, setTextSize] = useState(6 * TEXT_SIZE_MULTIPLIER);
   const [textDraft, setTextDraft] = useState<TextDraft | null>(null);
   const [ready, setReady] = useState(false);
+  const [view, setView] = useState<ViewTransform>({ scale: 1, x: 0, y: 0 });
 
   useEffect(() => {
     itemsRef.current = items;
@@ -120,7 +166,12 @@ export const PhotoAnnotator = ({
       bitmapRef.current = decoded;
       const presets = sizePresets(decoded.width);
       setStrokeWidth(presets.medium);
+      setTextSize(presets.large * TEXT_SIZE_MULTIPLIER);
       setNatural({ height: decoded.height, width: decoded.width });
+      setView({ scale: 1, x: 0, y: 0 });
+      pointersRef.current.clear();
+      pinchRef.current = null;
+      pinchedRef.current = false;
       setReady(true);
     });
     return () => {
@@ -233,20 +284,44 @@ export const PhotoAnnotator = ({
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
-      if (!canvas || textDraft) {
+      if (!canvas) {
         return;
       }
+      canvas.setPointerCapture(event.pointerId);
+      pointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // A second finger starts a pinch-to-zoom gesture; abandon any in-progress draft.
+      if (pointersRef.current.size >= 2) {
+        draftRef.current = null;
+        pinchedRef.current = true;
+        const [p1, p2] = [...pointersRef.current.values()];
+        pinchRef.current = {
+          startCenter: pinchCenter(p1, p2),
+          startDist: pinchDistance(p1, p2),
+          startView: view,
+        };
+        scheduleRedraw();
+        return;
+      }
+
+      if (pinchedRef.current || textDraft) {
+        return;
+      }
+
+      const effectiveScale = scale * view.scale;
       const { x, y } = clientToNatural(
         canvas,
         event.clientX,
         event.clientY,
-        scale
+        effectiveScale
       );
       if (tool === "text") {
         setTextDraft({ natX: x, natY: y, value: "" });
         return;
       }
-      canvas.setPointerCapture(event.pointerId);
       if (tool === "circle") {
         draftRef.current = {
           color,
@@ -267,21 +342,51 @@ export const PhotoAnnotator = ({
       }
       scheduleRedraw();
     },
-    [color, scale, scheduleRedraw, strokeWidth, textDraft, tool]
+    [color, scale, scheduleRedraw, strokeWidth, textDraft, tool, view]
   );
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
-      const draft = draftRef.current;
       const canvas = canvasRef.current;
-      if (!(draft && canvas)) {
+      const stage = stageRef.current;
+      if (!(canvas && stage)) {
         return;
       }
+      if (pointersRef.current.has(event.pointerId)) {
+        pointersRef.current.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+
+      if (pointersRef.current.size >= 2 && pinchRef.current) {
+        const [p1, p2] = [...pointersRef.current.values()];
+        const dist = pinchDistance(p1, p2);
+        const center = pinchCenter(p1, p2);
+        const { startCenter, startDist, startView } = pinchRef.current;
+        setView(
+          clampView(
+            {
+              scale: startView.scale * (dist / startDist),
+              x: startView.x + (center.x - startCenter.x),
+              y: startView.y + (center.y - startCenter.y),
+            },
+            stage
+          )
+        );
+        return;
+      }
+
+      const draft = draftRef.current;
+      if (!draft || pinchedRef.current) {
+        return;
+      }
+      const effectiveScale = scale * view.scale;
       const { x, y } = clientToNatural(
         canvas,
         event.clientX,
         event.clientY,
-        scale
+        effectiveScale
       );
       if (draft.kind === "circle") {
         draft.w = x - draft.x;
@@ -291,7 +396,7 @@ export const PhotoAnnotator = ({
       }
       scheduleRedraw();
     },
-    [scale, scheduleRedraw]
+    [scale, scheduleRedraw, view]
   );
 
   const handlePointerUp = useCallback(
@@ -300,19 +405,35 @@ export const PhotoAnnotator = ({
       if (canvas?.hasPointerCapture(event.pointerId)) {
         canvas.releasePointerCapture(event.pointerId);
       }
-      commitDraft();
+      pointersRef.current.delete(event.pointerId);
+
+      // One finger lifted mid-pinch: re-baseline on the remaining pair.
+      if (pointersRef.current.size >= 2) {
+        const [p1, p2] = [...pointersRef.current.values()];
+        pinchRef.current = {
+          startCenter: pinchCenter(p1, p2),
+          startDist: pinchDistance(p1, p2),
+          startView: view,
+        };
+        return;
+      }
+
+      pinchRef.current = null;
+      if (pointersRef.current.size === 0) {
+        pinchedRef.current = false;
+        commitDraft();
+      }
     },
-    [commitDraft]
+    [commitDraft, view]
   );
 
   const commitText = useCallback(() => {
     setTextDraft((draft) => {
       if (draft && draft.value.trim()) {
-        const size = sizePresets(natural.width).large * 1.4;
         const annotation: Annotation = {
           color,
           kind: "text",
-          size,
+          size: textSize,
           text: draft.value,
           x: draft.natX,
           y: draft.natY,
@@ -321,7 +442,7 @@ export const PhotoAnnotator = ({
       }
       return null;
     });
-  }, [color, natural.width]);
+  }, [color, textSize]);
 
   const handleUndo = () => setItems((prev) => prev.slice(0, -1));
   const handleClear = () => setItems([]);
@@ -367,7 +488,12 @@ export const PhotoAnnotator = ({
       </header>
 
       <div className="photo-annotator__stage" ref={stageRef}>
-        <div className="photo-annotator__canvas-wrap">
+        <div
+          className="photo-annotator__canvas-wrap"
+          style={{
+            transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+          }}
+        >
           <canvas
             className="photo-annotator__canvas"
             onPointerCancel={handlePointerUp}
@@ -397,7 +523,7 @@ export const PhotoAnnotator = ({
               placeholder="Type…"
               style={{
                 color,
-                fontSize: `${presets.large * 1.4 * scale}px`,
+                fontSize: `${textSize * scale}px`,
                 left: `${textDraft.natX * scale}px`,
                 top: `${textDraft.natY * scale}px`,
               }}
@@ -438,24 +564,36 @@ export const PhotoAnnotator = ({
         </div>
 
         <div className="photo-annotator__group">
-          {(["small", "medium", "large"] as const).map((key) => (
-            <button
-              aria-label={`${key} width`}
-              aria-pressed={strokeWidth === presets[key]}
-              className="photo-annotator__size"
-              key={key}
-              onClick={() => setStrokeWidth(presets[key])}
-              type="button"
-            >
-              <span
-                className="photo-annotator__size-dot"
-                style={{
-                  height: `${Math.min(22, 6 + presets[key] * 0.9)}px`,
-                  width: `${Math.min(22, 6 + presets[key] * 0.9)}px`,
-                }}
-              />
-            </button>
-          ))}
+          {(["small", "medium", "large"] as const).map((key) => {
+            const isTextTool = tool === "text";
+            const value = isTextTool
+              ? presets[key] * TEXT_SIZE_MULTIPLIER
+              : presets[key];
+            const label = `${key} ${isTextTool ? "text size" : "width"}`;
+            return (
+              <button
+                aria-label={label}
+                aria-pressed={
+                  isTextTool ? textSize === value : strokeWidth === value
+                }
+                className="photo-annotator__size"
+                key={key}
+                onClick={() =>
+                  isTextTool ? setTextSize(value) : setStrokeWidth(value)
+                }
+                title={label}
+                type="button"
+              >
+                <span
+                  className="photo-annotator__size-dot"
+                  style={{
+                    height: `${Math.min(22, 6 + value * 0.9)}px`,
+                    width: `${Math.min(22, 6 + value * 0.9)}px`,
+                  }}
+                />
+              </button>
+            );
+          })}
         </div>
 
         <div className="photo-annotator__group">
